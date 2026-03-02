@@ -1,0 +1,25 @@
+-- Database Schema for ALL entities
+
+-- LANDLORD
+
+-- MANAGER
+
+-- STUDENT
+
+-- ACCOMMODATION
+
+-- ROOM
+
+-- APPLICATION
+
+-- DOCUMENT
+
+-- ASSIGNMENT
+
+-- LOG
+
+-- REPORT
+
+-- FEE
+
+-- PAYMENT
