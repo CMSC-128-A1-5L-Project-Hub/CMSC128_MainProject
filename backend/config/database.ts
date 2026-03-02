@@ -5,48 +5,48 @@ const dbConfig = defineConfig({
   /**
    * Default connection used for all queries.
    */
-  connection: 'sqlite',
+  connection: 'mysql',
 
   connections: {
-    /**
-     * SQLite connection (default).
-     */
-    sqlite: {
-      client: 'better-sqlite3',
+  //   /**
+  //    * SQLite connection (default).
+  //    */
+  //   sqlite: {
+  //     client: 'better-sqlite3',
 
-      connection: {
-        filename: app.tmpPath('db.sqlite3'),
-      },
+  //     connection: {
+  //       filename: app.tmpPath('db.sqlite3'),
+  //     },
 
-      /**
-       * Required by Knex for SQLite defaults.
-       */
-      useNullAsDefault: true,
+  //     /**
+  //      * Required by Knex for SQLite defaults.
+  //      */
+  //     useNullAsDefault: true,
 
-      migrations: {
-        /**
-         * Sort migration files naturally by filename.
-         */
-        naturalSort: true,
+  //     migrations: {
+  //       /**
+  //        * Sort migration files naturally by filename.
+  //        */
+  //       naturalSort: true,
 
-        /**
-         * Paths containing migration files.
-         */
-        paths: ['database/migrations'],
-      },
+  //       /**
+  //        * Paths containing migration files.
+  //        */
+  //       paths: ['database/migrations'],
+  //     },
 
-      schemaGeneration: {
-        /**
-         * Enable schema generation from Lucid models.
-         */
-        enabled: true,
+  //     schemaGeneration: {
+  //       /**
+  //        * Enable schema generation from Lucid models.
+  //        */
+  //       enabled: true,
 
-        /**
-         * Custom schema rules file paths.
-         */
-        rulesPaths: ['./database/schema_rules.js'],
-      },
-    },
+  //       /**
+  //        * Custom schema rules file paths.
+  //        */
+  //       rulesPaths: ['./database/schema_rules.js'],
+  //     },
+  //   },
 
     /**
      * PostgreSQL connection.
@@ -72,21 +72,21 @@ const dbConfig = defineConfig({
      * MySQL / MariaDB connection.
      * Install package to switch: npm install mysql2
      */
-    // mysql: {
-    //   client: 'mysql2',
-    //   connection: {
-    //     host: process.env.MYSQL_HOST,
-    //     port: Number(process.env.MYSQL_PORT || 3306),
-    //     user: process.env.MYSQL_USER,
-    //     password: process.env.MYSQL_PASSWORD,
-    //     database: process.env.MYSQL_DB_NAME,
-    //   },
-    //   migrations: {
-    //     naturalSort: true,
-    //     paths: ['database/migrations'],
-    //   },
-    //   debug: app.inDev,
-    // },
+    mysql: {
+      client: 'mysql2',
+      connection: {
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT || 3306),
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_DATABASE,
+      },
+      migrations: {
+        naturalSort: true,
+        paths: ['database/migrations'],
+      },
+      debug: app.inDev,
+    },
 
     /**
      * Microsoft SQL Server connection.
