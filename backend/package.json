@@ -60,7 +60,7 @@
     "@adonisjs/auth": "^10.0.0-next.6",
     "@adonisjs/core": "^7.0.0",
     "@adonisjs/cors": "^3.0.0",
-    "@adonisjs/lucid": "^22.0.0",
+    "@adonisjs/lucid": "^22.0.0-next.9",
     "@adonisjs/session": "^8.0.0",
     "@adonisjs/shield": "^9.0.0",
     "@japa/api-client": "^3.2.1",
@@ -68,6 +68,7 @@
     "@vinejs/vine": "^4.3.0",
     "better-sqlite3": "^12.6.2",
     "luxon": "^3.7.2",
+    "mysql2": "^3.18.2",
     "reflect-metadata": "^0.2.2"
   },
   "hotHook": {
