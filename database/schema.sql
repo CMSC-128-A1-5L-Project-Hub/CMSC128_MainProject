@@ -1,6 +1,7 @@
 -- Database Schema for ALL entities
 
 -- USER
+-- For easier authentication, role-based tables are to reference the user_id instead
 CREATE TABLE IF NOT EXISTS user(
     user_id INT AUTO_INCREMENT,
     fname VARCHAR(50) NOT NULL,
@@ -29,7 +30,7 @@ CREATE TABLE IF NOT EXISTS manager(
 
 -- STUDENT
 CREATE TABLE IF NOT EXISTS student(
-    student_number VARCHAR(10) NOT NULL,
+    student_number VARCHAR(10) NOT NULL, -- will act as the PK instead of user_id
     user_id INT NOT NULL,
     CONSTRAINT student_student_number_pk PRIMARY KEY (student_number),
     CONSTRAINT student_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id)
@@ -84,7 +85,7 @@ CREATE TABLE IF NOT EXISTS document(
     document_id INT AUTO_INCREMENT,
     application_id INT NOT NULL,
     document_name VARCHAR(50) NOT NULL,
-    document_file MEDIUMBLOB NOT NULL,
+    document_file MEDIUMBLOB NOT NULL, -- for files, MEDIUMBLOB is around 16mb
     CONSTRAINT document_document_id_pk PRIMARY KEY (document_id),
     CONSTRAINT document_application_id_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
@@ -96,7 +97,7 @@ CREATE TABLE IF NOT EXISTS assignment(
     room_id INT NOT NULL,
     move_in DATE NOT NULL,
     expected_move_out DATE NOT NULL,
-    actual_move_out DATE NULL,
+    actual_move_out DATE NULL, -- can be NULL if student hasn't moved out
     CONSTRAINT assignment_assignment_id_pk PRIMARY KEY (assignment_id),
     CONSTRAINT assignment_student_number_fk FOREIGN KEY (student_number) REFERENCES student(student_number),
     CONSTRAINT assignment_room_id_fk FOREIGN KEY (room_id) REFERENCES room(room_id)
@@ -151,5 +152,5 @@ CREATE TABLE IF NOT EXISTS log(
     activity_details VARCHAR(200),
     CONSTRAINT log_log_id_pk PRIMARY KEY (log_id),
     CONSTRAINT log_actor_id_fk FOREIGN KEY (actor_id) REFERENCES user(user_id),
-    INDEX idx_entity (entity_type, entity_id)
+    INDEX idx_entity (entity_type, entity_id) -- to ensure that the right entity is referenced (multiple entities may have the same ID, but of different entity types)
 );
