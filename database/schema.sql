@@ -1,35 +1,38 @@
 -- Database Schema for ALL entities
 
+-- USER
+CREATE TABLE IF NOT EXISTS user(
+    user_id INT AUTO_INCREMENT,
+    fname VARCHAR(50) NOT NULL,
+    mname VARCHAR(50),
+    lname VARCHAR(50) NOT NULL,
+    suffix VARCHAR(10),
+    email VARCHAR(75) NOT NULL,
+    role ENUM('student', 'landlord', 'manager'),
+    CONSTRAINT user_user_id_pk PRIMARY KEY (user_id),
+    CONSTRAINT user_email_uk UNIQUE (email)
+);
+
 -- LANDLORD
 CREATE TABLE IF NOT EXISTS landlord(
-    landlord_id INT AUTO_INCREMENT,
-    landlord_fname VARCHAR(20) NOT NULL,
-    landlord_lname VARCHAR(20) NOT NULL,
-    landlord_email VARCHAR(50) NOT NULL,
-    CONSTRAINT landlord_landlord_id_pk PRIMARY KEY (landlord_id),
-    CONSTRAINT landlord_landlord_email_uk UNIQUE (landlord_email)
+    user_id INT NOT NULL,
+    CONSTRAINT landlord_user_id_pk PRIMARY (user_id) REFERENCES user(user_id),
+    CONSTRAINT landlord_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
 -- MANAGER
 CREATE TABLE IF NOT EXISTS manager(
-    manager_id INT AUTO_INCREMENT,
-    manager_fname VARCHAR(20) NOT NULL,
-    manager_lname VARCHAR(20) NOT NULL,
-    manager_email VARCHAR(50) NOT NULL,
-    CONSTRAINT manager_manager_id_pk PRIMARY KEY (manager_id),
-    CONSTRAINT manager_manager_email_uk UNIQUE (manager_email)
+    user_id INT NOT NULL,
+    CONSTRAINT manager_user_id_pk PRIMARY (user_id) REFERENCES user(user_id),
+    CONSTRAINT manager_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
 -- STUDENT
 CREATE TABLE IF NOT EXISTS student(
     student_number VARCHAR(10) NOT NULL,
-    student_fname VARCHAR(20) NOT NULL,
-    student_mname VARCHAR(20),
-    student_lname VARCHAR(20) NOT NULL,
-    student_suffix VARCHAR(5),
-    student_email VARCHAR(50) NOT NULL,
+    user_id INT NOT NULL,
     CONSTRAINT student_student_number_pk PRIMARY KEY (student_number),
-    CONSTRAINT student_student_email_uk UNIQUE (student_email)
+    CONSTRAINT student_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
 -- ACCOMMODATION
@@ -43,8 +46,8 @@ CREATE TABLE IF NOT EXISTS accommodation(
     accommodation_capacity INT NOT NULL,
     CONSTRAINT accommodation_accommodation_id_pk PRIMARY KEY (accommodation_id),
     CONSTRAINT accommodation_accommodation_name_uk UNIQUE (accommodation_name),
-    CONSTRAINT accommodation_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlord(landlord_id),
-    CONSTRAINT accommodation_manager_id_fk FOREIGN KEY (manager_id) REFERENCES manager(manager_id)
+    CONSTRAINT accommodation_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlord(user_id),
+    CONSTRAINT accommodation_manager_id_fk FOREIGN KEY (manager_id) REFERENCES manager(user_id)
 );
 
 -- ROOM
@@ -93,7 +96,7 @@ CREATE TABLE IF NOT EXISTS assignment(
     room_id INT NOT NULL,
     move_in DATE NOT NULL,
     expected_move_out DATE NOT NULL,
-    actual_move_out DATE NOT NULL,
+    actual_move_out DATE NULL,
     CONSTRAINT assignment_assignment_id_pk PRIMARY KEY (assignment_id),
     CONSTRAINT assignment_student_number_fk FOREIGN KEY (student_number) REFERENCES student(student_number),
     CONSTRAINT assignment_room_id_fk FOREIGN KEY (room_id) REFERENCES room(room_id)
@@ -102,10 +105,14 @@ CREATE TABLE IF NOT EXISTS assignment(
 -- REPORT
 CREATE TABLE IF NOT EXISTS report(
     report_id INT AUTO_INCREMENT,
+    landlord_id INT NOT NULL,
+    student_number VARCHAR(10) NOT NULL,
     report_type ENUM('billing', 'assignment') NOT NULL,
     report_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     report_file MEDIUMBLOB NOT NULL,
-    CONSTRAINT report_report_id_pk PRIMARY KEY (report_id)
+    CONSTRAINT report_report_id_pk PRIMARY KEY (report_id),
+    CONSTRAINT report_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlord(user_id),
+    CONSTRAINT report_student_number_fk FOREIGN KEY (student_number) REFERENCES student(student_number)
 );
 
 -- FEE
@@ -118,7 +125,7 @@ CREATE TABLE IF NOT EXISTS fee(
     fee_amount DECIMAL(10, 2) NOT NULL,
     fee_status ENUM('paid', 'unpaid', 'overdue', 'partial') NOT NULL,
     CONSTRAINT fee_fee_id_pk PRIMARY KEY (fee_id),
-    CONSTRAINT fee_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlord(landlord_id),
+    CONSTRAINT fee_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlord(user_id),
     CONSTRAINT fee_student_number_fk FOREIGN KEY (student_number) REFERENCES student(student_number)
 );
 
@@ -129,7 +136,6 @@ CREATE TABLE IF NOT EXISTS payment(
     payment_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     payment_amount DECIMAL(10,2) NOT NULL,
     mode_of_payment VARCHAR(30) NOT NULL,
-    payment_category ENUM('rent', 'utilities', 'miscellaneous') NOT NULL,
     CONSTRAINT payment_payment_id_pk PRIMARY KEY (payment_id),
     CONSTRAINT payment_fee_id_fk FOREIGN KEY (fee_id) REFERENCES fee(fee_id)
 );
@@ -137,14 +143,13 @@ CREATE TABLE IF NOT EXISTS payment(
 -- LOG
 CREATE TABLE IF NOT EXISTS log(
     log_id INT AUTO_INCREMENT,
-    actor_type ENUM('student', 'landlord', 'manager', 'system') NOT NULL,
-    actor_id VARCHAR(10) NOT NULL,
+    actor_id INT NULL,
     entity_type ENUM('application', 'assignment', 'payment', 'room', 'accommodation', 'document', 'report', 'fee') NOT NULL,
     entity_id INT NOT NULL, 
     log_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     activity_type VARCHAR(50) NOT NULL,
     activity_details VARCHAR(200),
-    INDEX idx_actor (actor_type, actor_id),
-    INDEX idx_entity (entity_type, entity_id),
-    CONSTRAINT log_log_id_pk PRIMARY KEY (log_id)
+    CONSTRAINT log_log_id_pk PRIMARY KEY (log_id),
+    CONSTRAINT log_actor_id_fk FOREIGN KEY (actor_id) REFERENCES user(user_id),
+    INDEX idx_entity (entity_type, entity_id)
 );
