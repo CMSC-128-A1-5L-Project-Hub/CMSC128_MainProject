@@ -3,6 +3,8 @@ import type { routes } from './index.ts'
 
 export interface ApiDefinition {
   auth: {
+    redirect: typeof routes['auth.redirect']
+    callback: typeof routes['auth.callback']
     newAccount: {
       store: typeof routes['auth.new_account.store']
     }
