@@ -36,6 +36,30 @@ const routes = {
     tokens: [{"old":"/api/v1/auth/logout","type":0,"val":"api","end":""},{"old":"/api/v1/auth/logout","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/logout","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/logout","type":0,"val":"logout","end":""}],
     types: placeholder as Registry['auth.access_token.destroy']['types'],
   },
+  'setups.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/setup',
+    tokens: [{"old":"/api/v1/setup","type":0,"val":"api","end":""},{"old":"/api/v1/setup","type":0,"val":"v1","end":""},{"old":"/api/v1/setup","type":0,"val":"setup","end":""}],
+    types: placeholder as Registry['setups.show']['types'],
+  },
+  'setups.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/setup',
+    tokens: [{"old":"/api/v1/setup","type":0,"val":"api","end":""},{"old":"/api/v1/setup","type":0,"val":"v1","end":""},{"old":"/api/v1/setup","type":0,"val":"setup","end":""}],
+    types: placeholder as Registry['setups.store']['types'],
+  },
+  'student_dashboards.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/dashboard/student',
+    tokens: [{"old":"/api/v1/dashboard/student","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/student","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/student","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/student","type":0,"val":"student","end":""}],
+    types: placeholder as Registry['student_dashboards.index']['types'],
+  },
+  'landlord_dashboards.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/dashboard/landlord',
+    tokens: [{"old":"/api/v1/dashboard/landlord","type":0,"val":"api","end":""},{"old":"/api/v1/dashboard/landlord","type":0,"val":"v1","end":""},{"old":"/api/v1/dashboard/landlord","type":0,"val":"dashboard","end":""},{"old":"/api/v1/dashboard/landlord","type":0,"val":"landlord","end":""}],
+    types: placeholder as Registry['landlord_dashboards.index']['types'],
+  },
   'profile.profile.show': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/account/profile',

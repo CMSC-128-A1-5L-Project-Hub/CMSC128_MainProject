@@ -13,6 +13,16 @@ export interface ApiDefinition {
       destroy: typeof routes['auth.access_token.destroy']
     }
   }
+  setups: {
+    show: typeof routes['setups.show']
+    store: typeof routes['setups.store']
+  }
+  studentDashboards: {
+    index: typeof routes['student_dashboards.index']
+  }
+  landlordDashboards: {
+    index: typeof routes['landlord_dashboards.index']
+  }
   profile: {
     profile: {
       show: typeof routes['profile.profile.show']

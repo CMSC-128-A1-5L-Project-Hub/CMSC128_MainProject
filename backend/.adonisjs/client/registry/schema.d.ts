@@ -62,6 +62,50 @@ export interface Registry {
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/access_token_controller').default['destroy']>>>
     }
   }
+  'setups.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/setup'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['show']>>>
+    }
+  }
+  'setups.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/setup'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>>
+    }
+  }
+  'student_dashboards.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/student'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/student_dashboards_controller').default['index']>>>
+    }
+  }
+  'landlord_dashboards.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/dashboard/landlord'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/landlord_dashboards_controller').default['index']>>>
+    }
+  }
   'profile.profile.show': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/account/profile'
