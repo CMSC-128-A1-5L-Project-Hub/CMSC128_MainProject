@@ -6,14 +6,22 @@
 | The routes file is used for defining the HTTP routes.
 |
 */
-
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 
+const AuthController = () => import('#controllers/auth_controller')
+
 router.get('/', () => {
   return { hello: 'world' }
 })
+
+// This triggers STEP 1 method
+router.get('/auth/google/redirect', [AuthController, 'redirect'])
+
+// This triggers STEP 2 method (Google will send the user here)
+router.get('/auth/google/callback', [AuthController, 'callback'])
+
 
 router
   .group(() => {
@@ -35,3 +43,4 @@ router
       .use(middleware.auth())
   })
   .prefix('/api/v1')
+
