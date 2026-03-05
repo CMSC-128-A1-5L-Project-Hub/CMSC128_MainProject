@@ -1,44 +1,90 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
-export class AuthAccessTokenSchema extends BaseModel {
-  static $columns = ['id', 'tokenableId', 'type', 'name', 'hash', 'abilities', 'createdAt', 'updatedAt', 'lastUsedAt', 'expiresAt'] as const
-  $columns = AuthAccessTokenSchema.$columns
+export class AccommodationSchema extends BaseModel {
+  static $columns = ['id', 'landlordId', 'managerId', 'name', 'location', 'type', 'capacity', 'createdAt', 'updatedAt'] as const
+  $columns = AccommodationSchema.$columns
   @column({ isPrimary: true })
   declare id: number
   @column()
-  declare tokenableId: number
+  declare landlordId: number | null
+  @column()
+  declare managerId: number | null
+  @column()
+  declare name: string
+  @column()
+  declare location: string
   @column()
   declare type: string
   @column()
-  declare name: string | null
-  @column()
-  declare hash: string
-  @column()
-  declare abilities: string
+  declare capacity: number
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+}
+
+export class LandlordSchema extends BaseModel {
+  static $columns = ['userId'] as const
+  $columns = LandlordSchema.$columns
+  @column()
+  declare userId: number
+}
+
+export class LogSchema extends BaseModel {
+  static $columns = ['id', 'actorId', 'entityType', 'entityId', 'timestamp', 'activityType', 'activityDetails'] as const
+  $columns = LogSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare actorId: number | null
+  @column()
+  declare entityType: string
+  @column()
+  declare entityId: number
   @column.dateTime()
-  declare lastUsedAt: DateTime | null
-  @column.dateTime()
-  declare expiresAt: DateTime | null
+  declare timestamp: DateTime | null
+  @column()
+  declare activityType: string
+  @column()
+  declare activityDetails: string | null
+}
+
+export class ManagerSchema extends BaseModel {
+  static $columns = ['userId'] as const
+  $columns = ManagerSchema.$columns
+  @column()
+  declare userId: number
+}
+
+export class StudentSchema extends BaseModel {
+  static $columns = ['studentNumber', 'userId'] as const
+  $columns = StudentSchema.$columns
+  @column()
+  declare studentNumber: string
+  @column()
+  declare userId: number
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['id', 'fullName', 'email', 'password', 'createdAt', 'updatedAt'] as const
+  static $columns = ['id', 'firstName', 'middleName', 'lastName', 'suffix', 'email', 'role', 'createdAt', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column({ isPrimary: true })
   declare id: number
   @column()
-  declare fullName: string | null
+  declare firstName: string
+  @column()
+  declare middleName: string | null
+  @column()
+  declare lastName: string
+  @column()
+  declare suffix: string | null
   @column()
   declare email: string
-  @column({ serializeAs: null })
-  declare password: string
+  @column()
+  declare role: string | null
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
