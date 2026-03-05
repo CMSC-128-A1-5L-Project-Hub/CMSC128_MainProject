@@ -34,6 +34,35 @@ router
       .prefix('auth')
       .as('auth')
 
+    /*
+    |--------------------------------------------------------------------------
+    | SETUP ROUTES (for unassigned users)
+    |--------------------------------------------------------------------------
+    */
+    router
+      .group(() => {
+        router.get('/', [controllers.Setups, 'show'])
+        router.post('/', [controllers.Setups, 'store'])
+      })
+      .prefix('setup')
+      .use(middleware.auth())
+
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD ROUTES
+    |--------------------------------------------------------------------------
+    */
+    router
+      .group(() => {
+        router.get('/student', [controllers.StudentDashboards, 'index'])
+          .use(middleware.role(['student' ]))
+
+        router.get('/landlord', [controllers.LandlordDashboards, 'index'])
+          .use(middleware.role(['landlord' ]))
+      })
+      .prefix('dashboard')
+      .use(middleware.auth())
+
     router
       .group(() => {
         router.get('/profile', [controllers.Profile, 'show'])
