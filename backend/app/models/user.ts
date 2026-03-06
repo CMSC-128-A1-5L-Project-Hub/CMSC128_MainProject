@@ -18,7 +18,7 @@ export default class User extends compose(UserSchema, withAuthFinder(hash)) {
   public last_name: string
 
   @column()
-  public up_mail: string
+  public email: string
 
   @column()
   public role: string
