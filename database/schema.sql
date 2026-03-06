@@ -12,22 +12,22 @@ CREATE TABLE IF NOT EXISTS user(
     role ENUM('student', 'landlord', 'manager'),
     CONSTRAINT user_user_id_pk PRIMARY KEY (user_id),
     CONSTRAINT user_email_uk UNIQUE (email)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- LANDLORD
 CREATE TABLE IF NOT EXISTS landlord(
     user_id INT NOT NULL,
-    CONSTRAINT landlord_user_id_pk PRIMARY (user_id),
+    CONSTRAINT landlord_user_id_pk PRIMARY KEY (user_id),
     CONSTRAINT landlord_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- MANAGER
 CREATE TABLE IF NOT EXISTS manager(
     user_id INT NOT NULL,
     manager_status ENUM('active', 'inactive') NOT NULL DEFAULT 'inactive',
-    CONSTRAINT manager_user_id_pk PRIMARY (user_id),
+    CONSTRAINT manager_user_id_pk PRIMARY KEY (user_id),
     CONSTRAINT manager_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- STUDENT
 CREATE TABLE IF NOT EXISTS student(
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS student(
     user_id INT NOT NULL,
     CONSTRAINT student_student_number_pk PRIMARY KEY (student_number),
     CONSTRAINT student_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- DOCUMENT
 CREATE TABLE IF NOT EXISTS document(
@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS document(
     document_name VARCHAR(100) NOT NULL,
     document_path VARCHAR(500) NOT NULL,
     CONSTRAINT document_document_id_pk PRIMARY KEY (document_id),
-    CONSTRAINT document_user_id_fk FOREIGN KEY (user_id) REFERENCES student(student_id)
-);
+    CONSTRAINT document_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ACCOMMODATION
 CREATE TABLE IF NOT EXISTS accommodation(
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS accommodation(
     CONSTRAINT accommodation_accommodation_name_uk UNIQUE (accommodation_name),
     CONSTRAINT accommodation_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlord(user_id),
     CONSTRAINT accommodation_manager_id_fk FOREIGN KEY (manager_id) REFERENCES manager(user_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ACCOMMODATION TAGS
 CREATE TABLE IF NOT EXISTS accommodation_tags(
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS accommodation_tags(
     tag_detail ENUM('parking', 'pets_allowed', 'visitors_allowed', 'with_curfew', 'with_internet', 'cooking_allowed', 'coed', 'non_coed', 'with_heater', 'utilities_included', 'with_furniture', 'aircon', 'laundry_service', 'canteen', 'security'),
     CONSTRAINT accommodation_tags_tags_id_pk PRIMARY KEY (tags_id),
     CONSTRAINT accommodation_tags_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ACCOMMODATION IMAGES (set of images for each accommodation)
 CREATE TABLE IF NOT EXISTS accommodation_images(
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS accommodation_images(
     image_path VARCHAR(500) NOT NULL,
     CONSTRAINT accommodation_images_images_id_pk PRIMARY KEY (images_id),
     CONSTRAINT accommodation_images_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- REVIEW
 CREATE TABLE IF NOT EXISTS review(
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS review(
     content VARCHAR(500), -- optional 
     CONSTRAINT review_review_id_pk PRIMARY KEY (review_id),
     CONSTRAINT review_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- USER BOOKMARK (for accommodations)
 CREATE TABLE IF NOT EXISTS bookmark(
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS bookmark(
     CONSTRAINT bookmark_bookmark_id_pk PRIMARY KEY (bookmark_id),
     CONSTRAINT bookmark_student_number_fk FOREIGN KEY (student_number) REFERENCES student(student_number),
     CONSTRAINT bookmark_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ROOM
 CREATE TABLE IF NOT EXISTS room(
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS room(
     room_availability ENUM('available', 'occupied', 'maintenance') NOT NULL,
     CONSTRAINT room_room_id_pk PRIMARY KEY (room_id),
     CONSTRAINT room_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- TRANSIENT
 CREATE TABLE IF NOT EXISTS transient(
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS transient(
     room_id INT NOT NULL,
     CONSTRAINT transient_transient_id_pk PRIMARY KEY (transient_id),
     CONSTRAINT transient_room_id_fk FOREIGN KEY (room_id) REFERENCES room(room_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- NON-TRANSIENT (for long term stay)
 CREATE TABLE IF NOT EXISTS non_transient(
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS non_transient(
     room_id INT NOT NULL,
     CONSTRAINT non_transient_non_transient_id_pk PRIMARY KEY (non_transient_id),
     CONSTRAINT non_transient_room_id_fk FOREIGN KEY (room_id) REFERENCES room(room_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- APPLICATION
 CREATE TABLE IF NOT EXISTS application(
@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS application(
     CONSTRAINT application_application_id_pk PRIMARY KEY (application_id),
     CONSTRAINT application_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id),
     CONSTRAINT application_student_number_fk FOREIGN KEY (student_number) REFERENCES student(student_number)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ASSIGNMENT
 CREATE TABLE IF NOT EXISTS assignment(
@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS assignment(
     CONSTRAINT assignment_assignment_id_pk PRIMARY KEY (assignment_id),
     CONSTRAINT assignment_student_number_fk FOREIGN KEY (student_number) REFERENCES student(student_number),
     CONSTRAINT assignment_room_id_fk FOREIGN KEY (room_id) REFERENCES room(room_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- REPORT
 CREATE TABLE IF NOT EXISTS report(
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS report(
     CONSTRAINT report_report_id_pk PRIMARY KEY (report_id),
     CONSTRAINT report_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlord(user_id),
     CONSTRAINT report_student_number_fk FOREIGN KEY (student_number) REFERENCES student(student_number)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- FEE
 CREATE TABLE IF NOT EXISTS fee(
@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS fee(
     CONSTRAINT fee_fee_id_pk PRIMARY KEY (fee_id),
     CONSTRAINT fee_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlord(user_id),
     CONSTRAINT fee_student_number_fk FOREIGN KEY (student_number) REFERENCES student(student_number)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- PAYMENT
 CREATE TABLE IF NOT EXISTS payment(
@@ -200,7 +200,7 @@ CREATE TABLE IF NOT EXISTS payment(
     payment_file_path VARCHAR(500) NOT NULL,
     CONSTRAINT payment_payment_id_pk PRIMARY KEY (payment_id),
     CONSTRAINT payment_fee_id_fk FOREIGN KEY (fee_id) REFERENCES fee(fee_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- LOG
 CREATE TABLE IF NOT EXISTS log(
@@ -214,4 +214,4 @@ CREATE TABLE IF NOT EXISTS log(
     CONSTRAINT log_log_id_pk PRIMARY KEY (log_id),
     CONSTRAINT log_actor_id_fk FOREIGN KEY (actor_id) REFERENCES user(user_id),
     INDEX idx_entity (entity_type, entity_id) -- to ensure that the right entity is referenced (multiple entities may have the same ID, but of different entity types)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
