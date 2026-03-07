@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS user(
     role ENUM('student', 'landlord', 'manager') NOT NULL,
     CONSTRAINT user_user_id_pk PRIMARY KEY (user_id),
     CONSTRAINT user_email_uk UNIQUE (email),
-    CONSTRAINT user_pfp_file_id FOREIGN KEY (pfp_file_id) REFERENCES file_metadata(file_id)
+    CONSTRAINT user_pfp_file_id_fk FOREIGN KEY (pfp_file_id) REFERENCES file_metadata(file_id),
+    CONSTRAINT user_pfp_file_id_uk UNIQUE (pfp_file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- PHONE NUMBER
@@ -60,7 +61,9 @@ CREATE TABLE IF NOT EXISTS student(
     enrollment_proof_file_id INT NOT NULL,
     CONSTRAINT student_student_number_pk PRIMARY KEY (student_number),
     CONSTRAINT student_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id),
-    CONSTRAINT student_enrollment_proof_file_id_fk FOREIGN KEY (enrollment_proof_file_id) REFERENCES file_metadata(file_id)
+    CONSTRAINT student_enrollment_proof_file_id_fk FOREIGN KEY (enrollment_proof_file_id) REFERENCES file_metadata(file_id),
+    CONSTRAINT student_user_id_uk UNIQUE (user_id),
+    CONSTRAINT student_enrollment_proof_file_id_uk UNIQUE (enrollment_proof_file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- DOCUMENT
@@ -71,7 +74,8 @@ CREATE TABLE IF NOT EXISTS document(
     upload_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT document_document_id_pk PRIMARY KEY (document_id),
     CONSTRAINT document_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id),
-    CONSTRAINT document_file_id_fk FOREIGN KEY (file_id) REFERENCES file_metadata(file_id)
+    CONSTRAINT document_file_id_fk FOREIGN KEY (file_id) REFERENCES file_metadata(file_id),
+    CONSTRAINT document_file_id_uk UNIQUE (file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ACCOMMODATION
@@ -90,7 +94,10 @@ CREATE TABLE IF NOT EXISTS accommodation(
     CONSTRAINT accommodation_accommodation_name_uk UNIQUE (accommodation_name),
     CONSTRAINT accommodation_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlord(user_id),
     CONSTRAINT accommodation_manager_id_fk FOREIGN KEY (manager_id) REFERENCES manager(user_id),
-    CONSTRAINT accommodation_business_permit_id_fk FOREIGN KEY (business_permit_id) REFERENCES file_metadata(file_id)
+    CONSTRAINT accommodation_business_permit_id_fk FOREIGN KEY (business_permit_id) REFERENCES file_metadata(file_id),
+    CONSTRAINT accommodation_landlord_id_uk UNIQUE (landlord_id),
+    CONSTRAINT accommodation_manager_id_uk UNIQUE (manager_id),
+    CONSTRAINT accommodation_business_permit_id_uk  UNIQUE (business_permit_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ACCOMMODATION TAGS
@@ -109,7 +116,8 @@ CREATE TABLE IF NOT EXISTS accommodation_images(
     image_file_id INT NOT NULL,
     CONSTRAINT accommodation_images_images_id_pk PRIMARY KEY (images_id),
     CONSTRAINT accommodation_images_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id),
-    CONSTRAINT accommodation_images_image_file_id_fk FOREIGN KEY (image_file_id) REFERENCES file_metadata(file_id)
+    CONSTRAINT accommodation_images_image_file_id_fk FOREIGN KEY (image_file_id) REFERENCES file_metadata(file_id),
+    CONSTRAINT accommodation_images_image_file_id_uk UNIQUE (image_file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- REVIEW
@@ -203,7 +211,8 @@ CREATE TABLE IF NOT EXISTS report(
     CONSTRAINT report_report_id_pk PRIMARY KEY (report_id),
     CONSTRAINT report_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlord(user_id),
     CONSTRAINT report_student_number_fk FOREIGN KEY (student_number) REFERENCES student(student_number),
-    CONSTRAINT report_report_file_id_fk FOREIGN KEY (report_file_id) REFERENCES file_metadata(file_id)
+    CONSTRAINT report_report_file_id_fk FOREIGN KEY (report_file_id) REFERENCES file_metadata(file_id),
+    CONSTRAINT report_report_file_id_uk UNIQUE (report_file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- FEE
@@ -231,7 +240,8 @@ CREATE TABLE IF NOT EXISTS payment(
     mode_of_payment VARCHAR(30) NOT NULL,
     CONSTRAINT payment_payment_id_pk PRIMARY KEY (payment_id),
     CONSTRAINT payment_fee_id_fk FOREIGN KEY (fee_id) REFERENCES fee(fee_id),
-    CONSTRAINT payment_proof_file_id_fk FOREIGN KEY (proof_file_id) REFERENCES file_metadata(file_id)
+    CONSTRAINT payment_proof_file_id_fk FOREIGN KEY (proof_file_id) REFERENCES file_metadata(file_id),
+    CONSTRAINT payment_proof_file_id_uk UNIQUE (proof_file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- LOG
