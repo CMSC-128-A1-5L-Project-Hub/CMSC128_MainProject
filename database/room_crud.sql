@@ -16,37 +16,37 @@ WHERE r.accommodation_id = 67
 
 ----- UPDATE -----
 -- Update room number by room_id
-Update room 
+UPDATE room 
 SET room_number = '679'
 WHERE room_id = 67; 
 
 -- Update room type by room_id
-Update room 
+UPDATE room 
 SET room_type = 'single'
 WHERE room_id = 67; 
 
 -- Update room capacity by room_id
-Update room 
+UPDATE room 
 SET room_capacity = 4
 WHERE room_id = 67; 
 
 -- Update room current occupancy by room_id
-Update room 
+UPDATE room 
 SET room_current_occupancy = 4
 WHERE room_id = 67; 
 
 -- Update room building by room_id
-Update room 
-SET room_building = "janelle"
+UPDATE room 
+SET room_building = 'janelle'
 WHERE room_id = 67; 
 
 -- Update room rent by room_id
-Update room 
+UPDATE room 
 SET room_rent = 69420.67
 WHERE room_id = 67; 
 
 -- Update room availability by room_id
-Update room 
+UPDATE room 
 SET room_availability = 'occupied'
 WHERE room_id = 67; 
 
