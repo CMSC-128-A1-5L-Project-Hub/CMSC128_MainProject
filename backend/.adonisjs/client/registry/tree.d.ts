@@ -3,17 +3,19 @@ import type { routes } from './index.ts'
 
 export interface ApiDefinition {
   auth: {
-    newAccount: {
-      store: typeof routes['auth.new_account.store']
-    }
-    accessToken: {
-      store: typeof routes['auth.access_token.store']
-      destroy: typeof routes['auth.access_token.destroy']
-    }
+    redirect: typeof routes['auth.redirect']
+    callback: typeof routes['auth.callback']
+  }
+  studentDashboards: {
+    index: typeof routes['student_dashboards.index']
+  }
+  landlordDashboards: {
+    index: typeof routes['landlord_dashboards.index']
   }
   profile: {
-    profile: {
-      show: typeof routes['profile.profile.show']
-    }
+    show: typeof routes['profile.show']
+  }
+  setups: {
+    store: typeof routes['setups.store']
   }
 }

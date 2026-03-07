@@ -5,14 +5,15 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id').notNullable()
-      table.string('first_name').nullable()
-      table.string('last_name').nullable()
-      table.string('email').nullable().unique()
-      table.string('role').nullable()
-
-      table.timestamp('created_at').notNullable()
-      table.timestamp('updated_at').nullable()
+      table.increments('id').primary()
+      table.string('first_name', 50).notNullable()
+      table.string('middle_name', 50).nullable()
+      table.string('last_name', 50).notNullable()
+      table.string('suffix', 10).nullable()
+      table.string('email', 75).notNullable().unique()
+      // Added 'unassigned' for our initial account creation
+      table.enum('role', ['unassigned', 'student', 'landlord', 'manager']).defaultTo('unassigned')
+      table.timestamps(true)
     })
   }
 
