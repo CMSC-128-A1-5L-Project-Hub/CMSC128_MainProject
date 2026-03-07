@@ -9,7 +9,7 @@ export type ParamValue = string | number | bigint | boolean
 export interface Registry {
   'auth.redirect': {
     methods: ["GET","HEAD"]
-    pattern: '/auth/google/redirect'
+    pattern: '/api/v1/auth/google/redirect'
     types: {
       body: {}
       paramsTuple: []
@@ -20,68 +20,13 @@ export interface Registry {
   }
   'auth.callback': {
     methods: ["GET","HEAD"]
-    pattern: '/auth/google/callback'
+    pattern: '/api/v1/auth/google/callback'
     types: {
       body: {}
       paramsTuple: []
       params: {}
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['callback']>>>
-    }
-  }
-  'auth.new_account.store': {
-    methods: ["POST"]
-    pattern: '/api/v1/auth/signup'
-    types: {
-      body: ExtractBody<InferInput<(typeof import('#validators/user').signupValidator)>>
-      paramsTuple: []
-      params: {}
-      query: ExtractQuery<InferInput<(typeof import('#validators/user').signupValidator)>>
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/new_account_controller').default['store']>>>
-    }
-  }
-  'auth.access_token.store': {
-    methods: ["POST"]
-    pattern: '/api/v1/auth/login'
-    types: {
-      body: ExtractBody<InferInput<(typeof import('#validators/user').loginValidator)>>
-      paramsTuple: []
-      params: {}
-      query: ExtractQuery<InferInput<(typeof import('#validators/user').loginValidator)>>
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/access_token_controller').default['store']>>>
-    }
-  }
-  'auth.access_token.destroy': {
-    methods: ["POST"]
-    pattern: '/api/v1/auth/logout'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/access_token_controller').default['destroy']>>>
-    }
-  }
-  'setups.show': {
-    methods: ["GET","HEAD"]
-    pattern: '/api/v1/setup'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['show']>>>
-    }
-  }
-  'setups.store': {
-    methods: ["POST"]
-    pattern: '/api/v1/setup'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>>
     }
   }
   'student_dashboards.index': {
@@ -106,7 +51,7 @@ export interface Registry {
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/landlord_dashboards_controller').default['index']>>>
     }
   }
-  'profile.profile.show': {
+  'profile.show': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/account/profile'
     types: {
@@ -115,6 +60,17 @@ export interface Registry {
       params: {}
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['show']>>>
+    }
+  }
+  'setups.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/setup'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>>
     }
   }
 }

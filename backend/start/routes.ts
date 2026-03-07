@@ -17,62 +17,43 @@ router.get('/', () => {
   return { hello: 'world' }
 })
 
-// This triggers STEP 1 method
-router.get('/auth/google/redirect', [AuthController, 'redirect'])
+/*
+|--------------------------------------------------------------------------
+| PUBLIC ROUTES (Guest-Accessible)
+|--------------------------------------------------------------------------
+*/
+router.group(() => {
+  // Authentication Entry Points
+  router.get('/auth/google/redirect', [AuthController, 'redirect'])
+  router.get('/auth/google/callback', [AuthController, 'callback'])
 
-// This triggers STEP 2 method (Google will send the user here)
-router.get('/auth/google/callback', [AuthController, 'callback'])
+  // The Dorm Map/Viewer
+  // router.get('/accommodations', [controllers.Accommodations, 'index'])
+  // router.get('/accommodations/:id', [controllers.Accommodations, 'show'])
+}).prefix('/api/v1')
 
+/*
+|--------------------------------------------------------------------------
+| PROTECTED API ROUTES (Requires Auth)
+|--------------------------------------------------------------------------
+*/
+router.group(() => {
+  
+  // Dashboard & Profile Routes
+  router.group(() => {
+    router.get('/student', [controllers.StudentDashboards, 'index'])
+      .use(middleware.role([ROLES.STUDENT]))
 
-router
-  .group(() => {
-    router
-      .group(() => {
-        router.post('signup', [controllers.NewAccount, 'store'])
-        router.post('login', [controllers.AccessToken, 'store'])
-        router.post('logout', [controllers.AccessToken, 'destroy']).use(middleware.auth())
-      })
-      .prefix('auth')
-      .as('auth')
+    router.get('/landlord', [controllers.LandlordDashboards, 'index'])
+      .use(middleware.role([ROLES.LANDLORD]))
+  }).prefix('dashboard')
 
-    /*
-    |--------------------------------------------------------------------------
-    | SETUP ROUTES (for unassigned users)
-    |--------------------------------------------------------------------------
-    */
-    router
-      .group(() => {
-        router.get('/', [controllers.Setups, 'show'])
-        router.post('/', [controllers.Setups, 'store'])
-      })
-      .prefix('setup')
-      .use(middleware.auth())
+  router.get('/account/profile', [controllers.Profile, 'show'])
 
-    /*
-    |--------------------------------------------------------------------------
-    | DASHBOARD ROUTES
-    |--------------------------------------------------------------------------
-    */
-    router
-      .group(() => {
-        router.get('/student', [controllers.StudentDashboards, 'index'])
-          .use(middleware.role(['student' ]))
+  // Setup for new users
+  router.post('/setup', [controllers.Setups, 'store'])
 
-        router.get('/landlord', [controllers.LandlordDashboards, 'index'])
-          .use(middleware.role(['landlord' ]))
-      })
-      .prefix('dashboard')
-      .use(middleware.auth())
-
-    router
-      .group(() => {
-        router.get('/profile', [controllers.Profile, 'show'])
-      })
-      .prefix('account')
-      .as('profile')
-      .use(middleware.auth())
-  })
-  .prefix('/api/v1')
+}).prefix('/api/v1').use(middleware.auth())
 
   // ── RBAC Test Routes ───────────────────────────────
 router.get('/test-set-role/:role', async ({ session, params }) => {
@@ -80,26 +61,6 @@ router.get('/test-set-role/:role', async ({ session, params }) => {
   return { message: `Role set to: ${params.role}` }
 })
 
-router
-  .get('/test-student-only', async ({ session }) => {
-    return { message: 'Welcome, Student.', role: session.get('role') }
-  })
-  .use(middleware.role([ROLES.STUDENT]))
-
-router
-  .get('/test-manager-only', async ({ session }) => {
-    return { message: 'Welcome, Dormitory Manager.', role: session.get('role') }
-  })
-  .use(middleware.role([ROLES.MANAGER]))
-
-router
-  .get('/test-landlord-only', async ({ session }) => {
-    return { message: 'Welcome, Landlord.', role: session.get('role') }
-  })
-  .use(middleware.role([ROLES.LANDLORD]))
-
-router
-  .get('/test-landlord-manager', async ({ session }) => {
-    return { message: 'Welcome, housing personnel.', role: session.get('role') }
-  })
-  .use(middleware.role([ROLES.LANDLORD, ROLES.MANAGER]))
+router.get('/test-student-only', async ({ session }) => {
+  return { message: 'Welcome, Student.', role: session.get('role') }
+}).use(middleware.role([ROLES.STUDENT]))
