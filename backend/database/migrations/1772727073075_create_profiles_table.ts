@@ -2,9 +2,9 @@ import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class extends BaseSchema {
   async up() {
-    this.schema.createTable('student', (table) => {
+    this.schema.createTable('students', (table) => {
       // Primary Key linked to Users table
-      table.integer('user_id').unsigned().primary().references('id').inTable('users').onDelete('CASCADE')
+      table.bigInteger('user_id').unsigned().primary().references('id').inTable('users').onDelete('CASCADE')
       
       // Data Fields
       table.string('student_number').notNullable().unique()
@@ -21,8 +21,8 @@ export default class extends BaseSchema {
       table.timestamp('updated_at')
     })
 
-    this.schema.createTable('landlord', (table) => {
-      table.integer('user_id').unsigned().primary().references('id').inTable('users').onDelete('CASCADE')
+    this.schema.createTable('landlords', (table) => {
+      table.bigInteger('user_id').unsigned().primary().references('id').inTable('users').onDelete('CASCADE')
       
       // Data Fields
       table.string('tin').notNullable()
@@ -37,13 +37,14 @@ export default class extends BaseSchema {
       table.timestamp('updated_at')
     })
 
-    this.schema.createTable('manager', (table) => {
-      table.integer('user_id').unsigned().primary().references('id').inTable('users').onDelete('CASCADE')
+    this.schema.createTable('managers', (table) => {
+      table.bigInteger('user_id').unsigned().primary().references('id').inTable('users').onDelete('CASCADE')
     })
   }
   
   async down() {
-    this.schema.dropTable('student')
-    this.schema.dropTable('landlord')
+    this.schema.dropTable('students')
+    this.schema.dropTable('landlords')
+    this.schema.dropTable('managers')
   }
 }

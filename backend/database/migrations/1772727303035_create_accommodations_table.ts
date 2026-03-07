@@ -2,10 +2,10 @@ import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class extends BaseSchema {
   async up() {
-    this.schema.createTable('accommodation', (table) => {
-      table.increments('id').primary()
-      table.integer('landlord_id').unsigned().references('user_id').inTable('landlords')
-      table.integer('manager_id').unsigned().references('user_id').inTable('managers')
+    this.schema.createTable('accommodations', (table) => {
+      table.bigIncrements('id').primary()
+      table.bigInteger('landlord_id').unsigned().nullable().references('user_id').inTable('landlords').onDelete('CASCADE')
+      table.bigInteger('manager_id').unsigned().references('user_id').inTable('managers')
       table.string('name', 50).notNullable().unique()
       table.string('location', 150).notNullable()
       table.enum('type', ['on-campus', 'off-campus', 'partner_housing']).notNullable()
@@ -13,9 +13,9 @@ export default class extends BaseSchema {
       table.timestamps(true)
     })
 
-    this.schema.createTable('room', (table) => {
-      table.increments('id').primary()
-      table.integer('accommodation_id').unsigned().references('id').inTable('accommodations').onDelete('CASCADE')
+    this.schema.createTable('rooms', (table) => {
+      table.bigIncrements('id').primary()
+      table.bigInteger('accommodation_id').unsigned().nullable().references('id').inTable('accommodations').onDelete('CASCADE')
       table.string('room_number', 5).notNullable()
       table.enum('type', ['single', 'double', 'shared']).notNullable()
       table.integer('capacity').notNullable()
@@ -24,5 +24,10 @@ export default class extends BaseSchema {
       table.decimal('rent', 10, 2).notNullable()
       table.enum('status', ['available', 'occupied', 'maintenance']).defaultTo('available')
     })
+  }
+
+  async down() {
+    this.schema.dropTable('accommodations')
+    this.schema.dropTable('rooms')
   }
 }

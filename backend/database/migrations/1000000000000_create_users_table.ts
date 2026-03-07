@@ -5,13 +5,13 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id').primary()
+      // Use bigIncrements to be 100% explicit for foreign key matching
+      table.bigIncrements('id').primary() 
       table.string('first_name', 50).notNullable()
       table.string('middle_name', 50).nullable()
       table.string('last_name', 50).notNullable()
       table.string('suffix', 10).nullable()
       table.string('email', 75).notNullable().unique()
-      // Added 'unassigned' for our initial account creation
       table.enum('role', ['unassigned', 'student', 'landlord', 'manager']).defaultTo('unassigned')
       table.timestamps(true)
     })
