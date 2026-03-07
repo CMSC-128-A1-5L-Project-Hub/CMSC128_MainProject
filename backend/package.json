@@ -69,6 +69,7 @@
     "better-sqlite3": "^12.6.2",
     "luxon": "^3.7.2",
     "mysql2": "^3.18.2",
+    "prompt-sync": "^4.2.0",
     "reflect-metadata": "^0.2.2"
   },
   "hotHook": {
