@@ -265,7 +265,7 @@ CREATE TABLE IF NOT EXISTS sys_variables(
     sys_id INT AUTO_INCREMENT,
     current_semester ENUM('first_sem', 'second_sem', 'midyear') NOT NULL,
     current_sy VARCHAR(9) NOT NULL, -- ex. 2024-2025
-    sem_start_date DATE NOT NULL, --beginning of current sem
+    sem_start_date DATE NOT NULL, -- beginning of current sem
     CONSTRAINT sys_variables_sys_id_pk PRIMARY KEY (sys_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
