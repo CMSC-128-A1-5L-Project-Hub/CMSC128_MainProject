@@ -20,17 +20,17 @@ CREATE TABLE IF NOT EXISTS user(
     lname VARCHAR(50) NOT NULL,
     suffix VARCHAR(10),
     email VARCHAR(75) NOT NULL,
-    facebook_account VARCHAR(100) NULL, --optional
-    role ENUM('student', 'landlord', 'manager'),
+    facebook_account VARCHAR(100) NULL, -- optional
+    role ENUM('student', 'landlord', 'manager') NOT NULL,
     CONSTRAINT user_user_id_pk PRIMARY KEY (user_id),
     CONSTRAINT user_email_uk UNIQUE (email),
-    CONSTRAINT user_pfp_file_id FOREIGN KEY (pfp_file_id) REFERENCES file_metadata(file_id),
+    CONSTRAINT user_pfp_file_id FOREIGN KEY (pfp_file_id) REFERENCES file_metadata(file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- PHONE NUMBER
 CREATE TABLE IF NOT EXISTS phone_number(
     phone_number_id INT AUTO_INCREMENT,
-    user_id NOT NULL,
+    user_id INT NOT NULL,
     contact_number VARCHAR(11) NOT NULL,
     CONSTRAINT phone_number_phone_number_id_pk PRIMARY KEY (phone_number_id),
     CONSTRAINT phone_number_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id),
