@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS phone_number(
     phone_number_id INT AUTO_INCREMENT,
     user_id INT NOT NULL,
     contact_number VARCHAR(11) NOT NULL,
+    is_primary ENUM('true', 'false') DEFAULT 'false', -- determine if phone number is the user's primary phone number
     CONSTRAINT phone_number_phone_number_id_pk PRIMARY KEY (phone_number_id),
     CONSTRAINT phone_number_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id),
     CONSTRAINT phone_number_contact_number_uk UNIQUE (contact_number)
