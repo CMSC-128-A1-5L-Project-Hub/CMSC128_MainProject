@@ -158,6 +158,7 @@ CREATE TABLE IF NOT EXISTS room(
     room_current_occupancy INT NOT NULL,
     room_building VARCHAR(20) NOT NULL,
     room_rent DECIMAL(10,2) NOT NULL,
+    tenant_restriction ENUM('coed', 'non-coed') NOT NULL, -- if accommodation is coed, room can be coed or not
     room_availability ENUM('available', 'occupied', 'maintenance') NOT NULL,
     CONSTRAINT room_room_id_pk PRIMARY KEY (room_id),
     CONSTRAINT room_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id)
