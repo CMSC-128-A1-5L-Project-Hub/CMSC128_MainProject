@@ -30,6 +30,17 @@ export class AccommodationSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class AccommodationImageSchema extends BaseModel {
+  static $columns = ['id', 'accommodationId', 'imageFileId'] as const
+  $columns = AccommodationImageSchema.$columns
+  @column({ isPrimary: true })
+  declare id: bigint | number
+  @column()
+  declare accommodationId: bigint | number
+  @column()
+  declare imageFileId: bigint | number
+}
+
 export class ApplicationSchema extends BaseModel {
   static $columns = ['id', 'accommodationId', 'studentNumber', 'applicationDate', 'roomType', 'status', 'durationOfStayDays'] as const
   $columns = ApplicationSchema.$columns
@@ -96,6 +107,19 @@ export class FeeSchema extends BaseModel {
   declare amount: string
   @column()
   declare status: string | null
+}
+
+export class FileMetadatumSchema extends BaseModel {
+  static $columns = ['id', 'name', 'path', 'type'] as const
+  $columns = FileMetadatumSchema.$columns
+  @column({ isPrimary: true })
+  declare id: bigint | number
+  @column()
+  declare name: string
+  @column()
+  declare path: string
+  @column()
+  declare type: string
 }
 
 export class LandlordSchema extends BaseModel {
