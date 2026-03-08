@@ -1,37 +1,47 @@
-import hash from '@adonisjs/core/services/hash'
-import { compose } from '@adonisjs/core/helpers'
-import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
-import { type AccessToken, DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
+import { BaseModel, column, hasOne } from '@adonisjs/lucid/orm'
+import type { HasOne } from '@adonisjs/lucid/types/relations'
+import Student from '#models/student'
+import Landlord from '#models/landlord'
 
-
-export default class User extends compose(BaseModel, withAuthFinder(hash)) {
-
+export default class User extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
   @column()
-  declare first_name: string
-  
+  declare pfpId: number
+
   @column()
-  declare middle_name: string
-  
+  declare firstName: string
+
   @column()
-  declare last_name: string
+  declare middleName: string | null
+
+  @column()
+  declare lastName: string
+
+  @column()
+  declare suffix: string | null
 
   @column()
   declare email: string
 
   @column()
-  declare role: string
+  declare role: 'unassigned' | 'student' | 'landlord' | 'manager'
 
-  @column.dateTime({ autoCreate: true})
+  @column()
+  declare isVerified: boolean
+
+  @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true})
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  static accessTokens = DbAccessTokensProvider.forModel(User)
-  declare currentAccessToken?: AccessToken
-    user: Date
+  // Relationships
+  @hasOne(() => Student)
+  declare student: HasOne<typeof Student>
+
+  @hasOne(() => Landlord)
+  declare landlord: HasOne<typeof Landlord>
+}
