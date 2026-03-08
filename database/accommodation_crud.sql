@@ -14,6 +14,10 @@ WHERE accommodation_id = 67;
 SELECT * FROM accommodation
 WHERE accommodation_type = 'on-campus';
 
+-- Retrieve by tenant_restriction
+SELECT * FROM accommodation
+WHERE tenant_restriction = 'coed';
+
 -- Retrieve by landlord_id
 SELECT * FROM accommodation
 WHERE landlord_id = 67;
@@ -41,6 +45,11 @@ WHERE accommodation_id = 67;
 -- Update accommodation capacity by accommodation_id
 UPDATE accommodation 
 SET accommodation_capacity = 67
+WHERE accommodation_id = 67;
+
+-- Update tenant restriction by accommodation_id
+UPDATE accommodation 
+SET tenant_restriction = 'coed'
 WHERE accommodation_id = 67;
 
 -- Update manager_id by accommodation_id

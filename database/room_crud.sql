@@ -3,6 +3,10 @@
 SELECT * FROM room 
 WHERE room_id = 67;
 
+-- Retrieve by tenant_restriction
+SELECT * FROM room
+WHERE tenant_restriction = 'coed';
+
 -- Retrieve by accommodation_id
 SELECT * FROM room r
 JOIN accommodation a ON r.accommodation_id = a.accommodation_id
@@ -49,6 +53,11 @@ WHERE room_id = 67;
 UPDATE room 
 SET room_availability = 'occupied'
 WHERE room_id = 67; 
+
+-- Update tenant restriction by room_id
+UPDATE room
+SET tenant_restriction = 'coed'
+WHERE room_id = 67;
 
 ----- DELETE -----
 -- Delete room from table 

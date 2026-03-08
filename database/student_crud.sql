@@ -49,4 +49,22 @@ JOIN file_metadata f ON s.enrollment_proof_file_id = f.file_id
 SET s.enrollment_proof_file_id = 67
 WHERE s.student_number = '0123456789'
 
--- TODO: update enrollment proof di ko pa alam pano wit lang
+-- Update college
+UPDATE student 
+SET college = 'CAS'
+WHERE student_number = '0123456789';
+
+-- Update degree program
+UPDATE student 
+SET degree_program = 'BS Janelle Cassandra'
+WHERE student_number = '0123456789';
+
+-- Update emergency contact name
+UPDATE student
+SET emergency_contact_name = 'Janelle Cassandra Sabenecio Sison'
+WHERE student_number = '0123456789';
+
+-- Update emergency contact number
+UPDATE student
+SET emergency_contact_number = '09676766767'
+WHERE student_number = '0123456789';
