@@ -10,6 +10,7 @@ import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 import { ROLES } from '../app/constants/roles.ts'
+import ProvisioningService from '../app/services/provisioning_service.js'
 
 const AuthController = () => import('#controllers/auth_controller')
 
@@ -64,3 +65,26 @@ router.get('/test-set-role/:role', async ({ session, params }) => {
 router.get('/test-student-only', async ({ session }) => {
   return { message: 'Welcome, Student.', role: session.get('role') }
 }).use(middleware.role([ROLES.STUDENT]))
+
+
+
+// hi! i added this to test the provisioning service lang, feel free to remove this
+// tho dito ko sinama yung auth.login part kasi wala daw dapat siya sa services, pa-note
+// na lang when removing -joy
+
+router.get('/test-provision', async ({ auth }) => {
+  const service = new ProvisioningService()
+
+  const user = await service.provision({
+    email: 'testuser@example.com',
+    firstName: 'Test',
+    lastName: 'User'
+  })
+
+  await auth.use('web').login(user) // auth.login(user) here
+
+  return {
+    message: 'User successfully logged in!',
+    user: user
+  }
+})

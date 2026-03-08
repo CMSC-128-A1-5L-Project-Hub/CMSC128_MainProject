@@ -1,7 +1,6 @@
 import User from '#models/user'
 
 export async function checkUser(up_mail: string, first_name: string, last_name: string) {
-
     try{
         const user = await User
         .query()

@@ -38,6 +38,9 @@ export default class User extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
+  static accessTokens = DbAccessTokensProvider.forModel(User)
+  declare currentAccessToken?: AccessToken
+    user: Date
   // Relationships
   @hasOne(() => Student)
   declare student: HasOne<typeof Student>
