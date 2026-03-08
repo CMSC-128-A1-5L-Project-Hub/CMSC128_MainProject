@@ -35,3 +35,4 @@ export default class User extends compose(BaseModel, withAuthFinder(hash)) {
   static accessTokens = DbAccessTokensProvider.forModel(User)
   declare currentAccessToken?: AccessToken
     user: Date
+}

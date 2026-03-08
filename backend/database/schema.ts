@@ -25,16 +25,30 @@ export class AccommodationSchema extends BaseModel {
   @column()
   declare capacity: number
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
+  declare createdAt: DateTime
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
+  declare updatedAt: DateTime
 }
 
 export class LandlordSchema extends BaseModel {
-  static $columns = ['userId'] as const
+  static $columns = ['userId', 'tin', 'accommodationName', 'businessAddress', 'contactNumber', 'businessPermitPath', 'createdAt', 'updatedAt'] as const
   $columns = LandlordSchema.$columns
   @column()
   declare userId: number
+  @column()
+  declare tin: string
+  @column()
+  declare accommodationName: string
+  @column()
+  declare businessAddress: string
+  @column()
+  declare contactNumber: string
+  @column()
+  declare businessPermitPath: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
 }
 
 export class LogSchema extends BaseModel {
@@ -49,7 +63,7 @@ export class LogSchema extends BaseModel {
   @column()
   declare entityId: number
   @column.dateTime()
-  declare timestamp: DateTime | null
+  declare timestamp: DateTime
   @column()
   declare activityType: string
   @column()
@@ -64,23 +78,28 @@ export class ManagerSchema extends BaseModel {
 }
 
 export class StudentSchema extends BaseModel {
-  static $columns = ['studentNumber', 'userId'] as const
+  static $columns = ['userId', 'studentNumber', 'course', 'college', 'emergencyContact', 'gender', 'form5Path', 'uplbIdPath', 'createdAt', 'updatedAt'] as const
   $columns = StudentSchema.$columns
+  @column()
+  declare userId: number
   @column()
   declare studentNumber: string
   @column()
-  declare userId: number
-}
-
-export class LogSchema extends BaseModel {
-  static $columns = ['id', 'createdAt', 'updatedAt'] as const
-  $columns = LogSchema.$columns
-  @column({ isPrimary: true })
-  declare id: number
+  declare course: string
+  @column()
+  declare college: string
+  @column()
+  declare emergencyContact: string
+  @column()
+  declare gender: string
+  @column()
+  declare form5Path: string | null
+  @column()
+  declare uplbIdPath: string | null
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
+  declare createdAt: DateTime
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
+  declare updatedAt: DateTime
 }
 
 export class UserSchema extends BaseModel {
@@ -101,7 +120,7 @@ export class UserSchema extends BaseModel {
   @column()
   declare role: string | null
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
+  declare createdAt: DateTime
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
+  declare updatedAt: DateTime
 }
