@@ -1,18 +1,37 @@
+import hash from '@adonisjs/core/services/hash'
+import { compose } from '@adonisjs/core/helpers'
+import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
+import { type AccessToken, DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { DateTime } from 'luxon'
 
-export default class User extends BaseModel {
+
+export default class User extends compose(BaseModel, withAuthFinder(hash)) {
+
   @column({ isPrimary: true })
   declare id: number
 
   @column()
-  declare firstName: string | null
+  declare first_name: string
+  
+  @column()
+  declare middle_name: string
+  
+  @column()
+  declare last_name: string
 
   @column()
-  declare lastName: string | null
+  declare email: string
 
   @column()
-  declare upMail: string // make sure this is unique in the migrations to prevent multiple accounts with the same email.
+  declare role: string
 
-  @column()
-  declare role: string // Default student
-}
+  @column.dateTime({ autoCreate: true})
+  declare createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true})
+  declare updatedAt: DateTime
+
+  static accessTokens = DbAccessTokensProvider.forModel(User)
+  declare currentAccessToken?: AccessToken
+    user: Date

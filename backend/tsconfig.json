@@ -4,5 +4,6 @@
     "rootDir": "./",
     "jsx": "react",
     "outDir": "./build"
-  }
+  },
+  "include": ["start", "app", "contracts"] // ni add ko to
 }
