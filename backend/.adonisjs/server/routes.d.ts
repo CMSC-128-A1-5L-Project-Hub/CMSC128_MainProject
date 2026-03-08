@@ -6,10 +6,10 @@ export type ScannedRoutes = {
   ALL: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
     'auth.callback': { paramsTuple?: []; params?: {} }
+    'setups.store': { paramsTuple?: []; params?: {} }
     'student_dashboards.index': { paramsTuple?: []; params?: {} }
     'landlord_dashboards.index': { paramsTuple?: []; params?: {} }
     'profile.show': { paramsTuple?: []; params?: {} }
-    'setups.store': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'auth.redirect': { paramsTuple?: []; params?: {} }

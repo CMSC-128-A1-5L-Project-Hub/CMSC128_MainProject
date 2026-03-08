@@ -18,6 +18,12 @@ const routes = {
     tokens: [{"old":"/api/v1/auth/google/callback","type":0,"val":"api","end":""},{"old":"/api/v1/auth/google/callback","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/google/callback","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/google/callback","type":0,"val":"google","end":""},{"old":"/api/v1/auth/google/callback","type":0,"val":"callback","end":""}],
     types: placeholder as Registry['auth.callback']['types'],
   },
+  'setups.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/setup',
+    tokens: [{"old":"/api/v1/setup","type":0,"val":"api","end":""},{"old":"/api/v1/setup","type":0,"val":"v1","end":""},{"old":"/api/v1/setup","type":0,"val":"setup","end":""}],
+    types: placeholder as Registry['setups.store']['types'],
+  },
   'student_dashboards.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/dashboard/student',
@@ -35,12 +41,6 @@ const routes = {
     pattern: '/api/v1/account/profile',
     tokens: [{"old":"/api/v1/account/profile","type":0,"val":"api","end":""},{"old":"/api/v1/account/profile","type":0,"val":"v1","end":""},{"old":"/api/v1/account/profile","type":0,"val":"account","end":""},{"old":"/api/v1/account/profile","type":0,"val":"profile","end":""}],
     types: placeholder as Registry['profile.show']['types'],
-  },
-  'setups.store': {
-    methods: ["POST"],
-    pattern: '/api/v1/setup',
-    tokens: [{"old":"/api/v1/setup","type":0,"val":"api","end":""},{"old":"/api/v1/setup","type":0,"val":"v1","end":""},{"old":"/api/v1/setup","type":0,"val":"setup","end":""}],
-    types: placeholder as Registry['setups.store']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 

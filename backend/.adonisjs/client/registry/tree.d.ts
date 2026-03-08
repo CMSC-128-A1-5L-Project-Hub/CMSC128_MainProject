@@ -6,6 +6,9 @@ export interface ApiDefinition {
     redirect: typeof routes['auth.redirect']
     callback: typeof routes['auth.callback']
   }
+  setups: {
+    store: typeof routes['setups.store']
+  }
   studentDashboards: {
     index: typeof routes['student_dashboards.index']
   }
@@ -14,8 +17,5 @@ export interface ApiDefinition {
   }
   profile: {
     show: typeof routes['profile.show']
-  }
-  setups: {
-    store: typeof routes['setups.store']
   }
 }
