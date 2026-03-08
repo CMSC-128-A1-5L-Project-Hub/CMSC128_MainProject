@@ -39,4 +39,4 @@ export default class Student extends BaseModel {
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
-}
+} 

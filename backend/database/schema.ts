@@ -31,9 +31,9 @@ export class AccommodationSchema extends BaseModel {
   @column.date()
   declare applicationEndDate: DateTime
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
+  declare updatedAt: DateTime | null
 }
 
 export class AccommodationImageSchema extends BaseModel {
@@ -129,24 +129,6 @@ export class FileMetadatumSchema extends BaseModel {
 }
 
 export class LandlordSchema extends BaseModel {
-  static $columns = ['userId', 'tin', 'accommodationName', 'businessAddress', 'contactNumber', 'businessPermitPath', 'createdAt', 'updatedAt'] as const
-  $columns = LandlordSchema.$columns
-  @column()
-  declare userId: number
-  @column()
-  declare tin: string
-  @column()
-  declare accommodationName: string
-  @column()
-  declare businessAddress: string
-  @column()
-  declare contactNumber: string
-  @column()
-  declare businessPermitPath: string | null
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
   static $columns = ['userId', 'tin', 'createdAt', 'updatedAt'] as const
   $columns = LandlordSchema.$columns
   @column()
@@ -171,7 +153,7 @@ export class LogSchema extends BaseModel {
   @column()
   declare entityId: number
   @column.dateTime()
-  declare timestamp: DateTime
+  declare timestamp: DateTime | null
   @column()
   declare activityType: string
   @column()
@@ -191,14 +173,6 @@ export class ManagerSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
-export class StudentSchema extends BaseModel {
-  static $columns = ['userId', 'studentNumber', 'course', 'college', 'emergencyContact', 'gender', 'form5Path', 'uplbIdPath', 'createdAt', 'updatedAt'] as const
-  $columns = StudentSchema.$columns
-  @column()
-  declare userId: number
-  @column()
-  declare studentNumber: string
-  @column()
 export class PaymentSchema extends BaseModel {
   static $columns = ['id', 'feeId', 'timestamp', 'amount', 'modeOfPayment'] as const
   $columns = PaymentSchema.$columns
@@ -268,13 +242,6 @@ export class StudentSchema extends BaseModel {
   @column()
   declare college: string
   @column()
-  declare emergencyContact: string
-  @column()
-  declare gender: string
-  @column()
-  declare form5Path: string | null
-  @column()
-  declare uplbIdPath: string | null
   declare gender: string
   @column()
   declare contactNumber: string
@@ -283,9 +250,9 @@ export class StudentSchema extends BaseModel {
   @column()
   declare emergencyContactNumber: string
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
+  declare updatedAt: DateTime | null
 }
 
 export class UserSchema extends BaseModel {
@@ -312,7 +279,7 @@ export class UserSchema extends BaseModel {
   @column()
   declare isVerified: boolean
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+  declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
+  declare updatedAt: DateTime | null
 }

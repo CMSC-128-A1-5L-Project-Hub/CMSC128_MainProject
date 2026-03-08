@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, hasOne } from '@adonisjs/lucid/orm'
 import type { HasOne } from '@adonisjs/lucid/types/relations'
+import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import Student from '#models/student'
 import Landlord from '#models/landlord'
 
@@ -39,8 +40,7 @@ export default class User extends BaseModel {
   declare updatedAt: DateTime
 
   static accessTokens = DbAccessTokensProvider.forModel(User)
-  declare currentAccessToken?: AccessToken
-    user: Date
+
   // Relationships
   @hasOne(() => Student)
   declare student: HasOne<typeof Student>
