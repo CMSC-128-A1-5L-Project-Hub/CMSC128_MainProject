@@ -25,13 +25,6 @@ JOIN room r ON t.room_id = r.room_id
 SET room_capacity = 4
 WHERE r.room_id = 67;
 
-
--- Update room capacity by transient_id
-UPDATE transient t
-JOIN room r ON t.room_id = r.room_id
-SET room_capacity = 4
-WHERE r.room_id = 67;
-
 -- Update room current occupancy by transient_id
 UPDATE transient t
 JOIN room r ON t.room_id = r.room_id

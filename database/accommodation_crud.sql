@@ -1,3 +1,7 @@
+-- update manager_id
+-- update application_start_date
+-- update application_end_date
+
 ----- RETRIEVE -----
 -- Retrieve all accommodations
 SELECT * FROM accommodation;
@@ -37,6 +41,21 @@ WHERE accommodation_id = 67;
 -- Update accommodation capacity by accommodation_id
 UPDATE accommodation 
 SET accommodation_capacity = 67
+WHERE accommodation_id = 67;
+
+-- Update manager_id by accommodation_id
+UPDATE accommodation 
+SET manager_id = 67
+WHERE accommodation_id = 67;
+
+-- Update application start date by accommodation_id
+UPDATE accommodation
+SET application_start_date = '2067-06-07'
+WHERE accommodation_id = 67;
+
+-- Update application end date by accommodation_id
+UPDATE accommodation
+SET application_end_date = '2067-06-07'
 WHERE accommodation_id = 67;
 
 ----- DELETE -----
