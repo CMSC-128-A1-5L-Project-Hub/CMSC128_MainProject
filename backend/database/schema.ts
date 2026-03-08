@@ -7,40 +7,6 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
-export class AccommodationSchema extends BaseModel {
-  static $columns = ['id', 'landlordId', 'managerId', 'name', 'location', 'type', 'capacity', 'createdAt', 'updatedAt'] as const
-  $columns = AccommodationSchema.$columns
-  @column({ isPrimary: true })
-  declare id: bigint | number
-  @column()
-  declare landlordId: bigint | number | null
-  @column()
-  declare managerId: bigint | number | null
-  @column()
-  declare name: string
-  @column()
-  declare location: string
-  @column()
-  declare type: string
-  @column()
-  declare capacity: number
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
-}
-
-export class AccommodationImageSchema extends BaseModel {
-  static $columns = ['id', 'accommodationId', 'imageFileId'] as const
-  $columns = AccommodationImageSchema.$columns
-  @column({ isPrimary: true })
-  declare id: bigint | number
-  @column()
-  declare accommodationId: bigint | number
-  @column()
-  declare imageFileId: bigint | number
-}
-
 export class ApplicationSchema extends BaseModel {
   static $columns = ['id', 'accommodationId', 'studentNumber', 'applicationDate', 'roomType', 'status', 'durationOfStayDays'] as const
   $columns = ApplicationSchema.$columns
@@ -199,29 +165,6 @@ export class ReportSchema extends BaseModel {
   declare timestamp: DateTime | null
   @column()
   declare file: Buffer
-}
-
-export class RoomSchema extends BaseModel {
-  static $columns = ['id', 'accommodationId', 'roomNumber', 'type', 'capacity', 'currentOccupancy', 'building', 'rent', 'status'] as const
-  $columns = RoomSchema.$columns
-  @column({ isPrimary: true })
-  declare id: bigint | number
-  @column()
-  declare accommodationId: bigint | number | null
-  @column()
-  declare roomNumber: string
-  @column()
-  declare type: string
-  @column()
-  declare capacity: number
-  @column()
-  declare currentOccupancy: number | null
-  @column()
-  declare building: string
-  @column()
-  declare rent: string
-  @column()
-  declare status: string | null
 }
 
 export class StudentSchema extends BaseModel {
