@@ -6,6 +6,14 @@ SELECT * FROM student;
 SELECT * FROM student 
 WHERE student_number = '0123456789';
 
+-- Retrieve students by college
+SELECT * FROM student 
+WHERE college = 'CAS';
+
+-- Retrieve students by degree program
+SELECT * FROM student
+WHERE degree_program = "BS Janelle Cassandra";
+
 ----- UPDATE -----
 -- Update user first name from student table
 UPDATE student s

@@ -1,7 +1,3 @@
--- update manager_id
--- update application_start_date
--- update application_end_date
-
 ----- RETRIEVE -----
 -- Retrieve all accommodations
 SELECT * FROM accommodation;
