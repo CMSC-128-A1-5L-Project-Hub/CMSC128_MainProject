@@ -9,14 +9,14 @@ export default class NotificationService {
         try {
         await mail.send((message) => {
             message
+            .subject('Please verify your Identity')
+            .from('noreply@usat.com', 'USAT Housing')
             .to(user.email)
             .subject('Your USAT Verification Code')
             // Points to resources/views/emails/otp.edge
-            .htmlView('emails/otp', { 
-                otp, 
-                firstName: user.firstName,
-                expiry: '5 minutes' 
-            })
+            .html(
+                "Your verificataion code is blahal"
+            )
         })
         } catch (error) {
         console.error('Email failed to send:', error)
