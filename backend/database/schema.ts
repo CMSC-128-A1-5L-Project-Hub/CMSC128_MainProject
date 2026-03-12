@@ -205,29 +205,6 @@ export class ReportSchema extends BaseModel {
   declare file: Buffer
 }
 
-export class RoomSchema extends BaseModel {
-  static $columns = ['id', 'accommodationId', 'roomNumber', 'type', 'capacity', 'currentOccupancy', 'building', 'rent', 'status'] as const
-  $columns = RoomSchema.$columns
-  @column({ isPrimary: true })
-  declare id: bigint | number
-  @column()
-  declare accommodationId: bigint | number | null
-  @column()
-  declare roomNumber: string
-  @column()
-  declare type: string
-  @column()
-  declare capacity: number
-  @column()
-  declare currentOccupancy: number | null
-  @column()
-  declare building: string
-  @column()
-  declare rent: string
-  @column()
-  declare status: string | null
-}
-
 export class StudentSchema extends BaseModel {
   static $columns = ['studentNumber', 'userId', 'enrollmentProofId', 'course', 'college', 'gender', 'contactNumber', 'emergencyContactName', 'emergencyContactNumber', 'createdAt', 'updatedAt'] as const
   $columns = StudentSchema.$columns
@@ -261,7 +238,7 @@ export class UserSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: bigint | number
   @column()
-  declare pfpId: bigint | number
+  declare pfpId: bigint | number | null
   @column()
   declare firstName: string
   @column()
