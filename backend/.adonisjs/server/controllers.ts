@@ -4,6 +4,8 @@
  */
 
 export const controllers = {
+  AdminVerifications: () => import('#controllers/admin_verifications_controller'),
+  Application: () => import('#controllers/application_controller'),
   Auth: () => import('#controllers/auth_controller'),
   LandlordDashboards: () => import('#controllers/landlord_dashboards_controller'),
   Profile: () => import('#controllers/profile_controller'),

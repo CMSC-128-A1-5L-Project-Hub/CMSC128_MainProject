@@ -39,6 +39,9 @@ export default class User extends BaseModel {
   @column()
   declare role: 'student' | 'landlord' | 'manager'
 
+  @column()
+  declare isVerified: boolean
+
   // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => FileMetadata, { foreignKey: 'pfpFileId', localKey: 'fileId' })
   declare profilePicture: BelongsTo<typeof FileMetadata>

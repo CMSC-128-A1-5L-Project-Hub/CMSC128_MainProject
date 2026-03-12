@@ -57,11 +57,9 @@ export default class ProfileService {
                 userId: user.userId,
                 enrollmentProofFileId: form5File.fileId,
                 college: validatedData.college,
-                degreeProgram: validatedData.course, // validator uses 'course'
+                degreeProgram: validatedData.degreeProgram,
                 gender: validatedData.gender,
 
-                // NOTE: Current validator only has one emergencyContact field
-                // Adjust this once the setup form separates name and number
                 emergencyContactName: null,
                 emergencyContactNumber: validatedData.emergencyContact,
             })
@@ -121,4 +119,3 @@ export default class ProfileService {
 
 // Notes:
 // uplbId is uploaded but not connected to Student model
-// 
