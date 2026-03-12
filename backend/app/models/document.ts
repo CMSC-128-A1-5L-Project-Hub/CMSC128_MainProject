@@ -1,0 +1,28 @@
+import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import User from '#models/user'
+import FileMetadata from '#models/file_metadata'
+import { DateTime } from 'luxon'
+
+export default class Document extends BaseModel {
+  static table = 'document'
+
+  @column({ isPrimary: true })
+  declare documentId: number
+
+  @column()
+  declare userId: number
+
+  @column()
+  declare fileId: number
+
+  @column.date()
+  declare uploadTimestamp: DateTime
+
+  // ─── Relationships ────────────────────────────────────────────────────────
+  @belongsTo(() => User, { foreignKey: 'userId' })
+  declare user: BelongsTo<typeof User>
+
+  @belongsTo(() => FileMetadata, { foreignKey: 'fileId', localKey: 'fileId' })
+  declare file: BelongsTo<typeof FileMetadata>
+}

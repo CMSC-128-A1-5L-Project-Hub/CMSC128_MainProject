@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS phone_number(
     phone_number_id INT AUTO_INCREMENT,
     user_id INT NOT NULL,
     contact_number VARCHAR(11) NOT NULL,
+    is_primary ENUM('true', 'false') DEFAULT 'false', -- determine if phone number is the user's primary phone number
     CONSTRAINT phone_number_phone_number_id_pk PRIMARY KEY (phone_number_id),
     CONSTRAINT phone_number_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id),
     CONSTRAINT phone_number_contact_number_uk UNIQUE (contact_number)
@@ -41,6 +42,7 @@ CREATE TABLE IF NOT EXISTS phone_number(
 -- LANDLORD
 CREATE TABLE IF NOT EXISTS landlord(
     user_id INT NOT NULL,
+    tin VARCHAR(15) NOT NULL, -- tax identification number
     CONSTRAINT landlord_user_id_pk PRIMARY KEY (user_id),
     CONSTRAINT landlord_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -59,6 +61,12 @@ CREATE TABLE IF NOT EXISTS student(
     user_id INT NOT NULL,
     -- form 5/notice of admission (if freshie)
     enrollment_proof_file_id INT NOT NULL,
+    college VARCHAR(5) NOT NULL,
+    degree_program VARCHAR(50) NOT NULL,
+    gender VARCHAR(10) NOT NUll, -- for male-only / female-only dorms
+    -- emergency contact info (optional)
+    emergency_contact_name VARCHAR(100) NULL,
+    emergency_contact_number VARCHAR(11) NULL,
     CONSTRAINT student_student_number_pk PRIMARY KEY (student_number),
     CONSTRAINT student_user_id_fk FOREIGN KEY (user_id) REFERENCES user(user_id),
     CONSTRAINT student_enrollment_proof_file_id_fk FOREIGN KEY (enrollment_proof_file_id) REFERENCES file_metadata(file_id),
@@ -88,6 +96,7 @@ CREATE TABLE IF NOT EXISTS accommodation(
     accommodation_location VARCHAR(150) NOT NULL,
     accommodation_type ENUM('on-campus', 'off-campus', 'partner_housing') NOT NULL,
     accommodation_capacity INT NOT NULL,
+    tenant_restriction ENUM('male-only', 'female-only', 'coed') NOT NULL,
     application_start_date DATE NOT NULL,
     application_end_date DATE NOT NULL,
     CONSTRAINT accommodation_accommodation_id_pk PRIMARY KEY (accommodation_id),
@@ -104,7 +113,7 @@ CREATE TABLE IF NOT EXISTS accommodation(
 CREATE TABLE IF NOT EXISTS accommodation_tags(
     tags_id INT AUTO_INCREMENT,
     accommodation_id INT NOT NULL,
-    tag_detail ENUM('parking', 'pets_allowed', 'visitors_allowed', 'with_curfew', 'with_internet', 'cooking_allowed', 'coed', 'non_coed', 'with_heater', 'utilities_included', 'with_furniture', 'aircon', 'laundry_service', 'canteen', 'security'),
+    tag_detail VARCHAR(30) NOT NULL,
     CONSTRAINT accommodation_tags_tags_id_pk PRIMARY KEY (tags_id),
     CONSTRAINT accommodation_tags_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -124,7 +133,7 @@ CREATE TABLE IF NOT EXISTS accommodation_images(
 CREATE TABLE IF NOT EXISTS review(
     review_id INT AUTO_INCREMENT,
     accommodation_id INT NOT NULL,
-    rating ENUM('1', '2', '3', '4', '5') NOT NULL,
+    rating INT NOT NULL,
     content VARCHAR(500), -- optional 
     CONSTRAINT review_review_id_pk PRIMARY KEY (review_id),
     CONSTRAINT review_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id)
@@ -150,6 +159,7 @@ CREATE TABLE IF NOT EXISTS room(
     room_current_occupancy INT NOT NULL,
     room_building VARCHAR(20) NOT NULL,
     room_rent DECIMAL(10,2) NOT NULL,
+    tenant_restriction ENUM('coed', 'non-coed') NOT NULL, -- if accommodation is coed, room can be coed or not
     room_availability ENUM('available', 'occupied', 'maintenance') NOT NULL,
     CONSTRAINT room_room_id_pk PRIMARY KEY (room_id),
     CONSTRAINT room_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodation(accommodation_id)

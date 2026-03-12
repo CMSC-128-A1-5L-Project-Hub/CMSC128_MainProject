@@ -1,21 +1,21 @@
-import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
+import Accommodation from '#models/accommodation'
 
 export default class Manager extends BaseModel {
+  static table = 'managers'
+
   @column({ isPrimary: true })
   declare userId: number
 
   @column()
-  declare status: 'active' | 'inactive'
+  declare managerStatus: 'active' | 'inactive'
 
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
-
-  @belongsTo(() => User)
+  // ─── Relationships ────────────────────────────────────────────────────────
+  @belongsTo(() => User, { foreignKey: 'userId' })
   declare user: BelongsTo<typeof User>
+
+  @hasMany(() => Accommodation, { foreignKey: 'managerId' })
+  declare accommodations: HasMany<typeof Accommodation>
 }

@@ -1,4 +1,41 @@
-import { LogSchema } from '#database/schema'
+import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import User from '#models/user'
+import { DateTime } from 'luxon'
 
-export default class Log extends LogSchema {
+export default class Log extends BaseModel {
+  static table = 'log'
+
+  @column({ isPrimary: true })
+  declare logId: number
+
+  @column()
+  declare actorId: number | null
+
+  @column()
+  declare entityType:
+    | 'application'
+    | 'assignment'
+    | 'payment'
+    | 'room'
+    | 'accommodation'
+    | 'document'
+    | 'report'
+    | 'fee'
+
+  @column()
+  declare entityId: number
+
+  @column.dateTime()
+  declare logTimestamp: DateTime
+
+  @column()
+  declare activityType: string
+
+  @column()
+  declare activityDetails: string | null
+
+  // ─── Relationships ────────────────────────────────────────────────────────
+  @belongsTo(() => User, { foreignKey: 'actorId' })
+  declare actor: BelongsTo<typeof User>
 }
