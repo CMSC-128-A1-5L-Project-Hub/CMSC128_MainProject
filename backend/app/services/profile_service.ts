@@ -1,6 +1,6 @@
 import User from '#models/user'
-// import Student from '#models/student' ## NOTE: Waiting for the models from the DB team
-// import Landlord from '#models/landlord'
+import Student from '#models/student' //## NOTE: Waiting for the models from the DB team
+import Landlord from '#models/landlord'
 import drive from '@adonisjs/drive/services/main'
 
 export default class ProfileService {
@@ -11,12 +11,12 @@ export default class ProfileService {
         // ==========================================
         if (validatedData.role === 'Student') {
             // Process Form 5
-            const form5Name = `${user.id}_form5_$${new Date().getTime()}.${validatedData.form5.extname}`
+            const form5Name = `${user.id}_form5_${new Date().getTime()}.${validatedData.form5.extname}`
             await validatedData.form5.moveToDisk(form5Name, 'backblaze')
             const form5Url = await drive.use('backblaze').getUrl(form5Name)
 
             // Process UPLB ID
-            const uplbIdName = `{user.id}_uplbid_${new Date().getTime()}.${validatedData.uplbId.extname}`
+            const uplbIdName = `${user.id}_uplbid_${new Date().getTime()}.${validatedData.uplbId.extname}`
             await validatedData.uplbId.moveToDisk(uplbIdName, 'backblaze')
             const uplbIdUrl = await drive.use('backblaze').getUrl(uplbIdName)
 

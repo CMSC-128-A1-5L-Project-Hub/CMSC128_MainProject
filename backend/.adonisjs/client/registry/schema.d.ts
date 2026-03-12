@@ -29,17 +29,6 @@ export interface Registry {
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['callback']>>>
     }
   }
-  'setups.store': {
-    methods: ["POST"]
-    pattern: '/api/v1/setup'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>>
-    }
-  }
   'student_dashboards.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/dashboard/student'
@@ -71,6 +60,17 @@ export interface Registry {
       params: {}
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['show']>>>
+    }
+  }
+  'setups.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/setup'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>>
     }
   }
 }
