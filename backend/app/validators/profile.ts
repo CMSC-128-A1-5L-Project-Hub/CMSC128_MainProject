@@ -13,7 +13,7 @@ export const setupProfileValidator = vine.compile(
     .optional()                             // optional except when the role equals 'Student'.
     .requiredWhen('role', '=', 'Student'),  
     
-    course: vine.string()
+    degreeProgram: vine.string()
     .optional()
     .requiredWhen('role', '=', 'Student'),
 
