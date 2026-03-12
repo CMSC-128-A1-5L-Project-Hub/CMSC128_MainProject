@@ -21,7 +21,11 @@ export const setupProfileValidator = vine.compile(
     .optional()
     .requiredWhen('role', '=', 'Student'),
 
-    emergencyContact: vine.string()
+    emergencyContactName: vine.string()
+    .optional()
+    .requiredWhen('role', '=', 'Student'),
+
+    emergencyContactNumber: vine.string()
     .optional()
     .requiredWhen('role', '=', 'Student'),
 
