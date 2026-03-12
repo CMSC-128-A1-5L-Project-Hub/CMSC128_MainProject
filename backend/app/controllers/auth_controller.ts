@@ -5,65 +5,65 @@ import NotificationService from '#services/notification_service'
 
 @inject()
 export default class AuthController {
-    constructor(
-        protected provisioningService: ProvisioningService,
-        protected notificationService: NotificationService
-    ) {}
+  constructor(
+    protected provisioningService: ProvisioningService,
+    protected notificationService: NotificationService
+  ) {}
 
-    // STEP 1: make an async function called redirect that sends the user to the google login screen
-    async redirect({ ally }: HttpContext) {
-        return ally.use('google').redirect()
+  // STEP 1: Redirect user to Google login screen
+  async redirect({ ally }: HttpContext) {
+    return ally.use('google').redirect()
+  }
+
+  // STEP 2: Handle response from Google
+  async callback({ ally, auth, response }: HttpContext) {
+    const google = ally.use('google')
+
+    // Handle errors before fetching the user
+    if (google.accessDenied()) return 'Access was denied'
+    if (google.stateMisMatch()) return 'Request expired. Retry again'
+    if (google.hasError()) return google.getError()
+
+    // Fetch the user data from Google
+    const googleUser = await google.user()
+
+    // Provision the user (check if exists, if not create with unassigned role)
+    // If Super Admin, it will just return the existing seeded account
+    const user = await this.provisioningService.provision({
+      email: googleUser.email,
+      fname: googleUser.original.given_name,
+      lname: googleUser.original.family_name,
+    })
+
+    // Log the user in
+    await auth.use('web').login(user)
+
+    // Redirect based on role
+    if (user.role === 'unassigned') {
+      return response.redirect('http://localhost:5173/setup')
     }
 
-    // STEP 2: make an async function called callback that handles the response from google.
-    async callback({ ally, auth, response }: HttpContext) {
-        const google = ally.use('google')
-
-        // Handle errors before fetching the user
-        if (google.accessDenied()) return 'Access was denied'
-        if (google.stateMisMatch()) return 'Request expired. Retry again'
-        if (google.hasError()) return google.getError()
-
-        // Fetch the user data
-        const googleUser = await google.user()
-
-        // provision the user (In the service it should check if the user exists in the database, if not create new user give them the 'unassigned' role)
-        const user = await this.provisioningService.provision({
-            email: googleUser.email,
-            firstName: googleUser.original.given_name,
-            lastName: googleUser.original.family_name,
-        })
-
-        // Log the user in
-        await auth.use('web').login(user)
-
-        // Redirect to setup if unassigned
-        // NOTE: Once we've setup the frontend react, uncomment out the return response.redirect and delete the return {} stuff. thats just for testing
-        if (user.role === 'unassigned') {
-            // return response.redirect('http://localhost:5173/api/v1/setup')
-            return {
-            status: 'success',
-            isNewUser: user.role === 'unassigned',
-            user: {
-                id: user.id,
-                email: user.email,
-                role: user.role,
-                fullName: `${user.firstName} ${user.lastName}`
-            },
-            nextStep: user.role === 'unassigned' ? 'Go to /setup' : 'Go to /dashboard'
-        }
-        }
-
-        // Else just go to dashboard
-        if (user.role === 'student') {
-            // return response.redirect('http://localhost:5173/api/v1/dashboard/student')
-        }
-
-        if (user.role === 'landlord') {
-            // return response.redirect('http://localhost:5173/api/v1/dashboard/landlord')
-        }
-
-
-
+    if (user.role === 'student') {
+      return response.redirect('http://localhost:5173/dashboard/student')
     }
+
+    if (user.role === 'landlord') {
+      return response.redirect('http://localhost:5173/dashboard/landlord')
+    }
+
+    if (user.role === 'manager') {
+      return response.redirect('http://localhost:5173/dashboard/manager')
+    }
+
+    if (user.role === 'super_admin') {
+      return response.redirect('http://localhost:5173/dashboard/super_admin')
+    }
+
+    // Fallback — role not recognized
+    return response.badRequest({
+      status: 400,
+      error: 'Bad Request',
+      message: 'User role not recognized.',
+    })
+  }
 }

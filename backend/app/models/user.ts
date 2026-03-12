@@ -16,16 +16,13 @@ export default class User extends BaseModel {
   declare pfpFileId: number
 
   @column()
-  declare pfpId: number
+  declare fname: string
 
   @column()
-  declare firstName: string
+  declare mname: string | null
 
   @column()
-  declare middleName: string | null
-
-  @column()
-  declare lastName: string
+  declare lname: string
 
   @column()
   declare suffix: string | null
@@ -37,7 +34,7 @@ export default class User extends BaseModel {
   declare facebookAccount: string | null
 
   @column()
-  declare role: 'student' | 'landlord' | 'manager'
+  declare role: 'student' | 'landlord' | 'manager' | 'unassigned'
 
   // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => FileMetadata, { foreignKey: 'pfpFileId', localKey: 'fileId' })

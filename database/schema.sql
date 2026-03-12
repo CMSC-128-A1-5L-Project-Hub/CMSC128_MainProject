@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS user(
     lname VARCHAR(50) NOT NULL,
     suffix VARCHAR(10),
     email VARCHAR(75) NOT NULL,
-    facebook_account VARCHAR(100) NULL, -- optional
-    role ENUM('student', 'landlord', 'manager') NOT NULL,
+    facebook_account VARCHAR(100) NULL,
+    role ENUM('student', 'landlord', 'manager', 'unassigned', 'super_admin') NOT NULL DEFAULT 'unassigned',
     CONSTRAINT user_user_id_pk PRIMARY KEY (user_id),
     CONSTRAINT user_email_uk UNIQUE (email),
     CONSTRAINT user_pfp_file_id_fk FOREIGN KEY (pfp_file_id) REFERENCES file_metadata(file_id),
