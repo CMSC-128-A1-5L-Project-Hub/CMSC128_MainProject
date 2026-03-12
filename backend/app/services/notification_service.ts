@@ -14,7 +14,7 @@ export default class NotificationService {
             // Points to resources/views/emails/otp.edge
             .htmlView('emails/otp', { 
                 otp, 
-                firstName: user.firstName,
+                firstName: user.fname,
                 expiry: '5 minutes' 
             })
         })
