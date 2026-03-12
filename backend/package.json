@@ -35,7 +35,8 @@
     "#database/*": "./database/*.js",
     "#tests/*": "./tests/*.js",
     "#start/*": "./start/*.js",
-    "#config/*": "./config/*.js"
+    "#config/*": "./config/*.js",
+    "#helpers/*": "./app/helpers/*.js"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^8.0.0",
@@ -70,6 +71,7 @@
     "@japa/api-client": "^3.2.1",
     "@tuyau/core": "^1.0.0",
     "@vinejs/vine": "^4.3.0",
+    "adonis-autoswagger": "^3.73.0",
     "better-sqlite3": "^12.6.2",
     "luxon": "^3.7.2",
     "mysql2": "^3.18.2",

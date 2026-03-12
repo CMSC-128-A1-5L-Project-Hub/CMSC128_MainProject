@@ -33,7 +33,7 @@ const mailConfig = defineConfig({
   mailers: { 
     smtp: transports.smtp({
       host: env.get('SMTP_HOST'),
-      port: env.get('SMTP_PORT'),
+      port: Number(env.get('SMTP_PORT')),
 			/**
        * Uncomment the auth block if your SMTP
        * server needs authentication

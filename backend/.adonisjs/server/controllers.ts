@@ -4,6 +4,7 @@
  */
 
 export const controllers = {
+  Application: () => import('#controllers/application_controller'),
   Auth: () => import('#controllers/auth_controller'),
   LandlordDashboards: () => import('#controllers/landlord_dashboards_controller'),
   Setups: () => import('#controllers/setups_controller'),
