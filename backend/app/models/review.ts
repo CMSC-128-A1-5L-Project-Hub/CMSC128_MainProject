@@ -1,0 +1,23 @@
+import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import Accommodation from '#models/accommodation'
+
+export default class Review extends BaseModel {
+  static table = 'review'
+
+  @column({ isPrimary: true })
+  declare reviewId: number
+
+  @column()
+  declare accommodationId: number
+
+  @column()
+  declare rating: number
+
+  @column()
+  declare content: string | null
+
+  // ─── Relationships ────────────────────────────────────────────────────────
+  @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
+  declare accommodation: BelongsTo<typeof Accommodation>
+}

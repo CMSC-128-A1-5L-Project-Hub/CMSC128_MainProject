@@ -1,54 +1,77 @@
-import { BaseModel, column, belongsTo, hasOne, hasMany } from '@adonisjs/lucid/orm'
-import type { BelongsTo, HasOne, HasMany } from '@adonisjs/lucid/types/relations'
-import FileMetadata from '#models/file_metadata'
+import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import { DateTime } from 'luxon'
 import Landlord from '#models/landlord'
 import Manager from '#models/manager'
-import Student from '#models/student'
-import PhoneNumber from '#models/phone_number'
+import FileMetadata from '#models/file_metadata'
+import AccommodationImage from '#models/accommodation_image'
+import AccommodationTag from '#models/accommodation_tag'
+import Room from '#models/room'
+import Review from '#models/review'
+import Bookmark from '#models/bookmark'
+import Application from '#models/application'
 
-export default class User extends BaseModel {
-  static table = 'user'
+export default class Accommodation extends BaseModel {
+  static table = 'accommodation'
 
   @column({ isPrimary: true })
-  declare userId: number
+  declare accommodationId: number
 
   @column()
-  declare pfpFileId: number
+  declare landlordId: number
 
   @column()
-  declare fname: string
+  declare managerId: number
 
   @column()
-  declare mname: string | null
+  declare businessPermitId: number
 
   @column()
-  declare lname: string
+  declare accommodationName: string
 
   @column()
-  declare suffix: string | null
+  declare accommodationLocation: string
 
   @column()
-  declare email: string
+  declare accommodationType: 'on-campus' | 'off-campus' | 'partner_housing'
 
   @column()
-  declare facebookAccount: string | null
+  declare accommodationCapacity: number
 
   @column()
-  declare role: 'student' | 'landlord' | 'manager'
+  declare tenantRestriction: 'male-only' | 'female-only' | 'coed'
+
+  @column.date()
+  declare applicationStartDate: DateTime
+
+  @column.date()
+  declare applicationEndDate: DateTime
 
   // ─── Relationships ────────────────────────────────────────────────────────
-  @belongsTo(() => FileMetadata, { foreignKey: 'pfpFileId', localKey: 'fileId' })
-  declare profilePicture: BelongsTo<typeof FileMetadata>
+  @belongsTo(() => Landlord, { foreignKey: 'landlordId' })
+  declare landlord: BelongsTo<typeof Landlord>
 
-  @hasOne(() => Landlord, { foreignKey: 'userId' })
-  declare landlord: HasOne<typeof Landlord>
+  @belongsTo(() => Manager, { foreignKey: 'managerId' })
+  declare manager: BelongsTo<typeof Manager>
 
-  @hasOne(() => Manager, { foreignKey: 'userId' })
-  declare manager: HasOne<typeof Manager>
+  @belongsTo(() => FileMetadata, { foreignKey: 'businessPermitId', localKey: 'fileId' })
+  declare businessPermit: BelongsTo<typeof FileMetadata>
 
-  @hasOne(() => Student, { foreignKey: 'userId' })
-  declare student: HasOne<typeof Student>
+  @hasMany(() => AccommodationImage, { foreignKey: 'accommodationId' })
+  declare images: HasMany<typeof AccommodationImage>
 
-  @hasMany(() => PhoneNumber, { foreignKey: 'userId' })
-  declare phoneNumbers: HasMany<typeof PhoneNumber>
+  @hasMany(() => AccommodationTag, { foreignKey: 'accommodationId' })
+  declare tags: HasMany<typeof AccommodationTag>
+
+  @hasMany(() => Room, { foreignKey: 'accommodationId' })
+  declare rooms: HasMany<typeof Room>
+
+  @hasMany(() => Review, { foreignKey: 'accommodationId' })
+  declare reviews: HasMany<typeof Review>
+
+  @hasMany(() => Bookmark, { foreignKey: 'accommodationId' })
+  declare bookmarks: HasMany<typeof Bookmark>
+
+  @hasMany(() => Application, { foreignKey: 'accommodationId' })
+  declare applications: HasMany<typeof Application>
 }
