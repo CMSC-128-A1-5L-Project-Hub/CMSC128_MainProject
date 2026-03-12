@@ -34,7 +34,7 @@ export default class User extends BaseModel {
   declare facebookAccount: string | null
 
   @column()
-  declare role: 'student' | 'landlord' | 'manager' | 'unassigned'
+  declare role: 'student' | 'landlord' | 'manager' | 'unassigned' | 'super_admin'
 
   // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => FileMetadata, { foreignKey: 'pfpFileId', localKey: 'fileId' })
