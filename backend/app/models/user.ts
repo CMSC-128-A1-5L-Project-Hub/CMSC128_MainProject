@@ -16,13 +16,16 @@ export default class User extends BaseModel {
   declare pfpFileId: number
 
   @column()
-  declare fname: string
+  declare pfpId: number
 
   @column()
-  declare mname: string | null
+  declare firstName: string
 
   @column()
-  declare lname: string
+  declare middleName: string | null
+
+  @column()
+  declare lastName: string
 
   @column()
   declare suffix: string | null

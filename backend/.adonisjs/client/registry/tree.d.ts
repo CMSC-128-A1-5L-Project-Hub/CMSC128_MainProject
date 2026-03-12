@@ -12,9 +12,6 @@ export interface ApiDefinition {
   landlordDashboards: {
     index: typeof routes['landlord_dashboards.index']
   }
-  profile: {
-    show: typeof routes['profile.show']
-  }
   setups: {
     store: typeof routes['setups.store']
   }

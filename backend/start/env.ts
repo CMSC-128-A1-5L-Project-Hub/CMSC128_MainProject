@@ -54,5 +54,16 @@ export default await Env.create(new URL('../', import.meta.url), {
   AWS_SECRET_ACCESS_KEY: Env.schema.string(),
   AWS_REGION: Env.schema.string(),
   S3_BUCKET: Env.schema.string(),
-  S3_ENDPOINT: Env.schema.string()
+  S3_ENDPOINT: Env.schema.string(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the mail package
+  |----------------------------------------------------------
+  */
+  MAIL_MAILER: Env.schema.enum(['smtp'] as const),
+  MAIL_FROM_NAME: Env.schema.string(),
+  MAIL_FROM_ADDRESS: Env.schema.string(),
+  SMTP_HOST: Env.schema.string(),
+  SMTP_PORT: Env.schema.string()
 })

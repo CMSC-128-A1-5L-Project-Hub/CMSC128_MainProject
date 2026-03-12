@@ -12,6 +12,24 @@ export default class Landlord extends BaseModel {
   @column()
   declare tin: string
 
+  @column()
+  declare accommodationName: string
+
+  @column()
+  declare businessAddress: string
+
+  @column()
+  declare contactNumber: string
+
+  @column()
+  declare businessPermitId: number
+
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+
   // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => User, { foreignKey: 'userId' })
   declare user: BelongsTo<typeof User>
