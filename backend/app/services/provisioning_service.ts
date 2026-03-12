@@ -5,9 +5,19 @@ export default class ProvisioningService {
    * Accepts a profile object from Google and handles the "Upsert"
    */
   public async provision(profile: { email: string, firstName: string, lastName: string }) {
-    // STEP 1: Find the user by email or create a new one if he doesn't exist
-    
-    // Then just return user
-    //return user
+    let user = await User.findBy('email', profile.email)
+    if (user) {
+      user.firstName = profile.firstName
+      user.lastName = profile.lastName
+      await user.save()
+      return user
+    }
+
+    return await User.create({
+      email: profile.email,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      role: 'unassigned'
+    })
   }
 }

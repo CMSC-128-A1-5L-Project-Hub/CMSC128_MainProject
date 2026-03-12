@@ -4,12 +4,19 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable('accommodations', (table) => {
       table.bigIncrements('id').primary()
-      table.bigInteger('landlord_id').unsigned().nullable().references('user_id').inTable('landlords').onDelete('CASCADE')
-      table.bigInteger('manager_id').unsigned().references('user_id').inTable('managers')
+      table.bigInteger('landlord_id').unsigned().notNullable()
+           .references('user_id').inTable('landlords')
+      table.bigInteger('manager_id').unsigned().notNullable()
+           .references('user_id').inTable('managers')
+      table.bigInteger('business_permit_id').unsigned().notNullable().unique()
+           .references('id').inTable('file_metadata')
+           
       table.string('name', 50).notNullable().unique()
       table.string('location', 150).notNullable()
       table.enum('type', ['on-campus', 'off-campus', 'partner_housing']).notNullable()
       table.integer('capacity').notNullable()
+      table.date('application_start_date').notNullable()
+      table.date('application_end_date').notNullable()
       table.timestamps(true)
     })
 
