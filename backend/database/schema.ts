@@ -261,7 +261,7 @@ export class UserSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: bigint | number
   @column()
-  declare pfpId: bigint | number
+  declare pfpId: bigint | number | null
   @column()
   declare firstName: string
   @column()

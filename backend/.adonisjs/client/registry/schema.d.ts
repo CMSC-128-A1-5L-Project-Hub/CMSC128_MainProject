@@ -9,7 +9,7 @@ export type ParamValue = string | number | bigint | boolean
 export interface Registry {
   'auth.redirect': {
     methods: ["GET","HEAD"]
-    pattern: '/api/v1/auth/google/redirect'
+    pattern: '/auth/google/redirect'
     types: {
       body: {}
       paramsTuple: []
@@ -20,7 +20,7 @@ export interface Registry {
   }
   'auth.callback': {
     methods: ["GET","HEAD"]
-    pattern: '/api/v1/auth/google/callback'
+    pattern: '/auth/google/callback'
     types: {
       body: {}
       paramsTuple: []
@@ -49,17 +49,6 @@ export interface Registry {
       params: {}
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/landlord_dashboards_controller').default['index']>>>
-    }
-  }
-  'profile.show': {
-    methods: ["GET","HEAD"]
-    pattern: '/api/v1/account/profile'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['show']>>>
     }
   }
   'setups.store': {
