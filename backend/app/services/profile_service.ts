@@ -1,6 +1,8 @@
 import User from '#models/user'
 import Student from '#models/student' 
 import Landlord from '#models/landlord'
+// import Accommodation from '#models/accommodation'
+// import Manager from '#models/manager'
 import FileMetadata from '#models/file_metadata'
 import Document from '#models/document'
 import drive from '@adonisjs/drive/services/main'
@@ -77,7 +79,7 @@ export default class ProfileService {
         // SCENARIO B: THE USER IS A LANDLORD
         // ==========================================
         else if (validatedData.role === 'Landlord') {
-            
+
             // 1. Process Business Permit
             const permitName = `${user.userId}_permit_${new Date().getTime()}.${validatedData.businessPermit.extname}`
             await validatedData.businessPermit.moveToDisk(permitName, 's3')
@@ -101,11 +103,48 @@ export default class ProfileService {
             const landlord = await Landlord.create({
                 userId: user.userId,
                 tin: validatedData.tin,
-                accommodationName: validatedData.accommodationName,
-                businessAddress: validatedData.businessAddress,
-                contactNumber: validatedData.contactNumber,
-                businessPermitId: permitFile.fileId,
+                // contactNumber: validatedData.contactNumber,
+
+                // NOTE: -W
+                // These does not exist in the current Landlord model and
+                // belong to Accommodation based on the UML.
+                // accommodationName: validatedData.accommodationName,
+                // businessAddress: validatedData.accommodationLocation,
+                // businessPermitId: permitFile.fileId,
             })
+
+            // ==========================================
+            // ACCOMMODATION CREATION (TEMPORARILY DISABLED)
+            // ==========================================
+
+            // NOTE: -W
+            // The accommodation table requires managerId.
+            // I'm not sure if a default manager exists,
+            // the following logic is prepared but commented out.
+
+            /*
+            // Find an active manager to assign to the accommodation
+            const manager = await Manager.query()
+                .where('managerStatus', 'active')
+                .first()
+
+            if (!manager) {
+                throw new Error('No active manager found to assign accommodation')
+            }
+
+            const accommodation = await Accommodation.create({
+                landlordId: landlord.userId,
+                managerId: manager.userId,
+                businessPermitId: permitFile.fileId,
+                accommodationName: validatedData.accommodationName,
+                accommodationLocation: validatedData.accommodationLocation,
+                accommodationType: validatedData.accommodationType,
+                accommodationCapacity: validatedData.accommodationCapacity,
+                tenantRestriction: validatedData.tenantRestriction,
+                applicationStartDate: DateTime.fromJSDate(validatedData.applicationStartDate),
+                applicationEndDate: DateTime.fromJSDate(validatedData.applicationEndDate),
+            })
+            */
 
             return {
                 landlord,
@@ -117,5 +156,5 @@ export default class ProfileService {
     }
 }
 
-// Notes:
+// Notes: -W
 // uplbId is uploaded but not connected to Student model
