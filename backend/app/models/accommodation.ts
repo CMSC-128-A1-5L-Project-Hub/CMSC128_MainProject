@@ -47,6 +47,21 @@ export default class Accommodation extends BaseModel {
   @column.date()
   declare applicationEndDate: DateTime
 
+  @column()
+  declare walkingDistance: number | null
+
+  @column()
+  declare drivingDistance: number | null
+
+  @column()
+  declare cyclingDistance: number | null
+
+  @column()
+  declare latitude: number
+
+  @column()
+  declare longitude: number
+
   // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Landlord, { foreignKey: 'landlordId' })
   declare landlord: BelongsTo<typeof Landlord>
