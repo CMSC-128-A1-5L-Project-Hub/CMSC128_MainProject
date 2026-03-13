@@ -15,4 +15,10 @@ export default class SysVariables extends BaseModel {
 
   @column.date()
   declare semStartDate: DateTime
+
+  @column()
+  declare uplbLatitude: number
+
+  @column()
+  declare uplbLongitude: number
 }
