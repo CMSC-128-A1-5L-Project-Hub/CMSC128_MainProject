@@ -94,6 +94,11 @@ CREATE TABLE IF NOT EXISTS accommodation(
     business_permit_id INT NOT NULL,  -- file reference
     accommodation_name VARCHAR(50) NOT NULL,
     accommodation_location VARCHAR(150) NOT NULL,
+    longitude DECIMAL(9,6) NULL,
+    latitude DECIMAL(9,6) NULL,
+    walking_distance INT NULL,
+    biking_distance INT NULL,
+    driving_distance INT NULL,
     accommodation_type ENUM('on-campus', 'off-campus', 'partner_housing') NOT NULL,
     accommodation_capacity INT NOT NULL,
     tenant_restriction ENUM('male-only', 'female-only', 'coed') NOT NULL,
@@ -286,6 +291,8 @@ CREATE TABLE IF NOT EXISTS sys_variables(
     current_semester ENUM('first_sem', 'second_sem', 'midyear') NOT NULL,
     current_sy VARCHAR(9) NOT NULL, -- ex. 2024-2025
     sem_start_date DATE NOT NULL, -- beginning of current sem
+    uplb_latitude DECIMAL(9,6) NOT NULL,
+    uplb_longitude DECIMAL(9,6) NOT NULL,
     CONSTRAINT sys_variables_sys_id_pk PRIMARY KEY (sys_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
