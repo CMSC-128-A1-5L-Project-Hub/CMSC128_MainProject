@@ -61,6 +61,9 @@ router.group(() => {
   router.post('/setup', [controllers.Setups, 'store'])
 
   // Admin verification
+  router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
+  .use(middleware.role([ROLES.MANAGER]))
+  
   router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
     .use(middleware.role([ROLES.MANAGER]))
 

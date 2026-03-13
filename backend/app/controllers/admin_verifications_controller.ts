@@ -4,6 +4,36 @@ import Student from '#models/student'
 import Landlord from '#models/landlord'
 
 export default class AdminVerificationController {
+  async index({ response }: HttpContext) {
+   const users = await User.query().where('is_verified', false)
+
+    const pendingUsers = []
+
+    for (const user of users) {
+      if (user.isVerified) {
+        continue
+      }
+
+      const student = await Student.findBy('userId', user.userId)
+      const landlord = await Landlord.findBy('userId', user.userId)
+
+      if (!student && !landlord) {
+        continue
+      }
+
+      pendingUsers.push({
+        user,
+        submittedRole: student ? 'student' : 'landlord',
+        profile: student ?? landlord,
+      })
+    }
+
+    return response.ok({
+      message: 'Pending verification users fetched successfully',
+      data: pendingUsers,
+    })
+  }
+
   async verify({ params, response }: HttpContext) {
     const user = await User.find(params.userId)
 
