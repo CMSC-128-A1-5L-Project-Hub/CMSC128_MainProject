@@ -7,7 +7,7 @@ import Assignment from '#models/assignment'
 import Bookmark from '#models/bookmark'
 
 export default class Student extends BaseModel {
-  static table = 'student'
+  static table = 'students' // follow migration table name
 
   // PK is student_number (string), not an integer
   @column({ isPrimary: true })

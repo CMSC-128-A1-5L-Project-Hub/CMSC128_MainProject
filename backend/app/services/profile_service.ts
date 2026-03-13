@@ -15,25 +15,40 @@ export default class ProfileService {
         // SCENARIO A: THE USER IS A STUDENT
         // ==========================================
         if (validatedData.role === 'Student') {
-            // Process Form 5
-            const form5Name = `${user.userId}_form5_${new Date().getTime()}.${validatedData.form5.extname}`
-            await validatedData.form5.moveToDisk(form5Name, 's3')
-            const form5Url = await drive.use('s3').getUrl(form5Name)
 
-            // Save Form 5 metadata
-            const form5File = await FileMetadata.create({
-                fileName: form5Name,
-                filePath: form5Url,
-                fileType: 'document',
-            })
+            const uploadedForm5Urls: string[] = []
+            let enrollmentProofFileId: number | undefined
 
-            // Save document record
-            await Document.create({
-                userId: user.userId,
-                fileId: form5File.fileId,
-                uploadTimestamp: DateTime.now(),
-            })
+            // Process MULTIPLE Form 5 files
+            for (const file of validatedData.form5) {
 
+                const form5Name = `${user.userId}_form5_${new Date().getTime()}.${file.extname}`
+                await file.moveToDisk(form5Name, 's3')
+                const form5Url = await drive.use('s3').getUrl(form5Name)
+
+                // Save Form 5 metadata
+                const form5File = await FileMetadata.create({
+                    fileName: form5Name,
+                    filePath: form5Url,
+                    fileType: 'document',
+                })
+
+                // Save document record
+                await Document.create({
+                    userId: user.userId,
+                    fileId: form5File.fileId,
+                    uploadTimestamp: DateTime.now(),
+                })
+
+                uploadedForm5Urls.push(form5Url)
+
+                // Save the first file as enrollment proof reference
+                if (!enrollmentProofFileId) {
+                    enrollmentProofFileId = form5File.fileId
+                }
+            }
+
+            /* Note: UPLB ID not in model or migrations -W
             // Process UPLB ID
             const uplbIdName = `${user.userId}_uplbid_${new Date().getTime()}.${validatedData.uplbId.extname}`
             await validatedData.uplbId.moveToDisk(uplbIdName, 's3')
@@ -52,26 +67,24 @@ export default class ProfileService {
                 fileId: uplbIdFile.fileId,
                 uploadTimestamp: DateTime.now(),
             })
+            */
 
             // Save to the 'students' table
             const student = await Student.create({
                 studentNumber: validatedData.studentNumber,
                 userId: user.userId,
-                enrollmentProofFileId: form5File.fileId,
+                enrollmentProofFileId: enrollmentProofFileId,
                 college: validatedData.college,
                 degreeProgram: validatedData.degreeProgram,
                 gender: validatedData.gender,
 
-                emergencyContactName: null,
-                emergencyContactNumber: validatedData.emergencyContact,
+                emergencyContactName: validatedData.emergencyContactName,
+                emergencyContactNumber: validatedData.emergencyContactNumber,
             })
 
             return {
                 student,
-                uploadedFiles: {
-                    form5Url,
-                    uplbIdUrl,
-                },
+                uploadedFiles: uploadedForm5Urls,
             }
         }
 
@@ -80,24 +93,37 @@ export default class ProfileService {
         // ==========================================
         else if (validatedData.role === 'Landlord') {
 
-            // 1. Process Business Permit
-            const permitName = `${user.userId}_permit_${new Date().getTime()}.${validatedData.businessPermit.extname}`
-            await validatedData.businessPermit.moveToDisk(permitName, 's3')
-            const permitUrl = await drive.use('s3').getUrl(permitName)
+            const uploadedPermitUrls: string[] = []
+            let permitFileId: number | undefined
 
-            // Save Business Permit metadata
-            const permitFile = await FileMetadata.create({
-                fileName: permitName,
-                filePath: permitUrl,
-                fileType: 'document',
-            })
+            // Process MULTIPLE Business Permit files
+            for (const file of validatedData.businessPermit) {
 
-            // Save document record
-            await Document.create({
-                userId: user.userId,
-                fileId: permitFile.fileId,
-                uploadTimestamp: DateTime.now(),
-            })
+                const permitName = `${user.userId}_permit_${new Date().getTime()}.${file.extname}`
+                await file.moveToDisk(permitName, 's3')
+                const permitUrl = await drive.use('s3').getUrl(permitName)
+
+                // Save Business Permit metadata
+                const permitFile = await FileMetadata.create({
+                    fileName: permitName,
+                    filePath: permitUrl,
+                    fileType: 'document',
+                })
+
+                // Save document record
+                await Document.create({
+                    userId: user.userId,
+                    fileId: permitFile.fileId,
+                    uploadTimestamp: DateTime.now(),
+                })
+
+                uploadedPermitUrls.push(permitUrl)
+
+                // Save first permit ID if needed later
+                if (!permitFileId) {
+                    permitFileId = permitFile.fileId
+                }
+            }
 
             // 2. Save to the 'landlords' table
             const landlord = await Landlord.create({
@@ -110,7 +136,7 @@ export default class ProfileService {
                 // belong to Accommodation based on the UML.
                 // accommodationName: validatedData.accommodationName,
                 // businessAddress: validatedData.accommodationLocation,
-                // businessPermitId: permitFile.fileId,
+                // businessPermitId: permitFileId,
             })
 
             // ==========================================
@@ -135,7 +161,7 @@ export default class ProfileService {
             const accommodation = await Accommodation.create({
                 landlordId: landlord.userId,
                 managerId: manager.userId,
-                businessPermitId: permitFile.fileId,
+                businessPermitId: permitFileId,
                 accommodationName: validatedData.accommodationName,
                 accommodationLocation: validatedData.accommodationLocation,
                 accommodationType: validatedData.accommodationType,
@@ -148,13 +174,11 @@ export default class ProfileService {
 
             return {
                 landlord,
-                uploadedFiles: {
-                    permitUrl,
-                },
+                uploadedFiles: uploadedPermitUrls,
             }
         }
     }
 }
 
 // Notes: -W
-// uplbId is uploaded but not connected to Student model
+// uplbId logic commented out for now in case it is needed later

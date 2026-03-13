@@ -13,7 +13,7 @@ export const setupProfileValidator = vine.compile(
     .optional()                             // optional except when the role equals 'Student'.
     .requiredWhen('role', '=', 'Student'),  
     
-    degreeProgram: vine.string()
+    course: vine.string() //follow the migrations
     .optional()
     .requiredWhen('role', '=', 'Student'),
 
@@ -33,12 +33,14 @@ export const setupProfileValidator = vine.compile(
     .optional()
     .requiredWhen('role', '=', 'Student'),
 
-    form5: vine.file({
-      size: '16mb',
-      extnames: ['pdf', 'png', 'jpg', 'jpeg'],
-    })
-      .optional()
-      .requiredWhen('role', '=', 'Student'),
+    form5: vine.array(
+      vine.file({
+        size: '16mb',
+        extnames: ['pdf', 'png', 'jpg', 'jpeg'],
+      })
+    )
+    .optional()
+    .requiredWhen('role', '=', 'Student'),
 
     // uplbId: vine.file({
     //   size: '16mb',
@@ -89,11 +91,13 @@ export const setupProfileValidator = vine.compile(
       .optional()
       .requiredWhen('role', '=', 'Landlord'),
 
-    businessPermit: vine.file({
-      size: '16mb',
-      extnames: ['pdf', 'png', 'jpg', 'jpeg'],
-    })
-      .optional()
-      .requiredWhen('role', '=', 'Landlord'),
+    businessPermit: vine.array(
+      vine.file({
+        size: '16mb',
+        extnames: ['pdf', 'png', 'jpg', 'jpeg'],
+      })
+    )
+    .optional()
+    .requiredWhen('role', '=', 'Landlord'),
   })
 )
