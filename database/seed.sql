@@ -1,7 +1,7 @@
 -- Entries per table
 
 -- 1. USER table
-INSERT INTO user 
+INSERT INTO users 
     (pfp_file_id, fname, mname, lname, suffix, email, facebook_account, role) 
 VALUES 
     -- Students (7)
@@ -29,7 +29,7 @@ VALUES
     (18, 'Andy Emmanuel', 'Padilla', 'Alvarez', NULL, 'aralvarez@gmail.com', 'facebook.com/andy.alvarez', 'manager'),
 
 -- 2. PHONE NUMBER
-INSERT INTO phone_number 
+INSERT INTO phone_numbers 
     (user_id, contact_number, is_primary)
 VALUES
     (1, '09171234567', 'true'),
@@ -57,7 +57,7 @@ VALUES
     (17, '09793456128', 'false');
 
 -- 3. LANDLORD
-INSERT INTO landlord
+INSERT INTO landlords
     (user_id, tin)
 VALUES
     (8, '123-456-789-000'),
@@ -67,7 +67,7 @@ VALUES
     (12, '567-890-123-444');
 
 -- 4. MANAGER
-INSERT INTO manager
+INSERT INTO managers
     (user_id, manager_status)
 VALUES
     (13, 'active'),
@@ -78,7 +78,7 @@ VALUES
     (18, 'active');
 
 -- 5. STUDENT
-INSERT INTO student 
+INSERT INTO students 
     (student_number, user_id, enrollment_proof_file_id, college, degree_program, gender, emergency_contact_name, emergency_contact_number)
 VALUES 
     ('2023123456', 1, 18, 'CEAT', 'BS Industrial Engineering', 'Female', 'Kalix Martinez', '09181234567'),
@@ -90,7 +90,7 @@ VALUES
     ('2023123462', 7, 24, 'CITE', 'BS Computer Science', 'Male', 'Victor Padilla', '09987654321');
 
 -- 6. REPORT
-INSERT INTO report 
+INSERT INTO reports 
     (landlord_id, student_number, report_file_id, report_type)
 VALUES
     (5, '2023123456', 25, 'billing'),
@@ -100,7 +100,7 @@ VALUES
     (4, '2023123462', 29, 'billing');
 
 -- 7. ACCOMODATION
-INSERT INTO accommodation 
+INSERT INTO accommodations 
     (landlord_id, manager_id, business_permit_id, accommodation_name, accommodation_location, accommodation_type, accommodation_capacity, tenant_restriction, application_start_date, application_end_date)
 VALUES
     (1, 1, 30, 'White House', 'Ruby St., Brgy. Batong Malake, Los Baños, Laguna', 'off-campus', 60, 'coed', '2026-04-01', '2026-05-15'),
@@ -150,7 +150,7 @@ VALUES
     (6, 47);
 
 -- 10. REVIEW
-INSERT INTO review 
+INSERT INTO reviews 
     (accommodation_id, rating, content)
 VALUES
     (1, 4, 'Clean rooms, responsive landlord, and very close to the university.'),
@@ -167,57 +167,35 @@ VALUES
     (6, 3, 'Average stay, nothing special but decent overall.');
 
 -- 11. ROOM
-INSERT INTO room 
-    (accommodation_id, room_number, room_type, room_capacity, room_current_occupancy, room_building, room_rent, tenant_restriction, room_availability)
+INSERT INTO rooms 
+    (accommodation_id, room_number, room_type, room_stay_type, room_capacity, room_current_occupancy, room_building, room_rent, tenant_restriction, room_availability)
 VALUES
     -- Accommodation 1
-    (1, '101', 'single', 1, 0, 'Building A', 5000.00, 'coed', 'available'),
-    (1, '102', 'double', 2, 1, 'Building A', 6500.00, 'coed', 'available'),
+    (1, '101', 'single', 'transient', 1, 0, 'Building A', 5000.00, 'coed', 'available'),
+    (1, '102', 'double', 'transient', 2, 1, 'Building A', 6500.00, 'coed', 'available'),
 
     -- Accommodation 2
-    (2, '201', 'single', 1, 0, 'Building A', 6000.00, 'coed', 'available'),
-    (2, '202', 'double', 2, 2, 'Building A', 7000.00, 'coed', 'occupied'),
+    (2, '201', 'single', 'transient', 1, 0, 'Building A', 6000.00, 'coed', 'available'),
+    (2, '202', 'double', 'transient', 2, 2, 'Building A', 7000.00, 'coed', 'occupied'),
 
     -- Accommodation 3
-    (3, '301', 'shared', 4, 3, 'Building B', 800.00, 'non-coed', 'occupied'),
-    (3, '302', 'shared', 4, 1, 'Building C', 800.00, 'non-coed', 'available'),
+    (3, '301', 'shared', 'transient', 4, 3, 'Building B', 800.00, 'non-coed', 'occupied'),
+    (3, '302', 'shared', 'transient', 4, 1, 'Building C', 800.00, 'non-coed', 'available'),
 
     -- Accommodation 4
-    (4, '401', 'shared', 4, 4, 'Building A', 800.00, 'non-coed', 'occupied'),
-    (4, '402', 'shared', 4, 0, 'Building B', 800.00, 'non-coed', 'available'),
+    (4, '401', 'shared', 'non_transient', 4, 4, 'Building A', 800.00, 'non-coed', 'occupied'),
+    (4, '402', 'shared', 'non_transient', 4, 0, 'Building B', 800.00, 'non-coed', 'available'),
 
     -- Accommodation 5
-    (5, '501', 'single', 1, 0, 'Building C', 5500.00, 'coed', 'maintenance'),
-    (5, '502', 'shared', 3, 2, 'Building C', 6000.00, 'coed', 'available');
+    (5, '501', 'single', 'non_transient', 1, 0, 'Building C', 5500.00, 'coed', 'maintenance'),
+    (5, '502', 'shared', 'non_transient', 3, 2, 'Building C', 6000.00, 'coed', 'available');
 
     -- Accomodation 6
-    (1, '303', 'shared', 3, 1, 'Building A', 4800.00, 'coed', 'available'),
-    (2, '203', 'single', 1, 0, 'Building B', 6200.00, 'coed', 'available');
-
--- 12. TRANSIENT
-INSERT INTO transient 
-    (room_id)
-VALUES
-    (1),
-    (2),
-    (3),
-    (4),
-    (5),
-    (6);
-
--- 13. NON-TRANSIENT
-INSERT INTO non_transient 
-    (room_id)
-VALUES
-    (7),
-    (8),
-    (9),
-    (10),
-    (11),
-    (12);
+    (1, '303', 'shared', 'non_transient', 3, 1, 'Building A', 4800.00, 'coed', 'available'),
+    (2, '203', 'single', 'non_transient', 1, 0, 'Building B', 6200.00, 'coed', 'available');
 
 -- 14. APPLICATION 
-INSERT INTO application
+INSERT INTO applications
     (accommodation_id, student_number, application_room_type, application_stay_type, application_status, duration_of_stay_days)
 VALUES
     (1, '2023123456', 'single', 'non_transient', 'cancelled', 180),
@@ -243,7 +221,7 @@ VALUES
     (4, '2023123462', 'shared', 'transient', 'approved', 90),
     
 -- 15. ASSIGNMENT
-INSERT INTO assignment
+INSERT INTO assignments
     (student_number, room_id, move_in, expected_move_out, actual_move_out, grace_period_days)
 VALUES
     ('2023123456', 12, '2026-03-01', '2027-03-01', NULL, 5),
@@ -253,7 +231,7 @@ VALUES
     ('2023123462', 5, '2026-03-10', '2026-06-10', NULL, 5);
 
 -- 16. BOOKMARK
-INSERT INTO bookmark
+INSERT INTO bookmarks
     (student_number, accommodation_id)
 VALUES
     ('2023123456', 1),
@@ -268,7 +246,7 @@ VALUES
     ('2023123462', 4);
 
 -- 17. FEE
-INSERT INTO fee
+INSERT INTO fees
     (landlord_id, student_number, due_date, fee_category, fee_amount, fee_balance, fee_status)
 VALUES
     (5, '2023123456', '2026-04-31', 'rent', 6200.00, 6200.00, 'unpaid'),
@@ -278,7 +256,7 @@ VALUES
     (4, '2023123462', '2026-03-31', 'rent', 800.00, 800.00, 'overdue');
 
 -- 18. PAYMENT
-INSERT INTO payment 
+INSERT INTO payments 
     (fee_id, proof_file_id, payment_amount, mode_of_payment)
 VALUES
     (2, 48, 1200.00, 'GCash'),
@@ -360,7 +338,7 @@ VALUES
 ('doc_img_5.jpg', '/uploads/documents/doc_5.pdf', 'document');
 
 -- 20. DOCUMENTS
-INSERT INTO document
+INSERT INTO documents
     (user_id, file_id, upload_timestamp)
 VALUES
     (2, 51, '2026-03-01 09:15:00'),
@@ -370,7 +348,7 @@ VALUES
     (6, 55, '2026-03-05 08:05:00');
 
 -- 21. LOG
-INSERT INTO log
+INSERT INTO logs
     (actor_id, entity_type, entity_id, log_timestamp, activity_type, activity_details)
 VALUES
     (2, 'application', 1, '2026-03-01 09:15:00', 'create', 'Student submitted application for Accommodation 1'),
@@ -385,7 +363,7 @@ VALUES
     (6, 'accommodation', 2, '2026-03-05 16:30:00', 'update', 'Changed accommodation type to coed');
 
 -- 22. SYSTEM NOTIFICATIONS
-INSERT INTO notification 
+INSERT INTO notifications 
     (user_id, notification_content, read_status, notification_type)
 VALUES
     (2, 'Your rent payment is due on March 15, 2026.', 'unread', 'fee_due'),
