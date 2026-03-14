@@ -16,6 +16,7 @@ import swagger from "#config/swagger"
 
 const AuthController = () => import('#controllers/auth_controller')
 
+
 router.get('/', () => {
   return { hello: 'world' }
 })
@@ -58,6 +59,13 @@ router.group(() => {
 
   // Setup for new users
   router.post('/setup', [controllers.Setups, 'store'])
+
+  // Admin verification
+  router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
+  .use(middleware.role([ROLES.MANAGER]))
+  
+  router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
+    .use(middleware.role([ROLES.MANAGER]))
 
 }).prefix('/api/v1').use(middleware.auth())
 
