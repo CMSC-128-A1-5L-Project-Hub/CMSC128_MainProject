@@ -292,7 +292,7 @@ CREATE INDEX idx_phone_number_contact_number ON phone_numbers(contact_number);
 
 -- ACCOMMODATIONS Table Indexes
 CREATE INDEX idx_accommodation_landlord_id ON accommodations(landlord_id);
-CREATE INDEX idx_accommodation_manager_id ON accommodatios(manager_id);
+CREATE INDEX idx_accommodation_manager_id ON accommodations(manager_id);
 CREATE INDEX idx_accommodation_application_period ON accommodations(application_start_date, application_end_date);
 
 -- ACCOMMODATION TAGS Table Indexes
