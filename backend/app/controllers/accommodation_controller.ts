@@ -21,34 +21,20 @@ export default class AccommodationController {
       max_walk,
       min_capacity,
       search,
+      stay_type,
     } = request.qs()
 
     const query = Accommodation.query()
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
       .preload('manager', (q) => q.preload('user'))
+      .preload('rooms')
 
-    // Filter by accommodation type
-    if (type) {
-      query.where('accommodation_type', type)
-    }
+    if (type) query.where('accommodation_type', type)
+    if (restriction) query.where('tenant_restriction', restriction)
+    if (max_walk) query.where('walking_distance', '<=', Number(max_walk))
+    if (min_capacity) query.where('accommodation_capacity', '>=', Number(min_capacity))
 
-    // Filter by tenant restriction
-    if (restriction) {
-      query.where('tenant_restriction', restriction)
-    }
-
-    // Filter by walking distance to campus
-    if (max_walk) {
-      query.where('walking_distance_minutes', '<=', Number(max_walk))
-    }
-
-    // Filter by minimum capacity
-    if (min_capacity) {
-      query.where('accommodation_capacity', '>=', Number(min_capacity))
-    }
-
-    // Filter by name or location
     if (search) {
       query.where((q) => {
         q.where('accommodation_name', 'LIKE', `%${search}%`)
@@ -56,23 +42,39 @@ export default class AccommodationController {
       })
     }
 
-    // Filter by min rent — checks if accommodation has at least one room with rent >= min_rent
     if (min_rent) {
       query.whereHas('rooms', (q) => {
         q.where('room_rent', '>=', Number(min_rent))
       })
     }
 
-    // Filter by max rent — checks if accommodation has at least one room with rent <= max_rent
     if (max_rent) {
       query.whereHas('rooms', (q) => {
         q.where('room_rent', '<=', Number(max_rent))
       })
     }
 
+    if (stay_type === 'transient') {
+      query.whereHas('rooms', (q) => {
+        q.whereHas('transient', (q) => q)
+      })
+    } else if (stay_type === 'non_transient') {
+      query.whereHas('rooms', (q) => {
+        q.whereHas('nonTransient', (q) => q)
+      })
+    }
+
     const accommodations = await query
 
-    return response.ok({ status: 200, data: accommodations })
+    return response.ok({
+      status: 200,
+      data: accommodations.map((acc) => ({
+        ...acc.serialize(),
+        minRent: acc.rooms.length > 0 ? Math.min(...acc.rooms.map((r) => r.roomRent)) : 0,
+        maxRent: acc.rooms.length > 0 ? Math.max(...acc.rooms.map((r) => r.roomRent)) : 0,
+        imageUrl: acc.images[0]?.file?.filePath ?? null,
+      }))
+    })
   }
 
   // ─── GET /accommodations/:id ──────────────────────────────────────────────
