@@ -1,10 +1,10 @@
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import { DateTime } from 'luxon'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
-import { DateTime } from 'luxon'
 
 export default class Notification extends BaseModel {
-  static table = 'notification'
+  static table = 'notifications'
 
   @column({ isPrimary: true })
   declare notificationId: number

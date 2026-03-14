@@ -11,7 +11,6 @@ export default class AccommodationController {
 
   // ─── GET /accommodations ──────────────────────────────────────────────────
   // Public: list all accommodations with optional filters via query string
-  // Example: GET /accommodations?type=on-campus&restriction=coed&min_rent=2000&max_rent=5000&max_walk=15&search=sampaguita
   async index({ request, response }: HttpContext) {
     const {
       type,
@@ -30,10 +29,21 @@ export default class AccommodationController {
       .preload('manager', (q) => q.preload('user'))
       .preload('rooms')
 
-    if (type) query.where('accommodation_type', type)
-    if (restriction) query.where('tenant_restriction', restriction)
-    if (max_walk) query.where('walking_distance', '<=', Number(max_walk))
-    if (min_capacity) query.where('accommodation_capacity', '>=', Number(min_capacity))
+    if (type) {
+      query.where('accommodation_type', type)
+    }
+
+    if (restriction) {
+      query.where('tenant_restriction', restriction)
+    }
+
+    if (max_walk) {
+      query.where('walking_distance', '<=', Number(max_walk))
+    }
+
+    if (min_capacity) {
+      query.where('accommodation_capacity', '>=', Number(min_capacity))
+    }
 
     if (search) {
       query.where((q) => {
@@ -54,13 +64,9 @@ export default class AccommodationController {
       })
     }
 
-    if (stay_type === 'transient') {
+    if (stay_type && stay_type !== 'all') {
       query.whereHas('rooms', (q) => {
-        q.whereHas('transient', (q) => q)
-      })
-    } else if (stay_type === 'non_transient') {
-      query.whereHas('rooms', (q) => {
-        q.whereHas('nonTransient', (q) => q)
+        q.where('room_stay_type', stay_type)
       })
     }
 
@@ -85,10 +91,7 @@ export default class AccommodationController {
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
       .preload('manager', (q) => q.preload('user'))
-      .preload('rooms', (q) => {
-        q.preload('transient')
-        q.preload('nonTransient')
-      })
+      .preload('rooms')
       .preload('reviews')
       .first()
 
@@ -138,8 +141,7 @@ export default class AccommodationController {
       return response.badRequest({
         status: 400,
         error: 'Validation Error',
-        message:
-          'All fields are required: accommodation_name, accommodation_location, accommodation_type, accommodation_capacity, tenant_restriction, application_start_date, application_end_date, manager_id, business_permit_id, latitude, longitude.',
+        message: 'All fields are required',
       })
     }
 
@@ -166,12 +168,11 @@ export default class AccommodationController {
           longitude: Number(longitude),
           walkingDistance: walkingMinutes,
           drivingDistance: drivingMinutes,
-          cyclingDistance: cyclingMinutes,
+          bikingDistance: cyclingMinutes,
         },
         { client: trx }
       )
 
-      // Optional: upload images alongside creation
       const images = request.files('images', {
         extnames: ['jpg', 'jpeg', 'png', 'webp'],
         size: '16mb',
@@ -256,9 +257,9 @@ export default class AccommodationController {
       distances = {
         latitude: Number(latitude),
         longitude: Number(longitude),
-        walkingDistanceMinutes: walkingMinutes,
-        drivingDistanceMinutes: drivingMinutes,
-        cyclingDistanceMinutes: cyclingMinutes,
+        walkingDistance: walkingMinutes,
+        drivingDistance: drivingMinutes,
+        bikingDistance: cyclingMinutes,
       }
     }
 
@@ -401,7 +402,7 @@ export default class AccommodationController {
   }
 
   // ─── GET /accommodations/:id/rooms ───────────────────────────────────────
-  // Manager/HA: list all rooms of an accommodation (for assignment purposes)
+  // Manager/HA: list all rooms of an accommodation
   async getRooms({ params, response }: HttpContext) {
     const accommodation = await Accommodation.query()
       .where('accommodation_id', params.id)
@@ -417,8 +418,6 @@ export default class AccommodationController {
 
     const rooms = await Room.query()
       .where('accommodation_id', params.id)
-      .preload('transient')
-      .preload('nonTransient')
 
     return response.ok({ status: 200, data: rooms })
   }
@@ -444,34 +443,34 @@ export default class AccommodationController {
     const {
       room_number,
       room_type,
+      room_stay_type,
       room_capacity,
       room_building,
       room_rent,
       tenant_restriction,
-      stay_type,
     } = request.body()
 
     if (
       !room_number ||
       !room_type ||
+      !room_stay_type ||
       !room_capacity ||
       !room_building ||
       !room_rent ||
-      !tenant_restriction ||
-      !stay_type
+      !tenant_restriction
     ) {
       return response.badRequest({
         status: 400,
         error: 'Validation Error',
-        message: 'Required fields are not met',
+        message: 'Required: room_number, room_type, room_stay_type, room_capacity, room_building, room_rent, tenant_restriction.',
       })
     }
 
-    if (!['transient', 'non_transient'].includes(stay_type)) {
+    if (!['transient', 'non_transient'].includes(room_stay_type)) {
       return response.badRequest({
         status: 400,
         error: 'Validation Error',
-        message: 'stay_type must be either transient or non_transient.',
+        message: 'room_stay_type must be either transient or non_transient.',
       })
     }
 
@@ -483,6 +482,7 @@ export default class AccommodationController {
           accommodationId: accommodation.accommodationId,
           roomNumber: room_number,
           roomType: room_type,
+          roomStayType: room_stay_type,
           roomCapacity: room_capacity,
           roomCurrentOccupancy: 0,
           roomBuilding: room_building,
@@ -492,14 +492,6 @@ export default class AccommodationController {
         },
         { client: trx }
       )
-
-      if (stay_type === 'transient') {
-        const { default: Transient } = await import('#models/transient')
-        await Transient.create({ roomId: room.roomId }, { client: trx })
-      } else {
-        const { default: NonTransient } = await import('#models/non_transient')
-        await NonTransient.create({ roomId: room.roomId }, { client: trx })
-      }
 
       await trx.commit()
 

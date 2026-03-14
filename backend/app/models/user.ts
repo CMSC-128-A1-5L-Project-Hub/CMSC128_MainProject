@@ -7,7 +7,7 @@ import Student from '#models/student'
 import PhoneNumber from '#models/phone_number'
 
 export default class User extends BaseModel {
-  static table = 'user'
+  static table = 'users'
 
   @column({ isPrimary: true })
   declare userId: number

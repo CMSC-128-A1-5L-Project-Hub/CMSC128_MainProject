@@ -1,11 +1,11 @@
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import { DateTime } from 'luxon'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Accommodation from '#models/accommodation'
 import Student from '#models/student'
-import { DateTime } from 'luxon'
 
 export default class Application extends BaseModel {
-  static table = 'application'
+  static table = 'applications'
 
   @column({ isPrimary: true })
   declare applicationId: number

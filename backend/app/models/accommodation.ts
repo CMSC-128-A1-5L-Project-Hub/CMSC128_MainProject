@@ -1,6 +1,6 @@
 import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Landlord from '#models/landlord'
 import Manager from '#models/manager'
 import FileMetadata from '#models/file_metadata'
@@ -12,7 +12,7 @@ import Bookmark from '#models/bookmark'
 import Application from '#models/application'
 
 export default class Accommodation extends BaseModel {
-  static table = 'accommodation'
+  static table = 'accommodations'
 
   @column({ isPrimary: true })
   declare accommodationId: number
@@ -33,6 +33,21 @@ export default class Accommodation extends BaseModel {
   declare accommodationLocation: string
 
   @column()
+  declare longitude: number | null
+
+  @column()
+  declare latitude: number | null
+
+  @column()
+  declare walkingDistance: number | null
+
+  @column()
+  declare bikingDistance: number | null
+
+  @column()
+  declare drivingDistance: number | null
+
+  @column()
   declare accommodationType: 'on-campus' | 'off-campus' | 'partner_housing'
 
   @column()
@@ -46,21 +61,6 @@ export default class Accommodation extends BaseModel {
 
   @column.date()
   declare applicationEndDate: DateTime
-
-  @column()
-  declare walkingDistance: number | null
-
-  @column()
-  declare drivingDistance: number | null
-
-  @column()
-  declare cyclingDistance: number | null
-
-  @column()
-  declare latitude: number
-
-  @column()
-  declare longitude: number
 
   // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Landlord, { foreignKey: 'landlordId' })
