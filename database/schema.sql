@@ -25,8 +25,7 @@ CREATE TABLE IF NOT EXISTS users(
     role ENUM('student', 'landlord', 'manager', 'unassigned', 'super_admin') NOT NULL DEFAULT 'unassigned',
     CONSTRAINT user_user_id_pk PRIMARY KEY (user_id),
     CONSTRAINT user_email_uk UNIQUE (email),
-    CONSTRAINT user_pfp_file_id_fk FOREIGN KEY (pfp_file_id) REFERENCES file_metadata(file_id),
-    CONSTRAINT user_pfp_file_id_uk UNIQUE (pfp_file_id)
+    CONSTRAINT user_pfp_file_id_fk FOREIGN KEY (pfp_file_id) REFERENCES file_metadata(file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 AUTO_INCREMENT = 1;
 
@@ -138,8 +137,7 @@ CREATE TABLE IF NOT EXISTS accommodation_images(
     image_file_id INT NOT NULL,
     CONSTRAINT accommodation_images_images_id_pk PRIMARY KEY (images_id),
     CONSTRAINT accommodation_images_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodations(accommodation_id),
-    CONSTRAINT accommodation_images_image_file_id_fk FOREIGN KEY (image_file_id) REFERENCES file_metadata(file_id),
-    CONSTRAINT accommodation_images_image_file_id_uk UNIQUE (image_file_id)
+    CONSTRAINT accommodation_images_image_file_id_fk FOREIGN KEY (image_file_id) REFERENCES file_metadata(file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 AUTO_INCREMENT = 1;
 
