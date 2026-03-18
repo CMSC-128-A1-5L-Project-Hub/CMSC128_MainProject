@@ -1,37 +1,54 @@
-import hash from '@adonisjs/core/services/hash'
-import { compose } from '@adonisjs/core/helpers'
-import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
-import { type AccessToken, DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
+import { BaseModel, column, belongsTo, hasOne, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasOne, HasMany } from '@adonisjs/lucid/types/relations'
+import FileMetadata from '#models/file_metadata'
+import Landlord from '#models/landlord'
+import Manager from '#models/manager'
+import Student from '#models/student'
+import PhoneNumber from '#models/phone_number'
 
-
-export default class User extends compose(BaseModel, withAuthFinder(hash)) {
+export default class User extends BaseModel {
+  static table = 'users'
 
   @column({ isPrimary: true })
-  declare id: number
+  declare userId: number
 
   @column()
-  declare first_name: string
-  
+  declare pfpFileId: number
+
   @column()
-  declare middle_name: string
-  
+  declare fname: string
+
   @column()
-  declare last_name: string
+  declare mname: string | null
+
+  @column()
+  declare lname: string
+
+  @column()
+  declare suffix: string | null
 
   @column()
   declare email: string
 
   @column()
-  declare role: string
+  declare facebookAccount: string | null
 
-  @column.dateTime({ autoCreate: true})
-  declare createdAt: DateTime
+  @column()
+  declare role: 'student' | 'landlord' | 'manager' | 'unassigned' | 'super_admin'
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true})
-  declare updatedAt: DateTime
+  // ─── Relationships ────────────────────────────────────────────────────────
+  @belongsTo(() => FileMetadata, { foreignKey: 'pfpFileId', localKey: 'fileId' })
+  declare profilePicture: BelongsTo<typeof FileMetadata>
 
-  static accessTokens = DbAccessTokensProvider.forModel(User)
-  declare currentAccessToken?: AccessToken
-    user: Date
+  @hasOne(() => Landlord, { foreignKey: 'userId' })
+  declare landlord: HasOne<typeof Landlord>
+
+  @hasOne(() => Manager, { foreignKey: 'userId' })
+  declare manager: HasOne<typeof Manager>
+
+  @hasOne(() => Student, { foreignKey: 'userId' })
+  declare student: HasOne<typeof Student>
+
+  @hasMany(() => PhoneNumber, { foreignKey: 'userId' })
+  declare phoneNumbers: HasMany<typeof PhoneNumber>
+}

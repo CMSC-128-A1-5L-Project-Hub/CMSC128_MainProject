@@ -2,48 +2,43 @@ import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class extends BaseSchema {
   async up() {
-    this.schema.createTable('student', (table) => {
-      // Primary Key linked to Users table
-      table.integer('user_id').unsigned().primary().references('id').inTable('users').onDelete('CASCADE')
+    this.schema.createTable('students', (table) => {
+      table.string('student_number', 10).primary()
+      table.bigInteger('user_id').unsigned().notNullable().unique()
+           .references('id').inTable('users').onDelete('CASCADE')
+      table.bigInteger('enrollment_proof_id').unsigned().notNullable().unique()
+           .references('id').inTable('file_metadata')
       
       // Data Fields
-      table.string('student_number').notNullable().unique()
-      table.string('course').notNullable()
-      table.string('college').notNullable()
-      table.string('emergency_contact').notNullable()
+      table.string('course').notNullable() // e.g., BS Computer Science
+      table.string('college').notNullable() // e.g., CAS
       table.string('gender').notNullable()
+      table.string('contact_number', 11).notNullable()
+      table.string('emergency_contact_name').notNullable()
+      table.string('emergency_contact_number', 11).notNullable()
 
-      // GCS File Paths (Storing the URL/Path)
-      table.string('form_5_path').nullable() 
-      table.string('uplb_id_path').nullable()
-      
-      table.timestamp('created_at')
-      table.timestamp('updated_at')
+      table.timestamps(true)
     })
 
-    this.schema.createTable('landlord', (table) => {
-      table.integer('user_id').unsigned().primary().references('id').inTable('users').onDelete('CASCADE')
-      
-      // Data Fields
-      table.string('tin').notNullable()
-      table.string('accommodation_name').notNullable()
-      table.string('business_address').notNullable()
-      table.string('contact_number').notNullable()
+    this.schema.createTable('landlords', (table) => {
+      table.bigInteger('user_id').unsigned().primary()
+           .references('id').inTable('users').onDelete('CASCADE')
+      table.string('tin', 15).notNullable()
 
-      // GCS File Path
-      table.string('business_permit_path').nullable()
-
-      table.timestamp('created_at')
-      table.timestamp('updated_at')
+      table.timestamps(true)
     })
 
-    this.schema.createTable('manager', (table) => {
-      table.integer('user_id').unsigned().primary().references('id').inTable('users').onDelete('CASCADE')
+    this.schema.createTable('managers', (table) => {
+      table.bigInteger('user_id').unsigned().primary()
+           .references('id').inTable('users').onDelete('CASCADE')
+      table.enum('status', ['active', 'inactive']).defaultTo('inactive')
+      table.timestamps(true)
     })
   }
-  
+
   async down() {
-    this.schema.dropTable('student')
-    this.schema.dropTable('landlord')
+    this.schema.dropTable('managers')
+    this.schema.dropTable('landlords')
+    this.schema.dropTable('students')
   }
 }

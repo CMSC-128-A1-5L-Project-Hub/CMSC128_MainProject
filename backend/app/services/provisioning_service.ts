@@ -1,13 +1,27 @@
 import User from '#models/user'
+import FileMetadata from '#models/file_metadata'
 
 export default class ProvisioningService {
-  /**
-   * Accepts a profile object from Google and handles the "Upsert"
-   */
-  public async provision(profile: { email: string, firstName: string, lastName: string }) {
-    // STEP 1: Find the user by email or create a new one if he doesn't exist
+  public async provision(profile: { email: string; fname: string; lname: string }) {
     
-    // Then just return user
-    //return user
+    // Get the default placeholder pfp
+   const defaultPfp = await FileMetadata.findByOrFail('file_path', 'defaults/default_pfp.png')
+
+    let user = await User.findBy('email', profile.email)
+
+    if (user) {
+      user.fname = profile.fname
+      user.lname = profile.lname
+      await user.save()
+      return user
+    }
+
+    return await User.create({
+      email: profile.email,
+      fname: profile.fname,
+      lname: profile.lname,
+      role: 'unassigned',
+      pfpFileId: defaultPfp.fileId,
+    })
   }
 }
