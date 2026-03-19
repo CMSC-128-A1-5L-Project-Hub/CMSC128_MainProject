@@ -1,4 +1,8 @@
 ----- RETRIEVE -----
+-- Retrieve by application_stay_type
+SELECT * FROM applications 
+WHERE application_stay_type = 'transient';
+
 -- Retrieve by accommodation_id
 SELECT * FROM applications ap
 JOIN accommodation ac ON ap.accommodation_id = ac.accommodation_id
