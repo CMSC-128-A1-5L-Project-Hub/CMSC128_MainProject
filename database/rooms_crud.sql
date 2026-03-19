@@ -13,18 +13,18 @@ WHERE tenant_restriction = 'coed';
 
 -- Retrieve by accommodation_id
 SELECT * FROM rooms r
-JOIN accommodation a ON r.accommodation_id = a.accommodation_id
+JOIN accommodations a ON r.accommodation_id = a.accommodation_id
 WHERE r.accommodation_id = 67;
 
 -- Retrieve by accommodation_id and room_type
 SELECT * FROM rooms r
-JOIN accommodation a ON r.accommodation_id = a.accommodation_id
+JOIN accommodations a ON r.accommodation_id = a.accommodation_id
 WHERE r.accommodation_id = 67
     AND r.room_type = 'shared';
 
 -- Retrieve by accommodation_id and room_stay_type
 SELECT * FROM rooms r
-JOIN accommodation a ON r.accommodation_id = a.accommodation_id
+JOIN accommodations a ON r.accommodation_id = a.accommodation_id
 WHERE r.accommodation_id = 67
     AND r.room_stay_type = 'transient';
 

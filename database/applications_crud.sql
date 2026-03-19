@@ -5,7 +5,7 @@ WHERE application_stay_type = 'transient';
 
 -- Retrieve by accommodation_id
 SELECT * FROM applications ap
-JOIN accommodation ac ON ap.accommodation_id = ac.accommodation_id
+JOIN accommodations ac ON ap.accommodation_id = ac.accommodation_id
 WHERE ap.accommodation_id = 67;
 
 -- Retrieve by student_number
