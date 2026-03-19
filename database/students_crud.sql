@@ -9,13 +9,13 @@ WHERE student_number = '0123456789';
 ----- UPDATE -----
 -- Update user first name from student table
 UPDATE students s
-JOIN user u ON s.user_id = u.user_id
+JOIN users u ON s.user_id = u.user_id
 SET u.fname = 'Bronny'
 WHERE s.student_number = '0123456789'
 
 -- Update user middle name from student table
 UPDATE students s
-JOIN user u ON s.user_id = u.user_id
+JOIN users u ON s.user_id = u.user_id
 SET u.mname = 'Is'
 WHERE s.student_number = '0123456789'
 
@@ -33,13 +33,13 @@ WHERE s.student_number = '0123456789'
 
 -- Update user email from student table
 UPDATE students s
-JOIN user u ON s.user_id = u.user_id
+JOIN users u ON s.user_id = u.user_id
 SET u.email = 'bronnygames@lebronjames.com'
 WHERE s.student_number = '0123456789'
 
 -- Update facebook account from student table
 UPDATE students s
-JOIN user u ON s.user_id = u.user_id
+JOIN users u ON s.user_id = u.user_id
 SET u.facebook_account = 'Bronny Is Games Jr.'
 WHERE s.student_number = '0123456789'
 
