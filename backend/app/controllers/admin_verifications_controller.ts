@@ -5,7 +5,7 @@ import Landlord from '#models/landlord'
 
 export default class AdminVerificationController {
   async index({ response }: HttpContext) {
-   const users = await User.query().where('is_verified', false)
+    const users = await User.query().where('is_verified', false)
 
     const pendingUsers = []
 

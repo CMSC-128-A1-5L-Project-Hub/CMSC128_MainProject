@@ -4,6 +4,7 @@
  */
 
 export const controllers = {
+  Accommodation: () => import('#controllers/accommodation_controller'),
   AdminVerifications: () => import('#controllers/admin_verifications_controller'),
   Application: () => import('#controllers/application_controller'),
   Auth: () => import('#controllers/auth_controller'),

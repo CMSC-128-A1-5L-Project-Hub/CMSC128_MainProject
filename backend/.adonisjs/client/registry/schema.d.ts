@@ -55,11 +55,55 @@ export interface Registry {
     methods: ["POST"]
     pattern: '/api/v1/setup'
     types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/profile').setupProfileValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/profile').setupProfileValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>>
+    }
+  }
+  'admin_verifications.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/users/pending'
+    types: {
       body: {}
       paramsTuple: []
       params: {}
       query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_verifications_controller').default['index']>>>
+    }
+  }
+  'admin_verifications.verify': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/admin/users/:userId/verify'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { userId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_verifications_controller').default['verify']>>>
+    }
+  }
+  'application.incoming': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/applications/incoming'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_controller').default['incoming']>>>
+    }
+  }
+  'application.update_status': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/applications/:id/review'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_controller').default['updateStatus']>>>
     }
   }
 }

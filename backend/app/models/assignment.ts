@@ -16,14 +16,14 @@ export default class Assignment extends BaseModel {
   @column()
   declare roomId: number
 
-    @column.date()
-    declare moveIn: DateTime
+  @column.date()
+  declare moveIn: DateTime
 
-    @column.date()
-    declare expectedMoveOut: DateTime
+  @column.date()
+  declare expectedMoveOut: DateTime
 
-    @column.date()
-    declare actualMoveOut: DateTime | null
+  @column.date()
+  declare actualMoveOut: DateTime | null
 
   @column()
   declare gracePeriodDays: number

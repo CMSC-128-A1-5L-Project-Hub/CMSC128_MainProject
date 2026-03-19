@@ -7,7 +7,6 @@ import db from '@adonisjs/lucid/services/db'
 import { uploadImage, deleteImage } from '#services/b2_services'
 
 export default class AccommodationController {
-
   // ─── GET /accommodations ──────────────────────────────────────────────────
   // Public: list all accommodations with images and tags
   async index({ response }: HttpContext) {
