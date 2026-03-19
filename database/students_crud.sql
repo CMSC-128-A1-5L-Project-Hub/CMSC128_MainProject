@@ -21,13 +21,13 @@ WHERE s.student_number = '0123456789'
 
 -- Update user last name from student table
 UPDATE students s
-JOIN user u ON s.user_id = u.user_id
+JOIN users u ON s.user_id = u.user_id
 SET u.lname = 'Games'
 WHERE s.student_number = '0123456789'
 
 -- Update user suffix from student table
 UPDATE students s
-JOIN user u ON s.user_id = u.user_id
+JOIN users u ON s.user_id = u.user_id
 SET u.suffix = 'Jr.'
 WHERE s.student_number = '0123456789'
 
