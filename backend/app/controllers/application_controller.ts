@@ -1,115 +1,105 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import application from '#models/application'
-import assignment from '#models/assignment'
-import accommodation from '#models/accommodation'
+import Application from '#models/application'
+import Assignment from '#models/assignment'
+import Student from '#models/student'
 import LogService from '#services/log_service'
 
 export default class ApplicationsController {
-  // Student function: submit application to applications table
-  async store({ auth, request, response }: HttpContext) {
-    // 1. Validate the accommodation exists
-    // 2. Check "Conflict Prevention" - no multiple active stays
-    // 3. Create entry in applications table
-    // 4. Trigger Audit Log
+  
+  // ─── 1. STUDENT: SUBMIT APPLICATION ───
+  async store({ auth, request, response, serialize }: HttpContext) {
+    const user = auth.user!
+    const student = await Student.findByOrFail('userId', user.userId) // Get student_number
+    
+    const { accommodationId, applicationRoomType, applicationStayType, durationOfStayDays } = request.all()
+
+    // Conflict Prevention: Does the student already have an active stay?
+    const activeStay = await Assignment.query()
+      .where('studentNumber', student.studentNumber)
+      .whereNull('actualMoveOut')
+      .first()
+
+    if (activeStay) {
+      return response.conflict({ message: 'You already have an active housing assignment.' })
+    }
+
+    // Create the application
+    const newApp = await Application.create({
+      accommodationId,
+      studentNumber: student.studentNumber,
+      applicationRoomType,
+      applicationStayType,
+      durationOfStayDays,
+      applicationStatus: 'pending',
+    })
+
+    await LogService.record(user.userId, 'application', newApp.applicationId, 'STUDENT_SUBMITTED')
+    return serialize(newApp)
   }
 
-  // Student function: get list of applications
-  async index({ auth }: HttpContext) {
-    // GET (/api/v1/applications/my-applications)
+  // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
+  async index({ auth, serialize }: HttpContext) {
+    const user = auth.user!
+    const student = await Student.findByOrFail('userId', user.userId)
+
+    const applications = await Application.query()
+      .where('studentNumber', student.studentNumber)
+      .preload('accommodation')
+      .orderBy('applicationDate', 'desc')
+
+    return serialize(applications)
   }
 
-  // route should be like this: /applications/incoming
-  // managers see pending applications for their accommodations
-  // landlords see under_review applications (already passed manager review)
-  async incoming({ response, session }: HttpContext) {
-    const userId = session.get('userId')
-    const role = session.get('role')
+  // ─── 3. MANAGER/LANDLORD: VIEW INCOMING ───
+  async incoming({ auth, response, serialize }: HttpContext) {
+    const user = auth.user!
 
-    if (role === 'manager') {
-      const applications = await application
-        .query()
-        .whereHas('accommodation', (q) => {
-          q.where('manager_id', userId)
-        })
+    if (user.role === 'manager') {
+      const applications = await Application.query()
+        .whereHas('accommodation', (q) => q.where('managerId', user.userId))
         .whereIn('applicationStatus', ['pending', 'waitlisted'])
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
         .orderBy('applicationDate', 'asc')
 
-      return response.ok({ status: 200, data: applications })
+      return serialize(applications)
     }
 
-    if (role === 'landlord') {
-      const applications = await application
-        .query()
-        .whereHas('accommodation', (q) => {
-          q.where('landlord_id', userId)
-        })
+    if (user.role === 'landlord') {
+      const applications = await Application.query()
+        .whereHas('accommodation', (q) => q.where('landlordId', user.userId))
         .where('applicationStatus', 'under_review')
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
         .orderBy('applicationDate', 'asc')
 
-      return response.ok({ status: 200, data: applications })
+      return serialize(applications)
     }
 
     return response.forbidden({ message: 'access denied' })
   }
 
-  // Landlord/Manager function: Update status of application (Landlords and managers can just use one function, just add in an if condition to check their roles in the function)
-  // route should be like this: /applications/<applicationId>/review
-  // body should look like this:
-  // {
-  //   "action": "approve" or "reject",
-  //   "rejection_reason": "reason here" (required only if action is reject)
-  // }
-  async updateStatus({ request, params, response, session }: HttpContext) {
-    const userId = session.get('userId')
-    const role = session.get('role')
-
+  // ─── 4. MANAGER/LANDLORD: APPROVE OR REJECT ───
+  async updateStatus({ auth, request, params, response, serialize }: HttpContext) {
+    const user = auth.user!
     const { action, rejection_reason } = request.body()
 
-    // basic validation on action and rejection_reason
     if (!action || !['approve', 'reject'].includes(action)) {
-      return response.badRequest({
-        message: 'action must be approve or reject',
-      })
+      return response.badRequest({ message: 'action must be approve or reject' })
     }
-
     if (action === 'reject' && !rejection_reason) {
-      return response.badRequest({
-        message: 'rejection_reason is required when rejecting',
-      })
+      return response.badRequest({ message: 'rejection_reason is required when rejecting' })
     }
 
-    let applicationObject
-    try {
-      applicationObject = await application
-        .query()
-        .where('applicationId', params.id)
-        .preload('accommodation')
-        .firstOrFail()
-    } catch (error) {
-      return response.notFound({
-        message: 'no application found with the given id',
-      })
-    }
+    const applicationObject = await Application.query()
+      .where('applicationId', params.id)
+      .preload('accommodation')
+      .firstOrFail()
 
     // Level 1: Manager verification
-    // Check if user is manager and application status is pending; Then accept or reject. if reject, give reason why, if accept change application status to under_review
-    // approve moves it to under_review, reject ends it here
-    if (role === 'manager') {
-      if (applicationObject.accommodation.managerId !== userId) {
-        return response.forbidden({
-          message: 'you are not the manager of this accommodation',
-        })
-      }
-
-      if (applicationObject.applicationStatus !== 'pending') {
-        return response.badRequest({
-          message: `manager can only review pending applications. current status: ${applicationObject.applicationStatus}`,
-        })
-      }
+    if (user.role === 'manager') {
+      if (applicationObject.accommodation.managerId !== user.userId) return response.forbidden()
+      if (applicationObject.applicationStatus !== 'pending') return response.badRequest()
 
       if (action === 'approve') {
         applicationObject.applicationStatus = 'under_review'
@@ -120,57 +110,23 @@ export default class ApplicationsController {
       }
 
       await applicationObject.save()
-
-      // audit log
-      await LogService.record(
-        userId,
-        'application',
-        applicationObject.applicationId,
-        action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED',
-        action === 'approve'
-          ? `Manager ${userId} forwarded Application ${applicationObject.applicationId} to landlord for review.`
-          : `Manager ${userId} rejected Application ${applicationObject.applicationId}. Reason: ${rejection_reason}`
-      )
-
-      return response.ok({
-        message:
-          action === 'approve'
-            ? 'application forwarded to landlord for final review'
-            : 'application rejected',
-        data: applicationObject,
-      })
+      await LogService.record(user.userId, 'application', applicationObject.applicationId, action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED')
+      return serialize(applicationObject)
     }
 
     // Level 2: Landlord verification
-    // check if user is landlord and application status is under_review; Then accept or reject. if reject, give reason why, if accept change application status to approved
-    // oh and audit log it as well
-    // save and return application here.
-    // approve fully approves it, reject ends it here
-    if (role === 'landlord') {
-      if (applicationObject.accommodation.landlordId !== userId) {
-        return response.forbidden({
-          message: 'you are not the landlord of this accommodation',
-        })
-      }
-
-      if (applicationObject.applicationStatus !== 'under_review') {
-        return response.badRequest({
-          message: `landlord can only review under_review applications. current status: ${applicationObject.applicationStatus}`,
-        })
-      }
+    if (user.role === 'landlord') {
+      if (applicationObject.accommodation.landlordId !== user.userId) return response.forbidden()
+      if (applicationObject.applicationStatus !== 'under_review') return response.badRequest()
 
       if (action === 'approve') {
-        // conflict check: student shouldn't already have an active stay
-        const activeAssignment = await assignment
-          .query()
+        const activeAssignment = await Assignment.query()
           .where('studentNumber', applicationObject.studentNumber)
           .whereNull('actualMoveOut')
           .first()
 
         if (activeAssignment) {
-          return response.conflict({
-            message: 'student already has an active stay, cannot approve',
-          })
+          return response.conflict({ message: 'student already has an active stay, cannot approve' })
         }
 
         applicationObject.applicationStatus = 'approved'
@@ -181,34 +137,31 @@ export default class ApplicationsController {
       }
 
       await applicationObject.save()
-
-      // audit log
-      await LogService.record(
-        userId,
-        'application',
-        applicationObject.applicationId,
-        action === 'approve' ? 'LANDLORD_APPROVED' : 'LANDLORD_REJECTED',
-        action === 'approve'
-          ? `Landlord ${userId} fully approved Application ${applicationObject.applicationId}.`
-          : `Landlord ${userId} rejected Application ${applicationObject.applicationId}. Reason: ${rejection_reason}`
-      )
-
-      return response.ok({
-        message: action === 'approve' ? 'application fully approved' : 'application rejected',
-        data: applicationObject,
-      })
+      await LogService.record(user.userId, 'application', applicationObject.applicationId, action === 'approve' ? 'LANDLORD_APPROVED' : 'LANDLORD_REJECTED')
+      return serialize(applicationObject)
     }
 
-    return response.forbidden({
-      message: 'only managers and landlords can review applications',
-    })
+    return response.forbidden()
   }
 
-  // Student function: cancel application
-  async destroy({ auth, params }: HttpContext) {
-    // Logic: Cancel while its still pending.
-    // add audit log
-  }
+  // ─── 5. STUDENT: CANCEL APPLICATION ───
+  async destroy({ auth, params, response, serialize }: HttpContext) {
+    const user = auth.user!
+    const student = await Student.findByOrFail('userId', user.userId)
 
-  // more functions? kung may maisip kayo na kailangan pa forda applications
+    const app = await Application.query()
+      .where('applicationId', params.id)
+      .where('studentNumber', student.studentNumber)
+      .firstOrFail()
+
+    if (app.applicationStatus !== 'pending') {
+      return response.badRequest({ message: 'Can only cancel pending applications' })
+    }
+
+    app.applicationStatus = 'cancelled'
+    await app.save()
+
+    await LogService.record(user.userId, 'application', app.applicationId, 'STUDENT_CANCELLED')
+    return serialize(app)
+  }
 }
