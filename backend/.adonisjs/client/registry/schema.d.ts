@@ -1,8 +1,8 @@
 /* eslint-disable prettier/prettier */
 /// <reference path="../manifest.d.ts" />
 
-import type { ExtractBody, ExtractQuery, ExtractQueryForGet, ExtractResponse } from '@tuyau/core/types'
-import type { InferInput } from '@vinejs/vine/types'
+import type { ExtractBody, ExtractErrorResponse, ExtractQuery, ExtractQueryForGet, ExtractResponse } from '@tuyau/core/types'
+import type { InferInput, SimpleError } from '@vinejs/vine/types'
 
 export type ParamValue = string | number | bigint | boolean
 
@@ -16,6 +16,7 @@ export interface Registry {
       params: {}
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['redirect']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['redirect']>>>
     }
   }
   'auth.callback': {
@@ -27,6 +28,7 @@ export interface Registry {
       params: {}
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['callback']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['callback']>>>
     }
   }
   'student_dashboards.index': {
@@ -38,6 +40,7 @@ export interface Registry {
       params: {}
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/student_dashboards_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/student_dashboards_controller').default['index']>>>
     }
   }
   'landlord_dashboards.index': {
@@ -49,6 +52,7 @@ export interface Registry {
       params: {}
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/landlord_dashboards_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/landlord_dashboards_controller').default['index']>>>
     }
   }
   'setups.store': {
@@ -60,6 +64,7 @@ export interface Registry {
       params: {}
       query: ExtractQuery<InferInput<(typeof import('#validators/profile').setupProfileValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'admin_verifications.index': {
@@ -71,6 +76,7 @@ export interface Registry {
       params: {}
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_verifications_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_verifications_controller').default['index']>>>
     }
   }
   'admin_verifications.verify': {
@@ -82,6 +88,7 @@ export interface Registry {
       params: { userId: ParamValue }
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_verifications_controller').default['verify']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_verifications_controller').default['verify']>>>
     }
   }
   'application.incoming': {
@@ -93,6 +100,7 @@ export interface Registry {
       params: {}
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_controller').default['incoming']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_controller').default['incoming']>>>
     }
   }
   'application.update_status': {
@@ -104,6 +112,7 @@ export interface Registry {
       params: { id: ParamValue }
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_controller').default['updateStatus']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_controller').default['updateStatus']>>>
     }
   }
 }
