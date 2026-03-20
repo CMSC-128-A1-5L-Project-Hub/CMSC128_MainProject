@@ -14,7 +14,7 @@ export default class NotificationService {
           .to(user.email)
           .subject('Your USAT Verification Code')
           // Points to resources/views/emails/otp.edge
-          .html('Your verificataion code is blahal')
+          .html(`Your verification code is ${otp}`)
       })
     } catch (error) {
       console.error('Email failed to send:', error)
