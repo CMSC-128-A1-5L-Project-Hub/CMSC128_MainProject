@@ -55,14 +55,14 @@ router.group(() => {
         // router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         // router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
 
-        // [SPRINT 03] Bookmarks & Reviews
+        // Bookmarks & Reviews
         // router.post('/accommodations/:id/bookmarks', [controllers.Bookmarks, 'toggle'])
         // router.get('/my-bookmarks', [controllers.Bookmarks, 'index'])
         // router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
 
         // Fees & Payments
         // router.get('/my-fees', [controllers.Fees, 'index'])
-        // router.post('/fees/:feeId/pay', [controllers.Payments, 'uploadProof'])
+        // router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
     }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================

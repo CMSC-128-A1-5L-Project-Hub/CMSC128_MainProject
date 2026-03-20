@@ -4,7 +4,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 export default class PaymentsController {
   
   // ─── STUDENT: UPLOAD GCASH RECEIPT ───
-  // POST /fees/:feeId/pay
+  // POST /payments/:feeId/pay
   async uploadProof({ params, request, response, serialize }: HttpContext) {
     // Logic: Handle file upload to Backblaze.
     // Create new payment row linked to feeId with status 'pending_verification'.
