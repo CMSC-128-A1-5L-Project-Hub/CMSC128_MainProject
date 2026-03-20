@@ -1,12 +1,12 @@
 import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import { DateTime } from 'luxon'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Landlord from '#models/landlord'
 import Student from '#models/student'
 import Payment from '#models/payment'
-import { DateTime } from 'luxon'
 
 export default class Fee extends BaseModel {
-  static table = 'fee'
+  static table = 'fees'
 
   @column({ isPrimary: true })
   declare feeId: number

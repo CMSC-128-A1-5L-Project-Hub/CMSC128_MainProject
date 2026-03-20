@@ -1,11 +1,11 @@
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import { DateTime } from 'luxon'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Student from '#models/student'
 import Room from '#models/room'
-import { DateTime } from 'luxon'
 
 export default class Assignment extends BaseModel {
-  static table = 'assignment'
+  static table = 'assignments'
 
   @column({ isPrimary: true })
   declare assignmentId: number
@@ -16,14 +16,14 @@ export default class Assignment extends BaseModel {
   @column()
   declare roomId: number
 
-    @column.date()
-    declare moveIn: DateTime
+  @column.date()
+  declare moveIn: DateTime
 
-    @column.date()
-    declare expectedMoveOut: DateTime
+  @column.date()
+  declare expectedMoveOut: DateTime
 
-    @column.date()
-    declare actualMoveOut: DateTime | null
+  @column.date()
+  declare actualMoveOut: DateTime | null
 
   @column()
   declare gracePeriodDays: number

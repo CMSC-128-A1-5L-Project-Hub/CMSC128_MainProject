@@ -7,7 +7,7 @@ import Student from '#models/student'
 import PhoneNumber from '#models/phone_number'
 
 export default class User extends BaseModel {
-  static table = 'user'
+  static table = 'users'
 
   @column({ isPrimary: true })
   declare userId: number
@@ -34,10 +34,7 @@ export default class User extends BaseModel {
   declare facebookAccount: string | null
 
   @column()
-  declare role: 'unassigned' | 'student' | 'landlord' | 'manager'
-
-  @column()
-  declare isVerified: boolean
+  declare role: 'student' | 'landlord' | 'manager' | 'unassigned' | 'super_admin'
 
   // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => FileMetadata, { foreignKey: 'pfpFileId', localKey: 'fileId' })

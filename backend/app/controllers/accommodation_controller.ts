@@ -3,20 +3,84 @@ import Accommodation from '#models/accommodation'
 import AccommodationImage from '#models/accommodation_image'
 import FileMetadata from '#models/file_metadata'
 import Room from '#models/room'
+import DistanceService from '#services/distance'
 import db from '@adonisjs/lucid/services/db'
 import { uploadImage, deleteImage } from '#services/b2_services'
 
 export default class AccommodationController {
 
   // ─── GET /accommodations ──────────────────────────────────────────────────
-  // Public: list all accommodations with images and tags
-  async index({ response }: HttpContext) {
-    const accommodations = await Accommodation.query()
+  // Public: list all accommodations with optional filters via query string
+  async index({ request, response }: HttpContext) {
+    const {
+      type,
+      restriction,
+      min_rent,
+      max_rent,
+      max_walk,
+      min_capacity,
+      search,
+      stay_type,
+    } = request.qs()
+
+    const query = Accommodation.query()
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
       .preload('manager', (q) => q.preload('user'))
+      .preload('rooms')
 
-    return response.ok({ status: 200, data: accommodations })
+    if (type) {
+      query.where('accommodation_type', type)
+    }
+
+    if (restriction) {
+      query.where('tenant_restriction', restriction)
+    }
+
+    if (max_walk) {
+      query.where('walking_distance', '<=', Number(max_walk))
+    }
+
+    if (min_capacity) {
+      query.where('accommodation_capacity', '>=', Number(min_capacity))
+    }
+
+    if (search) {
+      query.where((q) => {
+        q.where('accommodation_name', 'LIKE', `%${search}%`)
+          .orWhere('accommodation_location', 'LIKE', `%${search}%`)
+      })
+    }
+
+    if (min_rent) {
+      query.whereHas('rooms', (q) => {
+        q.where('room_rent', '>=', Number(min_rent))
+      })
+    }
+
+    if (max_rent) {
+      query.whereHas('rooms', (q) => {
+        q.where('room_rent', '<=', Number(max_rent))
+      })
+    }
+
+    if (stay_type && stay_type !== 'all') {
+      query.whereHas('rooms', (q) => {
+        q.where('room_stay_type', stay_type)
+      })
+    }
+
+    const accommodations = await query
+
+    return response.ok({
+      status: 200,
+      data: accommodations.map((acc) => ({
+        ...acc.serialize(),
+        minRent: acc.rooms.length > 0 ? Math.min(...acc.rooms.map((r) => r.roomRent)) : 0,
+        maxRent: acc.rooms.length > 0 ? Math.max(...acc.rooms.map((r) => r.roomRent)) : 0,
+        imageUrl: acc.images[0]?.file?.filePath ?? null,
+      }))
+    })
   }
 
   // ─── GET /accommodations/:id ──────────────────────────────────────────────
@@ -27,10 +91,7 @@ export default class AccommodationController {
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
       .preload('manager', (q) => q.preload('user'))
-      .preload('rooms', (q) => {
-        q.preload('transient')
-        q.preload('nonTransient')
-      })
+      .preload('rooms')
       .preload('reviews')
       .first()
 
@@ -60,6 +121,8 @@ export default class AccommodationController {
       application_end_date,
       manager_id,
       business_permit_id,
+      latitude,
+      longitude,
     } = request.body()
 
     if (
@@ -71,15 +134,20 @@ export default class AccommodationController {
       !application_start_date ||
       !application_end_date ||
       !manager_id ||
-      !business_permit_id
+      !business_permit_id ||
+      !latitude ||
+      !longitude
     ) {
       return response.badRequest({
         status: 400,
         error: 'Validation Error',
-        message:
-          'All fields are required: accommodation_name, accommodation_location, accommodation_type, accommodation_capacity, tenant_restriction, application_start_date, application_end_date, manager_id, business_permit_id.',
+        message: 'All fields are required',
       })
     }
+
+    // Calculate distances to UPLB using Mapbox Directions API
+    const { walkingMinutes, drivingMinutes, cyclingMinutes } =
+      await DistanceService.calculate(Number(latitude), Number(longitude))
 
     const trx = await db.transaction()
 
@@ -96,11 +164,15 @@ export default class AccommodationController {
           tenantRestriction: tenant_restriction,
           applicationStartDate: application_start_date,
           applicationEndDate: application_end_date,
+          latitude: Number(latitude),
+          longitude: Number(longitude),
+          walkingDistance: walkingMinutes,
+          drivingDistance: drivingMinutes,
+          bikingDistance: cyclingMinutes,
         },
         { client: trx }
       )
 
-      // Optional: upload images alongside creation
       const images = request.files('images', {
         extnames: ['jpg', 'jpeg', 'png', 'webp'],
         size: '16mb',
@@ -173,7 +245,23 @@ export default class AccommodationController {
       tenant_restriction,
       application_start_date,
       application_end_date,
+      latitude,
+      longitude,
     } = request.body()
+
+    // If lat/lng changed, recalculate distances
+    let distances = {}
+    if (latitude && longitude) {
+      const { walkingMinutes, drivingMinutes, cyclingMinutes } =
+        await DistanceService.calculate(Number(latitude), Number(longitude))
+      distances = {
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        walkingDistance: walkingMinutes,
+        drivingDistance: drivingMinutes,
+        bikingDistance: cyclingMinutes,
+      }
+    }
 
     accommodation.merge({
       ...(accommodation_name && { accommodationName: accommodation_name }),
@@ -183,6 +271,7 @@ export default class AccommodationController {
       ...(tenant_restriction && { tenantRestriction: tenant_restriction }),
       ...(application_start_date && { applicationStartDate: application_start_date }),
       ...(application_end_date && { applicationEndDate: application_end_date }),
+      ...distances,
     })
 
     await accommodation.save()
@@ -226,7 +315,7 @@ export default class AccommodationController {
     }
 
     const trx = await db.transaction()
-    const uploaded: any[] = []
+    const uploaded: { file_id: number; url: string }[] = []
 
     try {
       for (const image of images) {
@@ -313,9 +402,11 @@ export default class AccommodationController {
   }
 
   // ─── GET /accommodations/:id/rooms ───────────────────────────────────────
-  // Public: list all rooms of an accommodation
+  // Manager/HA: list all rooms of an accommodation
   async getRooms({ params, response }: HttpContext) {
-    const accommodation = await Accommodation.find(params.id)
+    const accommodation = await Accommodation.query()
+      .where('accommodation_id', params.id)
+      .first()
 
     if (!accommodation) {
       return response.notFound({
@@ -327,8 +418,6 @@ export default class AccommodationController {
 
     const rooms = await Room.query()
       .where('accommodation_id', params.id)
-      .preload('transient')
-      .preload('nonTransient')
 
     return response.ok({ status: 200, data: rooms })
   }
@@ -354,27 +443,34 @@ export default class AccommodationController {
     const {
       room_number,
       room_type,
+      room_stay_type,
       room_capacity,
       room_building,
       room_rent,
       tenant_restriction,
-      stay_type, // 'transient' or 'non_transient'
     } = request.body()
 
     if (
       !room_number ||
       !room_type ||
+      !room_stay_type ||
       !room_capacity ||
       !room_building ||
       !room_rent ||
-      !tenant_restriction ||
-      !stay_type
+      !tenant_restriction
     ) {
       return response.badRequest({
         status: 400,
         error: 'Validation Error',
-        message:
-          'Required: room_number, room_type, room_capacity, room_building, room_rent, tenant_restriction, stay_type.',
+        message: 'Required: room_number, room_type, room_stay_type, room_capacity, room_building, room_rent, tenant_restriction.',
+      })
+    }
+
+    if (!['transient', 'non_transient'].includes(room_stay_type)) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: 'room_stay_type must be either transient or non_transient.',
       })
     }
 
@@ -386,6 +482,7 @@ export default class AccommodationController {
           accommodationId: accommodation.accommodationId,
           roomNumber: room_number,
           roomType: room_type,
+          roomStayType: room_stay_type,
           roomCapacity: room_capacity,
           roomCurrentOccupancy: 0,
           roomBuilding: room_building,
@@ -395,15 +492,6 @@ export default class AccommodationController {
         },
         { client: trx }
       )
-
-      // Create transient or non_transient sub-record based on stay_type
-      if (stay_type === 'transient') {
-        const { default: Transient } = await import('#models/transient')
-        await Transient.create({ roomId: room.roomId }, { client: trx })
-      } else if (stay_type === 'non_transient') {
-        const { default: NonTransient } = await import('#models/non_transient')
-        await NonTransient.create({ roomId: room.roomId }, { client: trx })
-      }
 
       await trx.commit()
 

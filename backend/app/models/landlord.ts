@@ -4,7 +4,7 @@ import User from '#models/user'
 import Accommodation from '#models/accommodation'
 
 export default class Landlord extends BaseModel {
-  static table = 'landlord'
+  static table = 'landlords'
 
   @column({ isPrimary: true })
   declare userId: number

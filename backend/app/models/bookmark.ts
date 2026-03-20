@@ -4,7 +4,7 @@ import Student from '#models/student'
 import Accommodation from '#models/accommodation'
 
 export default class Bookmark extends BaseModel {
-  static table = 'bookmark'
+  static table = 'bookmarks'
 
   @column({ isPrimary: true })
   declare bookmarkId: number

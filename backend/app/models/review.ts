@@ -3,7 +3,7 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Accommodation from '#models/accommodation'
 
 export default class Review extends BaseModel {
-  static table = 'review'
+  static table = 'reviews'
 
   @column({ isPrimary: true })
   declare reviewId: number

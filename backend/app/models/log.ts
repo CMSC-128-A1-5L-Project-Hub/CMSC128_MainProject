@@ -1,10 +1,10 @@
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import { DateTime } from 'luxon'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
-import { DateTime } from 'luxon'
 
 export default class Log extends BaseModel {
-  static table = 'log'
+  static table = 'logs'
 
   @column({ isPrimary: true })
   declare logId: number

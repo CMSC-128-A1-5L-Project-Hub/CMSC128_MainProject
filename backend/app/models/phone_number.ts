@@ -3,7 +3,7 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 
 export default class PhoneNumber extends BaseModel {
-  static table = 'phone_number'
+  static table = 'phone_numbers'
 
   @column({ isPrimary: true })
   declare phoneNumberId: number

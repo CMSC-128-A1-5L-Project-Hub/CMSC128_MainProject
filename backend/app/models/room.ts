@@ -1,11 +1,10 @@
-import { BaseModel, column, belongsTo, hasOne } from '@adonisjs/lucid/orm'
-import type { BelongsTo, HasOne } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Accommodation from '#models/accommodation'
-import Transient from '#models/transient'
-import NonTransient from '#models/non_transient'
+import Assignment from '#models/assignment'
 
 export default class Room extends BaseModel {
-  static table = 'room'
+  static table = 'rooms'
 
   @column({ isPrimary: true })
   declare roomId: number
@@ -18,6 +17,9 @@ export default class Room extends BaseModel {
 
   @column()
   declare roomType: 'single' | 'double' | 'shared'
+
+  @column()
+  declare roomStayType: 'transient' | 'non_transient'
 
   @column()
   declare roomCapacity: number
@@ -41,9 +43,6 @@ export default class Room extends BaseModel {
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 
-  @hasOne(() => Transient, { foreignKey: 'roomId' })
-  declare transient: HasOne<typeof Transient>
-
-  @hasOne(() => NonTransient, { foreignKey: 'roomId' })
-  declare nonTransient: HasOne<typeof NonTransient>
+  @hasMany(() => Assignment, { foreignKey: 'roomId' })
+  declare assignments: HasMany<typeof Assignment>
 }
