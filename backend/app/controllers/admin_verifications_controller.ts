@@ -3,87 +3,44 @@ import User from '#models/user'
 import Student from '#models/student'
 import Landlord from '#models/landlord'
 
-export default class AdminVerificationController {
-  async index({ response }: HttpContext) {
-    const users = await User.query().where('is_verified', false)
+export default class AdminVerificationsController {
+  
+  // Gets all users waiting for Admin approval
+  async index({ serialize }: HttpContext) {
+    // 1. Find all users who are still 'unassigned'
+    const users = await User.query().where('role', 'unassigned')
 
     const pendingUsers = []
 
     for (const user of users) {
-      if (user.isVerified) {
-        continue
-      }
-
+      // 2. Check if they submitted the setup form
       const student = await Student.findBy('userId', user.userId)
       const landlord = await Landlord.findBy('userId', user.userId)
 
-      if (!student && !landlord) {
-        continue
+      // 3. Only add them to the list if they actually submitted their details
+      if (student || landlord) {
+        pendingUsers.push({
+          user,
+          requestedRole: student ? 'student' : 'landlord',
+          profileDetails: student || landlord,
+        })
       }
-
-      pendingUsers.push({
-        user,
-        submittedRole: student ? 'student' : 'landlord',
-        profile: student ?? landlord,
-      })
     }
 
-    return response.ok({
-      message: 'Pending verification users fetched successfully',
-      data: pendingUsers,
-    })
+    // Returns { data: [ ...pendingUsers ] }
+    return serialize(pendingUsers) 
   }
 
-  async verify({ params, response }: HttpContext) {
-    const user = await User.find(params.userId)
+  // Approves the user by changing their role
+  async verify({ request, params, serialize }: HttpContext) {
+    const { roleToAssign } = request.all() // 'student' or 'landlord'
+    
+    // Note: the route says :userId, so we use params.userId here
+    const user = await User.findOrFail(params.userId) 
+    
+    user.role = roleToAssign 
+    await user.save()
 
-    if (!user) {
-      return response.notFound({
-        message: 'User not found',
-      })
-    }
-
-    if (user.isVerified) {
-      return response.badRequest({
-        message: 'User is already verified',
-      })
-    }
-
-    const student = await Student.findBy('userId', user.userId)
-    const landlord = await Landlord.findBy('userId', user.userId)
-
-    if (!student && !landlord) {
-      return response.badRequest({
-        message: 'No submitted student or landlord profile found for this user',
-      })
-    }
-
-    if (student && landlord) {
-      return response.badRequest({
-        message: 'User has both student and landlord records. Verification is ambiguous',
-      })
-    }
-
-    if (student) {
-      user.isVerified = true
-      user.role = 'student'
-      await user.save()
-
-      return response.ok({
-        message: 'Student profile verified successfully',
-        user,
-      })
-    }
-
-    if (landlord) {
-      user.isVerified = true
-      user.role = 'landlord'
-      await user.save()
-
-      return response.ok({
-        message: 'Landlord profile verified successfully',
-        user,
-      })
-    }
+    return serialize(user)
   }
 }
