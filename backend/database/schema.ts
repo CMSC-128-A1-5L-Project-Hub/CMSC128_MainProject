@@ -8,7 +8,7 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AccommodationSchema extends BaseModel {
-  static $columns = ['id', 'landlordId', 'managerId', 'businessPermitId', 'name', 'location', 'type', 'capacity', 'applicationStartDate', 'applicationEndDate', 'createdAt', 'updatedAt'] as const
+  static $columns = ['id', 'landlordId', 'managerId', 'businessPermitId', 'name', 'location', 'type', 'capacity', 'tenantRestriction', 'applicationStartDate', 'applicationEndDate', 'createdAt', 'updatedAt'] as const
   $columns = AccommodationSchema.$columns
   @column({ isPrimary: true })
   declare id: bigint | number
@@ -17,7 +17,7 @@ export class AccommodationSchema extends BaseModel {
   @column()
   declare managerId: bigint | number
   @column()
-  declare businessPermitId: bigint | number
+  declare businessPermitId: bigint | number | null
   @column()
   declare name: string
   @column()
@@ -26,6 +26,8 @@ export class AccommodationSchema extends BaseModel {
   declare type: string
   @column()
   declare capacity: number
+  @column()
+  declare tenantRestriction: string
   @column.date()
   declare applicationStartDate: DateTime
   @column.date()
@@ -203,6 +205,31 @@ export class ReportSchema extends BaseModel {
   declare timestamp: DateTime | null
   @column()
   declare file: Buffer
+}
+
+export class RoomSchema extends BaseModel {
+  static $columns = ['id', 'accommodationId', 'roomNumber', 'type', 'capacity', 'currentOccupancy', 'building', 'rent', 'tenantRestriction', 'availability'] as const
+  $columns = RoomSchema.$columns
+  @column({ isPrimary: true })
+  declare id: bigint | number
+  @column()
+  declare accommodationId: bigint | number
+  @column()
+  declare roomNumber: string
+  @column()
+  declare type: string
+  @column()
+  declare capacity: number
+  @column()
+  declare currentOccupancy: number | null
+  @column()
+  declare building: string
+  @column()
+  declare rent: string
+  @column()
+  declare tenantRestriction: string
+  @column()
+  declare availability: string | null
 }
 
 export class StudentSchema extends BaseModel {

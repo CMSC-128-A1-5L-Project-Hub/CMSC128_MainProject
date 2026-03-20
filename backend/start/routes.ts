@@ -11,10 +11,11 @@ import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 import { ROLES } from '../app/constants/roles.ts'
 import ProvisioningService from '../app/services/provisioning_service.js'
-import app from '@adonisjs/core/services/app'
+import AutoSwagger from 'adonis-autoswagger'
+import swagger from "#config/swagger"
 
-const NotificationService = () => import('#services/notification_service')
 const AuthController = () => import('#controllers/auth_controller')
+
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -59,9 +60,38 @@ router.group(() => {
   // Setup for new users
   router.post('/setup', [controllers.Setups, 'store'])
 
+  // Admin verification
+  router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
+  .use(middleware.role([ROLES.MANAGER]))
+  
+  router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
+    .use(middleware.role([ROLES.MANAGER]))
+
 }).prefix('/api/v1').use(middleware.auth())
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+BUNCHA TEST ROUTES DOWN HERE. REMOVE LATER
+
+*/
   // ── RBAC Test Routes ───────────────────────────────
 router.get('/test-set-role/:role', async ({ session, params }) => {
   session.put('role', params.role)
@@ -93,26 +123,32 @@ router.get('/test-provision', async ({ auth }) => {
   }
 })
 
+// Autoswagger test route (AUTOSWAGGER IS FOR TESTING THE ROUTES. just check out localhost:3333/docs to see it)
+router.get("/swagger", async () => {
+  return AutoSwagger.default.docs(router.toJSON(), swagger);
+});
 
-// Email test route
-// router.get('/test-email', async ({ response }) => {
-//   try {
-//     const service = await app.container.make(await NotificationService())
-    
-//     const testUser = { 
-//       email: 'joshua@example.com', 
-//       firstName: 'Joshua' 
-//     }
+router.get("/docs", async () => {
+  return AutoSwagger.default.ui("/swagger", swagger);
+  // return AutoSwagger.default.scalar("/swagger"); to use Scalar instead. If you want, you can pass proxy url as second argument here.
+  // return AutoSwagger.default.rapidoc("/swagger", "view"); to use RapiDoc instead (pass "view" default, or "read" to change the render-style)
+});
 
-//     await service.sendVerificationOTP(testUser as any, '123456')
+// testing email function
+router.get('/test-otp', async ({ response }) => {
+  const { default: NotificationService } = await import('#services/notification_service')
+  const service = new NotificationService()
 
-//     return 'Sent email to mailtrap'
-//   } catch (error) {
+  // Make a user
+  const mockUser = { 
+    email: 'joshua@test.com', 
+    firstName: 'Joshua' 
+  }
 
-//     console.error('MAIL_ERROR:', error)
-//     return response.internalServerError({ 
-//       message: 'Failed to send', 
-//       error: error.message 
-//     })
-//   }
-// })
+  try {
+    await service.sendVerificationOTP(mockUser as any, '123456')
+    return "Please work"
+  } catch (error) {
+    return response.internalServerError({ message: 'Service failed', error: error.message })
+  }
+})
