@@ -29,9 +29,8 @@ export default class SetupController {
   }
 }
 
-
 // what happens: user already has an account (google auth) but no profile, user still "unassigned".
-// they fill out the form and submits /setup. 
+// they fill out the form and submits /setup.
 // controller validates the submitted data
 // controller passes the data to ProfileService
 // ProfileService uploads files and saves profile-related data
@@ -40,4 +39,4 @@ export default class SetupController {
 // only then do you update:
 // is_verified = true
 // user.role = Student or Landlord
-// (tama ba? hahahaha) - windee 
+// (tama ba? hahahaha) - windee

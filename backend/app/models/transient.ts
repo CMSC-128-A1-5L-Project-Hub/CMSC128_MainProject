@@ -1,20 +1,17 @@
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
-import Accommodation from '#models/accommodation'
+import Room from '#models/room'
 
-export default class AccommodationTag extends BaseModel {
-  static table = 'accommodation_tags'
+export default class NonTransient extends BaseModel {
+  static table = 'non_transient'
 
   @column({ isPrimary: true })
-  declare tagsId: number
+  declare nonTransientId: number
 
   @column()
-  declare accommodationId: number
-
-  @column()
-  declare tagDetail: string
+  declare roomId: number
 
   // ─── Relationships ────────────────────────────────────────────────────────
-  @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
-  declare accommodation: BelongsTo<typeof Accommodation>
+  @belongsTo(() => Room, { foreignKey: 'roomId' })
+  declare room: BelongsTo<typeof Room>
 }
