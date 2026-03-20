@@ -2,9 +2,6 @@
 |--------------------------------------------------------------------------
 | Routes file
 |--------------------------------------------------------------------------
-|
-| The routes file is used for defining the HTTP routes.
-|
 */
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
@@ -17,7 +14,7 @@ import swagger from '#config/swagger'
 const AuthController = () => import('#controllers/auth_controller')
 
 router.get('/', () => {
-  return { hello: 'world' }
+  return { status: 'USAT API is running - Sprint 03 Launch' }
 })
 
 /*
@@ -25,134 +22,106 @@ router.get('/', () => {
 | PUBLIC ROUTES (Guest-Accessible)
 |--------------------------------------------------------------------------
 */
-
-// removed the prefix /api/v1 for now
 router.group(() => {
-  // Authentication Entry Points
   router.get('/auth/google/redirect', [AuthController, 'redirect'])
   router.get('/auth/google/callback', [AuthController, 'callback'])
 
-  // The Dorm Map/Viewer
-  // router.get('/accommodations', [controllers.Accommodations, 'index'])
-  // router.get('/accommodations/:id', [controllers.Accommodations, 'show'])
-})
+  // Map Viewer Data (Active for Frontend!)
+  router.get('/accommodations', [controllers.Accommodation, 'index'])
+  router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
+
+  // [SPRINT 03] Reviews (Publicly visible)
+  // router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
+}).prefix('/api/v1')
 
 /*
 |--------------------------------------------------------------------------
 | PROTECTED API ROUTES (Requires Auth)
 |--------------------------------------------------------------------------
 */
-router
-  .group(() => {
-    // Dashboard & Profile Routes
-    router
-      .group(() => {
-        router
-          .get('/student', [controllers.StudentDashboards, 'index'])
-          .use(middleware.role([ROLES.STUDENT]))
-
-        router
-          .get('/landlord', [controllers.LandlordDashboards, 'index'])
-          .use(middleware.role([ROLES.LANDLORD]))
-      })
-      .prefix('dashboard')
-
-    // router.get('/account/profile', [controllers.Profile, 'show'])
-
-    // Setup for new users
+router.group(() => {
+    
+    // ─── USER ONBOARDING ───
     router.post('/setup', [controllers.Setups, 'store'])
+    // router.post('/auth/verify-sms', [controllers.SmsVerifications, 'verify']) // [SPRINT 03]
 
-    // Admin verification
-    router
-      .get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
-      .use(middleware.role([ROLES.MANAGER]))
+    // ====================================================================
+    // ─── STUDENT ROUTES ───
+    // ====================================================================
+    router.group(() => {
+        // Application & Stay
+        // router.post('/applications', [controllers.Applications, 'store'])
+        // router.get('/applications/my-applications', [controllers.Applications, 'index'])
+        // router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
+        // router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
 
-    router
-      .patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
-      .use(middleware.role([ROLES.MANAGER]))
+        // [SPRINT 03] Bookmarks & Reviews
+        // router.post('/accommodations/:id/bookmarks', [controllers.Bookmarks, 'toggle'])
+        // router.get('/my-bookmarks', [controllers.Bookmarks, 'index'])
+        // router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
 
-    // Application routes
-    router
-      .group(() => {
-        // Manager/Landlord: view incoming applications for their accommodation
-        router
-          .get('/incoming', [controllers.Application, 'incoming'])
-          .use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
+        // Fees & Payments
+        // router.get('/my-fees', [controllers.Fees, 'index'])
+        // router.post('/fees/:feeId/pay', [controllers.Payments, 'uploadProof'])
+    }).use(middleware.role([ROLES.STUDENT]))
 
-        // Manager/Landlord: approve or reject an application
-        router
-          .patch('/:id/review', [controllers.Application, 'updateStatus'])
-          .use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
-      })
-      .prefix('applications')
-  })
-  .prefix('/api/v1')
-  .use(middleware.auth())
+    // ====================================================================
+    // ─── LANDLORD EXCLUSIVE ROUTES ───
+    // ====================================================================
+    router.group(() => {
+        // Reporting & Analytics 
+        // router.get('/reports/revenue', [controllers.Reports, 'revenue'])
+        // router.get('/reports/delinquency', [controllers.Reports, 'delinquency'])
+    }).use(middleware.role([ROLES.LANDLORD]))
+
+    // ====================================================================
+    // ─── SHARED MANAGER & LANDLORD ROUTES ───
+    // ====================================================================
+    router.group(() => {
+        // Application Review 
+        router.get('/applications/incoming', [controllers.Application, 'incoming'])
+        router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
+
+        // Room Management 
+        // router.get('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'index'])
+        // router.post('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'store'])
+        // router.put('/rooms/:id', [controllers.Rooms, 'update'])
+        // router.delete('/rooms/:id', [controllers.Rooms, 'destroy'])
+
+        // Room Assignments & Move-outs 
+        // router.post('/assignments', [controllers.Assignments, 'store'])
+        // router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
+
+        // Payment Verification 
+        // router.get('/payments/pending', [controllers.Payments, 'pending'])
+        // router.patch('/payments/:id/verify', [controllers.Payments, 'verify'])
+
+        // Reports
+        // router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
+        // router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
+    }).use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
+
+    // ====================================================================
+    // ─── ADMIN / SUPER_ADMIN ───
+    // ====================================================================
+    router.group(() => {
+        router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
+        router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
+        
+        // System Logs
+        // router.get('/logs', [controllers.Logs, 'index']) 
+    }).use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
+
+}).prefix('/api/v1').use(middleware.auth())
 
 /*
-
-BUNCHA TEST ROUTES DOWN HERE. REMOVE LATER
-
+|--------------------------------------------------------------------------
+| DEVELOPMENT & TEST ROUTES
+|--------------------------------------------------------------------------
 */
-// ── RBAC Test Routes ───────────────────────────────
-router.get('/test-set-role/:role', async ({ session, params }) => {
-  session.put('role', params.role)
-  return { message: `Role set to: ${params.role}` }
-})
-
-router
-  .get('/test-student-only', async ({ session }) => {
-    return { message: 'Welcome, Student.', role: session.get('role') }
-  })
-  .use(middleware.role([ROLES.STUDENT]))
-
-// hi! i added this to test the provisioning service lang, feel free to remove this
-// tho dito ko sinama yung auth.login part kasi wala daw dapat siya sa services, pa-note
-// na lang when removing -joy
-
-router.get('/test-provision', async ({ auth }) => {
-  const service = new ProvisioningService()
-
-  const user = await service.provision({
-    email: 'testuser@example.com',
-    firstName: 'Test',
-    lastName: 'User',
-  })
-
-  await auth.use('web').login(user) // auth.login(user) here
-
-  return {
-    message: 'User successfully logged in!',
-    user: user,
-  }
-})
-
-// Autoswagger test route (AUTOSWAGGER IS FOR TESTING THE ROUTES. just check out localhost:3333/docs to see it)
 router.get('/swagger', async () => {
-  return AutoSwagger.default.docs(router.toJSON(), swagger)
+  return AutoSwagger.docs(router.toJSON(), swagger)
 })
-
 router.get('/docs', async () => {
-  return AutoSwagger.default.ui('/swagger', swagger)
-  // return AutoSwagger.default.scalar("/swagger"); to use Scalar instead. If you want, you can pass proxy url as second argument here.
-  // return AutoSwagger.default.rapidoc("/swagger", "view"); to use RapiDoc instead (pass "view" default, or "read" to change the render-style)
-})
-
-// testing email function
-router.get('/test-otp', async ({ response }) => {
-  const { default: NotificationService } = await import('#services/notification_service')
-  const service = new NotificationService()
-
-  // Make a user
-  const mockUser = {
-    email: 'joshua@test.com',
-    firstName: 'Joshua',
-  }
-
-  try {
-    await service.sendVerificationOTP(mockUser as any, '123456')
-    return 'Please work'
-  } catch (error) {
-    return response.internalServerError({ message: 'Service failed', error: error.message })
-  }
+  return AutoSwagger.ui('/swagger', swagger)
 })
