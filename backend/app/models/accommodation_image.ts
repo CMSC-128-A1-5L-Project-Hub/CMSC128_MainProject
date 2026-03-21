@@ -7,7 +7,7 @@ export default class AccommodationImage extends BaseModel {
   static table = 'accommodation_images'
 
   @column({ isPrimary: true })
-  declare imagesId: number
+  declare id: number
 
   @column()
   declare accommodationId: number
@@ -19,6 +19,6 @@ export default class AccommodationImage extends BaseModel {
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 
-  @belongsTo(() => FileMetadata, { foreignKey: 'imageFileId', localKey: 'fileId' })
+  @belongsTo(() => FileMetadata, { foreignKey: 'imageFileId' })
   declare file: BelongsTo<typeof FileMetadata>
 }

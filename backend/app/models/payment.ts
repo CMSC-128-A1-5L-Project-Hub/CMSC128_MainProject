@@ -8,7 +8,7 @@ export default class Payment extends BaseModel {
   static table = 'payments'
 
   @column({ isPrimary: true })
-  declare paymentId: number
+  declare id: number
 
   @column()
   declare feeId: number

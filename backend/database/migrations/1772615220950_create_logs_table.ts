@@ -15,6 +15,7 @@ export default class extends BaseSchema {
         .onDelete('CASCADE')
       table
         .enum('entity_type', [
+          'user',
           'application',
           'assignment',
           'payment',

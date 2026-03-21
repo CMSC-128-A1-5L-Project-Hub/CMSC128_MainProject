@@ -40,6 +40,8 @@ router.group(() => {
 |--------------------------------------------------------------------------
 */
 router.group(() => {
+    // ─── SUCCESSFUL LOGIN/SIGNUP ───
+    router.get('/me', [AuthController, 'me'])
     
     // ─── USER ONBOARDING ───
     router.post('/setup', [controllers.Setups, 'store'])
@@ -112,7 +114,7 @@ router.group(() => {
         // router.get('/logs', [controllers.Logs, 'index']) 
     }).use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
 
-}).prefix('/api/v1').use(middleware.auth())
+}).use(middleware.auth())
 
 /*
 |--------------------------------------------------------------------------

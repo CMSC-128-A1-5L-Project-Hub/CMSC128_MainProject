@@ -6,7 +6,7 @@ export default class PhoneNumber extends BaseModel {
   static table = 'phone_numbers'
 
   @column({ isPrimary: true })
-  declare phoneNumberId: number
+  declare id: number
 
   @column()
   declare userId: number

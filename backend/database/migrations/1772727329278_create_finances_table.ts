@@ -18,6 +18,7 @@ export default class extends BaseSchema {
       table.timestamp('timestamp', { useTz: true }).defaultTo(this.now())
       table.decimal('amount', 10, 2).notNullable()
       table.string('mode_of_payment', 30).notNullable()
+      table.enum('status', ['pending', 'verified', 'rejected']).defaultTo('pending')
     })
 
     this.schema.createTable('reports', (table) => {
@@ -26,7 +27,7 @@ export default class extends BaseSchema {
       table.string('student_number').references('student_number').inTable('students')
       table.enum('type', ['billing', 'assignment']).notNullable()
       table.timestamp('timestamp', { useTz: true }).defaultTo(this.now())
-      table.specificType('file', 'MEDIUMBLOB').notNullable()
+      table.bigInteger('file_id').unsigned().notNullable().references('id').inTable('file_metadata').onDelete('CASCADE')
     })
   }
 }
