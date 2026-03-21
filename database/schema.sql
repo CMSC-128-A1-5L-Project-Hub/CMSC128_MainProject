@@ -45,7 +45,7 @@ AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS landlords(
     user_id INT NOT NULL,
     tin VARCHAR(15) NOT NULL, -- tax identification number
-    CONSTRAINT landlord_user_id_pk PRIMARY KEY (user_id),
+    CONSTRAINT landlord_id_pk PRIMARY KEY (user_id),
     CONSTRAINT landlord_user_id_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 AUTO_INCREMENT = 1;
@@ -54,7 +54,7 @@ AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS managers(
     user_id INT NOT NULL,
     manager_status ENUM('active', 'inactive') NOT NULL DEFAULT 'inactive',
-    CONSTRAINT manager_user_id_pk PRIMARY KEY (user_id),
+    CONSTRAINT manager_id_pk PRIMARY KEY (user_id),
     CONSTRAINT manager_user_id_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 AUTO_INCREMENT = 1;
@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS students(
     user_id INT NOT NULL,
     -- form 5/notice of admission (if freshie)
     enrollment_proof_file_id INT NOT NULL,
+    course VARCHAR(50) NOT NULL,
     college VARCHAR(5) NOT NULL,
-    degree_program VARCHAR(50) NOT NULL,
     gender VARCHAR(10) NOT NUll, -- for male-only / female-only dorms
     -- emergency contact info (optional)
     emergency_contact_name VARCHAR(100) NULL,
@@ -97,20 +97,20 @@ CREATE TABLE IF NOT EXISTS accommodations(
     landlord_id INT NOT NULL,
     manager_id INT NOT NULL,
     business_permit_id INT NOT NULL,  -- file reference
-    accommodation_name VARCHAR(50) NOT NULL,
-    accommodation_location VARCHAR(150) NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    location VARCHAR(150) NOT NULL,
+    type ENUM('on-campus', 'off-campus', 'partner_housing') NOT NULL,
+    capacity INT NOT NULL,
+    tenant_restriction ENUM('male-only', 'female-only', 'coed') NOT NULL,
+    application_start_date DATE NOT NULL,
+    application_end_date DATE NOT NULL,
     longitude DECIMAL(9,6) NULL,
     latitude DECIMAL(9,6) NULL,
     walking_distance INT NULL,
     biking_distance INT NULL,
     driving_distance INT NULL,
-    accommodation_type ENUM('on-campus', 'off-campus', 'partner_housing') NOT NULL,
-    accommodation_capacity INT NOT NULL,
-    tenant_restriction ENUM('male-only', 'female-only', 'coed') NOT NULL,
-    application_start_date DATE NOT NULL,
-    application_end_date DATE NOT NULL,
     CONSTRAINT accommodation_id_pk PRIMARY KEY (id),
-    CONSTRAINT accommodation_accommodation_name_uk UNIQUE (accommodation_name),
+    CONSTRAINT accommodation_name_uk UNIQUE (name),
     CONSTRAINT accommodation_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlords(user_id),
     CONSTRAINT accommodation_manager_id_fk FOREIGN KEY (manager_id) REFERENCES managers(user_id),
     CONSTRAINT accommodation_business_permit_id_fk FOREIGN KEY (business_permit_id) REFERENCES file_metadata(id) ON DELETE CASCADE,
@@ -169,14 +169,14 @@ CREATE TABLE IF NOT EXISTS rooms(
     id INT AUTO_INCREMENT,
     accommodation_id INT NOT NULL,
     room_number VARCHAR(5) NOT NULL,
-    room_type ENUM('single', 'double', 'shared') NOT NULL,
-    room_stay_type ENUM('transient', 'non_transient') NOT NULL,
-    room_capacity INT NOT NULL,
-    room_current_occupancy INT NOT NULL,
-    room_building VARCHAR(20) NOT NULL,
-    room_rent DECIMAL(10,2) NOT NULL,
+    type ENUM('single', 'double', 'shared') NOT NULL,
+    stay_type ENUM('transient', 'non_transient') NOT NULL,
+    capacity INT NOT NULL,
+    current_occupancy INT NOT NULL,
+    building VARCHAR(20) NOT NULL,
+    rent DECIMAL(10,2) NOT NULL,
     tenant_restriction ENUM('coed', 'non-coed') NOT NULL, -- if accommodation is coed, room can be coed or not
-    room_availability ENUM('available', 'occupied', 'maintenance') NOT NULL,
+    availability ENUM('available', 'occupied', 'maintenance') DEFAULT 'available',
     CONSTRAINT room_id_pk PRIMARY KEY (id),
     CONSTRAINT room_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodations(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -188,9 +188,9 @@ CREATE TABLE IF NOT EXISTS applications(
     accommodation_id INT NOT NULL,
     student_number VARCHAR(10) NOT NULL,
     application_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    application_room_type ENUM('single', 'double', 'shared') NOT NULL,
-    application_stay_type ENUM('transient', 'non_transient') NOT NULL,
-    application_status ENUM('pending', 'approved', 'rejected', 'cancelled', 'waitlisted', 'under_review') DEFAULT 'pending',
+    room_type ENUM('single', 'double', 'shared') NOT NULL,
+    stay_type ENUM('transient', 'non_transient') NOT NULL,
+    status ENUM('pending', 'approved', 'rejected', 'cancelled', 'waitlisted', 'under_review') DEFAULT 'pending',
     duration_of_stay_days INT NOT NULL,
     CONSTRAINT application_id_pk PRIMARY KEY (id),
     CONSTRAINT application_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodations(id) ON DELETE CASCADE,
@@ -206,6 +206,7 @@ CREATE TABLE IF NOT EXISTS assignments(
     move_in DATE NOT NULL,
     expected_move_out DATE NOT NULL,
     actual_move_out DATE NULL, -- can be NULL if student hasn't moved out
+    status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending', -- user can choose to accept or reject given assignment
     grace_period_days INT NOT NULL DEFAULT 5, -- grace period to allow student to accept/reject assignments
     CONSTRAINT assignment_id_pk PRIMARY KEY (id),
     CONSTRAINT assignment_student_number_fk FOREIGN KEY (student_number) REFERENCES students(student_number) ON DELETE CASCADE,
@@ -218,14 +219,14 @@ CREATE TABLE IF NOT EXISTS reports(
     id INT AUTO_INCREMENT,
     landlord_id INT NOT NULL,
     student_number VARCHAR(10) NOT NULL,
-    report_file_id INT NOT NULL,
-    report_type ENUM('billing', 'assignment') NOT NULL,
-    report_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    file_id INT NOT NULL,
+    type ENUM('billing', 'assignment') NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT report_id_pk PRIMARY KEY (id),
     CONSTRAINT report_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlords(user_id) ON DELETE CASCADE,
     CONSTRAINT report_student_number_fk FOREIGN KEY (student_number) REFERENCES students(student_number) ON DELETE CASCADE,
-    CONSTRAINT report_report_file_id_fk FOREIGN KEY (report_file_id) REFERENCES file_metadata(id) ON DELETE CASCADE,
-    CONSTRAINT report_report_file_id_uk UNIQUE (report_file_id)
+    CONSTRAINT report_file_id_fk FOREIGN KEY (file_id) REFERENCES file_metadata(id) ON DELETE CASCADE,
+    CONSTRAINT report_file_id_uk UNIQUE (file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 AUTO_INCREMENT = 1;
 
@@ -235,10 +236,10 @@ CREATE TABLE IF NOT EXISTS fees(
     landlord_id INT NOT NULL,
     student_number VARCHAR(10) NOT NULL,
     due_date DATE NOT NULL,
-    fee_category ENUM('rent', 'utilities', 'miscellaneous') NOT NULL,
-    fee_amount DECIMAL(10, 2) NOT NULL,
-    fee_balance DECIMAL(10, 2) NOT NULL,
-    fee_status ENUM('paid', 'unpaid', 'overdue', 'partial') DEFAULT 'unpaid',
+    category ENUM('rent', 'utilities', 'miscellaneous') NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    balance DECIMAL(10, 2) NOT NULL,
+    status ENUM('paid', 'unpaid', 'overdue', 'partial') DEFAULT 'unpaid',
     CONSTRAINT fee_id_pk PRIMARY KEY (id),
     CONSTRAINT fee_landlord_id_fk FOREIGN KEY (landlord_id) REFERENCES landlords(user_id) ON DELETE CASCADE,
     CONSTRAINT fee_student_number_fk FOREIGN KEY (student_number) REFERENCES students(student_number) ON DELETE CASCADE
@@ -250,8 +251,8 @@ CREATE TABLE IF NOT EXISTS payments(
     id INT AUTO_INCREMENT,
     fee_id INT NOT NULL,
     proof_file_id INT NOT NULL,
-    payment_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    payment_amount DECIMAL(10,2) NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    amount DECIMAL(10,2) NOT NULL,
     mode_of_payment VARCHAR(30) NOT NULL,
     CONSTRAINT payment_id_pk PRIMARY KEY (id),
     CONSTRAINT payment_fee_id_fk FOREIGN KEY (fee_id) REFERENCES fees(id) ON DELETE CASCADE,
@@ -266,11 +267,11 @@ CREATE TABLE IF NOT EXISTS logs(
     actor_id INT NULL,
     entity_type ENUM('application', 'assignment', 'payment', 'room', 'accommodation', 'document', 'report', 'fee') NOT NULL,
     entity_id INT NOT NULL, 
-    log_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     activity_type VARCHAR(50) NOT NULL,
     activity_details VARCHAR(200),
     CONSTRAINT log_id_pk PRIMARY KEY (id),
-    CONSTRAINT log_actor_id_fk FOREIGN KEY (actor_id) REFERENCES users(id),
+    CONSTRAINT log_actor_id_fk FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_entity (entity_type, entity_id) -- to ensure that the right entity is referenced (multiple entities may have the same ID, but of different entity types)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 AUTO_INCREMENT = 1;
@@ -281,8 +282,8 @@ CREATE TABLE IF NOT EXISTS notifications(
     user_id INT NOT NULL,
     notification_content TEXT NOT NULL,
     read_status ENUM('read', 'unread') DEFAULT 'unread',
-    notification_type ENUM('fee_due', 'application_status', 'system', 'other') NOT NULL,
-    notification_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    type ENUM('fee_due', 'application_status', 'system', 'other') NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT notification_id_pk PRIMARY KEY (id),
     CONSTRAINT notification_user_id_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -325,9 +326,9 @@ CREATE INDEX idx_bookmarks_student_accommodation ON bookmarks(student_number, ac
 
 -- ROOMS Table Indexes
 CREATE INDEX idx_room_accommodation_id ON rooms(accommodation_id);
-CREATE INDEX idx_room_availability ON rooms(room_availability);
-CREATE INDEX idx_room_type ON rooms(room_type);
-CREATE INDEX idx_room_stay_type ON rooms(room_stay_type);
+CREATE INDEX idx_room_availability ON rooms(availability);
+CREATE INDEX idx_room_type ON rooms(type);
+CREATE INDEX idx_room_stay_type ON rooms(stay_type);
 
 -- ASSIGNMENTS Table Indexes
 CREATE INDEX idx_assignment_student_number ON assignments(student_number);
@@ -336,7 +337,7 @@ CREATE INDEX idx_assignment_room_id ON assignments(room_id);
 -- APPLICATIONS Table Indexes
 CREATE INDEX idx_application_accommodation_id ON applications(accommodation_id);
 CREATE INDEX idx_application_student_number ON applications(student_number);
-CREATE INDEX idx_application_status ON applications(application_status);
+CREATE INDEX idx_application_status ON applications(status);
 
 -- REPORTS Table Indexes
 CREATE INDEX idx_report_landlord_id ON reports(landlord_id);
@@ -345,7 +346,7 @@ CREATE INDEX idx_report_student_number ON reports(student_number);
 -- FEES Table Indexes
 CREATE INDEX idx_fee_landlord_id ON fees(landlord_id);
 CREATE INDEX idx_fee_student_number ON fees(student_number);
-CREATE INDEX idx_fee_status ON fees(fee_status);
+CREATE INDEX idx_fee_status ON fees(status);
 
 -- PAYMENTS Table Indexes
 CREATE INDEX idx_payment_fee_id ON payments(fee_id);
