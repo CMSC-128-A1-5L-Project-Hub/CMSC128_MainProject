@@ -32,7 +32,7 @@ router.group(() => {
 
   // [SPRINT 03] Reviews (Publicly visible)
   // router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
-}).prefix('/api/v1')
+})
 
 /*
 |--------------------------------------------------------------------------
