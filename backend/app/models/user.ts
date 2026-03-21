@@ -10,7 +10,7 @@ export default class User extends BaseModel {
   static table = 'users'
 
   @column({ isPrimary: true })
-  declare userId: number
+  declare id: number
 
   @column()
   declare pfpFileId: number

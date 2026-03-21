@@ -9,7 +9,7 @@ export default class Fee extends BaseModel {
   static table = 'fees'
 
   @column({ isPrimary: true })
-  declare feeId: number
+  declare id: number
 
   @column()
   declare landlordId: number

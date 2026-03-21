@@ -6,7 +6,7 @@ export default class Review extends BaseModel {
   static table = 'reviews'
 
   @column({ isPrimary: true })
-  declare reviewId: number
+  declare id: number
 
   @column()
   declare accommodationId: number

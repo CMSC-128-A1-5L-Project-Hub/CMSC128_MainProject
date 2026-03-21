@@ -1,15 +1,22 @@
 import User from '#models/user'
 import Student from '#models/student'
 import Landlord from '#models/landlord'
+import PhoneNumber from '#models/phone_number'
 // import Accommodation from '#models/accommodation'
 // import Manager from '#models/manager'
 import FileMetadata from '#models/file_metadata'
 import Document from '#models/document'
 import drive from '@adonisjs/drive/services/main'
-import { DateTime } from 'luxon'
 
 export default class ProfileService {
   async setupProfile(user: User, validatedData: any) {
+
+    await PhoneNumber.create({
+      userId: user.id,
+      contactNumber: validatedData.phone_number,
+      isPrimary: true, // It's their first number, so it's primary
+    })
+    
     // ==========================================
     // SCENARIO A: THE USER IS A STUDENT
     // ==========================================
@@ -17,14 +24,14 @@ export default class ProfileService {
       const uploadedForm5Urls: string[] = []
       let enrollmentProofFileId: number | undefined
 
-      // Process MULTIPLE Form 5 files
+      // Process MULTIPLE Enrollment Proof files
       for (const file of validatedData.form5) {
-        const form5Name = `${user.userId}_form5_${new Date().getTime()}.${file.extname}`
+        const form5Name = `${user.id}_enrollmentproof_${new Date().getTime()}.${file.extname}`
         await file.moveToDisk(form5Name, 's3')
         const form5Url = await drive.use('s3').getUrl(form5Name)
 
-        // Save Form 5 metadata
-        const form5File = await FileMetadata.create({
+        // Save Enrollment Proof metadata
+        const enrollmentProofFile = await FileMetadata.create({
           fileName: form5Name,
           filePath: form5Url,
           fileType: 'document',
@@ -32,44 +39,32 @@ export default class ProfileService {
 
         // Save document record
         await Document.create({
-          userId: user.userId,
-          fileId: form5File.fileId,
-          uploadTimestamp: DateTime.now(),
+          userId: user.id,
+          fileId: enrollmentProofFile.id,
         })
 
         uploadedForm5Urls.push(form5Url)
 
         // Save the first file as enrollment proof reference
         if (!enrollmentProofFileId) {
-          enrollmentProofFileId = form5File.fileId
+          enrollmentProofFileId = enrollmentProofFile.id
         }
       }
 
-      /* Note: UPLB ID not in model or migrations -W
-            // Process UPLB ID
-            const uplbIdName = `${user.userId}_uplbid_${new Date().getTime()}.${validatedData.uplbId.extname}`
-            await validatedData.uplbId.moveToDisk(uplbIdName, 's3')
-            const uplbIdUrl = await drive.use('s3').getUrl(uplbIdName)
+      /* Note: UPLB ID not in model or migrations -W     
 
-            // Save UPLB ID metadata
-            const uplbIdFile = await FileMetadata.create({
-                fileName: uplbIdName,
-                filePath: uplbIdUrl,
-                fileType: 'image',
-            })
-
-            // Save document record
-            await Document.create({
-                userId: user.userId,
-                fileId: uplbIdFile.fileId,
-                uploadTimestamp: DateTime.now(),
-            })
+        Update: Yeah not UPLB ID but a screenshot of their acceptance email instead,
+        this is the alternative when they're a freshman and  they don't have a form 5. 
+        functionally they're the same as the form5 though
+        No need to make another for loop for it. should be fine to use the form5 one 
+        (maybe rename the file name to enrollmentProof instead to be applicable for form 5 or acceptance email)
+        - Joshua
             */
 
       // Save to the 'students' table
       const student = await Student.create({
         studentNumber: validatedData.studentNumber,
-        userId: user.userId,
+        userId: user.id,
         enrollmentProofFileId: enrollmentProofFileId,
         college: validatedData.college,
         degreeProgram: validatedData.degreeProgram,
@@ -80,7 +75,7 @@ export default class ProfileService {
       })
 
       return {
-        student,
+        student: student.serialize(),
         uploadedFiles: uploadedForm5Urls,
       }
     }
@@ -94,7 +89,7 @@ export default class ProfileService {
 
       // Process MULTIPLE Business Permit files
       for (const file of validatedData.businessPermit) {
-        const permitName = `${user.userId}_permit_${new Date().getTime()}.${file.extname}`
+        const permitName = `${user.id}_permit_${new Date().getTime()}.${file.extname}`
         await file.moveToDisk(permitName, 's3')
         const permitUrl = await drive.use('s3').getUrl(permitName)
 
@@ -107,22 +102,21 @@ export default class ProfileService {
 
         // Save document record
         await Document.create({
-          userId: user.userId,
-          fileId: permitFile.fileId,
-          uploadTimestamp: DateTime.now(),
+          userId: user.id,
+          fileId: permitFile.id,
         })
 
         uploadedPermitUrls.push(permitUrl)
 
         // Save first permit ID if needed later
         if (!permitFileId) {
-          permitFileId = permitFile.fileId
+          permitFileId = permitFile.id
         }
       }
 
       // 2. Save to the 'landlords' table
       const landlord = await Landlord.create({
-        userId: user.userId,
+        userId: user.id,
         tin: validatedData.tin,
         // contactNumber: validatedData.contactNumber,
 
@@ -168,7 +162,7 @@ export default class ProfileService {
             */
 
       return {
-        landlord,
+        landlord: landlord.serialize(),
         uploadedFiles: uploadedPermitUrls,
       }
     }

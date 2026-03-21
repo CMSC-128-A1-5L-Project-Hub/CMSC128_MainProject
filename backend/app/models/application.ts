@@ -8,7 +8,7 @@ export default class Application extends BaseModel {
   static table = 'applications'
 
   @column({ isPrimary: true })
-  declare applicationId: number
+  declare id: number
 
   @column()
   declare accommodationId: number

@@ -8,13 +8,13 @@ export default class extends BaseSchema {
         .bigInteger('landlord_id')
         .unsigned()
         .notNullable()
-        .references('user_id')
+        .references('id')
         .inTable('landlords')
       table
         .bigInteger('manager_id')
         .unsigned()
         .notNullable()
-        .references('user_id')
+        .references('id')
         .inTable('managers')
       table
         .bigInteger('business_permit_id')

@@ -5,7 +5,7 @@ export default class SysVariables extends BaseModel {
   static table = 'sys_variables'
 
   @column({ isPrimary: true })
-  declare sysId: number
+  declare id: number
 
   @column()
   declare currentSemester: 'first_sem' | 'second_sem' | 'midyear'
