@@ -196,6 +196,23 @@ export class PaymentSchema extends BaseModel {
   declare timestamp: DateTime | null
 }
 
+export class PhoneNumberSchema extends BaseModel {
+  static $columns = ['contactNumber', 'createdAt', 'id', 'isPrimary', 'updatedAt', 'userId'] as const
+  $columns = PhoneNumberSchema.$columns
+  @column()
+  declare contactNumber: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: bigint | number
+  @column()
+  declare isPrimary: boolean | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: bigint | number
+}
+
 export class ReportSchema extends BaseModel {
   static $columns = ['fileId', 'id', 'landlordId', 'studentNumber', 'timestamp', 'type'] as const
   $columns = ReportSchema.$columns
@@ -239,22 +256,22 @@ export class RoomSchema extends BaseModel {
 }
 
 export class StudentSchema extends BaseModel {
-  static $columns = ['college', 'contactNumber', 'course', 'createdAt', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofId', 'gender', 'studentNumber', 'updatedAt', 'userId'] as const
+  static $columns = ['college', 'contactNumber', 'createdAt', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'gender', 'studentNumber', 'updatedAt', 'userId'] as const
   $columns = StudentSchema.$columns
   @column()
   declare college: string
   @column()
   declare contactNumber: string
-  @column()
-  declare course: string
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
+  @column()
+  declare degreeProgram: string
   @column()
   declare emergencyContactName: string
   @column()
   declare emergencyContactNumber: string
   @column()
-  declare enrollmentProofId: bigint | number
+  declare enrollmentProofFileId: bigint | number
   @column()
   declare gender: string
   @column({ isPrimary: true })

@@ -3,32 +3,36 @@ import vine from '@vinejs/vine'
 export const setupProfileValidator = vine.compile(
   vine.object({
     // Determine the role being applied for
-    role: vine.enum(['Student', 'Landlord']),
+    role: vine.enum(['student', 'landlord']),
 
     // ==========================================
     // STUDENT SPECIFIC FIELDS
     // ==========================================
-    studentNumber: vine
+    student_number: vine
       .string()
       .regex(/^20\d{2}-\d{5}$/) // format: 20dd-ddddd
-      .optional() // optional except when the role equals 'Student'.
-      .requiredWhen('role', '=', 'Student'),
+      .optional() // optional except when the role equals 'student'.
+      .requiredWhen('role', '=', 'student'),
 
-    course: vine
+    phone_number: vine
+      .string()
+      .regex(/^09\d{9}$/),
+
+    degree_program: vine
       .string() //follow the migrations
       .optional()
-      .requiredWhen('role', '=', 'Student'),
+      .requiredWhen('role', '=', 'student'),
 
-    college: vine.string().optional().requiredWhen('role', '=', 'Student'),
+    college: vine.string().optional().requiredWhen('role', '=', 'student'),
 
-    emergencyContactName: vine.string().optional().requiredWhen('role', '=', 'Student'),
+    emergency_contact_name: vine.string().optional().requiredWhen('role', '=', 'student'),
 
-    emergencyContactNumber: vine.string().optional().requiredWhen('role', '=', 'Student'),
+    emergency_contact_number: vine.string().optional().requiredWhen('role', '=', 'student'),
 
     gender: vine
       .enum(['Male', 'Female']) // (for Male-only or Female-only dorms)
       .optional()
-      .requiredWhen('role', '=', 'Student'),
+      .requiredWhen('role', '=', 'student'),
 
     form5: vine
       .array(
@@ -38,14 +42,7 @@ export const setupProfileValidator = vine.compile(
         })
       )
       .optional()
-      .requiredWhen('role', '=', 'Student'),
-
-    // uplbId: vine.file({
-    //   size: '16mb',
-    //   extnames: ['pdf', 'png', 'jpg', 'jpeg'],
-    // })
-    //   .optional()
-    //   .requiredWhen('role', '=', 'Student'),
+      .requiredWhen('role', '=', 'student'),
 
     // ==========================================
     // LANDLORD SPECIFIC FIELDS
@@ -53,32 +50,32 @@ export const setupProfileValidator = vine.compile(
     tin: vine
       .string()
       .regex(/^(\d{3}-\d{3}-\d{3}-\d{5}|\d{3}-\d{3}-\d{3}-\d{3})$/) // format: ddd-ddd-ddd-ddddd or ddd-ddd-ddd-ddd
-      .optional()
-      .requiredWhen('role', '=', 'Landlord'),
+      .optional() // Optional for testing for now, but remove this in actual production
+      .requiredWhen('role', '=', 'landlord'),
 
-    contactNumber: vine.string().optional().requiredWhen('role', '=', 'Landlord'),
+    contact_number: vine.string().optional().requiredWhen('role', '=', 'landlord'),
 
     // ==========================================
     // ACCOMMODATION SPECIFIC FIELDS
     // ==========================================
-    accommodationName: vine.string().optional().requiredWhen('role', '=', 'Landlord'),
+    accommodationName: vine.string().optional().requiredWhen('role', '=', 'landlord'),
 
-    accommodationLocation: vine.string().optional().requiredWhen('role', '=', 'Landlord'),
+    accommodationLocation: vine.string().optional().requiredWhen('role', '=', 'landlord'),
 
     accommodationType: vine
       .enum(['on-campus', 'off-campus', 'partner_housing'])
       .optional()
-      .requiredWhen('role', '=', 'Landlord'),
+      .requiredWhen('role', '=', 'landlord'),
 
-    accommodationCapacity: vine.number().optional().requiredWhen('role', '=', 'Landlord'),
+    accommodationCapacity: vine.number().optional().requiredWhen('role', '=', 'landlord'),
 
     tenantRestriction: vine
       .enum(['male-only', 'female-only', 'coed'])
       .optional()
-      .requiredWhen('role', '=', 'Landlord'),
-    applicationStartDate: vine.date().optional().requiredWhen('role', '=', 'Landlord'),
+      .requiredWhen('role', '=', 'landlord'),
+    applicationStartDate: vine.date().optional().requiredWhen('role', '=', 'landlord'),
 
-    applicationEndDate: vine.date().optional().requiredWhen('role', '=', 'Landlord'),
+    applicationEndDate: vine.date().optional().requiredWhen('role', '=', 'landlord'),
 
     businessPermit: vine
       .array(
@@ -88,6 +85,6 @@ export const setupProfileValidator = vine.compile(
         })
       )
       .optional()
-      .requiredWhen('role', '=', 'Landlord'),
+      .requiredWhen('role', '=', 'landlord'),
   })
 )

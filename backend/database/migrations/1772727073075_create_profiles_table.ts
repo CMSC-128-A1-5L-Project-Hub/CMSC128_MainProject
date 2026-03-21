@@ -13,7 +13,7 @@ export default class extends BaseSchema {
         .inTable('users')
         .onDelete('CASCADE')
       table
-        .bigInteger('enrollment_proof_id')
+        .bigInteger('enrollment_proof_file_id')
         .unsigned()
         .notNullable()
         .unique()
@@ -21,7 +21,7 @@ export default class extends BaseSchema {
         .inTable('file_metadata')
 
       // Data Fields
-      table.string('course').notNullable() // e.g., BS Computer Science
+      table.string('degree_program').notNullable() // e.g., BS Computer Science
       table.string('college').notNullable() // e.g., CAS
       table.string('gender').notNullable()
       table.string('contact_number', 11).notNullable()

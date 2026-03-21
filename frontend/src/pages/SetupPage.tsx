@@ -6,7 +6,7 @@ export default function Setup() {
     const navigate = useNavigate();
     
     // 1. Manage the UI state
-    const [role, setRole] = useState<'Student' | 'Landlord'>('Student');
+    const [role, setRole] = useState<'student' | 'landlord'>('student');
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [form5Files, setForm5Files] = useState<File[]>([]);
@@ -16,15 +16,15 @@ export default function Setup() {
         first_name: '',
         last_name: '',
         phone_number: '',
-        // Student specific
-        studentNumber: '',
-        course: '',
+        // student specific
+        student_number: '',
+        degree_program: '',
         college: 'UPLB',
-        emergencyContactName: '',
-        emergencyContactNumber: '',
+        emergency_contact_name: '',
+        emergency_contact_number: '',
         gender: '',
         form5: '',
-        // Landlord specific
+        // landlord specific
         company_name: '',
     });
 
@@ -68,8 +68,8 @@ export default function Setup() {
             // Content-Type to 'multipart/form-data' because we passed a FormData object.
             await api.post('/setup', payload);
             
-            if (role === 'Student') navigate('/dashboard/student');
-            if (role === 'Landlord') navigate('/dashboard/landlord');
+            if (role === 'student') navigate('/dashboard/student');
+            if (role === 'landlord') navigate('/dashboard/landlord');
             
         } catch (error: any) {
             console.error("Setup error:", error);
@@ -96,8 +96,8 @@ export default function Setup() {
             {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
 
             {/* Role Toggle */}
-            <button type="button" onClick={() => setRole('Student')}>I am a Student</button>
-            <button type="button" onClick={() => setRole('Landlord')}>I am a Landlord</button>
+            <button type="button" onClick={() => setRole('student')}>I am a student</button>
+            <button type="button" onClick={() => setRole('landlord')}>I am a landlord</button>
 
             {/* ─── SHARED FIELDS ─── */}
             <br /><br />
@@ -106,24 +106,24 @@ export default function Setup() {
             <input type="text" name="phone_number" placeholder="Phone Number" required onChange={handleChange} />
 
             {/* ─── STUDENT ONLY FIELDS ─── */}
-            {role === 'Student' && (
+            {role === 'student' && (
                 <>
                     <hr />
-                    <h3>Student Details</h3>
-                    <input type="text" name="studentNumber" placeholder="Student Number" required onChange={handleChange} />
-                    <input type="text" name="course" placeholder="Degree Program" required onChange={handleChange} />
-                    <input type="text" name="emergencyContactName" placeholder="Emergency Contact Name" required onChange={handleChange} />
-                    <input type="text" name="emergencyContactNumber" placeholder="Emergency Contact Number" required onChange={handleChange} />
+                    <h3>student Details</h3>
+                    <input type="text" name="student_number" placeholder="student Number" required onChange={handleChange} />
+                    <input type="text" name="degree_program" placeholder="Degree Program" required onChange={handleChange} />
+                    <input type="text" name="emergency_contact_name" placeholder="Emergency Contact Name" required onChange={handleChange} />
+                    <input type="text" name="emergency_contact_number" placeholder="Emergency Contact Number" required onChange={handleChange} />
                     <input type="text" name="gender" placeholder="Gender" required onChange={handleChange} />
                     <input type="file" name="form5" placeholder="Form5 idk" required onChange={handleFileChange} />
                 </>
             )}
 
             {/* ─── LANDLORD ONLY FIELDS ─── */}
-            {role === 'Landlord' && (
+            {role === 'landlord' && (
                 <>
                     <hr />
-                    <h3>Landlord Details</h3>
+                    <h3>landlord Details</h3>
                     <input type="text" name="company_name" placeholder="Company Name (Optional)" onChange={handleChange} />
                 </>
             )}
