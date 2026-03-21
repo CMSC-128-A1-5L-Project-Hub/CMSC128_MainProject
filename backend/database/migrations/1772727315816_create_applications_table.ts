@@ -8,13 +8,27 @@ export default class extends BaseSchema {
       table.string('student_number').references('student_number').inTable('students')
       table.timestamp('application_date', { useTz: true }).defaultTo(this.now())
       table.enum('room_type', ['single', 'double', 'shared']).notNullable()
-      table.enum('status', ['pending', 'approved', 'rejected', 'cancelled', 'waitlisted', 'under_review']).defaultTo('pending')
+      table
+        .enum('status', [
+          'pending',
+          'approved',
+          'rejected',
+          'cancelled',
+          'waitlisted',
+          'under_review',
+        ])
+        .defaultTo('pending')
       table.integer('duration_of_stay_days').notNullable()
     })
 
     this.schema.createTable('documents', (table) => {
       table.bigIncrements('id').primary()
-      table.bigInteger('application_id').unsigned().references('id').inTable('applications').onDelete('CASCADE')
+      table
+        .bigInteger('application_id')
+        .unsigned()
+        .references('id')
+        .inTable('applications')
+        .onDelete('CASCADE')
       table.string('name', 50).notNullable()
       table.specificType('file', 'MEDIUMBLOB').notNullable() // don't know what mediumblob is...
     })
