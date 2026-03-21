@@ -38,32 +38,7 @@ export default class AuthController {
     // Log the user in
     await auth.use('web').login(user)
 
-    // Redirect based on role
-    if (user.role === 'unassigned') {
-      return response.redirect('http://localhost:5173/setup')
-    }
-
-    if (user.role === 'student') {
-      return response.redirect('http://localhost:5173/dashboard/student')
-    }
-
-    if (user.role === 'landlord') {
-      return response.redirect('http://localhost:5173/dashboard/landlord')
-    }
-
-    if (user.role === 'manager') {
-      return response.redirect('http://localhost:5173/dashboard/manager')
-    }
-
-    if (user.role === 'super_admin') {
-      return response.redirect('http://localhost:5173/dashboard/super_admin')
-    }
-
-    // Fallback — role not recognized
-    return response.badRequest({
-      status: 400,
-      error: 'Bad Request',
-      message: 'User role not recognized.',
-    })
+    // Redirect to frontend link and let them deal with the role-based redirect lol
+    return response.redirect('http://localhost:3000/auth/success')
   }
 }

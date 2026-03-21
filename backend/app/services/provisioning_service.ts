@@ -4,8 +4,15 @@ import FileMetadata from '#models/file_metadata'
 export default class ProvisioningService {
   public async provision(profile: { email: string; fname: string; lname: string }) {
     // Get the default placeholder pfp
-    const defaultPfp = await FileMetadata.findByOrFail('file_path', 'defaults/default_pfp.png')
-
+    const defaultPfp = await FileMetadata.firstOrCreate(
+      {filePath: 'defaults/default_pfp.png'},
+      {
+        fileName: 'default_pfp.png',
+        filePath: 'defaults/default_pfp.png',
+        fileType: 'image'
+      }
+    )
+    
     let user = await User.findBy('email', profile.email)
 
     if (user) {

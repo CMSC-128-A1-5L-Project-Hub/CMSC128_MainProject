@@ -6,9 +6,9 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.bigIncrements('id').primary() // Using 'id' for Framework Naming
-      table.string('name', 100).notNullable()
-      table.string('path', 500).notNullable()
-      table.enum('type', ['document', 'image']).notNullable()
+      table.string('file_name', 100).notNullable()
+      table.string('file_path', 500).notNullable()
+      table.enum('file_type', ['document', 'image']).notNullable()
     })
   }
 

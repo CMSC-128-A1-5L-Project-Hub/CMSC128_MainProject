@@ -118,16 +118,16 @@ export class FeeSchema extends BaseModel {
 }
 
 export class FileMetadatumSchema extends BaseModel {
-  static $columns = ['id', 'name', 'path', 'type'] as const
+  static $columns = ['fileName', 'filePath', 'fileType', 'id'] as const
   $columns = FileMetadatumSchema.$columns
+  @column()
+  declare fileName: string
+  @column()
+  declare filePath: string
+  @column()
+  declare fileType: string
   @column({ isPrimary: true })
   declare id: bigint | number
-  @column()
-  declare name: string
-  @column()
-  declare path: string
-  @column()
-  declare type: string
 }
 
 export class LandlordSchema extends BaseModel {
@@ -260,7 +260,7 @@ export class StudentSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'facebookAccount', 'firstName', 'id', 'isVerified', 'lastName', 'middleName', 'pfpId', 'role', 'suffix', 'updatedAt'] as const
+  static $columns = ['createdAt', 'email', 'facebookAccount', 'fname', 'id', 'isVerified', 'lname', 'mname', 'pfpFileId', 'role', 'suffix', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -269,17 +269,17 @@ export class UserSchema extends BaseModel {
   @column()
   declare facebookAccount: string | null
   @column()
-  declare firstName: string
+  declare fname: string
   @column({ isPrimary: true })
   declare id: bigint | number
   @column()
   declare isVerified: boolean
   @column()
-  declare lastName: string
+  declare lname: string
   @column()
-  declare middleName: string | null
+  declare mname: string | null
   @column()
-  declare pfpId: bigint | number | null
+  declare pfpFileId: bigint | number | null
   @column()
   declare role: string | null
   @column()
