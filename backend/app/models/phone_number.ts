@@ -1,10 +1,9 @@
+import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 
 export default class PhoneNumber extends BaseModel {
-  static table = 'phone_numbers'
-
   @column({ isPrimary: true })
   declare id: number
 
@@ -14,14 +13,15 @@ export default class PhoneNumber extends BaseModel {
   @column()
   declare contactNumber: string
 
-  // Stored as ENUM('true','false') in DB — cast to boolean for convenience
-  @column({
-    prepare: (val: boolean) => (val ? 'true' : 'false'),
-    consume: (val: string) => val === 'true',
-  })
+  @column()
   declare isPrimary: boolean
 
-  // ─── Relationships ────────────────────────────────────────────────────────
-  @belongsTo(() => User, { foreignKey: 'userId' })
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+
+  @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
 }

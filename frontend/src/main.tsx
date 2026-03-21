@@ -11,7 +11,7 @@ createRoot(document.getElementById('root')!).render(
       onClick={() => {
         window.location.href = "http://localhost:3333/auth/google/redirect"
       }} 
-      />
+    />
     <App />
   </StrictMode>,
 )
