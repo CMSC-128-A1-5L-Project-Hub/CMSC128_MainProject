@@ -19,9 +19,9 @@ export default function AuthSuccess() {
         const fetchUserAndRedirect = async () => {
             try {
                 const response = await api.get<ApiResponse>('/me');
-
+                console.log("Hello? This is the response data: ", response)
                 const user = response.data.data;
-
+                console.log(user)
                 if (user.role === 'unassigned') navigate ('/setup');
                 else if (user.role === 'student') navigate('/dashboard/student');
                 else if (user.role === 'manager') navigate('/dashboard/manager');

@@ -101,7 +101,7 @@ export default class AccommodationController {
       })
     }
 
-    return serialize(accommodation)
+    return serialize(accommodation.serialize())
   }
 
   // ─── POST /landlord/accommodations ───────────────────────────────────────
@@ -201,7 +201,7 @@ export default class AccommodationController {
 
       await trx.commit()
 
-      return serialize(accommodation)
+      return serialize(accommodation.serialize())
     } catch (error) {
       await trx.rollback()
       console.error('Accommodation creation error:', error)
@@ -270,7 +270,7 @@ export default class AccommodationController {
 
     await accommodation.save()
 
-    return serialize(accommodation)
+    return serialize(accommodation.serialize())
   }
 
   // ─── POST /landlord/accommodations/:id/images ────────────────────────────

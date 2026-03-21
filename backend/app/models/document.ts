@@ -16,7 +16,7 @@ export default class Document extends BaseModel {
   @column()
   declare fileId: number
 
-  @column.dateTime()
+  @column.dateTime({ autoCreate: true })
   declare uploadTimestamp: DateTime
 
   // ─── Relationships ────────────────────────────────────────────────────────

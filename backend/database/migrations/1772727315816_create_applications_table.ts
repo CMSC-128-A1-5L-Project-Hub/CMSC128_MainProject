@@ -23,14 +23,9 @@ export default class extends BaseSchema {
 
     this.schema.createTable('documents', (table) => {
       table.bigIncrements('id').primary()
-      table
-        .bigInteger('application_id')
-        .unsigned()
-        .references('id')
-        .inTable('applications')
-        .onDelete('CASCADE')
-      table.string('name', 50).notNullable()
+      table.bigInteger('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
       table.bigInteger('file_id').unsigned().notNullable().references('id').inTable('file_metadata').onDelete('CASCADE')
+      table.timestamp('upload_timestamp')
     })
 
     this.schema.createTable('assignments', (table) => {

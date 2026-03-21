@@ -39,6 +39,15 @@ export default class AuthController {
     await auth.use('web').login(user)
 
     // Redirect to frontend link and let them deal with the role-based redirect lol
-    return response.redirect('http://localhost:3000/auth/success')
+    return response.redirect('http://localhost:5173/auth/success')
+  }
+
+  // ─── GET /me ──────────────────────────────────────────────────────────────
+  // After a successful signup/login, frontend calls this to get information about user (because they can't read our auth for security purposes)
+  async me({ auth, serialize }: HttpContext) {
+    // auth.user is automatically populated by AdonisJS if the cookie is valid
+    const user = auth.user!
+    console.log("User logged in! here's their info: ", user.toJSON())
+    return serialize(user.serialize())
   }
 }

@@ -86,16 +86,16 @@ export class AssignmentSchema extends BaseModel {
 }
 
 export class DocumentSchema extends BaseModel {
-  static $columns = ['applicationId', 'fileId', 'id', 'name'] as const
+  static $columns = ['fileId', 'id', 'uploadTimestamp', 'userId'] as const
   $columns = DocumentSchema.$columns
-  @column()
-  declare applicationId: bigint | number | null
   @column()
   declare fileId: bigint | number
   @column({ isPrimary: true })
   declare id: bigint | number
+  @column.dateTime()
+  declare uploadTimestamp: DateTime | null
   @column()
-  declare name: string
+  declare userId: bigint | number | null
 }
 
 export class FeeSchema extends BaseModel {
