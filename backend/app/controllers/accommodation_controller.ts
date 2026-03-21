@@ -2,7 +2,6 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
 import AccommodationImage from '#models/accommodation_image'
 import FileMetadata from '#models/file_metadata'
-import Room from '#models/room'
 import DistanceService from '#services/distance'
 import db from '@adonisjs/lucid/services/db'
 import { uploadImage, deleteImage } from '#services/b2_services'
@@ -84,7 +83,7 @@ export default class AccommodationController {
 
   // ─── GET /accommodations/:id ──────────────────────────────────────────────
   // Public: single accommodation with full details
-  async show({ params, response }: HttpContext) {
+  async show({ params, serialize, response }: HttpContext) {
     const accommodation = await Accommodation.query()
       .where('accommodation_id', params.id)
       .preload('images', (q) => q.preload('file'))
@@ -102,13 +101,13 @@ export default class AccommodationController {
       })
     }
 
-    return response.ok({ status: 200, data: accommodation })
+    return serialize(accommodation.serialize())
   }
 
   // ─── POST /landlord/accommodations ───────────────────────────────────────
   // Landlord: create a new accommodation
-  async store({ request, session, response }: HttpContext) {
-    const landlordId = session.get('userId')
+  async store({ request, auth, response, serialize }: HttpContext) {
+    const landlordId = auth.user!.id
 
     const {
       accommodation_name,
@@ -180,7 +179,7 @@ export default class AccommodationController {
       for (const image of images) {
         if (!image.isValid || !image.tmpPath) continue
 
-        const fileUrl = await uploadImage(image, `accommodations/${accommodation.accommodationId}`)
+        const fileUrl = await uploadImage(image, `accommodations/${accommodation.id}`)
 
         const fileMeta = await FileMetadata.create(
           {
@@ -193,8 +192,8 @@ export default class AccommodationController {
 
         await AccommodationImage.create(
           {
-            accommodationId: accommodation.accommodationId,
-            imageFileId: fileMeta.fileId,
+            accommodationId: accommodation.id,
+            imageFileId: fileMeta.id,
           },
           { client: trx }
         )
@@ -202,11 +201,7 @@ export default class AccommodationController {
 
       await trx.commit()
 
-      return response.created({
-        status: 201,
-        message: 'Accommodation created successfully.',
-        data: { accommodation_id: accommodation.accommodationId },
-      })
+      return serialize(accommodation.serialize())
     } catch (error) {
       await trx.rollback()
       console.error('Accommodation creation error:', error)
@@ -220,8 +215,8 @@ export default class AccommodationController {
 
   // ─── PUT /landlord/accommodations/:id ────────────────────────────────────
   // Landlord: update accommodation details
-  async update({ params, request, session, response }: HttpContext) {
-    const landlordId = session.get('userId')
+  async update({ params, request, auth, response, serialize }: HttpContext) {
+    const landlordId = auth.user!.id
 
     const accommodation = await Accommodation.query()
       .where('accommodation_id', params.id)
@@ -275,17 +270,13 @@ export default class AccommodationController {
 
     await accommodation.save()
 
-    return response.ok({
-      status: 200,
-      message: 'Accommodation updated successfully.',
-      data: accommodation,
-    })
+    return serialize(accommodation.serialize())
   }
 
   // ─── POST /landlord/accommodations/:id/images ────────────────────────────
   // Landlord: upload images to an existing accommodation
-  async uploadImages({ params, request, session, response }: HttpContext) {
-    const landlordId = session.get('userId')
+  async uploadImages({ params, request, auth, response, serialize }: HttpContext) {
+    const landlordId = auth.user!.id
 
     const accommodation = await Accommodation.query()
       .where('accommodation_id', params.id)
@@ -320,7 +311,7 @@ export default class AccommodationController {
       for (const image of images) {
         if (!image.isValid || !image.tmpPath) continue
 
-        const fileUrl = await uploadImage(image, `accommodations/${accommodation.accommodationId}`)
+        const fileUrl = await uploadImage(image, `accommodations/${accommodation.id}`)
 
         const fileMeta = await FileMetadata.create(
           {
@@ -333,22 +324,19 @@ export default class AccommodationController {
 
         await AccommodationImage.create(
           {
-            accommodationId: accommodation.accommodationId,
-            imageFileId: fileMeta.fileId,
+            accommodationId: accommodation.id,
+            imageFileId: fileMeta.id,
           },
           { client: trx }
         )
 
-        uploaded.push({ file_id: fileMeta.fileId, url: fileUrl })
+        uploaded.push({ file_id: fileMeta.id, url: fileUrl })
       }
 
       await trx.commit()
 
-      return response.created({
-        status: 201,
-        message: `${uploaded.length} image(s) uploaded successfully.`,
-        data: uploaded,
-      })
+      return serialize(uploaded)
+
     } catch (error) {
       await trx.rollback()
       console.error('Image upload error:', error)
@@ -362,8 +350,8 @@ export default class AccommodationController {
 
   // ─── DELETE /landlord/accommodations/:id/images/:imageId ─────────────────
   // Landlord: delete a specific image
-  async deleteImage({ params, session, response }: HttpContext) {
-    const landlordId = session.get('userId')
+  async deleteImage({ params, auth, response, serialize }: HttpContext) {
+    const landlordId = auth.user!.id
 
     const image = await AccommodationImage.query()
       .where('images_id', params.imageId)
@@ -388,7 +376,7 @@ export default class AccommodationController {
 
       await trx.commit()
 
-      return response.ok({ status: 200, message: 'Image deleted successfully.' })
+      return serialize({message: 'Image deleted successfully' })
     } catch (error) {
       await trx.rollback()
       console.error('Image delete error:', error)
@@ -396,116 +384,6 @@ export default class AccommodationController {
         status: 500,
         error: 'Internal Server Error',
         message: 'Failed to delete image.',
-      })
-    }
-  }
-
-  // ─── GET /accommodations/:id/rooms ───────────────────────────────────────
-  // Manager/HA: list all rooms of an accommodation
-  async getRooms({ params, response }: HttpContext) {
-    const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
-      .first()
-
-    if (!accommodation) {
-      return response.notFound({
-        status: 404,
-        error: 'Not Found',
-        message: 'Accommodation not found.',
-      })
-    }
-
-    const rooms = await Room.query()
-      .where('accommodation_id', params.id)
-
-    return response.ok({ status: 200, data: rooms })
-  }
-
-  // ─── POST /landlord/accommodations/:id/rooms ─────────────────────────────
-  // Landlord: add a room to an accommodation
-  async addRoom({ params, request, session, response }: HttpContext) {
-    const landlordId = session.get('userId')
-
-    const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
-      .where('landlord_id', landlordId)
-      .first()
-
-    if (!accommodation) {
-      return response.notFound({
-        status: 404,
-        error: 'Not Found',
-        message: 'Accommodation not found or does not belong to you.',
-      })
-    }
-
-    const {
-      room_number,
-      room_type,
-      room_stay_type,
-      room_capacity,
-      room_building,
-      room_rent,
-      tenant_restriction,
-    } = request.body()
-
-    if (
-      !room_number ||
-      !room_type ||
-      !room_stay_type ||
-      !room_capacity ||
-      !room_building ||
-      !room_rent ||
-      !tenant_restriction
-    ) {
-      return response.badRequest({
-        status: 400,
-        error: 'Validation Error',
-        message: 'Required: room_number, room_type, room_stay_type, room_capacity, room_building, room_rent, tenant_restriction.',
-      })
-    }
-
-    if (!['transient', 'non_transient'].includes(room_stay_type)) {
-      return response.badRequest({
-        status: 400,
-        error: 'Validation Error',
-        message: 'room_stay_type must be either transient or non_transient.',
-      })
-    }
-
-    const trx = await db.transaction()
-
-    try {
-      const room = await Room.create(
-        {
-          accommodationId: accommodation.accommodationId,
-          roomNumber: room_number,
-          roomType: room_type,
-          roomStayType: room_stay_type,
-          roomCapacity: room_capacity,
-          roomCurrentOccupancy: 0,
-          roomBuilding: room_building,
-          roomRent: room_rent,
-          tenantRestriction: tenant_restriction,
-          roomAvailability: 'available',
-        },
-        { client: trx }
-      )
-
-      await trx.commit()
-
-      return response.created({
-        status: 201,
-        message: 'Room added successfully.',
-        data: { room_id: room.roomId },
-      })
-    } catch (error) {
-      await trx.rollback()
-      console.error('Add room error:', error)
-      return response.internalServerError({
-        status: 500,
-        error: 'Internal Server Error',
-        message: 'Failed to add room.',
       })
     }
   }

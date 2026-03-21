@@ -7,7 +7,7 @@ export default class Notification extends BaseModel {
   static table = 'notifications'
 
   @column({ isPrimary: true })
-  declare notificationId: number
+  declare id: number
 
   @column()
   declare userId: number

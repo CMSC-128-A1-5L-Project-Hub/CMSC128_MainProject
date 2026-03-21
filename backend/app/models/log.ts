@@ -7,7 +7,7 @@ export default class Log extends BaseModel {
   static table = 'logs'
 
   @column({ isPrimary: true })
-  declare logId: number
+  declare id: number
 
   @column()
   declare actorId: number | null

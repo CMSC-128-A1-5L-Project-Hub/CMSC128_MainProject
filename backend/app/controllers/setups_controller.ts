@@ -6,23 +6,23 @@ import { setupProfileValidator } from '#validators/profile'
 export default class SetupController {
   private profileService = new ProfileService()
 
-  async show({ auth, response }: HttpContext) {
+  async show({ auth, serialize }: HttpContext) {
     const user = auth.user as User
 
-    return response.json({
+    return serialize({
       message: 'Setup required',
-      user,
+      user: user.serialize(),
       role: user.role,
     })
   }
 
-  async store({ request, auth, response }: HttpContext) {
+  async store({ request, auth, serialize }: HttpContext) {
     const user = auth.user as User
     const validatedData = await setupProfileValidator.validate(request.all())
 
     const result = await this.profileService.setupProfile(user, validatedData)
 
-    return response.json({
+    return serialize({
       message: 'Profile setup submitted successfully',
       data: result,
     })

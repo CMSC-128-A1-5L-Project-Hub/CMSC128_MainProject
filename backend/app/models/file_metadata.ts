@@ -4,7 +4,7 @@ export default class FileMetadata extends BaseModel {
   static table = 'file_metadata'
 
   @column({ isPrimary: true })
-  declare fileId: number
+  declare id: number
 
   @column()
   declare fileName: string

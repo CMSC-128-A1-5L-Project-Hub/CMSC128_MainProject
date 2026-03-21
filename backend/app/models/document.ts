@@ -8,7 +8,7 @@ export default class Document extends BaseModel {
   static table = 'documents'
 
   @column({ isPrimary: true })
-  declare documentId: number
+  declare id: number
 
   @column()
   declare userId: number
@@ -16,13 +16,13 @@ export default class Document extends BaseModel {
   @column()
   declare fileId: number
 
-  @column.dateTime()
+  @column.dateTime({ autoCreate: true })
   declare uploadTimestamp: DateTime
 
   // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => User, { foreignKey: 'userId' })
   declare user: BelongsTo<typeof User>
 
-  @belongsTo(() => FileMetadata, { foreignKey: 'fileId', localKey: 'fileId' })
+  @belongsTo(() => FileMetadata, { foreignKey: 'fileId' })
   declare file: BelongsTo<typeof FileMetadata>
 }

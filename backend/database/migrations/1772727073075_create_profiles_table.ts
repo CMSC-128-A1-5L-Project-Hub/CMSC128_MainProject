@@ -13,7 +13,7 @@ export default class extends BaseSchema {
         .inTable('users')
         .onDelete('CASCADE')
       table
-        .bigInteger('enrollment_proof_id')
+        .bigInteger('enrollment_proof_file_id')
         .unsigned()
         .notNullable()
         .unique()
@@ -21,7 +21,7 @@ export default class extends BaseSchema {
         .inTable('file_metadata')
 
       // Data Fields
-      table.string('course').notNullable() // e.g., BS Computer Science
+      table.string('degree_program').notNullable() // e.g., BS Computer Science
       table.string('college').notNullable() // e.g., CAS
       table.string('gender').notNullable()
       table.string('contact_number', 11).notNullable()
@@ -32,10 +32,10 @@ export default class extends BaseSchema {
     })
 
     this.schema.createTable('landlords', (table) => {
+      table.bigIncrements('id').primary()
       table
         .bigInteger('user_id')
         .unsigned()
-        .primary()
         .references('id')
         .inTable('users')
         .onDelete('CASCADE')
@@ -45,10 +45,10 @@ export default class extends BaseSchema {
     })
 
     this.schema.createTable('managers', (table) => {
+      table.bigIncrements('id').primary()
       table
         .bigInteger('user_id')
         .unsigned()
-        .primary()
         .references('id')
         .inTable('users')
         .onDelete('CASCADE')

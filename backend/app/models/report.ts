@@ -9,7 +9,7 @@ export default class Report extends BaseModel {
   static table = 'reports'
 
   @column({ isPrimary: true })
-  declare reportId: number
+  declare id: number
 
   @column()
   declare landlordId: number

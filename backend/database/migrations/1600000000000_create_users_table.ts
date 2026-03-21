@@ -7,21 +7,20 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.bigIncrements('id').primary()
       table
-        .bigInteger('pfp_id')
+        .bigInteger('pfp_file_id')
         .unsigned()
         .nullable()
         .unique()
         .references('id')
         .inTable('file_metadata')
 
-      table.string('first_name', 50).notNullable()
-      table.string('middle_name', 50).nullable()
-      table.string('last_name', 50).notNullable()
+      table.string('fname', 50).notNullable()
+      table.string('mname', 50).nullable()
+      table.string('lname', 50).notNullable()
       table.string('suffix', 10).nullable()
       table.string('email', 75).notNullable().unique()
       table.string('facebook_account', 100).nullable()
-      table.enum('role', ['unassigned', 'student', 'landlord', 'manager']).defaultTo('unassigned')
-      table.boolean('is_verified').defaultTo(false).notNullable()
+      table.enum('role', ['unassigned', 'student', 'landlord', 'manager', 'super_admin']).defaultTo('unassigned')
       table.timestamps(true)
     })
   }
