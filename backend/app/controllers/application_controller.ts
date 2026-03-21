@@ -9,7 +9,7 @@ export default class ApplicationsController {
   // ─── 1. STUDENT: SUBMIT APPLICATION ───
   async store({ auth, request, response, serialize }: HttpContext) {
     const user = auth.user!
-    const student = await Student.findByOrFail('userId', user.userId) // Get student_number
+    const student = await Student.findByOrFail('userId', user.id) // Get student_number
     
     const { accommodationId, applicationRoomType, applicationStayType, durationOfStayDays } = request.all()
 
@@ -33,14 +33,14 @@ export default class ApplicationsController {
       applicationStatus: 'pending',
     })
 
-    await LogService.record(user.userId, 'application', newApp.applicationId, 'STUDENT_SUBMITTED')
+    await LogService.record(user.id, 'application', newApp.id, 'STUDENT_SUBMITTED')
     return serialize(newApp)
   }
 
   // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
   async index({ auth, serialize }: HttpContext) {
     const user = auth.user!
-    const student = await Student.findByOrFail('userId', user.userId)
+    const student = await Student.findByOrFail('userId', user.id)
 
     const applications = await Application.query()
       .where('studentNumber', student.studentNumber)
@@ -56,7 +56,7 @@ export default class ApplicationsController {
 
     if (user.role === 'manager') {
       const applications = await Application.query()
-        .whereHas('accommodation', (q) => q.where('managerId', user.userId))
+        .whereHas('accommodation', (q) => q.where('managerId', user.id))
         .whereIn('applicationStatus', ['pending', 'waitlisted'])
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
@@ -67,7 +67,7 @@ export default class ApplicationsController {
 
     if (user.role === 'landlord') {
       const applications = await Application.query()
-        .whereHas('accommodation', (q) => q.where('landlordId', user.userId))
+        .whereHas('accommodation', (q) => q.where('landlordId', user.id))
         .where('applicationStatus', 'under_review')
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
@@ -98,7 +98,7 @@ export default class ApplicationsController {
 
     // Level 1: Manager verification
     if (user.role === 'manager') {
-      if (applicationObject.accommodation.managerId !== user.userId) return response.forbidden()
+      if (applicationObject.accommodation.managerId !== user.id) return response.forbidden()
       if (applicationObject.applicationStatus !== 'pending') return response.badRequest()
 
       if (action === 'approve') {
@@ -110,13 +110,13 @@ export default class ApplicationsController {
       }
 
       await applicationObject.save()
-      await LogService.record(user.userId, 'application', applicationObject.applicationId, action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED')
+      await LogService.record(user.id, 'application', applicationObject.id, action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED')
       return serialize(applicationObject)
     }
 
     // Level 2: Landlord verification
     if (user.role === 'landlord') {
-      if (applicationObject.accommodation.landlordId !== user.userId) return response.forbidden()
+      if (applicationObject.accommodation.landlordId !== user.id) return response.forbidden()
       if (applicationObject.applicationStatus !== 'under_review') return response.badRequest()
 
       if (action === 'approve') {
@@ -137,7 +137,7 @@ export default class ApplicationsController {
       }
 
       await applicationObject.save()
-      await LogService.record(user.userId, 'application', applicationObject.applicationId, action === 'approve' ? 'LANDLORD_APPROVED' : 'LANDLORD_REJECTED')
+      await LogService.record(user.id, 'application', applicationObject.id, action === 'approve' ? 'LANDLORD_APPROVED' : 'LANDLORD_REJECTED')
       return serialize(applicationObject)
     }
 
@@ -147,7 +147,7 @@ export default class ApplicationsController {
   // ─── 5. STUDENT: CANCEL APPLICATION ───
   async destroy({ auth, params, response, serialize }: HttpContext) {
     const user = auth.user!
-    const student = await Student.findByOrFail('userId', user.userId)
+    const student = await Student.findByOrFail('userId', user.id)
 
     const app = await Application.query()
       .where('applicationId', params.id)
@@ -161,7 +161,7 @@ export default class ApplicationsController {
     app.applicationStatus = 'cancelled'
     await app.save()
 
-    await LogService.record(user.userId, 'application', app.applicationId, 'STUDENT_CANCELLED')
+    await LogService.record(user.id, 'application', app.id, 'STUDENT_CANCELLED')
     return serialize(app)
   }
 }
