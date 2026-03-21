@@ -15,7 +15,7 @@ AUTO_INCREMENT = 1;
 -- For easier authentication, role-based tables are to reference the user_id instead
 CREATE TABLE IF NOT EXISTS users(
     id INT AUTO_INCREMENT,
-    pfp_file_id INT NOT NULL, -- profile metadata
+    pfp_file_id INT NULL, -- profile metadata
     fname VARCHAR(50) NOT NULL,
     mname VARCHAR(50),
     lname VARCHAR(50) NOT NULL,
