@@ -6,7 +6,7 @@ export default class NonTransient extends BaseModel {
   static table = 'non_transient'
 
   @column({ isPrimary: true })
-  declare nonTransientId: number
+  declare id: number
 
   @column()
   declare roomId: number

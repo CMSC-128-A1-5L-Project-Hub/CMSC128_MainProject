@@ -7,7 +7,7 @@ export default class Bookmark extends BaseModel {
   static table = 'bookmarks'
 
   @column({ isPrimary: true })
-  declare bookmarkId: number
+  declare id: number
 
   @column()
   declare studentNumber: string

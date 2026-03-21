@@ -30,7 +30,7 @@ export default class extends BaseSchema {
         .inTable('applications')
         .onDelete('CASCADE')
       table.string('name', 50).notNullable()
-      table.specificType('file', 'MEDIUMBLOB').notNullable() // don't know what mediumblob is...
+      table.bigInteger('file_id').unsigned().notNullable().references('id').inTable('file_metadata').onDelete('CASCADE')
     })
 
     this.schema.createTable('assignments', (table) => {

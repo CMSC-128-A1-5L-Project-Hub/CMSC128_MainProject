@@ -6,7 +6,7 @@ export default class AccommodationTag extends BaseModel {
   static table = 'accommodation_tags'
 
   @column({ isPrimary: true })
-  declare tagsId: number
+  declare id: number
 
   @column()
   declare accommodationId: number

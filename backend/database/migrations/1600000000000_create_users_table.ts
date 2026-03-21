@@ -21,7 +21,6 @@ export default class extends BaseSchema {
       table.string('email', 75).notNullable().unique()
       table.string('facebook_account', 100).nullable()
       table.enum('role', ['unassigned', 'student', 'landlord', 'manager', 'super_admin']).defaultTo('unassigned')
-      table.boolean('is_verified').defaultTo(false).notNullable()
       table.timestamps(true)
     })
   }

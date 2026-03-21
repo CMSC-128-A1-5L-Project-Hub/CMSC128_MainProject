@@ -8,7 +8,7 @@ export default class Assignment extends BaseModel {
   static table = 'assignments'
 
   @column({ isPrimary: true })
-  declare assignmentId: number
+  declare id: number
 
   @column()
   declare studentNumber: string

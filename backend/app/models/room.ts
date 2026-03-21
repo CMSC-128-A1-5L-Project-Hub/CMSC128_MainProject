@@ -7,7 +7,7 @@ export default class Room extends BaseModel {
   static table = 'rooms'
 
   @column({ isPrimary: true })
-  declare roomId: number
+  declare id: number
 
   @column()
   declare accommodationId: number

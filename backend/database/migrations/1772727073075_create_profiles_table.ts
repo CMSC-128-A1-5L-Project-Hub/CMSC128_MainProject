@@ -32,10 +32,10 @@ export default class extends BaseSchema {
     })
 
     this.schema.createTable('landlords', (table) => {
+      table.bigIncrements('id').primary()
       table
         .bigInteger('user_id')
         .unsigned()
-        .primary()
         .references('id')
         .inTable('users')
         .onDelete('CASCADE')
@@ -45,10 +45,10 @@ export default class extends BaseSchema {
     })
 
     this.schema.createTable('managers', (table) => {
+      table.bigIncrements('id').primary()
       table
         .bigInteger('user_id')
         .unsigned()
-        .primary()
         .references('id')
         .inTable('users')
         .onDelete('CASCADE')
