@@ -36,6 +36,30 @@ const routes = {
     tokens: [{"old":"/api/v1/setup","type":0,"val":"api","end":""},{"old":"/api/v1/setup","type":0,"val":"v1","end":""},{"old":"/api/v1/setup","type":0,"val":"setup","end":""}],
     types: placeholder as Registry['setups.store']['types'],
   },
+  'admin_verifications.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/users/pending',
+    tokens: [{"old":"/api/v1/admin/users/pending","type":0,"val":"api","end":""},{"old":"/api/v1/admin/users/pending","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/users/pending","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/users/pending","type":0,"val":"users","end":""},{"old":"/api/v1/admin/users/pending","type":0,"val":"pending","end":""}],
+    types: placeholder as Registry['admin_verifications.index']['types'],
+  },
+  'admin_verifications.verify': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/admin/users/:userId/verify',
+    tokens: [{"old":"/api/v1/admin/users/:userId/verify","type":0,"val":"api","end":""},{"old":"/api/v1/admin/users/:userId/verify","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/users/:userId/verify","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/users/:userId/verify","type":0,"val":"users","end":""},{"old":"/api/v1/admin/users/:userId/verify","type":1,"val":"userId","end":""},{"old":"/api/v1/admin/users/:userId/verify","type":0,"val":"verify","end":""}],
+    types: placeholder as Registry['admin_verifications.verify']['types'],
+  },
+  'application.incoming': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/applications/incoming',
+    tokens: [{"old":"/api/v1/applications/incoming","type":0,"val":"api","end":""},{"old":"/api/v1/applications/incoming","type":0,"val":"v1","end":""},{"old":"/api/v1/applications/incoming","type":0,"val":"applications","end":""},{"old":"/api/v1/applications/incoming","type":0,"val":"incoming","end":""}],
+    types: placeholder as Registry['application.incoming']['types'],
+  },
+  'application.update_status': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/applications/:id/review',
+    tokens: [{"old":"/api/v1/applications/:id/review","type":0,"val":"api","end":""},{"old":"/api/v1/applications/:id/review","type":0,"val":"v1","end":""},{"old":"/api/v1/applications/:id/review","type":0,"val":"applications","end":""},{"old":"/api/v1/applications/:id/review","type":1,"val":"id","end":""},{"old":"/api/v1/applications/:id/review","type":0,"val":"review","end":""}],
+    types: placeholder as Registry['application.update_status']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

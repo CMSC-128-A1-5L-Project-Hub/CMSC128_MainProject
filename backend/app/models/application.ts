@@ -37,6 +37,10 @@ export default class Application extends BaseModel {
   @column()
   declare durationOfStayDays: number
 
+  // populated when a manager or landlord rejects the application
+  @column()
+  declare rejectionReason: string | null
+
   // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>

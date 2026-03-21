@@ -15,4 +15,12 @@ export interface ApiDefinition {
   setups: {
     store: typeof routes['setups.store']
   }
+  adminVerifications: {
+    index: typeof routes['admin_verifications.index']
+    verify: typeof routes['admin_verifications.verify']
+  }
+  application: {
+    incoming: typeof routes['application.incoming']
+    updateStatus: typeof routes['application.update_status']
+  }
 }

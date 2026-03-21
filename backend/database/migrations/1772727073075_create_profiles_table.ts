@@ -4,11 +4,22 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable('students', (table) => {
       table.string('student_number', 10).primary()
-      table.bigInteger('user_id').unsigned().notNullable().unique()
-           .references('id').inTable('users').onDelete('CASCADE')
-      table.bigInteger('enrollment_proof_id').unsigned().notNullable().unique()
-           .references('id').inTable('file_metadata')
-      
+      table
+        .bigInteger('user_id')
+        .unsigned()
+        .notNullable()
+        .unique()
+        .references('id')
+        .inTable('users')
+        .onDelete('CASCADE')
+      table
+        .bigInteger('enrollment_proof_id')
+        .unsigned()
+        .notNullable()
+        .unique()
+        .references('id')
+        .inTable('file_metadata')
+
       // Data Fields
       table.string('course').notNullable() // e.g., BS Computer Science
       table.string('college').notNullable() // e.g., CAS
@@ -21,16 +32,26 @@ export default class extends BaseSchema {
     })
 
     this.schema.createTable('landlords', (table) => {
-      table.bigInteger('user_id').unsigned().primary()
-           .references('id').inTable('users').onDelete('CASCADE')
+      table
+        .bigInteger('user_id')
+        .unsigned()
+        .primary()
+        .references('id')
+        .inTable('users')
+        .onDelete('CASCADE')
       table.string('tin', 15).notNullable()
 
       table.timestamps(true)
     })
 
     this.schema.createTable('managers', (table) => {
-      table.bigInteger('user_id').unsigned().primary()
-           .references('id').inTable('users').onDelete('CASCADE')
+      table
+        .bigInteger('user_id')
+        .unsigned()
+        .primary()
+        .references('id')
+        .inTable('users')
+        .onDelete('CASCADE')
       table.enum('status', ['active', 'inactive']).defaultTo('inactive')
       table.timestamps(true)
     })
