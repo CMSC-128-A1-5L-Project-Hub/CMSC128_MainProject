@@ -3,6 +3,10 @@
 SELECT * FROM rooms 
 WHERE room_id = 67;
 
+-- Retrieve by room_stay_type
+SELECT * FROM rooms 
+WHERE room_stay_type = 'transient';
+
 -- Retrieve by tenant_restriction
 SELECT * FROM rooms
 WHERE tenant_restriction = 'coed';
@@ -18,6 +22,12 @@ JOIN accommodations a ON r.accommodation_id = a.accommodation_id
 WHERE r.accommodation_id = 67
     AND r.room_type = 'shared';
 
+-- Retrieve by accommodation_id and room_stay_type
+SELECT * FROM rooms r
+JOIN accommodations a ON r.accommodation_id = a.accommodation_id
+WHERE r.accommodation_id = 67
+    AND r.room_stay_type = 'transient';
+
 ----- UPDATE -----
 -- Update room number by room_id
 UPDATE rooms 
@@ -27,6 +37,11 @@ WHERE room_id = 67;
 -- Update room type by room_id
 UPDATE rooms 
 SET room_type = 'single'
+WHERE room_id = 67; 
+
+-- Update room stay type by room_id
+UPDATE rooms 
+SET room_stay_type = 'transient'
 WHERE room_id = 67; 
 
 -- Update room capacity by room_id
