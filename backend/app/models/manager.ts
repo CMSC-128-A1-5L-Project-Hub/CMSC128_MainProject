@@ -7,9 +7,6 @@ export default class Manager extends BaseModel {
   static table = 'managers'
 
   @column({ isPrimary: true })
-  declare id: number
-
-  @column()
   declare userId: number
 
   @column()

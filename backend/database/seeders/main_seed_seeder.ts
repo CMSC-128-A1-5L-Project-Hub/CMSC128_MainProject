@@ -105,6 +105,7 @@ export default class extends BaseSeeder {
 
     // --- DYNAMIC FETCH: USERS ---
     const allUsers = await db.from('users').select('id', 'email')
+    // We will use getUser() everywhere for Landlords and Managers now!
     const getUser = (email: string) => allUsers.find(u => u.email === email)?.id
 
     // =========================================================================
@@ -176,34 +177,27 @@ export default class extends BaseSeeder {
       { user_id: getUser('kjvillanueva@up.edu.ph'), file_id: getFile('doc_img_5.jpg'), upload_timestamp: '2026-03-05 08:05:00' }
     ])
 
-    // --- DYNAMIC FETCH: PROFILES ---
-    const allLandlords = await db.from('landlords').select('id', 'user_id')
-    const getLandlord = (email: string) => allLandlords.find(l => l.user_id === getUser(email))?.id
-
-    const allManagers = await db.from('managers').select('id', 'user_id')
-    const getManager = (email: string) => allManagers.find(m => m.user_id === getUser(email))?.id
-
     // =========================================================================
-    // 6. REPORTS
+    // 6. REPORTS (Directly using getUser for Landlord IDs!)
     // =========================================================================
     await db.table('reports').multiInsert([
-      { landlord_id: getLandlord('ntramos@gmail.com'), student_number: '2023123456', report_file_id: getFile('report_1.pdf'), report_type: 'billing' },
-      { landlord_id: getLandlord('cmnavarro@gmail.com'), student_number: '2023123457', report_file_id: getFile('report_2.pdf'), report_type: 'assignment' },
-      { landlord_id: getLandlord('larkinsanchez@gmail.com'), student_number: '2023123459', report_file_id: getFile('report_3.pdf'), report_type: 'billing' },
-      { landlord_id: getLandlord('larkinsanchez@gmail.com'), student_number: '2023123461', report_file_id: getFile('report_4.pdf'), report_type: 'assignment' },
-      { landlord_id: getLandlord('raortega@gmail.com'), student_number: '2023123462', report_file_id: getFile('report_5.pdf'), report_type: 'billing' }
+      { landlord_id: getUser('ntramos@gmail.com'), student_number: '2023123456', report_file_id: getFile('report_1.pdf'), report_type: 'billing' },
+      { landlord_id: getUser('cmnavarro@gmail.com'), student_number: '2023123457', report_file_id: getFile('report_2.pdf'), report_type: 'assignment' },
+      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023123459', report_file_id: getFile('report_3.pdf'), report_type: 'billing' },
+      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023123461', report_file_id: getFile('report_4.pdf'), report_type: 'assignment' },
+      { landlord_id: getUser('raortega@gmail.com'), student_number: '2023123462', report_file_id: getFile('report_5.pdf'), report_type: 'billing' }
     ])
 
     // =========================================================================
-    // 7. ACCOMMODATIONS
+    // 7. ACCOMMODATIONS (Directly using getUser for Landlords & Managers!)
     // =========================================================================
     await db.table('accommodations').multiInsert([
-      { landlord_id: getLandlord('larkinsanchez@gmail.com'), manager_id: getManager('juan.delacruz@gmail.com'), business_permit_id: getFile('business_permit_1.pdf'), accommodation_name: 'White House', accommodation_location: 'Ruby St., Brgy. Batong Malake, Los Baños, Laguna', accommodation_type: 'off-campus', accommodation_capacity: 60, tenant_restriction: 'coed', application_start_date: '2026-04-01', application_end_date: '2026-05-15' },
-      { landlord_id: getLandlord('cmnavarro@gmail.com'), manager_id: getManager('slmanuel@up.edu.ph'), business_permit_id: getFile('business_permit_2.pdf'), accommodation_name: 'One Silangan', accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'on-campus', accommodation_capacity: 40, tenant_restriction: 'coed', application_start_date: '2026-04-01', application_end_date: '2026-05-20' },
-      { landlord_id: getLandlord('pagarcia@up.edu.ph'), manager_id: getManager('mabautista@gmail.com'), business_permit_id: getFile('business_permit_3.pdf'), accommodation_name: "Men's Dorm", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'partner_housing', accommodation_capacity: 150, tenant_restriction: 'male-only', application_start_date: '2026-03-20', application_end_date: '2026-04-30' },
-      { landlord_id: getLandlord('raortega@gmail.com'), manager_id: getManager('ampineda@up.edu.ph'), business_permit_id: getFile('business_permit_4.pdf'), accommodation_name: "ATI", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'partner_housing', accommodation_capacity: 120, tenant_restriction: 'male-only', application_start_date: '2026-04-05', application_end_date: '2026-05-25' },
-      { landlord_id: getLandlord('larkinsanchez@gmail.com'), manager_id: getManager('vepadilla@gmail.com'), business_permit_id: getFile('business_permit_5.pdf'), accommodation_name: "Scholar's Dorm", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'on-campus', accommodation_capacity: 50, tenant_restriction: 'female-only', application_start_date: '2026-03-25', application_end_date: '2026-05-10' },
-      { landlord_id: getLandlord('ntramos@gmail.com'), manager_id: getManager('aralvarez@gmail.com'), business_permit_id: getFile('business_permit_6.pdf'), accommodation_name: "One Sapphire Place", accommodation_location: 'Sapphire St., Brgy. Batong Malake, Los Baños, Laguna', accommodation_type: 'off-campus', accommodation_capacity: 50, tenant_restriction: 'coed', application_start_date: '2026-03-25', application_end_date: '2026-05-10' }
+      { landlord_id: getUser('larkinsanchez@gmail.com'), manager_id: getUser('juan.delacruz@gmail.com'), business_permit_id: getFile('business_permit_1.pdf'), accommodation_name: 'White House', accommodation_location: 'Ruby St., Brgy. Batong Malake, Los Baños, Laguna', accommodation_type: 'off-campus', accommodation_capacity: 60, tenant_restriction: 'coed', application_start_date: '2026-04-01', application_end_date: '2026-05-15' },
+      { landlord_id: getUser('cmnavarro@gmail.com'), manager_id: getUser('slmanuel@up.edu.ph'), business_permit_id: getFile('business_permit_2.pdf'), accommodation_name: 'One Silangan', accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'on-campus', accommodation_capacity: 40, tenant_restriction: 'coed', application_start_date: '2026-04-01', application_end_date: '2026-05-20' },
+      { landlord_id: getUser('pagarcia@up.edu.ph'), manager_id: getUser('mabautista@gmail.com'), business_permit_id: getFile('business_permit_3.pdf'), accommodation_name: "Men's Dorm", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'partner_housing', accommodation_capacity: 150, tenant_restriction: 'male-only', application_start_date: '2026-03-20', application_end_date: '2026-04-30' },
+      { landlord_id: getUser('raortega@gmail.com'), manager_id: getUser('ampineda@up.edu.ph'), business_permit_id: getFile('business_permit_4.pdf'), accommodation_name: "ATI", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'partner_housing', accommodation_capacity: 120, tenant_restriction: 'male-only', application_start_date: '2026-04-05', application_end_date: '2026-05-25' },
+      { landlord_id: getUser('larkinsanchez@gmail.com'), manager_id: getUser('vepadilla@gmail.com'), business_permit_id: getFile('business_permit_5.pdf'), accommodation_name: "Scholar's Dorm", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'on-campus', accommodation_capacity: 50, tenant_restriction: 'female-only', application_start_date: '2026-03-25', application_end_date: '2026-05-10' },
+      { landlord_id: getUser('ntramos@gmail.com'), manager_id: getUser('aralvarez@gmail.com'), business_permit_id: getFile('business_permit_6.pdf'), accommodation_name: "One Sapphire Place", accommodation_location: 'Sapphire St., Brgy. Batong Malake, Los Baños, Laguna', accommodation_type: 'off-campus', accommodation_capacity: 50, tenant_restriction: 'coed', application_start_date: '2026-03-25', application_end_date: '2026-05-10' }
     ])
 
     // --- DYNAMIC FETCH: ACCOMMODATIONS ---
@@ -323,12 +317,13 @@ export default class extends BaseSeeder {
     // =========================================================================
     // 11. FEES AND PAYMENTS
     // =========================================================================
+    // Using getUser directly for Landlord IDs again!
     await db.table('fees').multiInsert([
-      { landlord_id: getLandlord('ntramos@gmail.com'), student_number: '2023123456', due_date: '2026-04-30', fee_category: 'rent', fee_amount: 6200.00, fee_balance: 6200.00, fee_status: 'unpaid' },
-      { landlord_id: getLandlord('cmnavarro@gmail.com'), student_number: '2023123457', due_date: '2026-04-30', fee_category: 'utilities', fee_amount: 1200.00, fee_balance: 0.00, fee_status: 'paid' },
-      { landlord_id: getLandlord('larkinsanchez@gmail.com'), student_number: '2023123459', due_date: '2026-04-30', fee_category: 'rent', fee_amount: 5000.00, fee_balance: 0.00, fee_status: 'paid' },
-      { landlord_id: getLandlord('larkinsanchez@gmail.com'), student_number: '2023123461', due_date: '2026-04-30', fee_category: 'miscellaneous', fee_amount: 800.00, fee_balance: 400.00, fee_status: 'partial' },
-      { landlord_id: getLandlord('raortega@gmail.com'), student_number: '2023123462', due_date: '2026-03-31', fee_category: 'rent', fee_amount: 800.00, fee_balance: 800.00, fee_status: 'overdue' }
+      { landlord_id: getUser('ntramos@gmail.com'), student_number: '2023123456', due_date: '2026-04-30', fee_category: 'rent', fee_amount: 6200.00, fee_balance: 6200.00, fee_status: 'unpaid' },
+      { landlord_id: getUser('cmnavarro@gmail.com'), student_number: '2023123457', due_date: '2026-04-30', fee_category: 'utilities', fee_amount: 1200.00, fee_balance: 0.00, fee_status: 'paid' },
+      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023123459', due_date: '2026-04-30', fee_category: 'rent', fee_amount: 5000.00, fee_balance: 0.00, fee_status: 'paid' },
+      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023123461', due_date: '2026-04-30', fee_category: 'miscellaneous', fee_amount: 800.00, fee_balance: 400.00, fee_status: 'partial' },
+      { landlord_id: getUser('raortega@gmail.com'), student_number: '2023123462', due_date: '2026-03-31', fee_category: 'rent', fee_amount: 800.00, fee_balance: 800.00, fee_status: 'overdue' }
     ])
 
     const allFees = await db.from('fees').select('id', 'student_number', 'fee_category')
@@ -350,15 +345,15 @@ export default class extends BaseSeeder {
     const dbDocs = await db.from('documents').select('id')
 
     await db.table('logs').multiInsert([
-      { actor_id: getUser('afjuarez@up.edu.ph'), entity_type: 'application', entity_id: dbApps[0].id, log_timestamp: '2026-03-01 09:15:00', activity_type: 'create', activity_details: 'Student submitted application for Accommodation 1' },
-      { actor_id: getUser('svramirez@up.edu.ph'), entity_type: 'assignment', entity_id: dbAssigns[0].id, log_timestamp: '2026-03-01 10:00:00', activity_type: 'assign', activity_details: 'Student assigned to Room 101 in Accommodation 1' },
-      { actor_id: getUser('djsantos@up.edu.ph'), entity_type: 'fee', entity_id: dbFees[0].id, log_timestamp: '2026-03-02 14:20:00', activity_type: 'create', activity_details: 'Landlord issued rent fee for student 2023123456' },
+      { actor_id: getUser('afjuarez@up.edu.ph'), entity_type: 'application', entity_id: dbApps[0]?.id || 1, log_timestamp: '2026-03-01 09:15:00', activity_type: 'create', activity_details: 'Student submitted application for Accommodation 1' },
+      { actor_id: getUser('svramirez@up.edu.ph'), entity_type: 'assignment', entity_id: dbAssigns[0]?.id || 1, log_timestamp: '2026-03-01 10:00:00', activity_type: 'assign', activity_details: 'Student assigned to Room 101 in Accommodation 1' },
+      { actor_id: getUser('djsantos@up.edu.ph'), entity_type: 'fee', entity_id: dbFees[0]?.id || 1, log_timestamp: '2026-03-02 14:20:00', activity_type: 'create', activity_details: 'Landlord issued rent fee for student 2023123456' },
       { actor_id: getUser('kjvillanueva@up.edu.ph'), entity_type: 'accommodation', entity_id: getAccom('White House'), log_timestamp: '2026-03-02 16:35:00', activity_type: 'update', activity_details: 'Updated capacity of Accommodation 1' },
-      { actor_id: getUser('accruz@up.edu.ph'), entity_type: 'document', entity_id: dbDocs[0].id, log_timestamp: '2026-03-03 11:45:00', activity_type: 'upload', activity_details: 'Student uploaded enrollment proof' },
+      { actor_id: getUser('accruz@up.edu.ph'), entity_type: 'document', entity_id: dbDocs[0]?.id || 1, log_timestamp: '2026-03-03 11:45:00', activity_type: 'upload', activity_details: 'Student uploaded enrollment proof' },
       { actor_id: getUser('jdaguilar@up.edu.ph'), entity_type: 'room', entity_id: getRoom('101', 'White House'), log_timestamp: '2026-03-03 13:00:00', activity_type: 'maintenance', activity_details: 'Room 101 set to maintenance mode' },
-      { actor_id: getUser('afjuarez@up.edu.ph'), entity_type: 'application', entity_id: dbApps[1].id, log_timestamp: '2026-03-04 08:20:00', activity_type: 'approve', activity_details: 'Application for Accommodation 2 approved' },
-      { actor_id: getUser('svramirez@up.edu.ph'), entity_type: 'assignment', entity_id: dbAssigns[1].id, log_timestamp: '2026-03-04 09:00:00', activity_type: 'move_in', activity_details: 'Student moved into Room 102' },
-      { actor_id: getUser('djsantos@up.edu.ph'), entity_type: 'fee', entity_id: dbFees[1].id, log_timestamp: '2026-03-05 15:10:00', activity_type: 'payment', activity_details: 'Student 2023123457 partially paid utilities fee' },
+      { actor_id: getUser('afjuarez@up.edu.ph'), entity_type: 'application', entity_id: dbApps[1]?.id || 2, log_timestamp: '2026-03-04 08:20:00', activity_type: 'approve', activity_details: 'Application for Accommodation 2 approved' },
+      { actor_id: getUser('svramirez@up.edu.ph'), entity_type: 'assignment', entity_id: dbAssigns[1]?.id || 2, log_timestamp: '2026-03-04 09:00:00', activity_type: 'move_in', activity_details: 'Student moved into Room 102' },
+      { actor_id: getUser('djsantos@up.edu.ph'), entity_type: 'fee', entity_id: dbFees[1]?.id || 2, log_timestamp: '2026-03-05 15:10:00', activity_type: 'payment', activity_details: 'Student 2023123457 partially paid utilities fee' },
       { actor_id: getUser('kjvillanueva@up.edu.ph'), entity_type: 'accommodation', entity_id: getAccom('One Silangan'), log_timestamp: '2026-03-05 16:30:00', activity_type: 'update', activity_details: 'Changed accommodation type to coed' }
     ])
 

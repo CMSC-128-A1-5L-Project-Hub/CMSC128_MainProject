@@ -22,14 +22,12 @@ export default class extends BaseSchema {
     })
 
     this.schema.createTable('landlords', (table) => {
-      table.increments('id').primary()
-      table.integer('user_id').unsigned().notNullable().unique().references('id').inTable('users').onDelete('CASCADE')
+      table.integer('user_id').unsigned().primary().notNullable().unique().references('id').inTable('users').onDelete('CASCADE')
       table.string('tin', 15).notNullable()
     })
 
     this.schema.createTable('managers', (table) => {
-      table.increments('id').primary().unsigned()
-      table.integer('user_id').unsigned().notNullable().unique().references('id').inTable('users').onDelete('CASCADE')
+      table.integer('user_id').unsigned().notNullable().primary().unique().references('id').inTable('users').onDelete('CASCADE')
       table.enum('manager_status', ['active', 'inactive']).notNullable().defaultTo('inactive')
     })
 

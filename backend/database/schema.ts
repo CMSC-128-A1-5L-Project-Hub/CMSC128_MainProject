@@ -165,13 +165,11 @@ export class FileMetadatumSchema extends BaseModel {
 }
 
 export class LandlordSchema extends BaseModel {
-  static $columns = ['id', 'tin', 'userId'] as const
+  static $columns = ['tin', 'userId'] as const
   $columns = LandlordSchema.$columns
-  @column({ isPrimary: true })
-  declare id: number
   @column()
   declare tin: string
-  @column()
+  @column({ isPrimary: true })
   declare userId: number
 }
 
@@ -195,13 +193,11 @@ export class LogSchema extends BaseModel {
 }
 
 export class ManagerSchema extends BaseModel {
-  static $columns = ['id', 'managerStatus', 'userId'] as const
+  static $columns = ['managerStatus', 'userId'] as const
   $columns = ManagerSchema.$columns
-  @column({ isPrimary: true })
-  declare id: number
   @column()
   declare managerStatus: string
-  @column()
+  @column({ isPrimary: true })
   declare userId: number
 }
 

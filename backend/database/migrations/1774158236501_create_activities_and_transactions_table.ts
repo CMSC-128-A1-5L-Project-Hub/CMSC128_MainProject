@@ -45,7 +45,7 @@ export default class extends BaseSchema {
 
     this.schema.createTable('reports', (table) => {
       table.increments('id').primary()
-      table.integer('landlord_id').unsigned().notNullable().references('id').inTable('landlords').onDelete('CASCADE')
+      table.integer('landlord_id').unsigned().notNullable().references('user_id').inTable('landlords').onDelete('CASCADE')
       table.string('student_number', 10).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
       table.integer('report_file_id').unsigned().notNullable().unique().references('id').inTable('file_metadata')
       table.enum('report_type', ['billing', 'assignment']).notNullable()
@@ -54,7 +54,7 @@ export default class extends BaseSchema {
 
     this.schema.createTable('fees', (table) => {
       table.increments('id').primary()
-      table.integer('landlord_id').unsigned().notNullable().references('id').inTable('landlords').onDelete('CASCADE')
+      table.integer('landlord_id').unsigned().notNullable().references('user_id').inTable('landlords').onDelete('CASCADE')
       table.string('student_number', 10).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
       table.date('due_date').notNullable()
       table.enum('fee_category', ['rent', 'utilities', 'miscellaneous']).notNullable()

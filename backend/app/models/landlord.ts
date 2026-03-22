@@ -7,9 +7,6 @@ export default class Landlord extends BaseModel {
   static table = 'landlords'
 
   @column({ isPrimary: true })
-  declare id: number
-
-  @column()
   declare userId: number
   
   @column()

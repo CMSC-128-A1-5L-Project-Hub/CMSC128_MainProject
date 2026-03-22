@@ -4,8 +4,8 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable('accommodations', (table) => {
       table.increments('id').primary()
-      table.integer('landlord_id').unsigned().notNullable().references('id').inTable('landlords').onDelete('CASCADE')
-      table.integer('manager_id').unsigned().notNullable().unique().references('id').inTable('managers').onDelete('CASCADE')
+      table.integer('landlord_id').unsigned().notNullable().references('user_id').inTable('landlords').onDelete('CASCADE')
+      table.integer('manager_id').unsigned().notNullable().unique().references('user_id').inTable('managers').onDelete('CASCADE')
       table.integer('business_permit_id').unsigned().notNullable().unique().references('id').inTable('file_metadata')
       table.string('accommodation_name', 50).notNullable().unique()
       table.string('accommodation_location', 150).notNullable()
