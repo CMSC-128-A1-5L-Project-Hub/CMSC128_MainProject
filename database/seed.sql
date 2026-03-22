@@ -5,74 +5,74 @@ INSERT INTO file_metadata
     (file_name, file_path, file_type)
 VALUES
 -- 17 profile images for users (user_id 1–17)
-('pfp_1.jpg', '/uploads/images/pfp_1.jpg', 'image'),
-('pfp_2.jpg', '/uploads/images/pfp_2.jpg', 'image'),
-('pfp_3.jpg', '/uploads/images/pfp_3.jpg', 'image'),
-('pfp_4.jpg', '/uploads/images/pfp_4.jpg', 'image'),
-('pfp_5.jpg', '/uploads/images/pfp_5.jpg', 'image'),
-('pfp_6.jpg', '/uploads/images/pfp_6.jpg', 'image'),
-('pfp_7.jpg', '/uploads/images/pfp_7.jpg', 'image'),
-('pfp_8.jpg', '/uploads/images/pfp_8.jpg', 'image'),
-('pfp_9.jpg', '/uploads/images/pfp_9.jpg', 'image'),
-('pfp_10.jpg', '/uploads/images/pfp_10.jpg', 'image'),
-('pfp_11.jpg', '/uploads/images/pfp_11.jpg', 'image'),
-('pfp_12.jpg', '/uploads/images/pfp_12.jpg', 'image'),
-('pfp_13.jpg', '/uploads/images/pfp_13.jpg', 'image'),
-('pfp_14.jpg', '/uploads/images/pfp_14.jpg', 'image'),
-('pfp_15.jpg', '/uploads/images/pfp_15.jpg', 'image'),
-('pfp_16.jpg', '/uploads/images/pfp_16.jpg', 'image'),
-('pfp_17.jpg', '/uploads/images/pfp_17.jpg', 'image'),
-('pfp_18.jpg', '/uploads/images/pfp_18.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
+('default_pfp.jpg', '/defaults/default_pfp.jpg', 'image'),
 
 -- 7 enrollment proof documents for students
-('enroll_2023123456.pdf', '/uploads/documents/enroll_2023123456.pdf', 'document'),
-('enroll_2023123457.pdf', '/uploads/documents/enroll_2023123457.pdf', 'document'),
-('enroll_2023123458.pdf', '/uploads/documents/enroll_2023123458.pdf', 'document'),
-('enroll_2023123459.pdf', '/uploads/documents/enroll_2023123459.pdf', 'document'),
-('enroll_2023123460.pdf', '/uploads/documents/enroll_2023123460.pdf', 'document'),
-('enroll_2023123461.pdf', '/uploads/documents/enroll_2023123461.pdf', 'document'),
-('enroll_2023123462.pdf', '/uploads/documents/enroll_2023123462.pdf', 'document'),
+('enroll_2023123456.pdf', '/documents/enroll_2023123456.pdf', 'document'),
+('enroll_2023123457.pdf', '/documents/enroll_2023123457.pdf', 'document'),
+('enroll_2023123458.pdf', '/documents/enroll_2023123458.pdf', 'document'),
+('enroll_2023123459.pdf', '/documents/enroll_2023123459.pdf', 'document'),
+('enroll_2023123460.pdf', '/documents/enroll_2023123460.pdf', 'document'),
+('enroll_2023123461.pdf', '/documents/enroll_2023123461.pdf', 'document'),
+('enroll_2023123462.pdf', '/documents/enroll_2023123462.pdf', 'document'),
 
 -- 5 report files
-('report_1.pdf', '/uploads/documents/report_1.pdf', 'document'),
-('report_2.pdf', '/uploads/documents/report_2.pdf', 'document'),
-('report_3.pdf', '/uploads/documents/report_3.pdf', 'document'),
-('report_4.pdf', '/uploads/documents/report_4.pdf', 'document'),
-('report_5.pdf', '/uploads/documents/report_5.pdf', 'document'),
+('report_1.pdf', '/reports/report_1.pdf', 'document'),
+('report_2.pdf', '/reports/report_2.pdf', 'document'),
+('report_3.pdf', '/reports/report_3.pdf', 'document'),
+('report_4.pdf', '/reports/report_4.pdf', 'document'),
+('report_5.pdf', '/reports/report_5.pdf', 'document'),
 
 -- 6 business permit files
-('business_permit_1.pdf', '/uploads/documents/business_permit_1.pdf', 'document'),
-('business_permit_2.pdf', '/uploads/documents/business_permit_2.pdf', 'document'),
-('business_permit_3.pdf', '/uploads/documents/business_permit_3.pdf', 'document'),
-('business_permit_4.pdf', '/uploads/documents/business_permit_4.pdf', 'document'),
-('business_permit_5.pdf', '/uploads/documents/business_permit_5.pdf', 'document'),
-('business_permit_6.pdf', '/uploads/documents/business_permit_6.pdf', 'document'),
+('business_permit_1.pdf', '/accommodations/permits/business_permit_1.pdf', 'document'),
+('business_permit_2.pdf', '/accommodations/permits/business_permit_2.pdf', 'document'),
+('business_permit_3.pdf', '/accommodations/permits/business_permit_3.pdf', 'document'),
+('business_permit_4.pdf', '/accommodations/permits/business_permit_4.pdf', 'document'),
+('business_permit_5.pdf', '/accommodations/permits/business_permit_5.pdf', 'document'),
+('business_permit_6.pdf', '/accommodations/permits/business_permit_6.pdf', 'document'),
 
 -- 12 accommodation images (2 per accommodation_id 1–6)
-('accom1_img1.jpg', '/uploads/images/accom1_img1.jpg', 'image'),
-('accom1_img2.jpg', '/uploads/images/accom1_img2.jpg', 'image'),
-('accom2_img1.jpg', '/uploads/images/accom2_img1.jpg', 'image'),
-('accom2_img2.jpg', '/uploads/images/accom2_img2.jpg', 'image'),
-('accom3_img1.jpg', '/uploads/images/accom3_img1.jpg', 'image'),
-('accom3_img2.jpg', '/uploads/images/accom3_img2.jpg', 'image'),
-('accom4_img1.jpg', '/uploads/images/accom4_img1.jpg', 'image'),
-('accom4_img2.jpg', '/uploads/images/accom4_img2.jpg', 'image'),
-('accom5_img1.jpg', '/uploads/images/accom5_img1.jpg', 'image'),
-('accom5_img2.jpg', '/uploads/images/accom5_img2.jpg', 'image'),
-('accom6_img1.jpg', '/uploads/images/accom6_img1.jpg', 'image'),
-('accom6_img2.jpg', '/uploads/images/accom6_img2.jpg', 'image'),
+('accom1_img1.jpg', '/accommodations/images/accom1_img1.jpg', 'image'),
+('accom1_img2.jpg', '/accommodations/images/accom1_img2.jpg', 'image'),
+('accom2_img1.jpg', '/accommodations/images/accom2_img1.jpg', 'image'),
+('accom2_img2.jpg', '/accommodations/images/accom2_img2.jpg', 'image'),
+('accom3_img1.jpg', '/accommodations/images/accom3_img1.jpg', 'image'),
+('accom3_img2.jpg', '/accommodations/images/accom3_img2.jpg', 'image'),
+('accom4_img1.jpg', '/accommodations/images/accom4_img1.jpg', 'image'),
+('accom4_img2.jpg', '/accommodations/images/accom4_img2.jpg', 'image'),
+('accom5_img1.jpg', '/accommodations/images/accom5_img1.jpg', 'image'),
+('accom5_img2.jpg', '/accommodations/images/accom5_img2.jpg', 'image'),
+('accom6_img1.jpg', '/accommodations/images/accom6_img1.jpg', 'image'),
+('accom6_img2.jpg', '/accommodations/images/accom6_img2.jpg', 'image'),
 
 -- 3 payment images
-('payment_1.jpg', '/uploads/images/payment_1.jpg', 'image'),
-('payment_2.jpg', '/uploads/images/payment_2.jpg', 'image'),
-('payment_3.jpg', '/uploads/images/payment_3.jpg', 'image'),
+('payment_1.jpg', '/payments/payment_1.jpg', 'image'),
+('payment_2.jpg', '/payments/payment_2.jpg', 'image'),
+('payment_3.jpg', '/payments/payment_3.jpg', 'image'),
 
 -- 5 other document images
-('doc_img_1.jpg', '/uploads/documents/doc_1.pdf', 'document'),
-('doc_img_2.jpg', '/uploads/documents/doc_2.pdf', 'document'),
-('doc_img_3.jpg', '/uploads/documents/doc_3.pdf', 'document'),
-('doc_img_4.jpg', '/uploads/documents/doc_4.pdf', 'document'),
-('doc_img_5.jpg', '/uploads/documents/doc_5.pdf', 'document');
+('doc_img_1.jpg', '/documents/doc_1.pdf', 'document'),
+('doc_img_2.jpg', '/documents/doc_2.pdf', 'document'),
+('doc_img_3.jpg', '/documents/doc_3.pdf', 'document'),
+('doc_img_4.jpg', '/documents/doc_4.pdf', 'document'),
+('doc_img_5.jpg', '/documents/doc_5.pdf', 'document');
 
 -- 2. USER table
 INSERT INTO users 
@@ -106,28 +106,28 @@ VALUES
 INSERT INTO phone_numbers 
     (user_id, contact_number, is_primary)
 VALUES
-    (1, '09171234567', 'true'),
-    (2, '09625494265', 'true'),
-    (3, '09123456789', 'true'),
-    (4, '09175678321', 'true'),
-    (5, '09681234567', 'true'),
-    (6, '09751239876', 'true'),
-    (7, '09182345678', 'true'),
-    (8, '09913456721', 'true'),
-    (9, '09674561234', 'true'),
-    (10, '09196783421', 'true'),
-    (11, '09872345611', 'true'),
-    (12, '09784561239', 'true'),
-    (13, '09165478322', 'true'),
-    (14, '09987654321', 'true'),
-    (15, '09686229361', 'true'),
-    (16, '09182872048', 'true'),
-    (17, '09194561234', 'true'),
-    (18, '09174562318', 'true'),
-    (7, '09682345761', 'false'),
-    (14, '09916543287', 'false'),
-    (16, '09185673429', 'false'),
-    (17, '09793456128', 'false');
+    (1, '09171234567', TRUE),
+    (2, '09625494265', TRUE),
+    (3, '09123456789', TRUE),
+    (4, '09175678321', TRUE),
+    (5, '09681234567', TRUE),
+    (6, '09751239876', TRUE),
+    (7, '09182345678', TRUE),
+    (8, '09913456721', TRUE),
+    (9, '09674561234', TRUE),
+    (10, '09196783421', TRUE),
+    (11, '09872345611', TRUE),
+    (12, '09784561239', TRUE),
+    (13, '09165478322', TRUE),
+    (14, '09987654321', TRUE),
+    (15, '09686229361', TRUE),
+    (16, '09182872048', TRUE),
+    (17, '09194561234', TRUE),
+    (18, '09174562318', TRUE),
+    (7, '09682345761', FALSE),
+    (14, '09916543287', FALSE),
+    (16, '09185673429', FALSE),
+    (17, '09793456128', FALSE);
 
 -- 4. LANDLORD
 INSERT INTO landlords
@@ -152,15 +152,15 @@ VALUES
 
 -- 6. STUDENT
 INSERT INTO students 
-    (student_number, user_id, enrollment_proof_file_id, college, degree_program, gender, emergency_contact_name, emergency_contact_number)
+    (student_number, user_id, enrollment_proof_file_id, course, college, gender, emergency_contact_name, emergency_contact_number)
 VALUES 
-    ('2023123456', 1, 18, 'CEAT', 'BS Industrial Engineering', 'Female', 'Kalix Martinez', '09181234567'),
-    ('2023123457', 2, 19, 'CEAT', 'BS Civil Engineering', 'Female', 'Sebastian Cameroz', '09999159295'),
-    ('2023123458', 3, 20, 'CEM', 'BS Economics', 'Female', 'Ashianna Fernandez', '09293230856'),
-    ('2023123459', 4, 21, 'CAS', 'BA Communication Arts', 'Female', 'Clyden Ramirez', '09876543210'),
-    ('2023123460', 5, 22, 'CEAT', 'BS Industrial Engineering', 'Male', NULL, NULL),
-    ('2023123461', 6, 23, 'CBA', 'BS Accountancy', 'Female', 'Rafael Ortega', '09172345678'),
-    ('2023123462', 7, 24, 'CITE', 'BS Computer Science', 'Male', 'Victor Padilla', '09987654321');
+    ('2023123456', 1, 18, 'BS Industrial Engineering', 'CEAT', 'Female', 'Kalix Martinez', '09181234567'),
+    ('2023123457', 2, 19, 'BS Civil Engineering', 'CEAT', 'Female', 'Sebastian Cameroz', '09999159295'),
+    ('2023123458', 3, 20, 'BS Economics', 'CEM', 'Female', 'Ashianna Fernandez', '09293230856'),
+    ('2023123459', 4, 21, 'BA Communication Arts', 'CAS', 'Female', 'Clyden Ramirez', '09876543210'),
+    ('2023123460', 5, 22, 'BS Industrial Engineering', 'CEAT', 'Male', NULL, NULL),
+    ('2023123461', 6, 23, 'BS Accountancy', 'CEM','Female', 'Rafael Ortega', '09172345678'),
+    ('2023123462', 7, 24, 'BS Computer Science', 'CAS', 'Male', 'Victor Padilla', '09987654321');
 
 -- 7. DOCUMENTS
 INSERT INTO documents
@@ -174,7 +174,7 @@ VALUES
 
 -- 8. REPORT
 INSERT INTO reports 
-    (landlord_id, student_number, report_file_id, report_type)
+    (landlord_id, student_number, file_id, type)
 VALUES
     (12, '2023123456', 25, 'billing'),
     (9, '2023123457', 26, 'assignment'),
@@ -184,7 +184,7 @@ VALUES
 
 -- 9. ACCOMODATION
 INSERT INTO accommodations 
-    (landlord_id, manager_id, business_permit_id, accommodation_name, accommodation_location, accommodation_type, accommodation_capacity, tenant_restriction, application_start_date, application_end_date)
+    (landlord_id, manager_id, business_permit_id, name, location, type, capacity, tenant_restriction, application_start_date, application_end_date)
 VALUES
     (8, 13, 30, 'White House', 'Ruby St., Brgy. Batong Malake, Los Baños, Laguna', 'off-campus', 60, 'coed', '2026-04-01', '2026-05-15'),
     (9, 14, 31, 'One Silangan', 'UPLB, Los Baños, Laguna', 'on-campus', 40, 'coed', '2026-04-01', '2026-05-20'),
@@ -234,24 +234,24 @@ VALUES
 
 -- 12. REVIEW
 INSERT INTO reviews 
-    (accommodation_id, rating, content)
+    (accommodation_id, student_number, rating, content)
 VALUES
-    (1, 4, 'Clean rooms, responsive landlord, and very close to the university.'),
-    (1, 3, 'Decent but the room is small.'),
-    (2, 5, NULL),
-    (2, 5, 'Clean rooms, responsive landlord, and very close to the university.'),
-    (3, 1, 'Maintenance needs improvement.'),
-    (3, 4, 'Nice locatio12n, but the internet is sometimes slow.'),
-    (4, 2, 'Noisy environment and needs better lighting.'),
-    (4, 4, 'Spacious room but shared bathroom can be crowded.'),
-    (5, 3, 'Affordable, but cleaning service is irregular.'),
-    (5, 2, 'Walls are thin, noise from neighbors is noticeable.'),
-    (6, 5, 'Excellent accommodation, would highly recommend!'),
-    (6, 3, 'Average stay, nothing special but decent overall.');
+    (1, '2023123456', 4, 'Clean rooms, responsive landlord, and very close to the university.'),
+    (1, '2023123457', 3, 'Decent but the room is small.'),
+    (2, '2023123458', 5, NULL),
+    (2, '2023123459', 5, 'Clean rooms, responsive landlord, and very close to the university.'),
+    (3, '2023123460', 1, 'Maintenance needs improvement.'),
+    (3, '2023123456', 4, 'Nice locatio12n, but the internet is sometimes slow.'),
+    (4, '2023123457', 2, 'Noisy environment and needs better lighting.'),
+    (4, '2023123458', 4, 'Spacious room but shared bathroom can be crowded.'),
+    (5, '2023123459', 3, 'Affordable, but cleaning service is irregular.'),
+    (5, '2023123460', 2, 'Walls are thin, noise from neighbors is noticeable.'),
+    (6, '2023123456', 5, 'Excellent accommodation, would highly recommend!'),
+    (6, '2023123456', 3, 'Average stay, nothing special but decent overall.');
 
 -- 13. ROOM
 INSERT INTO rooms 
-    (accommodation_id, room_number, room_type, room_stay_type, room_capacity, room_current_occupancy, room_building, room_rent, tenant_restriction, room_availability)
+    (accommodation_id, room_number, type, stay_type, capacity, current_occupancy, building, rent, tenant_restriction, availability)
 VALUES
     -- Accommodation 1
     (1, '101', 'single', 'transient', 1, 0, 'Building A', 5000.00, 'coed', 'available'),
@@ -279,7 +279,7 @@ VALUES
 
 -- 14. APPLICATION 
 INSERT INTO applications
-    (accommodation_id, student_number, application_room_type, application_stay_type, application_status, duration_of_stay_days)
+    (accommodation_id, student_number, room_type, stay_type, status, duration_of_stay_days)
 VALUES
     (1, '2023123456', 'single', 'non_transient', 'cancelled', 180),
     (6, '2023123456', 'single', 'non_transient', 'approved', 365),
@@ -305,13 +305,13 @@ VALUES
     
 -- 15. ASSIGNMENT
 INSERT INTO assignments
-    (student_number, room_id, move_in, expected_move_out, actual_move_out, grace_period_days)
+    (student_number, room_id, move_in, expected_move_out, actual_move_out, status, grace_period_days)
 VALUES
-    ('2023123456', 12, '2026-03-01', '2027-03-01', NULL, 5),
-    ('2023123457', 4, '2026-02-15', '2027-02-15', '2027-02-15', 5),
-    ('2023123459', 1, '2026-01-10', '2027-01-10', NULL, 5),
-    ('2023123461', 2, '2026-03-05', '2026-08-05', NULL, 5),
-    ('2023123462', 5, '2026-03-10', '2026-06-10', NULL, 5);
+    ('2023123456', 12, '2026-03-01', '2027-03-01', NULL, 'accepted', 5),
+    ('2023123457', 4, '2026-02-15', '2027-02-15', '2027-02-15', 'accepted', 5),
+    ('2023123459', 1, '2026-01-10', '2027-01-10', NULL, 'accepted', 5),
+    ('2023123461', 2, '2026-03-05', '2026-08-05', NULL, 'accepted', 5),
+    ('2023123462', 5, '2026-03-10', '2026-06-10', NULL, 'accepted', 5);
 
 -- 16. BOOKMARK
 INSERT INTO bookmarks
@@ -330,7 +330,7 @@ VALUES
 
 -- 17. FEE
 INSERT INTO fees
-    (landlord_id, student_number, due_date, fee_category, fee_amount, fee_balance, fee_status)
+    (landlord_id, student_number, due_date, category, amount, balance, status)
 VALUES
     (12, '2023123456', '2026-04-30', 'rent', 6200.00, 6200.00, 'unpaid'),
     (9, '2023123457', '2026-04-30', 'utilities', 1200.00, 0.00, 'paid'),
@@ -340,7 +340,7 @@ VALUES
 
 -- 18. PAYMENT
 INSERT INTO payments 
-    (fee_id, proof_file_id, payment_amount, mode_of_payment)
+    (fee_id, proof_file_id, amount, mode_of_payment)
 VALUES
     (2, 48, 1200.00, 'GCash'),
     (3, 49, 5000.00, 'Bank Transfer'),
@@ -348,7 +348,7 @@ VALUES
 
 -- 19. LOG
 INSERT INTO logs
-    (actor_id, entity_type, entity_id, log_timestamp, activity_type, activity_details)
+    (actor_id, entity_type, entity_id, timestamp, activity_type, activity_details)
 VALUES
     (2, 'application', 1, '2026-03-01 09:15:00', 'create', 'Student submitted application for Accommodation 1'),
     (3, 'assignment', 1, '2026-03-01 10:00:00', 'assign', 'Student assigned to Room 101 in Accommodation 1'),
@@ -363,7 +363,7 @@ VALUES
 
 -- 20. SYSTEM NOTIFICATIONS
 INSERT INTO notifications 
-    (user_id, notification_content, read_status, notification_type)
+    (user_id, notification_content, read_status, type)
 VALUES
     (2, 'Your rent payment is due on March 15, 2026.', 'unread', 'fee_due'),
     (4, 'Your accommodation application has been approved.', 'read', 'application_status'),
