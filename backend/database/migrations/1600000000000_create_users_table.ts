@@ -13,6 +13,7 @@ export default class extends BaseSchema {
         .unique()
         .references('id')
         .inTable('file_metadata')
+        .onDelete('SET NULL')
 
       table.string('fname', 50).notNullable()
       table.string('mname', 50).nullable()

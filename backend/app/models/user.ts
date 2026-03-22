@@ -13,7 +13,7 @@ export default class User extends BaseModel {
   declare id: number
 
   @column()
-  declare pfpFileId: number
+  declare pfpFileId: number | null
 
   @column()
   declare fname: string
