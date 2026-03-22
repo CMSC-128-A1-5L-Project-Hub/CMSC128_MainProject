@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS students(
     user_id INT NOT NULL,
     -- form 5/notice of admission (if freshie)
     enrollment_proof_file_id INT NOT NULL,
-    course VARCHAR(50) NOT NULL,
     college VARCHAR(5) NOT NULL,
+    degree_program VARCHAR(50) NOT NULL,
     gender VARCHAR(10) NOT NUll, -- for male-only / female-only dorms
     -- emergency contact info (optional)
     emergency_contact_name VARCHAR(100) NULL,
