@@ -192,6 +192,7 @@ CREATE TABLE IF NOT EXISTS applications(
     application_room_type ENUM('single', 'double', 'shared') NOT NULL,
     application_stay_type ENUM('transient', 'non_transient') NOT NULL,
     application_status ENUM('pending', 'approved', 'rejected', 'cancelled', 'waitlisted', 'under_review') NOT NULL,
+    rejection_reason VARCHAR(200) NOT NULL,
     duration_of_stay_days INT NOT NULL,
     CONSTRAINT application_application_id_pk PRIMARY KEY (application_id),
     CONSTRAINT application_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodations(accommodation_id),

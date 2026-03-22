@@ -11,8 +11,6 @@ import ProvisioningService from '../app/services/provisioning_service.js'
 import AutoSwagger from 'adonis-autoswagger'
 import swagger from '#config/swagger'
 
-const AuthController = () => import('#controllers/auth_controller')
-
 router.get('/', () => {
   return { status: 'USAT API is running - Sprint 03 Launch' }
 })
@@ -23,8 +21,8 @@ router.get('/', () => {
 |--------------------------------------------------------------------------
 */
 router.group(() => {
-  router.get('/auth/google/redirect', [AuthController, 'redirect'])
-  router.get('/auth/google/callback', [AuthController, 'callback'])
+  router.get('/auth/google/redirect', [controllers.Auth, 'redirect'])
+  router.get('/auth/google/callback', [controllers.Auth, 'callback'])
 
   // Map Viewer Data (Active for Frontend!)
   router.get('/accommodations', [controllers.Accommodation, 'index'])
@@ -41,9 +39,10 @@ router.group(() => {
 */
 router.group(() => {
     // ─── SUCCESSFUL LOGIN/SIGNUP ───
-    router.get('/me', [AuthController, 'me'])
+    router.get('/me', [controllers.Auth, 'me'])
     
     // ─── USER ONBOARDING ───
+    router.get('/setup', [controllers.Setups, 'show'])
     router.post('/setup', [controllers.Setups, 'store'])
     // router.post('/auth/verify-sms', [controllers.SmsVerifications, 'verify']) // [SPRINT 03]
 

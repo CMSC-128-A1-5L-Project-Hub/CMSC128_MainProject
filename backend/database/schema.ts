@@ -8,113 +8,147 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AccommodationSchema extends BaseModel {
-  static $columns = ['applicationEndDate', 'applicationStartDate', 'businessPermitId', 'capacity', 'createdAt', 'id', 'landlordId', 'location', 'managerId', 'name', 'tenantRestriction', 'type', 'updatedAt'] as const
+  static $columns = ['accommodationCapacity', 'accommodationLocation', 'accommodationName', 'accommodationType', 'applicationEndDate', 'applicationStartDate', 'bikingDistance', 'businessPermitId', 'drivingDistance', 'id', 'landlordId', 'latitude', 'longitude', 'managerId', 'tenantRestriction', 'walkingDistance'] as const
   $columns = AccommodationSchema.$columns
+  @column()
+  declare accommodationCapacity: number
+  @column()
+  declare accommodationLocation: string
+  @column()
+  declare accommodationName: string
+  @column()
+  declare accommodationType: string
   @column.date()
   declare applicationEndDate: DateTime
   @column.date()
   declare applicationStartDate: DateTime
   @column()
-  declare businessPermitId: bigint | number | null
+  declare bikingDistance: number | null
   @column()
-  declare capacity: number
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
+  declare businessPermitId: number
+  @column()
+  declare drivingDistance: number | null
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column()
-  declare landlordId: bigint | number
+  declare landlordId: number
   @column()
-  declare location: string
+  declare latitude: string | null
   @column()
-  declare managerId: bigint | number
+  declare longitude: string | null
   @column()
-  declare name: string
+  declare managerId: number
   @column()
   declare tenantRestriction: string
   @column()
-  declare type: string
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
+  declare walkingDistance: number | null
 }
 
 export class AccommodationImageSchema extends BaseModel {
-  static $columns = ['accommodationId', 'fileId', 'id'] as const
+  static $columns = ['accommodationId', 'id', 'imageFileId'] as const
   $columns = AccommodationImageSchema.$columns
   @column()
-  declare accommodationId: bigint | number
-  @column()
-  declare fileId: bigint | number
+  declare accommodationId: number
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
+  @column()
+  declare imageFileId: number
+}
+
+export class AccommodationTagSchema extends BaseModel {
+  static $columns = ['accommodationId', 'id', 'tagDetail'] as const
+  $columns = AccommodationTagSchema.$columns
+  @column()
+  declare accommodationId: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare tagDetail: string
 }
 
 export class ApplicationSchema extends BaseModel {
-  static $columns = ['accommodationId', 'applicationDate', 'durationOfStayDays', 'id', 'roomType', 'status', 'studentNumber'] as const
+  static $columns = ['accommodationId', 'applicationDate', 'applicationRoomType', 'applicationStatus', 'applicationStayType', 'durationOfStayDays', 'id', 'studentNumber'] as const
   $columns = ApplicationSchema.$columns
   @column()
-  declare accommodationId: bigint | number | null
+  declare accommodationId: number
   @column.dateTime()
-  declare applicationDate: DateTime | null
+  declare applicationDate: DateTime
+  @column()
+  declare applicationRoomType: string
+  @column()
+  declare applicationStatus: string
+  @column()
+  declare applicationStayType: string
   @column()
   declare durationOfStayDays: number
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column()
-  declare roomType: string
-  @column()
-  declare status: string | null
-  @column()
-  declare studentNumber: string | null
+  declare studentNumber: string
 }
 
 export class AssignmentSchema extends BaseModel {
-  static $columns = ['actualMoveOut', 'expectedMoveOut', 'id', 'moveIn', 'roomId', 'studentNumber'] as const
+  static $columns = ['actualMoveOut', 'expectedMoveOut', 'gracePeriodDays', 'id', 'moveIn', 'roomId', 'studentNumber'] as const
   $columns = AssignmentSchema.$columns
   @column.date()
   declare actualMoveOut: DateTime | null
   @column.date()
   declare expectedMoveOut: DateTime
+  @column()
+  declare gracePeriodDays: number
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column.date()
   declare moveIn: DateTime
   @column()
-  declare roomId: bigint | number | null
+  declare roomId: number
   @column()
-  declare studentNumber: string | null
+  declare studentNumber: string
+}
+
+export class BookmarkSchema extends BaseModel {
+  static $columns = ['accommodationId', 'id', 'studentNumber'] as const
+  $columns = BookmarkSchema.$columns
+  @column()
+  declare accommodationId: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare studentNumber: string
 }
 
 export class DocumentSchema extends BaseModel {
   static $columns = ['fileId', 'id', 'uploadTimestamp', 'userId'] as const
   $columns = DocumentSchema.$columns
   @column()
-  declare fileId: bigint | number
+  declare fileId: number
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column.dateTime()
-  declare uploadTimestamp: DateTime | null
+  declare uploadTimestamp: DateTime
   @column()
-  declare userId: bigint | number | null
+  declare userId: number
 }
 
 export class FeeSchema extends BaseModel {
-  static $columns = ['amount', 'category', 'dueDate', 'id', 'landlordId', 'status', 'studentNumber'] as const
+  static $columns = ['dueDate', 'feeAmount', 'feeBalance', 'feeCategory', 'feeStatus', 'id', 'landlordId', 'studentNumber'] as const
   $columns = FeeSchema.$columns
-  @column()
-  declare amount: string
-  @column()
-  declare category: string
   @column.date()
   declare dueDate: DateTime
+  @column()
+  declare feeAmount: string
+  @column()
+  declare feeBalance: string
+  @column()
+  declare feeCategory: string
+  @column()
+  declare feeStatus: string
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column()
-  declare landlordId: bigint | number | null
+  declare landlordId: number
   @column()
-  declare status: string | null
-  @column()
-  declare studentNumber: string | null
+  declare studentNumber: string
 }
 
 export class FileMetadatumSchema extends BaseModel {
@@ -127,166 +161,191 @@ export class FileMetadatumSchema extends BaseModel {
   @column()
   declare fileType: string
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
 }
 
 export class LandlordSchema extends BaseModel {
-  static $columns = ['createdAt', 'id', 'tin', 'updatedAt', 'userId'] as const
+  static $columns = ['tin', 'userId'] as const
   $columns = LandlordSchema.$columns
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
-  @column({ isPrimary: true })
-  declare id: bigint | number
   @column()
   declare tin: string
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
-  @column()
-  declare userId: bigint | number | null
+  @column({ isPrimary: true })
+  declare userId: number
 }
 
 export class LogSchema extends BaseModel {
-  static $columns = ['activityDetails', 'activityType', 'actorId', 'entityId', 'entityType', 'id', 'timestamp'] as const
+  static $columns = ['activityDetails', 'activityType', 'actorId', 'entityId', 'entityType', 'id', 'logTimestamp'] as const
   $columns = LogSchema.$columns
   @column()
   declare activityDetails: string | null
   @column()
   declare activityType: string
   @column()
-  declare actorId: bigint | number | null
+  declare actorId: number | null
   @column()
   declare entityId: number
   @column()
   declare entityType: string
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column.dateTime()
-  declare timestamp: DateTime | null
+  declare logTimestamp: DateTime
 }
 
 export class ManagerSchema extends BaseModel {
-  static $columns = ['createdAt', 'id', 'status', 'updatedAt', 'userId'] as const
+  static $columns = ['managerStatus', 'userId'] as const
   $columns = ManagerSchema.$columns
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
+  @column()
+  declare managerStatus: string
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare userId: number
+}
+
+export class NotificationSchema extends BaseModel {
+  static $columns = ['id', 'notificationContent', 'notificationTimestamp', 'notificationType', 'readStatus', 'userId'] as const
+  $columns = NotificationSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
   @column()
-  declare status: string | null
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
+  declare notificationContent: string
+  @column.dateTime()
+  declare notificationTimestamp: DateTime
   @column()
-  declare userId: bigint | number | null
+  declare notificationType: string
+  @column()
+  declare readStatus: string | null
+  @column()
+  declare userId: number
 }
 
 export class PaymentSchema extends BaseModel {
-  static $columns = ['amount', 'feeId', 'id', 'modeOfPayment', 'status', 'timestamp'] as const
+  static $columns = ['feeId', 'id', 'modeOfPayment', 'paymentAmount', 'paymentTimestamp', 'proofFileId'] as const
   $columns = PaymentSchema.$columns
   @column()
-  declare amount: string
-  @column()
-  declare feeId: bigint | number | null
+  declare feeId: number
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column()
   declare modeOfPayment: string
   @column()
-  declare status: string | null
+  declare paymentAmount: string
   @column.dateTime()
-  declare timestamp: DateTime | null
+  declare paymentTimestamp: DateTime
+  @column()
+  declare proofFileId: number
 }
 
 export class PhoneNumberSchema extends BaseModel {
-  static $columns = ['contactNumber', 'createdAt', 'id', 'isPrimary', 'updatedAt', 'userId'] as const
+  static $columns = ['contactNumber', 'id', 'isPrimary', 'userId'] as const
   $columns = PhoneNumberSchema.$columns
   @column()
   declare contactNumber: string
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column()
   declare isPrimary: boolean | null
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
   @column()
-  declare userId: bigint | number
+  declare userId: number
 }
 
 export class ReportSchema extends BaseModel {
-  static $columns = ['fileId', 'id', 'landlordId', 'studentNumber', 'timestamp', 'type'] as const
+  static $columns = ['id', 'landlordId', 'reportFileId', 'reportTimestamp', 'reportType', 'studentNumber'] as const
   $columns = ReportSchema.$columns
-  @column()
-  declare fileId: bigint | number
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column()
-  declare landlordId: bigint | number | null
+  declare landlordId: number
   @column()
-  declare studentNumber: string | null
+  declare reportFileId: number
   @column.dateTime()
-  declare timestamp: DateTime | null
+  declare reportTimestamp: DateTime
   @column()
-  declare type: string
+  declare reportType: string
+  @column()
+  declare studentNumber: string
+}
+
+export class ReviewSchema extends BaseModel {
+  static $columns = ['accommodationId', 'content', 'id', 'rating'] as const
+  $columns = ReviewSchema.$columns
+  @column()
+  declare accommodationId: number
+  @column()
+  declare content: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare rating: number
 }
 
 export class RoomSchema extends BaseModel {
-  static $columns = ['accommodationId', 'availability', 'building', 'capacity', 'currentOccupancy', 'id', 'rent', 'roomNumber', 'tenantRestriction', 'type'] as const
+  static $columns = ['accommodationId', 'id', 'roomAvailability', 'roomBuilding', 'roomCapacity', 'roomCurrentOccupancy', 'roomNumber', 'roomRent', 'roomStayType', 'roomType', 'tenantRestriction'] as const
   $columns = RoomSchema.$columns
   @column()
-  declare accommodationId: bigint | number
-  @column()
-  declare availability: string | null
-  @column()
-  declare building: string
-  @column()
-  declare capacity: number
-  @column()
-  declare currentOccupancy: number | null
+  declare accommodationId: number
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column()
-  declare rent: string
+  declare roomAvailability: string
+  @column()
+  declare roomBuilding: string
+  @column()
+  declare roomCapacity: number
+  @column()
+  declare roomCurrentOccupancy: number
   @column()
   declare roomNumber: string
   @column()
-  declare tenantRestriction: string
+  declare roomRent: string
   @column()
-  declare type: string
+  declare roomStayType: string
+  @column()
+  declare roomType: string
+  @column()
+  declare tenantRestriction: string
 }
 
 export class StudentSchema extends BaseModel {
-  static $columns = ['college', 'contactNumber', 'createdAt', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'gender', 'studentNumber', 'updatedAt', 'userId'] as const
+  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'gender', 'studentNumber', 'userId'] as const
   $columns = StudentSchema.$columns
   @column()
   declare college: string
   @column()
-  declare contactNumber: string
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
-  @column()
   declare degreeProgram: string
   @column()
-  declare emergencyContactName: string
+  declare emergencyContactName: string | null
   @column()
-  declare emergencyContactNumber: string
+  declare emergencyContactNumber: string | null
   @column()
-  declare enrollmentProofFileId: bigint | number
+  declare enrollmentProofFileId: number
   @column()
   declare gender: string
   @column({ isPrimary: true })
   declare studentNumber: string
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
   @column()
-  declare userId: bigint | number
+  declare userId: number
+}
+
+export class SysVariableSchema extends BaseModel {
+  static $columns = ['currentSemester', 'currentSy', 'id', 'semStartDate', 'uplbLatitude', 'uplbLongitude'] as const
+  $columns = SysVariableSchema.$columns
+  @column()
+  declare currentSemester: string
+  @column()
+  declare currentSy: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column.date()
+  declare semStartDate: DateTime
+  @column()
+  declare uplbLatitude: string
+  @column()
+  declare uplbLongitude: string
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'facebookAccount', 'fname', 'id', 'lname', 'mname', 'pfpFileId', 'role', 'suffix', 'updatedAt'] as const
+  static $columns = ['email', 'facebookAccount', 'fname', 'id', 'lname', 'mname', 'pfpFileId', 'role', 'suffix'] as const
   $columns = UserSchema.$columns
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
   @column()
   declare email: string
   @column()
@@ -294,17 +353,15 @@ export class UserSchema extends BaseModel {
   @column()
   declare fname: string
   @column({ isPrimary: true })
-  declare id: bigint | number
+  declare id: number
   @column()
   declare lname: string
   @column()
   declare mname: string | null
   @column()
-  declare pfpFileId: bigint | number | null
+  declare pfpFileId: number | null
   @column()
-  declare role: string | null
+  declare role: string
   @column()
   declare suffix: string | null
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
 }

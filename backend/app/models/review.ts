@@ -17,7 +17,6 @@ export default class Review extends BaseModel {
   @column()
   declare content: string | null
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 }
