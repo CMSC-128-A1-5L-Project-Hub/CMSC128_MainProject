@@ -4,7 +4,7 @@ import Landlord from '#models/landlord'
 import PhoneNumber from '#models/phone_number'
 // import Accommodation from '#models/accommodation'
 // import Manager from '#models/manager'
-import FileMetadata from '#models/file_metadata'
+import FileMetadata from '#models/file_metadatum'
 import Document from '#models/document'
 import drive from '@adonisjs/drive/services/main'
 

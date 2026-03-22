@@ -1,5 +1,5 @@
 import User from '#models/user'
-import FileMetadata from '#models/file_metadata'
+import FileMetadata from '#models/file_metadatum'
 
 export default class ProvisioningService {
   public async provision(profile: { email: string; fname: string; lname: string }) {
