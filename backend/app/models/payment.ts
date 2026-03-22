@@ -14,7 +14,7 @@ export default class Payment extends BaseModel {
   declare feeId: number
 
   @column()
-  declare proofFileId: number
+  declare proofFileId: number | null
 
   @column.dateTime({ autoCreate: true })
   declare paymentTimestamp: DateTime
@@ -24,6 +24,9 @@ export default class Payment extends BaseModel {
 
   @column()
   declare modeOfPayment: string
+
+  @column()
+  declare paymentStatus: string
 
   @belongsTo(() => Fee, { foreignKey: 'feeId' })
   declare fee: BelongsTo<typeof Fee>
