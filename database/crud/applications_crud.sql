@@ -1,15 +1,19 @@
 ----- RETRIEVE -----
+-- Retrieve by application_stay_type
+SELECT * FROM applications 
+WHERE application_stay_type = 'transient';
+
 -- Retrieve by accommodation_id
 SELECT * FROM applications ap
 JOIN accommodations ac ON ap.accommodation_id = ac.accommodation_id
 WHERE ap.accommodation_id = 67;
 
 -- Retrieve by student_number
-SELECT * FROM applications 
+SELECT * FROM applications
 WHERE student_number = '1234567890';
 
 -- Retrieve by application_date
-SELECT * FROM applications 
+SELECT * FROM applications
 WHERE DATE(application_date) = '2067-06-07';
 
 -- Retrieve by application_room_type
