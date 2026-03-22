@@ -11,6 +11,7 @@ export default class extends BaseSchema {
 
     this.schema.createTable('reviews', (table) => {
       table.increments('id').primary()
+      table.string('student_number').notNullable().references('student_number').inTable('students').onDelete('CASCADE')
       table.integer('accommodation_id').unsigned().notNullable().references('id').inTable('accommodations').onDelete('CASCADE')
       table.integer('rating').notNullable()
       table.string('content', 500).nullable()
@@ -18,14 +19,14 @@ export default class extends BaseSchema {
 
     this.schema.createTable('bookmarks', (table) => {
       table.increments('id').primary()
-      table.string('student_number', 10).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
+      table.string('student_number', 11).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
       table.integer('accommodation_id').unsigned().notNullable().references('id').inTable('accommodations').onDelete('CASCADE')
     })
 
     this.schema.createTable('applications', (table) => {
       table.increments('id').primary()
       table.integer('accommodation_id').unsigned().notNullable().references('id').inTable('accommodations').onDelete('CASCADE')
-      table.string('student_number', 10).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
+      table.string('student_number', 11).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
       table.timestamp('application_date', { useTz: true }).defaultTo(this.now())
       table.enum('application_room_type', ['single', 'double', 'shared']).notNullable()
       table.enum('application_stay_type', ['transient', 'non_transient']).notNullable()
@@ -35,7 +36,7 @@ export default class extends BaseSchema {
 
     this.schema.createTable('assignments', (table) => {
       table.increments('id').primary()
-      table.string('student_number', 10).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
+      table.string('student_number', 11).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
       table.integer('room_id').unsigned().notNullable().references('id').inTable('rooms').onDelete('CASCADE')
       table.date('move_in').notNullable()
       table.date('expected_move_out').notNullable()
@@ -46,7 +47,7 @@ export default class extends BaseSchema {
     this.schema.createTable('reports', (table) => {
       table.increments('id').primary()
       table.integer('landlord_id').unsigned().notNullable().references('user_id').inTable('landlords').onDelete('CASCADE')
-      table.string('student_number', 10).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
+      table.string('student_number', 11).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
       table.integer('report_file_id').unsigned().notNullable().unique().references('id').inTable('file_metadata')
       table.enum('report_type', ['billing', 'assignment']).notNullable()
       table.timestamp('report_timestamp', { useTz: true }).defaultTo(this.now())
@@ -55,7 +56,7 @@ export default class extends BaseSchema {
     this.schema.createTable('fees', (table) => {
       table.increments('id').primary()
       table.integer('landlord_id').unsigned().notNullable().references('user_id').inTable('landlords').onDelete('CASCADE')
-      table.string('student_number', 10).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
+      table.string('student_number', 11).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
       table.date('due_date').notNullable()
       table.enum('fee_category', ['rent', 'utilities', 'miscellaneous']).notNullable()
       table.decimal('fee_amount', 10, 2).notNullable()

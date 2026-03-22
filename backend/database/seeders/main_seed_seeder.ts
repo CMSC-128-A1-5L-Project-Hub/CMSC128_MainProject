@@ -157,13 +157,13 @@ export default class extends BaseSeeder {
     ])
 
     await db.table('students').multiInsert([
-      { student_number: '2023123456', user_id: getUser('lvmartinez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123456.pdf'), college: 'CEAT', degree_program: 'BS Industrial Engineering', gender: 'Female', emergency_contact_name: 'Kalix Martinez', emergency_contact_number: '09181234567' },
-      { student_number: '2023123457', user_id: getUser('afjuarez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123457.pdf'), college: 'CEAT', degree_program: 'BS Civil Engineering', gender: 'Female', emergency_contact_name: 'Sebastian Cameroz', emergency_contact_number: '09999159295' },
-      { student_number: '2023123458', user_id: getUser('svramirez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123458.pdf'), college: 'CEM', degree_program: 'BS Economics', gender: 'Female', emergency_contact_name: 'Ashianna Fernandez', emergency_contact_number: '09293230856' },
-      { student_number: '2023123459', user_id: getUser('accruz@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123459.pdf'), college: 'CAS', degree_program: 'BA Communication Arts', gender: 'Female', emergency_contact_name: 'Clyden Ramirez', emergency_contact_number: '09876543210' },
-      { student_number: '2023123460', user_id: getUser('djsantos@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123460.pdf'), college: 'CEAT', degree_program: 'BS Industrial Engineering', gender: 'Male', emergency_contact_name: null, emergency_contact_number: null },
-      { student_number: '2023123461', user_id: getUser('kjvillanueva@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123461.pdf'), college: 'CBA', degree_program: 'BS Accountancy', gender: 'Female', emergency_contact_name: 'Rafael Ortega', emergency_contact_number: '09172345678' },
-      { student_number: '2023123462', user_id: getUser('jdaguilar@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123462.pdf'), college: 'CITE', degree_program: 'BS Computer Science', gender: 'Male', emergency_contact_name: 'Victor Padilla', emergency_contact_number: '09987654321' }
+      { student_number: '2023-123456', user_id: getUser('lvmartinez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123456.pdf'), college: 'CEAT', degree_program: 'BS Industrial Engineering', gender: 'Female', emergency_contact_name: 'Kalix Martinez', emergency_contact_number: '09181234567' },
+      { student_number: '2023-123457', user_id: getUser('afjuarez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123457.pdf'), college: 'CEAT', degree_program: 'BS Civil Engineering', gender: 'Female', emergency_contact_name: 'Sebastian Cameroz', emergency_contact_number: '09999159295' },
+      { student_number: '2023-123458', user_id: getUser('svramirez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123458.pdf'), college: 'CEM', degree_program: 'BS Economics', gender: 'Female', emergency_contact_name: 'Ashianna Fernandez', emergency_contact_number: '09293230856' },
+      { student_number: '2023-123459', user_id: getUser('accruz@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123459.pdf'), college: 'CAS', degree_program: 'BA Communication Arts', gender: 'Female', emergency_contact_name: 'Clyden Ramirez', emergency_contact_number: '09876543210' },
+      { student_number: '2023-123460', user_id: getUser('djsantos@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123460.pdf'), college: 'CEAT', degree_program: 'BS Industrial Engineering', gender: 'Male', emergency_contact_name: null, emergency_contact_number: null },
+      { student_number: '2023-123461', user_id: getUser('kjvillanueva@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123461.pdf'), college: 'CBA', degree_program: 'BS Accountancy', gender: 'Female', emergency_contact_name: 'Rafael Ortega', emergency_contact_number: '09172345678' },
+      { student_number: '2023-123462', user_id: getUser('jdaguilar@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123462.pdf'), college: 'CITE', degree_program: 'BS Computer Science', gender: 'Male', emergency_contact_name: 'Victor Padilla', emergency_contact_number: '09987654321' }
     ])
 
     // =========================================================================
@@ -181,11 +181,11 @@ export default class extends BaseSeeder {
     // 6. REPORTS (Directly using getUser for Landlord IDs!)
     // =========================================================================
     await db.table('reports').multiInsert([
-      { landlord_id: getUser('ntramos@gmail.com'), student_number: '2023123456', report_file_id: getFile('report_1.pdf'), report_type: 'billing' },
-      { landlord_id: getUser('cmnavarro@gmail.com'), student_number: '2023123457', report_file_id: getFile('report_2.pdf'), report_type: 'assignment' },
-      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023123459', report_file_id: getFile('report_3.pdf'), report_type: 'billing' },
-      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023123461', report_file_id: getFile('report_4.pdf'), report_type: 'assignment' },
-      { landlord_id: getUser('raortega@gmail.com'), student_number: '2023123462', report_file_id: getFile('report_5.pdf'), report_type: 'billing' }
+      { landlord_id: getUser('ntramos@gmail.com'), student_number: '2023-123456', report_file_id: getFile('report_1.pdf'), report_type: 'billing' },
+      { landlord_id: getUser('cmnavarro@gmail.com'), student_number: '2023-123457', report_file_id: getFile('report_2.pdf'), report_type: 'assignment' },
+      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023-123459', report_file_id: getFile('report_3.pdf'), report_type: 'billing' },
+      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023-123461', report_file_id: getFile('report_4.pdf'), report_type: 'assignment' },
+      { landlord_id: getUser('raortega@gmail.com'), student_number: '2023-123462', report_file_id: getFile('report_5.pdf'), report_type: 'billing' }
     ])
 
     // =========================================================================
@@ -237,18 +237,18 @@ export default class extends BaseSeeder {
     ])
 
     await db.table('reviews').multiInsert([
-      { accommodation_id: getAccom('White House'), rating: 4, content: 'Clean rooms, responsive landlord, and very close to the university.' },
-      { accommodation_id: getAccom('White House'), rating: 3, content: 'Decent but the room is small.' },
-      { accommodation_id: getAccom('One Silangan'), rating: 5, content: null },
-      { accommodation_id: getAccom('One Silangan'), rating: 5, content: 'Clean rooms, responsive landlord, and very close to the university.' },
-      { accommodation_id: getAccom("Men's Dorm"), rating: 1, content: 'Maintenance needs improvement.' },
-      { accommodation_id: getAccom("Men's Dorm"), rating: 4, content: 'Nice location, but the internet is sometimes slow.' },
-      { accommodation_id: getAccom("ATI"), rating: 2, content: 'Noisy environment and needs better lighting.' },
-      { accommodation_id: getAccom("ATI"), rating: 4, content: 'Spacious room but shared bathroom can be crowded.' },
-      { accommodation_id: getAccom("Scholar's Dorm"), rating: 3, content: 'Affordable, but cleaning service is irregular.' },
-      { accommodation_id: getAccom("Scholar's Dorm"), rating: 2, content: 'Walls are thin, noise from neighbors is noticeable.' },
-      { accommodation_id: getAccom("One Sapphire Place"), rating: 5, content: 'Excellent accommodation, would highly recommend!' },
-      { accommodation_id: getAccom("One Sapphire Place"), rating: 3, content: 'Average stay, nothing special but decent overall.' }
+      { accommodation_id: getAccom('White House'), student_number: 2023123456, rating: 4, content: 'Clean rooms, responsive landlord, and very close to the university.' },
+      { accommodation_id: getAccom('White House'), student_number: 2023123456, rating: 3, content: 'Decent but the room is small.' },
+      { accommodation_id: getAccom('One Silangan'), student_number: 2023123456, rating: 5, content: null },
+      { accommodation_id: getAccom('One Silangan'), student_number: 2023123456, rating: 5, content: 'Clean rooms, responsive landlord, and very close to the university.' },
+      { accommodation_id: getAccom("Men's Dorm"), student_number: 2023123456, rating: 1, content: 'Maintenance needs improvement.' },
+      { accommodation_id: getAccom("Men's Dorm"), student_number: 2023123456, rating: 4, content: 'Nice location, but the internet is sometimes slow.' },
+      { accommodation_id: getAccom("ATI"), rating: 2, student_number: 2023123456, content: 'Noisy environment and needs better lighting.' },
+      { accommodation_id: getAccom("ATI"), rating: 4, student_number: 2023123456, content: 'Spacious room but shared bathroom can be crowded.' },
+      { accommodation_id: getAccom("Scholar's Dorm"), rating: 3, student_number: 2023123456, content: 'Affordable, but cleaning service is irregular.' },
+      { accommodation_id: getAccom("Scholar's Dorm"), rating: 2, student_number: 2023123456, content: 'Walls are thin, noise from neighbors is noticeable.' },
+      { accommodation_id: getAccom("One Sapphire Place"), rating: 5, student_number: 2023123456, content: 'Excellent accommodation, would highly recommend!' },
+      { accommodation_id: getAccom("One Sapphire Place"), rating: 3, student_number: 2023123456, content: 'Average stay, nothing special but decent overall.' }
     ])
 
     // =========================================================================
@@ -276,42 +276,42 @@ export default class extends BaseSeeder {
     // 10. APPLICATIONS, ASSIGNMENTS, BOOKMARKS
     // =========================================================================
     await db.table('applications').multiInsert([
-      { accommodation_id: getAccom('White House'), student_number: '2023123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 180 },
-      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
-      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2023123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 120 },
-      { accommodation_id: getAccom('One Silangan'), student_number: '2023123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
-      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023123457', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 10 },
-      { accommodation_id: getAccom("ATI"), student_number: '2023123458', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 30 },
-      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2023123458', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'pending', duration_of_stay_days: 180 },
-      { accommodation_id: getAccom("ATI"), student_number: '2023123459', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 200 },
-      { accommodation_id: getAccom('White House'), student_number: '2023123459', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
-      { accommodation_id: getAccom("Men's Dorm"), student_number: '2023123460', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'waitlisted', duration_of_stay_days: 15 },
-      { accommodation_id: getAccom('One Silangan'), student_number: '2023123460', application_room_type: 'double', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 60 },
-      { accommodation_id: getAccom('White House'), student_number: '2023123461', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 150 },
-      { accommodation_id: getAccom("ATI"), student_number: '2023123461', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 200 },
-      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023123462', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 45 },
-      { accommodation_id: getAccom("ATI"), student_number: '2023123462', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'approved', duration_of_stay_days: 90 }
+      { accommodation_id: getAccom('White House'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 180 },
+      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
+      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 120 },
+      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
+      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123457', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 10 },
+      { accommodation_id: getAccom("ATI"), student_number: '2023-123458', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 30 },
+      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2023-123458', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'pending', duration_of_stay_days: 180 },
+      { accommodation_id: getAccom("ATI"), student_number: '2023-123459', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 200 },
+      { accommodation_id: getAccom('White House'), student_number: '2023-123459', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
+      { accommodation_id: getAccom("Men's Dorm"), student_number: '2023-123460', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'waitlisted', duration_of_stay_days: 15 },
+      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123460', application_room_type: 'double', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 60 },
+      { accommodation_id: getAccom('White House'), student_number: '2023-123461', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 150 },
+      { accommodation_id: getAccom("ATI"), student_number: '2023-123461', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 200 },
+      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123462', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 45 },
+      { accommodation_id: getAccom("ATI"), student_number: '2023-123462', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'approved', duration_of_stay_days: 90 }
     ])
 
     await db.table('assignments').multiInsert([
-      { student_number: '2023123456', room_id: getRoom('203', 'One Silangan'), move_in: '2026-03-01', expected_move_out: '2027-03-01', actual_move_out: null, grace_period_days: 5 },
-      { student_number: '2023123457', room_id: getRoom('202', 'One Silangan'), move_in: '2026-02-15', expected_move_out: '2027-02-15', actual_move_out: '2027-02-15', grace_period_days: 5 },
-      { student_number: '2023123459', room_id: getRoom('101', 'White House'), move_in: '2026-01-10', expected_move_out: '2027-01-10', actual_move_out: null, grace_period_days: 5 },
-      { student_number: '2023123461', room_id: getRoom('102', 'White House'), move_in: '2026-03-05', expected_move_out: '2026-08-05', actual_move_out: null, grace_period_days: 5 },
-      { student_number: '2023123462', room_id: getRoom('301', "Men's Dorm"), move_in: '2026-03-10', expected_move_out: '2026-06-10', actual_move_out: null, grace_period_days: 5 }
+      { student_number: '2023-123456', room_id: getRoom('203', 'One Silangan'), move_in: '2026-03-01', expected_move_out: '2027-03-01', actual_move_out: null, grace_period_days: 5 },
+      { student_number: '2023-123457', room_id: getRoom('202', 'One Silangan'), move_in: '2026-02-15', expected_move_out: '2027-02-15', actual_move_out: '2027-02-15', grace_period_days: 5 },
+      { student_number: '2023-123459', room_id: getRoom('101', 'White House'), move_in: '2026-01-10', expected_move_out: '2027-01-10', actual_move_out: null, grace_period_days: 5 },
+      { student_number: '2023-123461', room_id: getRoom('102', 'White House'), move_in: '2026-03-05', expected_move_out: '2026-08-05', actual_move_out: null, grace_period_days: 5 },
+      { student_number: '2023-123462', room_id: getRoom('301', "Men's Dorm"), move_in: '2026-03-10', expected_move_out: '2026-06-10', actual_move_out: null, grace_period_days: 5 }
     ])
 
     await db.table('bookmarks').multiInsert([
-      { student_number: '2023123456', accommodation_id: getAccom('White House') },
-      { student_number: '2023123456', accommodation_id: getAccom("Scholar's Dorm") },
-      { student_number: '2023123457', accommodation_id: getAccom('One Silangan') },
-      { student_number: '2023123457', accommodation_id: getAccom('One Sapphire Place') },
-      { student_number: '2023123458', accommodation_id: getAccom('White House') },
-      { student_number: '2023123458', accommodation_id: getAccom("Scholar's Dorm") },
-      { student_number: '2023123459', accommodation_id: getAccom('One Silangan') },
-      { student_number: '2023123460', accommodation_id: getAccom("Men's Dorm") },
-      { student_number: '2023123461', accommodation_id: getAccom('One Silangan') },
-      { student_number: '2023123462', accommodation_id: getAccom("ATI") }
+      { student_number: '2023-123456', accommodation_id: getAccom('White House') },
+      { student_number: '2023-123456', accommodation_id: getAccom("Scholar's Dorm") },
+      { student_number: '2023-123457', accommodation_id: getAccom('One Silangan') },
+      { student_number: '2023-123457', accommodation_id: getAccom('One Sapphire Place') },
+      { student_number: '2023-123458', accommodation_id: getAccom('White House') },
+      { student_number: '2023-123458', accommodation_id: getAccom("Scholar's Dorm") },
+      { student_number: '2023-123459', accommodation_id: getAccom('One Silangan') },
+      { student_number: '2023-123460', accommodation_id: getAccom("Men's Dorm") },
+      { student_number: '2023-123461', accommodation_id: getAccom('One Silangan') },
+      { student_number: '2023-123462', accommodation_id: getAccom("ATI") }
     ])
 
     // =========================================================================
@@ -319,20 +319,20 @@ export default class extends BaseSeeder {
     // =========================================================================
     // Using getUser directly for Landlord IDs again!
     await db.table('fees').multiInsert([
-      { landlord_id: getUser('ntramos@gmail.com'), student_number: '2023123456', due_date: '2026-04-30', fee_category: 'rent', fee_amount: 6200.00, fee_balance: 6200.00, fee_status: 'unpaid' },
-      { landlord_id: getUser('cmnavarro@gmail.com'), student_number: '2023123457', due_date: '2026-04-30', fee_category: 'utilities', fee_amount: 1200.00, fee_balance: 0.00, fee_status: 'paid' },
-      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023123459', due_date: '2026-04-30', fee_category: 'rent', fee_amount: 5000.00, fee_balance: 0.00, fee_status: 'paid' },
-      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023123461', due_date: '2026-04-30', fee_category: 'miscellaneous', fee_amount: 800.00, fee_balance: 400.00, fee_status: 'partial' },
-      { landlord_id: getUser('raortega@gmail.com'), student_number: '2023123462', due_date: '2026-03-31', fee_category: 'rent', fee_amount: 800.00, fee_balance: 800.00, fee_status: 'overdue' }
+      { landlord_id: getUser('ntramos@gmail.com'), student_number: '2023-123456', due_date: '2026-04-30', fee_category: 'rent', fee_amount: 6200.00, fee_balance: 6200.00, fee_status: 'unpaid' },
+      { landlord_id: getUser('cmnavarro@gmail.com'), student_number: '2023-123457', due_date: '2026-04-30', fee_category: 'utilities', fee_amount: 1200.00, fee_balance: 0.00, fee_status: 'paid' },
+      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023-123459', due_date: '2026-04-30', fee_category: 'rent', fee_amount: 5000.00, fee_balance: 0.00, fee_status: 'paid' },
+      { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023-123461', due_date: '2026-04-30', fee_category: 'miscellaneous', fee_amount: 800.00, fee_balance: 400.00, fee_status: 'partial' },
+      { landlord_id: getUser('raortega@gmail.com'), student_number: '2023-123462', due_date: '2026-03-31', fee_category: 'rent', fee_amount: 800.00, fee_balance: 800.00, fee_status: 'overdue' }
     ])
 
     const allFees = await db.from('fees').select('id', 'student_number', 'fee_category')
     const getFee = (student: string, category: string) => allFees.find(f => f.student_number === student && f.fee_category === category)?.id
 
     await db.table('payments').multiInsert([
-      { fee_id: getFee('2023123457', 'utilities'), proof_file_id: getFile('payment_1.jpg'), payment_amount: 1200.00, mode_of_payment: 'GCash' },
-      { fee_id: getFee('2023123459', 'rent'), proof_file_id: getFile('payment_2.jpg'), payment_amount: 5000.00, mode_of_payment: 'Bank Transfer' },
-      { fee_id: getFee('2023123461', 'miscellaneous'), proof_file_id: getFile('payment_3.jpg'), payment_amount: 400.00, mode_of_payment: 'Cash' }
+      { fee_id: getFee('2023-123457', 'utilities'), proof_file_id: getFile('payment_1.jpg'), payment_amount: 1200.00, mode_of_payment: 'GCash' },
+      { fee_id: getFee('2023-123459', 'rent'), proof_file_id: getFile('payment_2.jpg'), payment_amount: 5000.00, mode_of_payment: 'Bank Transfer' },
+      { fee_id: getFee('2023-123461', 'miscellaneous'), proof_file_id: getFile('payment_3.jpg'), payment_amount: 400.00, mode_of_payment: 'Cash' }
     ])
 
     // =========================================================================

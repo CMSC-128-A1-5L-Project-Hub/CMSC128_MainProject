@@ -32,7 +32,7 @@ export default class extends BaseSchema {
     })
 
     this.schema.createTable('students', (table) => {
-      table.string('student_number', 10).primary()
+      table.string('student_number', 11).primary()
       table.integer('user_id').unsigned().notNullable().unique().references('id').inTable('users').onDelete('CASCADE')
       table.integer('enrollment_proof_file_id').unsigned().notNullable().unique().references('id').inTable('file_metadata')
       table.string('college', 5).notNullable()

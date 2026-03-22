@@ -266,7 +266,7 @@ export class ReportSchema extends BaseModel {
 }
 
 export class ReviewSchema extends BaseModel {
-  static $columns = ['accommodationId', 'content', 'id', 'rating'] as const
+  static $columns = ['accommodationId', 'content', 'id', 'rating', 'studentNumber'] as const
   $columns = ReviewSchema.$columns
   @column()
   declare accommodationId: number
@@ -276,6 +276,8 @@ export class ReviewSchema extends BaseModel {
   declare id: number
   @column()
   declare rating: number
+  @column()
+  declare studentNumber: string
 }
 
 export class RoomSchema extends BaseModel {
