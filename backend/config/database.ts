@@ -80,6 +80,11 @@ const dbConfig = defineConfig({
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_DATABASE,
+        ssl: {
+          rejectUnauthorized: true, // This is the JS equivalent of --ssl-verify-server-cert
+          // If Skysql requires a specific CA file, you might need to point to it:
+          // ca: fs.readFileSync('/path/to/skysql_ca.pem').toString(),
+        },
       },
       migrations: {
         naturalSort: true,
