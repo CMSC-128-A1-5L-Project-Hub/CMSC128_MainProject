@@ -27,7 +27,7 @@ export default class ProvisioningService {
       fname: profile.fname,
       lname: profile.lname,
       role: 'unassigned',
-      pfpFileId: defaultPfp.fileId,
+      pfpFileId: defaultPfp.id,
     })
   }
 }
