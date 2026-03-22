@@ -251,7 +251,8 @@ AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS payments(
     id INT AUTO_INCREMENT,
     fee_id INT NOT NULL,
-    proof_file_id INT NOT NULL,
+    -- cash payment does not require proof
+    proof_file_id INT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     amount DECIMAL(10,2) NOT NULL,
     mode_of_payment VARCHAR(30) NOT NULL,
