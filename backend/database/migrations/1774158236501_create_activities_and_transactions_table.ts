@@ -71,6 +71,7 @@ export default class extends BaseSchema {
       table.timestamp('payment_timestamp', { useTz: true }).defaultTo(this.now())
       table.decimal('payment_amount', 10, 2).notNullable()
       table.string('mode_of_payment', 30).notNullable()
+      table.enum('payment_status', ['pending', 'verified', 'rejected']).defaultTo('pending')
     })
 
     this.schema.createTable('logs', (table) => {

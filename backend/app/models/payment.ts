@@ -27,7 +27,7 @@ export default class Payment extends BaseModel {
 
   @column()
   declare paymentStatus: string
-
+  
   @belongsTo(() => Fee, { foreignKey: 'feeId' })
   declare fee: BelongsTo<typeof Fee>
 
