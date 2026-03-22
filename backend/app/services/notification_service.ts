@@ -38,7 +38,7 @@ export default class NotificationService {
 
   // ─── Application Status Emails ────────────────────────────────────────────
 
-  // Called when: DM approves (pending → under_review) or HA approves (under_review → approved)
+  // Called when: DM approves (pending to under_review) or HA approves (under_review to approved)
   async sendApplicationStatusEmail(
     user: User,
     status: 'under_review' | 'approved' | 'rejected' | 'cancelled',
@@ -86,7 +86,7 @@ export default class NotificationService {
   }
 
   // ─── Waitlist Placement Email ─────────────────────────────────────────────
-  // Called when: HA approves but no room available → student is waitlisted
+  // Called when: HA approves but no room available to student is waitlisted
   async sendWaitlistEmail(user: User, accommodationName: string, position: number) {
     await this.send(
       user.email,
