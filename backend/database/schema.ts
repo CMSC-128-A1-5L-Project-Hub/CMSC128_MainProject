@@ -219,7 +219,7 @@ export class NotificationSchema extends BaseModel {
 }
 
 export class PaymentSchema extends BaseModel {
-  static $columns = ['feeId', 'id', 'modeOfPayment', 'paymentAmount', 'paymentTimestamp', 'proofFileId'] as const
+  static $columns = ['feeId', 'id', 'modeOfPayment', 'paymentAmount', 'paymentStatus', 'paymentTimestamp', 'proofFileId'] as const
   $columns = PaymentSchema.$columns
   @column()
   declare feeId: number
@@ -229,6 +229,8 @@ export class PaymentSchema extends BaseModel {
   declare modeOfPayment: string
   @column()
   declare paymentAmount: string
+  @column()
+  declare paymentStatus: string | null
   @column.dateTime()
   declare paymentTimestamp: DateTime
   @column()
