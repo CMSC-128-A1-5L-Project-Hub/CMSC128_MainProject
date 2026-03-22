@@ -192,6 +192,7 @@ CREATE TABLE IF NOT EXISTS applications(
     stay_type ENUM('transient', 'non_transient') NOT NULL,
     status ENUM('pending', 'approved', 'rejected', 'cancelled', 'waitlisted', 'under_review') DEFAULT 'pending',
     duration_of_stay_days INT NOT NULL,
+    rejection_reason TEXT NULL,
     CONSTRAINT application_id_pk PRIMARY KEY (id),
     CONSTRAINT application_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodations(id) ON DELETE CASCADE,
     CONSTRAINT application_student_number_fk FOREIGN KEY (student_number) REFERENCES students(student_number) ON DELETE CASCADE
