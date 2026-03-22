@@ -39,7 +39,6 @@ export default class Room extends BaseModel {
   @column()
   declare roomAvailability: 'available' | 'occupied' | 'maintenance'
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 

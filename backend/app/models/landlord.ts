@@ -7,14 +7,11 @@ export default class Landlord extends BaseModel {
   static table = 'landlords'
 
   @column({ isPrimary: true })
-  declare id: number
-
-  @column() // user foreign key
   declare userId: number
+  
   @column()
   declare tin: string
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => User, { foreignKey: 'userId' })
   declare user: BelongsTo<typeof User>
 

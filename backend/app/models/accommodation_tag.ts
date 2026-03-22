@@ -14,7 +14,6 @@ export default class AccommodationTag extends BaseModel {
   @column()
   declare tagDetail: string
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 }

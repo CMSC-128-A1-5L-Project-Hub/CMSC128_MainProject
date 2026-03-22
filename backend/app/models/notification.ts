@@ -21,10 +21,9 @@ export default class Notification extends BaseModel {
   @column()
   declare notificationType: 'fee_due' | 'application_status' | 'system' | 'other'
 
-  @column.dateTime()
+  @column.dateTime({ autoCreate: true })
   declare notificationTimestamp: DateTime
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => User, { foreignKey: 'userId' })
   declare user: BelongsTo<typeof User>
 }

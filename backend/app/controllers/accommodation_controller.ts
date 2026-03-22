@@ -1,7 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
 import AccommodationImage from '#models/accommodation_image'
-import FileMetadata from '#models/file_metadata'
+import FileMetadata from '#models/file_metadatum'
 import DistanceService from '#services/distance'
 import db from '@adonisjs/lucid/services/db'
 import { uploadImage, deleteImage } from '#services/b2_services'

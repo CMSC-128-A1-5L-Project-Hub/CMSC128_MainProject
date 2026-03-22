@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS students(
     user_id INT NOT NULL,
     -- form 5/notice of admission (if freshie)
     enrollment_proof_file_id INT NOT NULL,
-    course VARCHAR(50) NOT NULL,
     college VARCHAR(5) NOT NULL,
+    degree_program VARCHAR(50) NOT NULL,
     gender VARCHAR(10) NOT NUll, -- for male-only / female-only dorms
     -- emergency contact info (optional)
     emergency_contact_name VARCHAR(100) NULL,
@@ -192,6 +192,7 @@ CREATE TABLE IF NOT EXISTS applications(
     stay_type ENUM('transient', 'non_transient') NOT NULL,
     status ENUM('pending', 'approved', 'rejected', 'cancelled', 'waitlisted', 'under_review') DEFAULT 'pending',
     duration_of_stay_days INT NOT NULL,
+    rejection_reason TEXT NULL,
     CONSTRAINT application_id_pk PRIMARY KEY (id),
     CONSTRAINT application_accommodation_id_fk FOREIGN KEY (accommodation_id) REFERENCES accommodations(id) ON DELETE CASCADE,
     CONSTRAINT application_student_number_fk FOREIGN KEY (student_number) REFERENCES students(student_number) ON DELETE CASCADE
@@ -250,7 +251,8 @@ AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS payments(
     id INT AUTO_INCREMENT,
     fee_id INT NOT NULL,
-    proof_file_id INT NOT NULL,
+    -- cash payment does not require proof
+    proof_file_id INT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     amount DECIMAL(10,2) NOT NULL,
     mode_of_payment VARCHAR(30) NOT NULL,
