@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Landlord from '#models/landlord'
 import Manager from '#models/manager'
-import FileMetadata from '#models/file_metadata'
+import FileMetadata from '#models/file_metadatum'
 import AccommodationImage from '#models/accommodation_image'
 import AccommodationTag from '#models/accommodation_tag'
 import Room from '#models/room'
@@ -62,11 +62,10 @@ export default class Accommodation extends BaseModel {
   @column.date()
   declare applicationEndDate: DateTime
 
-  // ─── Relationships ────────────────────────────────────────────────────────
-  @belongsTo(() => Landlord, { foreignKey: 'landlordId' })
+  @belongsTo(() => Landlord, { foreignKey: 'userId' })
   declare landlord: BelongsTo<typeof Landlord>
 
-  @belongsTo(() => Manager, { foreignKey: 'managerId' })
+  @belongsTo(() => Manager, { foreignKey: 'userId' })
   declare manager: BelongsTo<typeof Manager>
 
   @belongsTo(() => FileMetadata, { foreignKey: 'businessPermitId' })

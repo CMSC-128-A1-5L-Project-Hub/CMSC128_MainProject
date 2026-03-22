@@ -28,7 +28,6 @@ export default class Assignment extends BaseModel {
   @column()
   declare gracePeriodDays: number
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Student, { foreignKey: 'studentNumber', localKey: 'studentNumber' })
   declare student: BelongsTo<typeof Student>
 

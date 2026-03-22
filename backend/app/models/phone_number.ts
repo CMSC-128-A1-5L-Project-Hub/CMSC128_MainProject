@@ -3,6 +3,8 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 
 export default class PhoneNumber extends BaseModel {
+  static table = 'phone_numbers'
+
   @column({ isPrimary: true })
   declare id: number
 
@@ -15,6 +17,6 @@ export default class PhoneNumber extends BaseModel {
   @column()
   declare isPrimary: boolean
 
-  @belongsTo(() => User)
+  @belongsTo(() => User, { foreignKey: 'userId' })
   declare user: BelongsTo<typeof User>
 }

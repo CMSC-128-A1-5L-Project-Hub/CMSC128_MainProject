@@ -15,7 +15,6 @@ export default class Bookmark extends BaseModel {
   @column()
   declare accommodationId: number
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Student, { foreignKey: 'studentNumber', localKey: 'studentNumber' })
   declare student: BelongsTo<typeof Student>
 

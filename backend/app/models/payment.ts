@@ -2,7 +2,7 @@ import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Fee from '#models/fee'
-import FileMetadata from '#models/file_metadata'
+import FileMetadata from '#models/file_metadatum'
 
 export default class Payment extends BaseModel {
   static table = 'payments'
@@ -16,7 +16,7 @@ export default class Payment extends BaseModel {
   @column()
   declare proofFileId: number
 
-  @column.dateTime()
+  @column.dateTime({ autoCreate: true })
   declare paymentTimestamp: DateTime
 
   @column()
@@ -25,10 +25,9 @@ export default class Payment extends BaseModel {
   @column()
   declare modeOfPayment: string
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Fee, { foreignKey: 'feeId' })
   declare fee: BelongsTo<typeof Fee>
 
-  @belongsTo(() => FileMetadata, { foreignKey: 'proofFileId', localKey: 'fileId' })
+  @belongsTo(() => FileMetadata, { foreignKey: 'proofFileId' })
   declare proofFile: BelongsTo<typeof FileMetadata>
 }

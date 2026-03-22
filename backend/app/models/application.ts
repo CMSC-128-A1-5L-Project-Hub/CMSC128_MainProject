@@ -16,7 +16,7 @@ export default class Application extends BaseModel {
   @column()
   declare studentNumber: string
 
-  @column.dateTime()
+  @column.dateTime({ autoCreate: true })
   declare applicationDate: DateTime
 
   @column()
@@ -26,22 +26,14 @@ export default class Application extends BaseModel {
   declare applicationStayType: 'transient' | 'non_transient'
 
   @column()
-  declare applicationStatus:
-    | 'pending'
-    | 'approved'
-    | 'rejected'
-    | 'cancelled'
-    | 'waitlisted'
-    | 'under_review'
+  declare rejectionReason: string | null
+
+  @column()
+  declare applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review'
 
   @column()
   declare durationOfStayDays: number
 
-  // populated when a manager or landlord rejects the application
-  @column()
-  declare rejectionReason: string | null
-
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 

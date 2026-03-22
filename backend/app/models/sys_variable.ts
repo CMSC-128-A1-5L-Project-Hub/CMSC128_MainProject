@@ -11,7 +11,7 @@ export default class SysVariables extends BaseModel {
   declare currentSemester: 'first_sem' | 'second_sem' | 'midyear'
 
   @column()
-  declare currentSy: string // e.g. '2024-2025'
+  declare currentSy: string
 
   @column.date()
   declare semStartDate: DateTime

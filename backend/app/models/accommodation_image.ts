@@ -1,7 +1,7 @@
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Accommodation from '#models/accommodation'
-import FileMetadata from '#models/file_metadata'
+import FileMetadata from '#models/file_metadatum'
 
 export default class AccommodationImage extends BaseModel {
   static table = 'accommodation_images'
@@ -15,7 +15,6 @@ export default class AccommodationImage extends BaseModel {
   @column()
   declare imageFileId: number
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 

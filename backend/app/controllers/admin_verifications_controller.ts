@@ -14,8 +14,8 @@ export default class AdminVerificationsController {
 
     for (const user of users) {
       // 2. Check if they submitted the setup form
-      const student = await Student.findBy('userId', user.userId)
-      const landlord = await Landlord.findBy('userId', user.userId)
+      const student = await Student.findBy('userId', user.id)
+      const landlord = await Landlord.findBy('userId', user.id)
 
       // 3. Only add them to the list if they actually submitted their details
       if (student || landlord) {

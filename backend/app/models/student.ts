@@ -1,7 +1,7 @@
 import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
-import FileMetadata from '#models/file_metadata'
+import FileMetadata from '#models/file_metadatum'
 import Application from '#models/application'
 import Assignment from '#models/assignment'
 import Bookmark from '#models/bookmark'
@@ -9,13 +9,12 @@ import Bookmark from '#models/bookmark'
 export default class Student extends BaseModel {
   static table = 'students'
 
-  // PK is student_number (string), not an integer
   @column({ isPrimary: true })
   declare studentNumber: string
 
   @column()
   declare userId: number
-
+  
   @column()
   declare enrollmentProofFileId: number
 
@@ -34,11 +33,10 @@ export default class Student extends BaseModel {
   @column()
   declare emergencyContactNumber: string | null
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => User, { foreignKey: 'userId' })
   declare user: BelongsTo<typeof User>
 
-  @belongsTo(() => FileMetadata, { foreignKey: 'enrollmentProofFileId', localKey: 'fileId' })
+  @belongsTo(() => FileMetadata, { foreignKey: 'enrollmentProofFileId' })
   declare enrollmentProof: BelongsTo<typeof FileMetadata>
 
   @hasMany(() => Application, { foreignKey: 'studentNumber', localKey: 'studentNumber' })

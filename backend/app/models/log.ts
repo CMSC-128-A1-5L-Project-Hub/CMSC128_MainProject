@@ -13,20 +13,12 @@ export default class Log extends BaseModel {
   declare actorId: number | null
 
   @column()
-  declare entityType:
-    | 'application'
-    | 'assignment'
-    | 'payment'
-    | 'room'
-    | 'accommodation'
-    | 'document'
-    | 'report'
-    | 'fee'
+  declare entityType: 'application' | 'assignment' | 'payment' | 'room' | 'accommodation' | 'document' | 'report' | 'fee'
 
   @column()
   declare entityId: number
 
-  @column.dateTime()
+  @column.dateTime({ autoCreate: true })
   declare logTimestamp: DateTime
 
   @column()
@@ -35,7 +27,6 @@ export default class Log extends BaseModel {
   @column()
   declare activityDetails: string | null
 
-  // ─── Relationships ────────────────────────────────────────────────────────
   @belongsTo(() => User, { foreignKey: 'actorId' })
   declare actor: BelongsTo<typeof User>
 }
