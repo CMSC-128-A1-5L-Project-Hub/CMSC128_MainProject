@@ -10,6 +10,7 @@ import { ROLES } from '../app/constants/roles.ts'
 import ProvisioningService from '../app/services/provisioning_service.js'
 import AutoSwagger from 'adonis-autoswagger'
 import swagger from '#config/swagger'
+import NotificationsController from '#controllers/notifications_controller'
 
 router.get('/', () => {
   return { status: 'USAT API is running - Sprint 03 Launch' }
@@ -20,10 +21,11 @@ router.get('/', () => {
 | PUBLIC ROUTES (Guest-Accessible)
 |--------------------------------------------------------------------------
 */
+
 router.group(() => {
   router.get('/auth/google/redirect', [controllers.Auth, 'redirect'])
   router.get('/auth/google/callback', [controllers.Auth, 'callback'])
-
+  
   // Map Viewer Data (Active for Frontend!)
   router.get('/accommodations', [controllers.Accommodation, 'index'])
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
@@ -108,6 +110,8 @@ router.group(() => {
     router.group(() => {
         router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
         router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
+        router.get('/admin/notifications', [NotificationsController, 'index'])
+        router.patch('/admin/notifications/:id', [NotificationsController, 'update'])
         
         // System Logs
         // router.get('/logs', [controllers.Logs, 'index']) 

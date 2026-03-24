@@ -1,7 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Notification from '#models/notification'
 
-export default class NotificationController {
+export default class NotificationsController {
     // retrieve notifications for currently authenticated user
     async index({ auth, response }: HttpContext) {
         try {
