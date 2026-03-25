@@ -56,7 +56,7 @@ export default class NotificationsController {
             await notification.save()
 
             return response.ok({
-                message: 'Notification update successfully',
+                message: 'Notification updated successfully',
                 data: notification,
             })
 
