@@ -110,7 +110,8 @@ router.group(() => {
         router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
         
         // System Logs
-        // router.get('/logs', [controllers.Logs, 'index']) 
+        router.get('/logs', [controllers.AdminSettingsController, 'index']) 
+        router.get('/updateStudents', [controllers.AdminSettingsController, 'update'])
     }).use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
 
 }).use(middleware.auth())
