@@ -71,8 +71,8 @@ router.group(() => {
     // ====================================================================
     router.group(() => {
         // Reporting & Analytics 
-        // router.get('/reports/revenue', [controllers.Reports, 'revenue'])
-        // router.get('/reports/delinquency', [controllers.Reports, 'delinquency'])
+        router.get('/reports/revenue', [controllers.Reports, 'revenue'])
+        router.get('/reports/delinquency', [controllers.Reports, 'delinquency'])
     }).use(middleware.role([ROLES.LANDLORD]))
 
     // ====================================================================
@@ -98,8 +98,8 @@ router.group(() => {
         // router.patch('/payments/:id/verify', [controllers.Payments, 'verify'])
 
         // Reports
-        // router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
-        // router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
+        router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
+        router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
     }).use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
 
     // ====================================================================
