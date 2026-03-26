@@ -49,14 +49,19 @@ export default class FeesController {
       .preload('manager')
       .firstOrFail()
     
-    if (accom.manager.userId != manager.userId) {
+    if (accom.manager.userId != manager.userId)
       return response.badRequest({ message: "Manager does not manage the dorm student lives in." })
-    }
+
+    const feeAmount = request.input('feeAmount')  
+
+    if (!feeAmount || feeAmount <= 0)
+      return response.badRequest({ message: 'Invalid fee amount' })
     
     const fee = await Fee.create({
       landlordId: user.id,
       studentNumber: student.studentNumber,
-      // feeBalance
+      feeAmount: feeAmount,
+      feeBalance: feeAmount,
       feeStatus: 'unpaid'
     })
 
@@ -67,5 +72,10 @@ export default class FeesController {
       'manual_fee_created',
       `Manual fee created for student ${student.studentNumber}`
     )
+
+    return response.created({
+      message: 'Fee created successfully',
+      fee
+    })
   }
 }

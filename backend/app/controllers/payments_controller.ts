@@ -5,6 +5,7 @@ import Payment from '#models/payment'
 import Fee from '#models/fee'
 import FileMetadata from '#models/file_metadatum'
 import Manager from '#models/manager'
+import LogService from '#services/log_service'
 
 export default class PaymentsController {
   
@@ -20,7 +21,10 @@ export default class PaymentsController {
     const file = request.file('receipt', {
       size: '5mb',
       extnames: ['jpg', 'png', 'jpeg', 'pdf'],
-    })!
+    })
+
+    if (!file)
+      return response.badRequest({ message: 'No file uploaded' })
 
     await file.moveToDisk('./tmp')
     const fileUrl = await uploadImage(file, 'payments')
@@ -33,12 +37,13 @@ export default class PaymentsController {
     const payment = await Payment.create({
       feeId: fee.id,
       proofFileId: fileMeta.id,
-      paymentAmount: request.input('paymentAmount')
+      paymentAmount: request.input('paymentAmount'),
+      modeOfPayment: 'gcash'
     })
 
-    return response.created({
-      message: 'Payment uploaded successfully',
-      payment,
+    return response.ok({
+      message: `Proof uploaded successfully`,
+      payment: serialize(payment)
     })
   }
 
@@ -56,14 +61,15 @@ export default class PaymentsController {
       .firstOrFail()
 
     const accoms = manager.accommodations.map(accom => accom.id)
+    if (accoms.length === 0)
+      return serialize([])
     
-    // get fees
-    
-
     const payments = await Payment
       .query()
-      .whereIn('feeId', fees.map(fee => fee.id))
-      .andWhere('paymentStatus', 'pending_verification')
+      .where('paymentStatus', 'pending_verification')
+      .whereHas('fee', (feeQuery) => {
+        feeQuery.whereIn('accommodationId', accoms)
+      })
       .preload('fee')
       .preload('proofFile')
 
@@ -72,10 +78,47 @@ export default class PaymentsController {
 
   // ─── MANAGER: APPROVE/REJECT PAYMENT ───
   // PATCH /payments/:id/verify
-  async verify({ params, request, response, serialize }: HttpContext) {
+  async verify({ auth, params, request, response, serialize }: HttpContext) {
     // Logic: If 'approve', set payment_status to 'verified'.
     // Subtract payment_amount from fees.fee_balance.
     // If balance <= 0, set fees.fee_status to 'paid'.
     // If 'reject', set payment_status to 'rejected'. Trigger LogService.
+
+    const user = auth.user!
+    const payment = await Payment
+      .query()
+      .where('id', params.id)
+      .preload('fee')
+      .firstOrFail()
+
+    const fee = payment.fee
+    const action = request.input('action')
+    if (!['approve', 'reject'].includes(action)) {
+      return response.badRequest({ message: 'Invalid action' })
+    }
+
+    if (action === 'approve') {
+      payment.paymentStatus = 'verified'
+      fee.feeBalance -= payment.paymentAmount
+      if (fee.feeBalance <= 0) fee.feeStatus = 'paid'
+        await fee.save()
+    } else {
+      payment.paymentStatus = 'rejected'
+    }
+
+    await payment.save()
+
+    await LogService.record(
+      user.id,
+      'fee',
+      fee.id,
+      'payment_action',
+      `Payment actioned with ${action}`
+    )
+
+    return response.ok({
+      message: `Payment actioned with ${action} successful`,
+      payment: serialize(payment)
+    })
   }
 }
