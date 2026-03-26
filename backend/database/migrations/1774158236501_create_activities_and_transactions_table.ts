@@ -77,7 +77,7 @@ export default class extends BaseSchema {
     this.schema.createTable('logs', (table) => {
       table.increments('id').primary()
       table.integer('actor_id').unsigned().nullable().references('id').inTable('users').onDelete('SET NULL')
-      table.enum('entity_type', ['application', 'assignment', 'payment', 'room', 'accommodation', 'document', 'report', 'fee']).notNullable()
+      table.enum('entity_type', ['application', 'assignment', 'payment', 'room', 'accommodation', 'document', 'report', 'fee', 'account']).notNullable()
       table.integer('entity_id').notNullable()
       table.timestamp('log_timestamp', { useTz: true }).defaultTo(this.now())
       table.string('activity_type', 50).notNullable()

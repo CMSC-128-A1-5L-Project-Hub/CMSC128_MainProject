@@ -310,7 +310,7 @@ export class RoomSchema extends BaseModel {
 }
 
 export class StudentSchema extends BaseModel {
-  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'gender', 'studentNumber', 'userId'] as const
+  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'form5Renewal', 'gender', 'studentNumber', 'userId'] as const
   $columns = StudentSchema.$columns
   @column()
   declare college: string
@@ -322,6 +322,8 @@ export class StudentSchema extends BaseModel {
   declare emergencyContactNumber: string | null
   @column()
   declare enrollmentProofFileId: number
+  @column()
+  declare form5Renewal: boolean
   @column()
   declare gender: string
   @column({ isPrimary: true })

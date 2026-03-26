@@ -13,7 +13,7 @@ export default class Log extends BaseModel {
   declare actorId: number | null
 
   @column()
-  declare entityType: 'application' | 'assignment' | 'payment' | 'room' | 'accommodation' | 'document' | 'report' | 'fee'
+  declare entityType: 'application' | 'assignment' | 'payment' | 'room' | 'accommodation' | 'document' | 'report' | 'fee' | 'account'
 
   @column()
   declare entityId: number
