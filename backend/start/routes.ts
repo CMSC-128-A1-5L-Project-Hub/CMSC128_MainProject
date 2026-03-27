@@ -118,7 +118,7 @@ router
         // System Logs
         router.get('/logs', [controllers.Logs, 'index'])
       })
-      .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
+      .use(middleware.role([ROLES.SUPER_ADMIN]))
   })
   .use(middleware.auth())
 
