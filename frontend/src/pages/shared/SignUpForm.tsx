@@ -1,7 +1,7 @@
 import bgDesktop from "../../assets/images/signup_form-bg-desktop.png"
 import bgMobile from "../../assets/images/signup_form-bg-mobile.png"
 import Logo from "../../components/Logo"
-import StepIndicator from "../../components/StepsIndicator"
+import StepIndicator from "../../components/SignUpForm/StepsIndicator"
 import { Link } from "react-router-dom"
 import { IoIosArrowBack } from "react-icons/io";
 import { GrFormNext } from "react-icons/gr";

@@ -46,7 +46,7 @@ export default function StepIndicator({ currentStep = 1 }) {
             )}
           </div>
 
-          {/* Text labels — desktop only */}
+          {/* Text labels, desktop only */}
           <div className="hidden lg:block pt-1.5">
             <p
               className={`font-semibold text-sm leading-snug ${
