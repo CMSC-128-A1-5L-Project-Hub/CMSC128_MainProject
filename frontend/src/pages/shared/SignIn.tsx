@@ -1,24 +1,15 @@
 import bgDesktop from "../../assets/images/auth-bg-desktop.png"
 import bgMobile from "../../assets/images/auth-bg-mobile.png"
-import logo from "../../assets/logos/uble-placeholder.svg"
 import touch from "../../assets/images/touch.png"
 import { Link } from "react-router-dom"
+import Logo from "../../components/Logo"
 
 export default function SignIn() {
     return(
         <div className="min-h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden lg:items-center">
             <section className="w-full lg:w-1/2 flex flex-col justify-center px-6 pt-4 pb-6 max-w-md mx-auto lg:max-w-none lg:mx-0 lg:px-20 lg:py-20 lg:h-screen">
                 {/* Header (Logo + Name) */}
-                <header className="flex items-center gap-3 mb-10">
-                    <img 
-                        src={logo}
-                        alt="UBLE Logo"
-                        className="w-10 h-10 object-contain"
-                    />
-                    <span className="font-sans font-bold tracking-wide text-black select-none">
-                        UBLE
-                    </span>
-                </header>
+                <Logo />
 
                 {/* Tagline */}
                 <h1 className="font-serif font-bold text-3xl sm:text-5xl text-black leading-tight mb-3">
