@@ -2,6 +2,7 @@ import bgDesktop from "../../assets/images/auth-bg-desktop.png"
 import bgMobile from "../../assets/images/auth-bg-mobile.png"
 import logo from "../../assets/logos/uble-placeholder.svg"
 import touch from "../../assets/images/touch.png"
+import { Link } from "react-router-dom"
 
 export default function SignUp() {
     return(
@@ -69,9 +70,11 @@ export default function SignUp() {
                 {/* Sign up */}
                 <p className="text-sm sm:text-base text-[#B0909A] text-center mb-3">
                     Already have an account?{" "}
-                    <span className="text-[#6B0F2B] font-bold cursor-pointer hover:underline">
-                        Sign in here →
-                    </span>
+                    <Link to ="/auth/signin">
+                        <span className="text-[#6B0F2B] font-bold cursor-pointer hover:underline">
+                            Sign in here →
+                        </span>
+                    </Link>
                 </p>
 
                 {/* Terms and conditions */}
