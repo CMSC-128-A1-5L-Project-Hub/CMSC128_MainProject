@@ -76,7 +76,7 @@ export default function SignIn() {
                 <img
                     src={touch}
                     alt="hand"
-                    className="absolute -bottom-12 right-0 h-full object-contain pointer-events-none scale-x-[-1]"
+                    className="absolute bottom-0 right-0 h-full object-contain pointer-events-none scale-x-[-1] lg:-bottom-12"
                 />
             </section>
         </div>
