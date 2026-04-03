@@ -14,7 +14,7 @@ export default class Payment extends BaseModel {
   declare feeId: number
 
   @column()
-  declare proofFileId: number
+  declare proofFileId: number | null
 
   @column.dateTime({ autoCreate: true })
   declare paymentTimestamp: DateTime
