@@ -15,6 +15,7 @@ import { BsHouseDoor } from "react-icons/bs";
 import { GrFormNext } from "react-icons/gr";
 import { RiMenuLine } from "react-icons/ri";
 import house_icon from  "../../assets/icons/house_icon.svg";
+import { useNavigate } from "react-router-dom";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type StatusType = "Approved" | "Pending" | "In Review";
@@ -398,6 +399,7 @@ const DesktopProfilePanel = () => (
 
 // ── Main Dashboard ─────────────────────────────────────────────────────────
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
   const filters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
@@ -552,12 +554,20 @@ export default function Dashboard() {
 
             {/* Map */}
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
-              <div className="rounded-xl overflow-hidden flex-1 min-h-[130px] sm:min-h-[150px] relative">
+               <div
+                className="rounded-xl overflow-hidden flex-1 min-h-[130px] sm:min-h-[150px] relative cursor-pointer group"
+                onClick={() => navigate("/map")}>
                 <iframe
-                  title="UPLB Map"
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=121.2530%2C14.1580%2C121.2700%2C14.1700&layer=mapnik"
-                  className="w-full h-full border-0 absolute inset-0"
+                  title="UPLB Map Preview"
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=121.2380%2C14.1630%2C121.2490%2C14.1720&layer=mapnik&marker=14.1672%2C121.2430"
+                  className="w-full h-full border-0 absolute inset-0 pointer-events-none"
                 />
+                {/* Clickable overlay with hover effect */}
+                <div className="absolute inset-0 bg-[#7D1128]/0 group-hover:bg-[#7D1128]/20 transition-colors flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[#7D1128] text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                    Open Full Map
+                  </span>
+                </div>
               </div>
               <div>
                 <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Dorm Type</p>
@@ -583,8 +593,11 @@ export default function Dashboard() {
                     </button>
                   ))}
                 </div>
-                <button className="w-full py-2.5 sm:py-3 rounded-xl bg-[#7D1128] text-white text-sm font-semibold hover:bg-[#6a0e22] transition-colors flex items-center justify-center gap-2">
-                  View Interactive Map <FiChevronRight size={14} />
+                <button
+                  onClick={() => navigate("/map")}
+                  className="w-full py-2.5 sm:py-3 rounded-xl bg-[#7D1128] text-white text-sm font-semibold hover:bg-[#6a0e22] transition-colors flex items-center justify-center gap-2"
+                >
+                    View Interactive Map <FiChevronRight size={14} />
                 </button>
               </div>
             </div>
