@@ -4,6 +4,19 @@ import SignIn from "./pages/shared/SignIn"
 import SignUp from "./pages/shared/SignUp"
 import SignUpForm from "./pages/shared/SignUpForm"
 import StudentDashboard from "./pages/student/Dashboard"
+import LandingPage from "./pages/shared/Landingpage"
+import AboutSection from "./pages/shared/Aboutsection"
+import FeaturesSection from "./pages/shared/Featuresection"
+
+function FullLandingPage() {
+  return (
+    <>
+      <LandingPage />
+      <AboutSection />
+      <FeaturesSection />
+    </>
+  );
+}
 
 function App() {
   return (
@@ -14,6 +27,7 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/signup/form" element={<SignUpForm/>}/>
         <Route path="/studentDashboard" element={<StudentDashboard/>}/>
+        <Route path="/landingpage" element={<FullLandingPage />} /> 
       </Routes>
     </BrowserRouter>
   )
