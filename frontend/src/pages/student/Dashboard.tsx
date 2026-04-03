@@ -87,6 +87,14 @@ const billingStatements: BillingStatement[] = [
   { label: "January Billing Statement", status: "Unpaid" },
 ];
 
+// ── Gradient constants ─────────────────────────────────────────────────────
+const GRAD_SIDEBAR   = "linear-gradient(160deg, #3D0718 0%, #6B0F2B 100%)";
+const GRAD_BUTTON    = "linear-gradient(135deg, #6B0F2B, #3D0718)";
+const GRAD_ACTIVE    = "linear-gradient(135deg, #8C1535, #3D0718)";
+const GRAD_GOLD      = "linear-gradient(135deg, #C9973A, #a07825)";
+const GRAD_HERO      = "linear-gradient(135deg, #6B0F2B 0%, #3D0718 100%)";
+const GRAD_PROGRESS  = "linear-gradient(90deg, #6B0F2B, #B5344F, #C9973A)";
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }: { status: StatusType }) => {
   const styles: Record<StatusType, string> = {
@@ -134,13 +142,17 @@ const DrawerNav = ({ open, onClose }: { open: boolean; onClose: () => void }) =>
 
       {/* Drawer panel */}
       <div
-        className={`fixed top-0 left-0 bottom-0 z-50 w-72 bg-[#3D0A1A] flex flex-col transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed top-0 left-0 bottom-0 z-50 w-72 flex flex-col transition-transform duration-300 ease-in-out lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
+        style={{ background: GRAD_SIDEBAR }}
       >
         {/* Top: logo + close */}
         <div className="flex items-center justify-between px-5 pt-6 pb-4">
-          <div className="w-10 h-10 bg-[#C9973A] rounded-xl flex items-center justify-center">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ background: GRAD_GOLD }}
+          >
             <img
               src="/src/assets/logos/uble-placeholder.svg"
               alt="UBLE"
@@ -167,7 +179,7 @@ const DrawerNav = ({ open, onClose }: { open: boolean; onClose: () => void }) =>
               <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
                 <FiUser size={24} className="text-white/60" />
               </div>
-              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-[#3D0A1A]" />
+              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-[#3D0718]" />
             </div>
             <div>
               <p className="text-white font-bold text-base leading-tight">Ana Marie Reyes</p>
@@ -202,11 +214,12 @@ const DrawerNav = ({ open, onClose }: { open: boolean; onClose: () => void }) =>
             <button
               key={item.id}
               onClick={() => { setActiveItem(item.id); onClose(); }}
-              className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all text-left ${
+              className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all text-left text-white"
+              style={
                 activeItem === item.id
-                  ? "bg-white/15 text-white"
-                  : "text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
+                  ? { background: GRAD_ACTIVE }
+                  : { background: "transparent", color: "rgba(255,255,255,0.6)" }
+              }
             >
               <span className={`flex-shrink-0 ${activeItem === item.id ? "text-white" : "text-white/50"}`}>
                 {item.icon}
@@ -234,8 +247,14 @@ const DesktopSidebar = () => {
     { id: "files", icon: <FiFileText size={18} /> },
   ];
   return (
-    <aside className="hidden lg:flex w-16 bg-[#7D1128] flex-col items-center py-4 gap-2 flex-shrink-0">
-      <div className="w-9 h-9 bg-[#C9973A] rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
+    <aside
+      className="hidden lg:flex w-16 flex-col items-center py-4 gap-2 flex-shrink-0"
+      style={{ background: GRAD_SIDEBAR }}
+    >
+      <div
+        className="w-9 h-9 rounded-lg flex items-center justify-center mb-4 flex-shrink-0"
+        style={{ background: GRAD_GOLD }}
+      >
         <img
           src="/src/assets/logos/uble-placeholder.svg"
           alt="UBLE"
@@ -252,9 +271,12 @@ const DesktopSidebar = () => {
           <button
             key={item.id}
             onClick={() => setActive(item.id)}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-              active === item.id ? "bg-white/20 text-white" : "text-white/50 hover:text-white hover:bg-white/10"
-            }`}
+            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all text-white"
+            style={
+              active === item.id
+                ? { background: GRAD_ACTIVE }
+                : { background: "transparent", color: "rgba(255,255,255,0.5)" }
+            }
           >
             {item.icon}
           </button>
@@ -262,7 +284,10 @@ const DesktopSidebar = () => {
       </nav>
       <div className="flex flex-col items-center gap-1 mt-auto">
         {bottomItems.map((item) => (
-          <button key={item.id} className="w-10 h-10 rounded-xl flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all">
+          <button
+            key={item.id}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          >
             {item.icon}
           </button>
         ))}
@@ -285,7 +310,10 @@ const BillingSection = () => (
           <p className="text-gray-400 text-xs">Kamia Residence Hall</p>
         </div>
       </div>
-      <div className="text-center bg-[#7D1128] text-white rounded-lg px-2.5 py-1.5 flex-shrink-0">
+      <div
+        className="text-center text-white rounded-lg px-2.5 py-1.5 flex-shrink-0"
+        style={{ background: GRAD_BUTTON }}
+      >
         <p className="text-lg font-bold leading-none">20</p>
         <p className="text-[10px] leading-none mt-0.5 opacity-80">Mar</p>
       </div>
@@ -318,7 +346,7 @@ const BillingSection = () => (
     <div>
       <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Payment Progress</p>
       <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div className="h-2 bg-gradient-to-r from-[#7D1128] to-[#C9973A] rounded-full w-full" />
+        <div className="h-2 rounded-full w-full" style={{ background: GRAD_PROGRESS }} />
       </div>
       <div className="flex justify-between mt-1.5">
         <span className="text-xs text-gray-500">₱0 remaining</span>
@@ -351,14 +379,20 @@ const BillingSection = () => (
 
 // ── Desktop Right Panel ────────────────────────────────────────────────────
 const DesktopProfilePanel = () => (
-  <aside className="hidden lg:flex w-80 xl:w-[320px] bg-[#7D1128] flex-shrink-0 flex-col overflow-y-auto">
+  <aside
+    className="hidden lg:flex w-80 xl:w-[320px] flex-shrink-0 flex-col overflow-y-auto"
+    style={{ background: GRAD_SIDEBAR }}
+  >
     {/* Profile header */}
     <div className="px-6 pt-6 pb-5 flex-shrink-0">
       <div className="flex items-center justify-between mb-5">
         <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">My Profile</span>
         <button className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors relative">
           <IoIosNotificationsOutline size={18} />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-[#C9973A] rounded-full" />
+          <span
+            className="absolute top-1 right-1 w-2 h-2 rounded-full"
+            style={{ background: GRAD_GOLD }}
+          />
         </button>
       </div>
       <div className="flex items-center gap-4">
@@ -366,7 +400,7 @@ const DesktopProfilePanel = () => (
           <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
             <FiUser size={26} className="text-white/60" />
           </div>
-          <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-400 border-2 border-[#7D1128]" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-400 border-2 border-[#3D0718]" />
         </div>
         <div>
           <p className="text-white font-bold text-base leading-tight">Ana Marie Reyes</p>
@@ -417,25 +451,24 @@ export default function Dashboard() {
 
         {/* ── Top Bar ── */}
         <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-5 pb-3 lg:pt-7 lg:pb-2 sticky top-0 z-30 bg-gray-50">
-          {/* Mobile: hamburger | Desktop: decorative bar + title */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setDrawerOpen(true)}
               className="lg:hidden flex flex-col gap-1.5 p-1"
               aria-label="Open menu"
             >
-              <RiMenuLine size={22} className="text-[#7D1128]" />
+              <RiMenuLine size={22} className="text-[#6B0F2B]" />
             </button>
             <div className="hidden lg:flex items-center gap-2">
+              {/* Decorative bar — keep flat, it's a tiny accent */}
               <div className="w-1 h-6 bg-[#7D1128] rounded-full" />
             </div>
             <h1 className="font-serif italic text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
           </div>
 
-          {/* Notification bell: visible on both */}
           <button className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors relative shadow-sm">
             <IoIosNotificationsOutline size={20} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#C9973A] rounded-full" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: GRAD_GOLD }} />
           </button>
         </header>
 
@@ -443,7 +476,10 @@ export default function Dashboard() {
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5 space-y-4 lg:space-y-5">
 
           {/* Hero Banner */}
-          <div className="relative rounded-2xl overflow-hidden bg-[#7D1128] flex items-center min-h-[140px] sm:min-h-[176px]">
+          <div
+            className="relative rounded-2xl overflow-hidden flex items-center min-h-[140px] sm:min-h-[176px]"
+            style={{ background: GRAD_HERO }}
+          >
             <div className="relative z-10 px-5 sm:px-8 py-6">
               <p className="text-[#E8C37A] text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1">
                 Good Day, Ana Reyes
@@ -456,7 +492,7 @@ export default function Dashboard() {
               </p>
             </div>
             <div className="absolute right-0 bottom-0 h-full flex items-end pointer-events-none">
-                <img src={house_icon} alt="decor" className="w-[130px] h-[130px]" />
+              <img src={house_icon} alt="decor" className="w-[130px] h-[130px]" />
             </div>
           </div>
 
@@ -486,7 +522,11 @@ export default function Dashboard() {
                     <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#7D1128] flex-shrink-0" />
+                          {/* Dorm color square — gradient */}
+                          <div
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0"
+                            style={{ background: GRAD_BUTTON }}
+                          />
                           <span className="font-medium text-gray-800 whitespace-nowrap">{app.dorm}</span>
                         </div>
                       </td>
@@ -506,7 +546,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Recommended + Map — side by side on mobile too (matches screenshot) */}
+          {/* Recommended + Map */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
             {/* Recommended */}
@@ -545,7 +585,10 @@ export default function Dashboard() {
                   </div>
                 ))}
                 <div className="flex items-center flex-shrink-0">
-                  <button className="w-9 h-9 rounded-full bg-[#7D1128] text-white flex items-center justify-center shadow-md hover:bg-[#6a0e22] transition-colors">
+                  <button
+                    className="w-9 h-9 rounded-full text-white flex items-center justify-center shadow-md transition-opacity hover:opacity-90"
+                    style={{ background: GRAD_BUTTON }}
+                  >
                     <GrFormNext size={16} />
                   </button>
                 </div>
@@ -554,17 +597,17 @@ export default function Dashboard() {
 
             {/* Map */}
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
-               <div
+              <div
                 className="rounded-xl overflow-hidden flex-1 min-h-[130px] sm:min-h-[150px] relative cursor-pointer group"
-                onClick={() => navigate("/map")}>
+                onClick={() => navigate("/map")}
+              >
                 <iframe
                   title="UPLB Map Preview"
                   src="https://www.openstreetmap.org/export/embed.html?bbox=121.2380%2C14.1630%2C121.2490%2C14.1720&layer=mapnik&marker=14.1672%2C121.2430"
                   className="w-full h-full border-0 absolute inset-0 pointer-events-none"
                 />
-                {/* Clickable overlay with hover effect */}
-                <div className="absolute inset-0 bg-[#7D1128]/0 group-hover:bg-[#7D1128]/20 transition-colors flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[#7D1128] text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                <div className="absolute inset-0 bg-[#6B0F2B]/0 group-hover:bg-[#6B0F2B]/20 transition-colors flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[#6B0F2B] text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
                     Open Full Map
                   </span>
                 </div>
@@ -579,31 +622,34 @@ export default function Dashboard() {
                   </select>
                   <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 </div>
-                {/* Filter chips — hidden on smallest screens to save space */}
+                {/* Filter chips */}
                 <div className="hidden sm:flex flex-wrap gap-1.5 mb-3 lg:hidden xl:flex">
                   {filters.map((f) => (
                     <button
                       key={f}
                       onClick={() => setActiveFilter(f)}
-                      className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all ${
-                        activeFilter === f ? "bg-[#7D1128] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
+                      className="px-2.5 py-1 rounded-full text-xs font-semibold transition-all text-white"
+                      style={
+                        activeFilter === f
+                          ? { background: GRAD_BUTTON }
+                          : { background: "#f3f4f6", color: "#4b5563" }
+                      }
                     >
                       {f}
                     </button>
                   ))}
                 </div>
                 <button
-                  onClick={() => navigate("/map")}
-                  className="w-full py-2.5 sm:py-3 rounded-xl bg-[#7D1128] text-white text-sm font-semibold hover:bg-[#6a0e22] transition-colors flex items-center justify-center gap-2"
+                  className="flex items-center gap-1 text-sm font-semibold text-[#7D1128] hover:underline"
+                  onClick={() => { window.location.href = "/map"; }}
                 >
-                    View Interactive Map <FiChevronRight size={14} />
+                  View Interactive Map <FiChevronRight size={14} />
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Billing — inline on mobile, hidden on desktop (shown in right panel) */}
+          {/* Billing — inline on mobile, hidden on desktop */}
           <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
             <BillingSection />
           </div>
