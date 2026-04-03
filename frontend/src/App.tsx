@@ -7,6 +7,8 @@ import StudentDashboard from "./pages/student/Dashboard"
 import LandingPage from "./pages/shared/Landingpage"
 import AboutSection from "./pages/shared/Aboutsection"
 import FeaturesSection from "./pages/shared/Featuresection"
+import InteractiveMap from "./pages/MapPage"
+
 
 function FullLandingPage() {
   return (
@@ -28,6 +30,7 @@ function App() {
         <Route path="/auth/signup/form" element={<SignUpForm/>}/>
         <Route path="/studentDashboard" element={<StudentDashboard/>}/>
         <Route path="/landingpage" element={<FullLandingPage />} /> 
+        <Route path="/map" element={<InteractiveMap />} />
       </Routes>
     </BrowserRouter>
   )
