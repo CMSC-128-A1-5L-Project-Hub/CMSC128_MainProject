@@ -116,6 +116,11 @@ router
       .group(() => {
         router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
         router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
+        
+        // System Logs
+        router.get('/logs', [controllers.AdminSettingsController, 'index']) 
+        router.get('/updateStudents', [controllers.AdminSettingsController, 'update'])
+    }).use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
 
         // System Logs
         router.get('/logs', [controllers.Logs, 'index'])
