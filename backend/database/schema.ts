@@ -7,6 +7,28 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class AccommodationImageSchema extends BaseModel {
+  static $columns = ['accommodationId', 'id', 'imageFileId'] as const
+  $columns = AccommodationImageSchema.$columns
+  @column()
+  declare accommodationId: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare imageFileId: number
+}
+
+export class AccommodationTagSchema extends BaseModel {
+  static $columns = ['accommodationId', 'id', 'tagDetail'] as const
+  $columns = AccommodationTagSchema.$columns
+  @column()
+  declare accommodationId: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare tagDetail: string
+}
+
 export class AccommodationSchema extends BaseModel {
   static $columns = ['accommodationCapacity', 'accommodationLocation', 'accommodationName', 'accommodationType', 'applicationEndDate', 'applicationStartDate', 'bikingDistance', 'businessPermitId', 'drivingDistance', 'id', 'landlordId', 'latitude', 'longitude', 'managerId', 'tenantRestriction', 'walkingDistance'] as const
   $columns = AccommodationSchema.$columns
@@ -44,35 +66,13 @@ export class AccommodationSchema extends BaseModel {
   declare walkingDistance: number | null
 }
 
-export class AccommodationImageSchema extends BaseModel {
-  static $columns = ['accommodationId', 'id', 'imageFileId'] as const
-  $columns = AccommodationImageSchema.$columns
-  @column()
-  declare accommodationId: number
-  @column({ isPrimary: true })
-  declare id: number
-  @column()
-  declare imageFileId: number
-}
-
-export class AccommodationTagSchema extends BaseModel {
-  static $columns = ['accommodationId', 'id', 'tagDetail'] as const
-  $columns = AccommodationTagSchema.$columns
-  @column()
-  declare accommodationId: number
-  @column({ isPrimary: true })
-  declare id: number
-  @column()
-  declare tagDetail: string
-}
-
 export class ApplicationSchema extends BaseModel {
   static $columns = ['accommodationId', 'applicationDate', 'applicationRoomType', 'applicationStatus', 'applicationStayType', 'durationOfStayDays', 'id', 'studentNumber'] as const
   $columns = ApplicationSchema.$columns
   @column()
   declare accommodationId: number
   @column.dateTime()
-  declare applicationDate: DateTime
+  declare applicationDate: DateTime | null
   @column()
   declare applicationRoomType: string
   @column()
@@ -125,7 +125,7 @@ export class DocumentSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column.dateTime()
-  declare uploadTimestamp: DateTime
+  declare uploadTimestamp: DateTime | null
   @column()
   declare userId: number
 }
@@ -189,7 +189,7 @@ export class LogSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column.dateTime()
-  declare logTimestamp: DateTime
+  declare logTimestamp: DateTime | null
 }
 
 export class ManagerSchema extends BaseModel {
@@ -209,7 +209,7 @@ export class NotificationSchema extends BaseModel {
   @column()
   declare notificationContent: string
   @column.dateTime()
-  declare notificationTimestamp: DateTime
+  declare notificationTimestamp: DateTime | null
   @column()
   declare notificationType: string
   @column()
@@ -232,7 +232,7 @@ export class PaymentSchema extends BaseModel {
   @column()
   declare paymentStatus: string | null
   @column.dateTime()
-  declare paymentTimestamp: DateTime
+  declare paymentTimestamp: DateTime | null
   @column()
   declare proofFileId: number
 }
@@ -260,7 +260,7 @@ export class ReportSchema extends BaseModel {
   @column()
   declare reportFileId: number
   @column.dateTime()
-  declare reportTimestamp: DateTime
+  declare reportTimestamp: DateTime | null
   @column()
   declare reportType: string
   @column()
@@ -310,7 +310,7 @@ export class RoomSchema extends BaseModel {
 }
 
 export class StudentSchema extends BaseModel {
-  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'gender', 'studentNumber', 'userId'] as const
+  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'form5Renewal', 'gender', 'studentNumber', 'userId'] as const
   $columns = StudentSchema.$columns
   @column()
   declare college: string
@@ -322,6 +322,8 @@ export class StudentSchema extends BaseModel {
   declare emergencyContactNumber: string | null
   @column()
   declare enrollmentProofFileId: number
+  @column()
+  declare form5Renewal: boolean
   @column()
   declare gender: string
   @column({ isPrimary: true })
