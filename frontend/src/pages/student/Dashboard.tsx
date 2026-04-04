@@ -1,20 +1,11 @@
 import { useState } from "react";
-import { IoIosNotificationsOutline } from "react-icons/io";
-import {
-  FiSearch,
-  FiUser,
-  FiFileText,
-  FiChevronRight,
-  FiMoreHorizontal,
-  FiChevronDown,
-  FiX,
-} from "react-icons/fi";
-import { MdOutlineDashboard } from "react-icons/md";
-import { HiOutlineDocument } from "react-icons/hi";
-import { BsHouseDoor } from "react-icons/bs";
-import { GrFormNext } from "react-icons/gr";
-import { RiMenuLine } from "react-icons/ri";
-import house_icon from  "../../assets/icons/house_icon.svg";
+import DashboardIcon from '../../assets/icons/dashboard.svg?react'
+import SearchIcon from '../../assets/icons/search.svg?react'
+import ApplicationIcon from '../../assets/icons/applications.svg?react'
+import ProfileIcon from '../../assets/icons/profile.svg?react'
+import DocumentIcon from '../../assets/icons/documents.svg?react'
+import LogoutIcon from '../../assets/icons/logout.svg?react'
+import house_icon from "../../assets/icons/house_icon.svg";
 import { useNavigate } from "react-router-dom";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -87,13 +78,68 @@ const billingStatements: BillingStatement[] = [
   { label: "January Billing Statement", status: "Unpaid" },
 ];
 
-// ── Gradient constants ─────────────────────────────────────────────────────
-const GRAD_SIDEBAR   = "linear-gradient(160deg, #3D0718 0%, #6B0F2B 100%)";
-const GRAD_BUTTON    = "linear-gradient(135deg, #6B0F2B, #3D0718)";
-const GRAD_ACTIVE    = "linear-gradient(135deg, #8C1535, #3D0718)";
-const GRAD_GOLD      = "linear-gradient(135deg, #C9973A, #a07825)";
-const GRAD_HERO      = "linear-gradient(135deg, #6B0F2B 0%, #3D0718 100%)";
-const GRAD_PROGRESS  = "linear-gradient(90deg, #6B0F2B, #B5344F, #C9973A)";
+// ── Inline SVG Icons ───────────────────────────────────────────────────────
+const IconChevronRight = ({ className = "w-3.5 h-3.5" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+);
+
+const IconChevronDown = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+const IconMoreHorizontal = ({ className = "w-[18px] h-[18px]" }: { className?: string }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <circle cx="5" cy="12" r="1.5" />
+    <circle cx="12" cy="12" r="1.5" />
+    <circle cx="19" cy="12" r="1.5" />
+  </svg>
+);
+
+const IconBell = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+  </svg>
+);
+
+const IconUser = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
+);
+
+const IconClose = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
+const IconMenu = ({ className = "w-[22px] h-[22px]" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
+
+const IconArrowNext = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+);
+
+const IconHouse = ({ className = "w-3.5 h-3.5" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+  </svg>
+);
+
+const IconDocument = ({ className = "w-[18px] h-[18px]" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>
+);
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }: { status: StatusType }) => {
@@ -124,35 +170,26 @@ const DrawerNav = ({ open, onClose }: { open: boolean; onClose: () => void }) =>
   const [activeItem, setActiveItem] = useState("dashboard");
 
   const navItems = [
-    { id: "dashboard", icon: <MdOutlineDashboard size={20} />, label: "Dashboard" },
-    { id: "browse", icon: <FiSearch size={18} />, label: "Browse Rooms" },
-    { id: "applications", icon: <FiUser size={18} />, label: "Application Status" },
-    { id: "billing", icon: <FiFileText size={18} />, label: "Billing Statements" },
+    { id: "dashboard",    label: "Dashboard",          icon: <DashboardIcon className="w-5 h-5" /> },
+    { id: "search",       label: "Browse Rooms",        icon: <SearchIcon className="w-[18px] h-[18px]" /> },
+    { id: "applications", label: "Application Status",  icon: <ApplicationIcon className="w-[18px] h-[18px]" /> },
+    { id: "documents",    label: "Billing Statements",  icon: <DocumentIcon className="w-[18px] h-[18px]" /> },
   ];
 
   return (
     <>
-      {/* Backdrop */}
       {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />
       )}
 
-      {/* Drawer panel */}
       <div
-        className={`fixed top-0 left-0 bottom-0 z-50 w-72 flex flex-col transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed top-0 left-0 bottom-0 z-50 w-72 bg-[#3D0A1A] flex flex-col transition-transform duration-300 ease-in-out lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
-        style={{ background: GRAD_SIDEBAR }}
       >
         {/* Top: logo + close */}
         <div className="flex items-center justify-between px-5 pt-6 pb-4">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: GRAD_GOLD }}
-          >
+          <div className="w-10 h-10 bg-[#C9973A] rounded-xl flex items-center justify-center">
             <img
               src="/src/assets/logos/uble-placeholder.svg"
               alt="UBLE"
@@ -168,7 +205,7 @@ const DrawerNav = ({ open, onClose }: { open: boolean; onClose: () => void }) =>
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center text-white/60 hover:text-white transition-colors"
           >
-            <FiX size={20} />
+            <IconClose />
           </button>
         </div>
 
@@ -177,9 +214,9 @@ const DrawerNav = ({ open, onClose }: { open: boolean; onClose: () => void }) =>
           <div className="flex items-center gap-3 mb-4">
             <div className="relative flex-shrink-0">
               <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
-                <FiUser size={24} className="text-white/60" />
+                <IconUser className="w-6 h-6 text-white/60" />
               </div>
-              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-[#3D0718]" />
+              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-[#3D0A1A]" />
             </div>
             <div>
               <p className="text-white font-bold text-base leading-tight">Ana Marie Reyes</p>
@@ -189,7 +226,6 @@ const DrawerNav = ({ open, onClose }: { open: boolean; onClose: () => void }) =>
             </div>
           </div>
 
-          {/* Student details */}
           <div className="grid grid-cols-3 gap-x-3 gap-y-1">
             {[
               { label: "Student No.", value: "2023-12345" },
@@ -214,12 +250,11 @@ const DrawerNav = ({ open, onClose }: { open: boolean; onClose: () => void }) =>
             <button
               key={item.id}
               onClick={() => { setActiveItem(item.id); onClose(); }}
-              className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all text-left text-white"
-              style={
+              className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all text-left ${
                 activeItem === item.id
-                  ? { background: GRAD_ACTIVE }
-                  : { background: "transparent", color: "rgba(255,255,255,0.6)" }
-              }
+                  ? "bg-white/15 text-white"
+                  : "text-white/60 hover:bg-white/10 hover:text-white"
+              }`}
             >
               <span className={`flex-shrink-0 ${activeItem === item.id ? "text-white" : "text-white/50"}`}>
                 {item.icon}
@@ -236,25 +271,22 @@ const DrawerNav = ({ open, onClose }: { open: boolean; onClose: () => void }) =>
 // ── Desktop Sidebar ────────────────────────────────────────────────────────
 const DesktopSidebar = () => {
   const [active, setActive] = useState("dashboard");
+
   const navItems = [
-    { id: "dashboard", icon: <MdOutlineDashboard size={20} /> },
-    { id: "search", icon: <FiSearch size={18} /> },
-    { id: "profile", icon: <FiUser size={18} /> },
-    { id: "documents", icon: <HiOutlineDocument size={18} /> },
+    { id: "dashboard",    icon: <DashboardIcon className="w-5 h-5" /> },
+    { id: "search",       icon: <SearchIcon className="w-[18px] h-[18px]" /> },
+    { id: "applications", icon: <ApplicationIcon className="w-[18px] h-[18px]" /> },
+    { id: "documents",    icon: <DocumentIcon className="w-[18px] h-[18px]" /> },
   ];
+
   const bottomItems = [
-    { id: "account", icon: <FiUser size={18} /> },
-    { id: "files", icon: <FiFileText size={18} /> },
+    { id: "account", icon: <ProfileIcon className="w-[18px] h-[18px]" /> },
+    { id: "logout",  icon: <LogoutIcon className="w-[18px] h-[18px]" /> },
   ];
+
   return (
-    <aside
-      className="hidden lg:flex w-16 flex-col items-center py-4 gap-2 flex-shrink-0"
-      style={{ background: GRAD_SIDEBAR }}
-    >
-      <div
-        className="w-9 h-9 rounded-lg flex items-center justify-center mb-4 flex-shrink-0"
-        style={{ background: GRAD_GOLD }}
-      >
+    <aside className="hidden lg:flex w-16 bg-[#7D1128] flex-col items-center py-4 gap-2 flex-shrink-0">
+      <div className="w-9 h-9 bg-[#C9973A] rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
         <img
           src="/src/assets/logos/uble-placeholder.svg"
           alt="UBLE"
@@ -271,49 +303,48 @@ const DesktopSidebar = () => {
           <button
             key={item.id}
             onClick={() => setActive(item.id)}
-            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all text-white"
-            style={
-              active === item.id
-                ? { background: GRAD_ACTIVE }
-                : { background: "transparent", color: "rgba(255,255,255,0.5)" }
-            }
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+              active === item.id ? "bg-white/20 text-white" : "text-white/50 hover:text-white hover:bg-white/10"
+            }`}
           >
-            {item.icon}
+            {/* span forces currentColor inheritance from the button's text color */}
+            <span className="flex items-center justify-center">
+              {item.icon}
+            </span>
           </button>
         ))}
       </nav>
       <div className="flex flex-col items-center gap-1 mt-auto">
         {bottomItems.map((item) => (
-          <button
-            key={item.id}
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
-          >
-            {item.icon}
-          </button>
+            <button
+                key={item.id}
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+            >
+                <span className="flex items-center justify-center">
+                    {item.icon}
+                </span>
+            </button>
         ))}
       </div>
     </aside>
   );
 };
 
-// ── Billing Section (shared between desktop panel + mobile inline) ─────────
+// ── Billing Section ────────────────────────────────────────────────────────
 const BillingSection = () => (
   <div className="space-y-4">
     {/* Header */}
     <div className="flex items-start justify-between">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
-          <HiOutlineDocument size={18} className="text-[#7D1128]" />
+          <IconDocument className="w-[18px] h-[18px] text-[#7D1128]" />
         </div>
         <div>
           <p className="font-bold text-gray-900 text-sm leading-tight">Billing &amp; Payments</p>
           <p className="text-gray-400 text-xs">Kamia Residence Hall</p>
         </div>
       </div>
-      <div
-        className="text-center text-white rounded-lg px-2.5 py-1.5 flex-shrink-0"
-        style={{ background: GRAD_BUTTON }}
-      >
+      <div className="text-center bg-[#7D1128] text-white rounded-lg px-2.5 py-1.5 flex-shrink-0">
         <p className="text-lg font-bold leading-none">20</p>
         <p className="text-[10px] leading-none mt-0.5 opacity-80">Mar</p>
       </div>
@@ -346,7 +377,7 @@ const BillingSection = () => (
     <div>
       <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Payment Progress</p>
       <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div className="h-2 rounded-full w-full" style={{ background: GRAD_PROGRESS }} />
+        <div className="h-2 bg-gradient-to-r from-[#7D1128] to-[#C9973A] rounded-full w-full" />
       </div>
       <div className="flex justify-between mt-1.5">
         <span className="text-xs text-gray-500">₱0 remaining</span>
@@ -361,7 +392,7 @@ const BillingSection = () => (
         {billingStatements.map((b) => (
           <div key={b.label} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 hover:border-gray-200 transition-colors cursor-pointer">
             <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-              <BsHouseDoor size={14} className="text-[#7D1128]" />
+              <IconHouse className="w-3.5 h-3.5 text-[#7D1128]" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-800 truncate">{b.label}</p>
@@ -371,7 +402,7 @@ const BillingSection = () => (
         ))}
       </div>
       <button className="w-full mt-4 text-[#7D1128] text-sm font-semibold hover:underline flex items-center justify-center gap-1">
-        View all billing statements <FiChevronRight size={14} />
+        View all billing statements <IconChevronRight />
       </button>
     </div>
   </div>
@@ -379,28 +410,22 @@ const BillingSection = () => (
 
 // ── Desktop Right Panel ────────────────────────────────────────────────────
 const DesktopProfilePanel = () => (
-  <aside
-    className="hidden lg:flex w-80 xl:w-[320px] flex-shrink-0 flex-col overflow-y-auto"
-    style={{ background: GRAD_SIDEBAR }}
-  >
+  <aside className="hidden lg:flex w-80 xl:w-[320px] bg-[#7D1128] flex-shrink-0 flex-col overflow-y-auto">
     {/* Profile header */}
     <div className="px-6 pt-6 pb-5 flex-shrink-0">
       <div className="flex items-center justify-between mb-5">
         <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">My Profile</span>
         <button className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors relative">
-          <IoIosNotificationsOutline size={18} />
-          <span
-            className="absolute top-1 right-1 w-2 h-2 rounded-full"
-            style={{ background: GRAD_GOLD }}
-          />
+          <IconBell className="w-[18px] h-[18px]" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-[#C9973A] rounded-full" />
         </button>
       </div>
       <div className="flex items-center gap-4">
         <div className="relative flex-shrink-0">
           <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
-            <FiUser size={26} className="text-white/60" />
+            <IconUser className="w-7 h-7 text-white/60" />
           </div>
-          <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-400 border-2 border-[#3D0718]" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-400 border-2 border-[#7D1128]" />
         </div>
         <div>
           <p className="text-white font-bold text-base leading-tight">Ana Marie Reyes</p>
@@ -454,21 +479,20 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setDrawerOpen(true)}
-              className="lg:hidden flex flex-col gap-1.5 p-1"
+              className="lg:hidden p-1 text-[#7D1128]"
               aria-label="Open menu"
             >
-              <RiMenuLine size={22} className="text-[#6B0F2B]" />
+              <IconMenu />
             </button>
             <div className="hidden lg:flex items-center gap-2">
-              {/* Decorative bar — keep flat, it's a tiny accent */}
               <div className="w-1 h-6 bg-[#7D1128] rounded-full" />
             </div>
             <h1 className="font-serif italic text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
           </div>
 
           <button className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors relative shadow-sm">
-            <IoIosNotificationsOutline size={20} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: GRAD_GOLD }} />
+            <IconBell className="w-5 h-5" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#C9973A] rounded-full" />
           </button>
         </header>
 
@@ -476,10 +500,7 @@ export default function Dashboard() {
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5 space-y-4 lg:space-y-5">
 
           {/* Hero Banner */}
-          <div
-            className="relative rounded-2xl overflow-hidden flex items-center min-h-[140px] sm:min-h-[176px]"
-            style={{ background: GRAD_HERO }}
-          >
+          <div className="relative rounded-2xl overflow-hidden bg-[#7D1128] flex items-center min-h-[140px] sm:min-h-[176px]">
             <div className="relative z-10 px-5 sm:px-8 py-6">
               <p className="text-[#E8C37A] text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1">
                 Good Day, Ana Reyes
@@ -501,11 +522,10 @@ export default function Dashboard() {
             <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-3">
               <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
               <button className="text-[#7D1128] text-sm font-semibold hover:underline flex items-center gap-1">
-                View all <FiChevronRight size={14} />
+                View all <IconChevronRight />
               </button>
             </div>
 
-            {/* Table — scrolls horizontally on mobile */}
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[540px]">
                 <thead>
@@ -522,11 +542,7 @@ export default function Dashboard() {
                     <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center gap-2.5">
-                          {/* Dorm color square — gradient */}
-                          <div
-                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0"
-                            style={{ background: GRAD_BUTTON }}
-                          />
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#7D1128] flex-shrink-0" />
                           <span className="font-medium text-gray-800 whitespace-nowrap">{app.dorm}</span>
                         </div>
                       </td>
@@ -536,7 +552,7 @@ export default function Dashboard() {
                       <td className="px-4 sm:px-6 py-3 sm:py-4"><StatusBadge status={app.status} /></td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                          <FiMoreHorizontal size={18} />
+                          <IconMoreHorizontal />
                         </button>
                       </td>
                     </tr>
@@ -554,7 +570,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-gray-900 text-base">Recommended</h3>
                 <button className="text-[#7D1128] text-sm font-semibold hover:underline flex items-center gap-1">
-                  View all <FiChevronRight size={14} />
+                  View all <IconChevronRight />
                 </button>
               </div>
               <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory -mx-1 px-1">
@@ -585,11 +601,8 @@ export default function Dashboard() {
                   </div>
                 ))}
                 <div className="flex items-center flex-shrink-0">
-                  <button
-                    className="w-9 h-9 rounded-full text-white flex items-center justify-center shadow-md transition-opacity hover:opacity-90"
-                    style={{ background: GRAD_BUTTON }}
-                  >
-                    <GrFormNext size={16} />
+                  <button className="w-9 h-9 rounded-full bg-[#7D1128] text-white flex items-center justify-center shadow-md hover:bg-[#6a0e22] transition-colors">
+                    <IconArrowNext className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -606,8 +619,8 @@ export default function Dashboard() {
                   src="https://www.openstreetmap.org/export/embed.html?bbox=121.2380%2C14.1630%2C121.2490%2C14.1720&layer=mapnik&marker=14.1672%2C121.2430"
                   className="w-full h-full border-0 absolute inset-0 pointer-events-none"
                 />
-                <div className="absolute inset-0 bg-[#6B0F2B]/0 group-hover:bg-[#6B0F2B]/20 transition-colors flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[#6B0F2B] text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                <div className="absolute inset-0 bg-[#7D1128]/0 group-hover:bg-[#7D1128]/20 transition-colors flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-[#7D1128] text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
                     Open Full Map
                   </span>
                 </div>
@@ -620,30 +633,26 @@ export default function Dashboard() {
                     <option>Transient</option>
                     <option>Non-transient</option>
                   </select>
-                  <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 </div>
-                {/* Filter chips */}
                 <div className="hidden sm:flex flex-wrap gap-1.5 mb-3 lg:hidden xl:flex">
                   {filters.map((f) => (
                     <button
                       key={f}
                       onClick={() => setActiveFilter(f)}
-                      className="px-2.5 py-1 rounded-full text-xs font-semibold transition-all text-white"
-                      style={
-                        activeFilter === f
-                          ? { background: GRAD_BUTTON }
-                          : { background: "#f3f4f6", color: "#4b5563" }
-                      }
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all ${
+                        activeFilter === f ? "bg-[#7D1128] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
                     >
                       {f}
                     </button>
                   ))}
                 </div>
                 <button
-                  className="flex items-center gap-1 text-sm font-semibold text-[#7D1128] hover:underline"
                   onClick={() => { window.location.href = "/map"; }}
+                  className="text-[#7D1128] text-sm font-semibold hover:underline flex items-center gap-1"
                 >
-                  View Interactive Map <FiChevronRight size={14} />
+                  View Interactive Map <IconChevronRight />
                 </button>
               </div>
             </div>
