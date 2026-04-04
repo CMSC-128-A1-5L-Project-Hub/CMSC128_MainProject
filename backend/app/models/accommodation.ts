@@ -33,6 +33,9 @@ export default class Accommodation extends BaseModel {
   declare accommodationLocation: string
 
   @column()
+  declare status: string
+
+  @column()
   declare longitude: number | null
 
   @column()

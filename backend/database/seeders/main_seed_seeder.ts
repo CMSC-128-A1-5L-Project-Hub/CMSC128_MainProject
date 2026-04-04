@@ -237,18 +237,18 @@ export default class extends BaseSeeder {
     ])
 
     await db.table('reviews').multiInsert([
-      { accommodation_id: getAccom('White House'), student_number: 2023123456, rating: 4, content: 'Clean rooms, responsive landlord, and very close to the university.' },
-      { accommodation_id: getAccom('White House'), student_number: 2023123456, rating: 3, content: 'Decent but the room is small.' },
-      { accommodation_id: getAccom('One Silangan'), student_number: 2023123456, rating: 5, content: null },
-      { accommodation_id: getAccom('One Silangan'), student_number: 2023123456, rating: 5, content: 'Clean rooms, responsive landlord, and very close to the university.' },
-      { accommodation_id: getAccom("Men's Dorm"), student_number: 2023123456, rating: 1, content: 'Maintenance needs improvement.' },
-      { accommodation_id: getAccom("Men's Dorm"), student_number: 2023123456, rating: 4, content: 'Nice location, but the internet is sometimes slow.' },
-      { accommodation_id: getAccom("ATI"), rating: 2, student_number: 2023123456, content: 'Noisy environment and needs better lighting.' },
-      { accommodation_id: getAccom("ATI"), rating: 4, student_number: 2023123456, content: 'Spacious room but shared bathroom can be crowded.' },
-      { accommodation_id: getAccom("Scholar's Dorm"), rating: 3, student_number: 2023123456, content: 'Affordable, but cleaning service is irregular.' },
-      { accommodation_id: getAccom("Scholar's Dorm"), rating: 2, student_number: 2023123456, content: 'Walls are thin, noise from neighbors is noticeable.' },
-      { accommodation_id: getAccom("One Sapphire Place"), rating: 5, student_number: 2023123456, content: 'Excellent accommodation, would highly recommend!' },
-      { accommodation_id: getAccom("One Sapphire Place"), rating: 3, student_number: 2023123456, content: 'Average stay, nothing special but decent overall.' }
+      { accommodation_id: getAccom('White House'), student_number: '2023-123456', rating: 4, content: 'Clean rooms, responsive landlord, and very close to the university.' },
+      { accommodation_id: getAccom('White House'), student_number: '2023-123456', rating: 3, content: 'Decent but the room is small.' },
+      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123456', rating: 5, content: null },
+      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123456', rating: 5, content: 'Clean rooms, responsive landlord, and very close to the university.' },
+      { accommodation_id: getAccom("Men's Dorm"), student_number: '2023-123456', rating: 1, content: 'Maintenance needs improvement.' },
+      { accommodation_id: getAccom("Men's Dorm"), student_number: '2023-123456', rating: 4, content: 'Nice location, but the internet is sometimes slow.' },
+      { accommodation_id: getAccom("ATI"), rating: 2, student_number: '2023-123456', content: 'Noisy environment and needs better lighting.' },
+      { accommodation_id: getAccom("ATI"), rating: 4, student_number: '2023-123456', content: 'Spacious room but shared bathroom can be crowded.' },
+      { accommodation_id: getAccom("Scholar's Dorm"), rating: 3, student_number: '2023-123456', content: 'Affordable, but cleaning service is irregular.' },
+      { accommodation_id: getAccom("Scholar's Dorm"), rating: 2, student_number: '2023-123456', content: 'Walls are thin, noise from neighbors is noticeable.' },
+      { accommodation_id: getAccom("One Sapphire Place"), rating: 5, student_number: '2023-123456', content: 'Excellent accommodation, would highly recommend!' },
+      { accommodation_id: getAccom("One Sapphire Place"), rating: 3, student_number: '2023-123456', content: 'Average stay, nothing special but decent overall.' }
     ])
 
     // =========================================================================

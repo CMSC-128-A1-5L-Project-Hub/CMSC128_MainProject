@@ -5,6 +5,7 @@ import FileMetadata from '#models/file_metadatum'
 import Application from '#models/application'
 import Assignment from '#models/assignment'
 import Bookmark from '#models/bookmark'
+import Review from '#models/review'
 
 export default class Student extends BaseModel {
   static table = 'students'
@@ -33,6 +34,9 @@ export default class Student extends BaseModel {
   @column()
   declare emergencyContactNumber: string | null
 
+  @column()
+  declare form5_renewal: boolean
+
   @belongsTo(() => User, { foreignKey: 'userId' })
   declare user: BelongsTo<typeof User>
 
@@ -47,4 +51,7 @@ export default class Student extends BaseModel {
 
   @hasMany(() => Bookmark, { foreignKey: 'studentNumber', localKey: 'studentNumber' })
   declare bookmarks: HasMany<typeof Bookmark>
+
+  @hasMany(() => Review, { foreignKey: 'studentNumber', localKey: 'studentNumber' })
+  declare reviews: HasMany<typeof Review>
 }
