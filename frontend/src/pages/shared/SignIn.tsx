@@ -5,6 +5,10 @@ import { Link } from "react-router-dom"
 import Logo from "../../components/Logo"
 
 export default function SignIn() {
+    const handleGoogleLogin = () => {
+        window.location.href = 'http://localhost:3333/auth/google/redirect';
+    };
+
     return(
         <div className="min-h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden lg:items-center">
             <section className="w-full lg:w-1/2 flex flex-col justify-center px-6 pt-4 pb-6 max-w-md mx-auto lg:max-w-none lg:mx-0 lg:px-20 lg:py-20 lg:h-screen">
@@ -27,7 +31,7 @@ export default function SignIn() {
                 </p>
                 
                 {/* Google */}
-                <button className="w-full flex items-center justify-center gap-3 border border-[#E8E0E4] rounded-xl py-5 hover:bg-gray-50 transition mb-4 relative">
+                <button className="w-full flex items-center justify-center gap-3 border border-[#E8E0E4] rounded-xl py-5 hover:bg-gray-50 transition mb-4 relative" onClick={handleGoogleLogin}>
                     <img
                         src="https://www.svgrepo.com/show/475656/google-color.svg"
                         alt="google"
