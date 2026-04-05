@@ -7,6 +7,8 @@ import StudentDashboard from "./pages/student/Dashboard"
 import LandingPage from "./pages/shared/Landingpage"
 import AboutSection from "./pages/shared/Aboutsection"
 import FeaturesSection from "./pages/shared/Featuresection"
+import ResidenceCarousel from "./pages/shared/Recommendedsection"
+import UBLEFooter from "./pages/shared/SupportSection"
 import InteractiveMap from "./pages/MapPage"
 
 
@@ -16,6 +18,8 @@ function FullLandingPage() {
       <LandingPage />
       <AboutSection />
       <FeaturesSection />
+      <ResidenceCarousel />
+      <UBLEFooter />
     </>
   );
 }

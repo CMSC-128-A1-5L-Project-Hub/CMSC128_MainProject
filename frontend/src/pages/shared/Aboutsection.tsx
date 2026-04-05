@@ -36,12 +36,6 @@ const KF = `
       align-items: center !important;
       margin-bottom: 40px !important;
     }
-
-    .about-inner-grid {
-      margin-left: 0 !important; /* Removes the offset causing the imbalance */
-      transform-origin: center top !important; /* Keeps scaling centered */
-      justify-content: center !important;
-    }
   }
 
   @media (max-width: 960px) {
@@ -56,25 +50,74 @@ const KF = `
       padding-left: clamp(15px, 3vw, 44px) !important;
       padding-right: clamp(15px, 3vw, 44px) !important;
     }
+  }
 
-    .about-inner-grid { 
-      scale: 0.82 !important; 
-      width: calc(100% / 0.82) !important; 
+  /* ONLY ON SMALL SCREENS - rearrange layout */
+  @media (max-width: 900px) {
+    .about-inner-grid {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      gap: 24px !important;
+      width: 100% !important;
+    }
+    
+    /* Top row wrapper - DormCard and RoomsCard side by side */
+    .top-row-cards {
+      display: flex !important;
+      flex-direction: row !important;
+      justify-content: center !important;
+      gap: 20px !important;
+      width: 100% !important;
+      flex-wrap: wrap !important;
+    }
+    
+    /* Bottom row wrapper - OccCard and ReviewCard side by side */
+    .bottom-row-cards {
+      display: flex !important;
+      flex-direction: row !important;
+      justify-content: center !important;
+      gap: 20px !important;
+      width: 100% !important;
+      flex-wrap: wrap !important;
+    }
+    
+    .top-row-cards > div,
+    .bottom-row-cards > div {
+      flex: 1 !important;
+      min-width: 250px !important;
+      max-width: 320px !important;
+    }
+    
+    .rooms-card-wrapper {
+      padding-top: 0 !important;
+      position: relative !important;
+    }
+    
+    /* Hide the original grid layout */
+    .original-grid-layout {
+      display: none !important;
     }
   }
+  
+  /* On very small screens, stack each row vertically */
+  @media (max-width: 600px) {
+    .top-row-cards {
+      flex-direction: column !important;
+      align-items: center !important;
+    }
     
-    @media (max-width: 640px) {
-    .about-inner-grid { 
-        scale: 0.58 !important; 
-        width: calc(100% / 0.58) !important; 
+    .bottom-row-cards {
+      flex-direction: column !important;
+      align-items: center !important;
     }
-    .stat-item-box span:first-child { 
-        font-size: clamp(28px, 9vw, 42px) !important; 
+    
+    .top-row-cards > div,
+    .bottom-row-cards > div {
+      width: 100% !important;
+      max-width: 320px !important;
     }
-    .about-outer-grid {
-        padding-bottom: 8px !important;
-    }
-    }
+  }
 `;
 
 const fadeInUp = {
@@ -230,7 +273,7 @@ export default function AboutSection() {
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, paddingTop: 56, paddingBottom: 32 }}
         >
           <div style={{ height: 2, width: 48, background: "#C9973A" }} />
-          <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.22em", color: "#2A0410" }}>ABOUT UBLE</span>
+          <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.22em", color: "#C4973A" }}>ABOUT UBLE</span>
           <div style={{ height: 2, width: 48, background: "#C9973A" }} />
         </motion.div>
 
@@ -259,26 +302,52 @@ export default function AboutSection() {
               by people who <em style={{ fontStyle: "italic", color: "#C9973A" }}>get it</em>
             </h2>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, lineHeight: 1.85, color: "#5A3040", fontWeight: 400 }}>
-              We know what it’s like—scrolling endlessly, messaging listings, and still not being sure if a place is right. Housing shouldn’t feel like a gamble.
+              We know what it's like—scrolling endlessly, messaging listings, and still not being sure if a place is right. Housing shouldn't feel like a gamble.
               UBLE was created to change that. By connecting students with trusted dorms and clear, reliable information, we take the guesswork out of the process. No more uncertainty—just real options, made for real student needs.
               Because your university experience deserves a home that supports it.
             </p>
           </motion.div>
 
-          <div className="about-inner-grid" style={{ display: "grid", gridTemplateColumns: "220px 280px 220px", gap: 16, alignItems: "end" }}>
-            <motion.div style={{ y: yColA }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          {/* DESKTOP: Original 3-column grid layout */}
+          <div className="original-grid-layout" style={{ display: "grid", gridTemplateColumns: "220px 280px 220px", gap: 16, alignItems: "end" }}>
+            <motion.div style={{ y: yColA as any }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
               <DormCard name="Kamia Residence" subtitle="Hall" meta="Studio · 22 m² · On-campus" price={3200} priceUnit="/ month" featured chips={["WiFi", "Furnished", "Air-con"]} rating={4.9} verified onView={() => {}} />
             </motion.div>
 
-            <motion.div style={{ position: "relative", paddingTop: 190, y: yColB }} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+            <motion.div style={{ position: "relative", paddingTop: 190, y: yColB as any }} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
               <TagsCloud />
               <motion.div whileHover={{ scale: 1.03 }}><RoomsCard /></motion.div>
             </motion.div>
 
-            <motion.div style={{ display: "flex", flexDirection: "column", gap: 14, y: yColC }} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+            <motion.div style={{ display: "flex", flexDirection: "column", gap: 14, y: yColC as any }} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
               <motion.div whileHover={{ scale: 1.03 }}><OccCard /></motion.div>
               <motion.div whileHover={{ scale: 1.03 }}><ReviewCard /></motion.div>
             </motion.div>
+          </div>
+
+          {/* MOBILE: Rearranged layout (hidden on desktop, shown on small screens) */}
+          <div className="mobile-rearranged-layout" style={{ display: "none", flexDirection: "column", gap: 24 }}>
+            {/* Top row: DormCard and RoomsCard side by side */}
+            <div className="top-row-cards" style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+              <motion.div style={{ y: yColA as any }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                <DormCard name="Kamia Residence" subtitle="Hall" meta="Studio · 22 m² · On-campus" price={3200} priceUnit="/ month" featured chips={["WiFi", "Furnished", "Air-con"]} rating={4.9} verified onView={() => {}} />
+              </motion.div>
+
+              <motion.div className="rooms-card-wrapper" style={{ position: "relative", paddingTop: 0, y: yColB as any }} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+                <TagsCloud />
+                <motion.div whileHover={{ scale: 1.03 }}><RoomsCard /></motion.div>
+              </motion.div>
+            </div>
+
+            {/* Bottom row: OccCard and ReviewCard side by side */}
+            <div className="bottom-row-cards" style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+              <motion.div whileHover={{ scale: 1.03 }} style={{ y: yColC as any, width: "100%" }} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+                <OccCard />
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.03 }} style={{ y: yColC as any, width: "100%" }} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+                <ReviewCard />
+              </motion.div>
+            </div>
           </div>
 
         </div>
