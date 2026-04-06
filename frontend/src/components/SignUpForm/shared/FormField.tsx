@@ -4,7 +4,7 @@
     na nagamit din ng component    
 */}
 type InputProps = {
-    label: string
+    label?: string
     name: string
     value: string
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void

@@ -8,6 +8,7 @@ import Logo from "../../components/Logo"
 import StepIndicator from "../../components/SignUpForm/StepsIndicator"
 import PersonalInfo from "../../components/SignUpForm/steps/PersonalInfo"
 import AcademicDetails from "../../components/SignUpForm/steps/AcademicDetails"
+import PhoneVerification from "../../components/SignUpForm/steps/PhoneVerification"
 
 type SignUpFormData = {
     firstName: string
@@ -24,6 +25,7 @@ type SignUpFormData = {
     standing: string
     form5: File | null
     other: File | null
+    phoneNumber: string
 }
 
 export default function SignUpForm() {
@@ -49,6 +51,7 @@ export default function SignUpForm() {
     standing: "",
     form5: null,
     other: null,
+    phoneNumber: "",
   })
 
   //handles next and back
@@ -141,6 +144,13 @@ export default function SignUpForm() {
                 data={formData}
                 setData={setFormData}
                 nextStep={nextStep}
+                prevStep={prevStep}
+              />
+            )}
+            {step === 3 && (
+              <PhoneVerification 
+                data={formData}
+                setData={setFormData}
                 prevStep={prevStep}
               />
             )}
