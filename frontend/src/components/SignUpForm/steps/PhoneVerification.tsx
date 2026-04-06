@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import FormField from "../shared/FormField";
 import Button from "../../Button";
 
+{/* TODO: Mobile ver + otp handling + validation */}
+
 export default function PhoneVerification({ data, setData, prevStep}: any) {
     const [errors, setErrors] = useState<Record<string,string>>({})
     const navigate = useNavigate()
