@@ -7,7 +7,7 @@ type SelectProps = {
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
     options: { label: string; value: string }[]
     className?: string
-    error?: boolean
+    error?: string
 }
 
 export default function FormSelect({

@@ -1,4 +1,8 @@
 {/* input var types */}
+{/* add na lang kayo ng types if may gusto kayo iadd
+    make sure lang na di maaapektuhan nang sobra ung ibang pages
+    na nagamit din ng component    
+*/}
 type InputProps = {
     label: string
     name: string
@@ -9,7 +13,8 @@ type InputProps = {
     className?: string
     disabled?: boolean
     readOnly?: boolean
-    error?: boolean
+    maxLength?: number
+    error?: string
 }
 
 export default function FormField({
@@ -22,6 +27,7 @@ export default function FormField({
     className="",
     disabled,
     readOnly,
+    maxLength,
     error,
 }: InputProps) {
     return (
@@ -36,6 +42,7 @@ export default function FormField({
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
+                maxLength={maxLength}
                 disabled={disabled}
                 readOnly={readOnly}
                 className={`w-full border border-[#6B0F2B3E] rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-[#C8B0B8] focus:outline-none focus:ring-2 focus:ring-[#C9973A]/40 focus:border-[#C9973A] transition 
@@ -47,7 +54,7 @@ export default function FormField({
             />
             {error && (
                 <p className="text-red-500 text-[10px] mt-1">
-                    This field is required
+                    {error}
                 </p>
             )}
         </div>

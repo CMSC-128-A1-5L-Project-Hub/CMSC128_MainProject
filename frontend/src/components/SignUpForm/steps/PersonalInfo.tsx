@@ -107,7 +107,7 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
                     {label: "Female", value: "female"},
                 ]}
                 className="col-span-5"  
-                error={!!errors.gender}              
+                error={errors.gender}              
             />
 
             <FormField 
@@ -117,18 +117,18 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
                 onChange={handleChange}
                 placeholder="Full Name"
                 className="col-span-6"
-                error={!!errors.emergencyName}
+                error={errors.emergencyName}
             />
 
             {/* Emergency contact num */}
-            <div className="col-span-6">
+            <div className="col-span-6 min-w-0">
                 <label className={`block text-[11px] font-semibold tracking-widest uppercase mb-1.5
                     ${errors.emergencyNumber 
                     ? "text-red-500" : "text-[#6B4050]"}`}>
                     Emergency Contact Number
                 </label>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 min-w-0">
                     <div className="border border-[#6B0F2B3E] rounded-xl px-3 py-3 text-sm text-gray-600 flex items-center">
                         +63
                     </div>
@@ -143,7 +143,7 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
                         }}
                         placeholder="9XXXXXXXXXX"
                         maxLength={10}
-                        className={`flex-1 border rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-gray-300 focus:outline-none focus:ring-2 transition
+                        className={`min-w-0 flex-1 border rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-gray-300 focus:outline-none focus:ring-2 transition
                             ${errors.emergencyNumber
                                 ? "border-red-400 focus:ring-red-200 focus:border-red-400"
                                 : "border-[#6B0F2B3E] focus:ring-[#C9973A]/40 focus:border-[#C9973A]"
@@ -164,14 +164,13 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
                 placeholder="facebook.com"
                 className="col-span-12"
             />
-
-            {/* Continue button */}
-            {/* nireuse ko lang ung button component*/}
-            <div className="flex items-center justify-between mt-5">
-                <Button onClick={handleNext} variant="primary" size="lg">
-                    Continue
-                </Button>
-            </div>
+        </div>
+        {/* Continue button */}
+        {/* nireuse ko lang ung button component*/}
+        <div className="col-span-12 flex items-center justify-between mt-5">
+            <Button onClick={handleNext} variant="primary" size="lg">
+                Continue
+            </Button>
         </div>
         </>
     )
