@@ -35,6 +35,14 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
 
     return (
         <>
+        {/* Headers */}
+        <h2 className="text-2xl sm:text-3xl font-bold text-[#1A0008] mb-1">
+            Create your Account
+        </h2>
+        <p className="text-sm text-[#9A7080] mb-6">
+            Let's start with your basic information. We've pre-filled your Google details.
+        </p>
+
         {/* Google pre-fill notice */}
         <div className="flex items-center gap-3 bg-[#6B0F2B1F] border border-[#6B0F2B1A] rounded-xl px-4 py-3 mb-7">
             {/* Google "G" logo */}

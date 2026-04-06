@@ -93,14 +93,6 @@ export default function SignUpForm() {
             />
           </div>
 
-          {/* Headers */}
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#1A0008] mb-1">
-            Create your Account
-          </h2>
-          <p className="text-sm text-[#9A7080] mb-6">
-            Let's start with your basic information. We've pre-filled your Google details.
-          </p>
-
           {/* Form fields */}
           {step === 1 && (
             <PersonalInfo 
