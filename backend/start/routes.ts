@@ -66,6 +66,7 @@ router.group(() => {
         // Fees & Payments
         // router.get('/my-fees', [controllers.Fees, 'index'])
         // router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
+        // router.get('/my-payments', [controllers.Payments, 'getStudentPaymentHistory'])
     }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
