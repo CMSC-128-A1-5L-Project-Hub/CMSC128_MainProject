@@ -83,13 +83,13 @@ const IconChevronRight = ({ className = "w-3.5 h-3.5" }: { className?: string })
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
   </svg>
-);
+); // ito 'yung arrow >
 
 const IconChevronDown = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
   </svg>
-);
+); // ito 'yung dropdown papalitan since ayaw ni Marcus
 
 const IconMoreHorizontal = ({ className = "w-[18px] h-[18px]" }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
