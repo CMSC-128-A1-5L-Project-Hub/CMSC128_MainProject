@@ -8,7 +8,7 @@ import casLogo from "../../assets/logos/cas.png";
 import icsLogo from "../../assets/logos/ics.png";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const NAV_LINKS  = ["HOME", "ABOUT", "FEATURES", "SUPPORT"] as const;
+const NAV_LINKS  = ["HOME", "ABOUT", "FEATURES", "RECOMMENDED", "SUPPORT"] as const;
 const QUICK_TAGS = ["WiFi", "Furnished", "Air-con", "Transient", "Near Library", "Laundry"];
 const MIN_PRICE  = 2500;
 const MAX_PRICE  = 10000;
@@ -120,15 +120,21 @@ function MobileDrawer({ open, onClose, activeNav, setActiveNav }: {
           {NAV_LINKS.map((link, i) => (
             <button
               key={link}
-              onClick={() => {
+                onClick={() => {
                 setActiveNav(link);
                 onClose();
-                if (link === "ABOUT") {
-                  setTimeout(() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" }), 350);
-                } else if (link === "HOME") {
-                  setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 350);
+                if (link === "HOME") {
+                    setTimeout(() => document.getElementById("home")?.scrollIntoView({ behavior: "smooth" }), 350);
+                } else if (link === "ABOUT") {
+                    setTimeout(() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" }), 350);
+                } else if (link === "FEATURES") {
+                    setTimeout(() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" }), 350);
+                } else if (link === "RECOMMENDED") {
+                    setTimeout(() => document.getElementById("recommended")?.scrollIntoView({ behavior: "smooth" }), 350);
+                } else if (link === "SUPPORT") {
+                    setTimeout(() => document.getElementById("support")?.scrollIntoView({ behavior: "smooth" }), 350);
                 }
-              }}
+                }}
               style={{
                 display: "flex", alignItems: "center", width: "100%", padding: "14px 24px",
                 background: activeNav === link ? "rgba(255,255,255,0.10)" : "transparent",
@@ -467,17 +473,20 @@ export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
   const [activeNav, setActiveNav] = useState("HOME");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false); // Default to false (desktop)
   const [semesterLabel, setSemesterLabel] = useState("Now Accepting Applications · AY 2025–2026");
   const [isAboutVisible, setIsAboutVisible] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
+  
+  // Check mobile status immediately and on resize
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 768);
-    check();
+    check(); // Run immediately
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
+  
   useEffect(() => { if (isMobile === false) setDrawerOpen(false); }, [isMobile]);
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? "hidden" : "";
@@ -499,38 +508,37 @@ export default function LandingPage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const sections = [
+      { id: "home",     nav: "HOME"     },
+      { id: "about",    nav: "ABOUT"    },
+      { id: "features", nav: "FEATURES" },
+      { id: "recommended", nav: "RECOMMENDED"},
+      { id: "support",  nav: "SUPPORT"  },
+    ];
 
+    const observers: IntersectionObserver[] = [];
 
-useEffect(() => {
-  const sections = [
-    { id: "home",     nav: "HOME"     },
-    { id: "about",    nav: "ABOUT"    },
-    { id: "features", nav: "FEATURES" },
-    { id: "support",  nav: "SUPPORT"  },
-  ];
+    sections.forEach(({ id, nav }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
 
-  const observers: IntersectionObserver[] = [];
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setActiveNav(nav);
+            setIsAboutVisible(nav !== "HOME");
+          }
+        },
+        { threshold: 0.3 }
+      );
 
-  sections.forEach(({ id, nav }) => {
-    const el = document.getElementById(id);
-    if (!el) return;
+      observer.observe(el);
+      observers.push(observer);
+    });
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setActiveNav(nav);
-          setIsAboutVisible(nav !== "HOME");
-        }
-      },
-      { threshold: 0.3 }
-    );
-
-    observer.observe(el);
-    observers.push(observer);
-  });
-
-  return () => observers.forEach(o => o.disconnect());
-}, []);
+    return () => observers.forEach(o => o.disconnect());
+  }, []);
 
   const fu = (delay: number): React.CSSProperties => ({
     opacity: mounted ? 1 : 0,
@@ -619,63 +627,69 @@ useEffect(() => {
 
       <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} activeNav={activeNav} setActiveNav={setActiveNav} />
 
-      <div className="hero-root" id ="home">
+      <div className="hero-root" id="home">
         <div className="bg-grid" />
         <Particles />
 
-        {/* Desktop Nav */}
-        <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "18px 48px", opacity: isMobile === true ? 0 : 1, transform: isMobile === true ? "translateY(-8px)" : "translateY(0)", pointerEvents: isMobile === true ? "none" : "all", transition: "opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1)" }}>
-        <div
-          className="nav-pill"
-          style={{
-            background: isAboutVisible
-              ? "linear-gradient(135deg, rgba(240,225,230,0.82) 0%, rgba(255,255,255,0.75) 50%, rgba(220,200,210,0.82) 100%)"
-              : "rgba(255,255,255,0.08)",
-            border: isAboutVisible
-              ? "1px solid rgba(255,255,255,0.9)"
-              : "1px solid rgba(255,255,255,0.14)",
-            boxShadow: isAboutVisible
-              ? "0 4px 24px rgba(140,21,53,0.12), inset 0 1px 0 rgba(255,255,255,0.8)"
-              : "none",
-          }}
-        >
-          {NAV_LINKS.map(link => (
-            <button
-              key={link}
-              className={`nav-item${activeNav === link ? " active" : ""}`}
+        {/* Desktop Nav - only show when NOT mobile */}
+        {!isMobile && (
+          <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "18px 48px" }}>
+            <div
+              className="nav-pill"
               style={{
-                color: activeNav === link
-                  ? "#fff"
-                  : isAboutVisible
-                    ? "rgba(80,20,35,0.7)"
-                    : "rgba(255,255,255,0.6)",
+                background: isAboutVisible
+                  ? "linear-gradient(135deg, rgba(240,225,230,0.82) 0%, rgba(255,255,255,0.75) 50%, rgba(220,200,210,0.82) 100%)"
+                  : "rgba(255,255,255,0.08)",
+                border: isAboutVisible
+                  ? "1px solid rgba(255,255,255,0.9)"
+                  : "1px solid rgba(255,255,255,0.14)",
+                boxShadow: isAboutVisible
+                  ? "0 4px 24px rgba(140,21,53,0.12), inset 0 1px 0 rgba(255,255,255,0.8)"
+                  : "none",
               }}
-              onClick={() => {
-                setActiveNav(link);
-                if (link === "ABOUT") document.getElementById("about")?.scrollIntoView({ behavior: "smooth" });
-                else if (link === "FEATURES") document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
-                else if (link === "HOME") document.getElementById("home")?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >{link}</button>
-          ))}
-        </div>
-          <button
-            className="sign-in-btn"
-            style={{ position: "absolute", right: 48 }}
-            onClick={() => { window.location.href = "http://localhost:3333/auth/google/redirect"; }}
-          >Sign In →</button>
-        </nav>
+            >
+              {NAV_LINKS.map(link => (
+                <button
+                  key={link}
+                  className={`nav-item${activeNav === link ? " active" : ""}`}
+                  style={{
+                    color: activeNav === link
+                      ? "#fff"
+                      : isAboutVisible
+                        ? "rgba(80,20,35,0.7)"
+                        : "rgba(255,255,255,0.6)",
+                  }}
+                  onClick={() => {
+                    setActiveNav(link);
+                    if (link === "ABOUT") document.getElementById("about")?.scrollIntoView({ behavior: "smooth" });
+                    else if (link === "FEATURES") document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+                    else if (link === "RECOMMENDED") document.getElementById("recommended")?.scrollIntoView({ behavior: "smooth" });
+                    else if (link === "SUPPORT") document.getElementById("support")?.scrollIntoView({ behavior: "smooth" });
+                    else if (link === "HOME") document.getElementById("home")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >{link}</button>
+              ))}
+            </div>
+            <button
+              className="sign-in-btn"
+              style={{ position: "absolute", right: 48 }}
+              onClick={() => { window.location.href = "http://localhost:3333/auth/google/redirect"; }}
+            >Sign In →</button>
+          </nav>
+        )}
 
-        {/* Mobile Nav */}
-        <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", opacity: isMobile === false ? 0 : 1, transform: isMobile === false ? "translateY(-8px)" : "translateY(0)", pointerEvents: isMobile === false ? "none" : "all", transition: "opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1)" }}>
-          <button className="hamburger-btn" onClick={() => setDrawerOpen(o => !o)}>
-            <HamburgerIcon open={drawerOpen} />
-          </button>
-          <button
-            className="sign-in-btn"
-            onClick={() => { window.location.href = "http://localhost:3333/auth/google/redirect"; }}
-          >Sign In →</button>
-        </nav>
+        {/* Mobile Nav - only show on mobile */}
+        {isMobile && (
+          <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px" }}>
+            <button className="hamburger-btn" onClick={() => setDrawerOpen(o => !o)}>
+              <HamburgerIcon open={drawerOpen} />
+            </button>
+            <button
+              className="sign-in-btn"
+              onClick={() => { window.location.href = "http://localhost:3333/auth/google/redirect"; }}
+            >Sign In →</button>
+          </nav>
+        )}
 
         {/* Hero Content */}
         <div className="hero-content">
@@ -709,7 +723,7 @@ useEffect(() => {
           >Browse Rooms →</button>
 
           <div className="search-wrapper" style={fu(0.64)}>
-            <SearchBar isMobile={isMobile ?? false} />
+            <SearchBar isMobile={isMobile} />
           </div>
         </div>
       </div>

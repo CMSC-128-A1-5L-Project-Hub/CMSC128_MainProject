@@ -649,10 +649,10 @@ export default function Dashboard() {
                   ))}
                 </div>
                 <button
-                  onClick={() => { window.location.href = "/map"; }}
-                  className="text-[#7D1128] text-sm font-semibold hover:underline flex items-center gap-1"
+                onClick={() => { window.location.href = "/map"; }}
+                className="w-full bg-[#7D1128] text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1 hover:bg-[#6a0e22] transition-colors shadow-sm"
                 >
-                  View Interactive Map <IconChevronRight />
+                    View Interactive Map <IconChevronRight />
                 </button>
               </div>
             </div>
