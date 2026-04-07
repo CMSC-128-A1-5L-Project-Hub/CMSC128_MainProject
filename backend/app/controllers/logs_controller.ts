@@ -29,4 +29,22 @@ export default class LogsController {
 
     return serialize(logs)
   }
+
+  static async logAuthActivity(user: any, activityType: 'logged_in' | 'logged_out') {
+    try {
+      const timestamp = new Date().toISOString()
+
+      await Log.create({
+        actorId: user.id,
+        entityType: 'account',
+        entityId: user.id,
+        activityType: activityType,
+        activityDetails: `${user.username} ${
+          activityType === 'logged_in' ? 'logged into' : 'logged out of'
+        } the website at ${timestamp}`,
+      })
+    } catch (error) {
+      console.error('Failed to log auth activity:', error)
+    }
+  }
 }
