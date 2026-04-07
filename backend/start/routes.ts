@@ -7,7 +7,6 @@ import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 import { ROLES } from '../app/constants/roles.ts'
-import ProvisioningService from '../app/services/provisioning_service.js'
 import AutoSwagger from 'adonis-autoswagger'
 import swagger from '#config/swagger'
 
@@ -20,11 +19,12 @@ router.get('/', () => {
 | PUBLIC ROUTES (Guest-Accessible)
 |--------------------------------------------------------------------------
 */
+
 router.group(() => {
   router.get('/auth/google/redirect', [controllers.Auth, 'redirect'])
   router.get('/auth/google/callback', [controllers.Auth, 'callback'])
-
-  // Map Viewer Data (Active for Frontend!)
+  
+  // Map Viewer Data
   router.get('/accommodations', [controllers.Accommodation, 'index'])
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
 
@@ -57,10 +57,12 @@ router
         // router.get('/applications/my-applications', [controllers.Applications, 'index'])
         // router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         // router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
+        
         // Bookmarks & Reviews
         // router.post('/accommodations/:id/bookmarks', [controllers.Bookmarks, 'toggle'])
         // router.get('/my-bookmarks', [controllers.Bookmarks, 'index'])
         // router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
+        
         // Fees & Payments
         // router.get('/my-fees', [controllers.Fees, 'index'])
         // router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
@@ -112,13 +114,20 @@ router
     // ====================================================================
     router
       .group(() => {
+        // User Verifications
         router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
         router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
-
+        
+        // System Settings (Academic Year & Semester Updates)
+        router.get('/admin/settings', [controllers.AdminSettings, 'index']) 
+        router.put('/admin/settings', [controllers.AdminSettings, 'update'])
+        
         // System Logs
-        router.get('/logs', [controllers.Logs, 'index'])
+        // Fixed: Mapped properly to the Logs controller
+        router.get('/admin/logs', [controllers.Logs, 'index'])
       })
-      .use(middleware.role([ROLES.SUPER_ADMIN]))
+      .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
+
   })
   .use(middleware.auth())
 

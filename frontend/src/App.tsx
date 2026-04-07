@@ -1,24 +1,36 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import MapPage from './pages/MapPage'
-import AuthSuccess from './pages/AuthSuccess';
-import SetupPage from './pages/SetupPage';
-import LoginPage from './pages/LoginPage'
-import AccommodationTestPage from './pages/AccommTestPage';
-import ApplicationTestPage from './pages/ApplicationTestPage';
-import AdminTestPage from './pages/AdminTestPage';
+import React from "react"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import SignIn from "./pages/shared/SignIn"
+import SignUp from "./pages/shared/SignUp"
+import SignUpForm from "./pages/shared/SignUpForm"
+import StudentDashboard from "./pages/student/Dashboard"
+import LandingPage from "./pages/shared/Landingpage"
+import AboutSection from "./pages/shared/Aboutsection"
+import FeaturesSection from "./pages/shared/Featuresection"
+import InteractiveMap from "./pages/MapPage"
+
+
+function FullLandingPage() {
+  return (
+    <>
+      <LandingPage />
+      <AboutSection />
+      <FeaturesSection />
+    </>
+  );
+}
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/map" element={<MapPage />} />
-        <Route path="/auth/success" element={<AuthSuccess />} />
-        <Route path="/setup" element={<SetupPage />} />
-        <Route path="/" element={<LoginPage />} />
-
-        <Route path="/test/accommodations" element={<AccommodationTestPage />} />
-        <Route path="/test/applications" element={<ApplicationTestPage />} />
-        <Route path="/test/admin" element={<AdminTestPage />} />
+        {/* Sign In Route */}
+        <Route path="/auth/signin" element={<SignIn/>}/>
+        <Route path="/auth/signup" element={<SignUp/>}/>
+        <Route path="/auth/signup/form" element={<SignUpForm/>}/>
+        <Route path="/studentDashboard" element={<StudentDashboard/>}/>
+        <Route path="/landingpage" element={<FullLandingPage />} /> 
+        <Route path="/map" element={<InteractiveMap />} />
       </Routes>
     </BrowserRouter>
   )
