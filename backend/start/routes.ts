@@ -7,7 +7,6 @@ import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 import { ROLES } from '../app/constants/roles.ts'
-import ProvisioningService from '../app/services/provisioning_service.js'
 import AutoSwagger from 'adonis-autoswagger'
 import swagger from '#config/swagger'
 
@@ -20,11 +19,12 @@ router.get('/', () => {
 | PUBLIC ROUTES (Guest-Accessible)
 |--------------------------------------------------------------------------
 */
+
 router.group(() => {
   router.get('/auth/google/redirect', [controllers.Auth, 'redirect'])
   router.get('/auth/google/callback', [controllers.Auth, 'callback'])
-
-  // Map Viewer Data (Active for Frontend!)
+  
+  // Map Viewer Data
   router.get('/accommodations', [controllers.Accommodation, 'index'])
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
 
@@ -37,10 +37,11 @@ router.group(() => {
 | PROTECTED API ROUTES (Requires Auth)
 |--------------------------------------------------------------------------
 */
-router.group(() => {
+router
+  .group(() => {
     // ─── SUCCESSFUL LOGIN/SIGNUP ───
     router.get('/me', [controllers.Auth, 'me'])
-    
+
     // ─── USER ONBOARDING ───
     router.get('/setup', [controllers.Setups, 'show'])
     router.post('/setup', [controllers.Setups, 'store'])
@@ -49,71 +50,86 @@ router.group(() => {
     // ====================================================================
     // ─── STUDENT ROUTES ───
     // ====================================================================
-    router.group(() => {
+    router
+      .group(() => {
         // Application & Stay
         // router.post('/applications', [controllers.Applications, 'store'])
         // router.get('/applications/my-applications', [controllers.Applications, 'index'])
         // router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         // router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
-
+        
         // Bookmarks & Reviews
         // router.post('/accommodations/:id/bookmarks', [controllers.Bookmarks, 'toggle'])
         // router.get('/my-bookmarks', [controllers.Bookmarks, 'index'])
         // router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
-
+        
         // Fees & Payments
         // router.get('/my-fees', [controllers.Fees, 'index'])
         // router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
-    }).use(middleware.role([ROLES.STUDENT]))
+      })
+      .use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
     // ─── LANDLORD EXCLUSIVE ROUTES ───
     // ====================================================================
-    router.group(() => {
-        // Reporting & Analytics 
-        // router.get('/reports/revenue', [controllers.Reports, 'revenue'])
-        // router.get('/reports/delinquency', [controllers.Reports, 'delinquency'])
-    }).use(middleware.role([ROLES.LANDLORD]))
+    router
+      .group(() => {
+        // Reporting & Analytics
+        router.get('/reports/revenue', [controllers.Reports, 'revenue'])
+        router.get('/reports/delinquency', [controllers.Reports, 'delinquency'])
+      })
+      .use(middleware.role([ROLES.LANDLORD]))
 
     // ====================================================================
     // ─── SHARED MANAGER & LANDLORD ROUTES ───
     // ====================================================================
-    router.group(() => {
-        // Application Review 
+    router
+      .group(() => {
+        // Application Review
         router.get('/applications/incoming', [controllers.Application, 'incoming'])
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
 
-        // Room Management 
+        // Room Management
         // router.get('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'index'])
         // router.post('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'store'])
         // router.put('/rooms/:id', [controllers.Rooms, 'update'])
         // router.delete('/rooms/:id', [controllers.Rooms, 'destroy'])
 
-        // Room Assignments & Move-outs 
+        // Room Assignments & Move-outs
         // router.post('/assignments', [controllers.Assignments, 'store'])
         // router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
 
-        // Payment Verification 
+        // Payment Verification
         // router.get('/payments/pending', [controllers.Payments, 'pending'])
         // router.patch('/payments/:id/verify', [controllers.Payments, 'verify'])
 
         // Reports
-        // router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
-        // router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
-    }).use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
+        router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
+        router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
+      })
+      .use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
 
     // ====================================================================
     // ─── ADMIN / SUPER_ADMIN ───
     // ====================================================================
-    router.group(() => {
+    router
+      .group(() => {
+        // User Verifications
         router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
         router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
         
+        // System Settings (Academic Year & Semester Updates)
+        router.get('/admin/settings', [controllers.AdminSettings, 'index']) 
+        router.put('/admin/settings', [controllers.AdminSettings, 'update'])
+        
         // System Logs
-        // router.get('/logs', [controllers.Logs, 'index']) 
-    }).use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
+        // Fixed: Mapped properly to the Logs controller
+        router.get('/admin/logs', [controllers.Logs, 'index'])
+      })
+      .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
 
-}).use(middleware.auth())
+  })
+  .use(middleware.auth())
 
 /*
 |--------------------------------------------------------------------------

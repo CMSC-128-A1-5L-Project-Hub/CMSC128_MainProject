@@ -15,6 +15,7 @@ export default class extends BaseSchema {
       table.integer('biking_distance').nullable()
       table.integer('driving_distance').nullable()
       table.enum('accommodation_type', ['on-campus', 'off-campus', 'partner_housing']).notNullable()
+      table.enum('status', ['pending', 'verified', 'rejected']).nullable() // change this to notNullable in the final version
       table.integer('accommodation_capacity').notNullable()
       table.enum('tenant_restriction', ['male-only', 'female-only', 'coed']).notNullable()
       table.date('application_start_date').notNullable()

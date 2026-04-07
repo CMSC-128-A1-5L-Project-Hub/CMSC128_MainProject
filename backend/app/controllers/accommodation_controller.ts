@@ -52,19 +52,19 @@ export default class AccommodationController {
 
     if (min_rent) {
       query.whereHas('rooms', (q) => {
-        q.where('room_rent', '>=', Number(min_rent))
+        q.where('rent', '>=', Number(min_rent))
       })
     }
 
     if (max_rent) {
       query.whereHas('rooms', (q) => {
-        q.where('room_rent', '<=', Number(max_rent))
+        q.where('rent', '<=', Number(max_rent))
       })
     }
 
     if (stay_type && stay_type !== 'all') {
       query.whereHas('rooms', (q) => {
-        q.where('room_stay_type', stay_type)
+        q.where('stay_type', stay_type)
       })
     }
 
@@ -72,12 +72,26 @@ export default class AccommodationController {
 
     return response.ok({
       status: 200,
-      data: accommodations.map((acc) => ({
-        ...acc.serialize(),
-        minRent: acc.rooms.length > 0 ? Math.min(...acc.rooms.map((r) => r.roomRent)) : 0,
-        maxRent: acc.rooms.length > 0 ? Math.max(...acc.rooms.map((r) => r.roomRent)) : 0,
-        imageUrl: acc.images[0]?.file?.filePath ?? null,
-      }))
+      data: accommodations.map((acc) => {
+        const currentTenants = acc.rooms.reduce((sum, room) => {
+          return sum + (room.roomCurrentOccupancy ?? 0)
+        }, 0)
+
+        const totalRoomCapacity = acc.rooms.reduce((sum, room) => {
+          return sum + (room.roomCapacity ?? 0)
+        }, 0)
+
+        const vacantSlots = Math.max(totalRoomCapacity - currentTenants, 0)
+
+        return {
+          ...acc.serialize(),
+          minRent: acc.rooms.length > 0 ? Math.min(...acc.rooms.map((r) => r.roomRent)) : 0,
+          maxRent: acc.rooms.length > 0 ? Math.max(...acc.rooms.map((r) => r.roomRent)) : 0,
+          imageUrl: acc.images[0]?.file?.filePath ?? null,
+          current_tenants: currentTenants,
+          vacant_slots: vacantSlots,
+        }
+      }),
     })
   }
 
@@ -133,8 +147,8 @@ export default class AccommodationController {
       !application_end_date ||
       !manager_id ||
       !business_permit_id ||
-      !latitude ||
-      !longitude
+      latitude === undefined ||
+      longitude === undefined
     ) {
       return response.badRequest({
         status: 400,
