@@ -80,6 +80,12 @@ router
       })
       .use(middleware.role([ROLES.LANDLORD]))
 
+      // Manager Handover
+        //router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])
+        //router.post('/landlord/accommodations/:id/unfreeze', [controllers.ManagerHandover, 'unfreeze'])
+        //router.get('/landlord/accommodations/:id/freeze-status', [controllers.ManagerHandover, 'status'])
+
+
     // ====================================================================
     // ─── SHARED MANAGER & LANDLORD ROUTES ───
     // ====================================================================
