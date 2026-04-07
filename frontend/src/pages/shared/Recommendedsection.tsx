@@ -371,7 +371,7 @@ export default function ResidenceCarousel() {
             }}
           >
             Experience Only the{" "}
-            <em className="text-[#8B1A2E] not-italic">Best</em>
+            <em className="text-[#8B1A2E] italic">Best</em>
           </h2>
 
           <p 
