@@ -1,11 +1,7 @@
-<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_2525_251)">
-<path d="M0.5 12.2499V1.74994C0.5 1.48472 0.605357 1.23037 0.792893 1.04283C0.98043 0.855293 1.23478 0.749936 1.5 0.749936H5.19C5.41843 0.743281 5.64226 0.815069 5.82421 0.95335C6.00615 1.09163 6.13525 1.28806 6.19 1.50994L6.5 2.74994H12.5C12.7652 2.74994 13.0196 2.85529 13.2071 3.04283C13.3946 3.23037 13.5 3.48472 13.5 3.74994V12.2499C13.5 12.5152 13.3946 12.7695 13.2071 12.957C13.0196 13.1446 12.7652 13.2499 12.5 13.2499H1.5C1.23478 13.2499 0.98043 13.1446 0.792893 12.957C0.605357 12.7695 0.5 12.5152 0.5 12.2499Z" fill="white"/>
-<path d="M0.5 12.2499V1.74994C0.5 1.48472 0.605357 1.23037 0.792893 1.04283C0.98043 0.855293 1.23478 0.749936 1.5 0.749936H5.19C5.41843 0.743281 5.64226 0.815069 5.82421 0.95335C6.00615 1.09163 6.13525 1.28806 6.19 1.50994L6.5 2.74994H12.5C12.7652 2.74994 13.0196 2.85529 13.2071 3.04283C13.3946 3.23037 13.5 3.48472 13.5 3.74994V12.2499C13.5 12.5152 13.3946 12.7695 13.2071 12.957C13.0196 13.1446 12.7652 13.2499 12.5 13.2499H1.5C1.23478 13.2499 0.98043 13.1446 0.792893 12.957C0.605357 12.7695 0.5 12.5152 0.5 12.2499Z" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-<defs>
-<clipPath id="clip0_2525_251">
-<rect width="14" height="14" fill="white"/>
-</clipPath>
-</defs>
-</svg>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff">
+<g id="SVGRepo_bgCarrier" stroke-width="0"/>
+<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="SVGRepo_iconCarrier"> <path d="M20.5 11.3V7.04001C20.5 3.01001 19.56 2 15.78 2H8.22C4.44 2 3.5 3.01001 3.5 7.04001V18.3C3.5 20.96 4.96001 21.59 6.73001 19.69L6.73999 19.68C7.55999 18.81 8.80999 18.88 9.51999 19.83L10.53 21.18" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18.2 21.4C19.9673 21.4 21.4 19.9673 21.4 18.2C21.4 16.4327 19.9673 15 18.2 15C16.4327 15 15 16.4327 15 18.2C15 19.9673 16.4327 21.4 18.2 21.4Z" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M22 22L21 21" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/> <path opacity="0.4" d="M8 7H16" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/> <path opacity="0.4" d="M9 11H15" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/> </g>
+</svg>

@@ -365,14 +365,14 @@ const DesktopSidebar = () => {
 
   const topItems = [
     { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" /> },
-    { id: "search",       icon: <SearchIcon      className="w-[18px] h-[18px]" /> },
-    { id: "applications", icon: <ApplicationIcon className="w-[18px] h-[18px]" /> },
-    { id: "documents",    icon: <DocumentIcon    className="w-[18px] h-[18px]" /> },
+    { id: "search",       icon: <SearchIcon      className="w-[21px] h-[21px]" /> },
+    { id: "applications", icon: <ApplicationIcon className="w-[26px] h-[26px]" /> },
+    { id: "documents",    icon: <DocumentIcon    className="w-[20px] h-[20px]" /> },
   ];
 
   const bottomItems = [
-    { id: "account", icon: <ProfileIcon className="w-[18px] h-[18px]" /> },
-    { id: "logout",  icon: <LogoutIcon  className="w-[18px] h-[18px]" /> },
+    { id: "account", icon: <ProfileIcon className="w-[22px] h-[22px]" /> },
+    { id: "logout",  icon: <LogoutIcon  className="w-[23px] h-[23px]" /> },
   ];
 
   return (
