@@ -1,5 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import RoomService from '#services/room_services'
+import RoomService from '#services/room_service'
 import { createRoomValidator, updateRoomValidator } from '#validators/room'
 
 export default class RoomsController {
