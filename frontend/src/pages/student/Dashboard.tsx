@@ -365,14 +365,14 @@ const DesktopSidebar = () => {
 
   const topItems = [
     { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" /> },
-    { id: "search",       icon: <SearchIcon      className="w-[18px] h-[18px]" /> },
-    { id: "applications", icon: <ApplicationIcon className="w-[18px] h-[18px]" /> },
-    { id: "documents",    icon: <DocumentIcon    className="w-[18px] h-[18px]" /> },
+    { id: "search",       icon: <SearchIcon      className="w-[21px] h-[21px]" /> },
+    { id: "applications", icon: <ApplicationIcon className="w-[26px] h-[26px]" /> },
+    { id: "documents",    icon: <DocumentIcon    className="w-[20px] h-[20px]" /> },
   ];
 
   const bottomItems = [
-    { id: "account", icon: <ProfileIcon className="w-[18px] h-[18px]" /> },
-    { id: "logout",  icon: <LogoutIcon  className="w-[18px] h-[18px]" /> },
+    { id: "account", icon: <ProfileIcon className="w-[22px] h-[22px]" /> },
+    { id: "logout",  icon: <LogoutIcon  className="w-[23px] h-[23px]" /> },
   ];
 
   return (
@@ -428,89 +428,117 @@ interface BillingSectionProps {
 }
 
 const BillingSection = ({ overview, statements }: BillingSectionProps) => (
-  <div className="space-y-4">
+  <div className="space-y-5">
 
     {/* Section header with due-date badge */}
     <div className="flex items-start justify-between">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${CLR.dark}14` }}>
-          <IconDocument className="w-[18px] h-[18px]" />
+        <div
+          className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+          style={{ background: `${CLR.mid}12`, color: CLR.mid }}
+        >
+          <IconDocument className="w-5 h-5" />
         </div>
         <div>
-          <p className="font-bold text-gray-900 text-sm leading-tight">Billing &amp; Payments</p>
-          <p className="text-gray-400 text-xs">{overview.residenceHall}</p>
+          <p className="font-bold text-gray-900 text-[15px] leading-tight">Billing &amp; Payments</p>
+          <p className="text-gray-400 text-sm">{overview.residenceHall}</p>
         </div>
       </div>
+
       {/* Next-due date stamp */}
-      <div className="text-center text-white rounded-lg px-2.5 py-1.5 flex-shrink-0" style={{ background: CLR.mid }}>
-        <p className="text-lg font-bold leading-none">{overview.dueDay}</p>
-        <p className="text-[10px] leading-none mt-0.5 opacity-80">{overview.dueMonth}</p>
+      <div className="bg-[#F7EFF2] text-center rounded-2xl px-3 py-2 flex-shrink-0">
+        <p className="text-[28px] font-bold leading-none" style={{ color: CLR.mid }}>{overview.dueDay}</p>
+        <p className="text-[12px] leading-none mt-1 font-semibold" style={{ color: CLR.mid }}>{overview.dueMonth}</p>
       </div>
     </div>
 
     {/* Current rent summary */}
-    <div className="bg-gray-50 rounded-2xl p-4">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+    <div className="bg-[#F7F1F3] rounded-3xl p-5 border border-[#EFE3E8]">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <div>
-            <p className="font-bold text-gray-900 text-sm">{overview.summaryTitle}</p>
+
+          <div className="min-w-0">
+            <p className="font-bold text-gray-900 text-[15px]">{overview.summaryTitle}</p>
             <p className="text-gray-400 text-xs">Paid on {overview.paidOn} · ₱{overview.amountPaid.toLocaleString()}.00</p>
-            <span
-              className="inline-block mt-1 text-xs font-semibold px-2.5 py-0.5 rounded-full"
-              style={{ background: `${CLR.mid}18`, color: CLR.mid }}
-            >
+
+            <span className="inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full bg-[#DCEADF] text-green-700">
               Next due: {overview.nextDue}
             </span>
           </div>
         </div>
-        <p className="font-bold text-gray-900 text-sm whitespace-nowrap">
-          ₱{overview.monthlyRent.toLocaleString()} <span className="text-gray-400 font-normal text-xs">/ month</span>
+
+        <p className="font-bold text-gray-900 text-[17px] whitespace-nowrap">
+          ₱{overview.monthlyRent.toLocaleString()} <span className="text-gray-400 font-normal text-sm">/ month</span>
         </p>
       </div>
     </div>
 
+    <div className="h-px bg-[#EADDE2]" />
+
     {/* Payment progress bar */}
     <div>
-      <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Payment Progress</p>
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-        {/* Full-width gradient bar indicates fully paid */}
+      <p className="text-[11px] font-bold tracking-widest uppercase text-[#A07B86] mb-3">Payment Progress</p>
+
+      <div className="w-full h-2.5 bg-[#E9E1E4] rounded-full overflow-hidden">
         <div
-          className="h-2 rounded-full"
+          className="h-2.5 rounded-full relative"
           style={{ width: `${overview.progressPercent}%`, background: `linear-gradient(90deg, ${CLR.mid}, ${CLR.gold})` }}
-        />
+        >
+          <div
+            className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-2 border-white shadow-sm"
+            style={{ background: CLR.gold }}
+          />
+        </div>
       </div>
-      <div className="flex justify-between mt-1.5">
-        <span className="text-xs text-gray-500">₱{overview.remainingAmount.toLocaleString()} remaining</span>
-        <span className="text-xs text-gray-500">₱{overview.totalPaid.toLocaleString()} / ₱{overview.totalDue.toLocaleString()} paid</span>
+
+      <div className="flex justify-between mt-2">
+        <span className="text-sm font-semibold" style={{ color: CLR.mid }}>
+          ₱{overview.remainingAmount.toLocaleString()} remaining
+        </span>
+        <span className="text-sm text-gray-400">
+          ₱{overview.totalPaid.toLocaleString()} / ₱{overview.totalDue.toLocaleString()} paid
+        </span>
       </div>
     </div>
 
+    <div className="h-px bg-[#EADDE2]" />
+
     {/* Billing history list */}
     <div>
-      <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-3">Billing History</p>
-      <div className="space-y-2.5">
-        {statements.map((b) => (
+      <p className="text-[11px] font-bold tracking-widest uppercase text-[#A07B86] mb-4">Billing History</p>
+
+      <div className="space-y-3">
+        {statements.map((b, index) => (
           <div
             key={b.label}
-            className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 hover:border-gray-200 transition-colors cursor-pointer"
+            className={`flex items-center gap-3 p-4 rounded-2xl bg-[#F8F1F4] border border-[#EFE5E8] ${
+              index === 0 ? "shadow-[0_6px_14px_rgba(61,7,24,0.12)]" : ""
+            }`}
           >
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${CLR.dark}10` }}>
-              <IconHouse className="w-3.5 h-3.5" />
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: CLR.mid, color: "#fff" }}
+            >
+              <IconHouse className="w-4 h-4" />
             </div>
+
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-800 truncate">{b.label}</p>
-              <p className={`text-xs font-medium ${b.status === "Paid" ? "text-green-500" : "text-red-500"}`}>{b.status}</p>
+              <p className="text-[15px] font-semibold text-gray-800 truncate">{b.label}</p>
+              <p className={`text-sm font-semibold ${b.status === "Paid" ? "text-green-600" : "text-red-500"}`}>
+                {b.status}
+              </p>
             </div>
           </div>
         ))}
       </div>
+
       <button
-        className="w-full mt-4 text-sm font-semibold hover:underline flex items-center justify-center gap-1"
+        className="w-full mt-5 text-[15px] font-semibold hover:underline flex items-center justify-center gap-1"
         style={{ color: CLR.mid }}
       >
         View all billing statements <IconChevronRight />
@@ -528,55 +556,79 @@ interface DesktopProfilePanelProps {
 }
 
 const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePanelProps) => (
-  <aside
-    className="hidden lg:flex w-80 xl:w-[320px] flex-shrink-0 flex-col overflow-y-auto"
-    style={{ background: `linear-gradient(160deg, ${CLR.dark} 0%, ${CLR.mid} 100%)` }}
-  >
-    {/* Profile header */}
-    <div className="px-6 pt-6 pb-5 flex-shrink-0">
-      <div className="flex items-center justify-between mb-5">
-        <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">My Profile</span>
+  <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4]">
+
+    {/* Profile section */}
+    <div
+      className="rounded-b-[30px] px-7 pt-6 pb-6 shadow-[0_10px_24px_rgba(61,7,24,0.18)]"
+      style={{ background: `linear-gradient(160deg, ${CLR.dark} 0%, ${CLR.mid} 100%)` }}
+    >
+      {/* Profile header */}
+      <div className="flex items-center justify-between mb-6">
+        <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
+
         {/* Notification bell with gold dot indicator */}
-        <button className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors relative" style={{ background: "rgba(255,255,255,0.1)" }}>
-          <IconBell className="w-[18px] h-[18px]" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: CLR.gold }} />
+        <button
+          className="w-11 h-11 rounded-2xl flex items-center justify-center text-white transition-colors relative border border-white/10"
+          style={{ background: "rgba(255,255,255,0.10)" }}
+        >
+          <IconBell className="w-500 h-500" />
+          <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full" style={{ background: CLR.gold }} />
         </button>
       </div>
 
       {/* Avatar + name */}
       <div className="flex items-center gap-4">
         <div className="relative flex-shrink-0">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)" }}>
-            <IconUser className="w-7 h-7 text-white/60" />
+          <div
+            className="w-20 h-20 rounded-full bg-white flex items-center justify-center border-4 shadow-md"
+            style={{ borderColor: CLR.gold }}
+          >
+            <IconUser className="w-10 h-10 text-gray-300" />
           </div>
-          <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-400 border-2" style={{ borderColor: CLR.mid }} />
+
+          <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
         </div>
-        <div>
-          <p className="text-white font-bold text-base leading-tight">{profile.fullName}</p>
-          <p className="text-xs font-semibold mt-0.5" style={{ color: CLR.goldLt }}>{profile.course} · {profile.campus}</p>
-          <p className="text-white/50 text-xs">{profile.email}</p>
-          <p className="text-white/50 text-xs">{profile.phone}</p>
+
+        <div className="min-w-0">
+          <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
+          <p className="text-[15px] font-bold leading-tight mt-1" style={{ color: CLR.goldLt }}>
+            {profile.course} · {profile.campus}
+          </p>
+          <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
+          <p className="text-white/70 text-sm">{profile.phone}</p>
         </div>
       </div>
 
-      {/* Student details grid */}
-      <div className="grid grid-cols-4 gap-2 mt-5 rounded-xl p-3" style={{ background: "rgba(255,255,255,0.1)" }}>
+      {/* Student details row */}
+      <div className="mt-6 grid grid-cols-4 gap-4">
         {[
-          { label: "Student No.", value: profile.studentNo           },
-          { label: "College",     value: profile.college             },
-          { label: "Year Level",  value: profile.yearLevel           },
+          { label: "Student No.", value: profile.studentNo },
+          { label: "College",     value: profile.college   },
+          { label: "Year Level",  value: profile.yearLevel },
           { label: "Status",      value: profile.status, green: true },
         ].map((item) => (
-          <div key={item.label} className="text-center">
-            <p className="text-white/40 text-[9px] font-bold uppercase tracking-wide leading-tight mb-1">{item.label}</p>
-            <p className={`text-xs font-bold leading-tight ${item.green ? "text-green-400" : "text-white"}`}>{item.value}</p>
+          <div key={item.label}>
+            <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
+
+            {item.green ? (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
+                {item.value}
+              </span>
+            ) : (
+              <p className="text-white text-[15px] font-bold leading-tight">{item.value}</p>
+            )}
           </div>
         ))}
       </div>
     </div>
 
-    {/* Billing panel — white card on top of the gradient */}
-    <div className="flex-1 bg-white rounded-t-3xl px-6 pt-6 pb-8 overflow-y-auto">
+    {/* Billing section */}
+    <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
       <BillingSection overview={billing} statements={statements} />
     </div>
   </aside>
@@ -596,7 +648,7 @@ export default function Dashboard() {
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans">
+    <div className="flex min-h-screen bg-[#F6F2F4] font-sans">
 
       {/* ── Sidebar (desktop only) ── */}
       <DesktopSidebar />
@@ -608,7 +660,7 @@ export default function Dashboard() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* Top bar */}
-        <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-5 pb-3 lg:pt-7 lg:pb-2 sticky top-0 z-30 bg-gray-50">
+        <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-5 pb-3 lg:pt-7 lg:pb-2 sticky top-0 z-30 bg-[#F6F2F4]">
           <div className="flex items-center gap-3">
             {/* Hamburger — mobile only */}
             <button
