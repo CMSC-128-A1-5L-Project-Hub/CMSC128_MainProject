@@ -2,13 +2,14 @@ import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import ProvisioningService from '#services/provisioning_service'
 import NotificationService from '#services/notification_service'
-import logs_controller from './logs_controller'
+import LogService from '#services/log_service'
 
 @inject()
 export default class AuthController {
   constructor(
     protected provisioningService: ProvisioningService,
-    protected notificationService: NotificationService
+    protected notificationService: NotificationService,
+    protected logService: LogService
   ) {}
 
   // STEP 1: Redirect user to Google login screen
@@ -39,7 +40,7 @@ export default class AuthController {
     // Log the user in
     await auth.use('web').login(user)
 
-    await logs_controller.logAuthActivity(user, 'logged_in')
+    await this.logService.logAuthActivity(user, 'logged_in')
 
     // Redirect to frontend link and let them deal with the role-based redirect lol
     return response.redirect('http://localhost:5173/auth/success')

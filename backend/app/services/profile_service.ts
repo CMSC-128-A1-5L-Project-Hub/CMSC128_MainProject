@@ -11,6 +11,9 @@ import drive from '@adonisjs/drive/services/main'
 export default class ProfileService {
   async setupProfile(user: User, validatedData: any) {
 
+    user.accountStatus = 'pending'
+    await user.save()
+    
     await PhoneNumber.create({
       userId: user.id,
       contactNumber: validatedData.phone_number,

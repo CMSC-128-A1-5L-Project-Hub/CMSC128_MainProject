@@ -19,7 +19,7 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
         if (otp.some(digit => digit === "")) newErrors.otp = "Please enter the complete 6-digit code"
 
         setErrors(newErrors)
-        if (Object.keys(newErrors).length === 0) navigate("/studentDashboard")
+        if (Object.keys(newErrors).length === 0) navigate("/pending-verification")
     }
 
     const handlePrev = () => prevStep()
