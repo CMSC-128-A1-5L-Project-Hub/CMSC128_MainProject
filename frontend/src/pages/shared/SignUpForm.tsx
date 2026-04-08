@@ -74,22 +74,22 @@ export default function SignUpForm() {
     <div className="min-h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden lg:items-stretch">
       {/* Left side (BG + Branding) */}
       <section className="w-full lg:w-[38%] xl:w-1/3 order-1 lg:order-1 relative h-[35vh] lg:h-screen overflow-hidden flex-shrink-0">
-        <div className="absolute inset-0 z-10 p-6 flex flex-row lg:flex-col gap-1 lg:gap-0 justify-between lg:justify-start">
+        <div className="absolute inset-0 z-10 p-6 flex flex-col gap-1 lg:gap-0 justify-between lg:justify-start">
           
           {/* Left col: logo + text */}
-          <div className="flex flex-col justify-center min-w-0 w-[62%] lg:w-[100%]">
+          <div className="flex flex-col justify-center min-w-0 w-[100%] ml-2">
             <Logo color="white" />
             <h1 className="font-serif font-bold text-4xl lg:text-5xl text-white leading-tight mt-4 lg:mt-10">
               Get Started with{" "}
               <span className="italic text-[#E8C37A] font-serif font-bold">UBLE.</span>
             </h1>
-            <p className="text-white opacity-55 text-sm lg:text-base leading-relaxed mt-4 break-words">
+            <p className="text-white opacity-55 text-sm lg:text-base leading-relaxed mt-1 lg:mt-4 break-words">
               Find, apply, and move into your perfect UPLB dorm — all in one place.
             </p>
           </div>
 
           {/* Right col: step indicator (mobile only), full width on desktop */}
-          <div className="flex flex-col justify-center items-start flex-shrink-0 w-[40%] lg:w-full lg:mt-6 flex-shrink-0 border border-red-500">
+          <div className="flex flex-col justify-center items-start flex-shrink-0 w-full lg:mt-6 flex-shrink-0">
             <StepIndicator currentStep={step} />
           </div>
 
@@ -104,7 +104,7 @@ export default function SignUpForm() {
 
       {/* Right side (Form) */}
       <section className="flex-1 order-2 lg:order-2 flex items-center justify-center bg-white px-6 sm:px-10 py-10 lg:py-0 overflow-y-auto">
-        <div className="w-full max-w-2xl">
+        <div className="w-full max-w-3xl">
           {/* Step label */}
           <div className="flex items-center gap-2 mb-5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#C9973A]" />
@@ -155,8 +155,6 @@ export default function SignUpForm() {
               />
             )}
           </div>
-
-          {/* in progress pa ung steps 2 at 3 */}
         </div>
       </section>
     </div>
