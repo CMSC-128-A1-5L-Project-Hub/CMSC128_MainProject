@@ -135,7 +135,7 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
                         className={`
                             w-full aspect-square max-w-[56px] text-center text-xl font-bold rounded-2xl border-2 focus:outline-none focus-ring-2 transition
                             ${digit
-                                ? "border-[#6B0F2B] text-[#6B0F2B] focus:ring-[#C9973A]/40"
+                                ? "border-[#6B0F2B] text-[#6B0F2B] focus:ring-[#C9973A]/40 bg-gradient-to-b from-[#FDF5F7] to-[#F5ECF0]"
                                 : "border-[#6B0F2B3E] text-[#6B0F2B] focu:ring-[#C9973A]/40 focus:border-[#C9973A]"
                             }    
                         `}
