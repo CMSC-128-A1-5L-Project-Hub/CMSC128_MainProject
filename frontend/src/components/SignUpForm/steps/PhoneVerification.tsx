@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../Button";
 
-{/* TODO: Mobile ver + otp handling + validation */}
+{/* TODO: actual otp handling */}
 
 export default function PhoneVerification({ data, setData, prevStep}: any) {
     const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
@@ -63,7 +63,7 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
 
         <div className="grid grid-cols-12 gap-4">
             <div className="col-span-12">
-
+                {/* Phone number field */}
                 <label className={`block text-[11px] font-semibold tracking-widest uppercase mb-1.5
                     ${errors.phoneNumber 
                     ? "text-red-500" : "text-[#6B4050]"}`}>
@@ -94,19 +94,24 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
                         />
                     </div>
 
+                    {/* Error label (for desktop) */}
                     {errors.phoneNumber && (
                         <p className="sm:hidden text-red-500 text-[10px]">{errors.phoneNumber}</p>
                     )}
 
+                    {/* Request code button */}
                     <Button onClick={handleOTP} variant="primary" size="lg" className="w-auto flex-shrink-0">
                         Request Code
                     </Button>
                 </div>
+
+                {/* Error label (for mobile) */}
                 {errors.phoneNumber && (
                     <p className="hidden sm:block text-red-500 text-[10px] mt-1">{errors.phoneNumber}</p>
                 )}
             </div>
 
+            {/* Sending OTP label */}
             <div className="col-span-12 bg-[#EDD8DE] rounded-3xl px-4 py-2.5 border border-[#6B0F2B1A] lg:w-fit">
                 <p className="text-sm text-[#9A7080]">
                     Sending OTP to:{" "}
@@ -114,6 +119,7 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
                 </p>
             </div>
 
+            {/* OTP fields */}
             <p className="col-span-12 uppercase text-xs font-bold text-[#6B4050] mt-2">
                 OTP Verification
             </p>
@@ -142,12 +148,14 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
                     />
                 ))}
             </div>
+            {/* Error label for OTP fields */}
             {errors.otp && (
                 <p className="col-span-12 text-red-500 text-[10px] -mt-3">
                     {errors.otp}
                 </p>
             )}
 
+            {/* Resend OTP */}
             <p className="col-span-12 text-sm -mt-3 text-[#9A7080]">
                 Didn't receive a code?{" "}
                 <span className="text-[#6B0F2B] font-bold cursor-pointer hover:underline">
@@ -155,6 +163,7 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
                 </span>
             </p>
             
+            {/* OTP reminder */}
             <div className="col-span-12 sm:col-span-8 bg-[#FAF4F6] rounded-xl p-3 border border-[#6B0F2BA] -mt-2">
                 <p className="text-xs text-[#9A7080]">
                     🔒 Your OTP is valid for 5 minutes. Do not share it with anyone.

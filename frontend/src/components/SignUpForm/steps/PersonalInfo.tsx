@@ -3,6 +3,8 @@ import FormSelect from "../shared/FormSelect";
 import Button from "../../Button";
 import { useState } from "react";
 
+{/* TODO: Implement role-based form */}
+
 export default function PersonalInfo({ data, setData, nextStep }: any) {
     //custom errors per field (if applicable)
     const [errors, setErrors] = useState<Record<string,string>>({})
@@ -55,6 +57,11 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
         </div>
 
         {/* Form fields */}
+        {/*
+            NOTES:
+                If manager, wala na ung gender and emergency contact. No added fields
+                If landlord, walang emergency contact and gender. Add TIN field
+        */}
         <div className="grid grid-cols-12 gap-4">
             <FormField 
                 label="First Name"
@@ -150,7 +157,7 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
                             }`}
                     />
                 </div>
-
+                {/* Error label */}
                 {errors.emergencyNumber && (
                     <p className="text-red-500 text-[10px] mt-1">{errors.emergencyNumber}</p>
                 )}

@@ -28,6 +28,8 @@ type SignUpFormData = {
     phoneNumber: string
 }
 
+{/* TODO: role-based forms */}
+
 export default function SignUpForm() {
   //for step tracking (progress bar)
   const [step, setStep] = useState(1)
@@ -36,6 +38,7 @@ export default function SignUpForm() {
   const [visible, setVisible] = useState(true)
 
   //form data
+  //ung initialized fields should come from google (for testing purposes palang ung initial stuff)
   const [formData, setFormData ] = useState<SignUpFormData>({
     firstName: "Test",
     lastName: "Test",
