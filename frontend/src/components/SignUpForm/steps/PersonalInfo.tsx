@@ -122,7 +122,7 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
 
             {/* Emergency contact num */}
             <div className="col-span-6 min-w-0">
-                <label className={`block text-[11px] font-semibold tracking-widest uppercase mb-1.5
+                <label className={`block text-[11px] font-semibold lg:tracking-widest tracking-wider uppercase mb-1.5
                     ${errors.emergencyNumber 
                     ? "text-red-500" : "text-[#6B4050]"}`}>
                     Emergency Contact Number

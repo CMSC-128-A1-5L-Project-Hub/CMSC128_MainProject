@@ -77,13 +77,14 @@ export default function FileUpload({
                 </p>
             </div>
 
+            {/* babaguhin pa siguro to since masyadong truncated ung file name */}
             {value ? (
-                <div className="flex items-center gap-1.5 text-xs text-[#6B0F2B] bg-[#6B0F2B]/10 px-3 py-1.5 rounded-full">
-                    <Paperclip className="w-3 h-3"/>
-                    <span className="max-w-[160px] truncate">{value.name}</span>
+                <div className="flex items-center gap-1.5 text-xs text-[#6B0F2B] bg-[#6B0F2B]/10 px-3 py-1.5 rounded-full max-w-full mi-w-0">
+                    <Paperclip className="w-3 h-3 flex-shrink-0"/>
+                    <span className="min-w-0 flex-1 truncate">{value.name}</span>
                     <button
                         onClick={(e) => {e.preventDefault(); onChange(null)}}
-                        className="ml-1 hover:text-red-500 transition"
+                        className="ml-1 hover:text-red-500 transition flex-shrink-0"
                     >
                         X
                     </button>

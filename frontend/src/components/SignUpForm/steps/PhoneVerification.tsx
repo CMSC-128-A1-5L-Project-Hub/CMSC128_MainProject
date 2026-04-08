@@ -1,20 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import FormField from "../shared/FormField";
 import Button from "../../Button";
 
 {/* TODO: Mobile ver + otp handling + validation */}
 
 export default function PhoneVerification({ data, setData, prevStep}: any) {
+    const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
+    const otpRefs = useRef<(HTMLInputElement | null)[]>([])
     const [errors, setErrors] = useState<Record<string,string>>({})
     const navigate = useNavigate()
-
-    const handleChange = (e:any) => {
-        setData({
-            ...data,
-            [e.target.name]: e.target.value
-        })
-    }
 
     const handleNext = () => {
         const newErrors: Record<string,string> = {}
@@ -22,6 +16,7 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
         if(!data.phoneNumber) newErrors.phoneNumber = "This field is required"
 
         {/* OTP error handling here */}
+        if (otp.some(digit => digit === "")) newErrors.otp = "Please enter the complete 6-digit code"
 
         setErrors(newErrors)
         if (Object.keys(newErrors).length === 0) navigate("/studentDashboard")
@@ -29,10 +24,32 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
 
     const handlePrev = () => prevStep()
 
-    {/* OTP validation here */}
-    const handleOTP = () => {
+    {/* OTP input handling */}
+    const handleOTPChange = (index: number, val: string) => {
+        if (!/^\d?$/.test(val)) return
+        const next = [...otp]
+        next[index] = val
+        setOtp(next)
+        setData({
+            ...data,
+            otp: next.join("")
+        })
 
+        if (val && index < 5) otpRefs.current[index + 1]?.focus()
     }
+
+    {/* For when the user deletes or uses backspace */}
+    {/* Expected behavior: focused input moves to previous input field 
+        assuming that prev exists    
+    */}
+    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+        if (e.key === "Backspace" && !otp[index] && index > 0){
+            otpRefs.current[index-1]?.focus()
+        }
+    }
+
+    {/* OTP verification here */}
+    const handleOTP = () => {}
 
     return (
         <>
@@ -45,48 +62,53 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
         </p>
 
         <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-7">
+            <div className="col-span-12">
+
                 <label className={`block text-[11px] font-semibold tracking-widest uppercase mb-1.5
                     ${errors.phoneNumber 
                     ? "text-red-500" : "text-[#6B4050]"}`}>
                     Phone Number
                 </label>
 
-                <div className="flex gap-2 min-w-0">
-                    <div className="border border-[#6B0F2B3E] rounded-xl px-3 py-3 text-sm text-gray-600 flex items-center">
-                        +63
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex gap-2 flex-1">
+                        <div className="border border-[#6B0F2B3E] rounded-xl px-4 py-3 text-sm text-gray-600 flex items-center flex-shrink-0">
+                            +63
+                        </div>
+
+                        <input
+                            type="tel"
+                            name="phoneNumber"
+                            value={data.phoneNumber}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, "")
+                                setData({ ...data, phoneNumber: val })
+                            }}
+                            placeholder="9XXXXXXXXXX"
+                            maxLength={10}
+                            className={`flex-1 min-w-0 border rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-gray-300 focus:outline-none focus:ring-2 transition
+                                ${errors.phoneNumber
+                                    ? "border-red-400 focus:ring-red-200 focus:border-red-400"
+                                    : "border-[#6B0F2B3E] focus:ring-[#C9973A]/40 focus:border-[#C9973A]"
+                                }`}
+                        />
                     </div>
 
-                    <input
-                        type="tel"
-                        name="phoneNumber"
-                        value={data.phoneNumber}
-                        onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, "")
-                            setData({ ...data, phoneNumber: val })
-                        }}
-                        placeholder="9XXXXXXXXXX"
-                        maxLength={10}
-                        className={`min-w-0 flex-1 border rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-gray-300 focus:outline-none focus:ring-2 transition
-                            ${errors.phoneNumber
-                                ? "border-red-400 focus:ring-red-200 focus:border-red-400"
-                                : "border-[#6B0F2B3E] focus:ring-[#C9973A]/40 focus:border-[#C9973A]"
-                            }`}
-                    />
-                </div>
+                    {errors.phoneNumber && (
+                        <p className="sm:hidden text-red-500 text-[10px]">{errors.phoneNumber}</p>
+                    )}
 
+                    <Button onClick={handleOTP} variant="primary" size="lg" className="w-auto flex-shrink-0">
+                        Request Code
+                    </Button>
+                </div>
                 {errors.phoneNumber && (
-                    <p className="text-red-500 text-[10px] mt-1">{errors.phoneNumber}</p>
+                    <p className="hidden sm:block text-red-500 text-[10px] mt-1">{errors.phoneNumber}</p>
                 )}
             </div>
-            <div className="col-span-5 flex items-center mt-5">
-                <Button onClick={handleOTP} variant="primary" size="lg">
-                    Request Code
-                </Button>
-            </div>
 
-            <div className="col-span-5 bg-[#EDD8DE] rounded-3xl p-2 border border-[#6B0F2B1A] mt-1">
-                <p className="text-sm text-[#9A7080] px-2">
+            <div className="col-span-12 bg-[#EDD8DE] rounded-3xl px-4 py-2.5 border border-[#6B0F2B1A] lg:w-fit">
+                <p className="text-sm text-[#9A7080]">
                     Sending OTP to:{" "}
                     <span className="ml-0.5 text-[#6B0F2B] font-bold">+63{data.phoneNumber.length == 10 ? data.phoneNumber:"XXXXXXXXXX"}</span>
                 </p>
@@ -99,55 +121,32 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
                 Enter the 6-digit code sent to your phone.
             </p>
 
-            {/* Temp otp field */}
-            <FormField 
-                name="otp-1"
-                value={data.otp}
-                onChange={handleChange}
-                placeholder=""
-                maxLength={1}
-                className="col-span-1 -mt-4"
-            />
-            <FormField 
-                name="otp-2"
-                value={data.otp}
-                onChange={handleChange}
-                placeholder=""
-                maxLength={1}
-                className="col-span-1 -mt-4"
-            />
-            <FormField 
-                name="otp-3"
-                value={data.otp}
-                onChange={handleChange}
-                placeholder=""
-                maxLength={1}
-                className="col-span-1 -mt-4"
-            />
-            <FormField 
-                name="otp-4"
-                value={data.otp}
-                onChange={handleChange}
-                placeholder=""
-                maxLength={1}
-                className="col-span-1 -mt-4"
-            />
-            <FormField 
-                name="otp-5"
-                value={data.otp}
-                onChange={handleChange}
-                placeholder=""
-                maxLength={1}
-                className="col-span-1 -mt-4"
-            />
-            <FormField 
-                name="otp-6"
-                value={data.otp}
-                onChange={handleChange}
-                placeholder=""
-                maxLength={1}
-                className="col-span-1 -mt-4"
-            />
+            <div className="col-span-12 flex gap-2 sm:gap-3 -mt-2">
+                {otp.map((digit, i) => (
+                    <input 
+                        key={i}
+                        ref={el => {otpRefs.current[i] = el as HTMLInputElement | null}}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={e => handleOTPChange(i, e.target.value)}
+                        onKeyDown={e => handleOtpKeyDown(i, e)}
+                        className={`
+                            w-full aspect-square max-w-[56px] text-center text-xl font-bold rounded-2xl border-2 focus:outline-none focus-ring-2 transition
+                            ${digit
+                                ? "border-[#6B0F2B] text-[#6B0F2B] focus:ring-[#C9973A]/40"
+                                : "border-[#6B0F2B3E] text-[#6B0F2B] focu:ring-[#C9973A]/40 focus:border-[#C9973A]"
+                            }    
+                        `}
+                    />
+                ))}
+            </div>
+            {errors.otp && (
+                <p className="col-span-12 text-red-500 text-[10px] -mt-3">
+                    {errors.otp}
+                </p>
+            )}
 
             <p className="col-span-12 text-sm -mt-3 text-[#9A7080]">
                 Didn't receive a code?{" "}
@@ -156,7 +155,7 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
                 </span>
             </p>
             
-            <div className="col-span-8 bg-[#FAF4F6] rounded-xl p-3 border border-[#6B0F2BA] -mt-2">
+            <div className="col-span-12 sm:col-span-8 bg-[#FAF4F6] rounded-xl p-3 border border-[#6B0F2BA] -mt-2">
                 <p className="text-xs text-[#9A7080]">
                     🔒 Your OTP is valid for 5 minutes. Do not share it with anyone.
                 </p>
@@ -166,10 +165,10 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
         {/* Nav buttons */}
         <div className="flex items-center justify-between mt-5">
             <Button onClick={handlePrev} variant="secondary" size="lg">
-                Back 
+                ← Back 
             </Button>
             <Button onClick={handleNext} variant="primary" size="lg">
-                Continue
+                Verify & Continue
             </Button>
         </div>
         </>
