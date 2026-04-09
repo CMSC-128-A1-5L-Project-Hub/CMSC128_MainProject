@@ -66,15 +66,15 @@ export default class ProfileService {
 
       // Save to the 'students' table
       const student = await Student.create({
-        studentNumber: validatedData.studentNumber,
+        studentNumber: validatedData.student_number,   // was studentNumber
         userId: user.id,
         enrollmentProofFileId: enrollmentProofFileId,
         college: validatedData.college,
-        degreeProgram: validatedData.degreeProgram,
+        degreeProgram: validatedData.degree_program,   // was degreeProgram
         gender: validatedData.gender,
-
-        emergencyContactName: validatedData.emergencyContactName,
-        emergencyContactNumber: validatedData.emergencyContactNumber,
+        
+        emergencyContactName: validatedData.emergency_contact_name,   // was emergencyContactName
+        emergencyContactNumber: validatedData.emergency_contact_number, // was emergencyContactNumber
       })
 
       return {

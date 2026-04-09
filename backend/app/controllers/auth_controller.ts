@@ -40,7 +40,7 @@ export default class AuthController {
     // Log the user in
     await auth.use('web').login(user)
 
-    await this.logService.logAuthActivity(user, 'logged_in')
+    await LogService.logAuthActivity(user, 'logged_in')
 
     // Redirect to frontend link and let them deal with the role-based redirect lol
     return response.redirect('http://localhost:5173/auth/success')

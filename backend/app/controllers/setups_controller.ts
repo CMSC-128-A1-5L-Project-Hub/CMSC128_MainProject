@@ -20,7 +20,7 @@ export default class SetupController {
   async store({ request, auth, serialize }: HttpContext) {
     const user = auth.user as User
     try {
-      const validatedData = await setupProfileValidator.validate(request.all())
+      const validatedData = await request.validateUsing(setupProfileValidator)
       const result = await this.profileService.setupProfile(user, validatedData)
       return serialize({ message: 'Success', data: result })
     } catch (error) {
