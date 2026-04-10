@@ -61,6 +61,7 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
             Authenticate your phone to help us verify that your number exists.
         </p>
 
+        {/* gagawin ko pa tong component */}
         <div className="grid grid-cols-12 gap-4">
             <div className="col-span-12">
                 {/* Phone number field */}

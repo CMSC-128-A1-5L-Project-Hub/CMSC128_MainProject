@@ -1,5 +1,6 @@
 import FormField from "../shared/FormField";
 import FormSelect from "../shared/FormSelect";
+import PhoneNumber from "../shared/PhoneNumber";
 import Button from "../../Button";
 import { useState } from "react";
 
@@ -127,41 +128,15 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
                 error={errors.emergencyName}
             />
 
-            {/* Emergency contact num */}
-            <div className="col-span-6 min-w-0">
-                <label className={`block text-[11px] font-semibold lg:tracking-widest tracking-wider uppercase mb-1.5
-                    ${errors.emergencyNumber 
-                    ? "text-red-500" : "text-[#6B4050]"}`}>
-                    Emergency Contact Number
-                </label>
-
-                <div className="flex gap-2 min-w-0">
-                    <div className="border border-[#6B0F2B3E] rounded-xl px-3 py-3 text-sm text-gray-600 flex items-center">
-                        +63
-                    </div>
-
-                    <input
-                        type="tel"
-                        name="emergencyNumber"
-                        value={data.emergencyNumber}
-                        onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, "")
-                            setData({ ...data, emergencyNumber: val })
-                        }}
-                        placeholder="9XXXXXXXXXX"
-                        maxLength={10}
-                        className={`min-w-0 flex-1 border rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-gray-300 focus:outline-none focus:ring-2 transition
-                            ${errors.emergencyNumber
-                                ? "border-red-400 focus:ring-red-200 focus:border-red-400"
-                                : "border-[#6B0F2B3E] focus:ring-[#C9973A]/40 focus:border-[#C9973A]"
-                            }`}
-                    />
-                </div>
-                {/* Error label */}
-                {errors.emergencyNumber && (
-                    <p className="text-red-500 text-[10px] mt-1">{errors.emergencyNumber}</p>
-                )}
-            </div>
+            {/* Emergency Phone Number */}
+            <PhoneNumber 
+                label="Emergency Contact Number"
+                name="emergencyNumber"
+                value={data.emergencyNumber}
+                onChange={handleChange}
+                className="col-span-6 min-w-0"
+                error={errors.emergencyNumber}
+            />
 
             <FormField 
                 label="Facebook Link"
