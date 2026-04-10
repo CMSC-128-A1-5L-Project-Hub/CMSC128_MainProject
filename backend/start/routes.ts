@@ -9,6 +9,7 @@ import { controllers } from '#generated/controllers'
 import { ROLES } from '../app/constants/roles.ts'
 import AutoSwagger from 'adonis-autoswagger'
 import swagger from '#config/swagger'
+import AccommodationController from '#controllers/accommodation_controller'
 
 router.get('/', () => {
   return { status: 'USAT API is running - Sprint 03 Launch' }
@@ -112,6 +113,12 @@ router
         // Reports
         router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
         router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
+
+        // Document Zip Export (Backblaze)
+        router.get('/accommodations/:id/export-documents', [
+          AccommodationController,
+          'exportDocuments',
+        ])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
 
