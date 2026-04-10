@@ -53,19 +53,19 @@ router
     router
       .group(() => {
         // Application & Stay
-        // router.post('/applications', [controllers.Applications, 'store'])
-        // router.get('/applications/my-applications', [controllers.Applications, 'index'])
-        // router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
-        // router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
+        router.post('/applications', [controllers.Application, 'store'])
+        router.get('/applications/my-applications', [controllers.Application, 'index'])
+        router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
+        router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
         
         // Bookmarks & Reviews
-        // router.post('/accommodations/:id/bookmarks', [controllers.Bookmarks, 'toggle'])
-        // router.get('/my-bookmarks', [controllers.Bookmarks, 'index'])
-        // router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
+        router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
+        router.get('/my-bookmarks', [controllers.Bookmark, 'index'])
+        router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
         
         // Fees & Payments
-        // router.get('/my-fees', [controllers.Fees, 'index'])
-        // router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
+        router.get('/my-fees', [controllers.Fees, 'index'])
+        router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
       })
       .use(middleware.role([ROLES.STUDENT]))
 
@@ -81,9 +81,9 @@ router
       .use(middleware.role([ROLES.LANDLORD]))
 
       // Manager Handover
-        //router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])
-        //router.post('/landlord/accommodations/:id/unfreeze', [controllers.ManagerHandover, 'unfreeze'])
-        //router.get('/landlord/accommodations/:id/freeze-status', [controllers.ManagerHandover, 'status'])
+        router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])
+        router.post('/landlord/accommodations/:id/unfreeze', [controllers.ManagerHandover, 'unfreeze'])
+        router.get('/landlord/accommodations/:id/freeze-status', [controllers.ManagerHandover, 'status'])
 
 
     // ====================================================================
@@ -96,18 +96,18 @@ router
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
 
         // Room Management
-        // router.get('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'index'])
-        // router.post('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'store'])
-        // router.put('/rooms/:id', [controllers.Rooms, 'update'])
-        // router.delete('/rooms/:id', [controllers.Rooms, 'destroy'])
+        router.get('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'index'])
+        router.post('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'store'])
+        router.put('/rooms/:id', [controllers.Rooms, 'update'])
+        router.delete('/rooms/:id', [controllers.Rooms, 'destroy'])
 
         // Room Assignments & Move-outs
-        // router.post('/assignments', [controllers.Assignments, 'store'])
-        // router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
+        router.post('/assignments', [controllers.Assignments, 'store'])
+        router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
 
         // Payment Verification
-        // router.get('/payments/pending', [controllers.Payments, 'pending'])
-        // router.patch('/payments/:id/verify', [controllers.Payments, 'verify'])
+        router.get('/payments/pending', [controllers.Payments, 'pending'])
+        router.patch('/payments/:id/verify', [controllers.Payments, 'verify'])
 
         // Reports
         router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
