@@ -13,21 +13,22 @@ import AcademicDetails from "../../components/SignUpForm/steps/AcademicDetails"
 import PhoneVerification from "../../components/SignUpForm/steps/PhoneVerification"
 
 type SignUpFormData = {
-    firstName: string
-    lastName: string
-    suffix?: string
-    email: string
-    gender: string
-    emergencyName: string
-    emergencyNumber: string
-    facebook: string
-    college: string
-    course: string
-    studentNumber: string
-    standing: string
-    form5: File | null
-    other: File | null
-    phoneNumber: string
+  firstName: string
+  lastName: string
+  suffix?: string
+  email: string
+  gender: string
+  emergencyName: string
+  emergencyNumber: string
+  facebook: string
+  college: string
+  course: string       // maps to degree_program on submit
+  studentNumber: string
+  standing: string
+  form5: File | null
+  other: File | null
+  phoneNumber: string
+  role: 'student' | 'landlord'  // add this
 }
 
 {/* TODO: role-based forms */}
@@ -56,6 +57,7 @@ export default function SignUpForm() {
     form5: null,
     other: null,
     phoneNumber: "",
+    role: 'student'
   })
 
   // ─── 1. FETCH GOOGLE DATA ON LOAD ───
@@ -84,37 +86,27 @@ export default function SignUpForm() {
   const submitForm = async () => {
     setIsSubmitting(true)
     try {
-      // Use FormData for Files
       const payload = new FormData()
-      
-      // Append standard text fields
-      payload.append('first_name', formData.firstName)
-      payload.append('last_name', formData.lastName)
-      payload.append('suffix', formData.suffix || "")
+
+      payload.append('role', 'student') // hardcoded until role selector is built
+      payload.append('phone_number', '0' + formData.phoneNumber)
       payload.append('gender', formData.gender)
       payload.append('emergency_contact_name', formData.emergencyName)
       payload.append('emergency_contact_number', formData.emergencyNumber)
-      payload.append('facebook_link', formData.facebook)
       payload.append('college', formData.college)
-      payload.append('course', formData.course)
-      payload.append('student_number', formData.studentNumber)
-      payload.append('academic_standing', formData.standing)
-      payload.append('phone_number', formData.phoneNumber)
+      payload.append('degree_program', formData.course)      // renamed
+      payload.append('student_number', formData.studentNumber) // renamed
+      payload.append('facebook_link', formData.facebook)     // drop or keep as extra
 
-      // Append files ONLY if they exist
-      if (formData.form5) payload.append('form5', formData.form5)
-      if (formData.other) payload.append('other', formData.other)
+      // form5 must be sent as an array 
+      if (formData.form5) payload.append('form5[]', formData.form5)
+      if (formData.other) payload.append('form5[]', formData.other) // treat 'other' as second enrollment proof
 
-      // Send to AdonisJS Setup Controller
       await api.post('/setup', payload, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
 
-      // Redirect to pending verification on success
       navigate('/pending-verification')
-
     } catch (error) {
       console.error("Failed to finish setup:", error)
       alert("Failed to submit form. Please check your connection and try again.")
