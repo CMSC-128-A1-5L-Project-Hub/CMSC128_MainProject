@@ -6,6 +6,7 @@ import SeeMoreModal from "../../components/SeeMoreModal";
 import uplbLogo from "../../assets/logos/uplb.png";
 import casLogo from "../../assets/logos/cas.png";
 import icsLogo from "../../assets/logos/ics.png";
+import { useNavigate } from "react-router-dom";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const NAV_LINKS  = ["HOME", "ABOUT", "FEATURES", "RECOMMENDED", "SUPPORT"] as const;
@@ -86,8 +87,10 @@ function HamburgerIcon({ open }: { open: boolean }) {
 
 // ─── Mobile Drawer ────────────────────────────────────────────────────────────
 function MobileDrawer({ open, onClose, activeNav, setActiveNav }: {
+  
   open: boolean; onClose: () => void; activeNav: string; setActiveNav: (l: string) => void;
 }) {
+  const navigate = useNavigate();
   return (
     <>
       <div
@@ -150,7 +153,7 @@ function MobileDrawer({ open, onClose, activeNav, setActiveNav }: {
         </nav>
         <div style={{ padding: "20px 24px", borderTop: "1px solid rgba(255,255,255,0.08)", position: "relative", zIndex: 2, opacity: open ? 1 : 0, transition: `opacity 0.38s ease ${open ? 0.42 : 0}s` }}>
           <button
-            onClick={() => { window.location.href = "http://localhost:3333/auth/google/redirect"; }}
+            onClick={() => navigate("/auth/signin")}
             className="w-full py-3 rounded-xl border-none cursor-pointer text-[13px] font-bold text-white"
             style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", background: "linear-gradient(135deg,#C9973A,#a07825)" }}
           >Sign In →</button>
@@ -470,6 +473,7 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
 
 // ─── Landing Page ─────────────────────────────────────────────────────────────
 export default function LandingPage() {
+  const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [activeNav, setActiveNav] = useState("HOME");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -673,7 +677,7 @@ export default function LandingPage() {
             <button
               className="sign-in-btn"
               style={{ position: "absolute", right: 48 }}
-              onClick={() => { window.location.href = "http://localhost:3333/auth/google/redirect"; }}
+              onClick={() => navigate("/auth/signin")}
             >Sign In →</button>
           </nav>
         )}
@@ -686,7 +690,7 @@ export default function LandingPage() {
             </button>
             <button
               className="sign-in-btn"
-              onClick={() => { window.location.href = "http://localhost:3333/auth/google/redirect"; }}
+              onClick={() => navigate("/auth/signin")}
             >Sign In →</button>
           </nav>
         )}
