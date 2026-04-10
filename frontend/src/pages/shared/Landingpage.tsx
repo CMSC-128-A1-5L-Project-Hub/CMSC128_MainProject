@@ -86,9 +86,10 @@ function HamburgerIcon({ open }: { open: boolean }) {
 }
 
 // ─── Mobile Drawer ────────────────────────────────────────────────────────────
-function MobileDrawer({ open, onClose, activeNav, setActiveNav }: {
-  
+function MobileDrawer({ open, onClose, activeNav, setActiveNav, scrollTo }: {
   open: boolean; onClose: () => void; activeNav: string; setActiveNav: (l: string) => void;
+  scrollTo: (id: string, nav: string) => void;
+
 }) {
   const navigate = useNavigate();
   return (
@@ -124,19 +125,15 @@ function MobileDrawer({ open, onClose, activeNav, setActiveNav }: {
             <button
               key={link}
                 onClick={() => {
-                setActiveNav(link);
-                onClose();
-                if (link === "HOME") {
-                    setTimeout(() => document.getElementById("home")?.scrollIntoView({ behavior: "smooth" }), 350);
-                } else if (link === "ABOUT") {
-                    setTimeout(() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" }), 350);
-                } else if (link === "FEATURES") {
-                    setTimeout(() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" }), 350);
-                } else if (link === "RECOMMENDED") {
-                    setTimeout(() => document.getElementById("recommended")?.scrollIntoView({ behavior: "smooth" }), 350);
-                } else if (link === "SUPPORT") {
-                    setTimeout(() => document.getElementById("support")?.scrollIntoView({ behavior: "smooth" }), 350);
-                }
+                  onClose();
+                  const map: Record<"HOME" | "ABOUT" | "FEATURES" | "RECOMMENDED" | "SUPPORT", string> = {
+                    HOME: "home",
+                    ABOUT: "about",
+                    FEATURES: "features",
+                    RECOMMENDED: "recommended",
+                    SUPPORT: "support",
+                  };
+                  scrollTo(map[link], link);
                 }}
               style={{
                 display: "flex", alignItems: "center", width: "100%", padding: "14px 24px",
@@ -474,12 +471,20 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
 // ─── Landing Page ─────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate();
+  const isScrollingRef = useRef(false); 
   const [mounted, setMounted] = useState(false);
   const [activeNav, setActiveNav] = useState("HOME");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean>(false); // Default to false (desktop)
   const [semesterLabel, setSemesterLabel] = useState("Now Accepting Applications · AY 2025–2026");
   const [isAboutVisible, setIsAboutVisible] = useState(false);
+
+  const scrollTo = (id: string, nav: string) => {  
+    setActiveNav(nav);
+    isScrollingRef.current = true;
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => { isScrollingRef.current = false; }, 800);
+  };
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
   
@@ -529,7 +534,7 @@ export default function LandingPage() {
 
       const observer = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) {
+          if (entry.isIntersecting && !isScrollingRef.current) {  
             setActiveNav(nav);
             setIsAboutVisible(nav !== "HOME");
           }
@@ -629,7 +634,7 @@ export default function LandingPage() {
         @media(max-width:400px){.t-white,.t-gold{font-size:40px;}}
       `}</style>
 
-      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} activeNav={activeNav} setActiveNav={setActiveNav} />
+      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} activeNav={activeNav} setActiveNav={setActiveNav} scrollTo={scrollTo} />
 
       <div className="hero-root" id="home">
         <div className="bg-grid" />
@@ -664,12 +669,14 @@ export default function LandingPage() {
                         : "rgba(255,255,255,0.6)",
                   }}
                   onClick={() => {
-                    setActiveNav(link);
-                    if (link === "ABOUT") document.getElementById("about")?.scrollIntoView({ behavior: "smooth" });
-                    else if (link === "FEATURES") document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
-                    else if (link === "RECOMMENDED") document.getElementById("recommended")?.scrollIntoView({ behavior: "smooth" });
-                    else if (link === "SUPPORT") document.getElementById("support")?.scrollIntoView({ behavior: "smooth" });
-                    else if (link === "HOME") document.getElementById("home")?.scrollIntoView({ behavior: "smooth" });
+                    const map: Record<string, string> = {
+                      HOME: "home",
+                      ABOUT: "about",
+                      FEATURES: "features",
+                      RECOMMENDED: "recommended",
+                      SUPPORT: "support",
+                    };
+                    scrollTo(map[link], link);
                   }}
                 >{link}</button>
               ))}
