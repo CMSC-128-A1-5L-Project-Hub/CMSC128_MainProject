@@ -481,6 +481,7 @@ export default function LandingPage() {
 
   const scrollTo = (id: string, nav: string) => {  
     setActiveNav(nav);
+    setIsAboutVisible(nav !== "HOME");
     isScrollingRef.current = true;
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     setTimeout(() => { isScrollingRef.current = false; }, 800);

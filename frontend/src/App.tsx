@@ -12,7 +12,7 @@ import UBLEFooter from "./pages/shared/SupportSection"
 import InteractiveMap from "./pages/MapPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
-
+import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 
 function FullLandingPage() {
   return (
@@ -37,6 +37,7 @@ function App() {
         <Route path="/student/dashboard" element={<StudentDashboard/>}/>
         <Route path="/landingpage" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
+        <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/pending-verification" element={<PendingVerification />} />
       </Routes>
