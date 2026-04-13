@@ -63,6 +63,7 @@
     "@adonisjs/core": "^7.0.1",
     "@adonisjs/cors": "^3.0.0",
     "@adonisjs/drive": "^4.0.0-next.1",
+    "@adonisjs/limiter": "^3.0.1",
     "@adonisjs/lucid": "^22.1.1",
     "@adonisjs/mail": "^10.0.0-next.2",
     "@adonisjs/session": "^8.0.0",

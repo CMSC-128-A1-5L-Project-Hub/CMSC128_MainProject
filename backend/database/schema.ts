@@ -8,7 +8,7 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AccommodationSchema extends BaseModel {
-  static $columns = ['accommodationCapacity', 'accommodationLocation', 'accommodationName', 'accommodationType', 'applicationEndDate', 'applicationStartDate', 'bikingDistance', 'businessPermitId', 'drivingDistance', 'id', 'landlordId', 'latitude', 'longitude', 'managerId', 'status', 'tenantRestriction', 'walkingDistance'] as const
+  static $columns = ['accommodationCapacity', 'accommodationLocation', 'accommodationName', 'accommodationType', 'applicationEndDate', 'applicationStartDate', 'bikingDistance', 'businessPermitId', 'drivingDistance', 'id', 'invitedManagerEmail', 'landlordId', 'latitude', 'longitude', 'managerId', 'primaryImageIndex', 'status', 'tenantRestriction', 'walkingDistance'] as const
   $columns = AccommodationSchema.$columns
   @column()
   declare accommodationCapacity: number
@@ -19,9 +19,9 @@ export class AccommodationSchema extends BaseModel {
   @column()
   declare accommodationType: string
   @column.date()
-  declare applicationEndDate: DateTime
+  declare applicationEndDate: DateTime | null
   @column.date()
-  declare applicationStartDate: DateTime
+  declare applicationStartDate: DateTime | null
   @column()
   declare bikingDistance: number | null
   @column()
@@ -31,13 +31,17 @@ export class AccommodationSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column()
+  declare invitedManagerEmail: string | null
+  @column()
   declare landlordId: number
   @column()
   declare latitude: string | null
   @column()
   declare longitude: string | null
   @column()
-  declare managerId: number
+  declare managerId: number | null
+  @column()
+  declare primaryImageIndex: number | null
   @column()
   declare status: string | null
   @column()

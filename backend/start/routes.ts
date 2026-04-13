@@ -9,6 +9,8 @@ import { controllers } from '#generated/controllers'
 import { ROLES } from '../app/constants/roles.ts'
 import AutoSwagger from 'adonis-autoswagger'
 import swagger from '#config/swagger'
+const InviteManagerController = () => import('#controllers/invite_manager_controller')
+import { uploadThrottle } from '#start/limiter'
 
 router.get('/', () => {
   return { status: 'USAT API is running - Sprint 03 Launch' }
@@ -19,11 +21,10 @@ router.get('/', () => {
 | PUBLIC ROUTES (Guest-Accessible)
 |--------------------------------------------------------------------------
 */
-
 router.group(() => {
   router.get('/auth/google/redirect', [controllers.Auth, 'redirect'])
   router.get('/auth/google/callback', [controllers.Auth, 'callback'])
-  
+
   // Map Viewer Data
   router.get('/accommodations', [controllers.Accommodation, 'index'])
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
@@ -57,12 +58,12 @@ router
         router.get('/applications/my-applications', [controllers.Application, 'index'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
-        
+
         // Bookmarks & Reviews
         router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
         router.get('/my-bookmarks', [controllers.Bookmark, 'index'])
         router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
-        
+
         // Fees & Payments
         router.get('/my-fees', [controllers.Fees, 'index'])
         router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
@@ -77,14 +78,22 @@ router
         // Reporting & Analytics
         router.get('/reports/revenue', [controllers.Reports, 'revenue'])
         router.get('/reports/delinquency', [controllers.Reports, 'delinquency'])
-      })
-      .use(middleware.role([ROLES.LANDLORD]))
 
-      // Manager Handover
+        // Accommodation Management
+        router.get('/landlord/accommodations', [controllers.Accommodation, 'landlordIndex'])
+        router.post('/landlord/accommodations', [controllers.Accommodation, 'store']).use(middleware.auth()).use(uploadThrottle)
+        router.put('/landlord/accommodations/:id', [controllers.Accommodation, 'update'])
+        router.post('/landlord/accommodations/:id/images', [controllers.Accommodation, 'uploadImages'])
+        router.delete('/landlord/accommodations/:id/images/:imageId', [controllers.Accommodation, 'deleteImage'])
+
+        // Manager Handover
         router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])
         router.post('/landlord/accommodations/:id/unfreeze', [controllers.ManagerHandover, 'unfreeze'])
         router.get('/landlord/accommodations/:id/freeze-status', [controllers.ManagerHandover, 'status'])
 
+        // Invite Manager
+        router.post('/landlord/accommodations/:id/invite-manager', [InviteManagerController, 'invite'])      })
+      .use(middleware.role([ROLES.LANDLORD]))
 
     // ====================================================================
     // ─── SHARED MANAGER & LANDLORD ROUTES ───
@@ -123,17 +132,15 @@ router
         // User Verifications
         router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
         router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
-        
+
         // System Settings (Academic Year & Semester Updates)
-        router.get('/admin/settings', [controllers.AdminSettings, 'index']) 
+        router.get('/admin/settings', [controllers.AdminSettings, 'index'])
         router.put('/admin/settings', [controllers.AdminSettings, 'update'])
-        
+
         // System Logs
-        // Fixed: Mapped properly to the Logs controller
         router.get('/admin/logs', [controllers.Logs, 'index'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
-
   })
   .use(middleware.auth())
 
