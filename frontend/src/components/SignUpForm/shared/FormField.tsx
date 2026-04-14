@@ -5,7 +5,6 @@
 */}
 type InputProps = {
     label?: string
-    shorthandLabel?: string
     name: string
     value: string
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -20,7 +19,6 @@ type InputProps = {
 
 export default function FormField({
     label,
-    shorthandLabel,
     name,
     value,
     onChange,
@@ -36,19 +34,7 @@ export default function FormField({
         <div className={className}>
             <label className={`block text-[11px] font-semibold tracking-widest uppercase mb-1.5
                 ${error ? "text-red-500" : "text-[#6B4050]"}`}>
-                {shorthandLabel 
-                ?
-                    (
-                        <>
-                        <span className="sm:hidden">
-                            {shorthandLabel}
-                        </span>
-                        <span className="hidden md:inline">
-                            {label}
-                        </span>
-                        </>
-                    )
-                : label}
+                {label}
             </label>
             <input 
                 type={type}
