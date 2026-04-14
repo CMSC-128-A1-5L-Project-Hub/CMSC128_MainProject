@@ -5,11 +5,14 @@ import { useParams } from "react-router-dom"
 {/* Asset imports */}
 import bgDesktop from "../../assets/images/signup_form-bg-desktop.png"
 import bgMobile from "../../assets/images/signup_form-bg-mobile.png"
+
+{/* Component imports */}
 import Logo from "../../components/Logo"
 import StepIndicator from "../../components/SignUpForm/StepsIndicator"
 import PersonalInfo from "../../components/SignUpForm/steps/PersonalInfo"
 import AcademicDetails from "../../components/SignUpForm/steps/AcademicDetails"
 import PhoneVerification from "../../components/SignUpForm/steps/PhoneVerification"
+import PageWrapper from "../../components/PageWrapper"
 
 type SignUpFormData = {
     firstName: string
@@ -151,84 +154,86 @@ export default function SignUpForm() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden lg:items-stretch">
-      {/* Left side (BG + Branding) */}
-      <section className="w-full lg:w-[38%] xl:w-1/3 order-1 lg:order-1 relative h-[35vh] lg:h-screen overflow-hidden flex-shrink-0">
-        <div className="absolute inset-0 z-10 p-6 flex flex-col gap-1 lg:gap-0 justify-between lg:justify-start">
-          
-          {/* Left col: logo + text */}
-          <div className="flex flex-col justify-center min-w-0 w-[100%] ml-2">
-            <Logo color="white" />
-            <h1 className="font-serif font-bold text-4xl lg:text-5xl text-white leading-tight mt-4 lg:mt-10">
-              Get Started with{" "}
-              <span className="italic text-[#E8C37A] font-serif font-bold">UBLE.</span>
-            </h1>
-            <p className="text-white opacity-55 text-sm lg:text-base leading-relaxed mt-1 lg:mt-4 break-words">
-              Find, apply, and move into your perfect UPLB dorm — all in one place.
-            </p>
+    <PageWrapper>
+      <div className="min-h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden lg:items-stretch">
+        {/* Left side (BG + Branding) */}
+        <section className="w-full lg:w-[38%] xl:w-1/3 order-1 lg:order-1 relative h-[35vh] lg:h-screen overflow-hidden flex-shrink-0">
+          <div className="absolute inset-0 z-10 p-6 flex flex-col gap-1 lg:gap-0 justify-between lg:justify-start">
+            
+            {/* Left col: logo + text */}
+            <div className="flex flex-col justify-center min-w-0 w-[100%] ml-2">
+              <Logo color="white" />
+              <h1 className="font-serif font-bold text-4xl lg:text-5xl text-white leading-tight mt-4 lg:mt-10">
+                Get Started with{" "}
+                <span className="italic text-[#E8C37A] font-serif font-bold">UBLE.</span>
+              </h1>
+              <p className="text-white opacity-55 text-sm lg:text-base leading-relaxed mt-1 lg:mt-4 break-words">
+                Find, apply, and move into your perfect UPLB dorm — all in one place.
+              </p>
+            </div>
+
+            {/* Right col: step indicator (mobile only), full width on desktop */}
+            <div className="flex flex-col justify-center items-start flex-shrink-0 w-full lg:mt-6 flex-shrink-0">
+              <StepIndicator steps={
+                (formSteps.map((s,i) => ({
+                  ...s,
+                  stepNumber: i+1
+                })))
+              } currentStep={step} />
+            </div>
+
           </div>
 
-          {/* Right col: step indicator (mobile only), full width on desktop */}
-          <div className="flex flex-col justify-center items-start flex-shrink-0 w-full lg:mt-6 flex-shrink-0">
-            <StepIndicator steps={
-              (formSteps.map((s,i) => ({
-                ...s,
-                stepNumber: i+1
-              })))
-            } currentStep={step} />
-          </div>
+          {/* Backgrounds */}
+          <img src={bgDesktop} alt="background"
+            className="hidden lg:block absolute inset-0 w-full h-full object-cover pointer-events-none" />
+          <img src={bgMobile} alt="background"
+            className="block lg:hidden absolute inset-0 w-full h-full object-cover pointer-events-none scale-y-[-1]" />
+        </section>
 
-        </div>
+        {/* Right side (Form) */}
+        <section className="flex-1 order-2 lg:order-2 flex items-center justify-center bg-white px-6 sm:px-10 py-10 lg:py-0 overflow-y-auto">
+          <div className="w-full max-w-3xl">
+            {/* Step label */}
+            <div className="flex items-center gap-2 mb-5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#C9973A]" />
+              <span className="text-xs font-semibold tracking-widest uppercase text-[#C9973A]">
+                Step {step} of {totalSteps}
+              </span>
+            </div>
 
-        {/* Backgrounds */}
-        <img src={bgDesktop} alt="background"
-          className="hidden lg:block absolute inset-0 w-full h-full object-cover pointer-events-none" />
-        <img src={bgMobile} alt="background"
-          className="block lg:hidden absolute inset-0 w-full h-full object-cover pointer-events-none scale-y-[-1]" />
-      </section>
-
-      {/* Right side (Form) */}
-      <section className="flex-1 order-2 lg:order-2 flex items-center justify-center bg-white px-6 sm:px-10 py-10 lg:py-0 overflow-y-auto">
-        <div className="w-full max-w-3xl">
-          {/* Step label */}
-          <div className="flex items-center gap-2 mb-5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#C9973A]" />
-            <span className="text-xs font-semibold tracking-widest uppercase text-[#C9973A]">
-              Step {step} of {totalSteps}
-            </span>
-          </div>
-
-          {/* Progress bar */}
-          <div className="w-full h-[8px] rounded-full bg-[#F4E7D2]/30 overflow-hidden mb-5">
-            <div
-              className="h-full rounded-full transition-all duration-500 ease-in-out"
-              style={{
-                width: `${(step / totalSteps) * 100}%`, // Step 1 of 3
-                background: 'linear-gradient(to right, #7D1128, #C9973A)',
-              }}
-            />
-          </div>
-
-          {/* Transition div for navigating between form components */}
-          <div 
-            className={`transition-all duration-200 ${
-              visible 
-                ? "opacity-100 translate-y-0" 
-                : "opacity-0 translate-y-2"
-            }`}
-          >
-            {StepComponent && (
-              <StepComponent 
-                role={currentRole}
-                data={formData}
-                setData={setFormData}
-                nextStep={step < totalSteps ? nextStep : undefined}
-                prevStep ={step > 1 ? prevStep : undefined}
+            {/* Progress bar */}
+            <div className="w-full h-[8px] rounded-full bg-[#F4E7D2]/30 overflow-hidden mb-5">
+              <div
+                className="h-full rounded-full transition-all duration-500 ease-in-out"
+                style={{
+                  width: `${(step / totalSteps) * 100}%`, // Step 1 of 3
+                  background: 'linear-gradient(to right, #7D1128, #C9973A)',
+                }}
               />
-            )}
+            </div>
+
+            {/* Transition div for navigating between form components */}
+            <div 
+              className={`transition-all duration-200 ${
+                visible 
+                  ? "opacity-100 translate-y-0" 
+                  : "opacity-0 translate-y-2"
+              }`}
+            >
+              {StepComponent && (
+                <StepComponent 
+                  role={currentRole}
+                  data={formData}
+                  setData={setFormData}
+                  nextStep={step < totalSteps ? nextStep : undefined}
+                  prevStep ={step > 1 ? prevStep : undefined}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </PageWrapper>
   )
 }

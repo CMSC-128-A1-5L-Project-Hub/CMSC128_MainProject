@@ -1,5 +1,5 @@
-import React from "react"
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { AnimatePresence } from "framer-motion"
+import { Routes, Route, useLocation } from "react-router-dom"
 import SignIn from "./pages/shared/SignIn"
 import SignUp from "./pages/shared/SignUp"
 import SignUpForm from "./pages/shared/SignUpForm"
@@ -26,9 +26,11 @@ function FullLandingPage() {
 }
 
 function App() {
+  const location = useLocation()
+
   return (
-    <BrowserRouter>
-      <Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
         {/* Sign In Route */}
         <Route path="/auth/signin" element={<SignIn/>}/>
         <Route path="/auth/signup" element={<SignUp/>}/>
@@ -38,7 +40,7 @@ function App() {
         <Route path="/landingpage" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
       </Routes>
-    </BrowserRouter>
+    </AnimatePresence>
   )
 }
 

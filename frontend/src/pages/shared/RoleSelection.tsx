@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../../components/Logo";
 import Button from "../../components/Button";
+import PageWrapper from "../../components/PageWrapper";
 import { FaGraduationCap, FaImage } from "react-icons/fa";
 
 export default function RoleSelection() {
@@ -18,6 +19,7 @@ export default function RoleSelection() {
 
     return (
         <>
+        <PageWrapper>
             <div className="relative flex flex-col items-center justify-center min-h-screen bg-white px-6 sm:px-10 py-10">
                 <div className="absolute top-6 left-6">
                     <Logo />
@@ -76,6 +78,7 @@ export default function RoleSelection() {
                     Continue
                 </Button>
             </div>
+        </PageWrapper>
         </>
     );
 }
