@@ -155,6 +155,18 @@ function Form() {
     const [modal, setModal] = useState(false);
     const [starRating, setStarRating] = useState(3);
     const [toggled, setToggled] = useState(false);
+
+    const originalFilters = {
+        "WiFi": false,
+        "Furnished": false,
+        "Air-Con": false,
+        "Transient": false,
+        "Near Library": false,
+        "Laundry": false,
+        "Near UPLB Gate": false,
+        "Study-Friendly": false
+    }
+
     return (
         <>
             <div className="flex flex-col justify-center w-[50%] gap-3 p-2">
@@ -199,7 +211,7 @@ function Form() {
                     </p>
 
                     <div className="relative w-full">
-                        <select className="w-full px-4 py-4 rounded-2xl border-2 border-[#EDE1E5] text-gray-800 appearance-none outline-none">
+                        <select id="dorm-type" className="w-full px-4 py-4 rounded-2xl border-2 border-[#EDE1E5] text-gray-800 appearance-none outline-none">
                             <option>All Types</option>
                             <option>Apartment</option>
                             <option>Dormitory</option>
@@ -218,7 +230,7 @@ function Form() {
                     </p>
 
                     <div className="relative w-full">
-                        <select className="w-full p-4 pr-10 rounded-2xl border-2 border-[#EDE1E5] text-gray-800 appearance-none outline-none">
+                        <select id="room-type" className="w-full p-4 pr-10 rounded-2xl border-2 border-[#EDE1E5] text-gray-800 appearance-none outline-none">
                             <option>All</option>
                             <option>Single</option>
                             <option>Shared</option>
@@ -282,7 +294,37 @@ function Form() {
             <div className="flex flex-col justify-center w-[50%] gap-3 p-2">
                 {/* slider */}
 
+
+
                 <div className="flex flex-col">
+                    <div className="flex justify-end">
+                    <button
+                        className="group flex flex-col items-center w-fit"
+                        onClick={() => {
+                            setFilters(originalFilters)
+                            setStarRating(3)
+                            setToggled(false)
+                            const dorm_type = document.getElementById("dorm-type") as HTMLSelectElement | null;
+                            const room_type = document.getElementById("room-type") as HTMLSelectElement | null;
+
+                            if (dorm_type) {
+                                dorm_type.selectedIndex = 0;
+                            }
+
+                            if (room_type) {
+                                room_type.selectedIndex = 0;
+                            }
+                        }}
+                    >
+                    
+                        <span className="text-xs font-bold text-[#8a7686] group-hover:text-[#7A162D] transition-colors">
+                            Reset Filters
+                        </span>
+
+                        
+                        <div className="w-full h-[1.5px] bg-[#d2c2ce] mt-[-2px] group-hover:bg-[#7A162D] transition-colors" />
+                    </button>
+                    </div>
                     <p className="text-sm font-semibold text-gray-500 tracking-wide mb-2">
                         PRICE RANGE
                     </p>
@@ -596,10 +638,10 @@ export default function BrowsePage() {
                     </div>
                 </div>
 
-                <div className="flex justify-center items-start w-full">
+                <div className="flex flex-wrap justify-center items-start w-full">
 
                     {/* first half */}
-                    <div className="flex flex-col justify-center items-center w-[50%] gap-2">
+                    <div className="flex flex-col justify-center items-center w-full gap-2 md:w-1/2 shrink-0">
                         {/* search bar */}
                         <div className="flex w-full justify-center items-center px-4 sm:px-6 lg:px-12">
                             <SearchBar></SearchBar>
@@ -649,7 +691,7 @@ export default function BrowsePage() {
                                 </button>
                             </div>
 
-                            <div className="flex">
+                            <div className="flex ">
                                 <div
                                     className="flex"
                                     style={{
@@ -662,9 +704,9 @@ export default function BrowsePage() {
                                         if (pageNumber == index) {
                                             return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-500"
                                                 }`}>
-                                                <div className="grid grid-cols-2 w-full h-full mx-auto justify-items-center">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
                                                     {dorms[Number(key)].map((value) => (
-                                                        <div className="w-fit flex items-center justify-center">
+                                                        <div className="w-full flex items-center justify-center">
                                                             <DormCard {...value} verified onView={() => { }} />
                                                         </div>
                                                     ))}
@@ -673,9 +715,9 @@ export default function BrowsePage() {
                                         } else {
                                             return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-0"
                                                 }`}>
-                                                <div className="grid grid-cols-2 gap-2 w-full h-full mx-auto justify-items-center">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
                                                     {dorms[Number(key)].map((value) => (
-                                                        <div className="w-fit flex items-center justify-center">
+                                                        <div className="w-full flex items-center justify-center">
                                                             <DormCard {...value} verified onView={() => { }} />
                                                         </div>
                                                     ))}
@@ -773,7 +815,7 @@ export default function BrowsePage() {
                     </div>
 
                     {/* second half */}
-                    <div className="flex justify-center items-start w-[50%] h-full relative z-50 bg-[linear-gradient(to_right,transparent_80%,#ffffff_80%)]">
+                    <div className="flex justify-center items-start w-full h-full md:w-1/2 shrink-0 relative z-50 bg-[linear-gradient(to_right,transparent_80%,#ffffff_80%)]">
                         <div className="flex flex-col justify-center items-center bg-white rounded-lg p-4 shadow-md w-[90%] h-[90%] gap-2">
                             <div className="bg-[#6B0F2B] rounded-lg w-[99%] h-[40%]">
                                 <AccommodationMap
