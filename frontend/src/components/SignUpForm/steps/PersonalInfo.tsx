@@ -1,11 +1,10 @@
 import FormField from "../shared/FormField";
 import FormSelect from "../shared/FormSelect";
+import PhoneNumber from "../shared/PhoneNumber";
 import Button from "../../Button";
 import { useState } from "react";
 
-{/* TODO: Implement role-based form */}
-
-export default function PersonalInfo({ data, setData, nextStep }: any) {
+export default function PersonalInfo({ role, data, setData, nextStep }: any) {
     //custom errors per field (if applicable)
     const [errors, setErrors] = useState<Record<string,string>>({})
     
@@ -22,13 +21,14 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
         
         //check each required field for errors
         //if error, make error entry
-        if (!data.gender) newErrors.gender = "This field is required"
-        if (!data.emergencyName) newErrors.emergencyName = "This field is required"
-        if (!data.emergencyNumber){
+        if (role === "student" && !data.gender) newErrors.gender = "This field is required"
+        if (role === "student" && !data.emergencyName) newErrors.emergencyName = "This field is required"
+        if (role === "student" && !data.emergencyNumber){
             newErrors.emergencyNumber = "This field is required"
-        } else if (data.emergencyNumber.length !== 10) {
+        } else if (role === "student" && data.emergencyNumber.length !== 10) {
             newErrors.emergencyNumber = "Must be 10 digits"
         }
+        if (role === "landlord" && !data.tin) newErrors.tin = "This field is required"
 
         setErrors(newErrors)
         //if no error/s were found, next step
@@ -57,11 +57,6 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
         </div>
 
         {/* Form fields */}
-        {/*
-            NOTES:
-                If manager, wala na ung gender and emergency contact. No added fields
-                If landlord, walang emergency contact and gender. Add TIN field
-        */}
         <div className="grid grid-cols-12 gap-4">
             <FormField 
                 label="First Name"
@@ -93,13 +88,13 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
             />
 
             <FormField 
-                label="UP Mail Address"
+                label={role === "student" ? "UP Mail Address" : "Email address"}
                 name="email"
                 type="email"
                 value={data.email}
                 onChange={handleChange}
                 placeholder="username@up.edu.ph"
-                className="col-span-7"
+                className={role === "manager" ? "col-span-6" : "col-span-7"}
                 disabled={true}
             />
 
@@ -169,8 +164,9 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
                 value={data.facebook}
                 onChange={handleChange}
                 placeholder="facebook.com"
-                className="col-span-12"
+                className={role === "manager" ? "col-span-6" : "col-span-12"}
             />
+            
         </div>
         {/* Continue button */}
         {/* nireuse ko lang ung button component*/}

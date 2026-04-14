@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../Button";
+import PhoneNumber from "../shared/PhoneNumber";
 
 {/* TODO: actual otp handling */}
 
@@ -41,13 +42,28 @@ export default function PhoneVerification({ data, setData, prevStep, submitForm,
         if (val && index < 5) otpRefs.current[index + 1]?.focus()
     }
 
-    {/* For when the user deletes or uses backspace */}
-    {/* Expected behavior: focused input moves to previous input field 
-        assuming that prev exists    
+    {/* Custom keypress handling */}
+    {/*
+        Backspace = go back one spot and removes the input
+        ArrowLeft or ArrowDown = go to prev field
+        ArrowRight or ArrowUp = go to next field 
     */}
     const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
         if (e.key === "Backspace" && !otp[index] && index > 0){
             otpRefs.current[index-1]?.focus()
+            return
+        }
+
+        if ((e.key === "ArrowLeft" || e.key === "ArrowDown") && index > 0) {
+            e.preventDefault()
+            otpRefs.current[index-1]?.focus()
+            return
+        }
+
+        if ((e.key === "ArrowRight" || e.key === "ArrowUp") && index < otp.length - 1) {
+            e.preventDefault()
+            otpRefs.current[index+1]?.focus()
+            return
         }
     }
 
@@ -64,54 +80,32 @@ export default function PhoneVerification({ data, setData, prevStep, submitForm,
             Authenticate your phone to help us verify that your number exists.
         </p>
 
+        {/* gagawin ko pa tong component */}
         <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-12">
-                {/* Phone number field */}
-                <label className={`block text-[11px] font-semibold tracking-widest uppercase mb-1.5
-                    ${errors.phoneNumber 
-                    ? "text-red-500" : "text-[#6B4050]"}`}>
-                    Phone Number
-                </label>
-
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex gap-2 flex-1">
-                        <div className="border border-[#6B0F2B3E] rounded-xl px-4 py-3 text-sm text-gray-600 flex items-center flex-shrink-0">
-                            +63
-                        </div>
-
-                        <input
-                            type="tel"
-                            name="phoneNumber"
-                            value={data.phoneNumber}
-                            onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, "")
-                                setData({ ...data, phoneNumber: val })
-                            }}
-                            placeholder="9XXXXXXXXXX"
-                            maxLength={10}
-                            className={`flex-1 min-w-0 border rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-gray-300 focus:outline-none focus:ring-2 transition
-                                ${errors.phoneNumber
-                                    ? "border-red-400 focus:ring-red-200 focus:border-red-400"
-                                    : "border-[#6B0F2B3E] focus:ring-[#C9973A]/40 focus:border-[#C9973A]"
-                                }`}
-                        />
-                    </div>
-
-                    {/* Error label (for desktop) */}
-                    {errors.phoneNumber && (
-                        <p className="sm:hidden text-red-500 text-[10px]">{errors.phoneNumber}</p>
-                    )}
-
-                    {/* Request code button */}
-                    <Button onClick={handleOTP} variant="primary" size="lg" className="w-auto flex-shrink-0">
-                        Request Code
-                    </Button>
+            <div className="col-span-12 flex flex-col sm:flex-row gap-2 items-end">
+  
+                <div className="flex-1 w-full">
+                    <PhoneNumber
+                        label="Phone Number"
+                        name="phoneNumber"
+                        value={data.phoneNumber}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const val = e.target.value.replace(/\D/g, "")
+                            setData({ ...data, phoneNumber: val })
+                        }}
+                        error={errors.phoneNumber}
+                        className=""
+                    />
                 </div>
 
-                {/* Error label (for mobile) */}
-                {errors.phoneNumber && (
-                    <p className="hidden sm:block text-red-500 text-[10px] mt-1">{errors.phoneNumber}</p>
-                )}
+                <Button 
+                    onClick={handleOTP} 
+                    variant="primary" 
+                    size="lg" 
+                    className="w-full sm:w-auto flex-shrink-0"
+                >
+                    Request Code
+                </Button>
             </div>
 
             {/* Sending OTP label */}
