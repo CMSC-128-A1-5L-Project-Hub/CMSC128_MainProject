@@ -5,22 +5,25 @@ import PhoneNumber from "../shared/PhoneNumber";
 
 {/* TODO: actual otp handling */}
 
-export default function PhoneVerification({ data, setData, prevStep}: any) {
+// Change the props
+export default function PhoneVerification({ data, setData, prevStep, submitForm, isSubmitting }: any) {
     const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
     const otpRefs = useRef<(HTMLInputElement | null)[]>([])
     const [errors, setErrors] = useState<Record<string,string>>({})
     const navigate = useNavigate()
 
     const handleNext = () => {
-        const newErrors: Record<string,string> = {}
+    const newErrors: Record<string,string> = {}
 
-        if(!data.phoneNumber) newErrors.phoneNumber = "This field is required"
+    if (!data.phoneNumber) newErrors.phoneNumber = "This field is required"
+    if (otp.some(digit => digit === "")) newErrors.otp = "Please enter the complete 6-digit code"
 
-        {/* OTP error handling here */}
-        if (otp.some(digit => digit === "")) newErrors.otp = "Please enter the complete 6-digit code"
+    // Fake OTP check for dev
+    const otpValue = otp.join("")
+    if (otpValue !== "111111") newErrors.otp = "Invalid OTP. Use 111111 for now."
 
-        setErrors(newErrors)
-        if (Object.keys(newErrors).length === 0) navigate("/studentDashboard")
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length === 0) submitForm() // was navigate("/pending-verification")
     }
 
     const handlePrev = () => prevStep()
@@ -170,8 +173,8 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
             <Button onClick={handlePrev} variant="secondary" size="lg">
                 ← Back 
             </Button>
-            <Button onClick={handleNext} variant="primary" size="lg">
-                Verify & Continue
+            <Button onClick={handleNext} variant="primary" size="lg" disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Verify & Continue'}
             </Button>
         </div>
         </>

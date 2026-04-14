@@ -1,6 +1,9 @@
 {/* React/type imports */}
 import { useState } from "react"
 import { useParams } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { api } from "../../api/axios"
 
 {/* Asset imports */}
 import bgDesktop from "../../assets/images/signup_form-bg-desktop.png"
@@ -93,6 +96,8 @@ const stepComponents = {
 }
 
 export default function SignUpForm() {
+  const navigate = useNavigate()
+  
   //get role from params
   const { role } = useParams<{role:string}>()
   const currentRole = role as Role
@@ -110,15 +115,14 @@ export default function SignUpForm() {
 
   //transition handler
   const [visible, setVisible] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  //form data
-  //ung initialized fields should come from google (for testing purposes palang ung initial stuff)
-  const [formData, setFormData ] = useState<SignUpFormData>({
-    firstName: "Test",
-    lastName: "Test",
+  const [formData, setFormData] = useState<SignUpFormData>({
+    firstName: "",
+    lastName: "",
     suffix: "",
-    email: "test@up.edu.ph",
     tin: "",
+    email: "",
     gender: "",
     emergencyName: "",
     emergencyNumber: "",
@@ -130,16 +134,73 @@ export default function SignUpForm() {
     form5: null,
     other: null,
     phoneNumber: "",
+    role: currentRole
   })
 
-  //handles next and back
+  // ─── 1. FETCH GOOGLE DATA ON LOAD ───
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await api.get('/me')
+        const user = response.data.data
+        
+        // Update the form state with their Google details
+        setFormData(prev => ({
+          ...prev,
+          firstName: user.fname || "",
+          lastName: user.lname || "",
+          email: user.email || "",
+        }))
+      } catch (error) {
+        console.error("Failed to load user data for pre-fill:", error)
+      }
+    }
+    
+    fetchUserData()
+  }, [])
+
+  // ─── 2. FINAL SUBMISSION LOGIC ───
+  const submitForm = async () => {
+    setIsSubmitting(true)
+    try {
+      const payload = new FormData()
+
+      payload.append('role', 'student') // hardcoded until role selector is built
+      payload.append('phone_number', '0' + formData.phoneNumber)
+      payload.append('gender', formData.gender)
+      payload.append('emergency_contact_name', formData.emergencyName)
+      payload.append('emergency_contact_number', formData.emergencyNumber)
+      payload.append('college', formData.college)
+      payload.append('degree_program', formData.course)      // renamed
+      payload.append('student_number', formData.studentNumber) // renamed
+      payload.append('facebook_link', formData.facebook)     // drop or keep as extra
+
+      // form5 must be sent as an array 
+      if (formData.form5) payload.append('form5[]', formData.form5)
+      if (formData.other) payload.append('form5[]', formData.other) // treat 'other' as second enrollment proof
+
+      await api.post('/setup', payload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+
+      navigate('/pending-verification')
+    } catch (error) {
+      console.error("Failed to finish setup:", error)
+      alert("Failed to submit form. Please check your connection and try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // ─── STEP HANDLERS ───
   const nextStep = () => {
     setVisible(false)
     setTimeout(() => {
       setStep((prev) => prev + 1)
       setVisible(true)
-    }, 200) //timeout duration
+    }, 200)
   }
+  
   const prevStep = () => {
     setVisible(false)
     setTimeout(() => {

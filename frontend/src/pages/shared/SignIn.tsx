@@ -4,6 +4,10 @@ import Logo from "../../components/Logo"
 import PageWrapper from "../../components/PageWrapper";
 
 export default function SignIn() {
+    const handleGoogleLogin = () => {
+        window.location.href = 'http://localhost:3333/auth/google/redirect';
+    };
+
     return(
         <PageWrapper>
             <div className="h-screen flex flex-col lg:flex-row relative overflow-hidden lg:items-center">
