@@ -8,7 +8,6 @@ import { useAccommodationFormStore } from "../../stores/useAccommodationFormStor
 import { Upload, Paperclip } from "lucide-react";
 import { api } from "../../api/axios";
 import { useNavigate } from 'react-router-dom'
-import defaultAccommodationImage from '../../assets/accommodation.png'
 
 // ─── Accommodation Card ───────────────────────────────────────────────────────
 const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) => {
@@ -17,7 +16,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
 
   // Get primary image using primaryImageIndex
 const primaryImage = accommodation.primaryImageUrl
-  ?? defaultAccommodationImage
+  ?? 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'
 
     console.log('primaryImage URL:', primaryImage)
     console.log('images:', accommodation.images)
