@@ -4,7 +4,7 @@ import Button from "../../Button";
 
 {/* TODO: actual otp handling */}
 
-export default function PhoneVerification({ data, setData, prevStep}: any) {
+export default function PhoneVerification({ role, data, setData, prevStep}: any) {
     const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
     const otpRefs = useRef<(HTMLInputElement | null)[]>([])
     const [errors, setErrors] = useState<Record<string,string>>({})

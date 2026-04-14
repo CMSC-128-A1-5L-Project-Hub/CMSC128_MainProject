@@ -16,14 +16,15 @@ type SignUpFormData = {
     lastName: string
     suffix?: string
     email: string
-    gender: string
-    emergencyName: string
-    emergencyNumber: string
+    tin?: string
+    gender?: string
+    emergencyName?: string
+    emergencyNumber?: string
     facebook: string
-    college: string
-    course: string
-    studentNumber: string
-    standing: string
+    college?: string
+    course?: string
+    studentNumber?: string
+    standing?: string
     form5: File | null
     other: File | null
     phoneNumber: string
@@ -114,6 +115,7 @@ export default function SignUpForm() {
     lastName: "Test",
     suffix: "",
     email: "test@up.edu.ph",
+    tin: "",
     gender: "",
     emergencyName: "",
     emergencyNumber: "",
@@ -217,10 +219,11 @@ export default function SignUpForm() {
           >
             {StepComponent && (
               <StepComponent 
+                role={currentRole}
                 data={formData}
                 setData={setFormData}
-                nextStep={step < totalSteps ? nextStep : null}
-                prevStep ={step > 1 ? prevStep : null}
+                nextStep={step < totalSteps ? nextStep : undefined}
+                prevStep ={step > 1 ? prevStep : undefined}
               />
             )}
           </div>
