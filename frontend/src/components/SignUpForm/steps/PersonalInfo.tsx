@@ -101,12 +101,14 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
             {role === "landlord" && (
                 <FormField 
                     label="Tax Identification Number"
+                    shorthandLabel="TIN"
                     name="tin"
                     value={data.tin}
                     onChange={handleChange}
-                    placeholder="TIN"
+                    placeholder="XXX-XXX-XXX-XXX"
                     className="col-span-5"
                     error={errors.tin}
+                    maxLength={16}
                 />
             )}
 
