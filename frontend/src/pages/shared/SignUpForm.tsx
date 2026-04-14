@@ -1,5 +1,6 @@
 {/* React/type imports */}
 import { useState } from "react"
+import { useParams } from "react-router-dom"
 
 {/* Asset imports */}
 import bgDesktop from "../../assets/images/signup_form-bg-desktop.png"
@@ -28,11 +29,80 @@ type SignUpFormData = {
     phoneNumber: string
 }
 
-{/* TODO: role-based forms */}
+const roleSteps = {
+  student: {
+    steps: [
+      {
+        key: "personal",
+        title: "Personal Information",
+        description: "Fill in your details"
+      },
+      {
+        key: "academic",
+        title: "Academic Details & Documents",
+        description: "College, Course & supporting documents"
+      },
+      {
+        key: "phone",
+        title: "Phone Verification",
+        description: "OTP"
+      }
+    ]
+  },
+  landlord: {
+    steps: [
+      {
+        key: "personal",
+        title: "Personal Information",
+        description: "Fill in your details"
+      },
+      {
+        key: "phone",
+        title: "Phone Verification",
+        description: "OTP"
+      }
+    ]
+  },
+  manager: {
+    steps: [
+      {
+        key: "personal",
+        title: "Personal Information",
+        description: "Fill in your details"
+      },
+      {
+        key: "phone",
+        title: "Phone Verification",
+        description: "OTP"
+      }
+    ]
+  }
+}
+
+//role types (strict formatting)
+type Role = "student" | "manager" | "landlord"
+
+const stepComponents = {
+  personal: PersonalInfo,
+  academic: AcademicDetails,
+  phone: PhoneVerification
+}
 
 export default function SignUpForm() {
+  //get role from params
+  const { role } = useParams<{role:string}>()
+  const currentRole = role as Role
+
+  //get sign up steps based from role
+  const formSteps = roleSteps[currentRole]?.steps || []
+  const totalSteps = formSteps.length
+
   //for step tracking (progress bar)
   const [step, setStep] = useState(1)
+  //current form step to display
+  const currentStep = formSteps[step-1]
+  //get component based from current step
+  const StepComponent = stepComponents[currentStep?.key as keyof typeof stepComponents]
 
   //transition handler
   const [visible, setVisible] = useState(true)
@@ -73,6 +143,11 @@ export default function SignUpForm() {
     }, 200)
   }
 
+  {/* To be replaced by an actual screen */}
+  if (!formSteps.length) {
+    return <div>Invalid role</div>
+  }
+
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden lg:items-stretch">
       {/* Left side (BG + Branding) */}
@@ -93,7 +168,12 @@ export default function SignUpForm() {
 
           {/* Right col: step indicator (mobile only), full width on desktop */}
           <div className="flex flex-col justify-center items-start flex-shrink-0 w-full lg:mt-6 flex-shrink-0">
-            <StepIndicator currentStep={step} />
+            <StepIndicator steps={
+              (formSteps.map((s,i) => ({
+                ...s,
+                stepNumber: i+1
+              })))
+            } currentStep={step} />
           </div>
 
         </div>
@@ -112,7 +192,7 @@ export default function SignUpForm() {
           <div className="flex items-center gap-2 mb-5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#C9973A]" />
             <span className="text-xs font-semibold tracking-widest uppercase text-[#C9973A]">
-              Step {step} of 3
+              Step {step} of {totalSteps}
             </span>
           </div>
 
@@ -121,7 +201,7 @@ export default function SignUpForm() {
             <div
               className="h-full rounded-full transition-all duration-500 ease-in-out"
               style={{
-                width: `${(step / 3) * 100}%`, // Step 1 of 3
+                width: `${(step / totalSteps) * 100}%`, // Step 1 of 3
                 background: 'linear-gradient(to right, #7D1128, #C9973A)',
               }}
             />
@@ -135,26 +215,12 @@ export default function SignUpForm() {
                 : "opacity-0 translate-y-2"
             }`}
           >
-            {step === 1 &&
-              <PersonalInfo 
+            {StepComponent && (
+              <StepComponent 
                 data={formData}
                 setData={setFormData}
-                nextStep={nextStep}
-              />
-            }
-            {step === 2 && (
-              <AcademicDetails 
-                data={formData}
-                setData={setFormData}
-                nextStep={nextStep}
-                prevStep={prevStep}
-              />
-            )}
-            {step === 3 && (
-              <PhoneVerification 
-                data={formData}
-                setData={setFormData}
-                prevStep={prevStep}
+                nextStep={step < totalSteps ? nextStep : null}
+                prevStep ={step > 1 ? prevStep : null}
               />
             )}
           </div>

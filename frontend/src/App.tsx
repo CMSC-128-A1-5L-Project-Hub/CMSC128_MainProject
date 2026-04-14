@@ -33,7 +33,7 @@ function App() {
         <Route path="/auth/signin" element={<SignIn/>}/>
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/role" element={<RoleSelection/>}/>
-        <Route path="/auth/signup/form" element={<SignUpForm/>}/>
+        <Route path="/auth/signup/:role" element={<SignUpForm/>}/>
         <Route path="/studentDashboard" element={<StudentDashboard/>}/>
         <Route path="/landingpage" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
