@@ -4,7 +4,7 @@ import Button from "../../Button";
 
 {/* TODO: actual otp handling */}
 
-export default function PhoneVerification({ role, data, setData, prevStep}: any) {
+export default function PhoneVerification({ data, setData, prevStep}: any) {
     const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
     const otpRefs = useRef<(HTMLInputElement | null)[]>([])
     const [errors, setErrors] = useState<Record<string,string>>({})
@@ -38,13 +38,28 @@ export default function PhoneVerification({ role, data, setData, prevStep}: any)
         if (val && index < 5) otpRefs.current[index + 1]?.focus()
     }
 
-    {/* For when the user deletes or uses backspace */}
-    {/* Expected behavior: focused input moves to previous input field 
-        assuming that prev exists    
+    {/* Custom keypress handling */}
+    {/*
+        Backspace = go back one spot and removes the input
+        ArrowLeft or ArrowDown = go to prev field
+        ArrowRight or ArrowUp = go to next field 
     */}
     const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
         if (e.key === "Backspace" && !otp[index] && index > 0){
             otpRefs.current[index-1]?.focus()
+            return
+        }
+
+        if ((e.key === "ArrowLeft" || e.key === "ArrowDown") && index > 0) {
+            e.preventDefault()
+            otpRefs.current[index-1]?.focus()
+            return
+        }
+
+        if ((e.key === "ArrowRight" || e.key === "ArrowUp") && index < otp.length - 1) {
+            e.preventDefault()
+            otpRefs.current[index+1]?.focus()
+            return
         }
     }
 
