@@ -8,7 +8,7 @@ import { useAccommodationFormStore } from "../../stores/useAccommodationFormStor
 import { Upload, Paperclip } from "lucide-react";
 import { api } from "../../api/axios";
 import { useNavigate } from 'react-router-dom'
-import defaultAccommodationImage from '../../assets/accommodation.png'
+import defaultAccommodationImage from '../../assets/defaults/accommodation.png'
 
 // ─── Accommodation Card ───────────────────────────────────────────────────────
 const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) => {
