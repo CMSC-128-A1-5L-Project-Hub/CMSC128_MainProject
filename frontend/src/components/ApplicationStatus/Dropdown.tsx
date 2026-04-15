@@ -3,9 +3,10 @@ import { useState } from "react";
 interface DropdownProps {
   title: string;
   items: { label: string; href: string }[];
+  onSelect?: (label: string) => void;
 }
 
-export default function Dropdown({ title, items }: DropdownProps) {
+export default function Dropdown({ title, items, onSelect }: DropdownProps) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(items[0].label);
 
@@ -26,13 +27,17 @@ export default function Dropdown({ title, items }: DropdownProps) {
       </button>
 
       {open && (
-        <div className="absolute mt-1 w-56 bg-white border border-gray-200 rounded shadow-lg z-10">
+        <div className="absolute mt-1 bg-white w-fit border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-10">
           <ul className="p-2 text-sm">
             {items.map((item) => (
               <li key={item.label}>
                 <a
-                  onClick={() => { setSelected(item.label); setOpen(false); }}
-                  className="block p-2 justify-start hover:bg-gray-100 rounded w-50"
+                  onClick={() => { 
+                    setSelected(item.label); 
+                    setOpen(false); 
+                    onSelect?.(item.label);
+                  }}
+                  className="text-[12px] block p-2 justify-start hover:bg-gray-100 rounded w-50"
                 >
                   {item.label}
                 </a>

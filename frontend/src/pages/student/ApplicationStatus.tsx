@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import Pagination from '../../components/ApplicationStatus/Pagination';
 
@@ -11,13 +11,21 @@ function timeAgo(dateStr: string) {
 }
 
 export default function ApplicationStatus() {
-    const totalApps = 6;
-    const stats = [
-        { label: 'approved', count: 1, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
-        { label: 'pending', count: 2, from: '#C9973A', to: '#E8C37A', bg: '#FDF6EC', text: '#C9973A' },
-        { label: 'under review', count: 1, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
-        { label: 'rejected', count: 2, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
-    ]
+    const statusStyles: Record<string, { bg: string; dot: string ; text: string}> = {
+        approved:      { bg: '#1A7A4A', dot: '#1A7A4A' , text: '#1A7A4A'},
+        pending:       { bg: '#C9973A', dot: '#C9973A' , text: '#C9973A'},
+        'under review':{ bg: '#6B3AB7', dot: '#6B3AB7' , text: '#6B3AB7'},
+        rejected:      { bg: '#6B0F2B', dot: '#9E2040' , text: '#9E2040'},
+        waitlisted:    { bg: '#3A6AB7', dot: '#3A6AB7' , text: '#3A6AB7'},
+    }
+
+    const rowStyles: Record<string, { bg: string; text: string}> = {
+        approved:      { bg: '#1A7A4A', text: '#000000'},
+        pending:       { bg: '#FFFFFF', text: '#000000'},
+        'under review':{ bg: '#6B3AB7', text: '#000000'},
+        rejected:      { bg: '#6B0F2B', text: '#9A7080'},
+        waitlisted:    { bg: '#EFF4FF', text: '#000000'},
+    }
 
     const applications = [
         { dormitory: 'Kamia Residence Hall', type: 'Studio', location: 'On-campus', dateApplied: 'Mar 12, 2026', reviewedOn: 'Mar 14, 2026', reviewedBy: 'Manager Ana Lyn', status: 'approved', remarks: 'Good' },
@@ -32,12 +40,80 @@ export default function ApplicationStatus() {
         { dormitory: 'wawawa', type: 'Boarding', location: 'Off-campus', dateApplied: 'Mar 16, 2026', reviewedOn: '-', reviewedBy: '-',status: 'waitlisted', remarks: 'Incomplete docs' },
         { dormitory: 'wawawa', type: 'Studio', location: 'Off-campus', dateApplied: 'Mar 10, 2026', reviewedOn: 'Mar 11, 2026', reviewedBy: '-',status: 'rejected', remarks: '-' },
         { dormitory: 'wawawa', type: 'Shared', location: 'Partnered House', dateApplied: 'Mar 18, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: 'No vacancy' },
+        { dormitory: 'Kamia Residence Hall', type: 'Studio', location: 'On-campus', dateApplied: 'Mar 12, 2026', reviewedOn: 'Mar 14, 2026', reviewedBy: 'Manager Ana Lyn', status: 'approved', remarks: 'Good' },
+        { dormitory: 'Molave Residence Hall', type: 'Apartment', location: 'Off-campus', dateApplied: 'Mar 14, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: '-' },
+        { dormitory: 'Narra Residence Hall', type: 'Shared', location: 'On campus', dateApplied: 'Mar 15, 2026', reviewedOn: 'Mar 16, 2026', reviewedBy: '-',status: 'under review', remarks: '-' },
+        { dormitory: 'Yakai Boarding House', type: 'Boarding', location: 'Off-campus', dateApplied: 'Mar 16, 2026', reviewedOn: '-', reviewedBy: '-',status: 'waitlisted', remarks: 'Incomplete docs' },
+        { dormitory: 'Ilang Residence Hall', type: 'Studio', location: 'Off-campus', dateApplied: 'Mar 10, 2026', reviewedOn: 'Mar 11, 2026', reviewedBy: '-',status: 'rejected', remarks: '-' },
+        { dormitory: 'Malvar Residence Hall', type: 'Shared', location: 'Partnered House', dateApplied: 'Mar 18, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: 'No vacancy' },
+        { dormitory: 'wawawa', type: 'Studio', location: 'On-campus', dateApplied: 'Mar 12, 2026', reviewedOn: 'Mar 14, 2026', reviewedBy: 'Manager Ana Lyn', status: 'approved', remarks: 'Good' },
+        { dormitory: 'wawawa', type: 'Apartment', location: 'Off-campus', dateApplied: 'Mar 14, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: '-' },
+        { dormitory: 'wawawa', type: 'Shared', location: 'On campus', dateApplied: 'Mar 15, 2026', reviewedOn: 'Mar 16, 2026', reviewedBy: '-',status: 'under review', remarks: '-' },
+        { dormitory: 'wawawa', type: 'Boarding', location: 'Off-campus', dateApplied: 'Mar 16, 2026', reviewedOn: '-', reviewedBy: '-',status: 'waitlisted', remarks: 'Incomplete docs' },
+        { dormitory: 'wawawa', type: 'Studio', location: 'Off-campus', dateApplied: 'Mar 10, 2026', reviewedOn: 'Mar 11, 2026', reviewedBy: '-',status: 'rejected', remarks: '-' },
+        { dormitory: 'wawawa', type: 'Shared', location: 'Partnered House', dateApplied: 'Mar 18, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: 'No vacancy' },
+        { dormitory: 'Kamia Residence Hall', type: 'Studio', location: 'On-campus', dateApplied: 'Mar 12, 2026', reviewedOn: 'Mar 14, 2026', reviewedBy: 'Manager Ana Lyn', status: 'approved', remarks: 'Good' },
+        { dormitory: 'Molave Residence Hall', type: 'Apartment', location: 'Off-campus', dateApplied: 'Mar 14, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: '-' },
+        { dormitory: 'Narra Residence Hall', type: 'Shared', location: 'On campus', dateApplied: 'Mar 15, 2026', reviewedOn: 'Mar 16, 2026', reviewedBy: '-',status: 'under review', remarks: '-' },
+        { dormitory: 'Yakai Boarding House', type: 'Boarding', location: 'Off-campus', dateApplied: 'Mar 16, 2026', reviewedOn: '-', reviewedBy: '-',status: 'waitlisted', remarks: 'Incomplete docs' },
+        { dormitory: 'Ilang Residence Hall', type: 'Studio', location: 'Off-campus', dateApplied: 'Mar 10, 2026', reviewedOn: 'Mar 11, 2026', reviewedBy: '-',status: 'rejected', remarks: '-' },
+        { dormitory: 'Malvar Residence Hall', type: 'Shared', location: 'Partnered House', dateApplied: 'Mar 18, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: 'No vacancy' },
+        { dormitory: 'wawawa', type: 'Studio', location: 'On-campus', dateApplied: 'Mar 12, 2026', reviewedOn: 'Mar 14, 2026', reviewedBy: 'Manager Ana Lyn', status: 'approved', remarks: 'Good' },
+        { dormitory: 'wawawa', type: 'Apartment', location: 'Off-campus', dateApplied: 'Mar 14, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: '-' },
+        { dormitory: 'wawawa', type: 'Shared', location: 'On campus', dateApplied: 'Mar 15, 2026', reviewedOn: 'Mar 16, 2026', reviewedBy: '-',status: 'under review', remarks: '-' },
+        { dormitory: 'wawawa', type: 'Boarding', location: 'Off-campus', dateApplied: 'Mar 16, 2026', reviewedOn: '-', reviewedBy: '-',status: 'waitlisted', remarks: 'Incomplete docs' },
+        { dormitory: 'wawawa', type: 'Studio', location: 'Off-campus', dateApplied: 'Mar 10, 2026', reviewedOn: 'Mar 11, 2026', reviewedBy: '-',status: 'rejected', remarks: '-' },
+        { dormitory: 'wawawa', type: 'Shared', location: 'Partnered House', dateApplied: 'Mar 18, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: 'No vacancy' },
+        { dormitory: 'Kamia Residence Hall', type: 'Studio', location: 'On-campus', dateApplied: 'Mar 12, 2026', reviewedOn: 'Mar 14, 2026', reviewedBy: 'Manager Ana Lyn', status: 'approved', remarks: 'Good' },
+        { dormitory: 'Molave Residence Hall', type: 'Apartment', location: 'Off-campus', dateApplied: 'Mar 14, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: '-' },
+        { dormitory: 'Narra Residence Hall', type: 'Shared', location: 'On campus', dateApplied: 'Mar 15, 2026', reviewedOn: 'Mar 16, 2026', reviewedBy: '-',status: 'under review', remarks: '-' },
+        { dormitory: 'Yakai Boarding House', type: 'Boarding', location: 'Off-campus', dateApplied: 'Mar 16, 2026', reviewedOn: '-', reviewedBy: '-',status: 'waitlisted', remarks: 'Incomplete docs' },
+        { dormitory: 'Ilang Residence Hall', type: 'Studio', location: 'Off-campus', dateApplied: 'Mar 10, 2026', reviewedOn: 'Mar 11, 2026', reviewedBy: '-',status: 'rejected', remarks: '-' },
+        { dormitory: 'Malvar Residence Hall', type: 'Shared', location: 'Partnered House', dateApplied: 'Mar 18, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: 'No vacancy' },
+        { dormitory: 'wawawa', type: 'Studio', location: 'On-campus', dateApplied: 'Mar 12, 2026', reviewedOn: 'Mar 14, 2026', reviewedBy: 'Manager Ana Lyn', status: 'approved', remarks: 'Good' },
+        { dormitory: 'wawawa', type: 'Apartment', location: 'Off-campus', dateApplied: 'Mar 14, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: '-' },
+        { dormitory: 'wawawa', type: 'Shared', location: 'On campus', dateApplied: 'Mar 15, 2026', reviewedOn: 'Mar 16, 2026', reviewedBy: '-',status: 'under review', remarks: '-' },
+        { dormitory: 'wawawa', type: 'Boarding', location: 'Off-campus', dateApplied: 'Mar 16, 2026', reviewedOn: '-', reviewedBy: '-',status: 'waitlisted', remarks: 'Incomplete docs' },
+        { dormitory: 'wawawa', type: 'Studio', location: 'Off-campus', dateApplied: 'Mar 10, 2026', reviewedOn: 'Mar 11, 2026', reviewedBy: '-',status: 'rejected', remarks: '-' },
+        { dormitory: 'wawawa', type: 'Shared', location: 'Partnered House', dateApplied: 'Mar 18, 2026', reviewedOn: '-', reviewedBy: 'Not yet reviewed', status: 'pending', remarks: 'No vacancy' },
     ]
 
+    const [sortBy, setSortBy] = useState("Date applied (Asc.)");
+
+    const sortedApplications = useMemo(() => {
+        return [...applications].sort((a, b) => {
+            const parseDate = (str: string) => str === '-' ? 0 : new Date(str).getTime();
+
+            if (sortBy === "Date applied (Asc.)")  return parseDate(a.dateApplied) - parseDate(b.dateApplied);
+            if (sortBy === "Date applied (Desc.)") return parseDate(b.dateApplied) - parseDate(a.dateApplied);
+            if (sortBy === "Reviewed on (Asc.)")   return parseDate(a.reviewedOn)  - parseDate(b.reviewedOn);
+            if (sortBy === "Reviewed on (Desc.)")  return parseDate(b.reviewedOn)  - parseDate(a.reviewedOn);
+            if (sortBy === "Status") return a.status.localeCompare(b.status);
+            return 0;
+        });
+    }, [sortBy]);
+
+    const counts = {
+        approved: applications.filter(a => a.status === 'approved').length,
+        rejected: applications.filter(a => a.status === 'rejected').length,
+        pending: applications.filter(a => a.status === 'pending').length,
+        waitlisted: applications.filter(a => a.status === 'waitlisted').length,
+        underReview: applications.filter(a => a.status === 'under review').length,
+    }     
+
+    const stats = [
+        { label: 'approved', count: counts.approved, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
+        { label: 'pending', count: counts.pending, from: '#C9973A', to: '#E8C37A', bg: '#FDF6EC', text: '#C9973A' },
+        { label: 'under review', count: counts.underReview, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
+        { label: 'rejected', count: counts.rejected, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
+        { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#e4f0f5', text: '#3A6AB7' },
+    ]
+
+    const totalApps = sortedApplications.length;
     const ROWS_PER_PAGE = 6;
     const [currentPage, setCurrentPage] = useState(1);
-    const totalPages = Math.ceil(applications.length / ROWS_PER_PAGE);
-    const paginated = applications.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE);
+    const totalPages = Math.ceil(sortedApplications.length / ROWS_PER_PAGE);
+    const paginated = sortedApplications.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE);
 
     return (
         <div className="bg-[#F5EEF0] h-screen overflow-hidden flex flex-col">
@@ -51,13 +127,13 @@ export default function ApplicationStatus() {
             </div>
 
             <div className="bg-white p-4 sm:p-6 mx-4 mt-2 mb-4 rounded-xl shrink-0">             
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {stats.map((stat) => (
-                        <div key={stat.label}>
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                    {stats.map((stat, i) => (
+                        <div key={stat.label} className={i===0 ? "col-span-2 lg:col-span-1" : "col-span-1"}>
                             <span className="block uppercase font-bold text-[11px] lg:text-[14px]" style={{ color: stat.text }}>
                                 {stat.label}
                             </span>
-                            <div className="flex items-center gap-3 mt-1">
+                            <div className="flex flex-grow items-center gap-3 mt-1">
                                 <div className="flex-1 rounded-xl h-5 lg:h-7" style={{ backgroundColor: stat.bg }}>
                                     <div
                                         className="lg:h-7 h-5 rounded-xl flex items-center justify-left pl-2"
@@ -94,6 +170,7 @@ export default function ApplicationStatus() {
                                 { label: "Reviewed on (Desc.)", href: "" },
                                 { label: "Status", href: "" },
                             ]}
+                            onSelect={(label) => {setSortBy(label); setCurrentPage(1); }}
                         />
                     </div>
                 </div>
@@ -101,34 +178,48 @@ export default function ApplicationStatus() {
                 <div className="overflow-x-auto sm:overflow-x-visible">
                     <table className="table-fixed w-full">
                         <thead className='sticky top-0 bg-[#F7F3F3]'>
-                            <tr className="border-b text-[#9A7080] text-[12px] lg:text-[16px] 6B0F2B">
+                            <tr className=" border-[#6B0F2B] border-opacity-5 border-b-2 text-[#9A7080] text-[12px] lg:text-[16px] 6B0F2B">
                                 <th className='uppercase p-2 text-left whitespace-nowrap w-40'>dormitory</th>
                                 <th className='uppercase p-2 text-left whitespace-nowrap w-32'>date applied</th>
                                 <th className='uppercase p-2 text-left whitespace-nowrap w-32'>reviewed on</th>
                                 <th className='uppercase p-2 text-left whitespace-nowrap w-32'>status</th>
                                 <th className='uppercase p-2 text-left whitespace-nowrap w-32'>remarks</th>
-                                <th className='uppercase p-2 text-left whitespace-nowrap w-16'>action</th>
+                                <th className='uppercase p-2 text-left whitespace-nowrap w-24'>action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {paginated.map((app, index) => (
-                                <tr key={index} className="border-b text-[12px] lg:text-[15px]">
-                                    <td className='px-2 py-2'>
+                                <tr key={index} className="text-[12px] lg:text-[15px]"
+                                style = {{ backgroundColor: (rowStyles[app.status]?.bg ?? '#888')  + '0D',
+                                    color: (rowStyles[app.status]?.text ?? '#888'),
+                                }}>
+                                    <td className='px-2 py-2 border-[#6B0F2B]'>
                                         <span className="block text-[13px] font-semibold">{app.dormitory}</span>
                                         <span className="block text-[10px] text-[#9A7080]">{app.type} • {app.location}</span>
                                     </td>
-                                    <td className='px-2 py-2 whitespace-nowrap'>
+                                    <td className='px-2 py-2 whitespace-nowrap border-[#6B0F2B] '>
                                         <span className="block text-[12px]">{app.dateApplied}</span>
                                         <span className="block text-[10px] text-[#9A7080]">{timeAgo(app.dateApplied)}</span>
                                     </td>
-                                    <td className='px-2 py-2 whitespace-nowrap'>
+                                    <td className='px-2 py-2 whitespace-nowrap border-[#6B0F2B] '>
                                         <span className='block text-[12px]'>{app.reviewedOn}</span>
                                         <span className='block text-[10px] text-[#9A7080]'>{app.reviewedBy}</span>
                                     </td>
-                                    <td className='px-2 py-2 text-[12px]'>{app.status}</td>
-                                    <td className='px-2 py-2 text-[12px] truncate w-full'>{app.remarks}</td>
-                                    <td className='px-2 py-2 text-[12px]'>
-                                        <button className="text-[#6B0F2B] text-[12px]">View</button>
+                                    <td className='text-[11px] capitalize border-[#6B0F2B]font-bold'>
+                                        <div className='bg-opacity-10 p-2 w-fit rounded-[50px] flex flex-row'
+                                            style = {{ backgroundColor: (statusStyles[app.status]?.bg ?? '#F0F0F0')  + '1A' }}
+                                        >
+                                            <div className='p-1.5 w-1.5 h-1.5 mr-1.5 mt-0.5 rounded-[100px]'
+                                                style = {{ backgroundColor: statusStyles[app.status]?.dot ?? '#888' }}
+                                            />
+                                            <p style = {{ color: statusStyles[app.status]?.text ?? '#888',
+                                                fontWeight: 'bold',
+                                            }}>{app.status}</p>
+                                        </div>
+                                    </td>
+                                    <td className='px-2 py-2 text-[12px] truncate w-full border-[#6B0F2B]'>{app.remarks}</td>
+                                    <td className='px-2 py-2 text-[12px] border-[#6B0F2B]'>
+                                        <button className="text-[#6B0F2B] font-semibold text-[12px] border-2 py-1 px-4 bg-[#F5ECF0] border-[#6B0F2B] border-opacity-5 rounded-[8.8px]">View</button>
                                     </td>
                                 </tr>
                             ))}
@@ -137,8 +228,8 @@ export default function ApplicationStatus() {
                 </div>
 
                 <div className="flex justify-between items-center m-2 mt-4 text-sm text-[#9A7080]">
-                    <span className='text-[11px]'>Showing 1-{ROWS_PER_PAGE} of {totalApps} applications</span>
-                    <div className="flex gap-2">
+                    <span className='text-[11px]'>Showing {(currentPage-1) * ROWS_PER_PAGE + 1}-{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps} applications</span>
+                    <div className="flex gap-2 text-[12px]">
                         <Pagination
                             totalPages={totalPages}
                             currentPage={currentPage}
