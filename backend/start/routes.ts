@@ -139,6 +139,8 @@ router
 
         // System Logs
         router.get('/admin/logs', [controllers.Logs, 'index'])
+
+        router.get('/admin/users/count', [controllers.AdminSettings, 'countUsers'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
   })

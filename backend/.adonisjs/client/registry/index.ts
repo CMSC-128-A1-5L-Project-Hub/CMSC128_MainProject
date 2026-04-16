@@ -270,6 +270,12 @@ const routes = {
     tokens: [{"old":"/admin/logs","type":0,"val":"admin","end":""},{"old":"/admin/logs","type":0,"val":"logs","end":""}],
     types: placeholder as Registry['logs.index']['types'],
   },
+  'admin_settings.count_users': {
+    methods: ["GET","HEAD"],
+    pattern: '/admin/users/count',
+    tokens: [{"old":"/admin/users/count","type":0,"val":"admin","end":""},{"old":"/admin/users/count","type":0,"val":"users","end":""},{"old":"/admin/users/count","type":0,"val":"count","end":""}],
+    types: placeholder as Registry['admin_settings.count_users']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

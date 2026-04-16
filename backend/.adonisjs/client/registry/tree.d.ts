@@ -74,6 +74,7 @@ export interface ApiDefinition {
   adminSettings: {
     index: typeof routes['admin_settings.index']
     update: typeof routes['admin_settings.update']
+    countUsers: typeof routes['admin_settings.count_users']
   }
   logs: {
     index: typeof routes['logs.index']
