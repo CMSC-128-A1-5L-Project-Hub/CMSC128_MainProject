@@ -4,9 +4,10 @@ interface DropdownProps {
   title: string;
   items: { label: string; href: string }[];
   onSelect?: (label: string) => void;
+  direction?: "up" | "down";
 }
 
-export default function Dropdown({ title, items, onSelect }: DropdownProps) {
+export default function Dropdown({ title, items, onSelect, direction = "down" }: DropdownProps) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(items[0].label);
 
@@ -27,7 +28,8 @@ export default function Dropdown({ title, items, onSelect }: DropdownProps) {
       </button>
 
       {open && (
-        <div className="absolute mt-1 bg-white w-fit border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-10">
+        <div className={`absolute mt-1 bg-white w-fit border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-10 ${
+          direction === "up" ? "bottom-full mb-1" : "top-full mt-1" }`}>
           <ul className="p-2 text-sm">
             {items.map((item) => (
               <li key={item.label}>

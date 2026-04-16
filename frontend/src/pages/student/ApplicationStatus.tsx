@@ -90,6 +90,7 @@ export default function ApplicationStatus() {
             if (sortBy === "Reviewed on (Desc.)")  return parseDate(b.reviewedOn)  - parseDate(a.reviewedOn);
             if (sortBy === "Status") return a.status.localeCompare(b.status);
             return 0;
+
         });
     }, [sortBy]);
 
@@ -110,7 +111,7 @@ export default function ApplicationStatus() {
     ]
 
     const totalApps = sortedApplications.length;
-    const ROWS_PER_PAGE = 6;
+    const [ROWS_PER_PAGE, setRows] = useState(5);
     const [currentPage, setCurrentPage] = useState(1);
     const totalPages = Math.ceil(sortedApplications.length / ROWS_PER_PAGE);
     const paginated = sortedApplications.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE);
@@ -170,12 +171,13 @@ export default function ApplicationStatus() {
                                 { label: "Reviewed on (Desc.)", href: "" },
                                 { label: "Status", href: "" },
                             ]}
+                            direction = "down"
                             onSelect={(label) => {setSortBy(label); setCurrentPage(1); }}
                         />
                     </div>
                 </div>
 
-                <div className="overflow-x-auto sm:overflow-x-visible">
+                <div className="overflow-auto flex-1 min-h-0">
                     <table className="table-fixed w-full">
                         <thead className='sticky top-0 bg-[#F7F3F3]'>
                             <tr className=" border-[#6B0F2B] border-opacity-5 border-b-2 text-[#9A7080] text-[12px] lg:text-[16px] 6B0F2B">
@@ -227,14 +229,35 @@ export default function ApplicationStatus() {
                     </table>
                 </div>
 
-                <div className="flex justify-between items-center m-2 mt-4 text-sm text-[#9A7080]">
-                    <span className='text-[11px]'>Showing {(currentPage-1) * ROWS_PER_PAGE + 1}-{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps} applications</span>
-                    <div className="flex gap-2 text-[12px]">
-                        <Pagination
-                            totalPages={totalPages}
-                            currentPage={currentPage}
-                            onPageChange={setCurrentPage}
-                        />
+
+                <div className='flex flex-nowrap justify-between'>
+                    <div className='flex justify-start items-center gap-2'>
+                        <div className='m-1 mt-3'>                       
+                            <Dropdown 
+                                title="No. of Items"
+                                items={[
+                                    { label: "5", href: "" },
+                                    { label: "10", href: "" },
+                                    { label: "15", href: "" },
+                                    { label: "20", href: "" },
+                                ]}
+                                direction='up'
+                                onSelect={(label) => {setRows(parseInt(label, 10)); setCurrentPage(1)}}
+                            />
+                            
+                        </div>
+                        <span className='text-[11px] text-[#9A7080] p-0 m-0'>Showing {(currentPage-1) * ROWS_PER_PAGE + 1}-{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}</span>
+                    </div>
+                        
+                    
+                    <div className="flex justify-between items-center m-2 mt-4 text-sm text-[#9A7080]">     
+                        <div className="flex gap-2 text-[12px]">
+                            <Pagination
+                                totalPages={totalPages}
+                                currentPage={currentPage}
+                                onPageChange={setCurrentPage}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
