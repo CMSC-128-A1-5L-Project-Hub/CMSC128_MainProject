@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 import type {ButtonHTMLAttributes} from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type ButtonVariant = "primary" | "secondary" | "ghost" | "gold" | "danger";
+type ButtonVariant = "primary" | "secondary" | "tertiary" | "ghost" | "gold" | "danger";
 type ButtonSize    = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -25,6 +25,7 @@ const BASE =
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:   "hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-900",
   secondary: "hover:scale-105 active:scale-95 focus-visible:ring-red-900",
+  tertiary: "hover:scale-105 active:scale-95 focus-visible:ring-red-900",
   ghost:     "hover:opacity-80 active:scale-95 focus-visible:ring-gray-400",
   gold:      "hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-yellow-500",
   danger:    "hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-500",
@@ -48,6 +49,12 @@ const VARIANT_STYLES: Record<ButtonVariant, React.CSSProperties> = {
     border:     "1.5px solid rgba(107,15,43,0.25)",
     boxShadow:  "none",
     color:      "#5A3040",
+  },
+  tertiary: {
+    background: "#F5ECF0",
+    border:     "1px solid rgba(107, 15, 43, 0.12)",
+    boxShadow:  "none",
+    color:      "#6B0F2B"
   },
   ghost: {
     background: "none",

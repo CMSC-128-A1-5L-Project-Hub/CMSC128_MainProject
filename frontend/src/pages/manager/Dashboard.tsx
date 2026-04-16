@@ -4,6 +4,7 @@ import type React from "react"
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/Dashboard/manager/HeroBanner"
 import StatCard from "../../components/Dashboard/manager/StatCard"
+import Applications from "../../components/Dashboard/manager/Applications"
 
 import Clipboard from "../../assets/icons/clipboard.svg"
 import { BsFillPeopleFill } from "react-icons/bs";
@@ -25,10 +26,16 @@ interface HeroContent {
     newNotifications: number
 }
 
-interface Stats {
+interface Stat {
     title: string
     value: number
     icon: React.ReactNode
+}
+
+interface Application {
+    studentName: string
+    type: string
+    appliedDate: string 
 }
 
 //Mock Data
@@ -48,11 +55,17 @@ const heroContent: HeroContent = {
     newNotifications: 3
 }
 
-const stats: Stats[] = [
+const stats: Stat[] = [
     {title: "Pending Approvals", value: 19, icon: <img src={Clipboard} className="w-10 h-10"/>},
     {title: "Occupied Rooms", value:20, icon: <BsFillPeopleFill color="#3B0718" size={30} />},
     {title: "Available Rooms", value:100, icon: <BsFillPeopleFill color="#3B0718" size={30} />},
     {title: "Total Tenants", value:64, icon: <BsFillPeopleFill color="#3B0718" size={30} />}
+]
+
+const applications: Application[] = [
+    {studentName: "Ana Marie Reyes", type: "Non-transient", appliedDate: "Mar 12, 2026"},
+    {studentName: "Ana Marie Reyes", type: "Non-transient", appliedDate: "Mar 14, 2026"},
+    {studentName: "Ana Marie Reyes", type: "Non-transient", appliedDate: "Mar 15, 2026"}
 ]
 
 export default function Dashboard() {
@@ -62,7 +75,7 @@ export default function Dashboard() {
 
             {/* Main Content */}
             <div className="flex-1 flex-col p-5">
-                <div className="ml-10 lg:ml-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
+                <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
                     <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
                         style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
                     />
@@ -91,9 +104,10 @@ export default function Dashboard() {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <div className="col-span-2 bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm flex flex-row">
-
-                        </div>
+                        <Applications 
+                            data={applications}
+                            className="col-span-2"
+                        />
                         <div className="col-span-1 bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm flex flex-row">
 
                         </div>
