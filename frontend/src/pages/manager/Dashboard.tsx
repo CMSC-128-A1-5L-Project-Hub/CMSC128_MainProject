@@ -28,8 +28,8 @@ interface HeroContent {
 
 interface Stat {
     title: string
+    subtitle: string
     value: number
-    icon: React.ReactNode
 }
 
 interface Application {
@@ -54,12 +54,12 @@ const heroContent: HeroContent = {
     pendingApplications: 2,
     newNotifications: 3
 }
-
+{/* Ewan ko kay marcus ano dapat laman ng subtitle */}
 const stats: Stat[] = [
-    {title: "Pending Approvals", value: 19, icon: <img src={Clipboard} className="w-10 h-10"/>},
-    {title: "Occupied Rooms", value:20, icon: <BsFillPeopleFill color="#3B0718" size={30} />},
-    {title: "Available Rooms", value:100, icon: <BsFillPeopleFill color="#3B0718" size={30} />},
-    {title: "Total Tenants", value:64, icon: <BsFillPeopleFill color="#3B0718" size={30} />}
+    {title: "Pending Approvals", subtitle: "Subtitle",  value:19},
+    {title: "Occupied Rooms", subtitle: "Subtitle", value:20},
+    {title: "Available Rooms", subtitle: "Subtitle", value:100},
+    {title: "Total Tenants", subtitle: "Subtitle", value:64}
 ]
 
 const applications: Application[] = [
@@ -97,8 +97,8 @@ export default function Dashboard() {
                             <StatCard
                                 key={i}
                                 title={stat.title}
+                                subtitle={stat.subtitle}
                                 value={stat.value}
-                                icon={stat.icon}
                             />
                         ))}
                     </div>
