@@ -4,6 +4,7 @@ import SignIn from "./pages/shared/SignIn"
 import SignUp from "./pages/shared/SignUp"
 import SignUpForm from "./pages/shared/SignUpForm"
 import StudentDashboard from "./pages/student/Dashboard"
+import ManagerDashboard from "./pages/manager/Dashboard"
 import LandingPage from "./pages/shared/Landingpage"
 import AboutSection from "./pages/shared/Aboutsection"
 import FeaturesSection from "./pages/shared/Featuresection"
@@ -35,6 +36,7 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/signup/form" element={<SignUpForm/>}/>
         <Route path="/student/dashboard" element={<StudentDashboard/>}/>
+        <Route path="/manager/dashboard/" element={<ManagerDashboard/>}/>
         <Route path="/landingpage" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
