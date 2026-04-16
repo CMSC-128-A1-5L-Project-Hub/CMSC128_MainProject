@@ -9,7 +9,7 @@ type Application = {
 export default function Applications({ data, className="" }: any) {
     return(
         <div className={className}>
-            <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm">
+            <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm w-full h-full flex flex-col">
                 <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
                     <p className="text-[#1A0008] font-bold">
                         Applications

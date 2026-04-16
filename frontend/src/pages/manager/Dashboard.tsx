@@ -1,13 +1,9 @@
-import type React from "react"
-
 //Asset/Component imports
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/Dashboard/manager/HeroBanner"
 import StatCard from "../../components/Dashboard/manager/StatCard"
 import Applications from "../../components/Dashboard/manager/Applications"
-
-import Clipboard from "../../assets/icons/clipboard.svg"
-import { BsFillPeopleFill } from "react-icons/bs";
+import Waitlist from "../../components/Dashboard/manager/Waitlist"
 
 //Interfaces
 interface ManagerProfile {
@@ -103,16 +99,17 @@ export default function Dashboard() {
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
                         <Applications 
                             data={applications}
-                            className="col-span-2"
+                            className="col-span-1 lg:col-span-2 w-full h-full"
                         />
-                        <div className="col-span-1 bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm flex flex-row">
+                        <Waitlist 
+                            students={["Ana Marie Reyes", "Ana Marie Reyes"]}
+                            className="col-span-1 w-full h-full"
+                        />
 
-                        </div>
-
-                        <div className="col-span-2 flex flex-col gap-4">
+                        <div className="col-span-1 lg:col-span-2 flex flex-col gap-4">
                             <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm flex flex-row">
 
                             </div>
