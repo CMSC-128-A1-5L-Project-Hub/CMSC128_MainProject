@@ -3,13 +3,17 @@ import SysVariables from '#models/sys_variable'
 import Student from '#models/student'
 import User from '#models/user'
 
-
+// This can be refactored to use a service class if we want to separate the business logic from the controller
 export default class AdminSettingsController {
   async index({ response }: HttpContext) {
-    const settings = await SysVariables.query().first()
+    const settings = await SysVariables.query()
+      .orderBy('semStartDate', 'desc')
+      .first()
+
     const semesterMap: Record<string, string> = {
-    first_sem: '1st Semester',
-    second_sem: '2nd Semester',
+      first_sem: '1st Semester',
+      second_sem: '2nd Semester',
+      midyear: 'Midyear',
     }
 
     if (!settings) {
@@ -34,7 +38,9 @@ export default class AdminSettingsController {
   }
 
   async update({ request, response, serialize }: HttpContext) {
-    const settings = await SysVariables.query().first()
+    const settings = await SysVariables.query()
+      .orderBy('semStartDate', 'desc')
+      .first()
 
     if (!settings) {
       return response.notFound({

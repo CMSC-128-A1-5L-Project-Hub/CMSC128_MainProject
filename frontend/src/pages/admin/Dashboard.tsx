@@ -92,6 +92,26 @@ const AdminDashboard = () => {
     },
   })
 
+  const updateSettingsMutation = useMutation({
+    mutationFn: async () => {
+      const semesterMapReverse: Record<string, string> = {
+        "1st Semester": "first_sem",
+        "2nd Semester": "second_sem",
+        "Midyear": "midyear",
+      }
+
+      const res = await api.put("/admin/settings", {
+        currentSy: academicYear,
+        currentSemester: semesterMapReverse[semester] ?? semester,
+      })
+
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-settings"] })
+    },
+  })
+
   const pendingUsers = Array.isArray(pendingUsersRaw)
     ? pendingUsersRaw
     : Array.isArray(pendingUsersRaw?.data)
@@ -127,6 +147,13 @@ const AdminDashboard = () => {
       navigate("/auth/signin")
     }
   }, [user, navigate])
+
+  useEffect(() => {
+    if (settings) {
+      setAcademicYear(settings.currentSy ?? "")
+      setSemester(settings.currentSemester ?? "")
+    }
+  }, [settings])
 
   if (isUserLoading) {
     return (
@@ -427,6 +454,65 @@ const AdminDashboard = () => {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl shadow p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">System Settings</h2>
+                <button className="text-sm text-red-600 hover:underline">
+                  View →
+                </button>
+              </div>
+
+              {isSettingsLoading ? (
+                <p className="text-sm text-gray-500">Loading...</p>
+              ) : isSettingsError ? (
+                <p className="text-sm text-red-500">Error loading settings.</p>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Academic Year
+                    </label>
+                    {/* i-type niyo na lang jusq */}
+                    <input
+                      type="text"
+                      value={academicYear}
+                      onChange={(e) => setAcademicYear(e.target.value)}
+                      className="w-full border rounded-md px-3 py-2"
+                      placeholder="2025-2026"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Semester
+                    </label>
+                    <select
+                      value={semester}
+                      onChange={(e) => setSemester(e.target.value)}
+                      className="w-full border rounded-md px-3 py-2"
+                    >
+                      <option value="">Select semester</option>
+                      <option value="1st Semester">1st Semester</option>
+                      <option value="2nd Semester">2nd Semester</option>
+                      <option value="Midyear">Midyear</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      onClick={() => updateSettingsMutation.mutate()}
+                      disabled={updateSettingsMutation.isPending}
+                      className="text-sm px-4 py-2 rounded-md bg-red-700 text-white hover:bg-red-800 disabled:opacity-60"
+                    >
+                      {updateSettingsMutation.isPending ? "Updating..." : "Update"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
 
