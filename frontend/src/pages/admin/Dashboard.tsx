@@ -108,7 +108,7 @@ const AdminDashboard = () => {
     (item: any) => item.requestedRole === "student"
   )
 
-  const landlordPending = pendingUsers.filter(
+  const housingAdminPending  = pendingUsers.filter(
     (item: any) => item.requestedRole === "landlord"
   )
 
@@ -357,6 +357,78 @@ const AdminDashboard = () => {
               </div>
             )}
           </div>
+
+          
+          {/* LANDLORD VERIFICATIONS */}
+          <div className="bg-white rounded-xl shadow p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Housing Administrator Verifications</h2>
+              <button className="text-sm text-red-600 hover:underline">
+                View all →
+              </button>
+            </div>
+
+            {isPendingLoading ? (
+              <p className="text-sm text-gray-500">Loading...</p>
+            ) : housingAdminPending.length === 0 ? (
+              <p className="text-sm text-gray-500">No pending housing administrators.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <div className="max-h-[260px] overflow-y-auto border rounded-lg">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-gray-100 sticky top-0">
+                      <tr>
+                        <th className="text-left px-4 py-2 font-medium border-b">
+                          Housing Administrator
+                        </th>
+                        <th className="text-left px-4 py-2 font-medium border-b">
+                          Applied
+                        </th>
+                        <th className="text-left px-4 py-2 font-medium border-b">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {housingAdminPending.slice(0, 5).map((item: any) => (
+                        <tr key={item.user.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 border-b">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-red-700 rounded-md"></div>
+                              <div>
+                                <p className="font-medium">
+                                  {`${item.user.fname} ${item.user.lname}`}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* blanko rin yah  */}
+                          <td className="px-4 py-3 border-b text-gray-600">
+                            {item.appliedAt
+                              ? new Date(item.appliedAt).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })
+                              : "N/A"}
+                          </td>
+
+                          <td className="px-4 py-3 border-b">
+                            <button className="text-sm px-3 py-1 border rounded-md hover:bg-gray-100">
+                              Review
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+
 
         </div>
       </div>
