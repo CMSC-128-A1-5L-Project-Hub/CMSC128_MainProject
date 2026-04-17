@@ -15,6 +15,8 @@ const AdminDashboard = () => {
   const [filterDate, setFilterDate] = useState("")
   const [filterAction, setFilterAction] = useState("")
 
+  const [verifyingUserId, setVerifyingUserId] = useState<number | null>(null)
+
   const navigate = useNavigate()
 
   const {
@@ -135,6 +137,29 @@ const AdminDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-settings"] })
+    },
+  })
+
+  const verifyUserMutation = useMutation({
+    mutationFn: async ({
+      userId,
+      roleToAssign,
+    }: {
+      userId: number
+      roleToAssign: "student" | "landlord"
+    }) => {
+      setVerifyingUserId(userId)
+      const res = await api.patch(`/admin/users/${userId}/verify`, {
+        roleToAssign,
+      })
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
+    },
+    onSettled: () => {
+      setVerifyingUserId(null)
     },
   })
 
@@ -402,6 +427,18 @@ const AdminDashboard = () => {
                             <button className="text-sm px-3 py-1 border rounded-md hover:bg-gray-100">
                               Review
                             </button>
+                            <button
+                              onClick={() =>
+                                verifyUserMutation.mutate({
+                                  userId: item.user.id,
+                                  roleToAssign: "student",
+                                })
+                              }
+                              disabled={verifyingUserId === item.user.id}
+                              className="text-sm px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-60"
+                            >
+                              {verifyingUserId === item.user.id ? "Approving..." : "Approve"}
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -472,6 +509,19 @@ const AdminDashboard = () => {
                           <td className="px-4 py-3 border-b">
                             <button className="text-sm px-3 py-1 border rounded-md hover:bg-gray-100">
                               Review
+                            </button>
+                            
+                            <button
+                              onClick={() =>
+                                verifyUserMutation.mutate({
+                                  userId: item.user.id,
+                                  roleToAssign: "landlord",
+                                })
+                              }
+                              disabled={verifyingUserId === item.user.id}
+                              className="text-sm px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-60"
+                            >
+                              {verifyingUserId === item.user.id ? "Approving..." : "Approve"}
                             </button>
                           </td>
                         </tr>
