@@ -79,11 +79,30 @@ const AdminDashboard = () => {
     },
   })
 
-    const pendingUsers = Array.isArray(pendingUsersRaw)
-    ? pendingUsersRaw
-    : Array.isArray(pendingUsersRaw?.data)
-    ? pendingUsersRaw.data
-    : []
+  const {
+      data: logs,
+      isLoading: isLogsLoading,
+      isError: isLogsError,
+    } = useQuery({
+      queryKey: ["admin-logs"],
+      queryFn: async () => {
+        const res = await api.get("/admin/logs")
+        console.log("logs:", res.data)
+        return res.data.data ?? res.data
+      },
+    })
+
+  const pendingUsers = Array.isArray(pendingUsersRaw)
+  ? pendingUsersRaw
+  : Array.isArray(pendingUsersRaw?.data)
+  ? pendingUsersRaw.data
+  : []
+
+  const logsList = Array.isArray(logs)
+  ? logs
+  : Array.isArray(logs?.data)
+  ? logs.data
+  : []
 
   useEffect(() => {
     if (isError) {
@@ -114,6 +133,23 @@ const AdminDashboard = () => {
     (user.role !== "manager" && user.role !== "super_admin")
   ) {
     return null
+  }
+
+  // Helper
+  const formatAction = (action: string) => {
+    if (!action) return "Activity"
+
+    return action
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+  }
+
+  const formatDate = (timestamp: string) => {
+    return new Date(timestamp).toLocaleDateString()
+  }
+
+  const formatTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString()
   }
 
   return (
@@ -181,6 +217,66 @@ const AdminDashboard = () => {
               : availableRoomsData?.total ?? 0}
           </p>
         </div>
+      </div>
+      <div className="mt-8 bg-white rounded-xl shadow p-6">
+        <h2 className="text-lg font-semibold mb-4">Recent Activity Logs</h2>
+
+        {isLogsLoading ? (
+          <p className="text-sm text-gray-500">Loading...</p>
+        ) : isLogsError ? (
+          <p className="text-sm text-red-500">Error loading logs.</p>
+        ) : logsList.length === 0 ? (
+          <p className="text-sm text-gray-500">No activity yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <div className="max-h-[300px] overflow-y-auto border rounded-lg">
+
+              <table className="min-w-full text-sm">
+                {/* HEADER */}
+                <thead className="bg-gray-100 sticky top-0">
+                  <tr>
+                    <th className="text-left px-4 py-2 font-medium border-b">
+                      Action
+                    </th>
+                    <th className="text-left px-4 py-2 font-medium border-b">
+                      Details
+                    </th>
+                    <th className="text-left px-4 py-2 font-medium border-b">
+                      Date
+                    </th>
+                    <th className="text-left px-4 py-2 font-medium border-b">
+                      Time
+                    </th>
+                  </tr>
+                </thead>
+
+                {/* BODY */}
+                <tbody>
+                  {logsList.map((log: any) => (
+                    <tr key={log.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 border-b">
+                        {formatAction(log.activityType)}
+                      </td>
+
+                      <td className="px-4 py-2 border-b text-gray-600">
+                        {log.activityDetails}
+                      </td>
+
+                      <td className="px-4 py-2 border-b">
+                        {formatDate(log.logTimestamp)}
+                      </td>
+
+                      <td className="px-4 py-2 border-b">
+                        {formatTime(log.logTimestamp)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+            </div>
+          </div>
+        )}
       </div>
     </div>
   </div>
