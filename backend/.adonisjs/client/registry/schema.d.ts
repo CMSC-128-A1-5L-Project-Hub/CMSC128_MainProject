@@ -535,4 +535,28 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/logs_controller').default['index']>>>
     }
   }
+  'admin_settings.count_users': {
+    methods: ["GET","HEAD"]
+    pattern: '/admin/users/count'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_settings_controller').default['countUsers']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_settings_controller').default['countUsers']>>>
+    }
+  }
+  'rooms.count_available_rooms': {
+    methods: ["GET","HEAD"]
+    pattern: '/admin/rooms/available/count'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/rooms_controller').default['countAvailableRooms']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/rooms_controller').default['countAvailableRooms']>>>
+    }
+  }
 }
