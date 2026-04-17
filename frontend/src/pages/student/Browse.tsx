@@ -1,10 +1,8 @@
 import { useMemo, useState } from "react"
-import touch from "../../assets/images/touch.png"
-import { Link, useNavigate, useSearchParams } from "react-router-dom"
-import Logo from "../../components/Logo"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import DormCard from "../../components/DormCard";
-import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMaps'
-import { Search, Star } from "lucide-react";
+import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
+import { Star } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
 
 type Dorm = {
@@ -177,7 +175,7 @@ function Form() {
                     </p>
 
                     <div className="flex items-center justify-center rounded-2xl border bg-pink-50 p-2">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white" stroke="#6B0F2B" strokeWidth="2">
                                 <path
                                     strokeLinecap="round"
@@ -374,7 +372,12 @@ function Form() {
                                     let tempFilters = { ...filters }
                                     tempFilters[value] = !tempFilters[value]
                                     setFilters(tempFilters)
-                                }} className={`px-3 py-1 rounded-full font-medium transition border ${filters[value] ? "bg-[#7A0F23] text-white border-[#7A0F23]" : "bg-transparent text-[#7A0F23] border-[#7A0F23]"}`}>
+                                }} className={`px-2 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm md:text-base
+                                rounded-full font-medium transition border
+                                ${filters[value]
+                                  ? "bg-[#7A0F23] text-white border-[#7A0F23]"
+                                  : "bg-transparent text-[#7A0F23] border-[#7A0F23]"
+                                }`}>
                                     {value}
                                 </button>
                             ))
@@ -691,7 +694,7 @@ export default function BrowsePage() {
                                 </button>
                             </div>
 
-                            <div className="flex ">
+                            <div className="flex">
                                 <div
                                     className="flex"
                                     style={{
@@ -816,7 +819,7 @@ export default function BrowsePage() {
 
                     {/* second half */}
                     <div className="flex justify-center items-start w-full h-full md:w-1/2 shrink-0 relative z-50 bg-[linear-gradient(to_right,transparent_80%,#ffffff_80%)]">
-                        <div className="flex flex-col justify-center items-center bg-white rounded-lg p-4 shadow-md w-[90%] h-[90%] gap-2">
+                        <div className="flex flex-col justify-center items-center bg-white rounded-lg p-4 shadow-md w-[90%] h-[50%] md:h-full gap-2">
                             <div className="bg-[#6B0F2B] rounded-lg w-[99%] h-[40%]">
                                 <AccommodationMap
                                     accommodations={filtered}
@@ -824,6 +827,7 @@ export default function BrowsePage() {
                                     onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
                                 />
                             </div>
+                     
                             <div className="flex justify-center items-center w-[90%] gap-3">
                                 <Form></Form>
                             </div>

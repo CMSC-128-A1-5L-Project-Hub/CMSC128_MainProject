@@ -73,3 +73,7 @@ button {
   left: calc(50px - 25px);
 }
 
+/* this is for the browse page */
+.no-bg-popup.mapboxgl-popup .mapboxgl-popup-content {
+  background: transparent !important;
+}
