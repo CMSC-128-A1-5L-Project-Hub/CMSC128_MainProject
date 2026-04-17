@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 
 type Role = "student" | "dormitory" | "administrator";
 
@@ -17,7 +17,7 @@ const ROLES = [
       { icon: "clipboard", title: "Apply & Track",          sub: "Submit applications and monitor status" },
     ],
     cta: "Get Started →",
-    image: "/images/student-mockup.png",
+    image: "../src/assets/images/forStudents.png",
     bg: "linear-gradient(155deg, #8C1A38 0%, #6B1228 42%, #4A0D1E 100%)",
   },
   {
@@ -32,7 +32,7 @@ const ROLES = [
       { icon: "chart",     title: "Occupancy Dashboard",  sub: "See live stats on rooms and tenants" },
     ],
     cta: "Manage Dorm →",
-    image: "/images/dorm-mockup.png",
+    image: "../src/assets/images/forManagers.png",
     bg: "linear-gradient(155deg, #9E2040 0%, #7A1530 42%, #521020 100%)",
   },
   {
@@ -47,7 +47,7 @@ const ROLES = [
       { icon: "shield",    title: "Policy Enforcement",  sub: "Flag and manage non-compliant listings" },
     ],
     cta: "Admin Portal →",
-    image: "/images/admin-mockup.png",
+    image: "../src/assets/images/forAdmins.png",
     bg: "linear-gradient(155deg, #B02245 0%, #8C1A38 42%, #5E1225 100%)",
   },
 ];
@@ -79,56 +79,39 @@ function GrainOverlay() {
   );
 }
 
-// ─── Parallax image ───────────────────────────────────────────────────────────
-function ParallaxImage({ src, alt, isActive }: { src: string; alt: string; isActive: boolean }) {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const imgRef  = useRef<HTMLImageElement>(null);
-
-  const onMove = useCallback((e: MouseEvent) => {
-    if (!wrapRef.current || !imgRef.current) return;
-    const r  = wrapRef.current.getBoundingClientRect();
-    const cx = (e.clientX - r.left)  / r.width  - 0.5;
-    const cy = (e.clientY - r.top)   / r.height - 0.5;
-    imgRef.current.style.transform = `translate(${cx * -20}px, ${cy * -16}px) scale(1.07)`;
-  }, []);
-
-  const onLeave = useCallback(() => {
-    if (imgRef.current) imgRef.current.style.transform = "translate(0,0) scale(1.03)";
-  }, []);
-
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    el.addEventListener("mousemove", onMove);
-    el.addEventListener("mouseleave", onLeave);
-    return () => { el.removeEventListener("mousemove", onMove); el.removeEventListener("mouseleave", onLeave); };
-  }, [onMove, onLeave]);
-
+// ─── Static Image (centered, no hover effect, prevents GIF from restarting) ───
+function StaticImage({ src, alt, isActive }: { src: string; alt: string; isActive: boolean }) {
+  // Use a key that doesn't change when role switches to prevent GIF restart
+  const [imageLoaded, setImageLoaded] = useState(false);
+  
   return (
-    <div ref={wrapRef} style={{ width: "100%", height: "100%", overflow: "hidden", borderRadius: 18, position: "relative" }}>
-      <div style={{
-        position: "absolute", inset: 0, borderRadius: 18,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        border: "1.5px dashed rgba(255,255,255,0.13)",
-        background: "rgba(255,255,255,0.04)",
-      }}>
-        <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: "rgba(255,255,255,0.28)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-          {alt} Image
-        </span>
-      </div>
-      <img
-        ref={imgRef}
+        <div style={{ 
+        width: "100%", 
+        height: "100%", 
+        display: "flex", 
+        alignItems: "flex-end", 
+        justifyContent: "center",
+        position: "relative",
+        overflow: "hidden",
+        paddingBottom: "100px",
+        marginRight: "50px"
+        }}>
+      {(isActive || imageLoaded) && (
+        <img
         src={src}
         alt={alt}
         style={{
-          position: "relative", zIndex: 2,
-          width: "100%", height: "100%", objectFit: "contain",
-          transform: "translate(0,0) scale(1.03)",
-          transition: "transform 0.65s cubic-bezier(0.23,1,0.32,1), opacity 0.45s ease",
-          willChange: "transform",
-          opacity: isActive ? 1 : 0,
+            width: "100%",
+            height: "78%",
+            objectFit: "contain",
+            objectPosition: "bottom center",
+            transition: "opacity 0.45s ease",
+            opacity: isActive ? 1 : 0,
+            display: "block",
         }}
-      />
+        onLoad={() => setImageLoaded(true)}
+        />
+      )}
     </div>
   );
 }
@@ -139,6 +122,13 @@ export default function FeaturesSection() {
   const [animating, setAnimating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  // Preload all images to keep GIFs running
+  useEffect(() => {
+    ROLES.forEach(role => {
+      const img = new Image();
+      img.src = role.image;
+    });
+  }, []);
 
   const switchRole = (id: Role) => {
     if (id === active || animating) return;
@@ -157,16 +147,8 @@ export default function FeaturesSection() {
       },
       { threshold: 0.2, rootMargin: "0px 0px -100px 0px" }
     );
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
-    };
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => { if (sectionRef.current) observer.unobserve(sectionRef.current); };
   }, []);
 
   return (
@@ -174,131 +156,69 @@ export default function FeaturesSection() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
-
         .fs-wrap { 
-        width:100%; 
-        background:#fff; 
-        padding:72px 24px 88px;
-        opacity: 0;
-        transform: translateY(60px);
-        transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+          width:100%; background:#fff; padding:72px 24px 88px;
+          opacity: 0; transform: translateY(60px);
+          transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        @media (max-width: 640px) { .fs-wrap { padding-top: 8px !important; } }
+        .fs-wrap.visible { opacity: 1; transform: translateY(0); }
 
-        @media (max-width: 640px) {
-        .fs-wrap {
-            padding-top: 8px !important;
-        }
-        }
-        
-        .fs-wrap.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        /* heading animations */
         .fs-tag-row { 
-          display:flex; 
-          align-items:center; 
-          justify-content:center; 
-          gap:12px; 
-          margin-bottom:14px;
-          opacity: 0;
-          transform: scale(0.9);
+          display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:14px;
+          opacity: 0; transform: scale(0.9);
           transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           transition-delay: 0.1s;
         }
-        
-        .fs-wrap.visible .fs-tag-row {
-          opacity: 1;
-          transform: scale(1);
-        }
-        
+        .fs-wrap.visible .fs-tag-row { opacity: 1; transform: scale(1); }
         .fs-tag-line { height:1.5px; width:36px; background:#C9973A; border-radius:99px; }
         .fs-tag-lbl  { font-family:'Plus Jakarta Sans',sans-serif; font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:#C9973A; }
         
         .fs-h2 { 
-          font-family:'Cormorant Garamond',serif; 
-          font-size:clamp(40px,5.5vw,64px); 
-          font-weight:700; 
-          text-align:center; 
-          color:#1a0810; 
-          line-height:1.05; 
-          margin-bottom:12px;
-          opacity: 0;
-          transform: translateY(30px);
+          font-family:'Cormorant Garamond',serif; font-size:clamp(40px,5.5vw,64px); font-weight:700;
+          text-align:center; color:#1a0810; line-height:1.05; margin-bottom:12px;
+          opacity: 0; transform: translateY(30px);
           transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           transition-delay: 0.2s;
         }
-        
-        .fs-wrap.visible .fs-h2 {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        
-        .fs-h2 em    { color:#6B0F2B; font-style:italic; }
+        .fs-wrap.visible .fs-h2 { opacity: 1; transform: translateY(0); }
+        .fs-h2 em { color:#6B0F2B; font-style:italic; }
         
         .fs-p { 
-          font-family:'Plus Jakarta Sans',sans-serif; 
-          font-size:14px; 
-          font-weight:300; 
-          color:#7a4a58; 
-          text-align:center; 
-          max-width:420px; 
-          margin:0 auto 52px; 
-          line-height:1.8;
-          opacity: 0;
-          transform: translateY(30px);
+          font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:300; color:#7a4a58;
+          text-align:center; max-width:420px; margin:0 auto 52px; line-height:1.8;
+          opacity: 0; transform: translateY(30px);
           transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           transition-delay: 0.3s;
         }
-        
-        .fs-wrap.visible .fs-p {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        
+        .fs-wrap.visible .fs-p { opacity: 1; transform: translateY(0); }
         .fs-p strong { font-weight:600; font-style:italic; color:#4a0d1e; }
 
-        /* slider */
         .fs-slider {
           display:flex; max-width:1120px; margin:0 auto;
           border-radius:26px; overflow:hidden; height:580px;
           box-shadow:0 40px 90px rgba(74,13,30,0.38), 0 8px 32px rgba(0,0,0,0.16);
-          opacity: 0;
-          transform: scale(0.95);
+          opacity: 0; transform: scale(0.95);
           transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
           transition-delay: 0.4s;
         }
-        
-        .fs-wrap.visible .fs-slider {
-          opacity: 1;
-          transform: scale(1);
-        }
+        .fs-wrap.visible .fs-slider { opacity: 1; transform: scale(1); }
 
-        /* panel */
         .fs-panel {
           position:relative; overflow:hidden; cursor:pointer; flex-shrink:0;
           transition:width 0.7s cubic-bezier(0.77,0,0.175,1);
         }
-        .fs-panel.open     { width:70%; cursor:default; }
-        .fs-panel.closed   { width:15%; }
+        .fs-panel.open   { width:70%; cursor:default; }
+        .fs-panel.closed { width:15%; }
+        .fs-panel.closed:hover { filter: brightness(1.05); }
 
-        /* elegant hover effect - just a subtle brightness increase */
-        .fs-panel.closed:hover {
-          filter: brightness(1.05);
-        }
-
-        /* glow - keep it subtle */
         .fs-glow {
           position:absolute; inset:0; z-index:2; pointer-events:none;
           background:radial-gradient(ellipse 60% 55% at 12% 8%, rgba(255,255,255,0.08) 0%, transparent 62%);
           transition: opacity 0.5s ease;
         }
-        .fs-panel.closed:hover .fs-glow {
-          opacity: 0.6;
-        }
+        .fs-panel.closed:hover .fs-glow { opacity: 0.6; }
 
-        /* vertical label - elegant fade */
         .fs-vlabel {
           position:absolute; inset:0; z-index:10;
           display:flex; align-items:center; justify-content:center;
@@ -311,11 +231,8 @@ export default function FeaturesSection() {
           writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg);
           transition:color 0.3s ease;
         }
-        .fs-panel.closed:hover .fs-vlabel span { 
-          color:rgba(255,255,255,0.85);
-        }
+        .fs-panel.closed:hover .fs-vlabel span { color:rgba(255,255,255,0.85); }
 
-        /* expanded content */
         .fs-content {
           position:absolute; inset:0; z-index:5;
           display:flex; flex-direction:row;
@@ -324,16 +241,13 @@ export default function FeaturesSection() {
         .fs-content.hide { opacity:0; pointer-events:none; }
         .fs-content.show { opacity:1; pointer-events:all; }
 
-        /* text pane */
         .fs-text { 
-            flex: 1; min-width: 0; 
-            padding: 38px 34px 34px; 
-            display: flex; flex-direction: column; 
-            justify-content: flex-start;
-            gap: 0;
+          flex: 1; min-width: 0; 
+          padding: 38px 34px 34px; 
+          display: flex; flex-direction: column; 
+          justify-content: flex-start; gap: 0;
         }
 
-        /* pill - elegant */
         .fs-pill {
           display:inline-flex; align-items:center; gap:7px;
           background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);
@@ -344,7 +258,6 @@ export default function FeaturesSection() {
         @keyframes fsDot { 0%,100%{opacity:1} 50%{opacity:0.25} }
         .fs-pill-txt { font-family:'Plus Jakarta Sans',sans-serif; font-size:9px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:rgba(255,255,255,0.62); }
 
-        /* title */
         .fs-title {
           font-family:'Cormorant Garamond',serif;
           font-size:clamp(34px,3.8vw,54px); font-style:italic; font-weight:700;
@@ -357,69 +270,73 @@ export default function FeaturesSection() {
           line-height:1.78; margin-bottom:22px; max-width:275px;
         }
 
-        /* feature row - elegant subtle lift */
         .fs-row {
           display:flex; align-items:center; gap:12px;
           background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.06);
           border-radius:14px; padding:11px 14px; margin-bottom:8px;
-          transition:all 0.3s ease;
-          cursor:default;
+          transition:all 0.3s ease; cursor:default;
         }
-        .fs-row:hover { 
-          background:rgba(255,255,255,0.09); 
-          border-color:rgba(255,255,255,0.12);
-          transform: translateX(6px);
-        }
+        .fs-row:hover { background:rgba(255,255,255,0.09); border-color:rgba(255,255,255,0.12); transform: translateX(6px); }
         .fs-icon-box { width:32px; height:32px; border-radius:10px; background:rgba(255,255,255,0.08); flex-shrink:0; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.75); transition: all 0.3s ease; }
-        .fs-row:hover .fs-icon-box {
-          background: rgba(201,151,58,0.2);
-        }
+        .fs-row:hover .fs-icon-box { background: rgba(201,151,58,0.2); }
         .fs-row-t { font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:700; color:#fff; line-height:1.3; }
         .fs-row-s { font-family:'Plus Jakarta Sans',sans-serif; font-size:10px; font-weight:400; color:rgba(255,255,255,0.42); line-height:1.4; }
 
-        /* cta - elegant */
         .fs-cta {
           display:inline-flex; align-items:center; gap:7px;
           background:#C9973A; color:#fff; border:none; cursor:pointer;
           font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700;
           padding:11px 26px; border-radius:99px; margin-top:18px; align-self:flex-start;
-          box-shadow:0 6px 24px rgba(201,151,58,0.36);
-          transition:all 0.3s ease;
+          box-shadow:0 6px 24px rgba(201,151,58,0.36); transition:all 0.3s ease;
         }
-        .fs-cta:hover  { 
-          transform:translateY(-2px); 
-          box-shadow:0 10px 30px rgba(201,151,58,0.5); 
-          background:#d9a845;
-        }
+        .fs-cta:hover { transform:translateY(-2px); box-shadow:0 10px 30px rgba(201,151,58,0.5); background:#d9a845; }
         .fs-cta:active { transform:translateY(0); }
 
-        /* image pane */
+        /* ── image pane styling ── */
         .fs-img-pane {
-          width:290px; flex-shrink:0;
-          display:flex; align-items:center; justify-content:center;
-          padding:28px 24px 28px 8px;
+        width: 380px;          
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;  
+        justify-content: center;
         }
 
-        /* elegant staggered fade-in */
         @keyframes fsFadeUp {
           from { opacity:0; transform:translateY(12px); }
           to   { opacity:1; transform:translateY(0); }
         }
-        .fs-content.show .fs-pill        { animation:fsFadeUp 0.5s ease 0.10s both; }
-        .fs-content.show .fs-title       { animation:fsFadeUp 0.5s ease 0.17s both; }
-        .fs-content.show .fs-desc        { animation:fsFadeUp 0.5s ease 0.23s both; }
-        .fs-content.show .fs-row:nth-child(1) { animation:fsFadeUp 0.5s ease 0.27s both; }
-        .fs-content.show .fs-row:nth-child(2) { animation:fsFadeUp 0.5s ease 0.33s both; }
-        .fs-content.show .fs-row:nth-child(3) { animation:fsFadeUp 0.5s ease 0.39s both; }
-        .fs-content.show .fs-cta         { animation:fsFadeUp 0.5s ease 0.44s both; }
-        .fs-content.show .fs-img-pane    { animation:fsFadeUp 0.6s ease 0.18s both; }
+        .fs-content.show .fs-pill              { animation:fsFadeUp 0.5s ease 0.10s both; }
+        .fs-content.show .fs-title             { animation:fsFadeUp 0.5s ease 0.17s both; }
+        .fs-content.show .fs-desc              { animation:fsFadeUp 0.5s ease 0.23s both; }
+        .fs-content.show .fs-row:nth-child(1)  { animation:fsFadeUp 0.5s ease 0.27s both; }
+        .fs-content.show .fs-row:nth-child(2)  { animation:fsFadeUp 0.5s ease 0.33s both; }
+        .fs-content.show .fs-row:nth-child(3)  { animation:fsFadeUp 0.5s ease 0.39s both; }
+        .fs-content.show .fs-cta               { animation:fsFadeUp 0.5s ease 0.44s both; }
+        .fs-content.show .fs-img-pane          { animation:fsFadeUp 0.6s ease 0.18s both; }
 
-        @media(max-width:960px) { .fs-img-pane { display:none; } }
+        @media(max-width:960px) { 
+          .fs-img-pane { 
+            display: flex !important; 
+            width: 280px !important;
+          } 
+        }
+        
+        @media(max-width:860px) { 
+          .fs-img-pane { 
+            display: none !important; 
+          } 
+        }
+        
         @media(max-width:768px) {
           .fs-slider { flex-direction:column; height:auto; border-radius:20px; }
           .fs-panel.open   { width:100%; min-height:560px; }
           .fs-panel.closed { width:100%; min-height:52px; }
           .fs-vlabel span  { writing-mode:horizontal-tb; transform:none; }
+          .fs-img-pane { 
+            display: none !important;
+          }
         }
       `}</style>
 
@@ -457,10 +374,8 @@ export default function FeaturesSection() {
                       <div className="fs-dot" />
                       <span className="fs-pill-txt">{role.tag}</span>
                     </div>
-
                     <div className="fs-title">{role.title}</div>
                     <div className="fs-desc">{role.description}</div>
-
                     <div style={{ flex: 1 }}>
                       {role.features.map((f, i) => (
                         <div className="fs-row" key={i}>
@@ -472,12 +387,11 @@ export default function FeaturesSection() {
                         </div>
                       ))}
                     </div>
-
                     <button className="fs-cta">{role.cta}</button>
                   </div>
 
                   <div className="fs-img-pane">
-                    <ParallaxImage src={role.image} alt={role.label} isActive={isOpen} />
+                    <StaticImage src={role.image} alt={role.label} isActive={isOpen} />
                   </div>
                 </div>
               </div>
