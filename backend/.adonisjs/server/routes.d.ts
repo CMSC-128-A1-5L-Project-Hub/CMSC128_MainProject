@@ -12,7 +12,6 @@ export type ScannedRoutes = {
     'setups.show': { paramsTuple?: []; params?: {} }
     'setups.store': { paramsTuple?: []; params?: {} }
     'application.store': { paramsTuple?: []; params?: {} }
-    'application.index': { paramsTuple?: []; params?: {} }
     'assignments.current_stay': { paramsTuple?: []; params?: {} }
     'assignments.stay_history': { paramsTuple?: []; params?: {} }
     'bookmark.toggle': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -50,6 +49,7 @@ export type ScannedRoutes = {
     'logs.index': { paramsTuple?: []; params?: {} }
     'notifications.index': { paramsTuple?: []; params?: {} }
     'notifications.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'application.index': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
@@ -58,7 +58,6 @@ export type ScannedRoutes = {
     'accommodation.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.me': { paramsTuple?: []; params?: {} }
     'setups.show': { paramsTuple?: []; params?: {} }
-    'application.index': { paramsTuple?: []; params?: {} }
     'assignments.current_stay': { paramsTuple?: []; params?: {} }
     'assignments.stay_history': { paramsTuple?: []; params?: {} }
     'bookmark.index': { paramsTuple?: []; params?: {} }
@@ -76,6 +75,7 @@ export type ScannedRoutes = {
     'admin_settings.index': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
     'notifications.index': { paramsTuple?: []; params?: {} }
+    'application.index': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
@@ -84,7 +84,6 @@ export type ScannedRoutes = {
     'accommodation.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.me': { paramsTuple?: []; params?: {} }
     'setups.show': { paramsTuple?: []; params?: {} }
-    'application.index': { paramsTuple?: []; params?: {} }
     'assignments.current_stay': { paramsTuple?: []; params?: {} }
     'assignments.stay_history': { paramsTuple?: []; params?: {} }
     'bookmark.index': { paramsTuple?: []; params?: {} }
@@ -102,6 +101,7 @@ export type ScannedRoutes = {
     'admin_settings.index': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
     'notifications.index': { paramsTuple?: []; params?: {} }
+    'application.index': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'setups.store': { paramsTuple?: []; params?: {} }

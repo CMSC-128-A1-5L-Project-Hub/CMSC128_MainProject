@@ -14,6 +14,7 @@ import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import NotificationsPage from "./pages/shared/Notifications"
+import ApplicationsPage from "./pages/student/Applications"
 
 function FullLandingPage() {
   return (
@@ -42,6 +43,7 @@ function App() {
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/pending-verification" element={<PendingVerification />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/applications" element={<ApplicationsPage />} />
       </Routes>
     </BrowserRouter>
   )
