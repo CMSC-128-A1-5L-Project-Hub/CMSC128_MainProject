@@ -5,11 +5,15 @@ import Sidebar from "../../components/Sidebar"
 import Button from "../../components/Button"
 import { api } from "../../api/axios"
 
+// bahala na kayo sa design bye
 const AdminDashboard = () => {
   const queryClient = useQueryClient()
 
   const [academicYear, setAcademicYear] = useState("")
   const [semester, setSemester] = useState("")
+
+  const [filterDate, setFilterDate] = useState("")
+  const [filterAction, setFilterAction] = useState("")
 
   const navigate = useNavigate()
 
@@ -80,14 +84,36 @@ const AdminDashboard = () => {
   })
 
   const {
-    data: logs,
-    isLoading: isLogsLoading,
-    isError: isLogsError,
+    data: recentLogs,
+    isLoading: isRecentLogsLoading,
+    isError: isRecentLogsError,
   } = useQuery({
     queryKey: ["admin-logs"],
     queryFn: async () => {
       const res = await api.get("/admin/logs")
       console.log("logs:", res.data)
+      return res.data.data ?? res.data
+    },
+  })
+
+    const {
+    data: logs,
+    isLoading: isLogsLoading,
+    isError: isLogsError,
+  } = useQuery({
+    queryKey: ["admin-logs", filterDate, filterAction],
+    queryFn: async () => {
+      const params: any = {}
+
+      if (filterDate) {
+      params.date = filterDate
+    }
+
+      if (filterAction) {
+        params.entity_type = filterAction
+      }
+
+      const res = await api.get("/admin/logs", { params })
       return res.data.data ?? res.data
     },
   })
@@ -255,13 +281,14 @@ const AdminDashboard = () => {
         </div>
 
         <div className="mt-8 bg-white rounded-xl shadow p-6">
+          {/* Recent Activity Logs */}
           <h2 className="text-lg font-semibold mb-4">Recent Activity Logs</h2>
 
-          {isLogsLoading ? (
+          {isRecentLogsLoading ? (
             <p className="text-sm text-gray-500">Loading...</p>
-          ) : isLogsError ? (
+          ) : isRecentLogsError ? (
             <p className="text-sm text-red-500">Error loading logs.</p>
-          ) : logsList.length === 0 ? (
+          ) : recentLogs.length === 0 ? (
             <p className="text-sm text-gray-500">No activity yet.</p>
           ) : (
             <div className="overflow-x-auto">
@@ -287,7 +314,7 @@ const AdminDashboard = () => {
 
                   {/* BODY */}
                   <tbody>
-                    {logsList.map((log: any) => (
+                    {recentLogs.map((log: any) => (
                       <tr key={log.id} className="hover:bg-gray-50">
                         <td className="px-4 py-2 border-b">
                           {formatAction(log.activityType)}
@@ -513,6 +540,78 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* ACTIVITY LOGS */}
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-lg font-semibold mb-4">Activity Logs</h2>
+
+            {/* FILTERS */}
+            <div className="flex gap-3 mb-4">
+              <input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="border rounded-md px-3 py-2 text-sm"
+              />
+
+              <select
+                value={filterAction}
+                onChange={(e) => setFilterAction(e.target.value)}
+                className="border rounded-md px-3 py-2 text-sm"
+              >
+                <option value="">All Actions</option>
+                <option value="application">Application</option>
+                <option value="assignment">Assignment</option>
+                <option value="payment">Payment</option>
+                <option value="room">Room</option>
+                <option value="account">Account</option>
+              </select>
+            </div>
+
+            {/* TABLE */}
+            {isLogsLoading ? (
+              <p className="text-sm text-gray-500">Loading...</p>
+            ) : isLogsError ? (
+              <p className="text-sm text-red-500">Error loading logs.</p>
+            ) : logsList.length === 0 ? (
+              <p className="text-sm text-gray-500">No logs found.</p>
+            ) : (
+              <div className="max-h-[260px] overflow-y-auto border rounded-lg">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-100 sticky top-0">
+                    <tr>
+                      <th className="text-left px-4 py-2 border-b">Action</th>
+                      <th className="text-left px-4 py-2 border-b">Details</th>
+                      <th className="text-left px-4 py-2 border-b">Date</th>
+                      <th className="text-left px-4 py-2 border-b">Time</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {logsList.map((log: any) => (
+                      <tr key={log.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 border-b">
+                          {formatAction(log.activityType)}
+                        </td>
+
+                        <td className="px-4 py-2 border-b text-gray-600">
+                          {log.activityDetails}
+                        </td>
+
+                        <td className="px-4 py-2 border-b">
+                          {formatDate(log.logTimestamp)}
+                        </td>
+
+                        <td className="px-4 py-2 border-b">
+                          {formatTime(log.logTimestamp)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
 
