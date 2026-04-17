@@ -14,6 +14,7 @@ import InteractiveMap from "./pages/MapPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
+import BillingDashboard from "./pages/student/BillingDashboard"
 
 function FullLandingPage() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/signup/form" element={<SignUpForm/>}/>
         <Route path="/student/applicationstatus" element={<ApplicationStatus/>}/>
+        <Route path="/student/billingdashboard" element={<BillingDashboard/>}/>
         <Route path="/student/dashboard" element={<StudentDashboard/>}/>
         <Route path="/landingpage" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
