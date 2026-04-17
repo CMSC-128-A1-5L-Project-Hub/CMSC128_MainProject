@@ -67,6 +67,18 @@ const AdminDashboard = () => {
     },
   })
 
+  const {
+    data: availableRoomsData,
+    isLoading: isRoomsLoading,
+    isError: isRoomsError,
+  } = useQuery({
+    queryKey: ["admin-available-rooms"],
+    queryFn: async () => {
+      const res = await api.get("/admin/rooms/available/count")
+      return res.data.data
+    },
+  })
+
     const pendingUsers = Array.isArray(pendingUsersRaw)
     ? pendingUsersRaw
     : Array.isArray(pendingUsersRaw?.data)
@@ -161,7 +173,13 @@ const AdminDashboard = () => {
         {/* Available Rooms */}
         <div className="bg-white rounded-xl shadow p-4">
           <p className="text-sm text-gray-500">Available Rooms</p>
-          <p className="text-2xl font-bold">N/A</p>
+          <p className="text-2xl font-bold">
+            {isRoomsLoading
+              ? "..."
+              : isRoomsError
+              ? "Error"
+              : availableRoomsData?.total ?? 0}
+          </p>
         </div>
       </div>
     </div>

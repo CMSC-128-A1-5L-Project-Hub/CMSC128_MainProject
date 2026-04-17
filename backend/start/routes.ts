@@ -141,6 +141,7 @@ router
         router.get('/admin/logs', [controllers.Logs, 'index'])
 
         router.get('/admin/users/count', [controllers.AdminSettings, 'countUsers'])
+        router.get('/admin/rooms/available/count', [controllers.Rooms, 'countAvailableRooms'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
   })

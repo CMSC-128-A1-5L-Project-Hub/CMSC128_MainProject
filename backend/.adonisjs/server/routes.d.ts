@@ -49,6 +49,7 @@ export type ScannedRoutes = {
     'admin_settings.update': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
     'admin_settings.count_users': { paramsTuple?: []; params?: {} }
+    'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
@@ -75,6 +76,7 @@ export type ScannedRoutes = {
     'admin_settings.index': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
     'admin_settings.count_users': { paramsTuple?: []; params?: {} }
+    'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
@@ -101,6 +103,7 @@ export type ScannedRoutes = {
     'admin_settings.index': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
     'admin_settings.count_users': { paramsTuple?: []; params?: {} }
+    'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'setups.store': { paramsTuple?: []; params?: {} }

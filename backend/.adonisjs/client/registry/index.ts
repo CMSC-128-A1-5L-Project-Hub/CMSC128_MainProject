@@ -276,6 +276,12 @@ const routes = {
     tokens: [{"old":"/admin/users/count","type":0,"val":"admin","end":""},{"old":"/admin/users/count","type":0,"val":"users","end":""},{"old":"/admin/users/count","type":0,"val":"count","end":""}],
     types: placeholder as Registry['admin_settings.count_users']['types'],
   },
+  'rooms.count_available_rooms': {
+    methods: ["GET","HEAD"],
+    pattern: '/admin/rooms/available/count',
+    tokens: [{"old":"/admin/rooms/available/count","type":0,"val":"admin","end":""},{"old":"/admin/rooms/available/count","type":0,"val":"rooms","end":""},{"old":"/admin/rooms/available/count","type":0,"val":"available","end":""},{"old":"/admin/rooms/available/count","type":0,"val":"count","end":""}],
+    types: placeholder as Registry['rooms.count_available_rooms']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

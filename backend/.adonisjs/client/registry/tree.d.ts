@@ -66,6 +66,7 @@ export interface ApiDefinition {
     store: typeof routes['rooms.store']
     update: typeof routes['rooms.update']
     destroy: typeof routes['rooms.destroy']
+    countAvailableRooms: typeof routes['rooms.count_available_rooms']
   }
   adminVerifications: {
     index: typeof routes['admin_verifications.index']
