@@ -66,8 +66,8 @@ router
         // Fees & Payments
         // router.get('/my-fees', [controllers.Fees, 'index'])
         // router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
-      })
-      .use(middleware.role([ROLES.STUDENT]))
+        // router.get('/my-payments', [controllers.Payments, 'getStudentPaymentHistory'])
+    }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
     // ─── LANDLORD EXCLUSIVE ROUTES ───
