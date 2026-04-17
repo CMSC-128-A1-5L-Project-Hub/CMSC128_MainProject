@@ -4,6 +4,28 @@ import SignIn from "./pages/shared/SignIn"
 import SignUp from "./pages/shared/SignUp"
 import SignUpForm from "./pages/shared/SignUpForm"
 import ApplicationStatus from "./pages/student/ApplicationStatus"
+import StudentDashboard from "./pages/student/Dashboard"
+import LandingPage from "./pages/shared/Landingpage"
+import AboutSection from "./pages/shared/Aboutsection"
+import FeaturesSection from "./pages/shared/Featuresection"
+import ResidenceCarousel from "./pages/shared/Recommendedsection"
+import UBLEFooter from "./pages/shared/SupportSection"
+import InteractiveMap from "./pages/MapPage"
+import AuthSuccess from "./pages/shared/AuthSuccess"
+import PendingVerification from "./pages/shared/PendingVerification"
+import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
+
+function FullLandingPage() {
+  return (
+    <>
+      <LandingPage />
+      <AboutSection />
+      <FeaturesSection />
+      <ResidenceCarousel />
+      <UBLEFooter />
+    </>
+  );
+}
 
 function App() {
   return (
@@ -14,6 +36,12 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/signup/form" element={<SignUpForm/>}/>
         <Route path="/student/applicationstatus" element={<ApplicationStatus/>}/>
+        <Route path="/student/dashboard" element={<StudentDashboard/>}/>
+        <Route path="/landingpage" element={<FullLandingPage />} /> 
+        <Route path="/map" element={<InteractiveMap />} />
+        <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
+        <Route path="/auth/success" element={<AuthSuccess />} />
+        <Route path="/pending-verification" element={<PendingVerification />} />
       </Routes>
     </BrowserRouter>
   )

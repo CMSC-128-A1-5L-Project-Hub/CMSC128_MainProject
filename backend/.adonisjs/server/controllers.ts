@@ -4,11 +4,21 @@
  */
 
 export const controllers = {
-  AccessToken: () => import('#controllers/access_token_controller'),
+  Accommodation: () => import('#controllers/accommodation_controller'),
+  AdminSettings: () => import('#controllers/admin_settings_controller'),
+  AdminVerifications: () => import('#controllers/admin_verifications_controller'),
+  Application: () => import('#controllers/application_controller'),
+  Assignments: () => import('#controllers/assignments_controller'),
   Auth: () => import('#controllers/auth_controller'),
-  LandlordDashboards: () => import('#controllers/landlord_dashboards_controller'),
-  NewAccount: () => import('#controllers/new_account_controller'),
-  Profile: () => import('#controllers/profile_controller'),
+  Bookmark: () => import('#controllers/bookmark_controller'),
+  Fees: () => import('#controllers/fees_controller'),
+  InviteManager: () => import('#controllers/invite_manager_controller'),
+  Logs: () => import('#controllers/logs_controller'),
+  ManagerHandover: () => import('#controllers/manager_handover'),
+  Notifications: () => import('#controllers/notifications_controller'),
+  Payments: () => import('#controllers/payments_controller'),
+  Reports: () => import('#controllers/reports_controller'),
+  Reviews: () => import('#controllers/reviews_controller'),
+  Rooms: () => import('#controllers/rooms_controller'),
   Setups: () => import('#controllers/setups_controller'),
-  StudentDashboards: () => import('#controllers/student_dashboards_controller'),
 }

@@ -1,15 +1,26 @@
+// app/transformers/user_transformer.ts
 import type User from '#models/user'
-import { BaseTransformer } from '@adonisjs/core/transformers'
 
-export default class UserTransformer extends BaseTransformer<User> {
-  toObject() {
-    return this.pick(this.resource, [
-      'id',
-      'fullName',
-      'email',
-      'createdAt',
-      'updatedAt',
-      'initials',
-    ])
+export function transformUser(user: User) {
+  return {
+    userId: user.userId,
+    fname: user.fname,
+    mname: user.mname,
+    lname: user.lname,
+    suffix: user.suffix,
+    email: user.email,
+    facebookAccount: user.facebookAccount,
+    role: user.role,
+    pfpFileId: user.pfpFileId,
   }
 }
+
+/*()
+
+Evoke niyo na lang like this:
+return response.ok({
+  status: 200,
+  data: transformUser(user)
+})
+
+*/

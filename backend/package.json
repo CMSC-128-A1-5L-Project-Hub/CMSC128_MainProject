@@ -35,12 +35,13 @@
     "#database/*": "./database/*.js",
     "#tests/*": "./tests/*.js",
     "#start/*": "./start/*.js",
-    "#config/*": "./config/*.js"
+    "#config/*": "./config/*.js",
+    "#helpers/*": "./app/helpers/*.js"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^8.0.0",
     "@adonisjs/eslint-config": "^3.0.0",
-    "@adonisjs/prettier-config": "^1.4.5",
+    "@adonisjs/prettier-config": "^1.4.0",
     "@adonisjs/tsconfig": "^2.0.0",
     "@japa/assert": "^4.2.0",
     "@japa/plugin-adonisjs": "^5.1.0",
@@ -56,19 +57,26 @@
     "youch": "^4.1.0"
   },
   "dependencies": {
+    "18": "^0.0.0",
     "@adonisjs/ally": "^6.0.0-next.0",
     "@adonisjs/auth": "^10.0.0-next.6",
-    "@adonisjs/core": "^7.0.0",
+    "@adonisjs/core": "^7.0.1",
     "@adonisjs/cors": "^3.0.0",
-    "@adonisjs/lucid": "^22.0.0-next.9",
+    "@adonisjs/drive": "^4.0.0-next.1",
+    "@adonisjs/limiter": "^3.0.1",
+    "@adonisjs/lucid": "^22.1.1",
+    "@adonisjs/mail": "^10.0.0-next.2",
     "@adonisjs/session": "^8.0.0",
     "@adonisjs/shield": "^9.0.0",
+    "@aws-sdk/client-s3": "^3.1026.0",
+    "@aws-sdk/s3-request-presigner": "^3.1026.0",
     "@japa/api-client": "^3.2.1",
     "@tuyau/core": "^1.0.0",
     "@vinejs/vine": "^4.3.0",
+    "adonis-autoswagger": "^3.73.0",
     "better-sqlite3": "^12.6.2",
     "luxon": "^3.7.2",
-    "mysql2": "^3.18.2",
+    "mysql2": "^3.20.0",
     "reflect-metadata": "^0.2.2"
   },
   "hotHook": {
@@ -77,5 +85,8 @@
       "./app/middleware/*.ts"
     ]
   },
-  "prettier": "@adonisjs/prettier-config"
+  "prettier": "@adonisjs/prettier-config",
+  "overrides": {
+    "fast-xml-parser": "5.5.6"
+  }
 }

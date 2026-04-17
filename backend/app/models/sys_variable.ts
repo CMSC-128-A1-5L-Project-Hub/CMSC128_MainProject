@@ -1,0 +1,24 @@
+import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { DateTime } from 'luxon'
+
+export default class SysVariables extends BaseModel {
+  static table = 'sys_variables'
+
+  @column({ isPrimary: true })
+  declare id: number
+
+  @column()
+  declare currentSemester: 'first_sem' | 'second_sem' | 'midyear'
+
+  @column()
+  declare currentSy: string
+
+  @column.date()
+  declare semStartDate: DateTime
+
+  @column()
+  declare uplbLatitude: number
+
+  @column()
+  declare uplbLongitude: number
+}

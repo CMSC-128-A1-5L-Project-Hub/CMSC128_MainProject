@@ -2,7 +2,10 @@
   "extends": "@adonisjs/tsconfig/tsconfig.app.json",
   "compilerOptions": {
     "rootDir": "./",
-    "jsx": "react",
-    "outDir": "./build"
-  }
+    "outDir": "./build",
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "target": "ESNext"
+  },
+  "include": ["**/*"] // ni add ko to
 }

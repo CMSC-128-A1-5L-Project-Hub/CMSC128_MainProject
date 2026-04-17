@@ -2,104 +2,156 @@
 |--------------------------------------------------------------------------
 | Routes file
 |--------------------------------------------------------------------------
-|
-| The routes file is used for defining the HTTP routes.
-|
 */
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 import { ROLES } from '../app/constants/roles.ts'
-
-const AuthController = () => import('#controllers/auth_controller')
+import AutoSwagger from 'adonis-autoswagger'
+import swagger from '#config/swagger'
+const InviteManagerController = () => import('#controllers/invite_manager_controller')
+import { uploadThrottle } from '#start/limiter'
 
 router.get('/', () => {
-  return { hello: 'world' }
+  return { status: 'USAT API is running - Sprint 03 Launch' }
 })
 
-// This triggers STEP 1 method
-router.get('/auth/google/redirect', [AuthController, 'redirect'])
+/*
+|--------------------------------------------------------------------------
+| PUBLIC ROUTES (Guest-Accessible)
+|--------------------------------------------------------------------------
+*/
+router.group(() => {
+  router.get('/auth/google/redirect', [controllers.Auth, 'redirect'])
+  router.get('/auth/google/callback', [controllers.Auth, 'callback'])
 
-// This triggers STEP 2 method (Google will send the user here)
-router.get('/auth/google/callback', [AuthController, 'callback'])
+  // Map Viewer Data
+  router.get('/accommodations', [controllers.Accommodation, 'index'])
+  router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
 
+  // [SPRINT 03] Reviews (Publicly visible)
+  // router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
+})
 
+/*
+|--------------------------------------------------------------------------
+| PROTECTED API ROUTES (Requires Auth)
+|--------------------------------------------------------------------------
+*/
 router
   .group(() => {
+    // ─── SUCCESSFUL LOGIN/SIGNUP ───
+    router.get('/me', [controllers.Auth, 'me'])
+
+    // ─── USER ONBOARDING ───
+    router.get('/setup', [controllers.Setups, 'show'])
+    router.post('/setup', [controllers.Setups, 'store'])
+    // router.post('/auth/verify-sms', [controllers.SmsVerifications, 'verify']) // [SPRINT 03]
+
+    // ====================================================================
+    // ─── STUDENT ROUTES ───
+    // ====================================================================
     router
       .group(() => {
-        router.post('signup', [controllers.NewAccount, 'store'])
-        router.post('login', [controllers.AccessToken, 'store'])
-        router.post('logout', [controllers.AccessToken, 'destroy']).use(middleware.auth())
-      })
-      .prefix('auth')
-      .as('auth')
+        // Application & Stay
+        router.post('/applications', [controllers.Application, 'store'])
+        router.get('/applications/my-applications', [controllers.Application, 'index'])
+        router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
+        router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
 
-    /*
-    |--------------------------------------------------------------------------
-    | SETUP ROUTES (for unassigned users)
-    |--------------------------------------------------------------------------
-    */
+        // Bookmarks & Reviews
+        router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
+        router.get('/my-bookmarks', [controllers.Bookmark, 'index'])
+        router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
+
+        // Fees & Payments
+        router.get('/my-fees', [controllers.Fees, 'index'])
+        router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
+      })
+      .use(middleware.role([ROLES.STUDENT]))
+
+    // ====================================================================
+    // ─── LANDLORD EXCLUSIVE ROUTES ───
+    // ====================================================================
     router
       .group(() => {
-        router.get('/', [controllers.Setups, 'show'])
-        router.post('/', [controllers.Setups, 'store'])
-      })
-      .prefix('setup')
-      .use(middleware.auth())
+        // Reporting & Analytics
+        router.get('/reports/revenue', [controllers.Reports, 'revenue'])
+        router.get('/reports/delinquency', [controllers.Reports, 'delinquency'])
 
-    /*
-    |--------------------------------------------------------------------------
-    | DASHBOARD ROUTES
-    |--------------------------------------------------------------------------
-    */
+        // Accommodation Management
+        router.get('/landlord/accommodations', [controllers.Accommodation, 'landlordIndex'])
+        router.post('/landlord/accommodations', [controllers.Accommodation, 'store']).use(middleware.auth()).use(uploadThrottle)
+        router.put('/landlord/accommodations/:id', [controllers.Accommodation, 'update'])
+        router.post('/landlord/accommodations/:id/images', [controllers.Accommodation, 'uploadImages'])
+        router.delete('/landlord/accommodations/:id/images/:imageId', [controllers.Accommodation, 'deleteImage'])
+
+        // Manager Handover
+        router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])
+        router.post('/landlord/accommodations/:id/unfreeze', [controllers.ManagerHandover, 'unfreeze'])
+        router.get('/landlord/accommodations/:id/freeze-status', [controllers.ManagerHandover, 'status'])
+
+        // Invite Manager
+        router.post('/landlord/accommodations/:id/invite-manager', [InviteManagerController, 'invite'])      })
+      .use(middleware.role([ROLES.LANDLORD]))
+
+    // ====================================================================
+    // ─── SHARED MANAGER & LANDLORD ROUTES ───
+    // ====================================================================
     router
       .group(() => {
-        router.get('/student', [controllers.StudentDashboards, 'index'])
-          .use(middleware.role(['student' ]))
+        // Application Review
+        router.get('/applications/incoming', [controllers.Application, 'incoming'])
+        router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
 
-        router.get('/landlord', [controllers.LandlordDashboards, 'index'])
-          .use(middleware.role(['landlord' ]))
+        // Room Management
+        router.get('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'index'])
+        router.post('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'store'])
+        router.put('/rooms/:id', [controllers.Rooms, 'update'])
+        router.delete('/rooms/:id', [controllers.Rooms, 'destroy'])
+
+        // Room Assignments & Move-outs
+        router.post('/assignments', [controllers.Assignments, 'store'])
+        router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
+
+        // Payment Verification
+        router.get('/payments/pending', [controllers.Payments, 'pending'])
+        router.patch('/payments/:id/verify', [controllers.Payments, 'verify'])
+
+        // Reports
+        router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
+        router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
       })
-      .prefix('dashboard')
-      .use(middleware.auth())
+      .use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
 
+    // ====================================================================
+    // ─── ADMIN / SUPER_ADMIN ───
+    // ====================================================================
     router
       .group(() => {
-        router.get('/profile', [controllers.Profile, 'show'])
+        // User Verifications
+        router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
+        router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
+
+        // System Settings (Academic Year & Semester Updates)
+        router.get('/admin/settings', [controllers.AdminSettings, 'index'])
+        router.put('/admin/settings', [controllers.AdminSettings, 'update'])
+
+        // System Logs
+        router.get('/admin/logs', [controllers.Logs, 'index'])
       })
-      .prefix('account')
-      .as('profile')
-      .use(middleware.auth())
+      .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
   })
-  .prefix('/api/v1')
+  .use(middleware.auth())
 
-  // ── RBAC Test Routes ───────────────────────────────
-router.get('/test-set-role/:role', async ({ session, params }) => {
-  session.put('role', params.role)
-  return { message: `Role set to: ${params.role}` }
+/*
+|--------------------------------------------------------------------------
+| DEVELOPMENT & TEST ROUTES
+|--------------------------------------------------------------------------
+*/
+router.get('/swagger', async () => {
+  return AutoSwagger.docs(router.toJSON(), swagger)
 })
-
-router
-  .get('/test-student-only', async ({ session }) => {
-    return { message: 'Welcome, Student.', role: session.get('role') }
-  })
-  .use(middleware.role([ROLES.STUDENT]))
-
-router
-  .get('/test-manager-only', async ({ session }) => {
-    return { message: 'Welcome, Dormitory Manager.', role: session.get('role') }
-  })
-  .use(middleware.role([ROLES.MANAGER]))
-
-router
-  .get('/test-landlord-only', async ({ session }) => {
-    return { message: 'Welcome, Landlord.', role: session.get('role') }
-  })
-  .use(middleware.role([ROLES.LANDLORD]))
-
-router
-  .get('/test-landlord-manager', async ({ session }) => {
-    return { message: 'Welcome, housing personnel.', role: session.get('role') }
-  })
-  .use(middleware.role([ROLES.LANDLORD, ROLES.MANAGER]))
+router.get('/docs', async () => {
+  return AutoSwagger.ui('/swagger', swagger)
+})
