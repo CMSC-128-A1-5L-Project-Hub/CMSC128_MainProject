@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import Pagination from '../../components/ApplicationStatus/Pagination';
 
@@ -79,20 +79,27 @@ export default function ApplicationStatus() {
     ]
 
     const [sortBy, setSortBy] = useState("Date applied (Asc.)");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchOpen, setSearchOpen] = useState(false);
 
     const sortedApplications = useMemo(() => {
-        return [...applications].sort((a, b) => {
-            const parseDate = (str: string) => str === '-' ? 0 : new Date(str).getTime();
+        const q = searchQuery.toLowerCase();
+        return [...applications]
+            .filter(a => !q || [a.dormitory, a.type, a.location, a.status, a.remarks, a.reviewedBy]
+                .some(field => field.toLowerCase().includes(q))
+            )
+            .sort((a, b) => {
+                const parseDate = (str: string) => str === '-' ? 0 : new Date(str).getTime();
 
-            if (sortBy === "Date applied (Asc.)")  return parseDate(a.dateApplied) - parseDate(b.dateApplied);
-            if (sortBy === "Date applied (Desc.)") return parseDate(b.dateApplied) - parseDate(a.dateApplied);
-            if (sortBy === "Reviewed on (Asc.)")   return parseDate(a.reviewedOn)  - parseDate(b.reviewedOn);
-            if (sortBy === "Reviewed on (Desc.)")  return parseDate(b.reviewedOn)  - parseDate(a.reviewedOn);
-            if (sortBy === "Status") return a.status.localeCompare(b.status);
-            return 0;
+                if (sortBy === "Date applied (Asc.)")  return parseDate(a.dateApplied) - parseDate(b.dateApplied);
+                if (sortBy === "Date applied (Desc.)") return parseDate(b.dateApplied) - parseDate(a.dateApplied);
+                if (sortBy === "Reviewed on (Asc.)")   return parseDate(a.reviewedOn)  - parseDate(b.reviewedOn);
+                if (sortBy === "Reviewed on (Desc.)")  return parseDate(b.reviewedOn)  - parseDate(a.reviewedOn);
+                if (sortBy === "Status") return a.status.localeCompare(b.status);
+                return 0;
 
-        });
-    }, [sortBy]);
+            });
+        }, [sortBy, searchQuery]);
 
     const counts = {
         approved: applications.filter(a => a.status === 'approved').length,
@@ -110,28 +117,33 @@ export default function ApplicationStatus() {
         { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#e4f0f5', text: '#3A6AB7' },
     ]
 
+    const trueTotal = applications.length;
     const totalApps = sortedApplications.length;
     const [ROWS_PER_PAGE, setRows] = useState(5);
     const [currentPage, setCurrentPage] = useState(1);
     const totalPages = Math.ceil(sortedApplications.length / ROWS_PER_PAGE);
+    const inputRef = useRef<HTMLInputElement>(null);
     const paginated = sortedApplications.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE);
 
     return (
         <div className="bg-[#F5EEF0] h-screen overflow-hidden flex flex-col">
-            <h1 className='font-serif font-bold italic text-[30px] mx-4 my-1 text-[#6B0F2B]'>Application Status</h1>
+            <div className='flex flex-row justify-start items-center mt-3'>
+                <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-5 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div> 
+                <h1 className='font-serif font-bold italic text-[30px] lg:text-[31px] text-[#6B0F2B] px-5 lg:p-0'>Application Status</h1>
+            </div>
             <hr className="border-t-1 border-[#6B0F2B] border-opacity-10 my-1" />
             
-            <div className="bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-4 sm:p-6 mx-4 mt-4 mb-2 rounded-xl shrink-0">
-                <p className="uppercase text-[#C9973A] text-[12px] lg:text-[16px]">Good day, Ana Reyes</p>
-                <h1 className="font-bold text-[20.22px] lg:text-[28px] text-white">Check your application status</h1>
-                <p className="text-white text-opacity-55 text-[12.5px] lg:text-[18.5px]">We make it easy for you to track the accommodations you've applied for</p>
+            <div className="bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-4 mx-4 mt-4 mb-2 rounded-xl shrink-0">
+                <p className="uppercase text-[#C9973A] text-[12px] lg:text-[13px]">Good day, Ana Reyes</p>
+                <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">Check your application status</h1>
+                <p className="text-white text-opacity-55 text-[12.5px] lg:text-[13.5px]">We make it easy for you to track the accommodations you've applied for</p>
             </div>
 
-            <div className="bg-white p-4 sm:p-6 mx-4 mt-2 mb-4 rounded-xl shrink-0">             
+            <div className="bg-white p-4 mx-4 mt-2 mb-4 rounded-xl shrink-0">             
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                     {stats.map((stat, i) => (
                         <div key={stat.label} className={i===0 ? "col-span-2 lg:col-span-1" : "col-span-1"}>
-                            <span className="block uppercase font-bold text-[11px] lg:text-[14px]" style={{ color: stat.text }}>
+                            <span className="block uppercase font-bold text-[11px] lg:text-[12px]" style={{ color: stat.text }}>
                                 {stat.label}
                             </span>
                             <div className="flex flex-grow items-center gap-3 mt-1">
@@ -139,15 +151,15 @@ export default function ApplicationStatus() {
                                     <div
                                         className="lg:h-7 h-5 rounded-xl flex items-center justify-left pl-2"
                                         style={{
-                                            width: `${(stat.count / totalApps) * 100}%`,
+                                            width: `${applications.length === 0 ? 0 : (stat.count / trueTotal) * 100}%`,
                                             background: `linear-gradient(to right, ${stat.from}, ${stat.to})`
                                         }}
                                     >
-                                        <span className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)] text-white text-[11px] lg:text-[14px] font-bold">{stat.count}/{totalApps}</span>
+                                        <span className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)] text-white text-[11px] lg:text-[12px] font-bold">{stat.count}/{trueTotal}</span>
                                     </div>
                                 </div>
-                                <span className="text-[12px] lg:text-[14px] font-bold" style={{ color: stat.text }}>
-                                    {Math.round((stat.count / totalApps) * 100)}%
+                                <span className="text-[12px] lg:text-[13px] font-bold" style={{ color: stat.text }}>
+                                    {applications.length === 0 ? 0 : Math.round((stat.count / trueTotal) * 100)}%
                                 </span>
                             </div>
                         </div>
@@ -155,32 +167,71 @@ export default function ApplicationStatus() {
                 </div>
             </div>
 
-            <div className="bg-white p-2 mb-5 mx-4 rounded-xl flex flex-col min-h-0 flex-1" style={{ height: 'calc(100vh - 2rem)' }}>
-                <div className='flex justify-between items-center pb-2'>
+            <div className="bg-white p-2 lg:p-3 mb-5 lg:mb-7 mx-4 rounded-xl flex flex-col min-h-0 flex-1" style={{ height: 'calc(100vh - 2rem)' }}>
+                <div className='flex justify-between items-center pb-2 lg:pb-4'>
                     <div className='px-2'>
-                        <h1 className='font-bold text-[15px]'>Application History</h1>
-                        <p className='italic text-[11px]'>{totalApps} total applications</p>
+                        <h1 className='font-bold text-[15px] lg:text-[16px]'>Application History</h1>
+                        <p className='italic text-[11px] lg:text-[12px]'>{totalApps} total applications</p>
                     </div>
-                    <div>                       
-                        <Dropdown 
-                            title="Sort by"
-                            items={[
-                                { label: "Date applied (Asc.)", href: "" },
-                                { label: "Date applied (Desc.)", href: "" },
-                                { label: "Reviewed on (Asc.)", href: "" },
-                                { label: "Reviewed on (Desc.)", href: "" },
-                                { label: "Status", href: "" },
-                            ]}
-                            direction = "down"
-                            onSelect={(label) => {setSortBy(label); setCurrentPage(1); }}
-                        />
+                    <div className="flex items-center gap-2 lg:gap-3">
+                    {/* Desktop: expanding search bar */}
+                    <div className="hidden lg:flex items-center gap-2 ">
+                        <div className={`px-1 flex items-center border-2 lg:border-3 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px] overflow-hidden transition-all duration-300 ${searchOpen ? 'w-44' : 'w-12'}`}>
+                            <button 
+                            onClick={() => { setSearchOpen(!searchOpen); if (!searchOpen) inputRef.current?.focus(); }}
+                                className="p-1 shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" fill="#FAF4F6" viewBox="0 0 24 24">
+                                    <path stroke="#9A7080" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z"/>
+                                </svg>
+                            </button>
+                                <input  
+                                    type="text"
+                                    placeholder="Search..."
+                                    ref={inputRef}
+                                    value={searchQuery}
+                                    onBlur={() => { setSearchOpen(false); setSearchQuery(""); }}
+                                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                                    className={`bg-[#FAF4F6] text-[12px] lg:text-[13px] px-1 outline-none transition-all duration-300 ${searchOpen ? 'w-full opacity-100' : 'w-0 opacity-0'} w-full`}
+                                />
+                        </div>
                     </div>
+
+                    {/* Mobile: icon that opens modal */}
+                    <button className="lg:hidden border-2 p-1 px-2 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px] overflow-hidden" onClick={() => setSearchOpen(true)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="32" fill="none" viewBox="0 0 24 24">
+                            <path stroke="#9A7080" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z"/>
+                        </svg>
+                    </button>
+
+                    <Dropdown 
+                        title="Sort by"
+                        items={[
+                            { label: "Date applied (Asc.)", href: "" },
+                            { label: "Date applied (Desc.)", href: "" },
+                            { label: "Reviewed on (Asc.)", href: "" },
+                            { label: "Reviewed on (Desc.)", href: "" },
+                            { label: "Status", href: "" },
+                        ]}
+                        direction="down"
+                        widthClass="w-32 lg:w-44"
+                        titleClass="text-[10px] lg:text-[11px]"
+                        selectedClass="text-[12px] lg:text-[13px]"
+                        onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
+                    />
+                </div>
                 </div>
 
                 <div className="overflow-auto flex-1 min-h-0">
-                    <table className="table-fixed w-full">
-                        <thead className='sticky top-0 bg-[#F7F3F3]'>
-                            <tr className=" border-[#6B0F2B] border-opacity-5 border-b-2 text-[#9A7080] text-[12px] lg:text-[16px] 6B0F2B">
+                    {applications.length === 0 && (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <p className="uppercase text-[14px] text-[#9A7080] font-bold">
+                                No applications found
+                            </p>
+                        </div>
+                    )}
+                    <table className= {` ${applications.length === 0 ? "hidden" : "table-fixed w-full"} `}>
+                        <thead className={`${applications.length === 0 ? "hidden" : 'sticky top-0 bg-[#F7F3F3]'}`}>
+                            <tr className=" border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4 text-[#9A7080] text-[12px] lg:text-[14px] 6B0F2B">
                                 <th className='uppercase p-2 text-left whitespace-nowrap w-40'>dormitory</th>
                                 <th className='uppercase p-2 text-left whitespace-nowrap w-32'>date applied</th>
                                 <th className='uppercase p-2 text-left whitespace-nowrap w-32'>reviewed on</th>
@@ -191,27 +242,27 @@ export default function ApplicationStatus() {
                         </thead>
                         <tbody>
                             {paginated.map((app, index) => (
-                                <tr key={index} className="text-[12px] lg:text-[15px]"
+                                <tr key={index}
                                 style = {{ backgroundColor: (rowStyles[app.status]?.bg ?? '#888')  + '0D',
                                     color: (rowStyles[app.status]?.text ?? '#888'),
                                 }}>
                                     <td className='px-2 py-2 border-[#6B0F2B]'>
-                                        <span className="block text-[13px] font-semibold">{app.dormitory}</span>
-                                        <span className="block text-[10px] text-[#9A7080]">{app.type} • {app.location}</span>
+                                        <span className="block text-[13px] lg:text-[15px] font-semibold">{app.dormitory}</span>
+                                        <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">{app.type} • {app.location}</span>
                                     </td>
                                     <td className='px-2 py-2 whitespace-nowrap border-[#6B0F2B] '>
-                                        <span className="block text-[12px]">{app.dateApplied}</span>
-                                        <span className="block text-[10px] text-[#9A7080]">{timeAgo(app.dateApplied)}</span>
+                                        <span className="block text-[12px] lg:text-[14px]">{app.dateApplied}</span>
+                                        <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">{timeAgo(app.dateApplied)}</span>
                                     </td>
                                     <td className='px-2 py-2 whitespace-nowrap border-[#6B0F2B] '>
-                                        <span className='block text-[12px]'>{app.reviewedOn}</span>
-                                        <span className='block text-[10px] text-[#9A7080]'>{app.reviewedBy}</span>
+                                        <span className='block text-[12px] lg:text-[14px]'>{app.reviewedOn}</span>
+                                        <span className='block text-[10px] lg:text-[12px] text-[#9A7080]'>{app.reviewedBy}</span>
                                     </td>
-                                    <td className='text-[11px] capitalize border-[#6B0F2B]font-bold'>
+                                    <td className='text-[13px] capitalize border-[#6B0F2B]font-bold'>
                                         <div className='bg-opacity-10 p-2 w-fit rounded-[50px] flex flex-row'
                                             style = {{ backgroundColor: (statusStyles[app.status]?.bg ?? '#F0F0F0')  + '1A' }}
                                         >
-                                            <div className='p-1.5 w-1.5 h-1.5 mr-1.5 mt-0.5 rounded-[100px]'
+                                            <div className='p-1.5 w-1.5 h-1.5 mr-1.5 mt-0.5 lg:mt-1 rounded-[100px]'
                                                 style = {{ backgroundColor: statusStyles[app.status]?.dot ?? '#888' }}
                                             />
                                             <p style = {{ color: statusStyles[app.status]?.text ?? '#888',
@@ -219,9 +270,9 @@ export default function ApplicationStatus() {
                                             }}>{app.status}</p>
                                         </div>
                                     </td>
-                                    <td className='px-2 py-2 text-[12px] truncate w-full border-[#6B0F2B]'>{app.remarks}</td>
-                                    <td className='px-2 py-2 text-[12px] border-[#6B0F2B]'>
-                                        <button className="text-[#6B0F2B] font-semibold text-[12px] border-2 py-1 px-4 bg-[#F5ECF0] border-[#6B0F2B] border-opacity-5 rounded-[8.8px]">View</button>
+                                    <td className='px-2 py-2 text-[12px] lg:text-[14px] truncate w-full border-[#6B0F2B]'>{app.remarks}</td>
+                                    <td className='px-2 py-2 text-[12px] lg:text-[14px] border-[#6B0F2B]'>
+                                        <button className="text-[#6B0F2B] font-semibold text-[12px] lg:text-[15px] border-2 lg:border-3 py-1 px-4 lg:py-1.5 lg:px-5 bg-[#F5ECF0] border-[#6B0F2B] border-opacity-5 rounded-[8.8px]">View</button>
                                     </td>
                                 </tr>
                             ))}
@@ -232,7 +283,7 @@ export default function ApplicationStatus() {
 
                 <div className='flex flex-nowrap justify-between'>
                     <div className='flex justify-start items-center gap-2'>
-                        <div className='m-1 mt-3'>                       
+                        <div className='m-1 mt-3 lg:mt-4'>                       
                             <Dropdown 
                                 title="No. of Items"
                                 items={[
@@ -242,25 +293,51 @@ export default function ApplicationStatus() {
                                     { label: "20", href: "" },
                                 ]}
                                 direction='up'
+                                widthClass="w-29 lg:w-32"
+                                titleClass="text-[10px] lg:text-[12px]"
+                                selectedClass="text-[12px] lg:text-[14px]"
                                 onSelect={(label) => {setRows(parseInt(label, 10)); setCurrentPage(1)}}
                             />
                             
                         </div>
-                        <span className='text-[11px] text-[#9A7080] p-0 m-0'>Showing {(currentPage-1) * ROWS_PER_PAGE + 1}-{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}</span>
+                        <span className='text-[11px] lg:text-[13px] text-[#9A7080] p-0 mt-2 m-0'>Showing {(currentPage-1) * ROWS_PER_PAGE + 1}-{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}</span>
                     </div>
                         
                     
-                    <div className="flex justify-between items-center m-2 mt-4 text-sm text-[#9A7080]">     
-                        <div className="flex gap-2 text-[12px]">
+                    <div className="flex justify-between items-center m-2 mt-4 lg:mt-6 text-sm text-[#9A7080]">     
+                        <div className="flex gap-2 text-[12px] lg:text-[15px]">
                             <Pagination
                                 totalPages={totalPages}
                                 currentPage={currentPage}
                                 onPageChange={setCurrentPage}
+                                buttonSize='w-6 h-6 lg:w-8 lg:h-8'
                             />
                         </div>
                     </div>
                 </div>
             </div>
+            {searchOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center lg:hidden">
+                    <div className="bg-white rounded-xl p-4 w-[60%] shadow-xl">
+                        <div className="flex items-center gap-2 border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] px-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
+                                <path stroke="#9A7080" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z"/>
+                            </svg>
+                            <input
+                                autoFocus
+                                type="text"
+                                placeholder="Search dormitory, status, type..."
+                                value={searchQuery}
+                                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                                className="text-[12px] py-2 outline-none w-full"
+                            />
+                        </div>
+                        <button onClick={() => setSearchOpen(false)} className="mt-3 text-[12px] text-[#9A7080] w-full text-center">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
 
         </div>
     )
