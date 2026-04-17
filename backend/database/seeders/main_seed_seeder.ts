@@ -34,6 +34,9 @@ export default class extends BaseSeeder {
       { file_name: 'enroll_2023123460.pdf', file_path: '/uploads/documents/enroll_2023123460.pdf', file_type: 'document' },
       { file_name: 'enroll_2023123461.pdf', file_path: '/uploads/documents/enroll_2023123461.pdf', file_type: 'document' },
       { file_name: 'enroll_2023123462.pdf', file_path: '/uploads/documents/enroll_2023123462.pdf', file_type: 'document' },
+
+      { file_name: 'enroll_2023123463.pdf', file_path: '/uploads/documents/enroll_2023123463.pdf', file_type: 'document' },
+      { file_name: 'enroll_2023123464.pdf', file_path: '/uploads/documents/enroll_2023123464.pdf', file_type: 'document' },
       // Reports
       { file_name: 'report_1.pdf', file_path: '/uploads/documents/report_1.pdf', file_type: 'document' },
       { file_name: 'report_2.pdf', file_path: '/uploads/documents/report_2.pdf', file_type: 'document' },
@@ -100,7 +103,38 @@ export default class extends BaseSeeder {
       { pfp_file_id: getFile('pfp_15.jpg'), fname: 'Michael Angelo', mname: 'Torres', lname: 'Bautista', suffix: null, email: 'mabautista@gmail.com', facebook_account: 'facebook.com/michael.bautista', role: 'manager' },
       { pfp_file_id: getFile('pfp_16.jpg'), fname: 'Angela Marie', mname: 'Salazar', lname: 'Pineda', suffix: null, email: 'ampineda@up.edu.ph', facebook_account: 'facebook.com/angela.pineda', role: 'manager' },
       { pfp_file_id: getFile('pfp_17.jpg'), fname: 'Victor Emmanuel', mname: 'Alvarez', lname: 'Padilla', suffix: null, email: 'vepadilla@gmail.com', facebook_account: 'facebook.com/victor.padilla', role: 'manager' },
-      { pfp_file_id: getFile('pfp_18.jpg'), fname: 'Andy Emmanuel', mname: 'Padilla', lname: 'Alvarez', suffix: null, email: 'aralvarez@gmail.com', facebook_account: 'facebook.com/andy.alvarez', role: 'manager' }
+      { pfp_file_id: getFile('pfp_18.jpg'), fname: 'Andy Emmanuel', mname: 'Padilla', lname: 'Alvarez', suffix: null, email: 'aralvarez@gmail.com', facebook_account: 'facebook.com/andy.alvarez', role: 'manager' }, 
+      
+      { 
+        pfp_file_id: getFile('pfp_1.jpg'),
+        fname: 'Ana Marie',
+        mname: null,
+        lname: 'Reyes',
+        suffix: null,
+        email: 'pending.student1@up.edu.ph',
+        facebook_account: 'facebook.com/ana.reyes',
+        role: 'unassigned'
+      },
+      { 
+        pfp_file_id: getFile('pfp_2.jpg'),
+        fname: 'John Paul',
+        mname: null,
+        lname: 'Santos',
+        suffix: null,
+        email: 'pending.student2@up.edu.ph',
+        facebook_account: 'facebook.com/john.santos',
+        role: 'unassigned'
+      },
+      { 
+        pfp_file_id: getFile('pfp_8.jpg'),
+        fname: 'Carla',
+        mname: null,
+        lname: 'Navarro',
+        suffix: null,
+        email: 'pending.landlord1@gmail.com',
+        facebook_account: 'facebook.com/carla.navarro',
+        role: 'unassigned'
+      }
     ])
 
     // --- DYNAMIC FETCH: USERS ---
@@ -144,7 +178,12 @@ export default class extends BaseSeeder {
       { user_id: getUser('cmnavarro@gmail.com'), tin: '234-567-890-111' },
       { user_id: getUser('pagarcia@up.edu.ph'), tin: '345-678-901-222' },
       { user_id: getUser('raortega@gmail.com'), tin: '456-789-012-333' },
-      { user_id: getUser('ntramos@gmail.com'), tin: '567-890-123-444' }
+      { user_id: getUser('ntramos@gmail.com'), tin: '567-890-123-444' },
+      
+      {
+        user_id: getUser('pending.landlord1@gmail.com'),
+        tin: '678-901-234-555'
+      }
     ])
 
     await db.table('managers').multiInsert([
@@ -163,7 +202,28 @@ export default class extends BaseSeeder {
       { student_number: '2023-123459', user_id: getUser('accruz@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123459.pdf'), college: 'CAS', degree_program: 'BA Communication Arts', gender: 'Female', emergency_contact_name: 'Clyden Ramirez', emergency_contact_number: '09876543210' },
       { student_number: '2023-123460', user_id: getUser('djsantos@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123460.pdf'), college: 'CEAT', degree_program: 'BS Industrial Engineering', gender: 'Male', emergency_contact_name: null, emergency_contact_number: null },
       { student_number: '2023-123461', user_id: getUser('kjvillanueva@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123461.pdf'), college: 'CBA', degree_program: 'BS Accountancy', gender: 'Female', emergency_contact_name: 'Rafael Ortega', emergency_contact_number: '09172345678' },
-      { student_number: '2023-123462', user_id: getUser('jdaguilar@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123462.pdf'), college: 'CITE', degree_program: 'BS Computer Science', gender: 'Male', emergency_contact_name: 'Victor Padilla', emergency_contact_number: '09987654321' }
+      { student_number: '2023-123462', user_id: getUser('jdaguilar@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123462.pdf'), college: 'CITE', degree_program: 'BS Computer Science', gender: 'Male', emergency_contact_name: 'Victor Padilla', emergency_contact_number: '09987654321' },
+    
+      {
+        student_number: '2023-223456',
+        user_id: getUser('pending.student1@up.edu.ph'),
+        enrollment_proof_file_id: getFile('enroll_2023123463.pdf'),
+        college: 'CAS',
+        degree_program: 'BS Biology',
+        gender: 'Female',
+        emergency_contact_name: 'Maria Reyes',
+        emergency_contact_number: '09171234567'
+      },
+      {
+        student_number: '2023-223457',
+        user_id: getUser('pending.student2@up.edu.ph'),
+        enrollment_proof_file_id: getFile('enroll_2023123464.pdf'),
+        college: 'CEM',
+        degree_program: 'BS Economics',
+        gender: 'Male',
+        emergency_contact_name: 'Pedro Santos',
+        emergency_contact_number: '09181234567'
+      }
     ])
 
     // =========================================================================
