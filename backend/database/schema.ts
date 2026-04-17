@@ -219,7 +219,7 @@ export class NotificationSchema extends BaseModel {
 }
 
 export class PaymentSchema extends BaseModel {
-  static $columns = ['feeId', 'id', 'modeOfPayment', 'paymentAmount', 'paymentTimestamp', 'proofFileId'] as const
+  static $columns = ['feeId', 'id', 'modeOfPayment', 'paymentAmount', 'paymentStatus', 'paymentTimestamp', 'proofFileId'] as const
   $columns = PaymentSchema.$columns
   @column()
   declare feeId: number
@@ -229,6 +229,8 @@ export class PaymentSchema extends BaseModel {
   declare modeOfPayment: string
   @column()
   declare paymentAmount: string
+  @column()
+  declare paymentStatus: string | null
   @column.dateTime()
   declare paymentTimestamp: DateTime | null
   @column()
@@ -308,7 +310,7 @@ export class RoomSchema extends BaseModel {
 }
 
 export class StudentSchema extends BaseModel {
-  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'gender', 'studentNumber', 'userId'] as const
+  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'form5Renewal', 'gender', 'studentNumber', 'userId'] as const
   $columns = StudentSchema.$columns
   @column()
   declare college: string
@@ -320,6 +322,8 @@ export class StudentSchema extends BaseModel {
   declare emergencyContactNumber: string | null
   @column()
   declare enrollmentProofFileId: number
+  @column()
+  declare form5Renewal: boolean
   @column()
   declare gender: string
   @column({ isPrimary: true })

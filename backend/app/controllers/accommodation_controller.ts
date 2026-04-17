@@ -5,81 +5,24 @@ import FileMetadata from '#models/file_metadatum'
 import DistanceService from '#services/distance'
 import db from '@adonisjs/lucid/services/db'
 import { uploadImage, deleteImage } from '#services/b2_services'
+import AccommodationService from '#services/accommodation_service'
 
 export default class AccommodationController {
+  private accommodationService = new AccommodationService()
+
   // ─── GET /accommodations ──────────────────────────────────────────────────
   // Public: list all accommodations with optional filters via query string
-  async index({ request, response }: HttpContext) {
-    const {
-      type,
-      restriction,
-      min_rent,
-      max_rent,
-      max_walk,
-      min_capacity,
-      search,
-      stay_type,
-    } = request.qs()
+  async index({ request, serialize }: HttpContext) {
+    // qs() automatically parses the tags[] array from the URL
+    const filters = request.qs() 
 
-    const query = Accommodation.query()
-      .preload('images', (q) => q.preload('file'))
-      .preload('tags')
-      .preload('manager', (q) => q.preload('user'))
-      .preload('rooms')
-
-    if (type) {
-      query.where('accommodation_type', type)
-    }
-
-    if (restriction) {
-      query.where('tenant_restriction', restriction)
-    }
-
-    if (max_walk) {
-      query.where('walking_distance', '<=', Number(max_walk))
-    }
-
-    if (min_capacity) {
-      query.where('accommodation_capacity', '>=', Number(min_capacity))
-    }
-
-    if (search) {
-      query.where((q) => {
-        q.where('accommodation_name', 'LIKE', `%${search}%`)
-          .orWhere('accommodation_location', 'LIKE', `%${search}%`)
-      })
-    }
-
-    if (min_rent) {
-      query.whereHas('rooms', (q) => {
-        q.where('room_rent', '>=', Number(min_rent))
-      })
-    }
-
-    if (max_rent) {
-      query.whereHas('rooms', (q) => {
-        q.where('room_rent', '<=', Number(max_rent))
-      })
-    }
-
-    if (stay_type && stay_type !== 'all') {
-      query.whereHas('rooms', (q) => {
-        q.where('room_stay_type', stay_type)
-      })
-    }
-
-    const accommodations = await query
-
-    return response.ok({
-      status: 200,
-      data: accommodations.map((acc) => ({
-        ...acc.serialize(),
-        minRent: acc.rooms.length > 0 ? Math.min(...acc.rooms.map((r) => r.roomRent)) : 0,
-        maxRent: acc.rooms.length > 0 ? Math.max(...acc.rooms.map((r) => r.roomRent)) : 0,
-        imageUrl: acc.images[0]?.file?.filePath ?? null,
-      }))
+    const catalog = await this.accommodationService.getFilteredCatalog(filters)
+    
+    return serialize({
+      message: 'Catalog retrieved successfully',
+      data: catalog
     })
-  }
+  } 
 
   // ─── GET /accommodations/:id ──────────────────────────────────────────────
   // Public: single accommodation with full details
@@ -133,8 +76,8 @@ export default class AccommodationController {
       !application_end_date ||
       !manager_id ||
       !business_permit_id ||
-      !latitude ||
-      !longitude
+      latitude === undefined ||
+      longitude === undefined
     ) {
       return response.badRequest({
         status: 400,

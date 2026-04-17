@@ -40,6 +40,7 @@ export default class extends BaseSchema {
       table.string('gender', 10).notNullable()
       table.string('emergency_contact_name', 100).nullable()
       table.string('emergency_contact_number', 11).nullable()
+      table.boolean('form5_renewal').defaultTo(false)
     })
   }
 

@@ -33,6 +33,9 @@ export default class Accommodation extends BaseModel {
   declare accommodationLocation: string
 
   @column()
+  declare status: string
+
+  @column()
   declare longitude: number | null
 
   @column()
@@ -61,6 +64,16 @@ export default class Accommodation extends BaseModel {
 
   @column.date()
   declare applicationEndDate: DateTime
+   
+  // ─── Freeze columns (for manager handover) ────────────────────────────────
+  @column()
+  declare isFrozen: boolean
+ 
+  @column()
+  declare freezeReason: string | null
+ 
+  @column.dateTime()
+  declare freezeStartedAt: DateTime | null
 
   @belongsTo(() => Landlord, { foreignKey: 'userId' })
   declare landlord: BelongsTo<typeof Landlord>
