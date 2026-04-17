@@ -48,6 +48,8 @@ export type ScannedRoutes = {
     'admin_settings.index': { paramsTuple?: []; params?: {} }
     'admin_settings.update': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
+    'notifications.index': { paramsTuple?: []; params?: {} }
+    'notifications.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
@@ -73,6 +75,7 @@ export type ScannedRoutes = {
     'admin_verifications.index': { paramsTuple?: []; params?: {} }
     'admin_settings.index': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
+    'notifications.index': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
@@ -98,6 +101,7 @@ export type ScannedRoutes = {
     'admin_verifications.index': { paramsTuple?: []; params?: {} }
     'admin_settings.index': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
+    'notifications.index': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'setups.store': { paramsTuple?: []; params?: {} }
@@ -127,6 +131,7 @@ export type ScannedRoutes = {
     'assignments.move_out': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'payments.verify': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin_verifications.verify': { paramsTuple: [ParamValue]; params: {'userId': ParamValue} }
+    'notifications.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

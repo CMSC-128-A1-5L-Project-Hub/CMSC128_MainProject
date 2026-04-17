@@ -155,3 +155,7 @@ router.get('/swagger', async () => {
 router.get('/docs', async () => {
   return AutoSwagger.ui('/swagger', swagger)
 })
+
+// Notfications
+router.get('/notifications', [controllers.Notifications, 'index'])
+router.patch('/notifications/:id', [controllers.Notifications, 'update'])

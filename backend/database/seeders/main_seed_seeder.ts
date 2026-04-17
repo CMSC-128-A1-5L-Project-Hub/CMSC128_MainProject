@@ -358,7 +358,11 @@ export default class extends BaseSeeder {
     ])
 
     await db.table('notifications').multiInsert([
-      { user_id: getUser('afjuarez@up.edu.ph'), notification_content: 'Your rent payment is due on March 15, 2026.', read_status: 'unread', notification_type: 'fee_due' },
+      // --- AVRIELLE'S TEST NOTIFICATIONS ---
+      { user_id: getUser('afjuarez@up.edu.ph'), notification_content: 'Your rent payment for One Silangan is due on March 15, 2026.', read_status: 'unread', notification_type: 'fee_due' },
+      { user_id: getUser('afjuarez@up.edu.ph'), notification_content: 'Your accommodation application to One Silangan has been approved.', read_status: 'unread', notification_type: 'application_status' },
+      { user_id: getUser('afjuarez@up.edu.ph'), notification_content: 'Welcome to the USAT Platform!', read_status: 'read', notification_type: 'system' },
+      
       { user_id: getUser('accruz@up.edu.ph'), notification_content: 'Your accommodation application has been approved.', read_status: 'read', notification_type: 'application_status' },
       { user_id: getUser('svramirez@up.edu.ph'), notification_content: 'System maintenance is scheduled on March 12, 2026.', read_status: 'unread', notification_type: 'system' },
       { user_id: getUser('kjvillanueva@up.edu.ph'), notification_content: 'Please update your profile information.', read_status: 'read', notification_type: 'other' },

@@ -78,4 +78,8 @@ export interface ApiDefinition {
   logs: {
     index: typeof routes['logs.index']
   }
+  notifications: {
+    index: typeof routes['notifications.index']
+    update: typeof routes['notifications.update']
+  }
 }

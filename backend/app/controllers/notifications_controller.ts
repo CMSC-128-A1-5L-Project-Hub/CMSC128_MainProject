@@ -1,12 +1,14 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Notification from '#models/notification'
+import User from '#models/user'
 
 export default class NotificationsController {
     // retrieve notifications for currently authenticated user
     async index({ auth, response }: HttpContext) {
         try {
-            // ensure the user is authenticated
-            const user = auth.user!
+            // TEMP DEV BYPASS 
+            // const user = auth.user!
+            const user = await User.findByOrFail('email', 'afjuarez@up.edu.ph')
 
             // fetch notifications belonging to the user, newest first
             const notifications = await Notification.query()
@@ -28,7 +30,9 @@ export default class NotificationsController {
     // update a specific notification by ID
     async update({ params, request, auth, response }: HttpContext) {
         try {
-            const user = auth.user!
+            // TEMP DEV BYPASS 
+            // const user = auth.user!
+            const user = await User.findByOrFail('email', 'afjuarez@up.edu.ph')
             const notificationId = params.id
 
             // find the notification and ensure it belongs to the authenticated user
