@@ -4,6 +4,7 @@ import HeroBanner from "../../components/Dashboard/manager/HeroBanner"
 import StatCard from "../../components/Dashboard/manager/StatCard"
 import Applications from "../../components/Dashboard/manager/Applications"
 import Waitlist from "../../components/Dashboard/manager/Waitlist"
+import ConfirmedStudents from "../../components/Dashboard/manager/ConfirmedStudents"
 
 //Interfaces
 interface ManagerProfile {
@@ -32,6 +33,11 @@ interface Application {
     studentName: string
     type: string
     appliedDate: string 
+}
+
+interface ConfirmedStudent {
+    studentName: string
+    stayType: string
 }
 
 //Mock Data
@@ -64,13 +70,17 @@ const applications: Application[] = [
     {studentName: "Ana Marie Reyes", type: "Non-transient", appliedDate: "Mar 15, 2026"}
 ]
 
+const confirmedStudents: ConfirmedStudent[] = [
+    {studentName: "Ana Marie Reyes", stayType: "Non-transient"}
+]
+
 export default function Dashboard() {
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
             <Sidebar role="manager" profile={managerProfile}/>
 
             {/* Main Content */}
-            <div className="flex-1 flex-col p-5">
+            <div className="flex-1 flex flex-col p-5 overflow-y-auto">
                 <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
                     <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
                         style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
@@ -110,9 +120,10 @@ export default function Dashboard() {
                         />
 
                         <div className="col-span-1 lg:col-span-2 flex flex-col gap-4">
-                            <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm flex flex-row">
-
-                            </div>
+                            <ConfirmedStudents 
+                                data={confirmedStudents}
+                                className="lg: col-span-1"
+                            />
                             <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm flex flex-row">
 
                             </div>
