@@ -30,10 +30,11 @@ export default function HeroBanner({
                     You have {pendingApplications > 0 ? pendingApplications : "no"} pending applications and {newNotifications > 0 ? newNotifications : "no"} new notifications today.
                 </p>
             </div>
-            <img
+            {/* Remove ko muna for now */}
+            {/* <img
                 src={House}
-                className="hidden lg:inline absolute right-[1%] translate-y-[0%] w-56 pointer-events-none"
-            />
+                className="hidden lg:inline relative right-[1%] translate-y-[0%] w-30 pointer-events-none"
+            /> */}
         </div>
     )
 }

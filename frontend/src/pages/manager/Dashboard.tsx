@@ -5,6 +5,7 @@ import StatCard from "../../components/Dashboard/manager/StatCard"
 import Applications from "../../components/Dashboard/manager/Applications"
 import Waitlist from "../../components/Dashboard/manager/Waitlist"
 import ConfirmedStudents from "../../components/Dashboard/manager/ConfirmedStudents"
+import Moves from "../../components/Dashboard/manager/Moves"
 
 //Interfaces
 interface ManagerProfile {
@@ -40,6 +41,13 @@ interface ConfirmedStudent {
     stayType: string
 }
 
+interface Move {
+    studentName: string
+    room: string
+    action: string
+    date: string
+}
+
 //Mock Data
 const managerProfile: ManagerProfile = {
     fullName: "Dal Cadsawan",
@@ -72,6 +80,10 @@ const applications: Application[] = [
 
 const confirmedStudents: ConfirmedStudent[] = [
     {studentName: "Ana Marie Reyes", stayType: "Non-transient"}
+]
+
+const moves: Move[] = [
+    {studentName: "Ana Marie Reyes", room: "Room 210", action: "Move-out", date:"March 28, 2026"}
 ]
 
 export default function Dashboard() {
@@ -124,9 +136,10 @@ export default function Dashboard() {
                                 data={confirmedStudents}
                                 className="lg: col-span-1"
                             />
-                            <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm flex flex-row">
-
-                            </div>
+                            <Moves 
+                                data={moves}
+                                className="lg: col-span-1"
+                            />
                         </div>
                         <div className="col-span-1 bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm flex flex-row">
 
