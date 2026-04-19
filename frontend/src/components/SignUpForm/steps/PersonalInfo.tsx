@@ -120,8 +120,8 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                     defaultSelect="Select gender"
                     onChange={handleChange}
                     options={[
-                        {label: "Male", value: "male"},
-                        {label: "Female", value: "female"},
+                        {label: "Male", value: "Male"},
+                        {label: "Female", value: "Female"},
                     ]}
                     className="col-span-5"  
                     error={errors.gender}              
