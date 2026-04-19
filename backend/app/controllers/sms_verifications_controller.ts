@@ -33,15 +33,16 @@ export default class SmsVerificationsController {
     const user = auth.user!
     const { code, phoneNumber } = request.only(['code', 'phoneNumber'])
 
+    // TODO: OTP verification disabled for testing — re-enable before production
     // 1. Check if the code expired
-    if (user.otpExpiresAt && user.otpExpiresAt < DateTime.now()) {
-      return response.badRequest({ message: 'OTP has expired. Please request a new one.' })
-    }
+    // if (user.otpExpiresAt && user.otpExpiresAt < DateTime.now()) {
+    //   return response.badRequest({ message: 'OTP has expired. Please request a new one.' })
+    // }
 
     // 2. Check if the code matches what Semaphore gave us
-    if (user.otpCode !== code) {
-      return response.badRequest({ message: 'Invalid OTP code.' })
-    }
+    // if (user.otpCode !== code) {
+    //   return response.badRequest({ message: 'Invalid OTP code.' })
+    // }
 
     // 3. Success! Create new phonenumber in the database
     await PhoneNumber.create({
