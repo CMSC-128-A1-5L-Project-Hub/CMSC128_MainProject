@@ -174,7 +174,7 @@ export class LandlordSchema extends BaseModel {
   static $columns = ['tin', 'userId'] as const
   $columns = LandlordSchema.$columns
   @column()
-  declare tin: string
+  declare tin: string | null
   @column({ isPrimary: true })
   declare userId: number
 }

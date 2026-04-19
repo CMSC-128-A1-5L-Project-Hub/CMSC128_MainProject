@@ -26,7 +26,7 @@ export default class extends BaseSchema {
 
     this.schema.createTable('landlords', (table) => {
       table.integer('user_id').unsigned().primary().notNullable().unique().references('id').inTable('users').onDelete('CASCADE')
-      table.string('tin', 15).notNullable()
+      table.string('tin', 18).notNullable()
     })
 
     this.schema.createTable('managers', (table) => {

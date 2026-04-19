@@ -15,6 +15,13 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
         })
     }
 
+    const handleTinChange = (e: any) => {
+        const digits = e.target.value.replace(/\D/g, '').slice(0, 14)
+        const parts = [digits.slice(0,3), digits.slice(3,6), digits.slice(6,9), digits.slice(9)]
+        const formatted = parts.filter(p => p).join('-')
+        setData({ ...data, tin: formatted })
+    }
+
     const handleNext = () => {
         //new errors record instance
         const newErrors: Record<string,string> = {}
@@ -65,17 +72,17 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 onChange={handleChange}
                 placeholder="First Name"
                 className="col-span-5"
-                disabled={true}
+                disabled={!!data.firstName}
             />
 
-            <FormField 
+            <FormField
                 label="Last Name"
                 name="lastName"
                 value={data.lastName}
                 onChange={handleChange}
                 placeholder="Last Name"
                 className="col-span-5"
-                disabled={true}
+                disabled={!!data.lastName}
             />
 
             <FormField 
@@ -104,11 +111,11 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                     shorthandLabel="TIN"
                     name="tin"
                     value={data.tin}
-                    onChange={handleChange}
+                    onChange={handleTinChange}
                     placeholder="XXX-XXX-XXX-XXX"
                     className="col-span-5"
                     error={errors.tin}
-                    maxLength={16}
+                    maxLength={17}
                 />
             )}
 

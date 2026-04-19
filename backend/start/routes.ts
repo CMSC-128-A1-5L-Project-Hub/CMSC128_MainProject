@@ -146,6 +146,10 @@ router
 
         router.get('/admin/users/count', [controllers.AdminSettings, 'countUsers'])
         router.get('/admin/rooms/available/count', [controllers.Rooms, 'countAvailableRooms'])
+
+        // Accommodation Verifications
+        router.get('/admin/accommodations/pending', [controllers.AdminAccommodations, 'index'])
+        router.patch('/admin/accommodations/:id/verify', [controllers.AdminAccommodations, 'verify'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
   })

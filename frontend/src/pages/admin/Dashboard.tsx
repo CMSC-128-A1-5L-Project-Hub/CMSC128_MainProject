@@ -140,6 +140,39 @@ const AdminDashboard = () => {
     },
   })
 
+  const {
+    data: pendingAccommodationsRaw,
+    isLoading: isPendingAccommodationsLoading,
+  } = useQuery({
+    queryKey: ["admin-pending-accommodations"],
+    queryFn: async () => {
+      const res = await api.get("/admin/accommodations/pending")
+      return res.data.data ?? res.data
+    },
+  })
+
+  const pendingAccommodations = Array.isArray(pendingAccommodationsRaw)
+    ? pendingAccommodationsRaw
+    : Array.isArray(pendingAccommodationsRaw?.data)
+    ? pendingAccommodationsRaw.data
+    : []
+
+  const [verifyingAccommodationId, setVerifyingAccommodationId] = useState<number | null>(null)
+
+  const verifyAccommodationMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      setVerifyingAccommodationId(id)
+      const res = await api.patch(`/admin/accommodations/${id}/verify`, { status })
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-pending-accommodations"] })
+    },
+    onSettled: () => {
+      setVerifyingAccommodationId(null)
+    },
+  })
+
   const verifyUserMutation = useMutation({
     mutationFn: async ({
       userId,
@@ -522,6 +555,63 @@ const AdminDashboard = () => {
                               className="text-sm px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-60"
                             >
                               {verifyingUserId === item.user.id ? "Approving..." : "Approve"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* PENDING ACCOMMODATION VERIFICATIONS */}
+          <div className="bg-white rounded-xl shadow p-6 mt-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Pending Accommodation Approvals</h2>
+            </div>
+
+            {isPendingAccommodationsLoading ? (
+              <p className="text-sm text-gray-500">Loading...</p>
+            ) : pendingAccommodations.length === 0 ? (
+              <p className="text-sm text-gray-500">No pending accommodations.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <div className="max-h-[260px] overflow-y-auto border rounded-lg">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-gray-100 sticky top-0">
+                      <tr>
+                        <th className="text-left px-4 py-2 font-medium border-b">Accommodation</th>
+                        <th className="text-left px-4 py-2 font-medium border-b">Landlord</th>
+                        <th className="text-left px-4 py-2 font-medium border-b">Location</th>
+                        <th className="text-left px-4 py-2 font-medium border-b">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingAccommodations.map((item: any) => (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 border-b font-medium">{item.accommodationName ?? "—"}</td>
+                          <td className="px-4 py-3 border-b text-gray-600">
+                            {item.landlord?.user
+                              ? `${item.landlord.user.fname} ${item.landlord.user.lname}`
+                              : "—"}
+                          </td>
+                          <td className="px-4 py-3 border-b text-gray-600">{item.accommodationLocation ?? "—"}</td>
+                          <td className="px-4 py-3 border-b flex gap-2">
+                            <button
+                              onClick={() => verifyAccommodationMutation.mutate({ id: item.id, status: "verified" })}
+                              disabled={verifyingAccommodationId === item.id}
+                              className="text-sm px-3 py-1 border rounded-md bg-green-50 hover:bg-green-100 text-green-700 disabled:opacity-60"
+                            >
+                              {verifyingAccommodationId === item.id ? "Approving..." : "Approve"}
+                            </button>
+                            <button
+                              onClick={() => verifyAccommodationMutation.mutate({ id: item.id, status: "rejected" })}
+                              disabled={verifyingAccommodationId === item.id}
+                              className="text-sm px-3 py-1 border rounded-md bg-red-50 hover:bg-red-100 text-red-700 disabled:opacity-60"
+                            >
+                              Reject
                             </button>
                           </td>
                         </tr>

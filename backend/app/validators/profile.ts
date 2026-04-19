@@ -49,33 +49,30 @@ export const setupProfileValidator = vine.compile(
     // ==========================================
     tin: vine
       .string()
-      .regex(/^(\d{3}-\d{3}-\d{3}-\d{5}|\d{3}-\d{3}-\d{3}-\d{3})$/) // format: ddd-ddd-ddd-ddddd or ddd-ddd-ddd-ddd
+      .regex(/^(\d{3}-?\d{3}-?\d{3}-?\d{5}|\d{3}-?\d{3}-?\d{3}-?\d{3})$/) // format: ddd-ddd-ddd-ddddd or ddd-ddd-ddd-ddd (dashes optional)
       .optional() // Optional for testing for now, but remove this in actual production
       .requiredWhen('role', '=', 'landlord'),
-
-    contact_number: vine.string().optional().requiredWhen('role', '=', 'landlord'),
 
     // ==========================================
     // ACCOMMODATION SPECIFIC FIELDS
     // ==========================================
-    accommodationName: vine.string().optional().requiredWhen('role', '=', 'landlord'),
+    accommodationName: vine.string().optional(),
 
-    accommodationLocation: vine.string().optional().requiredWhen('role', '=', 'landlord'),
+    accommodationLocation: vine.string().optional(),
 
     accommodationType: vine
       .enum(['on-campus', 'off-campus', 'partner_housing'])
-      .optional()
-      .requiredWhen('role', '=', 'landlord'),
+      .optional(),
 
-    accommodationCapacity: vine.number().optional().requiredWhen('role', '=', 'landlord'),
+    accommodationCapacity: vine.number().optional(),
 
     tenantRestriction: vine
       .enum(['male-only', 'female-only', 'coed'])
-      .optional()
-      .requiredWhen('role', '=', 'landlord'),
-    applicationStartDate: vine.date().optional().requiredWhen('role', '=', 'landlord'),
+      .optional(),
 
-    applicationEndDate: vine.date().optional().requiredWhen('role', '=', 'landlord'),
+    applicationStartDate: vine.date().optional(),
+
+    applicationEndDate: vine.date().optional(),
 
     businessPermit: vine
       .array(
@@ -84,7 +81,6 @@ export const setupProfileValidator = vine.compile(
           extnames: ['pdf', 'png', 'jpg', 'jpeg'],
         })
       )
-      .optional()
-      .requiredWhen('role', '=', 'landlord'),
+      .optional(),
   })
 )

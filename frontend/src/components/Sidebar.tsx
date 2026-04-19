@@ -311,7 +311,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     setActive(id);
     if (id === "logout") {
       console.log("Logging out...");
-      navigate("/login");
+      navigate("/");
     } else {
       navigate(path);
     }

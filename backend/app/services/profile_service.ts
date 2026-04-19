@@ -22,7 +22,7 @@ export default class ProfileService {
       let enrollmentProofFileId: number | undefined
 
       // Process MULTIPLE Enrollment Proof files
-      for (const file of validatedData.form5) {
+      for (const file of validatedData.form5 ?? []) {
         const form5Name = `${user.id}_enrollmentproof_${new Date().getTime()}.${file.extname}`
         await file.moveToDisk(form5Name, 's3')
         const form5Url = await drive.use('s3').getUrl(form5Name)
@@ -85,7 +85,7 @@ export default class ProfileService {
       let permitFileId: number | undefined
 
       // Process MULTIPLE Business Permit files
-      for (const file of validatedData.businessPermit) {
+      for (const file of validatedData.businessPermit ?? []) {
         const permitName = `${user.id}_permit_${new Date().getTime()}.${file.extname}`
         await file.moveToDisk(permitName, 's3')
         const permitUrl = await drive.use('s3').getUrl(permitName)
