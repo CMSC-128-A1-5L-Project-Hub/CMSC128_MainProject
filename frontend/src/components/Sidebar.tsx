@@ -268,7 +268,8 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     if (path.includes("dashboard")) return "dashboard";
     if (path.includes("search") || path.includes("properties")) return "search";
     if (path.includes("applications") || path.includes("tenants")) return "applications";
-    if (path.includes("documents") || path.includes("reports") || path.includes("users")) return "documents";
+    if (path.includes("documents") || path.includes("reports") || path.includes("users")) return "documents"
+    if (path.includes("occupancy-records")) return "reports";
     return "dashboard";
   });
 
@@ -311,7 +312,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     setActive(id);
     if (id === "logout") {
       console.log("Logging out...");
-      navigate("/login");
+      navigate("/auth/signin");
     } else {
       navigate(path);
     }

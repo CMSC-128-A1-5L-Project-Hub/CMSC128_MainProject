@@ -4,8 +4,7 @@ type HeroProps = {
     greeting: string
     name: string
     title: string
-    pendingApplications: number
-    newNotifications: number
+    subtitle: string
     type: "full" | "mini"
 }
 
@@ -13,8 +12,7 @@ export default function HeroBanner({
     greeting, 
     name,
     title,
-    pendingApplications, 
-    newNotifications,
+    subtitle,
     type="full"
     }: HeroProps) {
     return (
@@ -31,7 +29,7 @@ export default function HeroBanner({
                     {title}
                 </h2>
                 <p className="text-xs lg:text-sm tracking-wide text-white/55">
-                    You have {pendingApplications > 0 ? pendingApplications : "no"} pending applications and {newNotifications > 0 ? newNotifications : "no"} new notifications today.
+                    {subtitle}
                 </p>
             </div>
             {type === "full" ? (

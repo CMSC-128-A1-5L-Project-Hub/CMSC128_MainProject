@@ -22,8 +22,7 @@ interface ManagerProfile {
 interface HeroContent {
     greeting: string
     title: string
-    pendingApplications: number
-    newNotifications: number
+    subtitle: string
 }
 
 interface Stat {
@@ -65,8 +64,7 @@ const managerProfile: ManagerProfile = {
 const heroContent: HeroContent = {
     greeting: "Good Day",
     title: "Efficiently manage applicants & housing accommodation",
-    pendingApplications: 2,
-    newNotifications: 3
+    subtitle: "You have 2 pending applications and 3 new notifications"
 }
 
 const stats: Stat[] = [
@@ -110,8 +108,7 @@ export default function Dashboard() {
                         greeting={heroContent.greeting}
                         name={managerProfile.fullName}
                         title={heroContent.title}
-                        pendingApplications={heroContent.pendingApplications}
-                        newNotifications={heroContent.newNotifications}
+                        subtitle={heroContent.subtitle}
                         type="mini"
                     />
 
