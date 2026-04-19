@@ -288,7 +288,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
       case "manager":
         return [
           { id: "dashboard",  icon: <DashboardIcon   className="w-5 h-5" />, path: "/manager/dashboard", label: "Dashboard" },
-          { id: "reports",    icon: <SearchIcon      className="w-[21px] h-[21px]" />, path: "/manager/reports", label: "Reports" },
+          { id: "reports",    icon: <DocumentIcon      className="w-[21px] h-[21px]" />, path: "/manager/occupancy-records", label: "Reports" },
           { id: "users",      icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/manager/users", label: "Users" },
           { id: "properties", icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/manager/properties", label: "Properties" },
         ];
