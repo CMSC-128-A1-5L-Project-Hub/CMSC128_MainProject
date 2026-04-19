@@ -1,11 +1,13 @@
 //Asset/Component imports
 import Sidebar from "../../components/Sidebar"
-import HeroBanner from "../../components/Dashboard/manager/HeroBanner"
-import StatCard from "../../components/Dashboard/manager/StatCard"
+import HeroCard from "../../components/dashboard/HeroCard"
+import StatCard from "../../components/dashboard/StatCard"
 import Applications from "../../components/Dashboard/manager/Applications"
 import Waitlist from "../../components/Dashboard/manager/Waitlist"
 import ConfirmedStudents from "../../components/Dashboard/manager/ConfirmedStudents"
 import Moves from "../../components/Dashboard/manager/Moves"
+import ProfileCard from "../../components/dashboard/ManagerCard"
+import ActivityLogs from "../../components/dashboard/ActivityLogs"
 
 //Interfaces
 interface ManagerProfile {
@@ -26,8 +28,9 @@ interface HeroContent {
 
 interface Stat {
     title: string
-    subtitle: string
     value: number
+    subtitle: string
+    positive: boolean
 }
 
 interface Application {
@@ -58,18 +61,19 @@ const managerProfile: ManagerProfile = {
     dormitory: "Narra Residences"
 }
 
-const heroContent: HeroContent = {
-    greeting: "Good Day",
-    title: "Efficiently manage applicants & housing accommodation",
-    pendingApplications: 2,
-    newNotifications: 3
-}
-{/* Ewan ko kay marcus ano dapat laman ng subtitle */}
+{/* Commenting out this part for now (might be useful later) */}
+// const heroContent: HeroContent = {
+//     greeting: "Good Day",
+//     title: "Efficiently manage applicants & housing accommodation",
+//     pendingApplications: 2,
+//     newNotifications: 3
+// }
+
 const stats: Stat[] = [
-    {title: "Pending Approvals", subtitle: "Subtitle",  value:19},
-    {title: "Occupied Rooms", subtitle: "Subtitle", value:20},
-    {title: "Available Rooms", subtitle: "Subtitle", value:100},
-    {title: "Total Tenants", subtitle: "Subtitle", value:64}
+    {title: "Pending Approvals", subtitle: "Subtitle",  value:19, positive: true},
+    {title: "Occupied Rooms", subtitle: "Subtitle", value:20, positive: false},
+    {title: "Available Rooms", subtitle: "Subtitle", value:100, positive: true},
+    {title: "Total Tenants", subtitle: "Subtitle", value:64, positive: false}
 ]
 
 const applications: Application[] = [
@@ -102,13 +106,7 @@ export default function Dashboard() {
                     </h1>
                 </div>
                 <main className="flex-1 flex flex-col gap-4">
-                    <HeroBanner 
-                        greeting={heroContent.greeting} 
-                        name={managerProfile.fullName}
-                        title={heroContent.title}
-                        pendingApplications={heroContent.pendingApplications}
-                        newNotifications={heroContent.newNotifications}
-                    />
+                    <HeroCard />
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {stats.map((stat, i) => (
@@ -117,6 +115,7 @@ export default function Dashboard() {
                                 title={stat.title}
                                 subtitle={stat.subtitle}
                                 value={stat.value}
+                                positive={stat.positive}
                             />
                         ))}
                     </div>
@@ -147,6 +146,10 @@ export default function Dashboard() {
                     </div>
                 </main>
             </div>
+            <aside className="hidden lg:flex w-[300px] border-l bg-white/60 backdrop-blur p-4 flex-col gap-4 overflow-y-auto">
+                <ProfileCard />
+                <ActivityLogs />
+            </aside>
         </div>
     )
 }
