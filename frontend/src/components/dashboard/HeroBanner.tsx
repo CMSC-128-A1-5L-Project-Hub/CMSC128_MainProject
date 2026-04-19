@@ -6,6 +6,7 @@ type HeroProps = {
     title: string
     pendingApplications: number
     newNotifications: number
+    type: "full" | "mini"
 }
 
 export default function HeroBanner({ 
@@ -13,7 +14,8 @@ export default function HeroBanner({
     name,
     title,
     pendingApplications, 
-    newNotifications 
+    newNotifications,
+    type="full"
     }: HeroProps) {
     return (
         <div className="rounded-2xl px-7 py-6 flex justify-between items-center overflow-hidden"
@@ -23,14 +25,21 @@ export default function HeroBanner({
                 <p className="text-xs lg:text-sm font-medium tracking-widest uppercase text-[#C9973A]">
                     {greeting}, {name}
                 </p>
-                <h2 className="text-white font-bold text-xl lg:text-3xl leading-snug">
+                <h2 className={`text-white font-bold leading-snug
+                        ${type === "full" ? "text-xl lg:text-3xl" : "text-lg lg:text-2xl"}
+                    `}>
                     {title}
                 </h2>
                 <p className="text-xs lg:text-sm tracking-wide text-white/55">
                     You have {pendingApplications > 0 ? pendingApplications : "no"} pending applications and {newNotifications > 0 ? newNotifications : "no"} new notifications today.
                 </p>
             </div>
-            <div className="hidden md:block w-28 h-28 bg-white/10 rounded-xl shrink-0" />
+            {type === "full" ? (
+                <div className="hidden md:block w-28 h-28 bg-white/10 rounded-xl shrink-0" />
+            ):
+                undefined
+            }
+            
             {/* Remove ko muna for now */}
             {/* <img
                 src={House}
