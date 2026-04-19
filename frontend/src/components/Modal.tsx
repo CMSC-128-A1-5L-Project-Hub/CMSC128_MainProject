@@ -83,7 +83,7 @@ export function Modal({
           style={{
             width: "100%",
             maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
-            maxHeight: "90vh",
+            maxHeight: "70vh",
             overflowY: "auto",
             display:"flex",
             flexDirection: "column",
@@ -222,6 +222,7 @@ export function Modal({
               padding: "24px 28px",
               maxHeight: "70vh",
               overflowY: "auto",
+              position: "relative",
             }}
           >
             {children}

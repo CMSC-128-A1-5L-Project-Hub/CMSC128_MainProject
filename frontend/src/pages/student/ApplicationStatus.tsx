@@ -287,11 +287,11 @@ export default function ApplicationStatus() {
                                             <span className='block text-[12px] lg:text-[14px]'>{app.reviewedOn}</span>
                                             <span className='block text-[10px] lg:text-[12px] text-[#9A7080]'>{app.reviewedBy}</span>
                                         </td>
-                                        <td className='text-[13px] capitalize border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4 font-bold'>
+                                        <td className='text-[11px] capitalize border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4 font-bold'>
                                             <div className='bg-opacity-10 p-2 w-fit rounded-[50px] flex flex-row'
                                                 style = {{ backgroundColor: (statusStyles[app.status]?.bg ?? '#F0F0F0')  + '1A' }}
                                             >
-                                                <div className='p-1.5 w-1.5 h-1.5 ml-1 mr-1.5 mt-1 lg:mt-1 rounded-[100px]'
+                                                <div className='p-1 w-1.5 h-1.5 ml-1 mr-1.5 mt-1 lg:mt-1 rounded-[100px]'
                                                     style = {{ backgroundColor: statusStyles[app.status]?.dot ?? '#888' }}
                                                 />
                                                 <p className='mr-1'
