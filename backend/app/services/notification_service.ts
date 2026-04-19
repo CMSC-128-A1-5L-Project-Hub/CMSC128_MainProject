@@ -11,7 +11,7 @@ export default class NotificationService {
     try {
       await mail.send((message) => {
         message
-          .from('noreply@uble.com', 'UBLE Housing') // Iniba ko from noreply@usat.com to @uble.com
+          .from('uble.ics.uplb@gmail.com', 'UBLE Housing') // Iniba ko from noreply@usat.com to @uble.ics.uplb.com
           .to(to)
           .subject(subject)
           .html(html)
@@ -223,6 +223,28 @@ export default class NotificationService {
         <p>Your assignment as manager of <strong>${accommodationName}</strong> has ended.</p>
         <p>You no longer have access to this accommodation's applications and records.</p>
         <p>Thank you for your service.</p>
+        <br/>
+        <p>UBLE Housing</p>
+      `
+    )
+  }
+
+  async sendManagerInvitationEmail(
+    email: string,
+    accommodationName: string,
+    landlordName: string
+  ) {
+    await this.send(
+      email,
+      `You have been invited to manage ${accommodationName} on UBLE`,
+      `
+        <p>Hello,</p>
+        <p>${landlordName} has invited you to become the manager of 
+          <strong>${accommodationName}</strong> on UBLE Housing.</p>
+        <p>To accept this invitation, please register using this email address:</p>
+        <p><a href='http://localhost:5173/register'>Click here to register</a></p>
+        <p>Once your account is set up, you will automatically be assigned 
+          to ${accommodationName}.</p>
         <br/>
         <p>UBLE Housing</p>
       `
