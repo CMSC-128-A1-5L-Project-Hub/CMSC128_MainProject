@@ -13,14 +13,8 @@ import FeaturesSection from "./pages/shared/Featuresection"
 import ResidenceCarousel from "./pages/shared/Recommendedsection"
 import UBLEFooter from "./pages/shared/SupportSection"
 import InteractiveMap from "./pages/MapPage"
-<<<<<<< Updated upstream
-import AuthSuccess from "./pages/shared/AuthSuccess"
-import PendingVerification from "./pages/shared/PendingVerification"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import AdminDashboard from "./pages/admin/Dashboard"
-=======
-
->>>>>>> Stashed changes
 
 function FullLandingPage() {
   return (

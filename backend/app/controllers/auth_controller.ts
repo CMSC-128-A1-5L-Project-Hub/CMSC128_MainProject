@@ -50,7 +50,7 @@ export default class AuthController {
     case 'super_admin':
       return response.redirect('http://localhost:5173/admin/dashboard')
     default:
-      return response.redirect('http://localhost:5173/auth/signup/form')
+      return response.redirect('http://localhost:5173/auth/role')
   }
 }
 
