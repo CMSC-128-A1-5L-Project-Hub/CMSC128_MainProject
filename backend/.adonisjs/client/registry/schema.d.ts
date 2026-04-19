@@ -91,6 +91,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'sms_verifications.verify': {
+    methods: ["POST"]
+    pattern: '/auth/verify-sms'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/sms_verifications_controller').default['verify']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/sms_verifications_controller').default['verify']>>>
+    }
+  }
+  'sms_verifications.send': {
+    methods: ["POST"]
+    pattern: '/auth/send-otp'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/sms_verifications_controller').default['send']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/sms_verifications_controller').default['send']>>>
+    }
+  }
   'application.store': {
     methods: ["POST"]
     pattern: '/applications'
@@ -319,6 +343,7 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/manager_handover').default['status']>>>
     }
   }
+<<<<<<< Updated upstream
   'invite_manager.invite': {
     methods: ["POST"]
     pattern: '/landlord/accommodations/:id/invite-manager'
@@ -331,6 +356,8 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/invite_manager_controller').default['invite']>>>
     }
   }
+=======
+>>>>>>> Stashed changes
   'application.incoming': {
     methods: ["GET","HEAD"]
     pattern: '/applications/incoming'

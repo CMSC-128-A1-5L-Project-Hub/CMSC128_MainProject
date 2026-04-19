@@ -20,6 +20,10 @@ export interface ApiDefinition {
     show: typeof routes['setups.show']
     store: typeof routes['setups.store']
   }
+  smsVerifications: {
+    verify: typeof routes['sms_verifications.verify']
+    send: typeof routes['sms_verifications.send']
+  }
   application: {
     store: typeof routes['application.store']
     index: typeof routes['application.index']
@@ -58,15 +62,21 @@ export interface ApiDefinition {
     unfreeze: typeof routes['manager_handover.unfreeze']
     status: typeof routes['manager_handover.status']
   }
+<<<<<<< Updated upstream
   inviteManager: {
     invite: typeof routes['invite_manager.invite']
   }
+=======
+>>>>>>> Stashed changes
   rooms: {
     index: typeof routes['rooms.index']
     store: typeof routes['rooms.store']
     update: typeof routes['rooms.update']
     destroy: typeof routes['rooms.destroy']
+<<<<<<< Updated upstream
     countAvailableRooms: typeof routes['rooms.count_available_rooms']
+=======
+>>>>>>> Stashed changes
   }
   adminVerifications: {
     index: typeof routes['admin_verifications.index']

@@ -21,19 +21,23 @@ export default class OtpService {
     const message = "Your UBLE verification code is {otp}. Please do not share this with anyone. It will expire in 5 minutes"
 
     try {
-      // 1. Make the request to Semaphore
+      // 1. Make the request to Semaphore (10s timeout)
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 10_000)
+
       const response = await fetch('https://api.semaphore.co/api/v4/otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        // Format acc. to semaphore docs
         body: new URLSearchParams({
           apikey: apiKey,
           number: phoneNumber,
           message: message,
         }),
+        signal: controller.signal,
       })
+      clearTimeout(timeout)
 
       const data = await response.json() as SemaphoreResponse[]
 
@@ -52,7 +56,11 @@ export default class OtpService {
 
       return generatedCode.toString()
 
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.error('SMS Service: Semaphore request timed out')
+        throw new Error('SMS provider timed out. Check your network or verify the API key is active on semaphore.co.')
+      }
       console.error('SMS Service Error:', error)
       throw new Error('Could not send OTP. Please try again later.')
     }

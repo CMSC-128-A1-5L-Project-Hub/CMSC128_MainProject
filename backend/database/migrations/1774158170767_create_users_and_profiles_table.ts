@@ -13,6 +13,8 @@ export default class extends BaseSchema {
       table.string('facebook_account', 100).nullable()
       table.enum('role', ['student', 'landlord', 'manager', 'unassigned', 'super_admin']).notNullable().defaultTo('unassigned')
       table.enum('account_status', ['pending', 'active', 'suspended', 'initial']).defaultTo('initial')
+      table.string('otp_code', 50).nullable()
+      table.timestamp('otp_expires_at', { useTz: true }).nullable()
     })
 
     this.schema.createTable('phone_numbers', (table) => {

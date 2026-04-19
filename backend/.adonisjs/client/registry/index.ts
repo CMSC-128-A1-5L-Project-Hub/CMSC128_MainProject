@@ -48,6 +48,18 @@ const routes = {
     tokens: [{"old":"/setup","type":0,"val":"setup","end":""}],
     types: placeholder as Registry['setups.store']['types'],
   },
+  'sms_verifications.verify': {
+    methods: ["POST"],
+    pattern: '/auth/verify-sms',
+    tokens: [{"old":"/auth/verify-sms","type":0,"val":"auth","end":""},{"old":"/auth/verify-sms","type":0,"val":"verify-sms","end":""}],
+    types: placeholder as Registry['sms_verifications.verify']['types'],
+  },
+  'sms_verifications.send': {
+    methods: ["POST"],
+    pattern: '/auth/send-otp',
+    tokens: [{"old":"/auth/send-otp","type":0,"val":"auth","end":""},{"old":"/auth/send-otp","type":0,"val":"send-otp","end":""}],
+    types: placeholder as Registry['sms_verifications.send']['types'],
+  },
   'application.store': {
     methods: ["POST"],
     pattern: '/applications',

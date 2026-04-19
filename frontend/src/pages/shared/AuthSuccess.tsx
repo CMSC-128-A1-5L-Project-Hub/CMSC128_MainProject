@@ -23,7 +23,7 @@ export default function AuthSuccess() {
                 console.log("Hello? This is the response data: ", response)
                 const user = response.data.data;
                 console.log(user)
-                if (user.role === 'unassigned') navigate ('/auth/signup/form');
+                if (user.role === 'unassigned') navigate('/auth/role');
                 else if (user.account_status === 'pending') navigate('/pending-verification');
                 else if (user.role === 'student') navigate('/dashboard/student');
                 else if (user.role === 'manager') navigate('/dashboard/manager');

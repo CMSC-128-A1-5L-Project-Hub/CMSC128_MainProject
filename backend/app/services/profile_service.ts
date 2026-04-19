@@ -1,7 +1,6 @@
 import User from '#models/user'
 import Student from '#models/student'
 import Landlord from '#models/landlord'
-import PhoneNumber from '#models/phone_number'
 // import Accommodation from '#models/accommodation'
 // import Manager from '#models/manager'
 import FileMetadata from '#models/file_metadatum'
@@ -13,17 +12,12 @@ export default class ProfileService {
 
     user.accountStatus = 'pending'
     await user.save()
-    
-    await PhoneNumber.create({
-      userId: user.id,
-      contactNumber: validatedData.phone_number,
-      isPrimary: true, // It's their first number, so it's primary
-    })
+    // PhoneNumber is created during OTP verification (/auth/verify-sms), not here.
     
     // ==========================================
     // SCENARIO A: THE USER IS A STUDENT
     // ==========================================
-    if (validatedData.role === 'Student') {
+    if (validatedData.role === 'student') {
       const uploadedForm5Urls: string[] = []
       let enrollmentProofFileId: number | undefined
 
@@ -86,7 +80,7 @@ export default class ProfileService {
     // ==========================================
     // SCENARIO B: THE USER IS A LANDLORD
     // ==========================================
-    else if (validatedData.role === 'Landlord') {
+    else if (validatedData.role === 'landlord') {
       const uploadedPermitUrls: string[] = []
       let permitFileId: number | undefined
 

@@ -1,11 +1,10 @@
 import FormField from "../shared/FormField";
 import FormSelect from "../shared/FormSelect";
+import PhoneNumber from "../shared/PhoneNumber";
 import Button from "../../Button";
 import { useState } from "react";
 
-{/* TODO: Implement role-based form */}
-
-export default function PersonalInfo({ data, setData, nextStep }: any) {
+export default function PersonalInfo({ role, data, setData, nextStep }: any) {
     //custom errors per field (if applicable)
     const [errors, setErrors] = useState<Record<string,string>>({})
     
@@ -22,13 +21,14 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
         
         //check each required field for errors
         //if error, make error entry
-        if (!data.gender) newErrors.gender = "This field is required"
-        if (!data.emergencyName) newErrors.emergencyName = "This field is required"
-        if (!data.emergencyNumber){
+        if (role === "student" && !data.gender) newErrors.gender = "This field is required"
+        if (role === "student" && !data.emergencyName) newErrors.emergencyName = "This field is required"
+        if (role === "student" && !data.emergencyNumber){
             newErrors.emergencyNumber = "This field is required"
-        } else if (data.emergencyNumber.length !== 10) {
+        } else if (role === "student" && data.emergencyNumber.length !== 10) {
             newErrors.emergencyNumber = "Must be 10 digits"
         }
+        if (role === "landlord" && !data.tin) newErrors.tin = "This field is required"
 
         setErrors(newErrors)
         //if no error/s were found, next step
@@ -57,11 +57,6 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
         </div>
 
         {/* Form fields */}
-        {/*
-            NOTES:
-                If manager, wala na ung gender and emergency contact. No added fields
-                If landlord, walang emergency contact and gender. Add TIN field
-        */}
         <div className="grid grid-cols-12 gap-4">
             <FormField 
                 label="First Name"
@@ -93,84 +88,78 @@ export default function PersonalInfo({ data, setData, nextStep }: any) {
             />
 
             <FormField 
-                label="UP Mail Address"
+                label={role === "student" ? "UP Mail Address" : "Email address"}
                 name="email"
                 type="email"
                 value={data.email}
                 onChange={handleChange}
                 placeholder="username@up.edu.ph"
-                className="col-span-7"
+                className={role === "manager" ? "col-span-6" : "col-span-7"}
                 disabled={true}
             />
 
-            <FormSelect 
-                label="Gender"
-                name="gender"
-                value={data.gender}
-                defaultSelect="Select gender"
-                onChange={handleChange}
-                options={[
-                    {label: "Male", value: "Male"},
-                    {label: "Female", value: "Female"},
-                ]}
-                className="col-span-5"  
-                error={errors.gender}              
-            />
+            {role === "landlord" && (
+                <FormField 
+                    label="Tax Identification Number"
+                    shorthandLabel="TIN"
+                    name="tin"
+                    value={data.tin}
+                    onChange={handleChange}
+                    placeholder="XXX-XXX-XXX-XXX"
+                    className="col-span-5"
+                    error={errors.tin}
+                    maxLength={16}
+                />
+            )}
 
-            <FormField 
-                label="Emergency Contact Name"
-                name="emergencyName"
-                value={data.emergencyName}
-                onChange={handleChange}
-                placeholder="Full Name"
-                className="col-span-6"
-                error={errors.emergencyName}
-            />
-
-            {/* Emergency contact num */}
-            <div className="col-span-6 min-w-0">
-                <label className={`block text-[11px] font-semibold lg:tracking-widest tracking-wider uppercase mb-1.5
-                    ${errors.emergencyNumber 
-                    ? "text-red-500" : "text-[#6B4050]"}`}>
-                    Emergency Contact Number
-                </label>
-
-                <div className="flex gap-2 min-w-0">
-                    <div className="border border-[#6B0F2B3E] rounded-xl px-3 py-3 text-sm text-gray-600 flex items-center">
-                        +63
-                    </div>
-
-                    <input
-                        type="tel"
-                        name="emergencyNumber"
-                        value={data.emergencyNumber}
-                        onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, "")
-                            setData({ ...data, emergencyNumber: val })
-                        }}
-                        placeholder="9XXXXXXXXXX"
-                        maxLength={10}
-                        className={`min-w-0 flex-1 border rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-gray-300 focus:outline-none focus:ring-2 transition
-                            ${errors.emergencyNumber
-                                ? "border-red-400 focus:ring-red-200 focus:border-red-400"
-                                : "border-[#6B0F2B3E] focus:ring-[#C9973A]/40 focus:border-[#C9973A]"
-                            }`}
-                    />
-                </div>
-                {/* Error label */}
-                {errors.emergencyNumber && (
-                    <p className="text-red-500 text-[10px] mt-1">{errors.emergencyNumber}</p>
-                )}
-            </div>
-
+            {role === "student" && (
+                <FormSelect 
+                    label="Gender"
+                    name="gender"
+                    value={data.gender}
+                    defaultSelect="Select gender"
+                    onChange={handleChange}
+                    options={[
+                        {label: "Male", value: "male"},
+                        {label: "Female", value: "female"},
+                    ]}
+                    className="col-span-5"  
+                    error={errors.gender}              
+                />
+            )}
+            
+            {role === "student" && (
+                <FormField 
+                    label="Emergency Contact Name"
+                    name="emergencyName"
+                    value={data.emergencyName}
+                    onChange={handleChange}
+                    placeholder="Full Name"
+                    className="col-span-6"
+                    error={errors.emergencyName}
+                />
+            )}
+            
+            {role === "student" && (
+                <PhoneNumber 
+                    label="Emergency Contact Number"
+                    name="emergencyNumber"
+                    value={data.emergencyNumber}
+                    onChange={handleChange}
+                    className="col-span-6 min-w-0"
+                    error={errors.emergencyNumber}
+                />
+            )}
+            
             <FormField 
                 label="Facebook Link"
                 name="facebook"
                 value={data.facebook}
                 onChange={handleChange}
                 placeholder="facebook.com"
-                className="col-span-12"
+                className={role === "manager" ? "col-span-6" : "col-span-12"}
             />
+            
         </div>
         {/* Continue button */}
         {/* nireuse ko lang ung button component*/}

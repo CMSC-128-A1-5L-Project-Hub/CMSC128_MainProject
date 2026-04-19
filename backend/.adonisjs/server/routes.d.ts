@@ -11,6 +11,8 @@ export type ScannedRoutes = {
     'auth.me': { paramsTuple?: []; params?: {} }
     'setups.show': { paramsTuple?: []; params?: {} }
     'setups.store': { paramsTuple?: []; params?: {} }
+    'sms_verifications.verify': { paramsTuple?: []; params?: {} }
+    'sms_verifications.send': { paramsTuple?: []; params?: {} }
     'application.store': { paramsTuple?: []; params?: {} }
     'application.index': { paramsTuple?: []; params?: {} }
     'assignments.current_stay': { paramsTuple?: []; params?: {} }
@@ -65,7 +67,10 @@ export type ScannedRoutes = {
     'fees.index': { paramsTuple?: []; params?: {} }
     'reports.revenue': { paramsTuple?: []; params?: {} }
     'reports.delinquency': { paramsTuple?: []; params?: {} }
+<<<<<<< Updated upstream
     'accommodation.landlord_index': { paramsTuple?: []; params?: {} }
+=======
+>>>>>>> Stashed changes
     'manager_handover.status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'application.incoming': { paramsTuple?: []; params?: {} }
     'rooms.index': { paramsTuple: [ParamValue]; params: {'accommodationId': ParamValue} }
@@ -92,7 +97,10 @@ export type ScannedRoutes = {
     'fees.index': { paramsTuple?: []; params?: {} }
     'reports.revenue': { paramsTuple?: []; params?: {} }
     'reports.delinquency': { paramsTuple?: []; params?: {} }
+<<<<<<< Updated upstream
     'accommodation.landlord_index': { paramsTuple?: []; params?: {} }
+=======
+>>>>>>> Stashed changes
     'manager_handover.status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'application.incoming': { paramsTuple?: []; params?: {} }
     'rooms.index': { paramsTuple: [ParamValue]; params: {'accommodationId': ParamValue} }
@@ -107,10 +115,16 @@ export type ScannedRoutes = {
   }
   POST: {
     'setups.store': { paramsTuple?: []; params?: {} }
+<<<<<<< Updated upstream
+=======
+    'sms_verifications.verify': { paramsTuple?: []; params?: {} }
+    'sms_verifications.send': { paramsTuple?: []; params?: {} }
+>>>>>>> Stashed changes
     'application.store': { paramsTuple?: []; params?: {} }
     'bookmark.toggle': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'reviews.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'payments.upload_proof': { paramsTuple: [ParamValue]; params: {'feeId': ParamValue} }
+<<<<<<< Updated upstream
     'accommodation.store': { paramsTuple?: []; params?: {} }
     'accommodation.upload_images': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'manager_handover.freeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -127,6 +141,12 @@ export type ScannedRoutes = {
   DELETE: {
     'accommodation.delete_image': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'imageId': ParamValue} }
     'rooms.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+=======
+    'manager_handover.freeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'manager_handover.unfreeze': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'rooms.store': { paramsTuple: [ParamValue]; params: {'accommodationId': ParamValue} }
+    'assignments.store': { paramsTuple?: []; params?: {} }
+>>>>>>> Stashed changes
   }
   PATCH: {
     'application.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -134,6 +154,16 @@ export type ScannedRoutes = {
     'payments.verify': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin_verifications.verify': { paramsTuple: [ParamValue]; params: {'userId': ParamValue} }
   }
+<<<<<<< Updated upstream
+=======
+  PUT: {
+    'rooms.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin_settings.update': { paramsTuple?: []; params?: {} }
+  }
+  DELETE: {
+    'rooms.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
+>>>>>>> Stashed changes
 }
 declare module '@adonisjs/core/types/http' {
   export interface RoutesList extends ScannedRoutes {}

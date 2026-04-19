@@ -57,7 +57,11 @@ export default defineConfig({
     () => import('#providers/api_provider'),
     () => import('@adonisjs/ally/ally_provider'),
     () => import('@adonisjs/mail/mail_provider'),
+<<<<<<< Updated upstream
     () => import('@adonisjs/limiter/limiter_provider')
+=======
+    () => import('@adonisjs/limiter/limiter_provider'),
+>>>>>>> Stashed changes
   ],
 
   /*
@@ -72,6 +76,7 @@ export default defineConfig({
     () => import('#start/routes'),
     () => import('#start/kernel'),
     () => import('#start/validator'),
+    () => import('#start/limiter'),
   ],
 
   /*

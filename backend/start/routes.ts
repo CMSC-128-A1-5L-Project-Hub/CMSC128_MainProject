@@ -7,6 +7,7 @@ import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 import { ROLES } from '../app/constants/roles.ts'
+import { throttle } from '#start/limiter'
 import AutoSwagger from 'adonis-autoswagger'
 import swagger from '#config/swagger'
 const InviteManagerController = () => import('#controllers/invite_manager_controller')
@@ -46,7 +47,10 @@ router
     // ─── USER ONBOARDING ───
     router.get('/setup', [controllers.Setups, 'show'])
     router.post('/setup', [controllers.Setups, 'store'])
-    // router.post('/auth/verify-sms', [controllers.SmsVerifications, 'verify']) // [SPRINT 03]
+
+    // ─── SMS OTP ───
+    router.post('/auth/verify-sms', [controllers.SmsVerifications, 'verify'])
+    router.post('/auth/send-otp', [controllers.SmsVerifications, 'send']).use(throttle)
 
     // ====================================================================
     // ─── STUDENT ROUTES ───
