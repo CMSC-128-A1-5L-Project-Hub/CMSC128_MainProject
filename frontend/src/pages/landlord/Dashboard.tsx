@@ -3,7 +3,7 @@ import StatCard from "../../components/dashboard/StatCard";
 import SectionCard from "../../components/dashboard/SectionCard";
 import CircleProgress from "../../components/dashboard/CircleProgress";
 import Sidebar from "../../components/Sidebar";
-import ProfileCard from "../../components/dashboard/managerCard";
+import ProfileCard from "../../components/dashboard/ManagerCard";
 import PaymentList from "../../components/dashboard/PaymentList";
 import ActivityLogs from "../../components/dashboard/ActivityLogs";
 import ReportsPanel from "../../components/dashboard/ReportsPanel";

@@ -38,7 +38,7 @@ function App() {
         <Route path="/auth/signup/form" element={<SignUpForm/>}/>
         <Route path="/student/dashboard" element={<StudentDashboard/>}/>
         <Route path="/manager/dashboard/" element={<ManagerDashboard/>}/>
-        <Route path="/landingpage" element={<FullLandingPage />} /> 
+        <Route path="/" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
