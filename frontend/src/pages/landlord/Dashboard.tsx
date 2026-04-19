@@ -40,6 +40,7 @@ export default function Dashboard() {
   const [facilityDocs, setFacilityDocs] = useState(["Birth Certificate"]);
   const [newDocName, setNewDocName] = useState("");
   const [editingDocs, setEditingDocs] = useState(false);
+  const [docToDelete, setDocToDelete] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const RightPanel = () => (
@@ -166,26 +167,26 @@ export default function Dashboard() {
                         <div>
                           <p className="text-xs text-gray-400 mb-1">SYSTEM STANDARD</p>
                           <div className="flex gap-2 flex-wrap items-center">
-                            <span className="w-fit inline-flex items-center px-3 py-1.5 bg-[#6B0F2B] text-white rounded-full text-xs font-bold leading-none">Form 5</span>
-                            <span className="w-fit inline-flex items-center px-3 py-1.5 bg-[#6B0F2B] text-white rounded-full text-xs font-bold leading-none">Valid ID</span>
+                            <span className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">Form 5</span>
+                            <span className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">Valid ID</span>
                           </div>
                         </div>
                         <div>
                           <p className="text-xs text-gray-400 mb-1">FACILITY-SPECIFIC</p>
                           <div className="flex gap-2 flex-wrap items-center">
                             {facilityDocs.map((doc, i) => (
-                                <span className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">
+                              <span key={i} className="w-fit inline-flex items-center gap-2 pl-3 pr-1.5 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">
                                 {doc}
                                 {editingDocs && (
-                                    <button
-                                    onClick={() => setFacilityDocs(facilityDocs.filter((_, j) => j !== i))}
-                                    className="ml-2 w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition shrink-0"
+                                  <button
+                                    onClick={() => setDocToDelete(i)}
+                                    className="w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition shrink-0"
                                     style={{ lineHeight: 0, border: "none", padding: 0 }}
-                                    >
+                                  >
                                     <X size={8} strokeWidth={3} color="white" />
-                                    </button>
+                                  </button>
                                 )}
-                                </span>
+                              </span>
                             ))}
                             <Button variant="secondary" size="sm" onClick={() => setDocModalOpen(true)}>
                               + Add More
@@ -310,7 +311,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* ADD DOCUMENT MODAL */}
       <Modal
         open={docModalOpen}
         onClose={() => setDocModalOpen(false)}
@@ -338,7 +339,7 @@ export default function Dashboard() {
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Facility-Specific</p>
             <div className="flex gap-2 flex-wrap items-center">
               {facilityDocs.map((doc, i) => (
-                <span key={i} className="w-fit inline-flex items-center px-3 py-1.5 bg-[#6B0F2B] text-white rounded-full text-xs font-bold leading-none">
+                <span key={i} className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">
                   {doc}
                 </span>
               ))}
@@ -363,6 +364,43 @@ export default function Dashboard() {
             </select>
           </div>
         </div>
+      </Modal>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      <Modal
+        open={docToDelete !== null}
+        onClose={() => setDocToDelete(null)}
+        title="Remove Document"
+        eyebrow="Document Requirements"
+        footer={
+          <div className="flex gap-2 ml-auto">
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => setDocToDelete(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => {
+                setFacilityDocs(facilityDocs.filter((_, j) => j !== docToDelete));
+                setDocToDelete(null);
+              }}
+            >
+              Remove
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-sm text-gray-600">
+          Are you sure you want to remove{" "}
+          <span className="font-semibold text-[#6B0F2B]">
+            {docToDelete !== null ? facilityDocs[docToDelete] : ""}
+          </span>{" "}
+          from the document requirements? This may affect existing tenants.
+        </p>
       </Modal>
 
     </div>
