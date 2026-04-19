@@ -11,6 +11,7 @@ import Button from "../../components/Button";
 import Modal from "../../components/Modal";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 
 function FilterTabs({ active, setActive }: any) {
   const tabs = ["Overview", "Fees", "Rooms"];
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const [docModalOpen, setDocModalOpen] = useState(false);
   const [facilityDocs, setFacilityDocs] = useState(["Birth Certificate"]);
   const [newDocName, setNewDocName] = useState("");
+  const [editingDocs, setEditingDocs] = useState(false);
   const navigate = useNavigate();
 
   const RightPanel = () => (
@@ -155,31 +157,43 @@ export default function Dashboard() {
                       </div>
                     </SectionCard>
 
-                    <SectionCard title="Document Requirements" action="Edit →">
-                    <div className="flex flex-col gap-3 text-sm ">
+                    <SectionCard
+                      title="Document Requirements"
+                      action={editingDocs ? "Done" : "Edit"}
+                      onAction={() => setEditingDocs(!editingDocs)}
+                    >
+                      <div className="flex flex-col gap-3 text-sm -mt-2">
                         <div>
-                        <p className="text-xs text-gray-400 mb-1">SYSTEM STANDARD</p>
-                        <div className="flex gap-2 flex-wrap">
-                            <span className="inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">Form 5</span>
-                            <span className="inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">Valid ID</span>
-                        </div>
+                          <p className="text-xs text-gray-400 mb-1">SYSTEM STANDARD</p>
+                          <div className="flex gap-2 flex-wrap items-center">
+                            <span className="w-fit inline-flex items-center px-3 py-1.5 bg-[#6B0F2B] text-white rounded-full text-xs font-bold leading-none">Form 5</span>
+                            <span className="w-fit inline-flex items-center px-3 py-1.5 bg-[#6B0F2B] text-white rounded-full text-xs font-bold leading-none">Valid ID</span>
+                          </div>
                         </div>
                         <div>
-                        <p className="text-xs text-gray-400 mb-1">FACILITY-SPECIFIC</p>
-                        <div className="flex gap-2 flex-wrap">
+                          <p className="text-xs text-gray-400 mb-1">FACILITY-SPECIFIC</p>
+                          <div className="flex gap-2 flex-wrap items-center">
                             {facilityDocs.map((doc, i) => (
-                            <span key={i} className="inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">
+                                <span className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">
                                 {doc}
-                            </span>
+                                {editingDocs && (
+                                    <button
+                                    onClick={() => setFacilityDocs(facilityDocs.filter((_, j) => j !== i))}
+                                    className="ml-2 w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition shrink-0"
+                                    style={{ lineHeight: 0, border: "none", padding: 0 }}
+                                    >
+                                    <X size={8} strokeWidth={3} color="white" />
+                                    </button>
+                                )}
+                                </span>
                             ))}
                             <Button variant="secondary" size="sm" onClick={() => setDocModalOpen(true)}>
-                            + Add More
+                              + Add More
                             </Button>
+                          </div>
                         </div>
-                        </div>
-                    </div>
+                      </div>
                     </SectionCard>
-
                   </div>
                 </>
               )}
@@ -322,9 +336,9 @@ export default function Dashboard() {
         <div className="flex flex-col gap-4">
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Facility-Specific</p>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap items-center">
               {facilityDocs.map((doc, i) => (
-                <span key={i} className="inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">
+                <span key={i} className="w-fit inline-flex items-center px-3 py-1.5 bg-[#6B0F2B] text-white rounded-full text-xs font-bold leading-none">
                   {doc}
                 </span>
               ))}
