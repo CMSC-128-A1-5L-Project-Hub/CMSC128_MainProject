@@ -12,7 +12,6 @@ export const controllers = {
   Auth: () => import('#controllers/auth_controller'),
   Bookmark: () => import('#controllers/bookmark_controller'),
   Fees: () => import('#controllers/fees_controller'),
-  InviteManager: () => import('#controllers/invite_manager_controller'),
   Logs: () => import('#controllers/logs_controller'),
   ManagerHandover: () => import('#controllers/manager_handover'),
   Notifications: () => import('#controllers/notifications_controller'),
@@ -21,4 +20,6 @@ export const controllers = {
   Reviews: () => import('#controllers/reviews_controller'),
   Rooms: () => import('#controllers/rooms_controller'),
   Setups: () => import('#controllers/setups_controller'),
+  SmsVerifications: () => import('#controllers/sms_verifications_controller'),
+  InviteManager: () => import('#controllers/invite_manager_controller'),
 }

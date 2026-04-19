@@ -12,9 +12,6 @@
 import limiter from '@adonisjs/limiter/services/main'
 
 export const throttle = limiter.define('global', () => {
-<<<<<<< HEAD
-  return limiter.allowRequests(1).every('1 minute').blockFor('30 mins')
-=======
   return limiter.allowRequests(100).every('1 minute')
 })
 
@@ -24,5 +21,4 @@ export const uploadThrottle = limiter.define('upload', () => {
 
 export const authThrottle = limiter.define('auth', () => {
   return limiter.allowRequests(10).every('1 minute')
->>>>>>> 30418d0b28c95424c41e997750c2bd267e474791
 })
