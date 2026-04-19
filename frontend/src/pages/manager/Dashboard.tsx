@@ -1,11 +1,11 @@
 //Asset/Component imports
 import Sidebar from "../../components/Sidebar"
-import HeroCard from "../../components/dashboard/HeroCard"
+import HeroBanner from "../../components/dashboard/HeroBanner"
 import StatCard from "../../components/dashboard/StatCard"
-import Applications from "../../components/Dashboard/manager/Applications"
-import Waitlist from "../../components/Dashboard/manager/Waitlist"
-import ConfirmedStudents from "../../components/Dashboard/manager/ConfirmedStudents"
-import Moves from "../../components/Dashboard/manager/Moves"
+import Applications from "../../components/dashboard/manager/Applications"
+import Waitlist from "../../components/dashboard/manager/Waitlist"
+import ConfirmedStudents from "../../components/dashboard/manager/ConfirmedStudents"
+import Moves from "../../components/dashboard/manager/Moves"
 import ProfileCard from "../../components/dashboard/ManagerCard"
 import ActivityLogs from "../../components/dashboard/ActivityLogs"
 
@@ -62,12 +62,12 @@ const managerProfile: ManagerProfile = {
 }
 
 {/* Commenting out this part for now (might be useful later) */}
-// const heroContent: HeroContent = {
-//     greeting: "Good Day",
-//     title: "Efficiently manage applicants & housing accommodation",
-//     pendingApplications: 2,
-//     newNotifications: 3
-// }
+const heroContent: HeroContent = {
+    greeting: "Good Day",
+    title: "Efficiently manage applicants & housing accommodation",
+    pendingApplications: 2,
+    newNotifications: 3
+}
 
 const stats: Stat[] = [
     {title: "Pending Approvals", subtitle: "Subtitle",  value:19, positive: true},
@@ -106,7 +106,13 @@ export default function Dashboard() {
                     </h1>
                 </div>
                 <main className="flex-1 flex flex-col gap-4">
-                    <HeroCard />
+                    <HeroBanner 
+                        greeting={heroContent.greeting}
+                        name={managerProfile.fullName}
+                        title={heroContent.title}
+                        pendingApplications={heroContent.pendingApplications}
+                        newNotifications={heroContent.newNotifications}
+                    />
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {stats.map((stat, i) => (

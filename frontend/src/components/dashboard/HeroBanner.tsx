@@ -23,13 +23,14 @@ export default function HeroBanner({
                 <p className="text-xs lg:text-sm font-medium tracking-widest uppercase text-[#C9973A]">
                     {greeting}, {name}
                 </p>
-                <h2 className="text-white font-bold text-lg lg:text-2xl leading-snug">
+                <h2 className="text-white font-bold text-xl lg:text-3xl leading-snug">
                     {title}
                 </h2>
                 <p className="text-xs lg:text-sm tracking-wide text-white/55">
                     You have {pendingApplications > 0 ? pendingApplications : "no"} pending applications and {newNotifications > 0 ? newNotifications : "no"} new notifications today.
                 </p>
             </div>
+            <div className="hidden md:block w-28 h-28 bg-white/10 rounded-xl shrink-0" />
             {/* Remove ko muna for now */}
             {/* <img
                 src={House}
