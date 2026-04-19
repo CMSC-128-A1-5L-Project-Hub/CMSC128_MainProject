@@ -7,28 +7,6 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
-export class AccommodationImageSchema extends BaseModel {
-  static $columns = ['accommodationId', 'id', 'imageFileId'] as const
-  $columns = AccommodationImageSchema.$columns
-  @column()
-  declare accommodationId: number
-  @column({ isPrimary: true })
-  declare id: number
-  @column()
-  declare imageFileId: number
-}
-
-export class AccommodationTagSchema extends BaseModel {
-  static $columns = ['accommodationId', 'id', 'tagDetail'] as const
-  $columns = AccommodationTagSchema.$columns
-  @column()
-  declare accommodationId: number
-  @column({ isPrimary: true })
-  declare id: number
-  @column()
-  declare tagDetail: string
-}
-
 export class AccommodationSchema extends BaseModel {
   static $columns = ['accommodationCapacity', 'accommodationLocation', 'accommodationName', 'accommodationType', 'applicationEndDate', 'applicationStartDate', 'bikingDistance', 'businessPermitId', 'drivingDistance', 'id', 'invitedManagerEmail', 'landlordId', 'latitude', 'longitude', 'managerId', 'primaryImageIndex', 'status', 'tenantRestriction', 'walkingDistance'] as const
   $columns = AccommodationSchema.$columns
@@ -70,6 +48,28 @@ export class AccommodationSchema extends BaseModel {
   declare tenantRestriction: string
   @column()
   declare walkingDistance: number | null
+}
+
+export class AccommodationImageSchema extends BaseModel {
+  static $columns = ['accommodationId', 'id', 'imageFileId'] as const
+  $columns = AccommodationImageSchema.$columns
+  @column()
+  declare accommodationId: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare imageFileId: number
+}
+
+export class AccommodationTagSchema extends BaseModel {
+  static $columns = ['accommodationId', 'id', 'tagDetail'] as const
+  $columns = AccommodationTagSchema.$columns
+  @column()
+  declare accommodationId: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare tagDetail: string
 }
 
 export class ApplicationSchema extends BaseModel {
