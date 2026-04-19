@@ -160,7 +160,7 @@ export default function Dashboard() {
 
                     <SectionCard
                       title="Document Requirements"
-                      action={editingDocs ? "Done" : "Edit"}
+                      action={editingDocs ? "Done" : "Edit →"}
                       onAction={() => setEditingDocs(!editingDocs)}
                     >
                       <div className="flex flex-col gap-3 text-sm -mt-2">
