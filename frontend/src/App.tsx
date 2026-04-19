@@ -14,6 +14,7 @@ import InteractiveMap from "./pages/MapPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
+import LandlordDashboard from "./pages/landlord/Dashboard"
 
 function FullLandingPage() {
   return (
@@ -42,6 +43,7 @@ function App() {
         <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/pending-verification" element={<PendingVerification />} />
+        <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
       </Routes>
     </BrowserRouter>
   )
