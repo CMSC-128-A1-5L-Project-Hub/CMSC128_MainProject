@@ -83,6 +83,10 @@ export function Modal({
           style={{
             width: "100%",
             maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
+            maxHeight: "90vh",
+            overflowY: "auto",
+            display:"flex",
+            flexDirection: "column",
             background: "#fff",
             borderRadius: 24,
             overflow: "hidden",
@@ -216,7 +220,7 @@ export function Modal({
           <div
             style={{
               padding: "24px 28px",
-              maxHeight: "52vh",
+              maxHeight: "70vh",
               overflowY: "auto",
             }}
           >

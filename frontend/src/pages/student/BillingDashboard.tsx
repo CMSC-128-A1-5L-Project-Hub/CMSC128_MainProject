@@ -2,9 +2,16 @@ import { useState, useMemo, useRef } from 'react'
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import Pagination from '../../components/ApplicationStatus/Pagination';
 import Sidebar from '../../components/Sidebar';
-
+import Modal from '../../components/Modal';
+import cashIcon from "../../assets/icons/cash.svg";
+import onlineIcon from "../../assets/icons/online.svg";
+import bankIcon from "../../assets/icons/bank.svg";
+import downloadIcon from "../../assets/icons/download.svg";
 
 export default function BillingDashboard(){
+    const [selectedBill, setSelectedBill] = useState<typeof bills[0] | null>(null);
+    const [payOpen, setPayOpen] = useState(false);
+
     const semesterStart = new Date("2026-01-19");
     const semesterEnd = new Date("2026-04-29");
     const semCount = 2;
@@ -47,9 +54,11 @@ export default function BillingDashboard(){
         { billName: 'Rent', startPeriod: new Date(2026, 5, 1), endPeriod: new Date(2026, 5, 30), dateIssued: new Date(2026, 5, 1), amount: 12000, status: "paid" }
     ];
 
-    const earliestBill = bills.sort(
-        (a,b) => a.dateIssued.getTime() - b.dateIssued.getTime())[0];
-        
+    const earliestBill = [...bills]
+        .filter(b => b.status === 'unpaid')
+        .sort((a,b) => a.dateIssued.getTime() - b.dateIssued.getTime())[0];
+    
+    const [paymentMethod, setPaymentMethod] = useState("");
     const AYBills = bills.filter(a => a.dateIssued >= semesterStart && a.dateIssued <= semesterEnd);
     const AYBillSum = AYBills.reduce((acc, curr) => acc + curr.amount, 0);
     const AYPaidSum = AYBills.reduce((acc, curr) => curr.status === "paid" ? acc + curr.amount : acc, 0);
@@ -90,6 +99,7 @@ export default function BillingDashboard(){
 
     const [sortBy, setSortBy] = useState("Date applied (Asc.)");
     const [searchQuery, setSearchQuery] = useState("");
+    const [cashAmount, setCashAmount] = useState<number>();;
     const [searchOpen, setSearchOpen] = useState(false);
 
     const sortedBills = useMemo(() => {
@@ -161,7 +171,9 @@ export default function BillingDashboard(){
                         <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">₱{earliestBill.amount.toLocaleString()}</h1>
                         <p className="text-white font-semibold text-opacity-55 text-[12.5px] lg:text-[13.5px]">{earliestBill.dateIssued.toLocaleDateString('en-US', {month: 'long', year:'numeric'})}</p>
                     </div>
-                    <button className="flex self-center w-30 h-10 flex-row text-[13px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25">
+                    <button 
+                        onClick={() => {setPayOpen(true); setSelectedBill(earliestBill); }}
+                        className="flex self-center w-30 h-10 flex-row text-[13px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25">
                         Pay Now
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -249,7 +261,6 @@ export default function BillingDashboard(){
                                 </button>
                             </div>
                         </div>
-                        
                     </div>
                     
                     <div className='overflow-auto flex-1 min-h-0 mt-3 rounded-t-lg'>
@@ -305,7 +316,6 @@ export default function BillingDashboard(){
                             </tbody>
                         </table>
                     </div>
-                    
 
                     <div className='flex flex-nowrap justify-between'>
                         <div className='flex justify-start items-center gap-2'>
@@ -341,6 +351,72 @@ export default function BillingDashboard(){
                             </div>
                         </div>
                     </div>
+                    {payOpen && selectedBill && (
+                        <Modal open={payOpen} onClose={() => setPayOpen(false)} title="Billing Statement" maxWidth="clamp(360px, 50vw, 600px)">
+                            <div className='flex flex-col w-full'>
+                                <div className="flex flex-row justify-between w-full bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-4 rounded-xl shrink-0">
+                                    <div>
+                                        <p className="uppercase font-bold text-white text-opacity-55 text-[12px]">{selectedBill.startPeriod.toLocaleDateString('en-US', {month: 'long'})} Billing Statement</p>
+                                        <h1 className="font-bold text-[18px] text-white">₱{selectedBill.amount.toLocaleString()}</h1>
+                                        <p className="text-white font-semibold text-opacity-55 text-[12px]">{selectedBill.dateIssued.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year:'numeric'})}</p>
+                                    </div>
+                                    <button className="flex self-center w-10 h-10 flex-row text-[11px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25">
+                                        <img src={downloadIcon} alt="cash" className="w-[50px] h-[50px]" />
+                                    </button>
+                                </div>
+                                <div className="flex w-full flex-row justify-between border-2 border-opacity-10 border-[#6B0F2B] bg-[#FAF4F6] p-4 mt-4 rounded-xl shrink-0">
+                                    <div>
+                                        <p className="uppercase font-bold text-[#9A7080] text-opacity-55 text-[12px]">due date</p>
+                                        <h1 className="font-bold text-[18px] text-black">{selectedBill.endPeriod.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</h1>
+                                        <p className="text-[#9A7080] font-semibold text-opacity-55 text-[12px]">2nd Semester</p>
+                                    </div>
+                                    <div className='self-center capitalize bg-opacity-10 p-2 w-fit rounded-[50px] text-[13px] flex flex-row'
+                                        style = {{ backgroundColor: (statusStyles[selectedBill.status]?.bg ?? '#F0F0F0')  + '1A' }}
+                                    >
+                                        <div className='p-1 w-1 h-1 mx-1.5 mt-1.5 lg:mt-1 rounded-[100px]'
+                                            style = {{ backgroundColor: statusStyles[selectedBill.status]?.dot ?? '#888' }}
+                                        />
+                                        <p 
+                                        className='mr-1.5'
+                                        style = {{ color: statusStyles[selectedBill.status]?.text ?? '#888',
+                                            fontWeight: 'bold',
+                                        }}>{selectedBill.status}</p>
+                                    </div>
+                                </div>
+                                <p className='uppercase font-bold text-[#6B4050] text-[13px] mt-2'>payment method</p>
+                                <div className='grid grid-cols-2 grid-rows-1 gap-2 mt-1.5 text-[14px]'>
+                                    <button 
+                                        onClick={() => {setPaymentMethod("cash")}}
+                                        className={` ${paymentMethod === "cash" ? "border-[#9E2040]" : "border-opacity-30 border-[#C8B0B8]"} border-2 flex flex-row`}>
+                                            <img src={cashIcon} alt="cash" className="w-4 h-4" />
+                                            <p>Cash</p>
+                                    </button>
+                                    <button 
+                                        onClick={() => {setPaymentMethod("online")}}
+                                        className={` ${paymentMethod === "online" ? "border-[#9E2040]" : "border-opacity-30 border-[#C8B0B8]"} border-2 flex flex-row`}>
+                                            <img src={onlineIcon} alt="cash" className="w-4 h-4" />
+                                            <p>Online</p>
+                                    </button>
+                                </div>
+                                <p className={`${paymentMethod === "online" ? "" : "hidden"} uppercase font-bold text-[#6B4050] text-[13px] mt-2`}>upload receipts here</p>
+                                <button className={` ${paymentMethod === "online" ? "" : "hidden"} flex flex-col border-dashed w-full h-30 border-2 border-[#C8B0B8] mt-2 items-center justify-center p-3`}>
+                                    {/*placeholder icon*/}
+                                    <img className="w-10 h-10 p-2 rounded-xl bg-[#F5ECF0]" src={downloadIcon} alt="" />
+                                    <p className='text-[14px] text-[#1A0008] font-bold'>Upload Receipt</p>
+                                    <p className='text-[12px] text-[#C8B0B8]'>PDF, JPG, or PNG  •  Max 5mb</p>
+                                </button>
+                                <p className={`${paymentMethod === "cash" ? "" : "hidden"} uppercase font-bold text-[#6B4050] text-[13px] mt-2`}>amount of cash paid</p>
+                                <input 
+                                    value = {cashAmount}
+                                    onChange={(e) => setCashAmount(Number(e.target.value))}
+                                    className={`${paymentMethod === "cash" ? "" : "hidden"} text-[14px] mt-2 p-4 placeholder-[#C8B0B8] text-[#6B4050] w-full h-12 border-2 border-[#C8B0B8] rounded-xl`} 
+                                    type="text" 
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    placeholder='Input amount' />
+                            </div>
+                        </Modal>
+                    )}
 
                     {searchOpen && (
                         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center lg:hidden">
