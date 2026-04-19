@@ -15,7 +15,7 @@ interface ModalProps {
   /** Small uppercase label above the title */
   eyebrow?: string;
   /** Max width of the modal card in px (default 560) */
-  maxWidth?: number;
+  maxWidth?: number | string;
   /** Optional footer slot — rendered below the body */
   footer?: ReactNode;
 }
@@ -82,7 +82,7 @@ export function Modal({
         <div
           style={{
             width: "100%",
-            maxWidth,
+            maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
             background: "#fff",
             borderRadius: 24,
             overflow: "hidden",
@@ -161,7 +161,7 @@ export function Modal({
                   <h2
                     style={{
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      fontSize: 22,
+                      fontSize: "clamp(16px, 2vw, 22px)",
                       fontWeight: 800,
                       color: "#fff",
                       letterSpacing: "0.06em",

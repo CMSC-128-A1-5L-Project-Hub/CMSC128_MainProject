@@ -140,6 +140,8 @@ export default function BillingDashboard(){
 
     return (
         <div className="bg-[#F5EEF0] h-screen overflow-hidden flex flex-row">
+            <hr className="fixed border-t-1 top-14 w-full border-t border-[#6B0F2B] border-opacity-10 my-3" />
+            
             <Sidebar 
                 role='student'
             />
@@ -148,13 +150,12 @@ export default function BillingDashboard(){
                     <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-5 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div> 
                     <div className="flex flex-col justify-left gap-[1px]">
                         <h1 className='font-serif font-bold italic text-[28.5px] lg:text-[31px] text-[#6B0F2B] pl-16 lg:p-0 leading-tight -mt-2'>Billing Dashboard</h1>
-                        <p className="text-[#9A7080] text-[13px] pl-16 leading-tight -mt-1">{currentResidence}     •     {currentAY}</p>
+                         <p className="text-[#9A7080] text-[13px] pl-16 lg:pl-0 -mt-1 lg:-mt-2">{currentResidence}     •     {currentAY}</p>
                     </div>
                 </div>
-                <hr className="border-t-1 border-[#6B0F2B] border-opacity-10 my-3" />
 
 
-                <div className="flex flex-row  justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-4 mx-4 mt-1 mb-2 rounded-xl shrink-0">
+                <div className="flex flex-row  justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-4 mx-4 mt-6 lg:mt-7 mb-2 rounded-xl shrink-0">
                     <div>
                         <p className="uppercase font-bold text-white text-opacity-55 text-[12px] lg:text-[13px]">pay now</p>
                         <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">₱{earliestBill.amount.toLocaleString()}</h1>
