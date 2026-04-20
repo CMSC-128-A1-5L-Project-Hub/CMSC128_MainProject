@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
+
 
 // ── SVG / asset imports ────────────────────────────────────────────────────
 import house_icon from "../../assets/icons/house_icon.svg";
@@ -135,31 +136,53 @@ const applications: Application[] = [
   },
 ];
 
-const recommended: RecommendedDorm[] = [
+const recommended = [
   {
     id: 1,
     name: "Kamia Residence",
     tag: "Transient",
-    tagColor: "bg-amber-100 text-amber-700",
     size: "22 m²",
     location: "On-campus",
     price: 3200,
     rating: 4,
     review:
       "Rooms are clean and the dormitory manager is easy to talk to. I would recommend for anyone finding an affordable and safe dormitory in UPLB.",
-    img: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&q=80",
+    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
   },
   {
     id: 2,
     name: "Narra Residence",
     tag: "Dormitory",
-    tagColor: "bg-emerald-100 text-emerald-700",
     size: "30 m²",
     location: "Off-campus",
     price: 8500,
-    rating: 4,
+    rating: 5,
     review:
       "The layout of the room is nice. There are so many amenities which caters to my needs as a student. It is also a close walk to the campus.",
+    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    id: 3,
+    name: "Molave Dorm",
+    tag: "Dormitory",
+    size: "28 m²",
+    location: "On-campus",
+    price: 5000,
+    rating: 4,
+    review:
+      "Great location near the main gate. The rooms are spacious and well-ventilated. Staff are also very accommodating.",
+    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    id: 4,
+    name: "Acacia Suites",
+    tag: "Transient",
+    size: "20 m²",
+    location: "Near Gate 1",
+    price: 4200,
+    rating: 3,
+    review:
+      "Affordable and decent stay. Best for short-term use. The place is clean but can get a bit noisy during peak hours.",
     img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
   },
 ];
@@ -575,6 +598,13 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
 export default function Dashboard() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("All");
+  const recommendedScrollRef = useRef<HTMLDivElement | null>(null);
+  const scrollRecommendedRight = () => {
+    recommendedScrollRef.current?.scrollBy({
+      left: 320,
+      behavior: "smooth",
+    });
+  };
 
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
@@ -590,7 +620,7 @@ export default function Dashboard() {
             <div className="hidden lg:flex items-center gap-2">
               <div className="w-1 h-6 rounded-full" style={{ background: CLR.mid }} />
             </div>
-            <h1 className="font-serif italic text-2xl lg:text-5xl font-bold text-gray-900">Dashboard</h1>
+            <h1 className="font-serif italic text-2xl lg:text-4xl font-bold text-gray-900">Dashboard</h1>
           </div>
         </header>
 
@@ -666,52 +696,123 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="sm:col-span-1 lg:col-span-3 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900 text-base">Recommended</h3>
-                <button className="text-sm font-semibold hover:underline flex items-center gap-1" style={{ color: CLR.mid }}>
-                  View all <IconChevronRight />
+            <div className="sm:col-span-1 lg:col-span-3 bg-white rounded-[28px] shadow-[0_10px_24px_rgba(61,7,24,0.12)] border border-[#EFE5E8] px-5 pt-5 pb-4">
+              <div className="flex items-center justify-between pb-4 border-b border-[#F1E5EA]">
+                <h3 className="font-bold text-[#1B2233] text-[15px]">Recommended</h3>
+                <button
+                  className="text-[14px] font-semibold flex items-center gap-1"
+                  style={{ color: CLR.mid }}
+                >
+                  View all <IconChevronRight className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory -mx-1 px-1">
-                {recommended.map((dorm) => (
-                  <div
-                    key={dorm.id}
-                    className="min-w-[180px] sm:min-w-[200px] max-w-[220px] flex-shrink-0 rounded-2xl border border-gray-100 overflow-hidden shadow-sm snap-start"
-                  >
-                    <div className="relative h-28 sm:h-32 overflow-hidden">
-                      <img src={dorm.img} alt={dorm.name} className="w-full h-full object-cover" />
-                      <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${dorm.tagColor}`}>
-                        {dorm.tag}
-                      </span>
-                    </div>
-                    <div className="p-3">
-                      <p className="font-bold text-gray-900 text-sm mb-0.5">{dorm.name}</p>
-                      <p className="text-gray-400 text-xs mb-1.5">Studio · {dorm.size} · {dorm.location}</p>
-                      <p className="font-bold text-sm mb-1.5" style={{ color: CLR.gold }}>
-                        ₱{dorm.price.toLocaleString()}
-                        <span className="text-gray-400 font-normal text-xs"> / month</span>
-                      </p>
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <StarRating rating={dorm.rating} />
-                        <span className="text-gray-400 text-[10px]">1 month ago</span>
-                      </div>
-                      <p className="text-gray-400 text-[11px] leading-relaxed line-clamp-3">{dorm.review}</p>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center gap-4 pt-5">
+                <div
+                  ref={recommendedScrollRef}
+                  className="flex gap-4 flex-1 min-w-0 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth"
+                >
+                  {recommended.map((dorm) => (
+                    <button
+                      key={dorm.id}
+                      type="button"
+                      className="min-w-[280px] max-w-[280px] text-left flex-shrink-0 rounded-[24px] border border-[#EFE5E8] bg-white shadow-[0_8px_18px_rgba(61,7,24,0.06)] overflow-hidden transition hover:-translate-y-0.5 snap-start"
+                    >
+                      <div className="px-4 pt-4 pb-4">
+                        <div className="relative h-[132px] rounded-[18px] overflow-hidden">
+                          <img
+                            src={dorm.img}
+                            alt={dorm.name}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
 
-                <div className="flex items-center flex-shrink-0">
-                  <button
-                    className="w-9 h-9 rounded-full text-white flex items-center justify-center shadow-md transition-colors"
-                    style={{ background: CLR.mid }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = CLR.dark)}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = CLR.mid)}
-                  >
-                    <IconArrowNext className="w-4 h-4" />
-                  </button>
+                          <div className="absolute top-3 left-3 bg-white rounded-full px-3 py-1.5 shadow-sm">
+                            <span className="text-[9px] font-bold" style={{ color: CLR.gold }}>
+                              {dorm.rating} ★★★★★
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-3">
+                          <span
+                            className="inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-bold leading-none"
+                            style={{
+                              background: "#D4A137",
+                              color: "#3D0718",
+                            }}
+                          >
+                            {dorm.tag}
+                          </span>
+                        </div>
+
+                        <h4 className="mt-3 text-[15px] font-bold leading-tight" style={{ color: CLR.dark }}>
+                          {dorm.name}
+                        </h4>
+
+                        <p className="mt-1.5 text-[12px] leading-tight text-[#8C6A75]">
+                          {dorm.tag === "Dormitory" ? "Shared" : "Studio"} · {dorm.size} · {dorm.location}
+                        </p>
+
+                        <p className="mt-2 text-[15px] font-bold leading-none" style={{ color: CLR.gold }}>
+                          ₱{dorm.price.toLocaleString()}
+                          <span className="ml-1 font-normal text-[13px] text-[#8C6A75]">/ month</span>
+                        </p>
+
+                        <div className="mt-4 h-px bg-[#F1E5EA]" />
+
+                        <div className="mt-3 flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <svg
+                                key={i}
+                                className={`w-4 h-4 ${i < dorm.rating ? "text-amber-400" : "text-gray-300"}`}
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ))}
+                          </div>
+
+                          <span className="text-[11px] text-[#9E7A86]">1 month ago</span>
+                        </div>
+
+                        <p
+                          className="mt-3 text-[12px] italic leading-[1.35] text-[#4B2431]"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 4,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {dorm.review}
+                        </p>
+
+                        <div className="mt-4 flex justify-center gap-1.5">
+                          {[0, 1, 2, 3, 4].map((dot) => (
+                            <span
+                              key={dot}
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{ background: dot === 0 ? CLR.gold : "#D7D7D7" }}
+                            />
+                          ))}
+                        </div>
+
+                        <div className="mt-3 h-px bg-[#F1E5EA]" />
+                      </div>
+                    </button>
+                  ))}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={scrollRecommendedRight}
+                  className="hidden md:flex w-14 h-14 rounded-full text-white items-center justify-center shadow-[0_10px_24px_rgba(61,7,24,0.18)] flex-shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${CLR.accent} 0%, ${CLR.mid} 100%)` }}
+                >
+                  <IconArrowNext className="w-5 h-5" />
+                </button>
               </div>
             </div>
 
