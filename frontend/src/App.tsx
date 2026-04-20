@@ -6,6 +6,7 @@ import SignUpForm from "./pages/shared/SignUpForm"
 import StudentDashboard from "./pages/student/Dashboard"
 import ManagerDashboard from "./pages/manager/Dashboard"
 import OccupancyRecords from "./pages/manager/OccupancyRecords"
+import RoomAssignment from "./pages/manager/RoomAssignment"
 import LandingPage from "./pages/shared/Landingpage"
 import AboutSection from "./pages/shared/Aboutsection"
 import FeaturesSection from "./pages/shared/Featuresection"
@@ -40,6 +41,7 @@ function App() {
         <Route path="/student/dashboard" element={<StudentDashboard/>}/>
         <Route path="/manager/dashboard/" element={<ManagerDashboard/>}/>
         <Route path="/manager/occupancy-records" element={<OccupancyRecords />}/>
+        <Route path="/manager/room-assignment" element={<RoomAssignment />}/>
         <Route path="/" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
