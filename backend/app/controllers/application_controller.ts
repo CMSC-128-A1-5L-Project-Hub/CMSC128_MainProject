@@ -3,11 +3,12 @@ import Application from '#models/application'
 import Assignment from '#models/assignment'
 import Student from '#models/student'
 import LogService from '#services/log_service'
+import User from '#models/user'
 
 export default class ApplicationsController {
   
   // ─── 1. STUDENT: SUBMIT APPLICATION ───
-  async store({ auth, request, response, serialize }: HttpContext) {
+  async store({ auth, request, response, serialize }: HttpContext) {    
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id) // Get student_number
     
@@ -39,7 +40,10 @@ export default class ApplicationsController {
 
   // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
   async index({ auth, serialize }: HttpContext) {
-    const user = auth.user!
+    // === TEMP DEV BYPASS ===
+    const user = await User.findByOrFail('email', 'afjuarez@up.edu.ph')
+
+    // const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
 
     const applications = await Application.query()

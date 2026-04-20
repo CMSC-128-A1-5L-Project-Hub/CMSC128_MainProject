@@ -14,6 +14,8 @@ import ResidenceCarousel from "./pages/shared/Recommendedsection"
 import UBLEFooter from "./pages/shared/SupportSection"
 import InteractiveMap from "./pages/MapPage"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
+import NotificationsPage from "./pages/shared/Notifications"
+import ApplicationsPage from "./pages/student/Applications"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
 
@@ -46,6 +48,9 @@ function App() {
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
+        <Route path="/pending-verification" element={<PendingVerification />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/applications" element={<ApplicationsPage />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/student/profile" element={<ProfilePage />} />
       </Routes>
