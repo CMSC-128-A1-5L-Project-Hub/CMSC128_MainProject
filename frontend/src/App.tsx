@@ -15,6 +15,7 @@ import UBLEFooter from "./pages/shared/SupportSection"
 import InteractiveMap from "./pages/MapPage"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import AdminDashboard from "./pages/admin/Dashboard"
+import ProfilePage from "./pages/student/ProfilePage"
 
 function FullLandingPage() {
   return (
@@ -46,6 +47,7 @@ function App() {
         <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/student/profile" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
   )
