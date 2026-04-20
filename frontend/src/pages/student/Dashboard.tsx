@@ -1,5 +1,4 @@
-import { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 
@@ -599,15 +598,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
 export default function Dashboard() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("All");
-
-  
-  const [profile, setProfile] = useState<StudentProfile | null>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
-  const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
-  
-    const recommendedScrollRef = useRef<HTMLDivElement | null>(null);
+  const recommendedScrollRef = useRef<HTMLDivElement | null>(null);
   const scrollRecommendedRight = () => {
     recommendedScrollRef.current?.scrollBy({
       left: 320,
@@ -640,13 +631,13 @@ export default function Dashboard() {
           >
             <div className="relative z-10 px-5 sm:px-8 py-6">
               <p className="text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1" style={{ color: CLR.goldLt }}>
-                {heroContent.greeting}, {profile?.shortName}
+                {heroContent.greeting}, {studentProfile.shortName}
               </p>
               <h2 className="text-white font-bold text-lg sm:text-2xl leading-snug mb-1.5 max-w-xs sm:max-w-sm">
                 {heroContent.title}
               </h2>
               <p className="text-white/60 text-xs sm:text-sm">
-                You have {pendingApplicationsCount} pending application{pendingApplicationsCount !== 1 && "s"} and {notificationsTodayCount} new notification{notificationsTodayCount !== 1 && "s"} today.              
+                You have {heroContent.pendingApplications} pending applications and {heroContent.newNotificationsToday} new notifications today.
               </p>
             </div>
 
