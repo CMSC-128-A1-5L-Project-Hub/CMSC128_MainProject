@@ -35,6 +35,9 @@ export default class Student extends BaseModel {
   declare emergencyContactNumber: string | null
 
   @column()
+  declare yearLevel: string | null
+
+  @column()
   declare form_5_renewal: boolean
 
   @belongsTo(() => User, { foreignKey: 'userId' })

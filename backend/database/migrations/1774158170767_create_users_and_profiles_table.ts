@@ -44,6 +44,7 @@ export default class extends BaseSchema {
       table.string('emergency_contact_name', 100).nullable()
       table.string('emergency_contact_number', 11).nullable()
       table.boolean('form5_renewal').defaultTo(false)
+      table.enum('year_level', ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year']).nullable()
     })
   }
 

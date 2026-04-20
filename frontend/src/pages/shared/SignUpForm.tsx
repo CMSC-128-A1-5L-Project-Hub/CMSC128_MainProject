@@ -177,6 +177,7 @@ export default function SignUpForm() {
         payload.append('college', formData.college)
         payload.append('degree_program', formData.course)
         payload.append('student_number', formData.studentNumber)
+        if (formData.standing) payload.append('year_level', formData.standing)
 
         if (formData.form5) payload.append('form5[]', formData.form5)
         if (formData.other) payload.append('form5[]', formData.other)

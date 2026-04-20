@@ -69,6 +69,7 @@ export default class ProfileService {
         
         emergencyContactName: validatedData.emergency_contact_name,   // was emergencyContactName
         emergencyContactNumber: validatedData.emergency_contact_number, // was emergencyContactNumber
+        yearLevel: validatedData.year_level ?? null,
       })
 
       return {
