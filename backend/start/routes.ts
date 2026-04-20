@@ -44,6 +44,7 @@ router
   .group(() => {
     // ─── SUCCESSFUL LOGIN/SIGNUP ───
     router.get('/me', [controllers.Auth, 'me'])
+    router.put('/me', [controllers.Auth, 'updateMe'])
 
     // ─── USER ONBOARDING ───
     router.get('/setup', [controllers.Setups, 'show'])
