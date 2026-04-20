@@ -45,6 +45,7 @@ interface UserProfile {
     college: string;
     degreeProgram: string;
     gender: string;
+    yearLevel: string | null;
     emergencyContactName: string | null;
     emergencyContactNumber: string | null;
   } | null;
@@ -90,13 +91,9 @@ function secondaryPhone(p: UserProfile) {
   return extras?.length ? extras[0].contactNumber : "NONE";
 }
 
-// year level is derived from the student number prefix, e.g. "2023-12345" -> "2nd Year"
 function yearLevel(student: UserProfile["student"]) {
   if (!student) return "—";
-  const year = parseInt(student.studentNumber?.split("-")[0] ?? "0");
-  const diff = new Date().getFullYear() - year + 1;
-  const labels = ["1st", "2nd", "3rd", "4th", "5th"];
-  return `${labels[Math.min(diff - 1, 4)] ?? diff + "th"} Year`;
+  return student.yearLevel ?? "—";
 }
 
 // rough semester label based on move-in month -- good enough for display
