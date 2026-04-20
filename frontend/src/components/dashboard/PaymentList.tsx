@@ -1,4 +1,5 @@
 import Card from "../ui/Card";
+import Button from "../Button";
 
 const payments = [
   { name: "Ana Marie Reyes", amount: "₱5000", status: "Pending" },
@@ -15,7 +16,7 @@ export default function PaymentList() {
     <div className="flex justify-between items-start mb-3">
         <div>
         <h3 className="font-bold text-sm">Overdue Fees</h3>
-        <p className="text-xs text-gray-400 mt-0.5">As of April 18, 2026</p>
+        <p className="text-xs text-[#9A7080] font-bold mt-0.5">As of April 18, 2026</p>
         </div>
         <div
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#8C1535]"
@@ -35,7 +36,7 @@ export default function PaymentList() {
     {/* BIG TOTAL */}
     <div className="mb-4">
     <div className="flex justify-between items-center mb-1">
-        <p className="text-xs text-gray-400 uppercase tracking-wider">Total Overdue</p>
+        <p className="text-xs uppercase tracking-wider text-[#9A7080] font-bold">Total Overdue</p>
         <span className="text-xs font-bold text-[#6B0F2B] cursor-pointer hover:underline">
         View all →
         </span>
@@ -75,8 +76,8 @@ export default function PaymentList() {
         </div>
         <hr className="border-gray-100 mb-2" />
         <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-          <span className="flex-[3]">Student</span>
-          <span className="flex-[1] text-right">Action</span>
+          <span className="flex-[3] text-[#9A7080] font-bold">Student</span>
+          <span className="flex-[1] text-right text-[#9A7080] font-bold">Action</span>
         </div>
         {payments.map((p, i) => (
           <div key={i} className="flex items-center py-2.5 border-b border-gray-50 last:border-0">
@@ -88,12 +89,9 @@ export default function PaymentList() {
               </div>
             </div>
             <div className="flex-[1] flex justify-end">
-              <button
-                className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#6B0F2B]"
-                style={{ background: "rgba(140,21,53,0.08)" }}
-              >
+            <Button variant="reddishPink" size="sm" className="!rounded-xl">
                 Review
-              </button>
+              </Button>
             </div>
           </div>
         ))}
