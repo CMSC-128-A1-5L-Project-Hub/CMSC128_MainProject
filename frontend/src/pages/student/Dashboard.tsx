@@ -4,6 +4,9 @@ import Sidebar from "../../components/Sidebar";
 
 // ── SVG / asset imports ────────────────────────────────────────────────────
 import house_icon from "../../assets/icons/house_icon.svg";
+import notif_icon from "../../assets/icons/notif_icon.svg";
+import default_profile from "../../assets/icons/default_profile_female.svg";
+
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const CLR = {
@@ -409,29 +412,50 @@ interface DesktopProfilePanelProps {
 
 const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePanelProps) => (
   <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4]">
+    {/* Top Gradient  */}
     <div
-      className="rounded-b-[30px] px-7 pt-6 pb-6 shadow-[0_10px_24px_rgba(61,7,24,0.18)]"
-      style={{ background: `linear-gradient(160deg, ${CLR.dark} 0%, ${CLR.mid} 100%)` }}
-    >
+      className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-[...]"
+      style={{ background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)` }}
+    > 
+      <div
+        className="absolute top-0 left-0 w-full h-[79px] px] pointer-events-none"
+        style={{
+          background: "linear-gradient(90deg, #7A0C23 0%, #A61C3C 100%)"
+        }}
+      />
+    <div className="relative z-10">
+    {/* Profile Title and Notif Button */}
       <div className="flex items-center justify-between mb-6">
         <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
 
-        <button
-          className="w-11 h-11 rounded-2xl flex items-center justify-center text-white transition-colors relative border border-white/10"
-          style={{ background: "rgba(255,255,255,0.10)" }}
+       <button
+          className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
+          style={{ background: "rgba(255,255,255,0.08)" }}
         >
-          <IconBell className="w-5 h-5" />
-          <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full" style={{ background: CLR.gold }} />
+          <img
+            src={notif_icon}
+            alt="Notifications"
+            className="w-full h-full object-contain scale-[2.5]"
+          />
+
+          <span
+            className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
+            style={{ background: CLR.gold }}
+          />
         </button>
       </div>
-
+      {/* Profile Content */}
       <div className="flex items-center gap-4">
         <div className="relative flex-shrink-0">
           <div
-            className="w-20 h-20 rounded-full bg-white flex items-center justify-center border-4 shadow-md"
+            className="w-[78px] h-[78px] rounded-full bg-white flex items-center justify-center border-[4px] overflow-hidden shadow-md"
             style={{ borderColor: CLR.gold }}
           >
-            <IconUser className="w-10 h-10 text-gray-300" />
+            <img
+              src={default_profile}
+              alt="Default profile"
+              className="w-full h-full object-cover"
+            />
           </div>
 
           <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
@@ -451,8 +475,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-4 gap-4">
-        {[
+      <div className="mt-6 grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-4">        {[
           { label: "Student No.", value: profile.studentNo },
           { label: "College", value: profile.college },
           { label: "Year Level", value: profile.yearLevel },
@@ -465,13 +488,13 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
                 {item.value}
               </span>
             ) : (
-              <p className="text-white text-[15px] font-bold leading-tight">{item.value}</p>
+              <p className="text-white text-[14px] font-bold leading-tight whitespace-nowrap"> {item.value} </p>
             )}
           </div>
         ))}
       </div>
     </div>
-
+    </div>
     <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
       <BillingSection overview={billing} statements={statements} />
     </div>
