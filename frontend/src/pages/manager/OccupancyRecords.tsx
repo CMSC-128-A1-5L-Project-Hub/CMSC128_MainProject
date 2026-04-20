@@ -87,7 +87,7 @@ const historyRecords: HistoryRecord[] = [
 ]
 
 const ROOMS_PER_PAGE = 3
-const HISTORY_PER_PAGE = 4
+const HISTORY_PER_PAGE = 3
 const SORT_OPTS = ["Room Type", "Room No.", "Date", "Action"]
 
 const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:string}) => {
@@ -109,20 +109,20 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                     <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">
                         Room Occupancy Details
                     </h2>
-                    <div className="grid grid-cols-5 border-b border-[#F5ECF0] uppercase">
+                    <div className="grid grid-cols-4 lg:grid-cols-5 border-b border-[#F5ECF0] uppercase">
                         <p className="col-span-1 text-[#9A7080] text-xs lg:text-md font-bold p-1">
                             Room No.
                         </p>
-                        <p className="col-span-1 text-[#9A7080] text-xs lg:text-md font-bold p-1">
+                        <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
                             Room Type
                         </p>
-                        <p className="col-span-1 text-[#9A7080] text-xs lg:text-md font-bold p-1">
+                        <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
                             Capacity
                         </p>
-                        <p className="col-span-1 text-[#9A7080] text-xs lg:text-md font-bold p-1">
+                        <p className="hidden lg:col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
                             Status
                         </p>
-                        <p className="col-span-1 text-[#9A7080] text-xs lg:text-md font-bold p-1">
+                        <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
                             Action
                         </p>
                     </div>
@@ -133,7 +133,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                 {paginatedRooms.map((room, i) => {
                                     const status = getStatus(room)
                                     return(
-                                        <div key={i} className="grid grid-cols-5 flex justify-between items-center py-1 pl-1">
+                                        <div key={i} className="grid grid-cols-4 lg:grid-cols-5 flex justify-between items-center py-1 pl-1">
                                             <div className="col-span-1 flex flex-col">
                                                 <p className="font-bold text-sm lg:text-md text-[#1A0008]">
                                                     Room {room.roomNumber}
@@ -142,24 +142,24 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                                     Building {room.roomBuilding}
                                                 </p>
                                             </div>
-                                            <p className="col-span-1 text-sm text-[#1A0008] capitalize">
+                                            <p className="col-span-1 text-center text-sm text-[#1A0008] capitalize">
                                                 {room.roomType}
                                             </p>
-                                            <p className="col-span-1 text-sm text-[#1A0008]">
+                                            <p className="col-span-1 text-center text-sm text-[#1A0008]">
                                                 {room.roomCurrentOccupancy}/{room.roomCapacity}
                                             </p>
-                                            <div className="col-span-1">
-                                                <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium
-                                                    ${status === "Full" ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"}
+                                            <div className="hidden lg:col-span-1 flex justify-center">
+                                                <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1 min-w-[90px] rounded-full font-medium
+                                                    ${status === "Full" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
                                                     `}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full
-                                                        ${status === "Full" ? "bg-red-500" : "bg-green-500"}
+                                                    <span className={`w-2 h-2 rounded-full 
+                                                        ${status === "Full" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}
                                                         `}/>
                                                     {status}
                                                 </span>
                                             </div>
-                                            <div className="col-span-1">
-                                                <Button variant="tertiary" size="sm">
+                                            <div className="col-span-1 flex justify-center">
+                                                <Button variant="tertiary" size="sm" className="px-6">
                                                         View
                                                 </Button>
                                             </div>
@@ -171,12 +171,12 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                 <p className="text-xs text-[#9A7080]">
                                     Showing {startIndex + 1}–{Math.min(startIndex + ROOMS_PER_PAGE, rooms.length)} of {rooms.length} records
                                 </p>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center justify-center gap-1">
                                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                                         <button
                                             key={page}
                                             onClick={() => setCurrentPage(page)}
-                                            className={`w-7 h-7 text-xs rounded-md font-medium transition
+                                            className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
                                                 ${currentPage === page
                                                     ? "text-white"
                                                     : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"
@@ -189,7 +189,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                     {currentPage < totalPages && (
                                         <button
                                             onClick={() => setCurrentPage(p => p + 1)}
-                                            className="w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                                            className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
                                         >
                                             {">"}
                                         </button>
@@ -307,7 +307,6 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
     )
 }
 
-{/* Currently horizontally scrollable sa mobile */}
 const OccupancyHistory = ({ records = historyRecords, className }: { records?: HistoryRecord[], className?: string }) => {
     const [currentPage, setCurrentPage] = useState(1)
     const [sortBy, setSortBy] = useState("Room Type")
@@ -407,71 +406,69 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                 </div>
             </div>
 
-            <div className="overflow-x-auto -mx-4 px-4">
-                <div className="min-w-[700px]">
                     {/* Table header */}
-                    <div className="grid grid-cols-12 border-b border-[#F5ECF0] uppercase pb-1 mb-1">
+                    <div className="grid grid-cols-8 lg:grid-cols-12 border-b border-[#F5ECF0] uppercase pb-1 mb-1">
                         <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Students</p>
-                        <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Room No.</p>
-                        <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Building No.</p>
-                        <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Room Type</p>
-                        <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Action</p>
-                        <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1 flex items-center gap-1">
+                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Room No.</p>
+                        <p className="hidden lg:col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Building No.</p>
+                        <p className="hidden lg:col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Room Type</p>
+                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Action</p>
+                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+                            Date
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
-                            Date
                         </p>
                     </div>
 
                     {/* Rows */}
                     <div className="flex flex-col divide-y divide-[#F5ECF0]">
                         {paginated.length > 0 ? paginated.map((record, i) => (
-                            <div key={i} className="grid grid-cols-12 items-center py-3">
+                            <div key={i} className="grid grid-cols-8 lg:grid-cols-12 items-center py-3">
                                 {/* Student */}
                                 <div className="col-span-2 flex items-center gap-2">
-                                    <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                                    <div className="hidden lg:w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
                                         style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                                         {getInitials(record.tenant.fullName)}
                                     </div>
-                                    <p className="font-bold text-sm text-[#1A0008]">{record.tenant.fullName}</p>
+                                    <p className="font-bold text-[12px] ml-1 lg:ml-0 lg:text-sm text-[#1A0008]">{record.tenant.fullName}</p>
                                 </div>
-                                <p className="col-span-2 text-sm text-[#1A0008]">Room {record.roomNumber}</p>
-                                <p className="col-span-2 text-sm text-[#1A0008]">Building {record.roomBuilding}</p>
-                                <p className="col-span-2 text-sm text-[#1A0008] capitalize">{record.roomType}</p>
-                                <div className="col-span-2">
-                                    <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium
-                                        ${record.action === "Move-in"
-                                            ? "bg-green-50 text-green-700"
-                                            : "bg-pink-50 text-[#9E2040]"}`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full
-                                            ${record.action === "Move-in" ? "bg-green-500" : "bg-[#9E2040]"}`} />
+                                <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">Room {record.roomNumber}</p>
+                                <p className="hidden lg:col-span-2 text-center text-sm text-[#1A0008]">Building {record.roomBuilding}</p>
+                                <p className="hidden lg:col-span-2 text-center text-sm text-[#1A0008] capitalize">{record.roomType}</p>
+                                <div className="col-span-2 flex justify-center">
+                                    <span className={`inline-flex items-center justify-center gap-1 text-[10px] lg:text-xs px-2 py-1 min-w-[70px] lg:min-w-[110px] rounded-full font-medium
+                                        ${record.action === "Move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
+                                    `}>
+                                        <span className={`w-2 h-2 rounded-full 
+                                            ${record.action === "Move-out" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}
+                                        `}/>
                                         {record.action}
                                     </span>
                                 </div>
-                                <div className="col-span-2">
-                                    <p className="text-sm text-[#1A0008]">{record.date}</p>
-                                    <p className="text-[10px] text-[#9A7080]">{record.time}</p>
+                                <div className="col-span-2 flex justify-center">
+                                    <div>
+                                        <p className="text-[11px] lg:text-sm text-[#1A0008]">{record.date}</p>
+                                        <p className="text-[8px] lg:text-[10px] text-[#9A7080]">{record.time}</p>
+                                    </div>
                                 </div>
                             </div>
                         )) : (
                             <p className="text-sm text-[#9A7080] py-6 text-center">No records found.</p>
                         )}
                     </div>
-                </div>
-            </div>
 
             {/* Footer */}
             <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#F5ECF0]">
                 <p className="text-xs text-[#9A7080]">
                     Showing {sorted.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + HISTORY_PER_PAGE, sorted.length)} of {sorted.length} records
                 </p>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center justify-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                         <button
                             key={page}
                             onClick={() => setCurrentPage(page)}
-                            className={`w-7 h-7 text-xs rounded-md font-medium transition
+                            className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
                                 ${currentPage === page
                                     ? "text-white"
                                     : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"}`}
@@ -483,7 +480,7 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                     {currentPage < totalPages && (
                         <button
                             onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                            className="w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                            className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
                         >
                             {">"}
                         </button>
@@ -504,7 +501,7 @@ export default function OccupancyRecords() {
                     <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
                         style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
                     />
-                    <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">
+                    <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B] ">
                         Occupancy Records
                     </h1>
                 </div>
