@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { X } from "lucide-react";
 
 interface ModalProps {
   open: boolean;
