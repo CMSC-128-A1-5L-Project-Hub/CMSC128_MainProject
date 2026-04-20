@@ -41,6 +41,8 @@ interface Application {
 interface ConfirmedStudent {
     studentName: string
     stayType: string
+    dateConfirmed: string
+    status: "assigned" | "not assigned"
 }
 
 interface Move {
@@ -81,7 +83,7 @@ const applications: Application[] = [
 ]
 
 const confirmedStudents: ConfirmedStudent[] = [
-    {studentName: "Ana Marie Reyes", stayType: "Non-transient"}
+    {studentName: "Ana Marie Reyes", stayType: "Non-transient", dateConfirmed: "Mar 14, 2026", status:"assigned"}
 ]
 
 const moves: Move[] = [
@@ -109,7 +111,7 @@ export default function Dashboard() {
                         name={managerProfile.fullName}
                         title={heroContent.title}
                         subtitle={heroContent.subtitle}
-                        type="mini"
+                        type="full"
                     />
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -127,26 +129,21 @@ export default function Dashboard() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
                         <Applications 
                             data={applications}
-                            className="col-span-1 lg:col-span-2 w-full h-full"
+                            className="col-span-1 lg:col-span-2 w-full h-full min-w-0"
                         />
                         <Waitlist 
                             students={["Ana Marie Reyes", "Ana Marie Reyes"]}
-                            className="col-span-1 w-full h-full"
+                            className="col-span-1 w-full h-full min-w-0"
                         />
 
-                        <div className="col-span-1 lg:col-span-2 flex flex-col gap-4">
-                            <ConfirmedStudents 
-                                data={confirmedStudents}
-                                className="lg: col-span-1"
-                            />
-                            <Moves 
-                                data={moves}
-                                className="lg: col-span-1"
-                            />
-                        </div>
-                        <div className="col-span-1 bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm flex flex-row">
-
-                        </div>
+                        <ConfirmedStudents 
+                            data={confirmedStudents}
+                            className="col-span-1 lg:col-span-3"
+                        />
+                        <Moves 
+                            data={moves}
+                            className="col-span-1 lg:col-span-3"
+                        />
                     </div>
                 </main>
             </div>
