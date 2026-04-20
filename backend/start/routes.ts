@@ -12,6 +12,7 @@ import AutoSwagger from 'adonis-autoswagger'
 import swagger from '#config/swagger'
 const InviteManagerController = () => import('#controllers/invite_manager_controller')
 import { uploadThrottle } from '#start/limiter'
+import AccommodationController from '#controllers/accommodation_controller'
 
 router.get('/', () => {
   return { status: 'USAT API is running - Sprint 03 Launch' }
@@ -71,8 +72,8 @@ router
         // Fees & Payments
         router.get('/my-fees', [controllers.Fees, 'index'])
         router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
-      })
-      .use(middleware.role([ROLES.STUDENT]))
+        router.get('/my-payments', [controllers.Payments, 'getStudentPaymentHistory'])
+    }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
     // ─── LANDLORD EXCLUSIVE ROUTES ───
@@ -125,6 +126,12 @@ router
         // Reports
         router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
         router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
+
+        // Document Zip Export (Backblaze)
+        router.get('/accommodations/:id/export-documents', [
+          AccommodationController,
+          'exportDocuments',
+        ])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
 

@@ -91,6 +91,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/setups_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'sms_verifications.verify': {
+    methods: ["POST"]
+    pattern: '/auth/verify-sms'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/sms_verifications_controller').default['verify']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/sms_verifications_controller').default['verify']>>>
+    }
+  }
+  'sms_verifications.send': {
+    methods: ["POST"]
+    pattern: '/auth/send-otp'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/sms_verifications_controller').default['send']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/sms_verifications_controller').default['send']>>>
+    }
+  }
   'application.store': {
     methods: ["POST"]
     pattern: '/applications'
@@ -185,6 +209,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/payments_controller').default['uploadProof']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/payments_controller').default['uploadProof']>>>
+    }
+  }
+  'payments.get_student_payment_history': {
+    methods: ["GET","HEAD"]
+    pattern: '/my-payments'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/payments_controller').default['getStudentPaymentHistory']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/payments_controller').default['getStudentPaymentHistory']>>>
     }
   }
   'reports.revenue': {
@@ -463,6 +499,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/reports_controller').default['applicationTrends']>>>
     }
   }
+  'accommodation.export_documents': {
+    methods: ["GET","HEAD"]
+    pattern: '/accommodations/:id/export-documents'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: unknown
+      errorResponse: unknown
+    }
+  }
   'admin_verifications.index': {
     methods: ["GET","HEAD"]
     pattern: '/admin/users/pending'
@@ -521,6 +569,54 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/logs_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/logs_controller').default['index']>>>
+    }
+  }
+  'admin_settings.count_users': {
+    methods: ["GET","HEAD"]
+    pattern: '/admin/users/count'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_settings_controller').default['countUsers']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_settings_controller').default['countUsers']>>>
+    }
+  }
+  'rooms.count_available_rooms': {
+    methods: ["GET","HEAD"]
+    pattern: '/admin/rooms/available/count'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/rooms_controller').default['countAvailableRooms']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/rooms_controller').default['countAvailableRooms']>>>
+    }
+  }
+  'admin_accommodations.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/admin/accommodations/pending'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_accommodations_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_accommodations_controller').default['index']>>>
+    }
+  }
+  'admin_accommodations.verify': {
+    methods: ["PATCH"]
+    pattern: '/admin/accommodations/:id/verify'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_accommodations_controller').default['verify']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_accommodations_controller').default['verify']>>>
     }
   }
   'notifications.index': {
