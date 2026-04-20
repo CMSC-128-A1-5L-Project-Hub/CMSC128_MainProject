@@ -19,6 +19,7 @@ import NotificationsPage from "./pages/shared/Notifications"
 import ApplicationsPage from "./pages/student/Applications"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
+import LandlordDashboard from "./pages/landlord/Dashboard"
 
 function FullLandingPage() {
   return (
@@ -55,6 +56,7 @@ function App() {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/student/profile" element={<ProfilePage />} />
         <Route path="/accommodations/:id" element={<FullRoomView />} />
+        <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
       </Routes>
     </BrowserRouter>
   )

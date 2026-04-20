@@ -20,6 +20,9 @@ const CLR = {
   goldDk: "#a07825",
 } as const;
 
+const GRADIENT_MOBILE = "linear-gradient(160deg, #2A0410 0%, #3D0718 40%, #6B0F2B 75%, #9E2040 100%)";
+const GRADIENT_DESKTOP = "linear-gradient(180deg, #2A0410 0%, #3D0718 40%, #6B0F2B 75%, #9E2040 100%)";
+
 interface SidebarProps {
   role: "student" | "landlord" | "manager";
   profile?: {
@@ -63,26 +66,24 @@ const MobileDrawer = ({
     onClose();
   };
 
-  // Default profile if not provided
   const defaultProfile = {
     fullName: "User Name",
     shortName: "User",
     email: "user@up.edu.ph",
     ...profile
-    };
+  };
+
   return (
     <>
-      {/* Backdrop */}
       {open && (
         <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />
       )}
 
-      {/* Drawer panel */}
       <div
         className={`fixed top-0 left-0 bottom-0 z-50 w-72 flex flex-col transition-transform duration-300 ease-in-out lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
-        style={{ background: `linear-gradient(160deg, ${CLR.dark} 0%, ${CLR.mid} 100%)` }}
+        style={{ background: GRADIENT_MOBILE }}
       >
         {/* Logo */}
         <div className="flex items-center justify-between px-5 pt-6 pb-4">
@@ -114,32 +115,32 @@ const MobileDrawer = ({
               <p className="text-white font-bold text-base leading-tight">{defaultProfile.fullName}</p>
               {(defaultProfile.course || defaultProfile.campus) && (
                 <p className="text-xs font-semibold mt-0.5" style={{ color: CLR.goldLt }}>
-                    {[defaultProfile.course, defaultProfile.campus].filter(Boolean).join(" · ")}
+                  {[defaultProfile.course, defaultProfile.campus].filter(Boolean).join(" · ")}
                 </p>
-                )}
+              )}
               <p className="text-white/50 text-xs">{defaultProfile.email}</p>
             </div>
           </div>
-            <div className="grid grid-cols-3 gap-x-3 gap-y-1">
+          <div className="grid grid-cols-3 gap-x-3 gap-y-1">
             {[
-                { label: "Student No.", value: defaultProfile.studentNo },
-                { label: "College", value: defaultProfile.college },
-                { label: "Year Level", value: defaultProfile.yearLevel },
+              { label: "Student No.", value: defaultProfile.studentNo },
+              { label: "College", value: defaultProfile.college },
+              { label: "Year Level", value: defaultProfile.yearLevel },
             ]
-                .filter((item) => !!item.value)
-                .map((item) => (
+              .filter((item) => !!item.value)
+              .map((item) => (
                 <div key={item.label}>
-                    <p className="text-white/40 text-[9px] font-bold uppercase tracking-wide">{item.label}</p>
-                    <p className="text-white text-xs font-bold">{item.value}</p>
+                  <p className="text-white/40 text-[9px] font-bold uppercase tracking-wide">{item.label}</p>
+                  <p className="text-white text-xs font-bold">{item.value}</p>
                 </div>
-                ))}
+              ))}
             {defaultProfile.status && (
-                <div>
+              <div>
                 <p className="text-white/40 text-[9px] font-bold uppercase tracking-wide">Status</p>
                 <p className="text-green-400 text-xs font-bold">{defaultProfile.status}</p>
-                </div>
+              </div>
             )}
-            </div>
+          </div>
         </div>
 
         {/* Navigation links */}
@@ -167,7 +168,7 @@ const MobileDrawer = ({
               {item.id === "users" && "Users"}
             </button>
           ))}
-          
+
           <div className="pt-4 mt-4 border-t border-white/10">
             {bottomItems.map((item) => (
               <button
@@ -210,7 +211,7 @@ const DesktopSidebar = ({
   return (
     <aside
       className="hidden lg:flex w-16 flex-col items-center py-4 gap-2 flex-shrink-0 h-screen sticky top-0"
-      style={{ background: `linear-gradient(180deg, ${CLR.dark} 0%, ${CLR.mid} 100%)` }}
+      style={{ background: GRADIENT_DESKTOP }}
     >
       {/* Brand mark */}
       <div
@@ -261,7 +262,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  
+
   const [active, setActive] = useState(() => {
     const path = location.pathname;
     if (path.includes("dashboard")) return "dashboard";
@@ -271,7 +272,6 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     return "dashboard";
   });
 
-  // Role-based navigation items
   const getTopItems = () => {
     switch (role) {
       case "student":
@@ -283,14 +283,14 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         ];
       case "landlord":
         return [
-          { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" />, path: "/landlord/manage/accommodation", label: "Dashboard" },
+          { id: "dashboard", icon: <DashboardIcon className="w-5 h-5" />, path: "/landlord/manage/accommodation", label: "Dashboard" },
         ];
       case "manager":
         return [
-          { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" />, path: "/manager/dashboard", label: "Dashboard" },
-          { id: "reports",      icon: <SearchIcon      className="w-[21px] h-[21px]" />, path: "/manager/reports", label: "Reports" },
-          { id: "users",        icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/manager/users", label: "Users" },
-          { id: "properties",   icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/manager/properties", label: "Properties" },
+          { id: "dashboard",  icon: <DashboardIcon   className="w-5 h-5" />, path: "/manager/dashboard", label: "Dashboard" },
+          { id: "reports",    icon: <SearchIcon      className="w-[21px] h-[21px]" />, path: "/manager/reports", label: "Reports" },
+          { id: "users",      icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/manager/users", label: "Users" },
+          { id: "properties", icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/manager/properties", label: "Properties" },
         ];
       default:
         return [];
@@ -329,7 +329,6 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         </svg>
       </button>
 
-      {/* Mobile Drawer */}
       <MobileDrawer
         open={mobileDrawerOpen}
         onClose={() => setMobileDrawerOpen(false)}
@@ -341,7 +340,6 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         onNavigate={handleNavigation}
       />
 
-      {/* Desktop Sidebar */}
       <DesktopSidebar
         topItems={topItems}
         bottomItems={bottomItems}
