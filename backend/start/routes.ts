@@ -74,6 +74,9 @@ router
         router.get('/my-fees', [controllers.Fees, 'index'])
         router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
         router.get('/my-payments', [controllers.Payments, 'getStudentPaymentHistory'])
+
+        // Student Profile
+        router.get('/student/profile', [controllers.StudentProfiles, 'show'])
     }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================

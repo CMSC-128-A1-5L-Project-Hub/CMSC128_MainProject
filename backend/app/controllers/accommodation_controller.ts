@@ -32,7 +32,7 @@ export default class AccommodationController {
   // Public: single accommodation with full details
   async show({ params, serialize, response }: HttpContext) {
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
       .preload('manager', (q) => q.preload('user'))
@@ -76,6 +76,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
     accommodation_location,
     accommodation_type,
     accommodation_capacity,
+    accommodation_size,
     tenant_restriction,
     latitude,
     longitude,
@@ -205,6 +206,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
         accommodationType: accommodation_type,
         accommodationCapacity: accommodation_capacity,
         tenantRestriction: tenant_restriction,
+        accommodationSize: accommodation_size,
         applicationStartDate: null,
         applicationEndDate: null,
         latitude: Number(latitude),
@@ -266,7 +268,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
     const landlordId = auth.user!.id
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', landlordId)
       .first()
 
@@ -284,6 +286,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
       accommodation_type,
       accommodation_capacity,
       tenant_restriction,
+      accommodation_size,
       application_start_date,
       application_end_date,
       latitude,
@@ -310,6 +313,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
       ...(accommodation_type && { accommodationType: accommodation_type }),
       ...(accommodation_capacity && { accommodationCapacity: accommodation_capacity }),
       ...(tenant_restriction && { tenantRestriction: tenant_restriction }),
+      ...(accommodation_size && { accommodationSize: accommodation_size }),
       ...(application_start_date && { applicationStartDate: application_start_date }),
       ...(application_end_date && { applicationEndDate: application_end_date }),
       ...distances,
@@ -326,7 +330,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
     const landlordId = auth.user!.id
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', landlordId)
       .first()
 
@@ -476,7 +480,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
 
     // Verify the caller is the landlord or assigned manager of this accommodation
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where((q) => {
         q.where('landlord_id', userId).orWhere('manager_id', userId)
       })

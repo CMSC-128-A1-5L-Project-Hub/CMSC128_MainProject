@@ -8,11 +8,15 @@
  *   --clr-gold-dk:#a07825  (dark gold / button hover)
  */
 
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+
+
+
 
 // ── SVG icon imports (project assets) ─────────────────────────────────────
 import DashboardIcon   from "../../assets/icons/dashboard.svg?react";
@@ -22,6 +26,7 @@ import ProfileIcon     from "../../assets/icons/profile.svg?react";
 import DocumentIcon    from "../../assets/icons/documents.svg?react";
 import LogoutIcon      from "../../assets/icons/logout.svg?react";
 import house_icon      from "../../assets/icons/house_icon.svg";
+
 
 // ── Design tokens (taken from LandingPage.tsx) ─────────────────────────
 const CLR = {
@@ -33,8 +38,10 @@ const CLR = {
   goldDk: "#a07825",
 } as const;
 
+
 // ── Types ──────────────────────────────────────────────────────────────────
 type ApplicationStatus = "Approved" | "Pending" | "In Review";
+
 
 interface Application {
   id:       number;
@@ -45,10 +52,12 @@ interface Application {
   status:   ApplicationStatus;
 }
 
+
 interface BillingStatement {
   label:  string;
   status: "Paid" | "Unpaid";
 }
+
 
 interface RecommendedDorm {
   id:       number;
@@ -63,6 +72,7 @@ interface RecommendedDorm {
   img:      string;
 }
 
+
 interface StudentProfile {
   fullName:   string;
   shortName:  string;
@@ -76,6 +86,7 @@ interface StudentProfile {
   status:     string;
 }
 
+
 interface HeroContent {
   greeting:              string;
   title:                 string;
@@ -83,6 +94,7 @@ interface HeroContent {
   pendingApplications:   number;
   newNotificationsToday: number;
 }
+
 
 interface BillingOverview {
   residenceHall:    string;
@@ -99,6 +111,7 @@ interface BillingOverview {
   progressPercent:  number;
 }
 
+
 // ── Mock Data ──────────────────────────────────────────────────────────────
 const heroContent: HeroContent = {
   greeting:              "Good Day",
@@ -108,11 +121,13 @@ const heroContent: HeroContent = {
   newNotificationsToday: 3,
 };
 
+
 const applications: Application[] = [
   { id: 1, dorm: "Kamia Residence",  type: "Non-transient", applied: "Mar 12, 2026", location: "On-campus",  status: "Approved"  },
   { id: 2, dorm: "Molave Residence", type: "Non-transient", applied: "Mar 14, 2026", location: "Off-campus", status: "Pending"   },
   { id: 3, dorm: "Narra Residence",  type: "Non-transient", applied: "Mar 15, 2026", location: "Near Gate 1",status: "In Review" },
 ];
+
 
 const recommended: RecommendedDorm[] = [
   {
@@ -141,6 +156,7 @@ const recommended: RecommendedDorm[] = [
   },
 ];
 
+
 const billingOverview: BillingOverview = {
   residenceHall:   "Kamia Residence Hall",
   dueDay:          "20",
@@ -156,14 +172,17 @@ const billingOverview: BillingOverview = {
   progressPercent: 100,
 };
 
+
 const billingStatements: BillingStatement[] = [
   { label: "March Billing Statement",   status: "Paid"   },
   { label: "February Billing Statement",status: "Paid"   },
   { label: "January Billing Statement", status: "Unpaid" },
 ];
 
+
 // ── Inline SVG Icons ───────────────────────────────────────────────────────
 // NOTE: Kept inline to avoid extra asset files for generic UI icons.
+
 
 const IconChevronRight = ({ className = "w-3.5 h-3.5" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -171,11 +190,13 @@ const IconChevronRight = ({ className = "w-3.5 h-3.5" }: { className?: string })
   </svg>
 );
 
+
 const IconChevronDown = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
   </svg>
 );
+
 
 const IconMoreHorizontal = ({ className = "w-[18px] h-[18px]" }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -185,11 +206,13 @@ const IconMoreHorizontal = ({ className = "w-[18px] h-[18px]" }: { className?: s
   </svg>
 );
 
+
 const IconBell = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
   </svg>
 );
+
 
 const IconUser = ({ className = "w-6 h-6" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
@@ -197,11 +220,13 @@ const IconUser = ({ className = "w-6 h-6" }: { className?: string }) => (
   </svg>
 );
 
+
 const IconMenu = ({ className = "w-[22px] h-[22px]" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
   </svg>
 );
+
 
 const IconArrowNext = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -209,11 +234,13 @@ const IconArrowNext = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 );
 
+
 const IconHouse = ({ className = "w-3.5 h-3.5" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
   </svg>
 );
+
 
 const IconDocument = ({ className = "w-[18px] h-[18px]" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
@@ -221,7 +248,9 @@ const IconDocument = ({ className = "w-[18px] h-[18px]" }: { className?: string 
   </svg>
 );
 
+
 // ── Helper Components ──────────────────────────────────────────────────────
+
 
 /** Colored pill badge for application status. */
 const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
@@ -237,6 +266,7 @@ const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
   );
 };
 
+
 /** Renders up to 5 gold/grey stars for a given numeric rating. */
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex gap-0.5">
@@ -248,7 +278,9 @@ const StarRating = ({ rating }: { rating: number }) => (
   </div>
 );
 
+
 // ── Drawer Nav (Mobile) ────────────────────────────────────────────────────
+
 
 interface DrawerNavProps {
   open:    boolean;
@@ -256,8 +288,10 @@ interface DrawerNavProps {
   profile: StudentProfile;
 }
 
+
 const DrawerNav = ({ open, onClose, profile }: DrawerNavProps) => {
   const [activeItem, setActiveItem] = useState("dashboard");
+
 
   const navItems = [
     { id: "dashboard",    label: "Dashboard",         icon: <DashboardIcon   className="w-5 h-5" /> },
@@ -266,12 +300,14 @@ const DrawerNav = ({ open, onClose, profile }: DrawerNavProps) => {
     { id: "documents",    label: "Billing Statements", icon: <DocumentIcon    className="w-[18px] h-[18px]" /> },
   ];
 
+
   return (
     <>
       {/* Backdrop */}
       {open && (
         <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />
       )}
+
 
       {/* Drawer panel*/}
       <div
@@ -290,6 +326,7 @@ const DrawerNav = ({ open, onClose, profile }: DrawerNavProps) => {
           </div>
         </div>
 
+
         {/* Student info summary */}
         <div className="px-5 pb-6 border-b border-white/10">
           <div className="flex items-center gap-3 mb-4">
@@ -301,10 +338,11 @@ const DrawerNav = ({ open, onClose, profile }: DrawerNavProps) => {
             </div>
             <div>
               <p className="text-white font-bold text-base leading-tight">{profile.fullName}</p>
-              <p className="text-xs font-semibold mt-0.5" style={{ color: CLR.goldLt }}>{profile.course.toUpperCase()} · {profile.campus.toUpperCase()}</p>
+              <p className="text-xs font-semibold mt-0.5" style={{ color: CLR.goldLt }}>{profile.course} · {profile.campus}</p>
               <p className="text-white/50 text-xs">{profile.email}</p>
             </div>
           </div>
+
 
           <div className="grid grid-cols-3 gap-x-3 gap-y-1">
             {[
@@ -323,6 +361,7 @@ const DrawerNav = ({ open, onClose, profile }: DrawerNavProps) => {
             </div>
           </div>
         </div>
+
 
         {/* Navigation links */}
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -348,9 +387,11 @@ const DrawerNav = ({ open, onClose, profile }: DrawerNavProps) => {
   );
 };
 
+
 // ── Desktop Sidebar ────────────────────────────────────────────────────────
 const DesktopSidebar = () => {
   const [active, setActive] = useState("dashboard");
+
 
   const topItems = [
     { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" /> },
@@ -359,10 +400,12 @@ const DesktopSidebar = () => {
     { id: "documents",    icon: <DocumentIcon    className="w-[20px] h-[20px]" /> },
   ];
 
+
   const bottomItems = [
     { id: "account", icon: <ProfileIcon className="w-[22px] h-[22px]" /> },
     { id: "logout",  icon: <LogoutIcon  className="w-[23px] h-[23px]" /> },
   ];
+
 
   return (
     <aside
@@ -376,6 +419,7 @@ const DesktopSidebar = () => {
       >
         <span className="text-white font-bold text-sm">U</span>
       </div>
+
 
       {/* Primary nav icons */}
       <nav className="flex flex-col items-center gap-1 flex-1">
@@ -394,6 +438,7 @@ const DesktopSidebar = () => {
         ))}
       </nav>
 
+
       {/* Bottom utility icons */}
       <div className="flex flex-col items-center gap-1 mt-auto">
         {bottomItems.map((item) => (
@@ -409,15 +454,19 @@ const DesktopSidebar = () => {
   );
 };
 
+
 // ── Billing Section ────────────────────────────────────────────────────────
+
 
 interface BillingSectionProps {
   overview:   BillingOverview;
   statements: BillingStatement[];
 }
 
+
 const BillingSection = ({ overview, statements }: BillingSectionProps) => (
   <div className="space-y-5">
+
 
     {/* Section header with due-date badge */}
     <div className="flex items-start justify-between">
@@ -434,12 +483,14 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
         </div>
       </div>
 
+
       {/* Next-due date stamp */}
       <div className="bg-[#F7EFF2] text-center rounded-2xl px-3 py-2 flex-shrink-0">
         <p className="text-[28px] font-bold leading-none" style={{ color: CLR.mid }}>{overview.dueDay}</p>
         <p className="text-[12px] leading-none mt-1 font-semibold" style={{ color: CLR.mid }}>{overview.dueMonth}</p>
       </div>
     </div>
+
 
     {/* Current rent summary */}
     <div className="bg-[#F7F1F3] rounded-3xl p-5 border border-[#EFE3E8]">
@@ -451,9 +502,11 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
             </svg>
           </div>
 
+
           <div className="min-w-0">
             <p className="font-bold text-gray-900 text-[15px]">{overview.summaryTitle}</p>
             <p className="text-gray-400 text-xs">Paid on {overview.paidOn} · ₱{overview.amountPaid.toLocaleString()}.00</p>
+
 
             <span className="inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full bg-[#DCEADF] text-green-700">
               Next due: {overview.nextDue}
@@ -461,17 +514,21 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
           </div>
         </div>
 
+
         <p className="font-bold text-gray-900 text-[17px] whitespace-nowrap">
           ₱{overview.monthlyRent.toLocaleString()} <span className="text-gray-400 font-normal text-sm">/ month</span>
         </p>
       </div>
     </div>
 
+
     <div className="h-px bg-[#EADDE2]" />
+
 
     {/* Payment progress bar */}
     <div>
       <p className="text-[11px] font-bold tracking-widest uppercase text-[#A07B86] mb-3">Payment Progress</p>
+
 
       <div className="w-full h-2.5 bg-[#E9E1E4] rounded-full overflow-hidden">
         <div
@@ -485,6 +542,7 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
         </div>
       </div>
 
+
       <div className="flex justify-between mt-2">
         <span className="text-sm font-semibold" style={{ color: CLR.mid }}>
           ₱{overview.remainingAmount.toLocaleString()} remaining
@@ -495,11 +553,14 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
       </div>
     </div>
 
+
     <div className="h-px bg-[#EADDE2]" />
+
 
     {/* Billing history list */}
     <div>
       <p className="text-[11px] font-bold tracking-widest uppercase text-[#A07B86] mb-4">Billing History</p>
+
 
       <div className="space-y-3">
         {statements.map((b, index) => (
@@ -516,6 +577,7 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
               <IconHouse className="w-4 h-4" />
             </div>
 
+
             <div className="flex-1 min-w-0">
               <p className="text-[15px] font-semibold text-gray-800 truncate">{b.label}</p>
               <p className={`text-sm font-semibold ${b.status === "Paid" ? "text-green-600" : "text-red-500"}`}>
@@ -525,6 +587,7 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
           </div>
         ))}
       </div>
+
 
       <button
         className="w-full mt-5 text-[15px] font-semibold hover:underline flex items-center justify-center gap-1"
@@ -536,7 +599,9 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
   </div>
 );
 
+
 // ── Desktop Right Panel ────────────────────────────────────────────────────
+
 
 interface DesktopProfilePanelProps {
   profile:    StudentProfile;
@@ -544,8 +609,10 @@ interface DesktopProfilePanelProps {
   statements: BillingStatement[];
 }
 
+
 const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePanelProps) => (
   <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4]">
+
 
     {/* Profile section */}
     <div
@@ -555,6 +622,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
       {/* Profile header */}
       <div className="flex items-center justify-between mb-6">
         <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
+
 
         {/* Notification bell with gold dot indicator */}
         <button
@@ -566,6 +634,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
         </button>
       </div>
 
+
       {/* Avatar + name */}
       <div className="flex items-center gap-4">
         <div className="relative flex-shrink-0">
@@ -576,6 +645,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
             <IconUser className="w-10 h-10 text-gray-300" />
           </div>
 
+
           <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -583,26 +653,29 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
           </div>
         </div>
 
+
         <div className="min-w-0">
           <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
           <p className="text-[15px] font-bold leading-tight mt-1" style={{ color: CLR.goldLt }}>
-            {profile.course} · {profile.campus}
+            {profile.course.toUpperCase()} · {profile.campus}
           </p>
           <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
           <p className="text-white/70 text-sm">{profile.phone}</p>
         </div>
       </div>
 
+
       {/* Student details row */}
       <div className="mt-6 grid grid-cols-4 gap-4">
         {[
           { label: "Student No.", value: profile.studentNo },
-          { label: "College",     value: profile.college   },
+          { label: "College",     value: profile.college.toUpperCase() },
           { label: "Year Level",  value: profile.yearLevel },
-          { label: "Status",      value: profile.status, green: true },
+          { label: "Status",    value: profile.status ? profile.status.charAt(0).toUpperCase() + profile.status.slice(1): "", green: true ,}
         ].map((item) => (
           <div key={item.label}>
             <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
+
 
             {item.green ? (
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
@@ -616,6 +689,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
       </div>
     </div>
 
+
     {/* Billing section */}
     <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
       <BillingSection overview={billing} statements={statements} />
@@ -623,7 +697,9 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
   </aside>
 );
 
+
 // ── Main Dashboard ─────────────────────────────────────────────────────────
+
 
 /**
  * Layout: DesktopSidebar | main content scroll area | DesktopProfilePanel
@@ -631,18 +707,19 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
  */
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [drawerOpen,   setDrawerOpen]   = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
 
-  
+
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
-  
-  
+
+
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
+
 
   const {data: user,
     isLoading: isUserLoading,
@@ -659,8 +736,8 @@ export default function Dashboard() {
     useEffect(() => {
     const fetchProfile = async () => {
         try {
-        const res = await api.get("/student/profile");
-        // console.log("GET /student/profile:", res.data);
+        const res = await api.get("/profile");
+        console.log("GET /profile:", res.data);
 
 
         setProfile(res.data.data ?? res.data);
@@ -785,11 +862,14 @@ export default function Dashboard() {
     return null;
     }
 
+
   return (
     <div className="flex min-h-screen bg-[#F6F2F4] font-sans">
 
+
       {/* ── Sidebar (desktop only) ── */}
       <DesktopSidebar />
+
 
       {/* ── Drawer nav (mobile only) ── */}
       {profile && (
@@ -800,8 +880,10 @@ export default function Dashboard() {
         />
         )}
 
+
       {/* ── Main scrollable area ── */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
 
         {/* Top bar */}
         <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-5 pb-3 lg:pt-7 lg:pb-2 sticky top-0 z-30 bg-[#F6F2F4]">
@@ -822,6 +904,7 @@ export default function Dashboard() {
             <h1 className="font-serif italic text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
           </div>
 
+
           {/* Global notification bell */}
           <button className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors relative shadow-sm">
             <IconBell className="w-5 h-5" />
@@ -829,8 +912,10 @@ export default function Dashboard() {
           </button>
         </header>
 
+
         {/* Page content */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5 space-y-4 lg:space-y-5">
+
 
           {/* ── Hero banner ── */}
           <div
@@ -847,12 +932,15 @@ export default function Dashboard() {
               <p className="text-white/60 text-xs sm:text-sm">
                 You have {pendingApplicationsCount} pending application{pendingApplicationsCount !== 1 && "s"} and {notificationsTodayCount} new notification{notificationsTodayCount !== 1 && "s"} today.              
               </p>
+
+
             </div>
             {/* Decorative house icon — positioned bottom-right */}
             <div className="absolute right-0 bottom-0 h-full flex items-end pointer-events-none">
               <img src={house_icon} alt="" className="w-[130px] h-[130px]" />
             </div>
           </div>
+
 
           {/* ── My Applications table ── */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -862,6 +950,7 @@ export default function Dashboard() {
                 View all <IconChevronRight />
               </button>
             </div>
+
 
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[540px]">
@@ -900,8 +989,10 @@ export default function Dashboard() {
             </div>
           </div>
 
+
           {/* ── Recommended dorms + Map preview ── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+
 
             {/* Recommended cards */}
             <div className="sm:col-span-1 lg:col-span-3 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
@@ -911,6 +1002,7 @@ export default function Dashboard() {
                   View all <IconChevronRight />
                 </button>
               </div>
+
 
               {/* Horizontally scrollable card row */}
               <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory -mx-1 px-1">
@@ -941,6 +1033,7 @@ export default function Dashboard() {
                   </div>
                 ))}
 
+
                 {/* "Next" arrow button */}
                 <div className="flex items-center flex-shrink-0">
                   <button
@@ -954,6 +1047,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+
 
             {/* Map preview + filter controls */}
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
@@ -974,8 +1068,10 @@ export default function Dashboard() {
                 </div>
               </div>
 
+
               <div>
                 <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Dorm Type</p>
+
 
                 {/* Dorm type dropdown */}
                 <div className="relative mb-3">
@@ -986,6 +1082,7 @@ export default function Dashboard() {
                   </select>
                   <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 </div>
+
 
                 {/* Filter pill buttons — visible on sm and xl+ */}
                 <div className="hidden sm:flex flex-wrap gap-1.5 mb-3 lg:hidden xl:flex">
@@ -1005,6 +1102,7 @@ export default function Dashboard() {
                   ))}
                 </div>
 
+
                 {/* CTA — navigate to full map page */}
                 <button
                   onClick={() => navigate("/map")}
@@ -1019,13 +1117,16 @@ export default function Dashboard() {
             </div>
           </div>
 
+
           {/* ── Billing card (mobile only — hidden on lg+) ── */}
           <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
             <BillingSection overview={billingOverview} statements={billingStatements} />
           </div>
 
+
         </div>
       </main>
+
 
       {/* ── Right profile + billing panel (desktop only) ── */}
       {profile && (
@@ -1038,3 +1139,6 @@ export default function Dashboard() {
     </div>
   );
 }
+
+
+

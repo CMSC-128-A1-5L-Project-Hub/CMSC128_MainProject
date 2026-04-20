@@ -6,6 +6,7 @@ export interface ApiDefinition {
     redirect: typeof routes['auth.redirect']
     callback: typeof routes['auth.callback']
     me: typeof routes['auth.me']
+    updateMe: typeof routes['auth.update_me']
   }
   accommodation: {
     index: typeof routes['accommodation.index']
@@ -52,6 +53,9 @@ export interface ApiDefinition {
     getStudentPaymentHistory: typeof routes['payments.get_student_payment_history']
     pending: typeof routes['payments.pending']
     verify: typeof routes['payments.verify']
+  }
+  studentProfiles: {
+    show: typeof routes['student_profiles.show']
   }
   reports: {
     revenue: typeof routes['reports.revenue']

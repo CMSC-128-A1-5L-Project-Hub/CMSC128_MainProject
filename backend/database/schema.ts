@@ -8,7 +8,7 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AccommodationSchema extends BaseModel {
-  static $columns = ['accommodationCapacity', 'accommodationLocation', 'accommodationName', 'accommodationType', 'applicationEndDate', 'applicationStartDate', 'bikingDistance', 'businessPermitId', 'drivingDistance', 'id', 'invitedManagerEmail', 'landlordId', 'latitude', 'longitude', 'managerId', 'primaryImageIndex', 'status', 'tenantRestriction', 'walkingDistance'] as const
+  static $columns = ['accommodationCapacity', 'accommodationLocation', 'accommodationName', 'accommodationSize', 'accommodationType', 'applicationEndDate', 'applicationStartDate', 'bikingDistance', 'businessPermitId', 'drivingDistance', 'id', 'invitedManagerEmail', 'landlordId', 'latitude', 'longitude', 'managerId', 'primaryImageIndex', 'status', 'tenantRestriction', 'walkingDistance'] as const
   $columns = AccommodationSchema.$columns
   @column()
   declare accommodationCapacity: number
@@ -16,6 +16,8 @@ export class AccommodationSchema extends BaseModel {
   declare accommodationLocation: string
   @column()
   declare accommodationName: string
+  @column()
+  declare accommodationSize: number | null
   @column()
   declare accommodationType: string
   @column.date()
@@ -327,7 +329,7 @@ export class RoomSchema extends BaseModel {
 }
 
 export class StudentSchema extends BaseModel {
-  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'form5Renewal', 'gender', 'studentNumber', 'userId'] as const
+  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'form5Renewal', 'gender', 'studentNumber', 'userId', 'yearLevel'] as const
   $columns = StudentSchema.$columns
   @column()
   declare college: string
@@ -347,6 +349,8 @@ export class StudentSchema extends BaseModel {
   declare studentNumber: string
   @column()
   declare userId: number
+  @column()
+  declare yearLevel: string | null
 }
 
 export class SysVariableSchema extends BaseModel {
@@ -367,7 +371,7 @@ export class SysVariableSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['accountStatus', 'email', 'facebookAccount', 'fname', 'id', 'lname', 'mname', 'pfpFileId', 'role', 'suffix'] as const
+  static $columns = ['accountStatus', 'email', 'facebookAccount', 'fname', 'id', 'lname', 'mname', 'otpCode', 'otpExpiresAt', 'pfpFileId', 'role', 'suffix'] as const
   $columns = UserSchema.$columns
   @column()
   declare accountStatus: string | null
@@ -383,6 +387,10 @@ export class UserSchema extends BaseModel {
   declare lname: string
   @column()
   declare mname: string | null
+  @column()
+  declare otpCode: string | null
+  @column.dateTime()
+  declare otpExpiresAt: DateTime | null
   @column()
   declare pfpFileId: number | null
   @column()

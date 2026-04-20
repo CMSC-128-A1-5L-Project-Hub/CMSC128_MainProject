@@ -67,6 +67,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['me']>>>
     }
   }
+  'auth.update_me': {
+    methods: ["PUT"]
+    pattern: '/me'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['updateMe']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['updateMe']>>>
+    }
+  }
   'setups.show': {
     methods: ["GET","HEAD"]
     pattern: '/setup'
@@ -221,6 +233,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/payments_controller').default['getStudentPaymentHistory']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/payments_controller').default['getStudentPaymentHistory']>>>
+    }
+  }
+  'student_profiles.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/student/profile'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/student_profiles_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/student_profiles_controller').default['show']>>>
     }
   }
   'reports.revenue': {

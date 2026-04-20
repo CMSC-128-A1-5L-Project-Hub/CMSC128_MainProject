@@ -7,6 +7,7 @@ import RoleSelection from "./pages/shared/RoleSelection"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import StudentDashboard from "./pages/student/Dashboard"
+import FullRoomView from "./pages/student/FullRoomView"
 import LandingPage from "./pages/shared/Landingpage"
 import AboutSection from "./pages/shared/Aboutsection"
 import FeaturesSection from "./pages/shared/Featuresection"
@@ -42,7 +43,7 @@ function App() {
         <Route path="/auth/role" element={<RoleSelection/>}/>
         <Route path="/auth/signup/:role" element={<SignUpForm/>}/>
         <Route path="/pending-verification" element={<PendingVerification/>}/>
-        <Route path="/studentDashboard" element={<StudentDashboard/>}/>
+        <Route path="/student/dashboard" element={<StudentDashboard/>}/>
         <Route path="/" element={<FullLandingPage />} />
         <Route path="/landingpage" element={<Navigate to="/" replace />} />
         <Route path="/map" element={<InteractiveMap />} />
@@ -53,6 +54,7 @@ function App() {
         <Route path="/applications" element={<ApplicationsPage />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/student/profile" element={<ProfilePage />} />
+        <Route path="/accommodations/:id" element={<FullRoomView />} />
       </Routes>
     </BrowserRouter>
   )

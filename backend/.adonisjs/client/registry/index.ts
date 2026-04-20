@@ -36,6 +36,12 @@ const routes = {
     tokens: [{"old":"/me","type":0,"val":"me","end":""}],
     types: placeholder as Registry['auth.me']['types'],
   },
+  'auth.update_me': {
+    methods: ["PUT"],
+    pattern: '/me',
+    tokens: [{"old":"/me","type":0,"val":"me","end":""}],
+    types: placeholder as Registry['auth.update_me']['types'],
+  },
   'setups.show': {
     methods: ["GET","HEAD"],
     pattern: '/setup',
@@ -113,6 +119,12 @@ const routes = {
     pattern: '/my-payments',
     tokens: [{"old":"/my-payments","type":0,"val":"my-payments","end":""}],
     types: placeholder as Registry['payments.get_student_payment_history']['types'],
+  },
+  'student_profiles.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/student/profile',
+    tokens: [{"old":"/student/profile","type":0,"val":"student","end":""},{"old":"/student/profile","type":0,"val":"profile","end":""}],
+    types: placeholder as Registry['student_profiles.show']['types'],
   },
   'reports.revenue': {
     methods: ["GET","HEAD"],
