@@ -98,19 +98,19 @@ export function Modal({
 
               {/* CLOSE BUTTON */}
               <button
-                onClick={onClose}
-                aria-label="Close modal"
-                className="
-                  absolute top-4 right-4 z-20
-                  w-9 h-9 rounded-full
-                  flex items-center justify-center
-                  bg-white/15 border border-white/30
-                  text-white text-xl leading-none
-                  transition-all duration-200
-                  hover:bg-white/30 hover:scale-110
-                "
+                  onClick={onClose}
+                  aria-label="Close modal"
+                  className="
+                      absolute top-4 right-4 z-20
+                      w-9 h-9 rounded-full
+                      flex items-center justify-center flex-shrink-0
+                      bg-white/15 border border-white/30
+                      text-white
+                      transition-all duration-200
+                      hover:bg-white/30 hover:scale-110
+                  "
               >
-                ×
+                  X
               </button>
             </div>
           )}
