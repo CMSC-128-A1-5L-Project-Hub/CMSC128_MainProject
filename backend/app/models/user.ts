@@ -1,5 +1,6 @@
 import { BaseModel, column, belongsTo, hasOne, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasOne, HasMany } from '@adonisjs/lucid/types/relations'
+import { DateTime } from 'luxon'
 import FileMetadata from '#models/file_metadatum'
 import Landlord from '#models/landlord'
 import Manager from '#models/manager'
@@ -35,6 +36,15 @@ export default class User extends BaseModel {
 
   @column()
   declare role: 'student' | 'landlord' | 'manager' | 'unassigned' | 'super_admin'
+
+  @column()
+  declare accountStatus: 'pending' | 'active' | 'suspended' | null
+
+  @column()
+  declare otpCode: string | null
+
+  @column.dateTime()
+  declare otpExpiresAt: DateTime | null
 
   @belongsTo(() => FileMetadata, { foreignKey: 'pfpFileId' })
   declare profilePicture: BelongsTo<typeof FileMetadata>

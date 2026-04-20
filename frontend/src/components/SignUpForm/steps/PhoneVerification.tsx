@@ -1,40 +1,89 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { api } from "../../../api/axios"; 
 import Button from "../../Button";
 
-{/* TODO: actual otp handling */}
-
-export default function PhoneVerification({ data, setData, prevStep}: any) {
+export default function PhoneVerification({ data, setData, prevStep, submitForm, isSubmitting }: any) {
     const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
     const otpRefs = useRef<(HTMLInputElement | null)[]>([])
     const [errors, setErrors] = useState<Record<string,string>>({})
-    const navigate = useNavigate()
+    
+    // New loading states for OTP API calls
+    const [isSendingOtp, setIsSendingOtp] = useState(false)
+    const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
+    const [successMsg, setSuccessMsg] = useState("")
 
-    const handleNext = () => {
+    // ─── THE OTP REQUEST (SEMAPHORE) ───
+    const handleOTP = async () => {
+        // Clear previous messages
+        setErrors({})
+        setSuccessMsg("")
+
+        if (data.phoneNumber.length < 10) {
+            setErrors({ phoneNumber: "Please enter a valid 10-digit number" })
+            return
+        }
+
+        setIsSendingOtp(true)
+        try {
+            // Send to Adonis, add a zero at the start
+            await api.post('/auth/send-otp', { 
+                phoneNumber: '0' + data.phoneNumber 
+            })
+            
+            setSuccessMsg("OTP sent! Please check your phone.")
+        } catch (error: any) {
+            // Catch rate-limit errors or Semaphore failures
+            setErrors({ 
+                phoneNumber: error.response?.data?.message || "Failed to send OTP. Please try again." 
+            })
+        } finally {
+            setIsSendingOtp(false)
+        }
+    }
+
+    // ─── THE VERIFICATION CHECK ───
+    const handleNext = async () => {
         const newErrors: Record<string,string> = {}
 
-        if(!data.phoneNumber) newErrors.phoneNumber = "This field is required"
+        if (!data.phoneNumber) newErrors.phoneNumber = "This field is required"
+        
+        const otpValue = otp.join("")
+        if (otpValue.length < 6) newErrors.otp = "Please enter the complete 6-digit code"
 
-        {/* OTP error handling here */}
-        if (otp.some(digit => digit === "")) newErrors.otp = "Please enter the complete 6-digit code"
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            return
+        }
 
-        setErrors(newErrors)
-        if (Object.keys(newErrors).length === 0) navigate("/studentDashboard")
+        // Talk to AdonisJS to verify the code
+        setIsVerifyingOtp(true)
+        setErrors({})
+        try {
+            await api.post('/auth/verify-sms', {
+                phoneNumber: '0' + data.phoneNumber,
+                code: otpValue
+            })
+
+            // The phone is now verified. Submit the whole form to database
+            submitForm()
+
+        } catch (error: any) {
+            // AdonisJS rejected the code (e.g., "Invalid OTP code" or "Expired")
+            setErrors({ 
+                otp: error.response?.data?.message || "Invalid OTP. Please try again." 
+            })
+        } finally {
+            setIsVerifyingOtp(false)
+        }
     }
 
     const handlePrev = () => prevStep()
 
-    {/* OTP input handling */}
     const handleOTPChange = (index: number, val: string) => {
         if (!/^\d?$/.test(val)) return
         const next = [...otp]
         next[index] = val
         setOtp(next)
-        setData({
-            ...data,
-            otp: next.join("")
-        })
-
         if (val && index < 5) otpRefs.current[index + 1]?.focus()
     }
 
@@ -47,9 +96,6 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
             otpRefs.current[index-1]?.focus()
         }
     }
-
-    {/* OTP verification here */}
-    const handleOTP = () => {}
 
     return (
         <>
@@ -100,14 +146,24 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
                     )}
 
                     {/* Request code button */}
-                    <Button onClick={handleOTP} variant="primary" size="lg" className="w-auto flex-shrink-0">
-                        Request Code
+                    <Button 
+                        onClick={handleOTP} 
+                        variant="primary" 
+                        size="lg" 
+                        className="w-auto flex-shrink-0"
+                        disabled={isSendingOtp}
+                    >
+                        {isSendingOtp ? "Sending..." : "Request Code"}
                     </Button>
                 </div>
 
                 {/* Error label (for mobile) */}
                 {errors.phoneNumber && (
-                    <p className="hidden sm:block text-red-500 text-[10px] mt-1">{errors.phoneNumber}</p>
+                    <p className="text-red-500 text-[10px] mt-1">{errors.phoneNumber}</p>
+                )}
+                {/* Success Feedback for the user */}
+                {successMsg && !errors.phoneNumber && (
+                    <p className="text-green-600 font-medium text-[11px] mt-1">{successMsg}</p>
                 )}
             </div>
 
@@ -115,7 +171,7 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
             <div className="col-span-12 bg-[#EDD8DE] rounded-3xl px-4 py-2.5 border border-[#6B0F2B1A] lg:w-fit">
                 <p className="text-sm text-[#9A7080]">
                     Sending OTP to:{" "}
-                    <span className="ml-0.5 text-[#6B0F2B] font-bold">+63{data.phoneNumber.length == 10 ? data.phoneNumber:"XXXXXXXXXX"}</span>
+                    <span className="ml-0.5 text-[#6B0F2B] font-bold">+63{data.phoneNumber.length === 10 ? data.phoneNumber:"XXXXXXXXXX"}</span>
                 </p>
             </div>
 
@@ -139,10 +195,10 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
                         onChange={e => handleOTPChange(i, e.target.value)}
                         onKeyDown={e => handleOtpKeyDown(i, e)}
                         className={`
-                            w-full aspect-square max-w-[56px] text-center text-xl font-bold rounded-2xl border-2 focus:outline-none focus-ring-2 transition
+                            w-full aspect-square max-w-[56px] text-center text-xl font-bold rounded-2xl border-2 focus:outline-none focus:ring-2 transition
                             ${digit
                                 ? "border-[#6B0F2B] text-[#6B0F2B] focus:ring-[#C9973A]/40 bg-gradient-to-b from-[#FDF5F7] to-[#F5ECF0]"
-                                : "border-[#6B0F2B3E] text-[#6B0F2B] focu:ring-[#C9973A]/40 focus:border-[#C9973A]"
+                                : "border-[#6B0F2B3E] text-[#6B0F2B] focus:ring-[#C9973A]/40 focus:border-[#C9973A]"
                             }    
                         `}
                     />
@@ -158,8 +214,11 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
             {/* Resend OTP */}
             <p className="col-span-12 text-sm -mt-3 text-[#9A7080]">
                 Didn't receive a code?{" "}
-                <span className="text-[#6B0F2B] font-bold cursor-pointer hover:underline">
-                    Resend OTP
+                <span 
+                    onClick={handleOTP}
+                    className={`font-bold transition ${isSendingOtp ? 'text-gray-400 cursor-not-allowed' : 'text-[#6B0F2B] cursor-pointer hover:underline'}`}
+                >
+                    {isSendingOtp ? "Sending..." : "Resend OTP"}
                 </span>
             </p>
             
@@ -173,11 +232,11 @@ export default function PhoneVerification({ data, setData, prevStep}: any) {
         </div>
         {/* Nav buttons */}
         <div className="flex items-center justify-between mt-5">
-            <Button onClick={handlePrev} variant="secondary" size="lg">
+            <Button onClick={handlePrev} variant="secondary" size="lg" disabled={isSubmitting || isVerifyingOtp}>
                 ← Back 
             </Button>
-            <Button onClick={handleNext} variant="primary" size="lg">
-                Verify & Continue
+            <Button onClick={handleNext} variant="primary" size="lg" disabled={isSubmitting || isVerifyingOtp}>
+                {isVerifyingOtp ? 'Verifying...' : isSubmitting ? 'Submitting...' : 'Verify & Continue'}
             </Button>
         </div>
         </>

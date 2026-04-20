@@ -1,7 +1,6 @@
 import User from '#models/user'
 import Student from '#models/student'
 import Landlord from '#models/landlord'
-import PhoneNumber from '#models/phone_number'
 // import Accommodation from '#models/accommodation'
 // import Manager from '#models/manager'
 import FileMetadata from '#models/file_metadatum'
@@ -11,21 +10,19 @@ import drive from '@adonisjs/drive/services/main'
 export default class ProfileService {
   async setupProfile(user: User, validatedData: any) {
 
-    await PhoneNumber.create({
-      userId: user.id,
-      contactNumber: validatedData.phone_number,
-      isPrimary: true, // It's their first number, so it's primary
-    })
+    user.accountStatus = 'pending'
+    await user.save()
+    // PhoneNumber is created during OTP verification (/auth/verify-sms), not here.
     
     // ==========================================
     // SCENARIO A: THE USER IS A STUDENT
     // ==========================================
-    if (validatedData.role === 'Student') {
+    if (validatedData.role === 'student') {
       const uploadedForm5Urls: string[] = []
       let enrollmentProofFileId: number | undefined
 
       // Process MULTIPLE Enrollment Proof files
-      for (const file of validatedData.form5) {
+      for (const file of validatedData.form5 ?? []) {
         const form5Name = `${user.id}_enrollmentproof_${new Date().getTime()}.${file.extname}`
         await file.moveToDisk(form5Name, 's3')
         const form5Url = await drive.use('s3').getUrl(form5Name)
@@ -63,15 +60,16 @@ export default class ProfileService {
 
       // Save to the 'students' table
       const student = await Student.create({
-        studentNumber: validatedData.studentNumber,
+        studentNumber: validatedData.student_number,   // was studentNumber
         userId: user.id,
         enrollmentProofFileId: enrollmentProofFileId,
         college: validatedData.college,
-        degreeProgram: validatedData.degreeProgram,
+        degreeProgram: validatedData.degree_program,   // was degreeProgram
         gender: validatedData.gender,
-
-        emergencyContactName: validatedData.emergencyContactName,
-        emergencyContactNumber: validatedData.emergencyContactNumber,
+        
+        emergencyContactName: validatedData.emergency_contact_name,   // was emergencyContactName
+        emergencyContactNumber: validatedData.emergency_contact_number, // was emergencyContactNumber
+        yearLevel: validatedData.year_level ?? null,
       })
 
       return {
@@ -83,12 +81,12 @@ export default class ProfileService {
     // ==========================================
     // SCENARIO B: THE USER IS A LANDLORD
     // ==========================================
-    else if (validatedData.role === 'Landlord') {
+    else if (validatedData.role === 'landlord') {
       const uploadedPermitUrls: string[] = []
       let permitFileId: number | undefined
 
       // Process MULTIPLE Business Permit files
-      for (const file of validatedData.businessPermit) {
+      for (const file of validatedData.businessPermit ?? []) {
         const permitName = `${user.id}_permit_${new Date().getTime()}.${file.extname}`
         await file.moveToDisk(permitName, 's3')
         const permitUrl = await drive.use('s3').getUrl(permitName)

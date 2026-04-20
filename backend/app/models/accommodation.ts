@@ -21,7 +21,7 @@ export default class Accommodation extends BaseModel {
   declare landlordId: number
 
   @column()
-  declare managerId: number
+  declare managerId: number | null
 
   @column()
   declare businessPermitId: number
@@ -33,7 +33,7 @@ export default class Accommodation extends BaseModel {
   declare accommodationLocation: string
 
   @column()
-  declare status: string
+  declare status: 'pending' | 'verified' | 'rejected'
 
   @column()
   declare longitude: number | null
@@ -59,11 +59,17 @@ export default class Accommodation extends BaseModel {
   @column()
   declare tenantRestriction: 'male-only' | 'female-only' | 'coed'
 
-  @column.date()
-  declare applicationStartDate: DateTime
+  @column()
+  declare invitedManagerEmail: string | null
 
   @column.date()
-  declare applicationEndDate: DateTime
+  declare applicationStartDate: DateTime | null
+
+  @column.date()
+  declare applicationEndDate: DateTime | null
+
+  @column()
+  declare primaryImageIndex: number
    
   // ─── Freeze columns (for manager handover) ────────────────────────────────
   @column()
@@ -75,10 +81,10 @@ export default class Accommodation extends BaseModel {
   @column.dateTime()
   declare freezeStartedAt: DateTime | null
 
-  @belongsTo(() => Landlord, { foreignKey: 'userId' })
+  @belongsTo(() => Landlord, { foreignKey: 'landlordId', localKey: 'userId' })
   declare landlord: BelongsTo<typeof Landlord>
 
-  @belongsTo(() => Manager, { foreignKey: 'userId' })
+  @belongsTo(() => Manager, { foreignKey: 'managerId', localKey: 'userId' })
   declare manager: BelongsTo<typeof Manager>
 
   @belongsTo(() => FileMetadata, { foreignKey: 'businessPermitId' })

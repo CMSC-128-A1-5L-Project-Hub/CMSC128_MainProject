@@ -1,5 +1,7 @@
 {/* React/type imports */}
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useParams, useNavigate } from "react-router-dom"
+import { api } from "../../api/axios"
 
 {/* Asset imports */}
 import bgDesktop from "../../assets/images/signup_form-bg-desktop.png"
@@ -13,8 +15,9 @@ import PhoneVerification from "../../components/SignUpForm/steps/PhoneVerificati
 type SignUpFormData = {
     firstName: string
     lastName: string
-    suffix?: string
+    suffix: string
     email: string
+    tin: string
     gender: string
     emergencyName: string
     emergencyNumber: string
@@ -26,24 +29,98 @@ type SignUpFormData = {
     form5: File | null
     other: File | null
     phoneNumber: string
+    role: "student" | "landlord" | "manager"
 }
 
-{/* TODO: role-based forms */}
+const roleSteps = {
+  student: {
+    steps: [
+      {
+        key: "personal",
+        title: "Personal Information",
+        description: "Fill in your details"
+      },
+      {
+        key: "academic",
+        title: "Academic Details & Documents",
+        description: "College, Course & supporting documents"
+      },
+      {
+        key: "phone",
+        title: "Phone Verification",
+        description: "OTP"
+      }
+    ]
+  },
+  landlord: {
+    steps: [
+      {
+        key: "personal",
+        title: "Personal Information",
+        description: "Fill in your details"
+      },
+      {
+        key: "phone",
+        title: "Phone Verification",
+        description: "OTP"
+      }
+    ]
+  },
+  manager: {
+    steps: [
+      {
+        key: "personal",
+        title: "Personal Information",
+        description: "Fill in your details"
+      },
+      {
+        key: "phone",
+        title: "Phone Verification",
+        description: "OTP"
+      }
+    ]
+  }
+}
+
+//role types (strict formatting)
+type Role = "student" | "manager" | "landlord"
+
+const stepComponents = {
+  personal: PersonalInfo,
+  academic: AcademicDetails,
+  phone: PhoneVerification
+}
 
 export default function SignUpForm() {
+  const navigate = useNavigate()
+
+  //get role from params
+  const { role } = useParams<{role:string}>()
+  const currentRole = role as Role
+
+  //get sign up steps based from role
+  const formSteps = roleSteps[currentRole]?.steps || []
+  const totalSteps = formSteps.length
+
   //for step tracking (progress bar)
   const [step, setStep] = useState(1)
+  //current form step to display
+  const currentStep = formSteps[step-1]
+  //get component based from current step
+  const StepComponent = stepComponents[currentStep?.key as keyof typeof stepComponents]
 
   //transition handler
   const [visible, setVisible] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   //form data
   //ung initialized fields should come from google (for testing purposes palang ung initial stuff)
   const [formData, setFormData ] = useState<SignUpFormData>({
-    firstName: "Test",
-    lastName: "Test",
+    firstName: "",
+    lastName: "",
     suffix: "",
-    email: "test@up.edu.ph",
+    email: "",
+    tin: "",
     gender: "",
     emergencyName: "",
     emergencyNumber: "",
@@ -55,7 +132,74 @@ export default function SignUpForm() {
     form5: null,
     other: null,
     phoneNumber: "",
+    role: "student"
   })
+
+  //1. Fetch Google Data on Load
+  useEffect(() => {
+    if (currentRole) {
+      setFormData(prev => ({...prev, role: currentRole}))
+    }
+
+    const fetchUserData = async () => {
+      try{
+        const response = await api.get('/me')
+        const user = response.data.data
+
+        setFormData(prev => ({
+          ...prev,
+          firstName: user.fname || "",
+          lastName: user.lname || "",
+          email: user.email || "",
+        }))
+      } catch (error) {
+        console.error("Failed to load user data for pre-fill: ", error)
+      }
+    }
+
+    fetchUserData()
+  }, [currentRole])
+
+  //2. Final Submission Logic
+  const submitForm = async () => {
+    setIsSubmitting(true)
+    try {
+      const payload = new FormData()
+      
+      payload.append('role', formData.role)
+      payload.append('phone_number', '0' + formData.phoneNumber)
+
+      //student exclusive stuff
+      if (formData.role === "student") {
+        payload.append('gender', formData.gender)
+        payload.append('emergency_contact_name', formData.emergencyName)
+        payload.append('emergency_contact_number', formData.emergencyNumber)
+        payload.append('college', formData.college)
+        payload.append('degree_program', formData.course)
+        payload.append('student_number', formData.studentNumber)
+        if (formData.standing) payload.append('year_level', formData.standing)
+
+        if (formData.form5) payload.append('form5[]', formData.form5)
+        if (formData.other) payload.append('form5[]', formData.other)
+      } else if (formData.role === "landlord") {
+        //landlord only
+        payload.append('tin', formData.tin)
+      }
+
+      payload.append('facebook_link', formData.facebook)
+
+      await api.post('/setup', payload, {
+        headers: {'Content-Type':'multipart/form-data'}
+      })
+      
+      navigate('/pending-verification')
+    } catch (error) {
+      console.error("Failed to finish setup:", error)
+      alert("Failed to submit form. Please check your connection and try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   //handles next and back
   const nextStep = () => {
@@ -71,6 +215,11 @@ export default function SignUpForm() {
       setStep((prev) => prev - 1)
       setVisible(true)
     }, 200)
+  }
+
+  {/* To be replaced by an actual screen */}
+  if (!formSteps.length) {
+    return <div>Invalid role</div>
   }
 
   return (
@@ -93,7 +242,12 @@ export default function SignUpForm() {
 
           {/* Right col: step indicator (mobile only), full width on desktop */}
           <div className="flex flex-col justify-center items-start flex-shrink-0 w-full lg:mt-6 flex-shrink-0">
-            <StepIndicator currentStep={step} />
+            <StepIndicator steps={
+              (formSteps.map((s,i) => ({
+                ...s,
+                stepNumber: i+1
+              })))
+            } currentStep={step} />
           </div>
 
         </div>
@@ -112,7 +266,7 @@ export default function SignUpForm() {
           <div className="flex items-center gap-2 mb-5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#C9973A]" />
             <span className="text-xs font-semibold tracking-widest uppercase text-[#C9973A]">
-              Step {step} of 3
+              Step {step} of {totalSteps}
             </span>
           </div>
 
@@ -121,7 +275,7 @@ export default function SignUpForm() {
             <div
               className="h-full rounded-full transition-all duration-500 ease-in-out"
               style={{
-                width: `${(step / 3) * 100}%`, // Step 1 of 3
+                width: `${(step / totalSteps) * 100}%`, // Step 1 of 3
                 background: 'linear-gradient(to right, #7D1128, #C9973A)',
               }}
             />
@@ -135,26 +289,15 @@ export default function SignUpForm() {
                 : "opacity-0 translate-y-2"
             }`}
           >
-            {step === 1 &&
-              <PersonalInfo 
+            {StepComponent && (
+              <StepComponent 
+                role={currentRole}
                 data={formData}
                 setData={setFormData}
-                nextStep={nextStep}
-              />
-            }
-            {step === 2 && (
-              <AcademicDetails 
-                data={formData}
-                setData={setFormData}
-                nextStep={nextStep}
-                prevStep={prevStep}
-              />
-            )}
-            {step === 3 && (
-              <PhoneVerification 
-                data={formData}
-                setData={setFormData}
-                prevStep={prevStep}
+                nextStep={step < totalSteps ? nextStep : undefined}
+                prevStep ={step > 1 ? prevStep : undefined}
+                submitForm={submitForm}
+                isSubmitting={isSubmitting}
               />
             )}
           </div>

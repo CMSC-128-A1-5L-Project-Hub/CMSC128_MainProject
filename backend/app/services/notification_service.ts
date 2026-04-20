@@ -11,7 +11,7 @@ export default class NotificationService {
     try {
       await mail.send((message) => {
         message
-          .from('noreply@uble.com', 'UBLE Housing') // Iniba ko from noreply@usat.com to @uble.com
+          .from('uble.ics.uplb@gmail.com', 'UBLE Housing') // Iniba ko from noreply@usat.com to @uble.ics.uplb.com
           .to(to)
           .subject(subject)
           .html(html)
@@ -223,6 +223,61 @@ export default class NotificationService {
         <p>Your assignment as manager of <strong>${accommodationName}</strong> has ended.</p>
         <p>You no longer have access to this accommodation's applications and records.</p>
         <p>Thank you for your service.</p>
+        <br/>
+        <p>UBLE Housing</p>
+      `
+    )
+  }
+
+  // ─── Account Approved Email ───────────────────────────────────────────────
+  // Called when: admin approves a user's account (student or landlord)
+  async sendAccountApprovedEmail(user: User, role: string) {
+    const roleLabel = role === 'landlord' ? 'Housing Administrator' : 'Student'
+    await this.send(
+      user.email,
+      'Your UBLE account has been approved!',
+      `
+        <p>Hello ${user.fname},</p>
+        <p>Your UBLE account has been reviewed and approved as a <strong>${roleLabel}</strong>.</p>
+        <p>You can now log in and access your dashboard.</p>
+        <br/>
+        <p>UBLE Housing</p>
+      `
+    )
+  }
+
+  // ─── Accommodation Approved Email ─────────────────────────────────────────
+  // Called when: admin approves a landlord's accommodation listing
+  async sendAccommodationApprovedEmail(user: User, accommodationName: string) {
+    await this.send(
+      user.email,
+      'Your accommodation listing has been approved!',
+      `
+        <p>Hello ${user.fname},</p>
+        <p>Your accommodation listing <strong>${accommodationName}</strong> has been reviewed and approved by the admin.</p>
+        <p>It is now live on the UBLE platform and visible to students. You may now manage it from your dashboard.</p>
+        <br/>
+        <p>UBLE Housing</p>
+      `
+    )
+  }
+
+  async sendManagerInvitationEmail(
+    email: string,
+    accommodationName: string,
+    landlordName: string
+  ) {
+    await this.send(
+      email,
+      `You have been invited to manage ${accommodationName} on UBLE`,
+      `
+        <p>Hello,</p>
+        <p>${landlordName} has invited you to become the manager of 
+          <strong>${accommodationName}</strong> on UBLE Housing.</p>
+        <p>To accept this invitation, please register using this email address:</p>
+        <p><a href='http://localhost:5173/register'>Click here to register</a></p>
+        <p>Once your account is set up, you will automatically be assigned 
+          to ${accommodationName}.</p>
         <br/>
         <p>UBLE Housing</p>
       `

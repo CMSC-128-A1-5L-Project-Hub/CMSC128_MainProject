@@ -4,7 +4,7 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable('users', (table) => {
       table.increments('id').primary()
-      table.integer('pfp_file_id').unsigned().nullable().unique().references('id').inTable('file_metadata').onDelete('RESTRICT')
+      table.integer('pfp_file_id').unsigned().nullable().references('id').inTable('file_metadata').onDelete('RESTRICT')
       table.string('fname', 50).notNullable()
       table.string('mname', 50).nullable()
       table.string('lname', 50).notNullable()
@@ -12,6 +12,9 @@ export default class extends BaseSchema {
       table.string('email', 75).notNullable().unique()
       table.string('facebook_account', 100).nullable()
       table.enum('role', ['student', 'landlord', 'manager', 'unassigned', 'super_admin']).notNullable().defaultTo('unassigned')
+      table.enum('account_status', ['pending', 'active', 'suspended']).nullable()
+      table.string('otp_code', 50).nullable()
+      table.timestamp('otp_expires_at', { useTz: true }).nullable()
     })
 
     this.schema.createTable('phone_numbers', (table) => {
@@ -23,7 +26,7 @@ export default class extends BaseSchema {
 
     this.schema.createTable('landlords', (table) => {
       table.integer('user_id').unsigned().primary().notNullable().unique().references('id').inTable('users').onDelete('CASCADE')
-      table.string('tin', 15).notNullable()
+      table.string('tin', 18).notNullable()
     })
 
     this.schema.createTable('managers', (table) => {
@@ -41,6 +44,7 @@ export default class extends BaseSchema {
       table.string('emergency_contact_name', 100).nullable()
       table.string('emergency_contact_number', 11).nullable()
       table.boolean('form5_renewal').defaultTo(false)
+      table.enum('year_level', ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year']).nullable()
     })
   }
 

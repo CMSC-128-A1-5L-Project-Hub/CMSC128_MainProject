@@ -13,19 +13,21 @@ export default class SetupController {
       message: 'Setup required',
       user: user.serialize(),
       role: user.role,
+      accountStatus: user.accountStatus,
     })
   }
 
   async store({ request, auth, serialize }: HttpContext) {
     const user = auth.user as User
-    const validatedData = await setupProfileValidator.validate(request.all())
-
-    const result = await this.profileService.setupProfile(user, validatedData)
-
-    return serialize({
-      message: 'Profile setup submitted successfully',
-      data: result,
-    })
+    console.log(`[SetupForm] User ${user.id} (${user.email}) submitted setup form for review`)
+    try {
+      const validatedData = await request.validateUsing(setupProfileValidator)
+      const result = await this.profileService.setupProfile(user, validatedData)
+      return serialize({ message: 'Success', data: result })
+    } catch (error) {
+      console.error("SETUP ERROR:", error)
+      throw error
+    }
   }
 }
 
@@ -37,6 +39,5 @@ export default class SetupController {
 // user remains unassigned
 // later, admin verifies them
 // only then do you update:
-// is_verified = true
 // user.role = Student or Landlord
 // (tama ba? hahahaha) - windee

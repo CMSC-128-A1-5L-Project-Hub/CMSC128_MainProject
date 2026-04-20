@@ -7,6 +7,49 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class AccommodationSchema extends BaseModel {
+  static $columns = ['accommodationCapacity', 'accommodationLocation', 'accommodationName', 'accommodationType', 'applicationEndDate', 'applicationStartDate', 'bikingDistance', 'businessPermitId', 'drivingDistance', 'id', 'invitedManagerEmail', 'landlordId', 'latitude', 'longitude', 'managerId', 'primaryImageIndex', 'status', 'tenantRestriction', 'walkingDistance'] as const
+  $columns = AccommodationSchema.$columns
+  @column()
+  declare accommodationCapacity: number
+  @column()
+  declare accommodationLocation: string
+  @column()
+  declare accommodationName: string
+  @column()
+  declare accommodationType: string
+  @column.date()
+  declare applicationEndDate: DateTime | null
+  @column.date()
+  declare applicationStartDate: DateTime | null
+  @column()
+  declare bikingDistance: number | null
+  @column()
+  declare businessPermitId: number
+  @column()
+  declare drivingDistance: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare invitedManagerEmail: string | null
+  @column()
+  declare landlordId: number
+  @column()
+  declare latitude: string | null
+  @column()
+  declare longitude: string | null
+  @column()
+  declare managerId: number | null
+  @column()
+  declare primaryImageIndex: number | null
+  @column()
+  declare status: string | null
+  @column()
+  declare tenantRestriction: string
+  @column()
+  declare walkingDistance: number | null
+}
+
 export class AccommodationImageSchema extends BaseModel {
   static $columns = ['accommodationId', 'id', 'imageFileId'] as const
   $columns = AccommodationImageSchema.$columns
@@ -29,50 +72,13 @@ export class AccommodationTagSchema extends BaseModel {
   declare tagDetail: string
 }
 
-export class AccommodationSchema extends BaseModel {
-  static $columns = ['accommodationCapacity', 'accommodationLocation', 'accommodationName', 'accommodationType', 'applicationEndDate', 'applicationStartDate', 'bikingDistance', 'businessPermitId', 'drivingDistance', 'id', 'landlordId', 'latitude', 'longitude', 'managerId', 'tenantRestriction', 'walkingDistance'] as const
-  $columns = AccommodationSchema.$columns
-  @column()
-  declare accommodationCapacity: number
-  @column()
-  declare accommodationLocation: string
-  @column()
-  declare accommodationName: string
-  @column()
-  declare accommodationType: string
-  @column.date()
-  declare applicationEndDate: DateTime
-  @column.date()
-  declare applicationStartDate: DateTime
-  @column()
-  declare bikingDistance: number | null
-  @column()
-  declare businessPermitId: number
-  @column()
-  declare drivingDistance: number | null
-  @column({ isPrimary: true })
-  declare id: number
-  @column()
-  declare landlordId: number
-  @column()
-  declare latitude: string | null
-  @column()
-  declare longitude: string | null
-  @column()
-  declare managerId: number
-  @column()
-  declare tenantRestriction: string
-  @column()
-  declare walkingDistance: number | null
-}
-
 export class ApplicationSchema extends BaseModel {
   static $columns = ['accommodationId', 'applicationDate', 'applicationRoomType', 'applicationStatus', 'applicationStayType', 'durationOfStayDays', 'id', 'studentNumber'] as const
   $columns = ApplicationSchema.$columns
   @column()
   declare accommodationId: number
   @column.dateTime()
-  declare applicationDate: DateTime | null
+  declare applicationDate: DateTime
   @column()
   declare applicationRoomType: string
   @column()
@@ -125,7 +131,7 @@ export class DocumentSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column.dateTime()
-  declare uploadTimestamp: DateTime | null
+  declare uploadTimestamp: DateTime
   @column()
   declare userId: number
 }
@@ -189,7 +195,7 @@ export class LogSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column.dateTime()
-  declare logTimestamp: DateTime | null
+  declare logTimestamp: DateTime
 }
 
 export class ManagerSchema extends BaseModel {
@@ -209,7 +215,7 @@ export class NotificationSchema extends BaseModel {
   @column()
   declare notificationContent: string
   @column.dateTime()
-  declare notificationTimestamp: DateTime | null
+  declare notificationTimestamp: DateTime
   @column()
   declare notificationType: string
   @column()
@@ -232,7 +238,7 @@ export class PaymentSchema extends BaseModel {
   @column()
   declare paymentStatus: string | null
   @column.dateTime()
-  declare paymentTimestamp: DateTime | null
+  declare paymentTimestamp: DateTime
   @column()
   declare proofFileId: number
 }
@@ -250,6 +256,17 @@ export class PhoneNumberSchema extends BaseModel {
   declare userId: number
 }
 
+export class RateLimitSchema extends BaseModel {
+  static $columns = ['expire', 'key', 'points'] as const
+  $columns = RateLimitSchema.$columns
+  @column()
+  declare expire: bigint | number | null
+  @column({ isPrimary: true })
+  declare key: string
+  @column()
+  declare points: number
+}
+
 export class ReportSchema extends BaseModel {
   static $columns = ['id', 'landlordId', 'reportFileId', 'reportTimestamp', 'reportType', 'studentNumber'] as const
   $columns = ReportSchema.$columns
@@ -260,7 +277,7 @@ export class ReportSchema extends BaseModel {
   @column()
   declare reportFileId: number
   @column.dateTime()
-  declare reportTimestamp: DateTime | null
+  declare reportTimestamp: DateTime
   @column()
   declare reportType: string
   @column()
@@ -323,7 +340,7 @@ export class StudentSchema extends BaseModel {
   @column()
   declare enrollmentProofFileId: number
   @column()
-  declare form5Renewal: boolean
+  declare form5Renewal: boolean | null
   @column()
   declare gender: string
   @column({ isPrimary: true })
@@ -350,8 +367,10 @@ export class SysVariableSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['email', 'facebookAccount', 'fname', 'id', 'lname', 'mname', 'pfpFileId', 'role', 'suffix'] as const
+  static $columns = ['accountStatus', 'email', 'facebookAccount', 'fname', 'id', 'lname', 'mname', 'pfpFileId', 'role', 'suffix'] as const
   $columns = UserSchema.$columns
+  @column()
+  declare accountStatus: string | null
   @column()
   declare email: string
   @column()
