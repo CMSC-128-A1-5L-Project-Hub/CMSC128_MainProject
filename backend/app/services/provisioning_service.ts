@@ -4,7 +4,7 @@ import Manager from '#models/manager'
 import Accommodation from '#models/accommodation'
 
 export default class ProvisioningService {
-  public async provision(profile: { email: string; fname: string; lname: string }) {
+  public async provision(profile: { email: string; fname: string; lname?: string }) {
     const defaultPfp = await FileMetadata.firstOrCreate(
       { filePath: 'defaults/default_pfp.png' },
       {
@@ -18,7 +18,7 @@ export default class ProvisioningService {
 
     if (user) {
       user.fname = profile.fname
-      user.lname = profile.lname
+      user.lname = profile.lname ?? ''
       await user.save()
       return user
     }
@@ -26,7 +26,7 @@ export default class ProvisioningService {
     user = await User.create({
       email: profile.email,
       fname: profile.fname,
-      lname: profile.lname,
+      lname: profile.lname ?? '',
       role: 'unassigned',
       pfpFileId: defaultPfp.id,
     })

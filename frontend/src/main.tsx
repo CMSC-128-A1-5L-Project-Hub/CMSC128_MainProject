@@ -13,7 +13,7 @@ createRoot(document.getElementById('root')!).render(
       <App />
 
       {/* Dev tool for debugging states */}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   </StrictMode>,
 )

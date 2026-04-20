@@ -44,13 +44,13 @@ export default class AuthController {
     case 'landlord':
       return response.redirect('http://localhost:5173/landlord/manage/accommodation')
     case 'student':
-      return response.redirect('http://localhost:5173/dashboard')
+      return response.redirect('http://localhost:5173/studentDashboard')
     case 'manager':
       return response.redirect('http://localhost:5173/manager/dashboard')
     case 'super_admin':
       return response.redirect('http://localhost:5173/admin/dashboard')
     default:
-      return response.redirect('http://localhost:5173/auth/signup/form')
+      return response.redirect('http://localhost:5173/auth/role')
   }
 }
 
