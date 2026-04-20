@@ -6,7 +6,8 @@ import Sidebar from "../../components/Sidebar";
 import house_icon from "../../assets/icons/house_icon.svg";
 import notif_icon from "../../assets/icons/notif_icon.svg";
 import default_profile from "../../assets/icons/default_profile_female.svg";
-
+import download_icon from "../../assets/icons/download.svg";
+import bill_icon from "../../assets/icons/bill_icon.svg";
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const CLR = {
@@ -33,6 +34,7 @@ interface Application {
 interface BillingStatement {
   label: string;
   status: "Paid" | "Unpaid";
+  onClick?: () => void;
 }
 
 interface RecommendedDorm {
@@ -286,68 +288,119 @@ interface BillingSectionProps {
   statements: BillingStatement[];
 }
 
+
 const BillingSection = ({ overview, statements }: BillingSectionProps) => (
   <div className="space-y-5">
-    <div className="flex items-start justify-between">
-      <div className="flex items-center gap-3">
+    <div className="flex items-start justify-between gap-3">
+      {/* LEFT SIDE */}
+      <div className="flex items-center gap-3 min-w-0">
+        
+        {/* ICON */}
         <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-          style={{ background: `${CLR.mid}12`, color: CLR.mid }}
+          className="w-14 h-14 rounded-[18px] flex items-center justify-center flex-shrink-0 shadow-[0_6px_14px_rgba(61,7,24,0.10)]"
+          style={{
+            background: `linear-gradient(135deg, ${CLR.mid} 0%, ${CLR.accent} 100%)`
+          }}
         >
-          <IconDocument className="w-5 h-5" />
+          <img
+            src={bill_icon}
+            alt="Billing"
+            className="w-7 h-7 object-contain"
+          />
         </div>
-        <div>
-          <p className="font-bold text-gray-900 text-[15px] leading-tight">Billing &amp; Payments</p>
-          <p className="text-gray-400 text-sm">{overview.residenceHall}</p>
+
+        {/* TEXT */}
+        <div className="min-w-0">
+          <p className="font-bold text-gray-900 text-[14px] leading-tight">
+            Billing &amp; Payments
+          </p>
+          <p className="text-gray-400 text-[12px] leading-tight mt-0.5">
+            {overview.residenceHall}
+          </p>
         </div>
       </div>
 
-      <div className="bg-[#F7EFF2] text-center rounded-2xl px-3 py-2 flex-shrink-0">
-        <p className="text-[28px] font-bold leading-none" style={{ color: CLR.mid }}>
-          {overview.dueDay}
-        </p>
-        <p className="text-[12px] leading-none mt-1 font-semibold" style={{ color: CLR.mid }}>
+      {/* RIGHT SIDE DATE BADGE */}
+      <div className="bg-[#F3E9ED] rounded-[20px] px-2 pt-2.5 pb-1.5 flex flex-col items-center flex-shrink-0 min-w-[35px]">
+        
+        <div
+          className="bg-white rounded-[14px] px-3 py-1 shadow-[0_6px_14px_rgba(61,7,24,0.12)]"
+          style={{ color: CLR.mid }}
+        >
+          <p className="text-[20px] font-bold leading-none">
+            {overview.dueDay}
+          </p>
+        </div>
+
+        <p className="text-[12px] font-semibold mt-1 leading-none" style={{ color: CLR.mid }}>
           {overview.dueMonth}
         </p>
       </div>
     </div>
-
-    <div className="bg-[#F7F1F3] rounded-3xl p-5 border border-[#EFE3E8]">
+    <div className="bg-[#F7F1F3] rounded-3xl px-5 py-4 border border-[#EFE3E8]">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+        {/* LEFT SIDE */}
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div
+          className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{
+            background: "linear-gradient(135deg, #166534 0%, #22C55E 100%)"
+          }}
+        >            
+            <svg
+              className="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
 
-          <div className="min-w-0">
-            <p className="font-bold text-gray-900 text-[15px]">{overview.summaryTitle}</p>
-            <p className="text-gray-400 text-xs">
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-gray-900 text-[14px] leading-tight whitespace-nowrap">
+              {overview.summaryTitle}
+            </p>
+
+            <p className="text-gray-400 text-[12px] leading-tight mt-1 whitespace-nowrap">
               Paid on {overview.paidOn} · ₱{overview.amountPaid.toLocaleString()}.00
             </p>
 
-            <span className="inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full bg-[#DCEADF] text-green-700">
-              Next due: {overview.nextDue}
-            </span>
+            <div className="mt-2">
+              <span className="inline-block whitespace-nowrap px-4 py-1.5 -ml-1 rounded-full text-[12px] font-bold bg-[#DCEADF] text-green-700">
+                Next due: {overview.nextDue}
+              </span>
+            </div>
           </div>
         </div>
 
-        <p className="font-bold text-gray-900 text-[17px] whitespace-nowrap">
-          ₱{overview.monthlyRent.toLocaleString()} <span className="text-gray-400 font-normal text-sm">/ month</span>
-        </p>
-      </div>
+        {/* RIGHT SIDE */}
+        <div className="flex-shrink-0 whitespace-nowrap text-right self-start -mt-1">
+          <span className="font-bold text-[14px]" style={{ color: CLR.dark }}>
+            ₱{overview.monthlyRent.toLocaleString()}
+          </span>
+          <span className="text-gray-400 font-normal text-[14px] ml-1">
+            / month
+          </span>
+        </div>
+    </div>
     </div>
 
     <div className="h-px bg-[#EADDE2]" />
 
     <div>
-      <p className="text-[11px] font-bold tracking-widest uppercase text-[#A07B86] mb-3">Payment Progress</p>
+      <p className="text-[11px] font-bold tracking-widest uppercase text-[#A07B86] mb-3">
+        Payment Progress
+      </p>
 
       <div className="w-full h-2.5 bg-[#E9E1E4] rounded-full overflow-hidden">
         <div
           className="h-2.5 rounded-full relative"
-          style={{ width: `${overview.progressPercent}%`, background: `linear-gradient(90deg, ${CLR.mid}, ${CLR.gold})` }}
+          style={{
+            width: `${overview.progressPercent}%`,
+            background: `linear-gradient(90deg, ${CLR.mid}, ${CLR.gold})`,
+          }}
         >
           <div
             className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-2 border-white shadow-sm"
@@ -369,13 +422,17 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
     <div className="h-px bg-[#EADDE2]" />
 
     <div>
-      <p className="text-[11px] font-bold tracking-widest uppercase text-[#A07B86] mb-4">Billing History</p>
+      <p className="text-[11px] font-bold tracking-widest uppercase text-[#A07B86] mb-4">
+        Billing History
+      </p>
 
-      <div className="space-y-3">
+      <div className="max-h-[280px] overflow-y-auto pr-1 space-y-3">
         {statements.map((b, index) => (
-          <div
+          <button
             key={b.label}
-            className={`flex items-center gap-3 p-4 rounded-2xl bg-[#F8F1F4] border border-[#EFE5E8] ${
+            type="button"
+            onClick={b.onClick}
+            className={`w-full text-left flex items-center gap-3 p-4 rounded-2xl bg-[#F8F1F4] border border-[#EFE5E8] transition hover:bg-[#F4EAEE] hover:shadow-[0_6px_14px_rgba(61,7,24,0.10)] focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 ${
               index === 0 ? "shadow-[0_6px_14px_rgba(61,7,24,0.12)]" : ""
             }`}
           >
@@ -383,20 +440,33 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ background: CLR.mid, color: "#fff" }}
             >
-              <IconHouse className="w-4 h-4" />
+              <img
+                src={download_icon}
+                alt=""
+                className="w-4 h-4 object-contain"
+              />
             </div>
 
             <div className="flex-1 min-w-0">
               <p className="text-[15px] font-semibold text-gray-800 truncate">{b.label}</p>
-              <p className={`text-sm font-semibold ${b.status === "Paid" ? "text-green-600" : "text-red-500"}`}>
+              <p
+                className={`text-sm font-semibold ${
+                  b.status === "Paid" ? "text-green-600" : "text-red-500"
+                }`}
+              >
                 {b.status}
               </p>
             </div>
-          </div>
+
+            <IconChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          </button>
         ))}
       </div>
 
-      <button className="w-full mt-5 text-[15px] font-semibold hover:underline flex items-center justify-center gap-1" style={{ color: CLR.mid }}>
+      <button
+        className="w-full mt-5 text-[15px] font-semibold hover:underline flex items-center justify-center gap-1"
+        style={{ color: CLR.mid }}
+      >
         View all billing statements <IconChevronRight />
       </button>
     </div>
@@ -520,13 +590,8 @@ export default function Dashboard() {
             <div className="hidden lg:flex items-center gap-2">
               <div className="w-1 h-6 rounded-full" style={{ background: CLR.mid }} />
             </div>
-            <h1 className="font-serif italic text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
+            <h1 className="font-serif italic text-2xl lg:text-5xl font-bold text-gray-900">Dashboard</h1>
           </div>
-
-          <button className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors relative shadow-sm">
-            <IconBell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: CLR.gold }} />
-          </button>
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5 space-y-4 lg:space-y-5">
