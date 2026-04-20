@@ -37,3 +37,25 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE, old Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* In your global CSS file */
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 16px !important; /* Matches rounded-2xl */
+}
+
+.mapboxgl-popup-close-button {
+  color: white !important; /* Makes the 'X' visible against the image */
+  font-size: 16px;
+  right: 5px;
+  top: 5px;
+}

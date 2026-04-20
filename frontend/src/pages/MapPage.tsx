@@ -6,6 +6,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import AccommodationMap, { type AccommodationPin } from '../components/AccommodationMaps'
+import Sidebar from '../components/Sidebar'
 
 
 const MOCK_ACCOMMODATIONS: AccommodationPin[] = [
@@ -25,6 +26,7 @@ const MOCK_ACCOMMODATIONS: AccommodationPin[] = [
     bikingDistance: 2,
     stayType: 'non_transient',
     imageUrl: 'https://placehold.co/400x200?text=Sampaguita+Dorm',
+    rating: 5
   },
   {
     accommodationId: 2,
@@ -42,6 +44,7 @@ const MOCK_ACCOMMODATIONS: AccommodationPin[] = [
     bikingDistance: 3,
     stayType: 'non_transient',
     imageUrl: 'https://placehold.co/400x200?text=Molave+Hall',
+    rating: 4
   },
   {
     accommodationId: 3,
@@ -59,6 +62,7 @@ const MOCK_ACCOMMODATIONS: AccommodationPin[] = [
     bikingDistance: 6,
     stayType: 'transient',
     imageUrl: 'https://placehold.co/400x200?text=Sunrise+BH',
+    rating: 4.7
   },
   {
     accommodationId: 4,
@@ -76,6 +80,7 @@ const MOCK_ACCOMMODATIONS: AccommodationPin[] = [
     bikingDistance: 8,
     stayType: 'both',
     imageUrl: 'https://placehold.co/400x200?text=Partner+Housing+A',
+    rating: 3.3
   },
   {
     accommodationId: 5,
@@ -93,6 +98,7 @@ const MOCK_ACCOMMODATIONS: AccommodationPin[] = [
     bikingDistance: 12,
     stayType: 'transient',
     imageUrl: 'https://placehold.co/400x200?text=Kalikasan+Suites',
+    rating: 2
   },
 ]
 
@@ -176,8 +182,10 @@ export default function MapPage() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', fontFamily: "'Segoe UI', sans-serif", overflow: 'hidden' }}>
+      <Sidebar role={'student'}></Sidebar> {/* TODO: check how to change between roles */}
       {/* ─── Sidebar ─────────────────────────────────────────────────────── */}
-      <div style={{
+      <div className="hide-scrollbar"
+      style={{
         width: '300px',
         minWidth: '300px',
         backgroundColor: 'white',
@@ -186,13 +194,14 @@ export default function MapPage() {
         zIndex: 10,
         display: 'flex',
         flexDirection: 'column',
+        borderRadius: '25px'
       }}>
 
         {/* Header */}
         <div style={{
           padding: '20px 20px 16px',
           borderBottom: '1px solid #F3F4F6',
-          background: 'linear-gradient(135deg, #1e3a5f 0%, #2563EB 100%)',
+          // background: 'linear-gradient(135deg, #1e3a5f 0%, #2563EB 100%)',
         }}>
           {/* Back button if coming from "View Location" */}
           {centerId && (
@@ -214,16 +223,22 @@ export default function MapPage() {
               ← Back
             </button>
           )}
-          <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'white', margin: '0 0 4px 0' }}>
-            🏠 {centeredAccommodation ? centeredAccommodation.accommodationName : 'Find Accommodation'}
-          </h2>
-          <p style={{ fontSize: '12px', color: '#BFDBFE', margin: 0 }}>
-            {filtered.length} of {MOCK_ACCOMMODATIONS.length} accommodations shown
-          </p>
+          <div className="flex items-baseline justify-between mb-1">
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'black', margin: '0 0 4px 0' }}>
+              {centeredAccommodation ? centeredAccommodation.accommodationName : 'Filters'}
+            </h2>
+            <p onClick={resetFilters}
+            className='cursor-pointer text-[#C9973A]'>
+              {centeredAccommodation ? centeredAccommodation.accommodationName : 'Reset all'}
+            </p>
+          </div>
         </div>
 
         {/* Filters */}
         <div style={{ padding: '16px 20px', flex: 1 }}>
+
+          {/* Favorites */}
+
 
           {/* Search */}
           <div style={{ marginBottom: '16px' }}>
@@ -318,25 +333,6 @@ export default function MapPage() {
               <option value="non_transient">Non-Transient</option>
             </select>
           </div>
-
-          {/* Reset */}
-          <button
-            onClick={resetFilters}
-            style={{
-              width: '100%',
-              padding: '10px',
-              backgroundColor: '#F3F4F6',
-              border: '1px solid #E5E7EB',
-              borderRadius: '8px',
-              fontSize: '13px',
-              color: '#6B7280',
-              cursor: 'pointer',
-              fontWeight: '600',
-              marginBottom: '16px',
-            }}
-          >
-            Reset Filters
-          </button>
 
           {/* Legend */}
           <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: '16px' }}>
