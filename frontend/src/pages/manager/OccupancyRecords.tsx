@@ -17,6 +17,7 @@ interface ManagerProfile {
 
 interface Room {
     roomNumber: string
+    stayType: "transient" | "non-transient"
     roomType: "single" | "double" | "shared"
     roomCapacity: number
     roomCurrentOccupancy: number
@@ -50,27 +51,27 @@ const managerProfile: ManagerProfile = {
 }
 
 const Rooms: Room[] = [
-    {roomNumber: "6101", roomType: "double", roomCapacity:2 , roomCurrentOccupancy:2 , roomBuilding: "6", 
+    {roomNumber: "6101", stayType: "transient", roomType: "double", roomCapacity:2 , roomCurrentOccupancy:2 , roomBuilding: "6", 
         tenants:[
             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"}
         ]},
-    {roomNumber: "6102", roomType: "double", roomCapacity:2 , roomCurrentOccupancy:2 , roomBuilding: "6", 
+    {roomNumber: "6102", stayType: "non-transient", roomType: "double", roomCapacity:2 , roomCurrentOccupancy:2 , roomBuilding: "6", 
         tenants:[
             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"}
         ]},
-    {roomNumber: "6103", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:1 , roomBuilding: "6", 
+    {roomNumber: "6103", stayType: "transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:1 , roomBuilding: "6", 
         tenants:[
             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
         ]},
-    {roomNumber: "6104", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:0 , roomBuilding: "6", 
+    {roomNumber: "6104", stayType: "non-transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:0 , roomBuilding: "6", 
         tenants:[]},
-    {roomNumber: "6105", roomType: "shared", roomCapacity:4 , roomCurrentOccupancy:1 , roomBuilding: "6", 
+    {roomNumber: "6105", stayType: "transient", roomType: "shared", roomCapacity:4 , roomCurrentOccupancy:1 , roomBuilding: "6", 
         tenants:[
             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
         ]},
-    {roomNumber: "6106", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:1 , roomBuilding: "6", 
+    {roomNumber: "6106", stayType: "transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:1 , roomBuilding: "6", 
         tenants:[
             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
         ]},
@@ -117,8 +118,8 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                             <div className="flex flex-col gap-4">
                                 {/* Room Header */}
                                 <div>
-                                    <h1 className="font-bold text-xl text-[#1A0008]">
-                                        ROOM {selectedRoom.roomNumber}
+                                    <h1 className="font-bold text-xl text-[#1A0008] uppercase">
+                                        Room {selectedRoom.roomNumber}
                                     </h1>
                                     <p className="text-[#C8B0B8] text-xs uppercase border-b border-[#F5ECF0] pb-1">
                                         Building {selectedRoom.roomBuilding}
@@ -128,20 +129,20 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                 {/* Room Info Grid */}
                                 <div className="grid grid-cols-4 gap-2 -mt-2">
                                     <div>
-                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-1">Room Type</p>
-                                        <p className="font-semibold text-[#1A0008] capitalize">{selectedRoom.roomType}</p>
+                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Room Type</p>
+                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008] capitalize">{selectedRoom.stayType}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-1">Room Arrangement</p>
-                                        <p className="font-semibold text-[#1A0008] capitalize">{selectedRoom.roomType} Room</p>
+                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Room Arrangement</p>
+                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008] capitalize">{selectedRoom.roomType} Room</p>
+                                    </div>
+                                    <div className="px-2">
+                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Room Capacity</p>
+                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008]">{selectedRoom.roomCurrentOccupancy}/{selectedRoom.roomCapacity}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-1">Room Capacity</p>
-                                        <p className="font-semibold text-[#1A0008]">{selectedRoom.roomCurrentOccupancy}/{selectedRoom.roomCapacity}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-1">Status</p>
-                                        <p className={`font-semibold ${selectedRoom.roomCurrentOccupancy === selectedRoom.roomCapacity ? "text-[#9E2040]" : "text-[#1A7A4A]"}`}>
+                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Status</p>
+                                        <p className={`font-semibold text-sm lg:text-lg ${selectedRoom.roomCurrentOccupancy === selectedRoom.roomCapacity ? "text-[#9E2040]" : "text-[#1A7A4A]"}`}>
                                             {selectedRoom.roomCurrentOccupancy === selectedRoom.roomCapacity
                                                 ? "Fully Occupied"
                                                 : "Available"}
@@ -151,28 +152,28 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
 
                                 {/* Current Occupants */}
                                 <div>
-                                    <p className="font-bold text-[#1A0008] mb-3">Current Occupants</p>
+                                    <p className="font-bold text-md lg:text-lg text-[#1A0008] mb-3">Current Occupants</p>
                                     {selectedRoom.tenants.length > 0 ? (
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                             {selectedRoom.tenants.map((tenant, i) => (
                                                 <div key={i} className="flex flex-col gap-3">
                                                     {/* Avatar + Name */}
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
+                                                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
                                                             style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                                                             {tenant.fullName[0]}
                                                         </div>
-                                                        <p className="font-bold text-[#1A0008]">{tenant.fullName}</p>
+                                                        <p className="font-bold text-sm lg:text-md text-[#1A0008]">{tenant.fullName}</p>
                                                     </div>
                                                     {/* Email */}
                                                     <div>
-                                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5">Email</p>
-                                                        <p className="text-[#1A0008] text-sm">{tenant.email}</p>
+                                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-0.5">Email</p>
+                                                        <p className="text-[#1A0008] text-xs lg:text-sm">{tenant.email}</p>
                                                     </div>
                                                     {/* Phone */}
                                                     <div>
-                                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5">Phone Number</p>
-                                                        <p className="text-[#1A0008] text-sm">{tenant.phoneNumber}</p>
+                                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-0.5">Phone Number</p>
+                                                        <p className="text-[#1A0008] text-xs lg:text-sm">{tenant.phoneNumber}</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -234,7 +235,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                                 {room.roomCurrentOccupancy}/{room.roomCapacity}
                                             </p>
                                             <div className="hidden lg:flex col-span-1 justify-center">
-                                                <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1 min-w-[90px] rounded-full font-medium
+                                                <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1 min-w-[90px] rounded-full font-bold
                                                     ${status === "Full" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
                                                     `}>
                                                     <span className={`w-2 h-2 rounded-full 
@@ -523,7 +524,7 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                                 <p className="hidden lg:block col-span-2 text-center text-sm text-[#1A0008]">Building {record.roomBuilding}</p>
                                 <p className="hidden lg:block col-span-2 text-center text-sm text-[#1A0008] capitalize">{record.roomType}</p>
                                 <div className="col-span-2 flex justify-center">
-                                    <span className={`inline-flex items-center justify-center gap-1 text-[10px] lg:text-xs px-2 py-1 min-w-[70px] lg:min-w-[110px] rounded-full font-medium
+                                    <span className={`inline-flex items-center justify-center gap-1 text-[10px] lg:text-xs px-2 py-1 min-w-[70px] lg:min-w-[110px] rounded-full font-bold
                                         ${record.action === "Move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
                                     `}>
                                         <span className={`w-2 h-2 rounded-full 
