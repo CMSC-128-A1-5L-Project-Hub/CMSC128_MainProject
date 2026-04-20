@@ -76,4 +76,16 @@ button {
 /* this is for the browse page */
 .no-bg-popup.mapboxgl-popup .mapboxgl-popup-content {
   background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.no-bg-popup .mapboxgl-popup-close-button:hover {
+  background-color: transparent !important;
+  color: red !important;
+}
+
+.no-bg-popup .mapboxgl-popup-close-button {
+  right: 3px !important;
+  font-size: 9px !important;
 }

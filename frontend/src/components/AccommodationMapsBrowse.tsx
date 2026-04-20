@@ -3,8 +3,8 @@ import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { UPLB } from '../constants/uplb'
-import DormCard from "./DormCard"
-import { Star } from 'lucide-react';
+import DormCard from "./DormCardBrowse"
+import { GraduationCap, Star } from 'lucide-react';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -151,20 +151,31 @@ export default function AccommodationMap({
                         setSelectedPin(null)
                     }}
                 >
-                    <div style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div style={{
-                            backgroundColor: '#7C3AED',
-                            borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                            border: '2px solid white',
-                            fontSize: '20px',
-                        }}>🎓</div>
-                        <div style={{ width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid #7C3AED' }} />
+                    <div className="relative flex flex-col items-center w-fit">
+
+                        <div className="relative flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] shadow-md overflow-hidden z-10">
+
+                            <div
+                                className="absolute inset-0 z-0"
+                                style={{
+                                    background:
+                                        "linear-gradient(135deg, transparent 40%, rgba(42,4,16,0.55) 100%)",
+                                }}
+                            />
+
+                            <div className="relative flex items-center gap-2 z-10">
+                                <GraduationCap size={18} stroke="white" strokeWidth={1.5} />
+
+                                <div className="flex gap-1 items-center text-white">
+                                    <span className="text-base font-medium tracking-tight">
+                                        UPLB
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-0 h-0 border-l-[14px] border-r-[14px] border-t-[18px] border-l-transparent border-r-transparent border-t-[#9E2040] -mt-1 z-0" />
+
                     </div>
                 </Marker>
 
@@ -246,7 +257,7 @@ export default function AccommodationMap({
                         </div> */}
 
                         <div className="w-full flex items-center justify-center">
-                            <DormCard {...dormValues} verified onView={() => { }} />
+                            <DormCard {...{ ...dormValues, isSmall: true }} verified onView={() => { }} />
                         </div>
 
                     </Popup>

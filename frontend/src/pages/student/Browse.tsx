@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import DormCard from "../../components/DormCard";
+import DormCard from "../../components/DormCardBrowse";
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { Star } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
@@ -167,137 +167,10 @@ function Form() {
 
     return (
         <>
-            <div className="flex flex-col justify-center w-[50%] gap-3 p-2">
-
-                <div className='flex flex-col'>
-                    <p className="text-sm font-semibold text-gray-500 tracking-wide">
-                        SHOW FAVORITES ONLY
-                    </p>
-
-                    <div className="flex items-center justify-center rounded-2xl border bg-pink-50 p-2">
-                        <div className="flex items-center gap-3">
-                            <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white" stroke="#6B0F2B" strokeWidth="2">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6.5 5.5 5.5 0 0121.5 12C19 16.5 12 21 12 21z"
-                                />
-                            </svg>
-                            <div className="flex items-center gap-3 w-[80%]">
-                                <div className="flex flex-col h-full">
-                                    <p className="font-semibold text-gray-800">Saved Rooms</p>
-                                    <p className="text-xs text-gray-500">Show only your saved dorms</p>
-                                </div>
-                            </div>
-                        </div>
-
-
-
-
-                        <button className={`toggle-btn ${toggled ? 'toggled' : ''}`} onClick={() => setToggled(!toggled)}>
-                            <div className="thumb"></div>
-                        </button>
-
-                    </div>
-                </div>
-
-                {/* <hr className="border-gray-200" /> */}
-
-                <div className='flex flex-col'>
-                    <p className="text-sm font-semibold text-gray-500 tracking-wide mb-2">
-                        DORM TYPE
-                    </p>
-
-                    <div className="relative w-full">
-                        <select id="dorm-type" className="w-full px-4 py-4 rounded-2xl border-2 border-[#EDE1E5] text-gray-800 appearance-none outline-none">
-                            <option>All Types</option>
-                            <option>Apartment</option>
-                            <option>Dormitory</option>
-                            <option>Boarding House</option>
-                        </select>
-
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B0F2B]">{'▼'}</div>
-                    </div>
-                </div>
-
-                {/* <hr className="border-gray-200" /> */}
-
-                <div className='flex flex-col'>
-                    <p className="text-sm font-semibold text-gray-500 tracking-wide mb-2">
-                        ROOM TYPE
-                    </p>
-
-                    <div className="relative w-full">
-                        <select id="room-type" className="w-full p-4 pr-10 rounded-2xl border-2 border-[#EDE1E5] text-gray-800 appearance-none outline-none">
-                            <option>All</option>
-                            <option>Single</option>
-                            <option>Shared</option>
-                            <option>Studio</option>
-                        </select>
-
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B0F2B]">▼</div>
-                    </div>
-                </div>
-
-
-                <div className="flex flex-col justify-center items-start">
-                    <p className="text-sm font-semibold text-gray-500 tracking-wide mb-2">
-                        MIN RATING
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <div>
-                            {
-                                [...Array(5)].map((_, index) => {
-                                    if (index < starRating) {
-                                        return <button type="button"
-                                            onClick={() => { setStarRating(5 - (5 - index)) }}
-                                            className="transition-transform active:scale-90 p-0 leading-none">
-                                            <Star
-                                                size={24}
-                                                fill={'#C0934B'}
-                                                stroke="none" // Removes the outline to match your image
-                                                className="transition-colors duration-200"
-                                            />
-                                        </button>
-                                    } else {
-                                        return <button type="button"
-                                            onClick={() => { setStarRating(index + 1) }}
-                                            className="transition-transform active:scale-90 p-0 leading-none">
-                                            <Star
-                                                size={24}
-                                                fill={'#E5D5DB'}
-                                                stroke="none" // Removes the outline to match your image
-                                                className="transition-colors duration-200"
-                                            />
-                                        </button>
-                                    }
-                                })
-                            }
-                        </div>
-
-                        <button
-                            disabled
-                            type="button"
-                            className="flex items-center gap-1 rounded-full border border-pink-200 bg-pink-50 px-4 py-2 text-sm font-semibold text-pink-900"
-                        >
-                            <span>{starRating}</span>
-                            <Star size={14} fill="currentColor" stroke="none" className="text-pink-900" />
-                            <span>+</span>
-                        </button>
-                    </div>
-                </div>
-
-
-            </div>
-            <div className="flex flex-col justify-center w-[50%] gap-3 p-2">
-                {/* slider */}
-
-
-
-                <div className="flex flex-col">
-                    <div className="flex justify-end">
+            <div className="flex flex-col w-full">
+                <div className="flex flex-col items-end">
                     <button
-                        className="group flex flex-col items-center w-fit"
+                        className="group flex flex-col items-center justify-start w-fit"
                         onClick={() => {
                             setFilters(originalFilters)
                             setStarRating(3)
@@ -314,125 +187,266 @@ function Form() {
                             }
                         }}
                     >
-                    
+
                         <span className="text-xs font-bold text-[#8a7686] group-hover:text-[#7A162D] transition-colors">
                             Reset Filters
                         </span>
 
-                        
+
                         <div className="w-full h-[1.5px] bg-[#d2c2ce] mt-[-2px] group-hover:bg-[#7A162D] transition-colors" />
                     </button>
-                    </div>
-                    <p className="text-sm font-semibold text-gray-500 tracking-wide mb-2">
-                        PRICE RANGE
-                    </p>
-                    <div style={{ padding: "14px 16px" }}>
-                        <div style={{
-                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                            marginBottom: 10,
-                        }}>
-                            <span style={{
-                                background: "#f5f0f2", borderRadius: 99, padding: "3px 10px",
-                                fontSize: 12, fontWeight: 700, color: "#6B0F2B",
-                                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                            }}>
-                                ₱{minPrice.toLocaleString()}
-                            </span>
-                            <span style={{ fontSize: 11, color: "#bbb", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                                to
-                            </span>
-                            <span style={{
-                                background: "#f5f0f2", borderRadius: 99, padding: "3px 10px",
-                                fontSize: 12, fontWeight: 700, color: "#6B0F2B",
-                                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                            }}>
-                                ₱{maxPrice.toLocaleString()}
-                            </span>
+                </div>
+                <div className="flex w-full">
+                    <div className="flex flex-col justify-center w-[50%] md:gap-3 p-2">
+                        <div className='flex flex-col'>
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                                SHOW FAVORITES ONLY
+                            </p>
+
+                            <div className="flex items-center justify-center rounded-2xl border bg-pink-50 p-2">
+                                <div className="flex items-center gap-3">
+                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white" stroke="#6B0F2B" strokeWidth="2">
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6.5 5.5 5.5 0 0121.5 12C19 16.5 12 21 12 21z"
+                                        />
+                                    </svg>
+                                    <div className="flex items-center gap-3 w-[80%]">
+                                        <div className="flex flex-col h-full">
+                                            {/* <p className="font-semibold text-gray-800">Saved Rooms</p>
+                                    <p className="text-xs text-gray-500">Show only your saved dorms</p> */}
+                                            <p className="font-semibold text-gray-800 text-sm sm:text-base">
+                                                Saved Rooms
+                                            </p>
+
+                                            <p className="text-[11px] sm:text-xs text-gray-500 leading-tight">
+                                                Show only your saved dorms
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+
+                                <button className={`toggle-btn ${toggled ? 'toggled' : ''}`} onClick={() => setToggled(!toggled)}>
+                                    <div className="thumb"></div>
+                                </button>
+
+                            </div>
                         </div>
 
-                        <DualRangeSlider
-                            minVal={minPrice}
-                            maxVal={maxPrice}
-                            onMinChange={setMinPrice}
-                            onMaxChange={setMaxPrice}
-                            dataMin={2500}
-                            dataMax={10000}
-                        />
-                    </div>
-                </div>
+                        {/* <hr className="border-gray-200" /> */}
 
-                <div className="flex flex-col">
-                    <p className="text-sm font-semibold text-gray-500 tracking-wide mb-2">
-                        OTHERS
-                    </p>
-                    <div className="flex flex-wrap w-full gap-1">
-                        {
-                            Object.keys(filters).map((value) => (
-                                <button onClick={() => {
-                                    let tempFilters = { ...filters }
-                                    tempFilters[value] = !tempFilters[value]
-                                    setFilters(tempFilters)
-                                }} className={`px-2 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm md:text-base
+                        <div className="flex flex-col">
+
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                                DORM TYPE
+                            </p>
+
+                            <div className="relative w-full">
+                                <select
+                                    id="dorm-type"
+                                    className="w-full px-3 py-2 sm:px-4 sm:py-4 rounded-xl sm:rounded-2xl border border-[#EDE1E5] sm:border-2 text-sm sm:text-base text-gray-800 appearance-none outline-none"
+                                >
+                                    <option>All Types</option>
+                                    <option>Apartment</option>
+                                    <option>Dormitory</option>
+                                    <option>Boarding House</option>
+                                </select>
+
+                                <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-[#6B0F2B] text-xs sm:text-base">
+                                    ▼
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* <hr className="border-gray-200" /> */}
+
+                        <div className='flex flex-col'>
+
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                                ROOM TYPE
+                            </p>
+
+                            <div className="relative w-full">
+                                <select
+                                    id="room-type"
+                                    className="w-full px-3 py-2 sm:px-4 sm:py-4 pr-8 sm:pr-10 rounded-xl sm:rounded-2xl border border-[#EDE1E5] sm:border-2 text-sm sm:text-base text-gray-800 appearance-none outline-none"
+                                >
+                                    <option>All</option>
+                                    <option>Single</option>
+                                    <option>Shared</option>
+                                    <option>Studio</option>
+                                </select>
+
+                                <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-[#6B0F2B] text-xs sm:text-base">
+                                    ▼
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div className="flex flex-col justify-center items-start">
+
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                                MIN RATING
+                            </p>
+
+                            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+
+                                <div className="flex items-center">
+                                    {[...Array(5)].map((_, index) => {
+                                        const filled = index < starRating;
+
+                                        return (
+                                            <button
+                                                key={index}
+                                                type="button"
+                                                onClick={() => setStarRating(index + 1)}
+                                                className="transition-transform active:scale-90 p-0 leading-none"
+                                            >
+                                                <Star
+                                                    size={20}
+                                                    className="sm:w-6 sm:h-6 transition-colors duration-200"
+                                                    fill={filled ? '#C0934B' : '#E5D5DB'}
+                                                    stroke="none"
+                                                />
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <button
+                                    disabled
+                                    type="button"
+                                    className="flex items-center gap-1 rounded-full border border-pink-200 bg-pink-50 px-3 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-pink-900"
+                                >
+                                    <span>{starRating}</span>
+                                    <Star size={12} className="sm:w-4 sm:h-4 text-pink-900" fill="currentColor" stroke="none" />
+                                    <span>+</span>
+                                </button>
+
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div className="flex flex-col justify-center w-[50%] md:gap-3 p-2">
+                        <div className="flex flex-col">
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                                PRICE RANGE
+                            </p>
+                            <div style={{ padding: "14px 16px" }}>
+                                <div style={{
+                                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                                    marginBottom: 10,
+                                }}>
+                                    <span style={{
+                                        background: "#f5f0f2", borderRadius: 99, padding: "3px 10px",
+                                        fontSize: 12, fontWeight: 700, color: "#6B0F2B",
+                                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                                    }}>
+                                        ₱{minPrice.toLocaleString()}
+                                    </span>
+                                    <span style={{ fontSize: 11, color: "#bbb", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                                        to
+                                    </span>
+                                    <span style={{
+                                        background: "#f5f0f2", borderRadius: 99, padding: "3px 10px",
+                                        fontSize: 12, fontWeight: 700, color: "#6B0F2B",
+                                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                                    }}>
+                                        ₱{maxPrice.toLocaleString()}
+                                    </span>
+                                </div>
+
+                                <DualRangeSlider
+                                    minVal={minPrice}
+                                    maxVal={maxPrice}
+                                    onMinChange={setMinPrice}
+                                    onMaxChange={setMaxPrice}
+                                    dataMin={2500}
+                                    dataMax={10000}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                                OTHERS
+                            </p>
+                            <div className="flex flex-wrap w-full gap-1">
+                                {
+                                    Object.keys(filters).map((value) => (
+                                        <button onClick={() => {
+                                            let tempFilters = { ...filters }
+                                            tempFilters[value] = !tempFilters[value]
+                                            setFilters(tempFilters)
+                                        }} className={`px-2 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm md:text-base
                                 rounded-full font-medium transition border
                                 ${filters[value]
-                                  ? "bg-[#7A0F23] text-white border-[#7A0F23]"
-                                  : "bg-transparent text-[#7A0F23] border-[#7A0F23]"
-                                }`}>
-                                    {value}
+                                                ? "bg-[#7A0F23] text-white border-[#7A0F23]"
+                                                : "bg-transparent text-[#7A0F23] border-[#7A0F23]"
+                                            }`}>
+                                            {value}
+                                        </button>
+                                    ))
+                                }
+                                <button onClick={() => { setModal(true) }} className={`px-3 py-1 rounded-full font-medium transition border-2 border-dashed bg-transparent text-[#7A0F23]/60 border-[#7A0F23]/60`}>
+                                    + Add more
                                 </button>
-                            ))
-                        }
-                        <button onClick={() => { setModal(true) }} className={`px-3 py-1 rounded-full font-medium transition border-2 border-dashed bg-transparent text-[#7A0F23]/60 border-[#7A0F23]/60`}>
-                            + Add more
-                        </button>
-                        {modal && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center">
+                                {modal && (
+                                    <div className="fixed inset-0 z-50 flex items-center justify-center">
 
-                                {/* Backdrop Blur */}
-                                <div
-                                    className="absolute inset-0 bg-[#4A0E1C]/40 backdrop-blur-sm"
-                                    onClick={() => {
-                                        setModal(modal => !modal)
-                                    }}
-                                />
-
-                                {/* Modal Card */}
-                                <div className="relative z-10 w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl mx-4">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <h2 className="text-2xl font-serif italic text-[#7A162D]">Add filter</h2>
-                                        <button
+                                        {/* Backdrop Blur */}
+                                        <div
+                                            className="absolute inset-0 bg-[#4A0E1C]/40 backdrop-blur-sm"
                                             onClick={() => {
                                                 setModal(modal => !modal)
                                             }}
-                                            className="text-gray-400 hover:text-maroon-800"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <input
-                                            onChange={(e) => {
-                                                setNewFilter(e.target.value)
-                                            }}
-                                            type="text"
-                                            placeholder="New Filter"
-                                            className="w-full px-5 py-3 rounded-2xl border border-gray-100 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#7A162D]/20"
                                         />
 
-                                        <button onClick={() => {
-                                            let tempFilters = { ...filters }
-                                            tempFilters[newFilter] = true
-                                            setFilters(tempFilters)
-                                            setModal(modal => !modal)
-                                        }}
-                                            className="w-full py-4 mt-4 bg-[#7A162D] text-white rounded-2xl font-semibold shadow-lg shadow-maroon-200 hover:bg-[#5a1021] transition-colors">
-                                            Add
-                                        </button>
+                                        {/* Modal Card */}
+                                        <div className="relative z-10 w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl mx-4">
+                                            <div className="flex justify-between items-center mb-6">
+                                                <h2 className="text-2xl font-serif italic text-[#7A162D]">Add filter</h2>
+                                                <button
+                                                    onClick={() => {
+                                                        setModal(modal => !modal)
+                                                    }}
+                                                    className="text-gray-400 hover:text-maroon-800"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <input
+                                                    onChange={(e) => {
+                                                        setNewFilter(e.target.value)
+                                                    }}
+                                                    type="text"
+                                                    placeholder="New Filter"
+                                                    className="w-full px-5 py-3 rounded-2xl border border-gray-100 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#7A162D]/20"
+                                                />
+
+                                                <button onClick={() => {
+                                                    let tempFilters = { ...filters }
+                                                    tempFilters[newFilter] = true
+                                                    setFilters(tempFilters)
+                                                    setModal(modal => !modal)
+                                                }}
+                                                    className="w-full py-4 mt-4 bg-[#7A162D] text-white rounded-2xl font-semibold shadow-lg shadow-maroon-200 hover:bg-[#5a1021] transition-colors">
+                                                    Add
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -615,21 +629,33 @@ export default function BrowsePage() {
         ? MOCK_ACCOMMODATIONS.find((a) => a.accommodationId === Number(centerId)) ?? null
         : null
 
+    const [isBelowSm, setIsBelowSm] = useState(false);
+
+    useEffect(() => {
+        const media = window.matchMedia("(max-width: 639px)");
+
+        const handleChange = (e: MediaQueryListEvent) => setIsBelowSm(e.matches);
+
+        setIsBelowSm(media.matches);
+        media.addEventListener("change", handleChange);
+
+        return () => media.removeEventListener("change", handleChange);
+    }, []);
 
     return <>
-        <div className="flex w-screen h-screen">
+        <div className="flex w-full min-h-screen bg-[#F5EEF0]">
+            <div className="relative z-[9999]">
+                <Sidebar role="student" />
+            </div>
+            <div className="flex flex-col items-start w-full min-h-screen">
 
-            <Sidebar role='student'></Sidebar>
-            <div className="flex flex-col items-start w-full h-screen bg-white">
-
-                {/* <div className="flex items-center gap-4 px-4">
-
-                    <div className="w-[6px] h-8 bg-[#7A162D] rounded-full" />
-
-                    <h1 className="text-4xl font-serif italic text-[#7A162D] tracking-tight">
+                <div className="w-full px-2 py-4 flex items-center justify-start gap-2">
+                    <div className="w-2 h-10 bg-[#7A0F23] rounded-full"></div>
+                    <h1 className="text-3xl md:text-4xl font-serif italic font-bold text-[#7A0F23]">
                         Browse Rooms
                     </h1>
-                </div> */}
+                </div>
+
                 <div className="flex flex-col w-full p-2 items-center">
                     <div className="flex flex-col w-full h-full justify-center items-start p-2 rounded-lg bg-gradient-to-r from-[#4A0E1C] via-[#7A162D] to-[#4A0E1C] shadow-lg">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400/80">
@@ -641,7 +667,7 @@ export default function BrowsePage() {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap justify-center items-start w-full">
+                <div className="flex flex-wrap justify-center items-start w-full gap-2 md:gap-0">
 
                     {/* first half */}
                     <div className="flex flex-col justify-center items-center w-full gap-2 md:w-1/2 shrink-0">
@@ -651,7 +677,7 @@ export default function BrowsePage() {
                         </div>
 
                         {/* dorm cards and buttons */}
-                        <div className="flex w-full justify-center items-center p-4">
+                        <div className="flex w-full justify-center items-center p-4 gap-2">
                             <div className="flex justify-center items-center relative z-50">
                                 <button onClick={() => {
                                     let counter = pageNumber
@@ -674,19 +700,6 @@ export default function BrowsePage() {
                                         let temp = [max - 2, max]
                                         setPageLimits(temp)
                                     }
-                                    // else if (pageNumber % 2 == 0 && pageNumber == 0) {
-
-                                    //     let temp = [...pageLimits]
-                                    //     let max = Object.keys(dorms).length
-                                    //     max = max % 2 == 0 ? max : max + 1
-
-                                    //     if (temp[1] + 2 <= max) {
-                                    //         temp[0] += 2
-                                    //         temp[1] += 2
-                                    //         setPageLimits(temp)
-                                    //         console.log('hey2', temp)
-                                    //     }
-                                    // }
 
                                     setPageNumber(counter)
                                 }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
@@ -704,13 +717,14 @@ export default function BrowsePage() {
                                 >
 
                                     {Object.keys(dorms).map((key, index) => {
+                                        console.log(isBelowSm)
                                         if (pageNumber == index) {
-                                            return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-500"
+                                            return <div className={`w-full shrink-0 flex items-center transition-opacity duration-500 ${"opacity-500"
                                                 }`}>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
+                                                <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
                                                     {dorms[Number(key)].map((value) => (
                                                         <div className="w-full flex items-center justify-center">
-                                                            <DormCard {...value} verified onView={() => { }} />
+                                                            <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
                                                         </div>
                                                     ))}
                                                 </div>
@@ -718,10 +732,10 @@ export default function BrowsePage() {
                                         } else {
                                             return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-0"
                                                 }`}>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
+                                                <div className="grid grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
                                                     {dorms[Number(key)].map((value) => (
                                                         <div className="w-full flex items-center justify-center">
-                                                            <DormCard {...value} verified onView={() => { }} />
+                                                            <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
                                                         </div>
                                                     ))}
                                                 </div>
@@ -818,16 +832,16 @@ export default function BrowsePage() {
                     </div>
 
                     {/* second half */}
-                    <div className="flex justify-center items-start w-full h-full md:w-1/2 shrink-0 relative z-50 bg-[linear-gradient(to_right,transparent_80%,#ffffff_80%)]">
-                        <div className="flex flex-col justify-center items-center bg-white rounded-lg p-4 shadow-md w-[90%] h-[50%] md:h-full gap-2">
-                            <div className="bg-[#6B0F2B] rounded-lg w-[99%] h-[40%]">
-                                <AccommodationMap
-                                    accommodations={filtered}
-                                    centeredAccommodation={centeredAccommodation}
-                                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
-                                />
-                            </div>
-                     
+                    <div className="flex justify-center items-start w-full h-[70%] md:w-1/2 md:h-full shrink-0 relative z-50 bg-[radial-gradient(circle_at_center,#F5EEF0)]">
+                        <div className="flex flex-col justify-center items-center bg-white rounded-lg p-4 shadow-md w-[90%] h-full gap-2">
+
+                            <AccommodationMap
+                                accommodations={filtered}
+                                centeredAccommodation={centeredAccommodation}
+                                onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+                            />
+
+
                             <div className="flex justify-center items-center w-[90%] gap-3">
                                 <Form></Form>
                             </div>
