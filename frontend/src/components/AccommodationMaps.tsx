@@ -23,6 +23,7 @@ export interface AccommodationPin {
     stayType?: 'transient' | 'non_transient' | 'both'
     imageUrl?: string
     rating: number
+    amenities?: string[]
 }
 
 type TravelMode = 'walking' | 'driving' | 'cycling'
@@ -321,14 +322,21 @@ export default function AccommodationMap({
                   <span className="text-xs text-gray-500">/ month</span>
                 </div>
 
-                {/* Amenities Tags (Static to match image) */}
+                {/* Amenities Tags */}
                 <div className="flex flex-wrap gap-1.5 mb-5">
-                  {/* hardcoded tags for display purposes */}
-                  {['WiFi', 'Furnished', 'Air-con'].map(tag => (
-                    <span key={tag} className="bg-[#F5EBEB] text-[#710A2B] text-[11px] px-3 py-1 rounded-full font-medium">
+                  {selectedPin.amenities?.map(tag => (
+                    <span 
+                      key={tag} 
+                      className="bg-[#F5EBEB] text-[#710A2B] text-[11px] px-3 py-1 rounded-full font-medium"
+                    >
                       {tag}
                     </span>
                   ))}
+                  
+                  {/* Fallback if no amenities are listed */}
+                  {(!selectedPin.amenities || selectedPin.amenities.length === 0) && (
+                    <span className="text-[11px] text-gray-400">No amenities listed</span>
+                  )}
                 </div>
 
                 {/* Button */}
