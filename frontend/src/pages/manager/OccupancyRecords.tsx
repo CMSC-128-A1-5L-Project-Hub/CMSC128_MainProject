@@ -4,6 +4,7 @@ import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
 import Card from "../../components/ui/Card"
 import Button from "../../components/Button"
+import Modal from "../../components/Modal"
 
 interface ManagerProfile {
     fullName: string
@@ -92,6 +93,7 @@ const SORT_OPTS = ["Room Type", "Room No.", "Date", "Action"]
 
 const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:string}) => {
     const [currentPage, setCurrentPage] = useState(1)
+    const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
     const totalPages = Math.ceil(rooms.length / ROOMS_PER_PAGE)
     const startIndex = (currentPage - 1) * ROOMS_PER_PAGE
     const paginatedRooms = rooms.slice(startIndex, startIndex + ROOMS_PER_PAGE)
@@ -102,6 +104,89 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
     }
 
     return (
+        <>
+        <Modal 
+            open={!!selectedRoom}
+            onClose={() => setSelectedRoom(null)}
+            title="View Room Details"
+            maxWidth={652}
+            children={
+                selectedRoom && (
+                    <Card 
+                        children={
+                            <div className="flex flex-col gap-4">
+                                {/* Room Header */}
+                                <div>
+                                    <h1 className="font-bold text-xl text-[#1A0008]">
+                                        ROOM {selectedRoom.roomNumber}
+                                    </h1>
+                                    <p className="text-[#C8B0B8] text-xs uppercase border-b border-[#F5ECF0] pb-1">
+                                        Building {selectedRoom.roomBuilding}
+                                    </p>
+                                </div>
+
+                                {/* Room Info Grid */}
+                                <div className="grid grid-cols-4 gap-2 -mt-2">
+                                    <div>
+                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-1">Room Type</p>
+                                        <p className="font-semibold text-[#1A0008] capitalize">{selectedRoom.roomType}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-1">Room Arrangement</p>
+                                        <p className="font-semibold text-[#1A0008] capitalize">{selectedRoom.roomType} Room</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-1">Room Capacity</p>
+                                        <p className="font-semibold text-[#1A0008]">{selectedRoom.roomCurrentOccupancy}/{selectedRoom.roomCapacity}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-1">Status</p>
+                                        <p className={`font-semibold ${selectedRoom.roomCurrentOccupancy === selectedRoom.roomCapacity ? "text-[#9E2040]" : "text-[#1A7A4A]"}`}>
+                                            {selectedRoom.roomCurrentOccupancy === selectedRoom.roomCapacity
+                                                ? "Fully Occupied"
+                                                : "Available"}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Current Occupants */}
+                                <div>
+                                    <p className="font-bold text-[#1A0008] mb-3">Current Occupants</p>
+                                    {selectedRoom.tenants.length > 0 ? (
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                            {selectedRoom.tenants.map((tenant, i) => (
+                                                <div key={i} className="flex flex-col gap-3">
+                                                    {/* Avatar + Name */}
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
+                                                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                                                            {tenant.fullName[0]}
+                                                        </div>
+                                                        <p className="font-bold text-[#1A0008]">{tenant.fullName}</p>
+                                                    </div>
+                                                    {/* Email */}
+                                                    <div>
+                                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5">Email</p>
+                                                        <p className="text-[#1A0008] text-sm">{tenant.email}</p>
+                                                    </div>
+                                                    {/* Phone */}
+                                                    <div>
+                                                        <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5">Phone Number</p>
+                                                        <p className="text-[#1A0008] text-sm">{tenant.phoneNumber}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-[#9A7080]">No current occupants.</p>
+                                    )}
+                                </div>
+                            </div>
+                        }
+                    />
+                )
+            }
+        />
         <Card 
             className={className}
             children={
@@ -119,7 +204,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                         <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
                             Capacity
                         </p>
-                        <p className="hidden lg:col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
+                        <p className="hidden lg:block col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
                             Status
                         </p>
                         <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
@@ -148,7 +233,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                             <p className="col-span-1 text-center text-sm text-[#1A0008]">
                                                 {room.roomCurrentOccupancy}/{room.roomCapacity}
                                             </p>
-                                            <div className="hidden lg:col-span-1 flex justify-center">
+                                            <div className="hidden lg:flex col-span-1 justify-center">
                                                 <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1 min-w-[90px] rounded-full font-medium
                                                     ${status === "Full" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
                                                     `}>
@@ -159,7 +244,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                                 </span>
                                             </div>
                                             <div className="col-span-1 flex justify-center">
-                                                <Button variant="tertiary" size="sm" className="px-6">
+                                                <Button variant="tertiary" size="sm" className="px-6" onClick={() => setSelectedRoom(room)}>
                                                         View
                                                 </Button>
                                             </div>
@@ -207,6 +292,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                 </div>
             }
         />
+        </>
     )
 }
 
@@ -410,8 +496,8 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                     <div className="grid grid-cols-8 lg:grid-cols-12 border-b border-[#F5ECF0] uppercase pb-1 mb-1">
                         <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Students</p>
                         <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Room No.</p>
-                        <p className="hidden lg:col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Building No.</p>
-                        <p className="hidden lg:col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Room Type</p>
+                        <p className="hidden lg:block col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Building No.</p>
+                        <p className="hidden lg:block col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Room Type</p>
                         <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Action</p>
                         <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
                             Date
@@ -427,15 +513,15 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                             <div key={i} className="grid grid-cols-8 lg:grid-cols-12 items-center py-3">
                                 {/* Student */}
                                 <div className="col-span-2 flex items-center gap-2">
-                                    <div className="hidden lg:w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                                    <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
                                         style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                                         {getInitials(record.tenant.fullName)}
                                     </div>
                                     <p className="font-bold text-[12px] ml-1 lg:ml-0 lg:text-sm text-[#1A0008]">{record.tenant.fullName}</p>
                                 </div>
                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">Room {record.roomNumber}</p>
-                                <p className="hidden lg:col-span-2 text-center text-sm text-[#1A0008]">Building {record.roomBuilding}</p>
-                                <p className="hidden lg:col-span-2 text-center text-sm text-[#1A0008] capitalize">{record.roomType}</p>
+                                <p className="hidden lg:block col-span-2 text-center text-sm text-[#1A0008]">Building {record.roomBuilding}</p>
+                                <p className="hidden lg:block col-span-2 text-center text-sm text-[#1A0008] capitalize">{record.roomType}</p>
                                 <div className="col-span-2 flex justify-center">
                                     <span className={`inline-flex items-center justify-center gap-1 text-[10px] lg:text-xs px-2 py-1 min-w-[70px] lg:min-w-[110px] rounded-full font-medium
                                         ${record.action === "Move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
