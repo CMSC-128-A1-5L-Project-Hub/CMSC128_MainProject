@@ -328,7 +328,10 @@ export default class extends BaseSeeder {
       { accommodation_id: getAccom("Scholar's Dorm"), room_number: '501', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building C', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'maintenance' },
       { accommodation_id: getAccom("Scholar's Dorm"), room_number: '502', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 2, room_building: 'Building C', room_rent: 6000.00, tenant_restriction: 'coed', room_availability: 'available' },
       { accommodation_id: getAccom('White House'), room_number: '303', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 1, room_building: 'Building A', room_rent: 4800.00, tenant_restriction: 'coed', room_availability: 'available' },
-      { accommodation_id: getAccom('One Silangan'), room_number: '203', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building B', room_rent: 6200.00, tenant_restriction: 'coed', room_availability: 'available' }
+      { accommodation_id: getAccom('One Silangan'), room_number: '203', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building B', room_rent: 6200.00, tenant_restriction: 'coed', room_availability: 'available' },
+      
+      { accommodation_id: getAccom("One Sapphire Place"), room_number: '601', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' },
+{ accommodation_id: getAccom("One Sapphire Place"), room_number: '602', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3200.00, tenant_restriction: 'coed', room_availability: 'available' }
     ])
 
     const allRooms = await db.from('rooms').select('id', 'room_number', 'accommodation_id')
@@ -338,11 +341,11 @@ export default class extends BaseSeeder {
     // 10. APPLICATIONS, ASSIGNMENTS, BOOKMARKS
     // =========================================================================
     await db.table('applications').multiInsert([
-      // --- AVRIELLE'S TEST APPLICATIONS ---
-      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
-      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123457', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 10 },
-      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2023-123457', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 180 },
-      { accommodation_id: getAccom("ATI"), student_number: '2023-123457', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 30 },
+      // --- CLARENCE TEST APPLICATIONS ---
+      { accommodation_id: getAccom('One Silangan'), student_number: '2024-000002', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
+      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 10 },
+      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 180 },
+      { accommodation_id: getAccom("ATI"), student_number: '2024-000002', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 30 },
       
       { accommodation_id: getAccom('White House'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 150 },
       { accommodation_id: getAccom('White House'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 180 },
@@ -427,10 +430,10 @@ export default class extends BaseSeeder {
     ])
 
     await db.table('notifications').multiInsert([
-      // --- AVRIELLE'S TEST NOTIFICATIONS ---
-      { user_id: getUser('afjuarez@up.edu.ph'), notification_content: 'Your rent payment for One Silangan is due on March 15, 2026.', read_status: 'unread', notification_type: 'fee_due' },
-      { user_id: getUser('afjuarez@up.edu.ph'), notification_content: 'Your accommodation application to One Silangan has been approved.', read_status: 'unread', notification_type: 'application_status' },
-      { user_id: getUser('afjuarez@up.edu.ph'), notification_content: 'Welcome to the USAT Platform!', read_status: 'read', notification_type: 'system' },
+      // --- CLARENCE TEST NOTIFICATIONS ---
+      { user_id: getUser('ctbernardino@up.edu.ph'), notification_content: 'Your rent payment for One Silangan is due on March 15, 2026.', read_status: 'unread', notification_type: 'fee_due' },
+      { user_id: getUser('ctbernardino@up.edu.ph'), notification_content: 'Your accommodation application to One Silangan has been approved.', read_status: 'unread', notification_type: 'application_status' },
+      { user_id: getUser('ctbernardino@up.edu.ph'), notification_content: 'Welcome to the USAT Platform!', read_status: 'read', notification_type: 'system' },
       
       { user_id: getUser('accruz@up.edu.ph'), notification_content: 'Your accommodation application has been approved.', read_status: 'read', notification_type: 'application_status' },
       { user_id: getUser('svramirez@up.edu.ph'), notification_content: 'System maintenance is scheduled on March 12, 2026.', read_status: 'unread', notification_type: 'system' },

@@ -54,6 +54,10 @@ router
     router.post('/auth/verify-sms', [controllers.SmsVerifications, 'verify'])
     router.post('/auth/send-otp', [controllers.SmsVerifications, 'send']).use(throttle)
 
+    // Notfications
+    router.get('/notifications', [controllers.Notifications, 'index'])
+    router.patch('/notifications/:id', [controllers.Notifications, 'update'])
+
     // ====================================================================
     // ─── STUDENT ROUTES ───
     // ====================================================================
@@ -62,6 +66,7 @@ router
         // Application & Stay
         router.post('/applications', [controllers.Application, 'store'])
         router.get('/applications/my-applications', [controllers.Application, 'index'])
+        router.patch('/applications/:id', [controllers.Application, 'cancel'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
 
@@ -109,7 +114,6 @@ router
         // Application Review
         router.get('/applications/incoming', [controllers.Application, 'incoming'])
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
-
         // Room Management
         router.get('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'index'])
         router.post('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'store'])
@@ -174,7 +178,3 @@ router.get('/swagger', async () => {
 router.get('/docs', async () => {
   return AutoSwagger.ui('/swagger', swagger)
 })
-
-// Notfications
-router.get('/notifications', [controllers.Notifications, 'index'])
-router.patch('/notifications/:id', [controllers.Notifications, 'update'])
