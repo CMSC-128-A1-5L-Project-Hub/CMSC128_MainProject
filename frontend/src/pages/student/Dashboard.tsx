@@ -627,7 +627,7 @@ export default function Dashboard() {
       behavior: "smooth",
     });
   };
-
+  // Profile and authentication -------------------
   useEffect(() => {
   const fetchProfile = async () => {
     try {
@@ -669,8 +669,53 @@ useEffect(() => {
     }
     }, [user, navigate]);
 
+// -------------------------------------------------------
+
+// Notification details fetch---------------------------------
+  useEffect(() => {
+    const fetchNotifications = async () => {
+        try {
+        const res = await api.get("/notifications");
+        console.log("notifications:", res.data);
 
 
+        const data = res.data.data ?? res.data;
+
+
+        // unread count (optional)
+        const unreadCount = data.filter(
+            (n: any) => n.readStatus?.toLowerCase() === "unread"
+        ).length;
+
+
+        setUnreadNotificationsCount(unreadCount);
+
+
+        // today's notifications
+        const today = new Date().toISOString().split("T")[0];
+
+
+        const todayCount = data.filter((n: any) => {
+            const notifDate = new Date(n.notificationTimestamp)
+            .toISOString()
+            .split("T")[0];
+
+
+            return notifDate === today;
+        }).length;
+
+
+        setNotificationsTodayCount(todayCount);
+
+
+        } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+        }
+    };
+
+
+    fetchNotifications();
+    }, []);
 if (profileLoading) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
@@ -699,6 +744,10 @@ if (isUserLoading) {
     if (!user || user.role !== "student") {
     return null;
     }
+
+// ------------------------------------------------------
+
+
 
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
