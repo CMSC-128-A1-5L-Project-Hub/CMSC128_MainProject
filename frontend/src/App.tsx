@@ -11,6 +11,8 @@ import ResidenceCarousel from "./pages/shared/Recommendedsection"
 import UBLEFooter from "./pages/shared/SupportSection"
 import InteractiveMap from "./pages/MapPage"
 
+import ApplicationsPage from "./pages/manager/ApplicationsPage";
+
 
 function FullLandingPage() {
   return (
@@ -35,6 +37,7 @@ function App() {
         <Route path="/student/dashboard" element={<StudentDashboard/>}/>
         <Route path="/landingpage" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
+        <Route path="/manager/applications" element={<ApplicationsPage />} />
       </Routes>
     </BrowserRouter>
   )
