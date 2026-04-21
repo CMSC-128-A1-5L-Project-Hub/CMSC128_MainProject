@@ -13,6 +13,8 @@ import FeaturesSection from "./pages/shared/Featuresection"
 import ResidenceCarousel from "./pages/shared/Recommendedsection"
 import UBLEFooter from "./pages/shared/SupportSection"
 import InteractiveMap from "./pages/MapPage"
+import BrowsePage from "./pages/student/Browse"
+
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
@@ -44,6 +46,7 @@ function App() {
         <Route path="/manager/room-assignment" element={<RoomAssignment />}/>
         <Route path="/" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
+        <Route path="/browse" element={<BrowsePage />} />
         <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/pending-verification" element={<PendingVerification />} />
