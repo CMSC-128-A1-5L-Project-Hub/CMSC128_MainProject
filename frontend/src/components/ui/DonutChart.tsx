@@ -4,6 +4,7 @@ type DonutChartProps = {
     strokeWidth?: number
     color?: string
     trackColor?: string
+    textSize?:string
 }
 
 export default function DonutChart({
@@ -11,7 +12,8 @@ export default function DonutChart({
     size = 80,
     strokeWidth = 8,
     color = "#8C1535",
-    trackColor = "#E5D0D5"
+    trackColor = "#E5D0D5",
+    textSize="sm"
 }: DonutChartProps) {
     const radius = (size - strokeWidth) / 2
     const circumference = 2 * Math.PI * radius
@@ -42,7 +44,7 @@ export default function DonutChart({
                     strokeLinecap="round"
                 />
             </svg>
-            <span className="absolute text-xs font-semibold text-[#3D0718]">
+            <span className={`absolute text-${textSize} font-semibold text-[#3D0718]`}>
                 {percentage}%
             </span>
         </div>
