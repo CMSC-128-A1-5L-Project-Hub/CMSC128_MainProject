@@ -66,7 +66,7 @@ router
         // Application & Stay
         router.post('/applications', [controllers.Application, 'store'])
         router.get('/applications/my-applications', [controllers.Application, 'index'])
-        router.delete('/applications/:id', [controllers.Application, 'destroy'])
+        router.patch('/applications/:id', [controllers.Application, 'cancel'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
 

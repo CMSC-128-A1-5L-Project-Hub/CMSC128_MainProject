@@ -47,8 +47,9 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const cancelMutation = useMutation({
     mutationFn: async () => {
       if (!application) throw new Error("No application selected");
-      const res = await fetch(`http://localhost:3333/applications/${application.id}/review`, {
+      const res = await fetch(`http://localhost:3333/applications/${application.id}`, {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "cancelled" }),
       });
