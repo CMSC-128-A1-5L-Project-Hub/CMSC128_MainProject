@@ -1,6 +1,9 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
+import { api } from "../../api/axios"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 
 
 // ── SVG / asset imports ────────────────────────────────────────────────────
@@ -561,7 +564,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
         <div className="min-w-0">
           <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
           <p className="text-[15px] font-bold leading-tight mt-1" style={{ color: CLR.goldLt }}>
-            {profile.course} · {profile.campus}
+            {profile.course.toLocaleUpperCase()} · {profile.campus}
           </p>
           <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
           <p className="text-white/70 text-sm">{profile.phone}</p>
@@ -570,9 +573,9 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
 
       <div className="mt-6 grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-4">        {[
           { label: "Student No.", value: profile.studentNo },
-          { label: "College", value: profile.college },
+          { label: "College", value: profile.college.toUpperCase() },
           { label: "Year Level", value: profile.yearLevel },
-          { label: "Status", value: profile.status, green: true },
+          { label: "Status", value: profile.status.charAt(0).toUpperCase() + profile.status.slice(1).toLowerCase(), green: true },
         ].map((item) => (
           <div key={item.label}>
             <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
@@ -598,6 +601,25 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
 export default function Dashboard() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("All");
+
+  
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
+  
+  const {data: user,
+    isLoading: isUserLoading,
+    isError,
+    } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+        const res = await api.get("/me");
+        return res.data.data;
+    },
+    });
+
   const recommendedScrollRef = useRef<HTMLDivElement | null>(null);
   const scrollRecommendedRight = () => {
     recommendedScrollRef.current?.scrollBy({
@@ -606,12 +628,84 @@ export default function Dashboard() {
     });
   };
 
+  useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const res = await api.get("/student/profile");
+      const data = res.data.data ?? res.data;
+
+      setProfile({
+        fullName: data.fullName ?? "",
+        shortName: data.shortName ?? "",
+        course: data.course ?? "",
+        campus: data.campus ?? "",
+        email: data.email ?? "",
+        phone: data.phone ?? "",
+        studentNo: data.studentNo ?? "",
+        college: data.college ?? "",
+        yearLevel: data.yearLevel ?? "",
+        status: data.status ?? "",
+      });
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  fetchProfile();
+}, []);
+
+useEffect(() => {
+    if (isError) {
+        navigate("/auth/signin");
+    }
+    }, [isError, navigate]);
+
+
+    useEffect(() => {
+    if (user && user.role !== "student") {
+        navigate("/auth/signin");
+    }
+    }, [user, navigate]);
+
+
+
+if (profileLoading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
+      <p className="text-gray-600">Loading profile...</p>
+    </div>
+  );
+}
+
+if (!profile) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
+      <p className="text-gray-600">Profile not found.</p>
+    </div>
+  );
+}
+
+if (isUserLoading) {
+    return (
+        <div className="flex items-center justify-center h-screen">
+        <p>Loading...</p>
+        </div>
+    );
+    }
+
+
+    if (!user || user.role !== "student") {
+    return null;
+    }
+
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
       {/* Reusable Sidebar */}
-      <Sidebar role="student" profile={studentProfile} />
+      <Sidebar role="student" profile={profile} />
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -631,13 +725,13 @@ export default function Dashboard() {
           >
             <div className="relative z-10 px-5 sm:px-8 py-6">
               <p className="text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1" style={{ color: CLR.goldLt }}>
-                {heroContent.greeting}, {studentProfile.shortName}
+                {heroContent.greeting}, {profile.shortName}
               </p>
               <h2 className="text-white font-bold text-lg sm:text-2xl leading-snug mb-1.5 max-w-xs sm:max-w-sm">
                 {heroContent.title}
               </h2>
               <p className="text-white/60 text-xs sm:text-sm">
-                You have {heroContent.pendingApplications} pending applications and {heroContent.newNotificationsToday} new notifications today.
+                You have {pendingApplicationsCount} pending application{pendingApplicationsCount !== 1 && "s"} and {notificationsTodayCount} new notification{notificationsTodayCount !== 1 && "s"} today.              
               </p>
             </div>
 
@@ -884,7 +978,7 @@ export default function Dashboard() {
         </div>
       </main>
 
-      <DesktopProfilePanel profile={studentProfile} billing={billingOverview} statements={billingStatements} />
+      <DesktopProfilePanel profile={profile} billing={billingOverview} statements={billingStatements} />
     </div>
   );
 }

@@ -34,7 +34,7 @@ export default class StudentProfileController {
       phone: '',
       studentNo: student.studentNumber ?? '',
       college: student.college ?? '',
-      yearLevel: '',
+      yearLevel: student.yearLevel ?? '',
       status: user.accountStatus ?? '',
     })
   }
