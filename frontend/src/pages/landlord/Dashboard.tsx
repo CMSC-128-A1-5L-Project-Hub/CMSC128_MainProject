@@ -1,9 +1,9 @@
-import HeroBanner from "../../components/dashboard/HeroCard";
+import HeroBanner from "../../components/dashboard/HeroBanner";
 import StatCard from "../../components/dashboard/StatCard";
 import SectionCard from "../../components/dashboard/SectionCard";
 import CircleProgress from "../../components/dashboard/CircleProgress";
 import Sidebar from "../../components/Sidebar";
-import ProfileCard from "../../components/dashboard/managerCard";
+import ProfileCard from "../../components/dashboard/ManagerCard";
 import PaymentList from "../../components/dashboard/PaymentList";
 import ActivityLogs from "../../components/dashboard/ActivityLogs";
 import ReportsPanel from "../../components/dashboard/ReportsPanel";
@@ -13,6 +13,36 @@ import Modal from "../../components/Modal";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
+
+interface LandlordProfile {
+    fullName: string
+    shortName: string
+    email: string
+    phoneNumber: string
+    status: string
+    dormitory: string
+}
+
+interface HeroContent {
+    greeting: string
+    title: string
+    subtitle: string
+}
+
+const heroContent: HeroContent = {
+    greeting: "Good Day",
+    title: "Efficiently manage applicants & housing accommodation",
+    subtitle: "You have 2 pending applications and 3 new notifications"
+}
+
+const landlordProfile: LandlordProfile = {
+    fullName: "Dal Cadsawan",
+    shortName: "Dal",
+    email: "ddcadsawan@up.edu.ph",
+    phoneNumber: "+63 912 345 6789",
+    status: "Active",
+    dormitory: "Narra Residences"
+}
 
 function FilterTabs({ active, setActive }: any) {
   const tabs = ["Overview", "Fees", "Rooms"];
@@ -78,7 +108,13 @@ export default function Dashboard() {
               </div>
 
               {/* HERO */}
-              <HeroBanner />
+              <HeroBanner 
+                greeting={heroContent.greeting}
+                title={heroContent.title}
+                subtitle={heroContent.subtitle}
+                name={landlordProfile.fullName}
+                type="full"
+              />
 
               {/* RIGHT PANEL — visible only on mobile, sits below hero */}
               <div className="lg:hidden">

@@ -293,7 +293,10 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     if (path.includes("application")) return "application";
     if (path.includes("fees"))        return "fees";
     if (path.includes("search") || path.includes("properties")) return "search";
-    if (path.includes("tenants"))     return "applications";
+    if (path.includes("tenants")) return "applications";
+    if (path.includes("documents") || path.includes("reports") || path.includes("users")) return "documents"
+    if (path.includes("occupancy-records")) return "reports";
+    if (path.includes("room-assignment")) return "users";
     if (path.includes("documents") || path.includes("reports") || path.includes("users")) return "documents";
     return "dashboard";
   });
@@ -322,10 +325,10 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         ];
       case "manager":
         return [
-          { id: "dashboard",  icon: <DashboardIcon   className="w-5 h-5" />,          path: "/manager/dashboard",   label: "Dashboard" },
-          { id: "reports",    icon: <SearchIcon      className="w-[21px] h-[21px]" />, path: "/manager/reports",     label: "Reports" },
-          { id: "users",      icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/manager/users",       label: "Users" },
-          { id: "properties", icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/manager/properties",  label: "Properties" },
+          { id: "dashboard",  icon: <DashboardIcon   className="w-5 h-5" />, path: "/manager/dashboard", label: "Dashboard" },
+          { id: "reports",    icon: <DocumentIcon      className="w-[21px] h-[21px]" />, path: "/manager/occupancy-records", label: "Occupancy Records" },
+          { id: "users",      icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/manager/room-assignment", label: "Room Assignment" },
+          { id: "properties", icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/manager/properties", label: "Properties" },
         ];
       default:
         return [];
@@ -343,8 +346,9 @@ export default function Sidebar({ role, profile }: SidebarProps) {
   const handleNavigation = (id: string, path: string) => {
     setActive(id);
     if (id === "logout") {
-      navigate("/login");
-    } else if (path) {
+      console.log("Logging out...");
+      navigate("/auth/signin");
+    } else {
       navigate(path);
     }
   };

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
+import HeroBanner from "../../components/dashboard/HeroBanner";
 
 
 // ── SVG / asset imports ────────────────────────────────────────────────────
@@ -68,8 +69,6 @@ interface HeroContent {
   greeting: string;
   title: string;
   subtitle: string;
-  pendingApplications: number;
-  newNotificationsToday: number;
 }
 
 interface BillingOverview {
@@ -105,8 +104,6 @@ const heroContent: HeroContent = {
   greeting: "Good Day",
   title: "Check your applications & explore new accommodations.",
   subtitle: "You have 2 pending applications and 3 new notifications today.",
-  pendingApplications: 2,
-  newNotificationsToday: 3,
 };
 
 const applications: Application[] = [
@@ -615,36 +612,22 @@ export default function Dashboard() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-5 pb-3 lg:pt-7 lg:pb-2 sticky top-0 z-30 bg-[#F6F2F4]">
-          <div className="flex items-center gap-3">
-            <div className="hidden lg:flex items-center gap-2">
-              <div className="w-1 h-6 rounded-full" style={{ background: CLR.mid }} />
-            </div>
-            <h1 className="font-serif italic text-2xl lg:text-4xl font-bold text-gray-900">Dashboard</h1>
-          </div>
-        </header>
-
+        <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
+          <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
+              style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
+          />
+          <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">
+              Dashboard
+          </h1>
+        </div>
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5 space-y-4 lg:space-y-5">
-          <div
-            className="relative rounded-2xl overflow-hidden flex items-center min-h-[140px] sm:min-h-[176px]"
-            style={{ background: `linear-gradient(135deg, ${CLR.dark} 0%, ${CLR.accent} 60%, ${CLR.mid} 100%)` }}
-          >
-            <div className="relative z-10 px-5 sm:px-8 py-6">
-              <p className="text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1" style={{ color: CLR.goldLt }}>
-                {heroContent.greeting}, {studentProfile.shortName}
-              </p>
-              <h2 className="text-white font-bold text-lg sm:text-2xl leading-snug mb-1.5 max-w-xs sm:max-w-sm">
-                {heroContent.title}
-              </h2>
-              <p className="text-white/60 text-xs sm:text-sm">
-                You have {heroContent.pendingApplications} pending applications and {heroContent.newNotificationsToday} new notifications today.
-              </p>
-            </div>
-
-            <div className="absolute right-0 bottom-0 h-full flex items-end pointer-events-none">
-              <img src={house_icon} alt="" className="w-[130px] h-[130px]" />
-            </div>
-          </div>
+          <HeroBanner 
+            greeting={heroContent.greeting}
+            title={heroContent.title}
+            subtitle={heroContent.subtitle}
+            name={studentProfile.fullName}
+            type="full"
+          />
 
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-3">
