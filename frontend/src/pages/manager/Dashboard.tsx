@@ -9,6 +9,8 @@ import Moves from "../../components/dashboard/manager/Moves"
 import ProfileCard from "../../components/dashboard/ManagerCard"
 import ActivityLogs from "../../components/dashboard/ActivityLogs"
 
+//TODO: Donut Card stack
+
 //Interfaces
 interface ManagerProfile {
     fullName: string

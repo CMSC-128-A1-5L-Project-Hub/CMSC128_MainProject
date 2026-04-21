@@ -29,16 +29,16 @@ export default function Applications({ data, className="" }: any) {
                     style={{ gridTemplateColumns: "1.5fr 1.0fr 2fr 1.5fr 2fr" }}
                 >
                     
-                    <p className="col-span-2 text-[#9A7080] text-xs lg:text-sm font-bold p-1">
+                    <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">
                         Student
                     </p>
-                    <p className="col-span-1 text-[#9A7080] text-xs lg:text-sm font-bold p-1">
+                    <p className="col-span-1 text-[#9A7080] text-xs font-bold p-1">
                         Preferred Facility
                     </p>
-                    <p className="col-span-1 text-[#9A7080] text-xs lg:text-sm font-bold p-1">
+                    <p className="col-span-1 text-[#9A7080] text-xs font-bold p-1">
                         Date Applied
                     </p>
-                    <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-sm font-bold p-1">
+                    <p className="col-span-1 text-center text-[#9A7080] text-xs font-bold p-1">
                         Action
                     </p>
                 </div>
@@ -52,19 +52,19 @@ export default function Applications({ data, className="" }: any) {
                                     style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                                     {getInitials(application.studentName)}
                                 </div>
-                                <p className="text-black text-sm lg:text-base pl-2">
+                                <p className="text-black text-sm pl-2">
                                     {application.studentName}
                                 </p>
                             </div>
                             <div className="flex flex-col px-1">
-                                <p className="col-span-1 text-[#1A0008] text-sm lg:text-base">
+                                <p className="col-span-1 text-[#1A0008] text-sm">
                                     {application.building}
                                 </p>
-                                <p className="col-span-1 text-[#9A7080] text-xs lg:text-sm">
+                                <p className="col-span-1 text-[#9A7080] text-xs">
                                     {application.type}
                                 </p>
                             </div>
-                            <p className="col-span-1 text-[#9A7080] text-sm lg:text-base p-1 flex items-center">
+                            <p className="col-span-1 text-[#9A7080] text-sm p-1 flex items-center">
                                 {application.appliedDate}
                             </p>
                             <div className="col-span-1 flex items-center justify-center">
