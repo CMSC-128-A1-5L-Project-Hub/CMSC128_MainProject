@@ -71,7 +71,7 @@ export default function ConfirmedStudents({ data, className="" }: any) {
                                         </span>
                                     </div>
                                     <div className="col-span-1 px-2 flex items-center justify-center">
-                                        <Button variant="tertiary" size="sm">
+                                        <Button variant="reddishPink" size="sm">
                                             Assign Room
                                         </Button>
                                     </div>

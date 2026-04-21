@@ -55,7 +55,7 @@ export default function Applications({ data, className="" }: any) {
                                 {application.appliedDate}
                             </p>
                             <div className="col-span-1 flex items-center">
-                                <Button variant="tertiary" size="sm">
+                                <Button variant="reddishPink" size="sm">
                                     Review
                                 </Button>
                             </div>

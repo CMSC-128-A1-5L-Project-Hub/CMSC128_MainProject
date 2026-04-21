@@ -245,7 +245,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                                 </span>
                                             </div>
                                             <div className="col-span-1 flex justify-center">
-                                                <Button variant="tertiary" size="sm" className="px-6" onClick={() => setSelectedRoom(room)}>
+                                                <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRoom(room)}>
                                                         View
                                                 </Button>
                                             </div>

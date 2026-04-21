@@ -42,7 +42,7 @@ export default function Waitlist({ students=[], className="" }:WaitlistProps) {
                                     </p>
                                 </div>
                                 <div className="col-span-1 flex items-center">
-                                    <Button variant="tertiary" size="sm">
+                                    <Button variant="reddishPink" size="sm">
                                         Review
                                     </Button>
                                 </div>
