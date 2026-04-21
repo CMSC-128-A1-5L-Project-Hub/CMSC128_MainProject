@@ -35,6 +35,16 @@ const applications: Application[] = [
   { id: 8,  student: "H Reyes",   date: "Mar 19, 2026", time: "9:30 AM",  facility: "Building 4", roomType: "Single Room", status: "Cancelled"  },
   { id: 9,  student: "I Reyes", date: "Mar 20, 2026", time: "10:00 AM", facility: "Building 2", roomType: "Shared Room", status: "Rejected"   },
   { id: 10, student: "J Reyes",  date: "Mar 20, 2026", time: "2:00 PM",  facility: "Building 5", roomType: "Double Room", status: "Approved"   },
+  { id: 11,  student: "E Reyes",    date: "Mar 17, 2026", time: "1:46 PM",  facility: "Building 1", roomType: "Single Room", status: "Pending"    },
+  { id: 12,  student: "F Reyes",   date: "Mar 18, 2026", time: "10:30 AM", facility: "Building 1", roomType: "Single Room", status: "Pending"    },
+  { id: 13,  student: "G Reyes",    date: "Mar 19, 2026", time: "8:00 AM",  facility: "Building 3", roomType: "Double Room", status: "Waitlisted" },
+  { id: 14,  student: "H Reyes",   date: "Mar 19, 2026", time: "9:30 AM",  facility: "Building 4", roomType: "Single Room", status: "Cancelled"  },
+  { id: 15,  student: "I Reyes", date: "Mar 20, 2026", time: "10:00 AM", facility: "Building 2", roomType: "Shared Room", status: "Rejected"   },
+  { id: 16, student: "J Reyes",  date: "Mar 20, 2026", time: "2:00 PM",  facility: "Building 5", roomType: "Double Room", status: "Approved"   },
+  { id: 17,  student: "H Reyes",   date: "Mar 19, 2026", time: "9:30 AM",  facility: "Building 4", roomType: "Single Room", status: "Cancelled"  },
+  { id: 18,  student: "I Reyes", date: "Mar 20, 2026", time: "10:00 AM", facility: "Building 2", roomType: "Shared Room", status: "Rejected"   },
+  { id: 19, student: "J Reyes",  date: "Mar 20, 2026", time: "2:00 PM",  facility: "Building 5", roomType: "Double Room", status: "Approved"   },
+  { id: 20,  student: "E Reyes",    date: "Mar 17, 2026", time: "1:46 PM",  facility: "Building 1", roomType: "Single Room", status: "Pending"    },
 ];
 
 // date and time conversion for sorting 
@@ -43,7 +53,6 @@ function toTimestamp(date: string, time: string): number {
 }
 
 const ITEMS_PER_PAGE = 6;
-
 //STATUS COLORS 
 const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> = {
   Approved:   { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" },
@@ -52,12 +61,6 @@ const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> 
   Cancelled:  { color: "#AA2661", bg: "#ffe4e6", dot: "#AA2661" },
   Rejected:   { color: "#9E2040", bg: "#ffe4e6", dot: "#9E2040" },
 };
-
-const IconChevronRight = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-  </svg>
-);
 
 const IconMenu = () => (
   <svg className="w-[22px] h-[22px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -129,7 +132,7 @@ const PageBtn = ({
     className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-semibold transition-all"
     style={
       active
-        ? { background: `linear-gradient(135deg, ${CLR.mid}, ${CLR.dark})`, color: "#fff", boxShadow: "0 4px 12px rgba(107,15,43,0.35)" }
+        ? { background: `linear-gradient(135deg,${CLR.dark}, ${CLR.mid})`, color: "#fff", boxShadow: "0 4px 12px rgba(107,15,43,0.35)" }
         : disabled
         ? { background: "#fff", border: "1.5px solid #ede8ea", color: "#d8cdd1", cursor: "not-allowed" }
         : { background: "#fff", border: "1.5px solid #ede8ea", color: CLR.mid }
@@ -267,9 +270,24 @@ export default function ApplicationsPage() {
     { label: "Approved",   color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)", text: "#1A7A4A", light_bg: "#F0F7F3" ,value: counts.Approved   || 0 },
     { label: "Pending",    color: "linear-gradient(135deg, #C9973A, #E8C37A)", text: "#C9973A", light_bg: "#FEF8EE" ,value: counts.Pending    || 0 },
     { label: "Waitlisted", color: "linear-gradient(135deg, #6B3AB7, #9B6AE7)", text: "#6B3AB7", light_bg: "#F4F0FA" ,value: counts.Waitlisted || 0 },
-    { label: "Cancelled",  color: "linear-gradient(135deg, #AA2661, #FDCAE0)", text: "#AE2F67", light_bg: "#FAF0F7" ,value: counts.Cancelled  || 0 },
+    { label: "Cancelled",  color: "linear-gradient(135deg, #AA2661, #FDCAE0)", text: "#AE2F67", light_bg: "#FAF0F7" ,value: counts.Cancelled  || 1 },
     { label: "Rejected",   color: "linear-gradient(135deg, #9E2040, #C84060)", text: "#9E2040", light_bg: "#FDF0F3" ,value: counts.Rejected   || 0 },
   ];
+
+// for tracking page number 
+  const getVisiblePages = () => {
+    const pages: number[] = [];
+
+    if (totalPages <= 3) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
+    }
+
+    if (safePage === 1) return [1, 2, 3];
+    if (safePage === totalPages) return [totalPages - 2, totalPages - 1, totalPages];
+
+    return [safePage - 1, safePage, safePage + 1];
+  };
 
 
   return (
@@ -310,8 +328,8 @@ export default function ApplicationsPage() {
                     {s.label}
                   </p>
                   {/* progress bar and %  */}
-                  <div className="flex items-center gap-2">
-                        <div className="relative flex items-center h-8 rounded-full overflow-hidden w-40" style={{ background: s.light_bg }}>                      <div
+                  <div className="flex items-center gap-3">
+                        <div className="relative flex items-center h-8 rounded-full overflow-hidden w-80" style={{ background: s.light_bg }}>                      <div
                         className="absolute left-0 top-0 h-full rounded-full transition-all duration-500"
                         style={{ width: `${pct}%`, minWidth: "55px", background: s.color, transition: "width 0.4s ease" }}
                       />
@@ -320,7 +338,7 @@ export default function ApplicationsPage() {
                       </span>
                     </div>
                     {/* n% text */}
-                    <span className="text-xs font-semibold text-gray-400 w-8 text-right flex-shrink-0">
+                    <span className="text-xs font-semibold text-gray-400 w-6 text-right flex-shrink-0">
                       {pct}%
                     </span>
                   </div>
@@ -399,7 +417,7 @@ export default function ApplicationsPage() {
                     const initial     = app.student.charAt(0).toUpperCase();
                     const avatarColor = CLR.avatars[app.id % CLR.avatars.length];
                     return (
-                      <tr key={app.id} className="border-t hover:bg-gray-50 transition-colors">
+                      <tr key={`${app.id}-${startIndex}`} className="border-t hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div
@@ -448,13 +466,15 @@ export default function ApplicationsPage() {
             </p>
 
             <div className="flex items-center gap-1.5">
-              <PageBtn active={safePage === 1} onClick={() => setCurrentPage(1)}>1</PageBtn>
-              {totalPages >= 2 && (
-                <PageBtn active={safePage === 2} onClick={() => setCurrentPage(2)}>2</PageBtn>
-              )}
-              <PageBtn disabled={safePage === totalPages} onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}>
-                <IconChevronRight />
-              </PageBtn>
+                {getVisiblePages().map((page) => (
+                  <PageBtn
+                    key={page}
+                    active={safePage === page}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </PageBtn>
+                ))}     
             </div>
           </div>
         </div>
