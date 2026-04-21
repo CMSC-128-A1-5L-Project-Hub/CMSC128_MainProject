@@ -78,7 +78,7 @@ export class ApplicationSchema extends BaseModel {
   @column()
   declare accommodationId: number
   @column.dateTime()
-  declare applicationDate: DateTime | null
+  declare applicationDate: DateTime
   @column()
   declare applicationRoomType: string
   @column()
@@ -133,7 +133,7 @@ export class DocumentSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column.dateTime()
-  declare uploadTimestamp: DateTime | null
+  declare uploadTimestamp: DateTime
   @column()
   declare userId: number
 }
@@ -197,7 +197,7 @@ export class LogSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column.dateTime()
-  declare logTimestamp: DateTime | null
+  declare logTimestamp: DateTime
 }
 
 export class ManagerSchema extends BaseModel {
@@ -217,7 +217,7 @@ export class NotificationSchema extends BaseModel {
   @column()
   declare notificationContent: string
   @column.dateTime()
-  declare notificationTimestamp: DateTime | null
+  declare notificationTimestamp: DateTime
   @column()
   declare notificationType: string
   @column()
@@ -240,7 +240,7 @@ export class PaymentSchema extends BaseModel {
   @column()
   declare paymentStatus: string | null
   @column.dateTime()
-  declare paymentTimestamp: DateTime | null
+  declare paymentTimestamp: DateTime
   @column()
   declare proofFileId: number
 }
@@ -279,7 +279,7 @@ export class ReportSchema extends BaseModel {
   @column()
   declare reportFileId: number
   @column.dateTime()
-  declare reportTimestamp: DateTime | null
+  declare reportTimestamp: DateTime
   @column()
   declare reportType: string
   @column()

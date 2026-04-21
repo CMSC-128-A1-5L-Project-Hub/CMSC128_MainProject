@@ -54,6 +54,10 @@ router
     router.post('/auth/verify-sms', [controllers.SmsVerifications, 'verify'])
     router.post('/auth/send-otp', [controllers.SmsVerifications, 'send']).use(throttle)
 
+    // Notfications
+    router.get('/notifications', [controllers.Notifications, 'index'])
+    router.patch('/notifications/:id', [controllers.Notifications, 'update'])
+
     // ====================================================================
     // ─── STUDENT ROUTES ───
     // ====================================================================
@@ -174,7 +178,3 @@ router.get('/swagger', async () => {
 router.get('/docs', async () => {
   return AutoSwagger.ui('/swagger', swagger)
 })
-
-// Notfications
-router.get('/notifications', [controllers.Notifications, 'index'])
-router.patch('/notifications/:id', [controllers.Notifications, 'update'])
