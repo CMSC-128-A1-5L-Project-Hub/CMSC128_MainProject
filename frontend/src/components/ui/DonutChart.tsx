@@ -10,7 +10,7 @@ export default function DonutChart({
     percentage,
     size = 80,
     strokeWidth = 8,
-    color = "#6B0F2B",
+    color = "#8C1535",
     trackColor = "#E5D0D5"
 }: DonutChartProps) {
     const radius = (size - strokeWidth) / 2
