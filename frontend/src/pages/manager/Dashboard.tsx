@@ -9,6 +9,7 @@ import Moves from "../../components/dashboard/manager/Moves"
 import ProfileCard from "../../components/dashboard/manager/ProfileCard"
 import ActivityLogs from "../../components/dashboard/ActivityLogs"
 import AvailableRooms from "../../components/dashboard/manager/AvailableRooms"
+import OccupiedRooms from "../../components/dashboard/manager/OccupiedRooms"
 
 //TODO: Donut Card stack
 
@@ -155,7 +156,7 @@ export default function Dashboard() {
                     </div>
                 </main>
             </div>
-            <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4]">
+            <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4] overflow-y-auto">
                 <ProfileCard
                     fullName={managerProfile.fullName}
                     role="Dormitory Manager"
@@ -172,6 +173,14 @@ export default function Dashboard() {
                     soloRooms={10}
                     doubleRooms={15}
                     sharedRooms={20}
+                />
+                <OccupiedRooms 
+                    occupiedSolo={2}
+                    totalSolo={15}
+                    occupiedDouble={5}
+                    totalDouble={20}
+                    occupiedShared={13}
+                    totalShared={25}
                 />
                 <ActivityLogs />
             </aside>
