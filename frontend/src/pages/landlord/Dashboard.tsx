@@ -7,6 +7,7 @@ import ProfileCard from "../../components/dashboard/ManagerCard";
 import PaymentList from "../../components/dashboard/PaymentList";
 import ActivityLogs from "../../components/dashboard/ActivityLogs";
 import ReportsPanel from "../../components/dashboard/ReportsPanel";
+import ApplicationPeriod from "../../components/dashboard/Calendar";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
 import { useState } from "react";
@@ -16,7 +17,7 @@ import { X } from "lucide-react";
 function FilterTabs({ active, setActive }: any) {
   const tabs = ["Overview", "Fees", "Rooms"];
   return (
-    <div className="bg-[#F1F1F3] p-1 rounded-xl inline-flex gap-1">
+    <div className="bg-white p-1 rounded-xl inline-flex gap-1">
       {tabs.map((tab) => (
         <button
           key={tab}
@@ -46,14 +47,15 @@ export default function Dashboard() {
   const RightPanel = () => (
     <div className="flex flex-col gap-4">
       <ProfileCard />
+      <ApplicationPeriod />
       <ActivityLogs />
       <ReportsPanel />
     </div>
   );
 
   return (
-    <div className="flex h-screen bg-[#F7F7F8] overflow-hidden">
-      <Sidebar role="landlord" />
+    <div className="flex h-screen bg-[#F7F7F8] overflow-hidden bg-[#F5EEF0]">
+      <Sidebar role="landlordDashboard" />
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="flex flex-1 lg:flex-row overflow-hidden">
@@ -90,9 +92,9 @@ export default function Dashboard() {
               {activeTab === "Overview" && (
                 <>
                   <div className="grid grid-cols-3 gap-4">
-                    <StatCard title="Revenue" value="₱120,000" subtitle="↑ on track" />
-                    <StatCard title="Collected" value="₱80,000" subtitle="67%" />
-                    <StatCard title="Pending" value="₱40,000" subtitle="33%" negative />
+                    <StatCard title="REVENUE" value="₱120,000" subtitle="↑ on track" />
+                    <StatCard title="COLLECTED" value="₱80,000" subtitle="67%" />
+                    <StatCard title="PENDING" value="₱40,000" subtitle="33%" negative />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -188,7 +190,7 @@ export default function Dashboard() {
                                 )}
                               </span>
                             ))}
-                            <Button variant="secondary" size="sm" onClick={() => setDocModalOpen(true)}>
+                            <Button variant="dashed" size="sm" onClick={() => setDocModalOpen(true)}>
                               + Add More
                             </Button>
                           </div>
@@ -216,10 +218,10 @@ export default function Dashboard() {
                         <div className="min-w-[550px] xl:min-w-0">
                           <hr className="border-gray-100 mb-2" />
                           <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                            <span className="flex-[3]">Student</span>
-                            <span className="flex-[2]">Type</span>
-                            <span className="flex-[2]">Applied</span>
-                            <span className="flex-[1]">Action</span>
+                            <span className="flex-[3] text-[#9A7080] font-bold">Student</span>
+                            <span className="flex-[2] text-[#9A7080] font-bold">Type</span>
+                            <span className="flex-[2] text-[#9A7080] font-bold">Applied</span>
+                            <span className="flex-[1] text-[#9A7080] font-bold">Action</span>
                           </div>
                           {[
                             { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 12, 2026" },
@@ -234,8 +236,8 @@ export default function Dashboard() {
                               <p className="flex-[2] text-sm text-gray-500 whitespace-nowrap">{item.type}</p>
                               <p className="flex-[2] text-sm text-gray-500 whitespace-nowrap">{item.date}</p>
                               <div className="flex-[1] flex justify-end">
-                                <Button variant="secondary" size="sm">
-                                  Review
+                                <Button variant="reddishPink" size="sm" className="!rounded-xl">
+                                    Review
                                 </Button>
                               </div>
                             </div>
@@ -249,9 +251,9 @@ export default function Dashboard() {
                         <div className="min-w-[550px] xl:min-w-0">
                           <hr className="border-gray-100 mb-2" />
                           <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                            <span className="flex-[3]">Student</span>
-                            <span className="flex-[2]">Preferred Type</span>
-                            <span className="flex-[2] text-right">Since</span>
+                            <span className="flex-[3] text-[#9A7080] font-bold">Student</span>
+                            <span className="flex-[2] text-[#9A7080] font-bold">Preferred Type</span>
+                            <span className="flex-[2] text-right text-[#9A7080] font-bold">Since</span>
                           </div>
                           {[
                             { name: "Ana Marie Reyes", type: "Solo", date: "Mar 12, 2026" },
@@ -276,9 +278,9 @@ export default function Dashboard() {
                   <SectionCard title="Rooms" action="Manage →">
                     <hr className="border-gray-100 mb-2" />
                     <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                      <span className="flex-[3]">Room Number</span>
-                      <span className="flex-[2]">Type</span>
-                      <span className="flex-[1] text-right">Occupancy</span>
+                      <span className="flex-[3] text-[#9A7080] font-bold">Room Number</span>
+                      <span className="flex-[2] text-[#9A7080] font-bold">Type</span>
+                      <span className="flex-[1] text-right text-[#9A7080] font-bold">Occupancy</span>
                     </div>
                     {[
                       { room: "Room 101", type: "Single", occ: "1/1" },
@@ -304,6 +306,7 @@ export default function Dashboard() {
           {/* RIGHT PANEL — desktop only, scrollable */}
           <aside className="hidden lg:flex w-[300px] xl:w-[320px] border-l bg-white/60 backdrop-blur p-4 flex-col gap-4 overflow-y-auto">
             <ProfileCard />
+            <ApplicationPeriod />
             <ActivityLogs />
             <ReportsPanel />
           </aside>
@@ -321,7 +324,7 @@ export default function Dashboard() {
           <Button
             variant="primary"
             size="md"
-            className="ml-auto"
+            className="ml-auto !rounded-2xl"
             onClick={() => {
               if (newDocName.trim()) {
                 setFacilityDocs([...facilityDocs, newDocName.trim()]);
