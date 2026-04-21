@@ -1,6 +1,8 @@
+"use client";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import ApplicationStatusModal from "../../components/ApplicationStatusModal";
+
 // ── Design tokens ─────────────────────────
 const CLR = {
   dark:   "#3D0718",
@@ -78,15 +80,16 @@ export default function ApplicationsPage() {
     queryKey: ["applications"],
     queryFn: fetchApplications,
   });
+  console.log("Browser log:", typeof window !== "undefined");
 
   // --- NEW STATE ---
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
+    
     <div className="min-h-screen bg-[#F6F2F4] font-sans flex flex-col items-center py-8 px-4 sm:px-6">
       <div className="w-full max-w-6xl"> {/* Expanded width slightly for table layout */}
-        
         {/* Header */}
         <header className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">

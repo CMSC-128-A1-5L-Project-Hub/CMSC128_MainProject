@@ -66,6 +66,7 @@ router
         // Application & Stay
         router.post('/applications', [controllers.Application, 'store'])
         router.get('/applications/my-applications', [controllers.Application, 'index'])
+        router.delete('/applications/:id', [controllers.Application, 'destroy'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
 
@@ -113,7 +114,6 @@ router
         // Application Review
         router.get('/applications/incoming', [controllers.Application, 'incoming'])
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
-
         // Room Management
         router.get('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'index'])
         router.post('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'store'])

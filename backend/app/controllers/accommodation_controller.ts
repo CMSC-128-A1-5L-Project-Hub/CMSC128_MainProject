@@ -32,7 +32,7 @@ export default class AccommodationController {
   // Public: single accommodation with full details
   async show({ params, serialize, response }: HttpContext) {
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
       .preload('manager', (q) => q.preload('user'))
@@ -266,7 +266,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
     const landlordId = auth.user!.id
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', landlordId)
       .first()
 
@@ -326,7 +326,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
     const landlordId = auth.user!.id
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', landlordId)
       .first()
 
@@ -476,7 +476,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
 
     // Verify the caller is the landlord or assigned manager of this accommodation
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where((q) => {
         q.where('landlord_id', userId).orWhere('manager_id', userId)
       })
