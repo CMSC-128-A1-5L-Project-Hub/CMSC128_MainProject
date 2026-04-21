@@ -64,16 +64,6 @@ export default function ConfirmedStudents({ data, className="" }: any) {
                                     <p className="col-span-1 px-2 text-[#9A7080] text-xs lg:text-sm">
                                         {student.dateConfirmed}
                                     </p>
-                                    {/* <div className="col-span-1 px-2 flex justify-center">
-                                        <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium capitalize
-                                            ${student.status === "assigned"
-                                                ? "bg-green-50 text-green-700"
-                                                : "bg-pink-50 text-[#9E2040]"}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full
-                                                ${student.status === "assigned" ? "bg-green-500" : "bg-[#9E2040]"}`} />
-                                            {student.status}
-                                        </span>
-                                    </div> */}
                                     <div className="col-span-1 px-2 flex justify-center">
                                         <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 min-w-[90px] rounded-full font-bold capitalize
                                             ${student.status === "not assigned" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
