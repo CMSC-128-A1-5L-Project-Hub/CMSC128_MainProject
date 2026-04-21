@@ -1,4 +1,5 @@
 import Button from "../../Button"
+import Card from "../../ui/Card"
 
 type Application = {
     studentName: string
@@ -11,8 +12,10 @@ export default function Applications({ data, className="" }: any) {
     const getInitials = (name: string) => name[0]
 
     return(
-        <div className={className}>
-            <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm w-full h-full flex flex-col min-w-0">
+        <Card 
+            className={className}
+            children= {
+                <div className="w-full h-full flex flex-col min-w-0">
                 <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
                     <p className="text-[#1A0008] font-bold">
                         Applications
@@ -63,6 +66,7 @@ export default function Applications({ data, className="" }: any) {
                     ))}
                 </div>
             </div>
-        </div>
+            }
+        />
     )
 }
