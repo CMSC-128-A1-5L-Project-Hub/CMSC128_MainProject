@@ -19,7 +19,7 @@ export default function HeroBanner({
         <div className="rounded-2xl px-7 py-6 flex justify-between items-center overflow-hidden"
             style={{ background: "linear-gradient(to bottom right, #2A0410 0%, #6B0F2B 50%, #C05070 100%)"}}
         >
-            <div className="z-10">
+            <div>
                 <p className="text-xs lg:text-sm font-medium tracking-widest uppercase text-[#C9973A]">
                     {greeting}, {name}
                 </p>
