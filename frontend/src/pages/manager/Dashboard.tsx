@@ -6,7 +6,7 @@ import Applications from "../../components/dashboard/manager/Applications"
 import Waitlist from "../../components/dashboard/manager/Waitlist"
 import ConfirmedStudents from "../../components/dashboard/manager/ConfirmedStudents"
 import Moves from "../../components/dashboard/manager/Moves"
-import ProfileCard from "../../components/dashboard/ManagerCard"
+import ProfileCard from "../../components/dashboard/manager/ProfileCard"
 import ActivityLogs from "../../components/dashboard/ActivityLogs"
 
 //TODO: Donut Card stack
@@ -44,6 +44,7 @@ interface Application {
 interface ConfirmedStudent {
     studentName: string
     stayType: string
+    roomType: string
     dateConfirmed: string
     status: "assigned" | "not assigned"
 }
@@ -51,7 +52,10 @@ interface ConfirmedStudent {
 interface Move {
     studentName: string
     room: string
-    action: string
+    building: string
+    roomType: string
+    stayType: string
+    type: "move-out" | "move-in"
     date: string
 }
 
@@ -85,12 +89,14 @@ const applications: Application[] = [
 ]
 
 const confirmedStudents: ConfirmedStudent[] = [
-    {studentName: "Ana Marie Reyes", stayType: "Non-transient", dateConfirmed: "Mar 14, 2026", status:"assigned"}
+    {studentName: "Ana Marie Reyes", stayType: "Transient", roomType: "Shared", dateConfirmed: "Mar 14, 2026", status:"assigned"}
 ]
 
 const moves: Move[] = [
-    {studentName: "Ana Marie Reyes", room: "Room 210", action: "Move-out", date:"March 28, 2026"}
+    {studentName: "Ana Marie Reyes", room: "Room 6543", building: "Building 6", roomType: "Shared", stayType: "Transient", type: "move-out", date:"March 28, 2026"}
 ]
+
+
 
 export default function Dashboard() {
     return (
@@ -98,7 +104,7 @@ export default function Dashboard() {
             <Sidebar role="manager" profile={managerProfile}/>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col p-5 overflow-y-auto">
+            <div className="flex-1 flex flex-col p-8 overflow-y-auto">
                 <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
                     <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
                         style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
@@ -148,8 +154,18 @@ export default function Dashboard() {
                     </div>
                 </main>
             </div>
-            <aside className="hidden lg:flex w-[300px] border-l bg-white/60 backdrop-blur p-4 flex-col gap-4 overflow-y-auto">
-                <ProfileCard />
+            <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4]">
+                <ProfileCard
+                    fullName={managerProfile.fullName}
+                    role="Dormitory Manager"
+                    email={managerProfile.email}
+                    phoneNumber={managerProfile.phoneNumber}
+                    dormitory={managerProfile.dormitory}
+                    status={managerProfile.status}
+                    //change these sa backend connection 
+                    onNotification={() => console.log("notifications")}
+                    onReport={() => console.log("report")}
+                />
                 <ActivityLogs />
             </aside>
         </div>
