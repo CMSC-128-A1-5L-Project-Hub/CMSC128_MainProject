@@ -8,6 +8,7 @@ import ConfirmedStudents from "../../components/dashboard/manager/ConfirmedStude
 import Moves from "../../components/dashboard/manager/Moves"
 import ProfileCard from "../../components/dashboard/manager/ProfileCard"
 import ActivityLogs from "../../components/dashboard/ActivityLogs"
+import AvailableRooms from "../../components/dashboard/manager/AvailableRooms"
 
 //TODO: Donut Card stack
 
@@ -165,6 +166,12 @@ export default function Dashboard() {
                     //change these sa backend connection 
                     onNotification={() => console.log("notifications")}
                     onReport={() => console.log("report")}
+                />
+                <AvailableRooms 
+                    totalRooms={100}
+                    soloRooms={10}
+                    doubleRooms={15}
+                    sharedRooms={20}
                 />
                 <ActivityLogs />
             </aside>
