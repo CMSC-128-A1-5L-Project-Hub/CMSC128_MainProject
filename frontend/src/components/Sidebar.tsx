@@ -11,6 +11,10 @@ import DocumentIcon    from "../assets/icons/documents.svg?react";
 import LogoutIcon      from "../assets/icons/logout.svg?react";
 
 // Design tokens (matching Dashboard)
+import { MdOutlineMeetingRoom } from "react-icons/md";
+import { BsUiChecks } from "react-icons/bs";
+import { PiCashRegister } from "react-icons/pi";
+
 const CLR = {
   dark:   "#3D0718",
   mid:    "#6B0F2B",
@@ -22,6 +26,11 @@ const CLR = {
 
 interface SidebarProps {
   role: "student" | "landlord" | "manager";
+const GRADIENT_MOBILE = "linear-gradient(160deg, #2A0410 0%, #3D0718 40%, #6B0F2B 75%, #9E2040 100%)";
+const GRADIENT_DESKTOP = "linear-gradient(180deg, #2A0410 0%, #3D0718 40%, #6B0F2B 75%, #9E2040 100%)";
+
+interface SidebarProps {
+  role: "student" | "landlord" | "manager" | "landlordDashboard";
   profile?: {
     fullName: string;
     shortName: string;
@@ -256,17 +265,21 @@ const DesktopSidebar = ({
   );
 };
 
-// Main Sidebar Component
 export default function Sidebar({ role, profile }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  
+
   const [active, setActive] = useState(() => {
     const path = location.pathname;
     if (path.includes("dashboard")) return "dashboard";
+    if (path.includes("room"))        return "room";
+    if (path.includes("fees"))        return "fees";
     if (path.includes("search") || path.includes("properties")) return "search";
-    if (path.includes("applications") || path.includes("tenants")) return "applications";
+    if (path.includes("tenants") || path.includes("applications")) return "applications";
+    if (path.includes("documents") || path.includes("reports") || path.includes("users")) return "documents"
+    if (path.includes("occupancy-records")) return "reports";
+    if (path.includes("room-assignment")) return "users";
     if (path.includes("documents") || path.includes("reports") || path.includes("users")) return "documents";
     return "dashboard";
   });
@@ -311,7 +324,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     setActive(id);
     if (id === "logout") {
       console.log("Logging out...");
-      navigate("/login");
+      navigate("/auth/signin");
     } else {
       navigate(path);
     }

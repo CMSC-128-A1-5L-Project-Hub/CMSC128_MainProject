@@ -11,6 +11,9 @@ import drive from '@adonisjs/drive/services/main'
 export default class ProfileService {
   async setupProfile(user: User, validatedData: any) {
 
+    user.accountStatus = 'pending'
+    await user.save()
+    
     await PhoneNumber.create({
       userId: user.id,
       contactNumber: validatedData.phone_number,
@@ -63,15 +66,15 @@ export default class ProfileService {
 
       // Save to the 'students' table
       const student = await Student.create({
-        studentNumber: validatedData.studentNumber,
+        studentNumber: validatedData.student_number,   // was studentNumber
         userId: user.id,
         enrollmentProofFileId: enrollmentProofFileId,
         college: validatedData.college,
-        degreeProgram: validatedData.degreeProgram,
+        degreeProgram: validatedData.degree_program,   // was degreeProgram
         gender: validatedData.gender,
-
-        emergencyContactName: validatedData.emergencyContactName,
-        emergencyContactNumber: validatedData.emergencyContactNumber,
+        
+        emergencyContactName: validatedData.emergency_contact_name,   // was emergencyContactName
+        emergencyContactNumber: validatedData.emergency_contact_number, // was emergencyContactNumber
       })
 
       return {

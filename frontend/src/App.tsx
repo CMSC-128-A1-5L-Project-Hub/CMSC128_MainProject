@@ -4,6 +4,9 @@ import SignIn from "./pages/shared/SignIn"
 import SignUp from "./pages/shared/SignUp"
 import SignUpForm from "./pages/shared/SignUpForm"
 import StudentDashboard from "./pages/student/Dashboard"
+import ManagerDashboard from "./pages/manager/Dashboard"
+import OccupancyRecords from "./pages/manager/OccupancyRecords"
+import RoomAssignment from "./pages/manager/RoomAssignment"
 import LandingPage from "./pages/shared/Landingpage"
 import AboutSection from "./pages/shared/Aboutsection"
 import FeaturesSection from "./pages/shared/Featuresection"
@@ -12,6 +15,10 @@ import UBLEFooter from "./pages/shared/SupportSection"
 import InteractiveMap from "./pages/MapPage"
 import BrowsePage from "./pages/student/Browse"
 
+import AuthSuccess from "./pages/shared/AuthSuccess"
+import PendingVerification from "./pages/shared/PendingVerification"
+import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
+import LandlordDashboard from "./pages/landlord/Dashboard"
 
 function FullLandingPage() {
   return (
@@ -34,9 +41,16 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/signup/form" element={<SignUpForm/>}/>
         <Route path="/student/dashboard" element={<StudentDashboard/>}/>
-        <Route path="/landingpage" element={<FullLandingPage />} /> 
+        <Route path="/manager/dashboard/" element={<ManagerDashboard/>}/>
+        <Route path="/manager/occupancy-records" element={<OccupancyRecords />}/>
+        <Route path="/manager/room-assignment" element={<RoomAssignment />}/>
+        <Route path="/" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/browse" element={<BrowsePage />} />
+        <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
+        <Route path="/auth/success" element={<AuthSuccess />} />
+        <Route path="/pending-verification" element={<PendingVerification />} />
+        <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
       </Routes>
     </BrowserRouter>
   )

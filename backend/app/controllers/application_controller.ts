@@ -83,6 +83,7 @@ export default class ApplicationsController {
   async updateStatus({ auth, request, params, response, serialize }: HttpContext) {
     const user = auth.user!
     const { action, rejection_reason } = request.body()
+    
 
     if (!action || !['approve', 'reject'].includes(action)) {
       return response.badRequest({ message: 'action must be approve or reject' })
@@ -95,6 +96,14 @@ export default class ApplicationsController {
       .where('applicationId', params.id)
       .preload('accommodation')
       .firstOrFail()
+
+    if (applicationObject.accommodation.isFrozen) {
+      return response.badRequest({
+        status: 400,
+        error: 'Bad Request',
+        message: 'This accommodation is currently frozen. Applications cannot be processed during a manager handover.',
+      })
+    }
 
     // Level 1: Manager verification
     if (user.role === 'manager') {
