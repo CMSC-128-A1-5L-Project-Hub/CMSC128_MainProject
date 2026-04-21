@@ -1,7 +1,7 @@
 //Asset/Component imports
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
-import StatCard from "../../components/dashboard/StatCard"
+import DonutStatCard from "../../components/dashboard/DonutStatCard"
 import Applications from "../../components/dashboard/manager/Applications"
 import Waitlist from "../../components/dashboard/manager/Waitlist"
 import ConfirmedStudents from "../../components/dashboard/manager/ConfirmedStudents"
@@ -28,8 +28,8 @@ interface HeroContent {
 interface Stat {
     title: string
     value: number
+    total: number
     subtitle: string
-    positive: boolean
 }
 
 interface Application {
@@ -70,10 +70,9 @@ const heroContent: HeroContent = {
 }
 
 const stats: Stat[] = [
-    {title: "Pending Approvals", subtitle: "Subtitle",  value:19, positive: true},
-    {title: "Occupied Rooms", subtitle: "Subtitle", value:20, positive: false},
-    {title: "Available Rooms", subtitle: "Subtitle", value:100, positive: true},
-    {title: "Total Tenants", subtitle: "Subtitle", value:64, positive: false}
+    {title: "Pending Approvals", subtitle: "Subtitle",  value:19, total: 30},
+    {title: "Approved Applications", subtitle: "Subtitle", value:21, total: 30},
+    {title: "Total Tenants", subtitle: "Subtitle", value:64, total: 100}
 ]
 
 const applications: Application[] = [
@@ -114,14 +113,13 @@ export default function Dashboard() {
                         type="full"
                     />
 
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-3 lg:grid-cols-3 gap-4">
                         {stats.map((stat, i) => (
-                            <StatCard
+                            <DonutStatCard 
                                 key={i}
                                 title={stat.title}
-                                subtitle={stat.subtitle}
                                 value={stat.value}
-                                positive={stat.positive}
+                                total={stat.total}
                             />
                         ))}
                     </div>
