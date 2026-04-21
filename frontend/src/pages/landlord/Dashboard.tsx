@@ -55,7 +55,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-[#F7F7F8] overflow-hidden bg-[#F5EEF0]">
-      <Sidebar role="landlord" />
+      <Sidebar role="landlordDashboard" />
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="flex flex-1 lg:flex-row overflow-hidden">
@@ -218,10 +218,10 @@ export default function Dashboard() {
                         <div className="min-w-[550px] xl:min-w-0">
                           <hr className="border-gray-100 mb-2" />
                           <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                            <span className="flex-[3] text-[#9A7080] font-semibold">Student</span>
-                            <span className="flex-[2] text-[#9A7080] font-semibold">Type</span>
-                            <span className="flex-[2] text-[#9A7080] font-semibold">Applied</span>
-                            <span className="flex-[1] text-[#9A7080] font-semibold">Action</span>
+                            <span className="flex-[3] text-[#9A7080] font-bold">Student</span>
+                            <span className="flex-[2] text-[#9A7080] font-bold">Type</span>
+                            <span className="flex-[2] text-[#9A7080] font-bold">Applied</span>
+                            <span className="flex-[1] text-[#9A7080] font-bold">Action</span>
                           </div>
                           {[
                             { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 12, 2026" },
@@ -251,9 +251,9 @@ export default function Dashboard() {
                         <div className="min-w-[550px] xl:min-w-0">
                           <hr className="border-gray-100 mb-2" />
                           <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                            <span className="flex-[3] text-[#9A7080] font-semibold">Student</span>
-                            <span className="flex-[2] text-[#9A7080] font-semibold">Preferred Type</span>
-                            <span className="flex-[2] text-right text-[#9A7080] font-semibold">Since</span>
+                            <span className="flex-[3] text-[#9A7080] font-bold">Student</span>
+                            <span className="flex-[2] text-[#9A7080] font-bold">Preferred Type</span>
+                            <span className="flex-[2] text-right text-[#9A7080] font-bold">Since</span>
                           </div>
                           {[
                             { name: "Ana Marie Reyes", type: "Solo", date: "Mar 12, 2026" },
@@ -278,8 +278,8 @@ export default function Dashboard() {
                   <SectionCard title="Rooms" action="Manage →">
                     <hr className="border-gray-100 mb-2" />
                     <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                      <span className="flex-[3] text-[#9A7080] font-semibold">Room Number</span>
-                      <span className="flex-[2] text-[#9A7080] font-semibold">Type</span>
+                      <span className="flex-[3] text-[#9A7080] font-bold">Room Number</span>
+                      <span className="flex-[2] text-[#9A7080] font-bold">Type</span>
                       <span className="flex-[1] text-right text-[#9A7080] font-bold">Occupancy</span>
                     </div>
                     {[
