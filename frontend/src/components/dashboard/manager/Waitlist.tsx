@@ -21,27 +21,27 @@ export default function Waitlist({ students=[], className="" }:WaitlistProps) {
                     </p>
                 </div>
                 <div className="grid grid-cols-3 border-b border-[#F5ECF0] uppercase">
-                    <p className="col-span-2 text-[#9A7080] text-xs lg:text-sm font-bold p-1">
+                    <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">
                         Student
                     </p>
-                    <p className="col-span-1 text-[#9A7080] text-xs lg:text-sm font-bold p-1">
+                    <p className="col-span-1 text-center text-[#9A7080] text-xs font-bold p-1">
                         Action
                     </p>
                 </div>
                 {students.length > 0 ? (
                     <div className="grid grid-cols-3">
                         {students.map((student, i) => (
-                            <div key={i} className="col-span-3 grid grid-cols-3 flex justify-between items-center py-2">
+                            <div key={i} className="col-span-3 grid grid-cols-3 flex justify-between items-center py-2 px-1">
                                 <div className="col-span-2 flex flex-row items-center">
                                     <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
                                         style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                                         {getInitials(student)}
                                     </div>
-                                    <p className="text-xs lg:text-sm text-[#1A0008] pl-1">
+                                    <p className="text-sm text-[#1A0008] pl-2">
                                         {student}
                                     </p>
                                 </div>
-                                <div className="col-span-1 flex items-center">
+                                <div className="col-span-1 flex items-center justify-center">
                                     <Button variant="reddishPink" size="sm">
                                         Review
                                     </Button>

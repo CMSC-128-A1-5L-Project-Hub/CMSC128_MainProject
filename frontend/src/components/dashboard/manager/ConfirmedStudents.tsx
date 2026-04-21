@@ -47,7 +47,7 @@ export default function ConfirmedStudents({ data, className="" }: {data: Confirm
                     </p>
                 </div>
                 <div className="overflow-y-auto -mx-0">
-                    <div className="min-w-[680px] pb-3 lg:pb-0">
+                    <div className="min-w-[680px] pb-3 lg:pb-0 px-1">
                         {/* Table headers */}
                         <div className="grid grid-cols-5 border-b border-[#F5ECF0] uppercase"
                             style={{ gridTemplateColumns: "2fr 1.5fr 1fr 1.5fr 1.5fr" }}
