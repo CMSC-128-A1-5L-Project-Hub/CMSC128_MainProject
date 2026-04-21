@@ -35,9 +35,6 @@ export default function ProfileCard({
     onNotification,
     onReport,
 }: ProfileCardProps) {
-    const getInitials = (name: string) =>
-        name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
-
     return (
         <div
             className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-lg"
