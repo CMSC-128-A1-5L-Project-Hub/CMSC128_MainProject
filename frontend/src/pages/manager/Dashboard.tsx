@@ -36,11 +36,33 @@ interface Stat {
     subtitle: string
 }
 
-interface Application {
-    studentName: string
-    type: string
+interface Student {
+  fullName: string
+  shortName: string
+  course: string
+  campus: string
+  email: string
+  phone: string
+  studentNo: string
+  college: string
+  yearLevel: string
+  status: string
+}
+
+interface Accomodation {
     building: string
-    appliedDate: string 
+}
+
+interface Application {
+    student: Student
+    accommodation: Accomodation
+    type: string
+    roomType: "single" | "double" | "shared"
+    stayType: "transient" | "non-transient"
+    rejectionReason?: string | null
+    applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review'
+    durationOfStayDays: number
+    applicationDate: string 
 }
 
 interface ConfirmedStudent {
@@ -84,10 +106,109 @@ const stats: Stat[] = [
     {title: "Total Tenants", subtitle: "Subtitle", value:64, total: 100}
 ]
 
+const students: Student[] = [
+  {
+    fullName: "Ana Marie Reyes",
+    shortName: "Ana Reyes",
+    course: "BS Computer Science",
+    campus: "Main Campus",
+    email: "anamariel.reyes@student.edu.ph",
+    phone: "09171234567",
+    studentNo: "2021-00123",
+    college: "College of Engineering",
+    yearLevel: "3rd Year",
+    status: "Regular"
+  },
+  {
+    fullName: "Carlos Miguel Santos",
+    shortName: "Carlos Santos",
+    course: "BS Civil Engineering",
+    campus: "Main Campus",
+    email: "carlos.santos@student.edu.ph",
+    phone: "09189876543",
+    studentNo: "2020-00456",
+    college: "College of Engineering",
+    yearLevel: "4th Year",
+    status: "Regular"
+  },
+  {
+    fullName: "Maria Cristina Dela Cruz",
+    shortName: "Maria Dela Cruz",
+    course: "BS Nursing",
+    campus: "North Campus",
+    email: "mariacristina.delacruz@student.edu.ph",
+    phone: "09201122334",
+    studentNo: "2022-00789",
+    college: "College of Allied Health",
+    yearLevel: "2nd Year",
+    status: "Regular"
+  },
+  {
+    fullName: "Jose Ramon Villanueva",
+    shortName: "Jose Villanueva",
+    course: "BS Architecture",
+    campus: "Main Campus",
+    email: "jose.villanueva@student.edu.ph",
+    phone: "09334455667",
+    studentNo: "2019-01011",
+    college: "College of Architecture",
+    yearLevel: "5th Year",
+    status: "Irregular"
+  }
+]
+
+const accommodations: Accomodation[] = [
+  { building: "Building 6" },
+  { building: "Building 3" },
+  { building: "Building 1" },
+  { building: "Building 4" }
+]
+
 const applications: Application[] = [
-    {studentName: "Ana Marie Reyes", type: "Non-transient", building: "Building 6", appliedDate: "Mar 12, 2026"},
-    {studentName: "Ana Marie Reyes", type: "Non-transient", building: "Building 6", appliedDate: "Mar 14, 2026"},
-    {studentName: "Ana Marie Reyes", type: "Non-transient", building: "Building 6", appliedDate: "Mar 15, 2026"}
+  {
+    student: students[0],
+    accommodation: accommodations[0],
+    type: "Dormitory",
+    roomType: "single",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 12, 2026"
+  },
+  {
+    student: students[1],
+    accommodation: accommodations[1],
+    type: "Dormitory",
+    roomType: "double",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "approved",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 14, 2026"
+  },
+  {
+    student: students[2],
+    accommodation: accommodations[2],
+    type: "Transient Housing",
+    roomType: "shared",
+    stayType: "transient",
+    rejectionReason: null,
+    applicationStatus: "under_review",
+    durationOfStayDays: 7,
+    applicationDate: "Mar 15, 2026"
+  },
+  {
+    student: students[3],
+    accommodation: accommodations[3],
+    type: "Dormitory",
+    roomType: "single",
+    stayType: "non-transient",
+    rejectionReason: "No available slots for the selected room type.",
+    applicationStatus: "rejected",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 16, 2026"
+  }
 ]
 
 const confirmedStudents: ConfirmedStudent[] = [
