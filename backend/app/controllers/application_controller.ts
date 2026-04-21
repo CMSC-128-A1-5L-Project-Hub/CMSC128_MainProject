@@ -39,11 +39,13 @@ export default class ApplicationsController {
   }
 
   // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
-  async index({ auth, serialize }: HttpContext) {
-    // === TEMP DEV BYPASS ===
-    const user = await User.findByOrFail('email', 'afjuarez@up.edu.ph')
+  async index({ auth, response, serialize }: HttpContext) {
+    const user = auth.user
 
-    // const user = auth.user!
+    if (!user) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
     const student = await Student.findByOrFail('userId', user.id)
 
     const applications = await Application.query()

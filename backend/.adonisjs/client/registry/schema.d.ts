@@ -139,6 +139,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_controller').default['store']>>>
     }
   }
+  'application.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/applications/my-applications'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_controller').default['index']>>>
+    }
+  }
   'assignments.current_stay': {
     methods: ["GET","HEAD"]
     pattern: '/my-stay/current'
@@ -665,18 +677,6 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/notifications_controller').default['update']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/notifications_controller').default['update']>>>
-    }
-  }
-  'application.index': {
-    methods: ["GET","HEAD"]
-    pattern: '/applications/my-applications'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_controller').default['index']>>>
     }
   }
 }

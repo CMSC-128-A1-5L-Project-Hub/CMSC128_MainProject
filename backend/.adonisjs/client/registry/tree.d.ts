@@ -28,9 +28,9 @@ export interface ApiDefinition {
   }
   application: {
     store: typeof routes['application.store']
+    index: typeof routes['application.index']
     incoming: typeof routes['application.incoming']
     updateStatus: typeof routes['application.update_status']
-    index: typeof routes['application.index']
   }
   assignments: {
     currentStay: typeof routes['assignments.current_stay']

@@ -15,6 +15,7 @@ export type ScannedRoutes = {
     'sms_verifications.verify': { paramsTuple?: []; params?: {} }
     'sms_verifications.send': { paramsTuple?: []; params?: {} }
     'application.store': { paramsTuple?: []; params?: {} }
+    'application.index': { paramsTuple?: []; params?: {} }
     'assignments.current_stay': { paramsTuple?: []; params?: {} }
     'assignments.stay_history': { paramsTuple?: []; params?: {} }
     'bookmark.toggle': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -59,7 +60,6 @@ export type ScannedRoutes = {
     'admin_accommodations.verify': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'notifications.index': { paramsTuple?: []; params?: {} }
     'notifications.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'application.index': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
@@ -68,6 +68,7 @@ export type ScannedRoutes = {
     'accommodation.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.me': { paramsTuple?: []; params?: {} }
     'setups.show': { paramsTuple?: []; params?: {} }
+    'application.index': { paramsTuple?: []; params?: {} }
     'assignments.current_stay': { paramsTuple?: []; params?: {} }
     'assignments.stay_history': { paramsTuple?: []; params?: {} }
     'bookmark.index': { paramsTuple?: []; params?: {} }
@@ -91,7 +92,6 @@ export type ScannedRoutes = {
     'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
     'admin_accommodations.index': { paramsTuple?: []; params?: {} }
     'notifications.index': { paramsTuple?: []; params?: {} }
-    'application.index': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
@@ -100,6 +100,7 @@ export type ScannedRoutes = {
     'accommodation.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.me': { paramsTuple?: []; params?: {} }
     'setups.show': { paramsTuple?: []; params?: {} }
+    'application.index': { paramsTuple?: []; params?: {} }
     'assignments.current_stay': { paramsTuple?: []; params?: {} }
     'assignments.stay_history': { paramsTuple?: []; params?: {} }
     'bookmark.index': { paramsTuple?: []; params?: {} }
@@ -123,7 +124,6 @@ export type ScannedRoutes = {
     'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
     'admin_accommodations.index': { paramsTuple?: []; params?: {} }
     'notifications.index': { paramsTuple?: []; params?: {} }
-    'application.index': { paramsTuple?: []; params?: {} }
   }
   PUT: {
     'auth.update_me': { paramsTuple?: []; params?: {} }

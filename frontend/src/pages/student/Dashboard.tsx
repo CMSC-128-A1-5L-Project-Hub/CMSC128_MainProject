@@ -5,6 +5,19 @@ import Sidebar from "../../components/Sidebar";
 import { api } from "../../api/axios"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 
+// Helpers
+const capitalize = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+const formatStayType = (type: string) =>
+  capitalize(type.replace("_", "-"));
 
 // ── SVG / asset imports ────────────────────────────────────────────────────
 import house_icon from "../../assets/icons/house_icon.svg";
@@ -608,7 +621,9 @@ export default function Dashboard() {
   const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
-  
+  const [applications, setApplications] = useState<any[]>([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(true);
+    
   const {data: user,
     isLoading: isUserLoading,
     isError,
@@ -716,6 +731,36 @@ useEffect(() => {
 
     fetchNotifications();
     }, []);
+// -------------------------------------------------------
+
+// Applications fetch---------------------------------
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const res = await api.get("/applications/my-applications");
+        const data = res.data.data ?? res.data;
+
+        setApplications(data);
+
+        const pendingCount = data.filter((app: any) =>
+          String(app.applicationStatus ?? "").toLowerCase() === "pending"
+        ).length;
+
+        setPendingApplicationsCount(pendingCount);
+
+        console.log("APPLICATIONS:", data);
+        console.log("PENDING COUNT:", pendingCount);
+      } catch (error) {
+        console.error("Failed to fetch applications:", error);
+      } finally {
+        setApplicationsLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, []);
+
+// -----------------------------------
 if (profileLoading) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
@@ -812,19 +857,25 @@ if (isUserLoading) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {applications.map((app) => (
+                  {applications.map((app:any) => (
                     <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center gap-2.5">
                           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" style={{ background: CLR.mid }} />
-                          <span className="font-medium text-gray-800 whitespace-nowrap">{app.dorm}</span>
+                          <span className="font-medium text-gray-800 whitespace-nowrap">{app.accommodation?.accommodationName}</span>
                         </div>
                       </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{app.type}</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{app.applied}</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{app.location}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{formatStayType(app.applicationStayType)}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{formatDate(app.applicationDate)}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{capitalize(app.accommodation?.accommodationType)}</td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
-                        <StatusBadge status={app.status} />
+                         <StatusBadge status={
+                          app.applicationStatus === "approved"
+                            ? "Approved"
+                            : app.applicationStatus === "pending"
+                            ? "Pending"
+                            : "In Review"
+                        } />
                       </td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <button className="text-gray-400 hover:text-gray-600 transition-colors">

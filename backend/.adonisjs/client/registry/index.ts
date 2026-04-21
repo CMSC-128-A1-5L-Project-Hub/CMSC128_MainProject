@@ -72,6 +72,12 @@ const routes = {
     tokens: [{"old":"/applications","type":0,"val":"applications","end":""}],
     types: placeholder as Registry['application.store']['types'],
   },
+  'application.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/applications/my-applications',
+    tokens: [{"old":"/applications/my-applications","type":0,"val":"applications","end":""},{"old":"/applications/my-applications","type":0,"val":"my-applications","end":""}],
+    types: placeholder as Registry['application.index']['types'],
+  },
   'assignments.current_stay': {
     methods: ["GET","HEAD"],
     pattern: '/my-stay/current',
@@ -335,12 +341,6 @@ const routes = {
     pattern: '/notifications/:id',
     tokens: [{"old":"/notifications/:id","type":0,"val":"notifications","end":""},{"old":"/notifications/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['notifications.update']['types'],
-  },
-  'application.index': {
-    methods: ["GET","HEAD"],
-    pattern: '/applications/my-applications',
-    tokens: [{"old":"/applications/my-applications","type":0,"val":"applications","end":""},{"old":"/applications/my-applications","type":0,"val":"my-applications","end":""}],
-    types: placeholder as Registry['application.index']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 
