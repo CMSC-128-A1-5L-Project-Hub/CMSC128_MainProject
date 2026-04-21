@@ -61,7 +61,7 @@ router
       .group(() => {
         // Application & Stay
         router.post('/applications', [controllers.Application, 'store'])
-        // router.get('/applications/my-applications', [controllers.Application, 'index'])
+        router.get('/applications/my-applications', [controllers.Application, 'index'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
 
@@ -178,6 +178,3 @@ router.get('/docs', async () => {
 // Notfications
 router.get('/notifications', [controllers.Notifications, 'index'])
 router.patch('/notifications/:id', [controllers.Notifications, 'update'])
-
-// Student Applications
-router.get('/applications/my-applications', [controllers.Application, 'index'])

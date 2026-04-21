@@ -27,7 +27,7 @@ interface Application {
   applicationStayType: string;
   applicationStatus: ApplicationStatus;
   durationOfStayDays: number;
-  createdAt: string; // Adonis automatically adds this
+  applicationDate: string;
   accommodation: Accommodation; // From the .preload('accommodation') in the controller
 }
 
@@ -67,11 +67,10 @@ const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
 
 // ── API Fetcher ────────────────────────────────────────────────────────────
 const fetchApplications = async (): Promise<Application[]> => {
-  const res = await fetch("/applications/my-applications");
+  const res = await fetch("/api/applications/my-applications");
   if (!res.ok) throw new Error("Failed to fetch applications");
-  
-  const data = await res.json();
-  return data;
+  const body = await res.json();
+  return body.data ?? body;
 };
 
 // ── Main Component ─────────────────────────────────────────────────────────
@@ -151,7 +150,7 @@ export default function ApplicationsPage() {
                       {app.applicationRoomType.toUpperCase()} Room • {app.applicationStayType.replace("_", " ").toUpperCase()}
                     </p>
                     <p className="text-xs text-gray-400">
-                      Applied on: {new Date(app.createdAt).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' })}
+                      Applied on: {new Date(app.applicationDate).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
                   </div>
                 </div>

@@ -78,7 +78,7 @@ export class ApplicationSchema extends BaseModel {
   @column()
   declare accommodationId: number
   @column.dateTime()
-  declare applicationDate: DateTime
+  declare applicationDate: DateTime | null
   @column()
   declare applicationRoomType: string
   @column()
@@ -131,7 +131,7 @@ export class DocumentSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column.dateTime()
-  declare uploadTimestamp: DateTime
+  declare uploadTimestamp: DateTime | null
   @column()
   declare userId: number
 }
@@ -195,7 +195,7 @@ export class LogSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column.dateTime()
-  declare logTimestamp: DateTime
+  declare logTimestamp: DateTime | null
 }
 
 export class ManagerSchema extends BaseModel {
@@ -215,7 +215,7 @@ export class NotificationSchema extends BaseModel {
   @column()
   declare notificationContent: string
   @column.dateTime()
-  declare notificationTimestamp: DateTime
+  declare notificationTimestamp: DateTime | null
   @column()
   declare notificationType: string
   @column()
@@ -238,7 +238,7 @@ export class PaymentSchema extends BaseModel {
   @column()
   declare paymentStatus: string | null
   @column.dateTime()
-  declare paymentTimestamp: DateTime
+  declare paymentTimestamp: DateTime | null
   @column()
   declare proofFileId: number
 }
@@ -277,7 +277,7 @@ export class ReportSchema extends BaseModel {
   @column()
   declare reportFileId: number
   @column.dateTime()
-  declare reportTimestamp: DateTime
+  declare reportTimestamp: DateTime | null
   @column()
   declare reportType: string
   @column()
@@ -327,7 +327,7 @@ export class RoomSchema extends BaseModel {
 }
 
 export class StudentSchema extends BaseModel {
-  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'form5Renewal', 'gender', 'studentNumber', 'userId'] as const
+  static $columns = ['college', 'degreeProgram', 'emergencyContactName', 'emergencyContactNumber', 'enrollmentProofFileId', 'form5Renewal', 'gender', 'studentNumber', 'userId', 'yearLevel'] as const
   $columns = StudentSchema.$columns
   @column()
   declare college: string
@@ -347,6 +347,8 @@ export class StudentSchema extends BaseModel {
   declare studentNumber: string
   @column()
   declare userId: number
+  @column()
+  declare yearLevel: string | null
 }
 
 export class SysVariableSchema extends BaseModel {
@@ -367,7 +369,7 @@ export class SysVariableSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['accountStatus', 'email', 'facebookAccount', 'fname', 'id', 'lname', 'mname', 'pfpFileId', 'role', 'suffix'] as const
+  static $columns = ['accountStatus', 'email', 'facebookAccount', 'fname', 'id', 'lname', 'mname', 'otpCode', 'otpExpiresAt', 'pfpFileId', 'role', 'suffix'] as const
   $columns = UserSchema.$columns
   @column()
   declare accountStatus: string | null
@@ -383,6 +385,10 @@ export class UserSchema extends BaseModel {
   declare lname: string
   @column()
   declare mname: string | null
+  @column()
+  declare otpCode: string | null
+  @column.dateTime()
+  declare otpExpiresAt: DateTime | null
   @column()
   declare pfpFileId: number | null
   @column()

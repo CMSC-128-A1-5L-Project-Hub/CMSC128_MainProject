@@ -3,7 +3,6 @@ import Application from '#models/application'
 import Assignment from '#models/assignment'
 import Student from '#models/student'
 import LogService from '#services/log_service'
-import User from '#models/user'
 
 export default class ApplicationsController {
   
@@ -40,10 +39,7 @@ export default class ApplicationsController {
 
   // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
   async index({ auth, serialize }: HttpContext) {
-    // === TEMP DEV BYPASS ===
-    const user = await User.findByOrFail('email', 'afjuarez@up.edu.ph')
-
-    // const user = auth.user!
+    const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
 
     const applications = await Application.query()

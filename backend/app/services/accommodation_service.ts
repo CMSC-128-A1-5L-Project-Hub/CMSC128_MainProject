@@ -5,7 +5,8 @@ export class AccommodationService {
     // 1. Base Query: Only show verified accommodations
     let query = Accommodation.query()
       .where('status', 'verified')
-      .preload('images') // Preload the images so the frontend can display thumbnails
+      .preload('images')
+      .preload('rooms')
 
     // 2. Direct Accommodation Filters
     if (filters.dormType) {

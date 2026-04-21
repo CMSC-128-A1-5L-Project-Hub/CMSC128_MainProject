@@ -1,4 +1,6 @@
 import User from '#models/user'
+import Student from '#models/student'
+import FileMetadata from '#models/file_metadatum'
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 
 export default class AdminSeeder extends BaseSeeder {
@@ -22,6 +24,37 @@ export default class AdminSeeder extends BaseSeeder {
         email: 'wederamos@up.edu.ph',
         role: 'super_admin',
         // pfpFileId is nullable, so we can leave it out
+      }
+    )
+
+    const placeholderFile = await FileMetadata.firstOrCreate(
+      { fileName: 'enroll_placeholder_carlsjohsua.pdf' },
+      {
+        fileName: 'enroll_placeholder_carlsjohsua.pdf',
+        filePath: '/uploads/documents/enroll_placeholder_carlsjohsua.pdf',
+        fileType: 'document',
+      }
+    )
+
+    const joshuaUser = await User.firstOrCreate(
+      { email: 'carlsjohsua@gmail.com' },
+      {
+        fname: 'Joshua',
+        lname: 'Carlos',
+        email: 'carlsjohsua@gmail.com',
+        role: 'student',
+      }
+    )
+
+    await Student.firstOrCreate(
+      { userId: joshuaUser.id },
+      {
+        studentNumber: '2024-000001',
+        userId: joshuaUser.id,
+        enrollmentProofFileId: placeholderFile.id,
+        college: 'CAS',
+        degreeProgram: 'BS Computer Science',
+        gender: 'Male',
       }
     )
   }
