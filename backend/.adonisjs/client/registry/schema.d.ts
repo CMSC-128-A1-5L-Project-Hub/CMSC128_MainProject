@@ -259,6 +259,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/student_profiles_controller').default['show']>>>
     }
   }
+  'accommodation.recommended': {
+    methods: ["GET","HEAD"]
+    pattern: '/recommended-accommodations'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/accommodation_controller').default['recommended']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/accommodation_controller').default['recommended']>>>
+    }
+  }
   'reports.revenue': {
     methods: ["GET","HEAD"]
     pattern: '/reports/revenue'

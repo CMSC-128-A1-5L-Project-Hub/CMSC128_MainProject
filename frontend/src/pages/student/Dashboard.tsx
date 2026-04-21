@@ -19,6 +19,25 @@ const formatDate = (date: string) =>
 const formatStayType = (type: string) =>
   capitalize(type.replace("_", "-"));
 
+const formatRestriction = (value: string) => {
+  if (!value) return "";
+  if (value === "female-only") return "Female Only";
+  if (value === "male-only") return "Male Only";
+  if (value === "coed") return "Coed";
+  return value;
+};
+
+const formatAccommodationType = (value: string) => {
+  if (!value) return "";
+  if (value === "on-campus") return "On-campus";
+  if (value === "off-campus") return "Off-campus";
+  if (value === "partner_housing") return "UPLB Partner";
+  return value;
+};
+
+const formatRating = (value: number | string | null | undefined) =>
+  Number(value ?? 0).toFixed(1);
+
 // ── SVG / asset imports ────────────────────────────────────────────────────
 import house_icon from "../../assets/icons/house_icon.svg";
 import notif_icon from "../../assets/icons/notif_icon.svg";
@@ -623,6 +642,9 @@ export default function Dashboard() {
   const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
   const [applications, setApplications] = useState<any[]>([]);
   const [applicationsLoading, setApplicationsLoading] = useState(true);
+  const [recommendedDorms, setRecommendedDorms] = useState<any[]>([]);
+  const [recommendedLoading, setRecommendedLoading] = useState(true);
+
     
   const {data: user,
     isLoading: isUserLoading,
@@ -761,6 +783,26 @@ useEffect(() => {
   }, []);
 
 // -----------------------------------
+
+// Recommended dorms fetch---------------------------------
+useEffect(() => {
+  const fetchRecommendedDorms = async () => {
+    try {
+      const res = await api.get('/recommended-accommodations')
+      const data = res.data.data ?? res.data ?? []
+      console.log("RECOMMENDED DORMS:", data);
+      setRecommendedDorms(data)
+    } catch (error) {
+      console.error('Failed to fetch recommended dorms:', error)
+    } finally {
+      setRecommendedLoading(false); 
+    }
+  }
+
+  fetchRecommendedDorms()
+}, [])
+// ---------------------------------
+
 if (profileLoading) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
@@ -906,23 +948,28 @@ if (isUserLoading) {
                   ref={recommendedScrollRef}
                   className="flex gap-4 flex-1 min-w-0 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth"
                 >
-                  {recommended.map((dorm) => (
-                    <button
-                      key={dorm.id}
-                      type="button"
-                      className="min-w-[280px] max-w-[280px] text-left flex-shrink-0 rounded-[24px] border border-[#EFE5E8] bg-white shadow-[0_8px_18px_rgba(61,7,24,0.06)] overflow-hidden transition hover:-translate-y-0.5 snap-start"
-                    >
+                  {recommendedLoading ? (
+                    <div className="px-2 text-sm text-gray-500">Loading recommended dorms...</div>
+                  ) : recommendedDorms.length === 0 ? (
+                    <div className="px-2 text-sm text-gray-500">No recommended dorms found.</div>
+                  ) : (
+                    recommendedDorms.map((dorm: any) => (
+                      <button
+                        key={dorm.id}
+                        type="button"
+                        className="min-w-[280px] max-w-[280px] text-left flex-shrink-0 rounded-[24px] border border-[#EFE5E8] bg-white shadow-[0_8px_18px_rgba(61,7,24,0.06)] overflow-hidden transition hover:-translate-y-0.5 snap-start"
+                      >
                       <div className="px-4 pt-4 pb-4">
                         <div className="relative h-[132px] rounded-[18px] overflow-hidden">
                           <img
-                            src={dorm.img}
-                            alt={dorm.name}
+                            src={dorm.primaryImageUrl ?? dorm.imageUrl ?? dorm.img}
+                            alt={dorm.accommodation_name ?? dorm.accommodationName}
                             className="absolute inset-0 w-full h-full object-cover"
                           />
 
                           <div className="absolute top-3 left-3 bg-white rounded-full px-3 py-1.5 shadow-sm">
                             <span className="text-[9px] font-bold" style={{ color: CLR.gold }}>
-                              {dorm.rating} ★★★★★
+                              {formatRating(dorm.average_rating ?? dorm.averageRating)} ★★★★★
                             </span>
                           </div>
                         </div>
@@ -935,53 +982,63 @@ if (isUserLoading) {
                               color: "#3D0718",
                             }}
                           >
-                            {dorm.tag}
+                             {formatRestriction(dorm.tenant_restriction ?? dorm.tenantRestriction)}
                           </span>
                         </div>
 
                         <h4 className="mt-3 text-[15px] font-bold leading-tight" style={{ color: CLR.dark }}>
-                          {dorm.name}
+                          {dorm.accommodation_name ?? dorm.accommodationName}
                         </h4>
 
-                        <p className="mt-1.5 text-[12px] leading-tight text-[#8C6A75]">
-                          {dorm.tag === "Dormitory" ? "Shared" : "Studio"} · {dorm.size} · {dorm.location}
+                        <p className="mt-1.5 text-[1  2px] leading-tight text-[#8C6A75]">
+                          {formatAccommodationType(dorm.accommodation_type ?? dorm.accommodationType)} ·{" "}
+                          {dorm.accommodation_location ?? dorm.accommodationLocation}
                         </p>
 
-                        <p className="mt-2 text-[15px] font-bold leading-none" style={{ color: CLR.gold }}>
-                          ₱{dorm.price.toLocaleString()}
-                          <span className="ml-1 font-normal text-[13px] text-[#8C6A75]">/ month</span>
-                        </p>
+                        {dorm.lowestRent != null && (
+                          <p className="mt-2 text-[15px] font-bold leading-none" style={{ color: CLR.gold }}>
+                            ₱{Number(dorm.lowestRent).toLocaleString()}
+                            <span className="ml-1 font-normal text-[13px] text-[#8C6A75]">/ month</span>
+                          </p>
+                        )}
 
                         <div className="mt-4 h-px bg-[#F1E5EA]" />
 
                         <div className="mt-3 flex items-center justify-between">
                           <div className="flex items-center gap-1">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <svg
-                                key={i}
-                                className={`w-4 h-4 ${i < dorm.rating ? "text-amber-400" : "text-gray-300"}`}
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                            ))}
+                            {Array.from({ length: 5 }).map((_, i) => {
+                              const rating = Math.round(Number(dorm.average_rating ?? dorm.averageRating ?? 0));
+                              return (
+                                <svg
+                                  key={i}
+                                  className={`w-4 h-4 ${i < rating ? "text-amber-400" : "text-gray-300"}`}
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                              );
+                            })}
                           </div>
 
-                          <span className="text-[11px] text-[#9E7A86]">1 month ago</span>
+                          <span className="text-[11px] text-[#9E7A86]">
+                            Top rated
+                          </span>
                         </div>
 
-                        <p
-                          className="mt-3 text-[12px] italic leading-[1.35] text-[#4B2431]"
-                          style={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 4,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden",
-                          }}
-                        >
-                          {dorm.review}
-                        </p>
+                        {dorm.sampleReview && (
+                          <p
+                            className="mt-3 text-[12px] italic leading-[1.35] text-[#4B2431]"
+                            style={{
+                              display: "-webkit-box",
+                              WebkitLineClamp: 4,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {dorm.sampleReview}
+                          </p>
+                        )}
 
                         <div className="mt-4 flex justify-center gap-1.5">
                           {[0, 1, 2, 3, 4].map((dot) => (
@@ -996,18 +1053,19 @@ if (isUserLoading) {
                         <div className="mt-3 h-px bg-[#F1E5EA]" />
                       </div>
                     </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={scrollRecommendedRight}
-                  className="hidden md:flex w-14 h-14 rounded-full text-white items-center justify-center shadow-[0_10px_24px_rgba(61,7,24,0.18)] flex-shrink-0"
-                  style={{ background: `linear-gradient(135deg, ${CLR.accent} 0%, ${CLR.mid} 100%)` }}
-                >
-                  <IconArrowNext className="w-5 h-5" />
-                </button>
+                  ))
+                )}
               </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={scrollRecommendedRight}
+                className="hidden md:flex w-14 h-14 rounded-full text-white items-center justify-center shadow-[0_10px_24px_rgba(61,7,24,0.18)] flex-shrink-0"
+                style={{ background: `linear-gradient(135deg, ${CLR.accent} 0%, ${CLR.mid} 100%)` }}
+              >
+                <IconArrowNext className="w-5 h-5" />
+              </button>
             </div>
 
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">

@@ -11,6 +11,7 @@ export interface ApiDefinition {
   accommodation: {
     index: typeof routes['accommodation.index']
     show: typeof routes['accommodation.show']
+    recommended: typeof routes['accommodation.recommended']
     landlordIndex: typeof routes['accommodation.landlord_index']
     store: typeof routes['accommodation.store']
     update: typeof routes['accommodation.update']

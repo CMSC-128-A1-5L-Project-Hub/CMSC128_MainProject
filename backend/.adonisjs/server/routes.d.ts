@@ -25,6 +25,7 @@ export type ScannedRoutes = {
     'payments.upload_proof': { paramsTuple: [ParamValue]; params: {'feeId': ParamValue} }
     'payments.get_student_payment_history': { paramsTuple?: []; params?: {} }
     'student_profiles.show': { paramsTuple?: []; params?: {} }
+    'accommodation.recommended': { paramsTuple?: []; params?: {} }
     'reports.revenue': { paramsTuple?: []; params?: {} }
     'reports.delinquency': { paramsTuple?: []; params?: {} }
     'accommodation.landlord_index': { paramsTuple?: []; params?: {} }
@@ -75,6 +76,7 @@ export type ScannedRoutes = {
     'fees.index': { paramsTuple?: []; params?: {} }
     'payments.get_student_payment_history': { paramsTuple?: []; params?: {} }
     'student_profiles.show': { paramsTuple?: []; params?: {} }
+    'accommodation.recommended': { paramsTuple?: []; params?: {} }
     'reports.revenue': { paramsTuple?: []; params?: {} }
     'reports.delinquency': { paramsTuple?: []; params?: {} }
     'accommodation.landlord_index': { paramsTuple?: []; params?: {} }
@@ -107,6 +109,7 @@ export type ScannedRoutes = {
     'fees.index': { paramsTuple?: []; params?: {} }
     'payments.get_student_payment_history': { paramsTuple?: []; params?: {} }
     'student_profiles.show': { paramsTuple?: []; params?: {} }
+    'accommodation.recommended': { paramsTuple?: []; params?: {} }
     'reports.revenue': { paramsTuple?: []; params?: {} }
     'reports.delinquency': { paramsTuple?: []; params?: {} }
     'accommodation.landlord_index': { paramsTuple?: []; params?: {} }

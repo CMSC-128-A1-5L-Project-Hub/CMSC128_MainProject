@@ -77,6 +77,9 @@ router
 
         // Student Profile
         router.get('/student/profile', [controllers.StudentProfiles, 'show'])
+
+        // recommended accommodations
+        router.get('/recommended-accommodations', [controllers.Accommodation, 'recommended'])
     }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================

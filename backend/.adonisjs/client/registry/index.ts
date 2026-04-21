@@ -132,6 +132,12 @@ const routes = {
     tokens: [{"old":"/student/profile","type":0,"val":"student","end":""},{"old":"/student/profile","type":0,"val":"profile","end":""}],
     types: placeholder as Registry['student_profiles.show']['types'],
   },
+  'accommodation.recommended': {
+    methods: ["GET","HEAD"],
+    pattern: '/recommended-accommodations',
+    tokens: [{"old":"/recommended-accommodations","type":0,"val":"recommended-accommodations","end":""}],
+    types: placeholder as Registry['accommodation.recommended']['types'],
+  },
   'reports.revenue': {
     methods: ["GET","HEAD"],
     pattern: '/reports/revenue',
