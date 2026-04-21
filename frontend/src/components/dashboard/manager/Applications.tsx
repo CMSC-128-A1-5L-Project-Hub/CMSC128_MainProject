@@ -4,6 +4,7 @@ import Card from "../../ui/Card"
 type Application = {
     studentName: string
     type: string
+    building: string
     appliedDate: string 
 }
 
@@ -24,40 +25,49 @@ export default function Applications({ data, className="" }: any) {
                         View all →
                     </p>
                 </div>
-                <div className="grid grid-cols-5 border-b border-[#F5ECF0] uppercase">
+                <div className="grid grid-cols-5 border-b border-[#F5ECF0] uppercase"
+                    style={{ gridTemplateColumns: "1.5fr 1.0fr 2fr 1.5fr 2fr" }}
+                >
                     
                     <p className="col-span-2 text-[#9A7080] text-xs lg:text-sm font-bold p-1">
                         Student
                     </p>
                     <p className="col-span-1 text-[#9A7080] text-xs lg:text-sm font-bold p-1">
-                        Type
+                        Preferred Facility
                     </p>
                     <p className="col-span-1 text-[#9A7080] text-xs lg:text-sm font-bold p-1">
-                        Applied
+                        Date Applied
                     </p>
-                    <p className="col-span-1 text-[#9A7080] text-xs lg:text-sm font-bold p-1">
+                    <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-sm font-bold p-1">
                         Action
                     </p>
                 </div>
                 <div className="grid grid-cols-5">
                 {data.map((application: Application, i:number) => (
-                        <div key={i} className="col-span-5 grid grid-cols-5 mt-3">
+                        <div key={i} className="col-span-5 grid grid-cols-5 mt-3"
+                            style={{ gridTemplateColumns: "1.5fr 1.0fr 2fr 1.5fr 2fr" }}
+                        >
                             <div className="col-span-2 flex flex-row items-center">
                                 <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
                                     style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                                     {getInitials(application.studentName)}
                                 </div>
-                                <p className="text-black text-xs lg:text-sm pl-1">
+                                <p className="text-black text-sm lg:text-base pl-2">
                                     {application.studentName}
                                 </p>
                             </div>
-                            <p className="col-span-1 text-[#9A7080] text-xs lg:text-sm p-1">
-                                {application.type}
-                            </p>
-                            <p className="col-span-1 text-[#9A7080] text-xs lg:text-sm p-1">
+                            <div className="flex flex-col px-1">
+                                <p className="col-span-1 text-[#1A0008] text-sm lg:text-base">
+                                    {application.building}
+                                </p>
+                                <p className="col-span-1 text-[#9A7080] text-xs lg:text-sm">
+                                    {application.type}
+                                </p>
+                            </div>
+                            <p className="col-span-1 text-[#9A7080] text-sm lg:text-base p-1 flex items-center">
                                 {application.appliedDate}
                             </p>
-                            <div className="col-span-1 flex items-center">
+                            <div className="col-span-1 flex items-center justify-center">
                                 <Button variant="reddishPink" size="sm">
                                     Review
                                 </Button>

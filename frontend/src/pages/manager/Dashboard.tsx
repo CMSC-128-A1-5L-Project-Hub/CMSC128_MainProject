@@ -35,6 +35,7 @@ interface Stat {
 interface Application {
     studentName: string
     type: string
+    building: string
     appliedDate: string 
 }
 
@@ -76,9 +77,9 @@ const stats: Stat[] = [
 ]
 
 const applications: Application[] = [
-    {studentName: "Ana Marie Reyes", type: "Non-transient", appliedDate: "Mar 12, 2026"},
-    {studentName: "Ana Marie Reyes", type: "Non-transient", appliedDate: "Mar 14, 2026"},
-    {studentName: "Ana Marie Reyes", type: "Non-transient", appliedDate: "Mar 15, 2026"}
+    {studentName: "Ana Marie Reyes", type: "Non-transient", building: "Building 6", appliedDate: "Mar 12, 2026"},
+    {studentName: "Ana Marie Reyes", type: "Non-transient", building: "Building 6", appliedDate: "Mar 14, 2026"},
+    {studentName: "Ana Marie Reyes", type: "Non-transient", building: "Building 6", appliedDate: "Mar 15, 2026"}
 ]
 
 const confirmedStudents: ConfirmedStudent[] = [
