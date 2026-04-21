@@ -94,10 +94,12 @@ export class ApplicationSchema extends BaseModel {
 }
 
 export class AssignmentSchema extends BaseModel {
-  static $columns = ['actualMoveOut', 'expectedMoveOut', 'gracePeriodDays', 'id', 'moveIn', 'roomId', 'studentNumber'] as const
+  static $columns = ['actualMoveOut', 'confirmedDate', 'expectedMoveOut', 'gracePeriodDays', 'id', 'moveIn', 'roomId', 'studentNumber'] as const
   $columns = AssignmentSchema.$columns
   @column.date()
   declare actualMoveOut: DateTime | null
+  @column.date()
+  declare confirmedDate: DateTime
   @column.date()
   declare expectedMoveOut: DateTime
   @column()
