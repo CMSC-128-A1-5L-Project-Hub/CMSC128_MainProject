@@ -221,6 +221,7 @@ export default function ProfileCard({
             </div>
           </div>
 
+          {/* Footer details - status badge now matches second code */}
           <div className="mt-6 grid grid-cols-2 gap-4">
             <div>
               <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5 uppercase tracking-wider">
@@ -232,7 +233,13 @@ export default function ProfileCard({
               <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5 uppercase tracking-wider">
                 Status
               </p>
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
+              <span
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold capitalize
+                  ${isActive
+                    ? "bg-[#2D7A4A]/35 text-[#6FD49A] border border-[#2D7A4A]/50"
+                    : "bg-[#7A2D2D]/35 text-[#D46F6F] border border-[#7A2D2D]/70"
+                  }`}
+              >
                 {isActive ? "Active" : "Pending"}
               </span>
             </div>
