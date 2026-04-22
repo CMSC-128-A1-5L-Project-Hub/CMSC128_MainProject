@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import HeroBanner from "../../components/dashboard/HeroBanner";
 import Button from "../../components/Button";
@@ -30,13 +31,15 @@ export interface Room {
   price: number;
   occupants: Tenant[];
   tags: string[];
+  stay_type: "transient" | "non_transient";
+  tenant_restriction: "coed" | "non-coed";
 }
 
 export type InstallmentPlan = "full" | "monthly" | "semestral";
 
 export default function RoomsPage() {
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([
-    // Initial mock data – replace with API call
     {
       id: 1,
       name: "Sunrise Suite",
@@ -49,6 +52,8 @@ export default function RoomsPage() {
         { id: 2, name: "Mark Rivera", email: "mark@example.com", phone: "09234567890", degree: "Business Admin" },
       ],
       tags: ["WiFi", "Aircon", "Study Desk"],
+      stay_type: "non_transient",
+      tenant_restriction: "coed",
     },
     {
       id: 2,
@@ -59,6 +64,8 @@ export default function RoomsPage() {
       price: 5200,
       occupants: [],
       tags: ["WiFi", "Shared Kitchen"],
+      stay_type: "transient",
+      tenant_restriction: "non-coed",
     },
     {
       id: 3,
@@ -69,6 +76,8 @@ export default function RoomsPage() {
       price: 2800,
       occupants: [],
       tags: ["Quiet", "Window View"],
+      stay_type: "non_transient",
+      tenant_restriction: "coed",
     },
   ]);
 

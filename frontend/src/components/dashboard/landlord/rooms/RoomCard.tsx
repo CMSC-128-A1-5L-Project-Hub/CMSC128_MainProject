@@ -1,3 +1,5 @@
+"use client";
+
 import Card from "../../../ui/Card";
 import Button from "../../../Button";
 import {
@@ -21,9 +23,9 @@ interface RoomCardProps {
 
 const getStatusInfo = (room: Room) => {
   const isFull = room.occupants.length >= room.capacity;
-  const isEmpty = room.occupants.length === 0;
-  if (isFull) return { label: "FULL", bg: "bg-red-50", text: "text-red-600", border: "border-red-100", bar: "bg-[#8C1535]" };
-  if (isEmpty) return { label: null, bg: "", text: "", border: "", bar: "bg-[#D4AF37]" };
+  if (isFull) {
+    return { label: "FULL", bg: "bg-red-50", text: "text-red-600", border: "border-red-100", bar: "bg-[#8C1535]" };
+  }
   return { label: "AVAILABLE", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-100", bar: "bg-[#8C1535]" };
 };
 
@@ -38,19 +40,24 @@ export default function RoomCard({ room, onManage, onBilling, onDelete }: RoomCa
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="text-base font-bold text-[#4A1F2D]">{room.name}</h3>
-            <div className="flex items-center gap-1 mt-0.5 text-[#8A5C6B] text-xs">
+            <div className="flex items-center gap-1 mt-0.5 text-[#8A5C6B] text-xs flex-wrap">
               <Building size={11} />
               <span>{room.building}</span>
               <span className="mx-1">•</span>
               <BedDouble size={11} />
               <span>{room.type}</span>
+              <span className="mx-1">•</span>
+              <span className="px-1.5 py-0.5 bg-gray-100 rounded-full text-[10px] font-medium text-gray-700">
+                {room.stay_type === "transient" ? "Transient" : "Non‑Transient"}
+              </span>
+              <span className="px-1.5 py-0.5 bg-gray-100 rounded-full text-[10px] font-medium text-gray-700">
+                {room.tenant_restriction === "coed" ? "Co‑ed" : "Non‑Coed"}
+              </span>
             </div>
           </div>
-          {status.label && (
-            <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${status.bg} ${status.text} border`}>
-              {status.label}
-            </span>
-          )}
+          <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${status.bg} ${status.text} border`}>
+            {status.label}
+          </span>
         </div>
 
         <div className="flex items-center gap-2 mb-3">

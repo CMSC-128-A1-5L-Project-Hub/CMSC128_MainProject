@@ -1,7 +1,9 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import Modal from "../../../Modal";
 import Button from "../../../Button";
-import { Tag } from "lucide-react";
+import { Tag, X } from "lucide-react";
 import type { Room } from "../../../../pages/landlord/RoomPage";
 
 interface AddRoomModalProps {
@@ -19,6 +21,8 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
     price: "" as string,
     tagInput: "",
     tags: [] as string[],
+    stay_type: "non_transient" as "transient" | "non_transient",
+    tenant_restriction: "coed" as "coed" | "non-coed",
   });
   const [capacityInput, setCapacityInput] = useState<string>("2");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -33,6 +37,8 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
         price: "",
         tagInput: "",
         tags: [],
+        stay_type: "non_transient",
+        tenant_restriction: "coed",
       });
       setCapacityInput("2");
       setErrors({});
@@ -139,6 +145,8 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
       capacity: newRoom.capacity,
       price: parseFloat(newRoom.price),
       tags: newRoom.tags,
+      stay_type: newRoom.stay_type,
+      tenant_restriction: newRoom.tenant_restriction,
     });
   };
 
@@ -147,22 +155,47 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
   return (
     <Modal open={open} onClose={onClose} title="Add New Room">
       <div className="space-y-5">
+        {/* Room Name */}
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">ROOM NAME</label>
-          <input type="text" value={newRoom.name} onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })} className={`border rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.name ? "border-red-500" : "border-[#e5cfd4]"}`} placeholder="e.g., Executive Suite" />
+          <input
+            type="text"
+            value={newRoom.name}
+            onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
+            className={`border rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${
+              errors.name ? "border-red-500" : "border-[#e5cfd4]"
+            }`}
+            placeholder="e.g., Executive Suite"
+          />
           {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
         </div>
 
+        {/* Building */}
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">BUILDING</label>
-          <input type="text" value={newRoom.building} onChange={(e) => setNewRoom({ ...newRoom, building: e.target.value })} className={`border rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.building ? "border-red-500" : "border-[#e5cfd4]"}`} placeholder="e.g., North Tower" />
+          <input
+            type="text"
+            value={newRoom.building}
+            onChange={(e) => setNewRoom({ ...newRoom, building: e.target.value })}
+            className={`border rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${
+              errors.building ? "border-red-500" : "border-[#e5cfd4]"
+            }`}
+            placeholder="e.g., North Tower"
+          />
           {errors.building && <p className="text-red-500 text-xs">{errors.building}</p>}
         </div>
 
+        {/* Room Type + Capacity */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">ROOM TYPE</label>
-            <select value={newRoom.type} onChange={(e) => handleTypeChange(e.target.value as Room["type"])} className={`border rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.type ? "border-red-500" : "border-[#e5cfd4]"}`}>
+            <select
+              value={newRoom.type}
+              onChange={(e) => handleTypeChange(e.target.value as Room["type"])}
+              className={`border rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${
+                errors.type ? "border-red-500" : "border-[#e5cfd4]"
+              }`}
+            >
               <option value="Single">Single</option>
               <option value="Double">Double</option>
               <option value="Shared">Shared</option>
@@ -170,18 +203,66 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
             {errors.type && <p className="text-red-500 text-xs">{errors.type}</p>}
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">CAPACITY {newRoom.type !== "Shared" ? "(fixed)" : "(min 3)"}</label>
-            <input type="text" value={capacityInput} onChange={handleCapacityInputChange} onBlur={applyCapacityUpdate} onKeyDown={handleCapacityKeyDown} disabled={newRoom.type !== "Shared"} className={`border rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.capacity ? "border-red-500" : "border-[#e5cfd4]"} ${newRoom.type !== "Shared" ? "bg-gray-100 cursor-not-allowed" : ""}`} />
+            <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">
+              CAPACITY {newRoom.type !== "Shared" ? "(fixed)" : "(min 3)"}
+            </label>
+            <input
+              type="text"
+              value={capacityInput}
+              onChange={handleCapacityInputChange}
+              onBlur={applyCapacityUpdate}
+              onKeyDown={handleCapacityKeyDown}
+              disabled={newRoom.type !== "Shared"}
+              className={`border rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${
+                errors.capacity ? "border-red-500" : "border-[#e5cfd4]"
+              } ${newRoom.type !== "Shared" ? "bg-gray-100 cursor-not-allowed" : ""}`}
+            />
             {errors.capacity && <p className="text-red-500 text-xs">{errors.capacity}</p>}
           </div>
         </div>
 
+        {/* Price */}
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">PRICE (₱)</label>
-          <input type="number" value={newRoom.price} onChange={(e) => setNewRoom({ ...newRoom, price: e.target.value })} className={`border rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.price ? "border-red-500" : "border-[#e5cfd4]"}`} placeholder="0" />
+          <input
+            type="number"
+            value={newRoom.price}
+            onChange={(e) => setNewRoom({ ...newRoom, price: e.target.value })}
+            className={`border rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${
+              errors.price ? "border-red-500" : "border-[#e5cfd4]"
+            }`}
+            placeholder="0"
+          />
           {errors.price && <p className="text-red-500 text-xs">{errors.price}</p>}
         </div>
 
+        {/* NEW: Stay Type and Tenant Restriction */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">STAY TYPE</label>
+            <select
+              value={newRoom.stay_type}
+              onChange={(e) => setNewRoom({ ...newRoom, stay_type: e.target.value as "transient" | "non_transient" })}
+              className="border border-[#e5cfd4] rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30"
+            >
+              <option value="transient">Transient</option>
+              <option value="non_transient">Non‑Transient</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">TENANT RESTRICTION</label>
+            <select
+              value={newRoom.tenant_restriction}
+              onChange={(e) => setNewRoom({ ...newRoom, tenant_restriction: e.target.value as "coed" | "non-coed" })}
+              className="border border-[#e5cfd4] rounded-xl p-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30"
+            >
+              <option value="coed">Co‑ed</option>
+              <option value="non-coed">Non‑Coed</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Tags */}
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">ROOM TAGS</label>
           <div className="flex flex-wrap gap-2 mb-2">
@@ -194,7 +275,14 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
             ))}
           </div>
           <div className="flex gap-2">
-            <input type="text" value={newRoom.tagInput} onChange={(e) => setNewRoom({ ...newRoom, tagInput: e.target.value })} onKeyDown={handleTagKeyDown} placeholder="Type tag and press Enter or comma" className="flex-1 border border-[#e5cfd4] rounded-xl p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30" />
+            <input
+              type="text"
+              value={newRoom.tagInput}
+              onChange={(e) => setNewRoom({ ...newRoom, tagInput: e.target.value })}
+              onKeyDown={handleTagKeyDown}
+              placeholder="Type tag and press Enter or comma"
+              className="flex-1 border border-[#e5cfd4] rounded-xl p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30"
+            />
             <Button variant="secondary" size="sm" onClick={addTag} type="button">Add</Button>
           </div>
           <p className="text-[10px] text-gray-400 mt-1">Press Enter or comma to add a tag</p>
