@@ -20,7 +20,10 @@ export default function DonutChart({
     const offset = circumference - (percentage / 100) * circumference
 
     return (
-        <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+        <div
+            className="relative flex items-center justify-center"
+            style={{ width: size, height: size, isolation: "isolate" }}
+        >
             <svg width={size} height={size} className="-rotate-90">
                 {/* Track */}
                 <circle

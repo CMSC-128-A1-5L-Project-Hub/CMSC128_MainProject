@@ -334,11 +334,11 @@ export default function Dashboard() {
     ).slice(0, 5)
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
-            <Sidebar role="manager" profile={managerProfile}/>
+        <div className="relative flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
+            <Sidebar role="manager" profile={managerProfile} />
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col px-8 py-5 overflow-y-auto">
+            <div className="relative z-10 flex-1 flex flex-col px-8 py-5 overflow-y-auto">
                 <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
                     <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
                         style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
@@ -388,7 +388,7 @@ export default function Dashboard() {
                     </div>
                 </main>
             </div>
-            <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4] overflow-y-auto">
+            <aside className="relative z-10 hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4] overflow-y-auto">
                 <ProfileCard
                     fullName={managerProfile.fullName}
                     role="Dormitory Manager"
