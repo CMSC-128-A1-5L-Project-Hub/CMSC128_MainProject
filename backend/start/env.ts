@@ -69,8 +69,15 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
-  | Variables for configuring the limiter package
+  | Variables for configuring the rate limiter
   |----------------------------------------------------------
   */
-  LIMITER_STORE: Env.schema.enum(['database', 'memory'] as const)
+  LIMITER_STORE: Env.schema.enum(['database', 'memory'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring SMS (Semaphore)
+  |----------------------------------------------------------
+  */
+  SMS_KEY: Env.schema.string(),
 })

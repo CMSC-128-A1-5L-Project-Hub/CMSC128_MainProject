@@ -34,6 +34,9 @@ export default class extends BaseSeeder {
       { file_name: 'enroll_2023123460.pdf', file_path: '/uploads/documents/enroll_2023123460.pdf', file_type: 'document' },
       { file_name: 'enroll_2023123461.pdf', file_path: '/uploads/documents/enroll_2023123461.pdf', file_type: 'document' },
       { file_name: 'enroll_2023123462.pdf', file_path: '/uploads/documents/enroll_2023123462.pdf', file_type: 'document' },
+
+      { file_name: 'enroll_2023123463.pdf', file_path: '/uploads/documents/enroll_2023123463.pdf', file_type: 'document' },
+      { file_name: 'enroll_2023123464.pdf', file_path: '/uploads/documents/enroll_2023123464.pdf', file_type: 'document' },
       // Reports
       { file_name: 'report_1.pdf', file_path: '/uploads/documents/report_1.pdf', file_type: 'document' },
       { file_name: 'report_2.pdf', file_path: '/uploads/documents/report_2.pdf', file_type: 'document' },
@@ -100,7 +103,38 @@ export default class extends BaseSeeder {
       { pfp_file_id: getFile('pfp_15.jpg'), fname: 'Michael Angelo', mname: 'Torres', lname: 'Bautista', suffix: null, email: 'mabautista@gmail.com', facebook_account: 'facebook.com/michael.bautista', role: 'manager' },
       { pfp_file_id: getFile('pfp_16.jpg'), fname: 'Angela Marie', mname: 'Salazar', lname: 'Pineda', suffix: null, email: 'ampineda@up.edu.ph', facebook_account: 'facebook.com/angela.pineda', role: 'manager' },
       { pfp_file_id: getFile('pfp_17.jpg'), fname: 'Victor Emmanuel', mname: 'Alvarez', lname: 'Padilla', suffix: null, email: 'vepadilla@gmail.com', facebook_account: 'facebook.com/victor.padilla', role: 'manager' },
-      { pfp_file_id: getFile('pfp_18.jpg'), fname: 'Andy Emmanuel', mname: 'Padilla', lname: 'Alvarez', suffix: null, email: 'aralvarez@gmail.com', facebook_account: 'facebook.com/andy.alvarez', role: 'manager' }
+      { pfp_file_id: getFile('pfp_18.jpg'), fname: 'Andy Emmanuel', mname: 'Padilla', lname: 'Alvarez', suffix: null, email: 'aralvarez@gmail.com', facebook_account: 'facebook.com/andy.alvarez', role: 'manager' }, 
+      
+      { 
+        pfp_file_id: getFile('pfp_1.jpg'),
+        fname: 'Ana Marie',
+        mname: null,
+        lname: 'Reyes',
+        suffix: null,
+        email: 'pending.student1@up.edu.ph',
+        facebook_account: 'facebook.com/ana.reyes',
+        role: 'unassigned'
+      },
+      { 
+        pfp_file_id: getFile('pfp_2.jpg'),
+        fname: 'John Paul',
+        mname: null,
+        lname: 'Santos',
+        suffix: null,
+        email: 'pending.student2@up.edu.ph',
+        facebook_account: 'facebook.com/john.santos',
+        role: 'unassigned'
+      },
+      { 
+        pfp_file_id: getFile('pfp_8.jpg'),
+        fname: 'Carla',
+        mname: null,
+        lname: 'Navarro',
+        suffix: null,
+        email: 'pending.landlord1@gmail.com',
+        facebook_account: 'facebook.com/carla.navarro',
+        role: 'unassigned'
+      }
     ])
 
     // --- DYNAMIC FETCH: USERS ---
@@ -144,7 +178,12 @@ export default class extends BaseSeeder {
       { user_id: getUser('cmnavarro@gmail.com'), tin: '234-567-890-111' },
       { user_id: getUser('pagarcia@up.edu.ph'), tin: '345-678-901-222' },
       { user_id: getUser('raortega@gmail.com'), tin: '456-789-012-333' },
-      { user_id: getUser('ntramos@gmail.com'), tin: '567-890-123-444' }
+      { user_id: getUser('ntramos@gmail.com'), tin: '567-890-123-444' },
+      
+      {
+        user_id: getUser('pending.landlord1@gmail.com'),
+        tin: '678-901-234-555'
+      }
     ])
 
     await db.table('managers').multiInsert([
@@ -157,13 +196,36 @@ export default class extends BaseSeeder {
     ])
 
     await db.table('students').multiInsert([
-      { student_number: '2023-123456', user_id: getUser('lvmartinez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123456.pdf'), college: 'CEAT', degree_program: 'BS Industrial Engineering', gender: 'Female', emergency_contact_name: 'Kalix Martinez', emergency_contact_number: '09181234567' },
-      { student_number: '2023-123457', user_id: getUser('afjuarez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123457.pdf'), college: 'CEAT', degree_program: 'BS Civil Engineering', gender: 'Female', emergency_contact_name: 'Sebastian Cameroz', emergency_contact_number: '09999159295' },
-      { student_number: '2023-123458', user_id: getUser('svramirez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123458.pdf'), college: 'CEM', degree_program: 'BS Economics', gender: 'Female', emergency_contact_name: 'Ashianna Fernandez', emergency_contact_number: '09293230856' },
-      { student_number: '2023-123459', user_id: getUser('accruz@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123459.pdf'), college: 'CAS', degree_program: 'BA Communication Arts', gender: 'Female', emergency_contact_name: 'Clyden Ramirez', emergency_contact_number: '09876543210' },
-      { student_number: '2023-123460', user_id: getUser('djsantos@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123460.pdf'), college: 'CEAT', degree_program: 'BS Industrial Engineering', gender: 'Male', emergency_contact_name: null, emergency_contact_number: null },
-      { student_number: '2023-123461', user_id: getUser('kjvillanueva@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123461.pdf'), college: 'CBA', degree_program: 'BS Accountancy', gender: 'Female', emergency_contact_name: 'Rafael Ortega', emergency_contact_number: '09172345678' },
-      { student_number: '2023-123462', user_id: getUser('jdaguilar@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123462.pdf'), college: 'CITE', degree_program: 'BS Computer Science', gender: 'Male', emergency_contact_name: 'Victor Padilla', emergency_contact_number: '09987654321' }
+      { student_number: '2023-123456', user_id: getUser('lvmartinez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123456.pdf'), college: 'CEAT', degree_program: 'BS Industrial Engineering', gender: 'Female', emergency_contact_name: 'Kalix Martinez', emergency_contact_number: '09181234567', year_level: '3rd Year' },
+      { student_number: '2023-123457', user_id: getUser('afjuarez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123457.pdf'), college: 'CEAT', degree_program: 'BS Civil Engineering', gender: 'Female', emergency_contact_name: 'Sebastian Cameroz', emergency_contact_number: '09999159295', year_level: '2nd Year' },
+      { student_number: '2023-123458', user_id: getUser('svramirez@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123458.pdf'), college: 'CEM', degree_program: 'BS Economics', gender: 'Female', emergency_contact_name: 'Ashianna Fernandez', emergency_contact_number: '09293230856', year_level: '4th Year' },
+      { student_number: '2023-123459', user_id: getUser('accruz@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123459.pdf'), college: 'CAS', degree_program: 'BA Communication Arts', gender: 'Female', emergency_contact_name: 'Clyden Ramirez', emergency_contact_number: '09876543210', year_level: '1st Year' },
+      { student_number: '2023-123460', user_id: getUser('djsantos@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123460.pdf'), college: 'CEAT', degree_program: 'BS Industrial Engineering', gender: 'Male', emergency_contact_name: null, emergency_contact_number: null, year_level: '2nd Year' },
+      { student_number: '2023-123461', user_id: getUser('kjvillanueva@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123461.pdf'), college: 'CBA', degree_program: 'BS Accountancy', gender: 'Female', emergency_contact_name: 'Rafael Ortega', emergency_contact_number: '09172345678', year_level: '5th Year' },
+      { student_number: '2023-123462', user_id: getUser('jdaguilar@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123462.pdf'), college: 'CITE', degree_program: 'BS Computer Science', gender: 'Male', emergency_contact_name: 'Victor Padilla', emergency_contact_number: '09987654321', year_level: '3rd Year' },
+
+      {
+        student_number: '2023-223456',
+        user_id: getUser('pending.student1@up.edu.ph'),
+        enrollment_proof_file_id: getFile('enroll_2023123463.pdf'),
+        college: 'CAS',
+        degree_program: 'BS Biology',
+        gender: 'Female',
+        emergency_contact_name: 'Maria Reyes',
+        emergency_contact_number: '09171234567',
+        year_level: '1st Year'
+      },
+      {
+        student_number: '2023-223457',
+        user_id: getUser('pending.student2@up.edu.ph'),
+        enrollment_proof_file_id: getFile('enroll_2023123464.pdf'),
+        college: 'CEM',
+        degree_program: 'BS Economics',
+        gender: 'Male',
+        emergency_contact_name: 'Pedro Santos',
+        emergency_contact_number: '09181234567',
+        year_level: '4th Year'
+      }
     ])
 
     // =========================================================================
@@ -192,12 +254,12 @@ export default class extends BaseSeeder {
     // 7. ACCOMMODATIONS (Directly using getUser for Landlords & Managers!)
     // =========================================================================
     await db.table('accommodations').multiInsert([
-      { landlord_id: getUser('larkinsanchez@gmail.com'), manager_id: getUser('juan.delacruz@gmail.com'), business_permit_id: getFile('business_permit_1.pdf'), accommodation_name: 'White House', accommodation_location: 'Ruby St., Brgy. Batong Malake, Los Baños, Laguna', accommodation_type: 'off-campus', accommodation_capacity: 60, tenant_restriction: 'coed', application_start_date: '2026-04-01', application_end_date: '2026-05-15' },
-      { landlord_id: getUser('cmnavarro@gmail.com'), manager_id: getUser('slmanuel@up.edu.ph'), business_permit_id: getFile('business_permit_2.pdf'), accommodation_name: 'One Silangan', accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'on-campus', accommodation_capacity: 40, tenant_restriction: 'coed', application_start_date: '2026-04-01', application_end_date: '2026-05-20' },
-      { landlord_id: getUser('pagarcia@up.edu.ph'), manager_id: getUser('mabautista@gmail.com'), business_permit_id: getFile('business_permit_3.pdf'), accommodation_name: "Men's Dorm", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'partner_housing', accommodation_capacity: 150, tenant_restriction: 'male-only', application_start_date: '2026-03-20', application_end_date: '2026-04-30' },
-      { landlord_id: getUser('raortega@gmail.com'), manager_id: getUser('ampineda@up.edu.ph'), business_permit_id: getFile('business_permit_4.pdf'), accommodation_name: "ATI", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'partner_housing', accommodation_capacity: 120, tenant_restriction: 'male-only', application_start_date: '2026-04-05', application_end_date: '2026-05-25' },
-      { landlord_id: getUser('larkinsanchez@gmail.com'), manager_id: getUser('vepadilla@gmail.com'), business_permit_id: getFile('business_permit_5.pdf'), accommodation_name: "Scholar's Dorm", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'on-campus', accommodation_capacity: 50, tenant_restriction: 'female-only', application_start_date: '2026-03-25', application_end_date: '2026-05-10' },
-      { landlord_id: getUser('ntramos@gmail.com'), manager_id: getUser('aralvarez@gmail.com'), business_permit_id: getFile('business_permit_6.pdf'), accommodation_name: "One Sapphire Place", accommodation_location: 'Sapphire St., Brgy. Batong Malake, Los Baños, Laguna', accommodation_type: 'off-campus', accommodation_capacity: 50, tenant_restriction: 'coed', application_start_date: '2026-03-25', application_end_date: '2026-05-10' }
+      { landlord_id: getUser('larkinsanchez@gmail.com'), manager_id: getUser('juan.delacruz@gmail.com'), business_permit_id: getFile('business_permit_1.pdf'), accommodation_name: 'White House', accommodation_location: 'Ruby St., Brgy. Batong Malake, Los Baños, Laguna', accommodation_type: 'off-campus', accommodation_capacity: 60, tenant_restriction: 'coed', status: 'verified', application_start_date: '2026-04-01', application_end_date: '2026-05-15', latitude: 14.1665, longitude: 121.2430, walking_distance: 10, biking_distance: 5, driving_distance: 3 },
+      { landlord_id: getUser('cmnavarro@gmail.com'), manager_id: getUser('slmanuel@up.edu.ph'), business_permit_id: getFile('business_permit_2.pdf'), accommodation_name: 'One Silangan', accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'on-campus', accommodation_capacity: 40, tenant_restriction: 'coed', status: 'verified', application_start_date: '2026-04-01', application_end_date: '2026-05-20', latitude: 14.1649, longitude: 121.2398, walking_distance: 5, biking_distance: 2, driving_distance: 2 },
+      { landlord_id: getUser('pagarcia@up.edu.ph'), manager_id: getUser('mabautista@gmail.com'), business_permit_id: getFile('business_permit_3.pdf'), accommodation_name: "Men's Dorm", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'partner_housing', accommodation_capacity: 150, tenant_restriction: 'male-only', status: 'verified', application_start_date: '2026-03-20', application_end_date: '2026-04-30', latitude: 14.1638, longitude: 121.2410, walking_distance: 3, biking_distance: 2, driving_distance: 2 },
+      { landlord_id: getUser('raortega@gmail.com'), manager_id: getUser('ampineda@up.edu.ph'), business_permit_id: getFile('business_permit_4.pdf'), accommodation_name: "ATI", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'partner_housing', accommodation_capacity: 120, tenant_restriction: 'male-only', status: 'verified', application_start_date: '2026-04-05', application_end_date: '2026-05-25', latitude: 14.1643, longitude: 121.2405, walking_distance: 4, biking_distance: 2, driving_distance: 2 },
+      { landlord_id: getUser('larkinsanchez@gmail.com'), manager_id: getUser('vepadilla@gmail.com'), business_permit_id: getFile('business_permit_5.pdf'), accommodation_name: "Scholar's Dorm", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'on-campus', accommodation_capacity: 50, tenant_restriction: 'female-only', status: 'verified', application_start_date: '2026-03-25', application_end_date: '2026-05-10', latitude: 14.1655, longitude: 121.2395, walking_distance: 5, biking_distance: 2, driving_distance: 2 },
+      { landlord_id: getUser('ntramos@gmail.com'), manager_id: getUser('aralvarez@gmail.com'), business_permit_id: getFile('business_permit_6.pdf'), accommodation_name: "One Sapphire Place", accommodation_location: 'Sapphire St., Brgy. Batong Malake, Los Baños, Laguna', accommodation_type: 'off-campus', accommodation_capacity: 50, tenant_restriction: 'coed', status: 'verified', application_start_date: '2026-03-25', application_end_date: '2026-05-10', latitude: 14.1672, longitude: 121.2435, walking_distance: 12, biking_distance: 6, driving_distance: 4 }
     ])
 
     // --- DYNAMIC FETCH: ACCOMMODATIONS ---
@@ -266,16 +328,85 @@ export default class extends BaseSeeder {
       { accommodation_id: getAccom("Scholar's Dorm"), room_number: '501', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building C', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'maintenance' },
       { accommodation_id: getAccom("Scholar's Dorm"), room_number: '502', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 2, room_building: 'Building C', room_rent: 6000.00, tenant_restriction: 'coed', room_availability: 'available' },
       { accommodation_id: getAccom('White House'), room_number: '303', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 1, room_building: 'Building A', room_rent: 4800.00, tenant_restriction: 'coed', room_availability: 'available' },
-      { accommodation_id: getAccom('One Silangan'), room_number: '203', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building B', room_rent: 6200.00, tenant_restriction: 'coed', room_availability: 'available' }
+      { accommodation_id: getAccom('One Silangan'), room_number: '203', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building B', room_rent: 6200.00, tenant_restriction: 'coed', room_availability: 'available' },
+      
+      { accommodation_id: getAccom("One Sapphire Place"), room_number: '601', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' },
+{ accommodation_id: getAccom("One Sapphire Place"), room_number: '602', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3200.00, tenant_restriction: 'coed', room_availability: 'available' }
     ])
 
     const allRooms = await db.from('rooms').select('id', 'room_number', 'accommodation_id')
     const getRoom = (roomNum: string, accomName: string) => allRooms.find(r => r.room_number === roomNum && r.accommodation_id === getAccom(accomName))?.id
 
+    // ─── ROOM TAGS ────────────────────────────────────────────────────────────
+    await db.table('room_tags').multiInsert([
+      // White House — 101 (single, transient)
+      { room_id: getRoom('101', 'White House'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('101', 'White House'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('101', 'White House'), tag_detail: 'Ground floor' },
+      // White House — 102 (double, transient)
+      { room_id: getRoom('102', 'White House'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('102', 'White House'), tag_detail: 'Has study desk' },
+      { room_id: getRoom('102', 'White House'), tag_detail: 'Has wardrobe' },
+      // White House — 303 (shared, non-transient)
+      { room_id: getRoom('303', 'White House'), tag_detail: 'Has study desk' },
+      { room_id: getRoom('303', 'White House'), tag_detail: 'Has wardrobe' },
+      // One Silangan — 201 (single, transient)
+      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Has ref' },
+      // One Silangan — 202 (double, transient)
+      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Has study desk' },
+      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Near elevator' },
+      // One Silangan — 203 (single, non-transient)
+      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Has balcony' },
+      // Men's Dorm — 301 (shared, transient)
+      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Shared bathroom' },
+      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Has study area' },
+      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Has locker' },
+      // Men's Dorm — 302 (shared, transient)
+      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Shared bathroom' },
+      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Has locker' },
+      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Ground floor' },
+      // ATI — 401 (shared, non-transient)
+      { room_id: getRoom('401', 'ATI'), tag_detail: 'Shared bathroom' },
+      { room_id: getRoom('401', 'ATI'), tag_detail: 'Has study area' },
+      { room_id: getRoom('401', 'ATI'), tag_detail: 'Has locker' },
+      // ATI — 402 (shared, non-transient)
+      { room_id: getRoom('402', 'ATI'), tag_detail: 'Shared bathroom' },
+      { room_id: getRoom('402', 'ATI'), tag_detail: 'Has study area' },
+      { room_id: getRoom('402', 'ATI'), tag_detail: 'Near comfort room' },
+      // Scholar's Dorm — 501 (single, non-transient)
+      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Has study desk' },
+      // Scholar's Dorm — 502 (shared, non-transient)
+      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Has study desk' },
+      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Has wardrobe' },
+      // One Sapphire Place — 601 (single, transient)
+      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Has ref' },
+      // One Sapphire Place — 602 (double, non-transient)
+      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has study desk' },
+      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has wardrobe' },
+    ])
+
     // =========================================================================
     // 10. APPLICATIONS, ASSIGNMENTS, BOOKMARKS
     // =========================================================================
     await db.table('applications').multiInsert([
+      // --- CLARENCE TEST APPLICATIONS ---
+      { accommodation_id: getAccom('One Silangan'), student_number: '2024-000002', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
+      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 10 },
+      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 180 },
+      { accommodation_id: getAccom("ATI"), student_number: '2024-000002', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 30 },
+      
+      { accommodation_id: getAccom('White House'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 150 },
       { accommodation_id: getAccom('White House'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 180 },
       { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
       { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 120 },
@@ -294,11 +425,11 @@ export default class extends BaseSeeder {
     ])
 
     await db.table('assignments').multiInsert([
-      { student_number: '2023-123456', room_id: getRoom('203', 'One Silangan'), move_in: '2026-03-01', expected_move_out: '2027-03-01', actual_move_out: null, grace_period_days: 5 },
-      { student_number: '2023-123457', room_id: getRoom('202', 'One Silangan'), move_in: '2026-02-15', expected_move_out: '2027-02-15', actual_move_out: '2027-02-15', grace_period_days: 5 },
-      { student_number: '2023-123459', room_id: getRoom('101', 'White House'), move_in: '2026-01-10', expected_move_out: '2027-01-10', actual_move_out: null, grace_period_days: 5 },
-      { student_number: '2023-123461', room_id: getRoom('102', 'White House'), move_in: '2026-03-05', expected_move_out: '2026-08-05', actual_move_out: null, grace_period_days: 5 },
-      { student_number: '2023-123462', room_id: getRoom('301', "Men's Dorm"), move_in: '2026-03-10', expected_move_out: '2026-06-10', actual_move_out: null, grace_period_days: 5 }
+      { student_number: '2023-123456', room_id: getRoom('203', 'One Silangan'), confirmed_date: '2026-02-20', move_in: '2026-03-01', expected_move_out: '2027-03-01', actual_move_out: null, grace_period_days: 5 },
+      { student_number: '2023-123457', room_id: getRoom('202', 'One Silangan'), confirmed_date: '2026-02-10', move_in: '2026-02-15', expected_move_out: '2027-02-15', actual_move_out: '2027-02-15', grace_period_days: 5 },
+      { student_number: '2023-123459', room_id: getRoom('101', 'White House'), confirmed_date: '2026-01-05', move_in: '2026-01-10', expected_move_out: '2027-01-10', actual_move_out: null, grace_period_days: 5 },
+      { student_number: '2023-123461', room_id: getRoom('102', 'White House'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2026-08-05', actual_move_out: null, grace_period_days: 5 },
+      { student_number: '2023-123462', room_id: getRoom('301', "Men's Dorm"), confirmed_date: '2026-03-08', move_in: '2026-03-10', expected_move_out: '2026-06-10', actual_move_out: null, grace_period_days: 5 }
     ])
 
     await db.table('bookmarks').multiInsert([
@@ -358,7 +489,11 @@ export default class extends BaseSeeder {
     ])
 
     await db.table('notifications').multiInsert([
-      { user_id: getUser('afjuarez@up.edu.ph'), notification_content: 'Your rent payment is due on March 15, 2026.', read_status: 'unread', notification_type: 'fee_due' },
+      // --- CLARENCE TEST NOTIFICATIONS ---
+      { user_id: getUser('ctbernardino@up.edu.ph'), notification_content: 'Your rent payment for One Silangan is due on March 15, 2026.', read_status: 'unread', notification_type: 'fee_due' },
+      { user_id: getUser('ctbernardino@up.edu.ph'), notification_content: 'Your accommodation application to One Silangan has been approved.', read_status: 'unread', notification_type: 'application_status' },
+      { user_id: getUser('ctbernardino@up.edu.ph'), notification_content: 'Welcome to the USAT Platform!', read_status: 'read', notification_type: 'system' },
+      
       { user_id: getUser('accruz@up.edu.ph'), notification_content: 'Your accommodation application has been approved.', read_status: 'read', notification_type: 'application_status' },
       { user_id: getUser('svramirez@up.edu.ph'), notification_content: 'System maintenance is scheduled on March 12, 2026.', read_status: 'unread', notification_type: 'system' },
       { user_id: getUser('kjvillanueva@up.edu.ph'), notification_content: 'Please update your profile information.', read_status: 'read', notification_type: 'other' },

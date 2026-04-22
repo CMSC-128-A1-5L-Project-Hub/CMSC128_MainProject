@@ -42,7 +42,7 @@ export default function FormSelect({
                         }
                     `}
                 >
-                    <option value="" disabled selected>{defaultSelect}</option>
+                    <option value="" disabled>{defaultSelect}</option>
                     {options.map((o) => (
                         <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
