@@ -505,14 +505,15 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                         </p>
                         <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Time Submitted</p>
                         <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Preferred Facility</p>
-                        <p className="col-span-4 text-center text-[#9A7080] text-xs font-bold p-1">Action</p>
+                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Room Type</p>
+                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Action</p>
                         
                     </div>
 
                     {/* Rows */}
                     <div className="flex flex-col divide-y divide-[#F5ECF0]">
                         {paginated.length > 0 ? paginated.map((record, i) => (
-                            <div key={i} className="grid grid-cols-8 lg:grid-cols-12 items-center py-3">
+                            <div key={i} className="grid grid-cols-12 lg:grid-cols-12 items-center py-3">
                                 {/* Student */}
                                 <div className="col-span-2 flex items-center gap-2">
                                     <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
@@ -521,23 +522,12 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                                     </div>
                                     <p className="font-bold text-[12px] ml-1 lg:ml-0 lg:text-sm text-[#1A0008]">{record.tenant.fullName}</p>
                                 </div>
+                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">{record.date}</p>
+                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">{record.time}</p>
+                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">Building {record.roomBuilding}</p>
+                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">{record.roomType}</p>
+
                                 <div className="col-span-2 flex justify-center">
-                                    <div>
-                                        <p className="text-[11px] lg:text-sm text-[#1A0008]">{record.date}</p>
-                                    </div>
-                                </div>
-                                <div className="col-span-2 flex justify-center">
-                                    <div>
-                                        <p className="text-[11px] lg:text-sm text-[#1A0008]">{record.time}</p>
-                                    </div>
-                                </div>
-                                <div className="col-span-2 flex justify-center">
-                                    <div>
-                                        <p className="text-[11px] lg:text-sm text-[#1A0008]">Building {record.roomBuilding}</p>
-                                        <p className="text-[8px] lg:text-[10px] text-[#9A7080]">{record.roomType} room </p>
-                                    </div>
-                                </div>
-                                <div className="col-span-4 flex justify-center">
                                     <Button variant="reddishPink" size="sm" className="px-6">
                                             View
                                     </Button>
