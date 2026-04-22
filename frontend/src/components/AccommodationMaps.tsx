@@ -368,7 +368,7 @@ export default function AccommodationMap({
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          zIndex: 10,
+          zIndex: 9999,
         }}>
           <div style={{ marginRight: '8px', textAlign: 'center' }}>
             <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>To UPLB</p>
