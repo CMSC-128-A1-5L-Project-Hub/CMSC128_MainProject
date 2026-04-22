@@ -220,7 +220,7 @@ export default function AccommodationMap({
             closeOnClick={false}
             maxWidth="290px"
           >
-            <div style={{ fontFamily: 'sans-serif', padding: '4px', cursor: 'pointer' }} onClick={() => onCardClick(selectedPin)}>
+            <div className="max-h-[190px]" style={{ fontFamily: 'sans-serif', padding: '4px', cursor: 'pointer' }} onClick={() => onCardClick(selectedPin)}>
               {selectedPin.imageUrl && (
                 <img src={selectedPin.imageUrl} alt={selectedPin.accommodationName} style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
               )}

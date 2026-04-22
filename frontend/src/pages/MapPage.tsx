@@ -1,107 +1,52 @@
-// Pa take not nito guys hehe
 // src/pages/MapPage.tsx
 // Route: /map              -> centered on UPLB (browse all)
 // Route: /map?center=:id   -> centered on specific accommodation (from "View Location" button)
 // Filters are passed via URL query params so they persist from the browse/cards page
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import AccommodationMap, { type AccommodationPin } from '../components/AccommodationMaps'
 
-
-const MOCK_ACCOMMODATIONS: AccommodationPin[] = [
-  {
-    accommodationId: 1,
-    accommodationName: 'Sampaguita Dormitory',
-    accommodationLocation: 'Raymundo Ave, Los Baños, Laguna',
-    accommodationType: 'off-campus',
-    accommodationCapacity: 50,
-    tenantRestriction: 'female-only',
-    latitude: 14.1672,
-    longitude: 121.2430,
-    minRent: 2500,
-    maxRent: 4000,
-    walkingDistance: 3,
-    drivingDistance: 2,
-    bikingDistance: 2,
-    stayType: 'non_transient',
-    imageUrl: 'https://placehold.co/400x200?text=Sampaguita+Dorm',
-  },
-  {
-    accommodationId: 2,
-    accommodationName: 'Molave Residence Hall',
-    accommodationLocation: 'UPLB Campus, Los Baños, Laguna',
-    accommodationType: 'on-campus',
-    accommodationCapacity: 80,
-    tenantRestriction: 'male-only',
-    latitude: 14.1658,
-    longitude: 121.2418,
-    minRent: 2000,
-    maxRent: 3500,
-    walkingDistance: 5,
-    drivingDistance: 3,
-    bikingDistance: 3,
-    stayType: 'non_transient',
-    imageUrl: 'https://placehold.co/400x200?text=Molave+Hall',
-  },
-  {
-    accommodationId: 3,
-    accommodationName: 'Sunrise Boarding House',
-    accommodationLocation: 'Lopez Ave, Los Baños, Laguna',
-    accommodationType: 'off-campus',
-    accommodationCapacity: 20,
-    tenantRestriction: 'coed',
-    latitude: 14.1690,
-    longitude: 121.2455,
-    minRent: 3000,
-    maxRent: 5000,
-    walkingDistance: 10,
-    drivingDistance: 5,
-    bikingDistance: 6,
-    stayType: 'transient',
-    imageUrl: 'https://placehold.co/400x200?text=Sunrise+BH',
-  },
-  {
-    accommodationId: 4,
-    accommodationName: 'UPLB Partner Housing A',
-    accommodationLocation: 'Batong Malake, Los Baños, Laguna',
-    accommodationType: 'partner_housing',
-    accommodationCapacity: 30,
-    tenantRestriction: 'coed',
-    latitude: 14.1645,
-    longitude: 121.2400,
-    minRent: 1500,
-    maxRent: 2500,
-    walkingDistance: 15,
-    drivingDistance: 7,
-    bikingDistance: 8,
-    stayType: 'both',
-    imageUrl: 'https://placehold.co/400x200?text=Partner+Housing+A',
-  },
-  {
-    accommodationId: 5,
-    accommodationName: 'Kalikasan Suites',
-    accommodationLocation: 'Umali Subdivision, Los Baños, Laguna',
-    accommodationType: 'off-campus',
-    accommodationCapacity: 40,
-    tenantRestriction: 'female-only',
-    latitude: 14.1700,
-    longitude: 121.2390,
-    minRent: 4000,
-    maxRent: 7000,
-    walkingDistance: 20,
-    drivingDistance: 10,
-    bikingDistance: 12,
-    stayType: 'transient',
-    imageUrl: 'https://placehold.co/400x200?text=Kalikasan+Suites',
-  },
-]
+const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
+  const res = await fetch('/api/accommodations')
+  if (!res.ok) throw new Error('Failed to fetch accommodations')
+  const body = await res.json()
+  // serialize() wraps in { data: ... }, and index() adds its own { message, data } envelope
+  const list: any[] = body?.data?.data ?? body?.data ?? body ?? []
+  return list.map((acc: any) => {
+    const rents = (acc.rooms ?? []).map((r: any) => Number(r.roomRent))
+    const stayTypes = [...new Set<string>((acc.rooms ?? []).map((r: any) => r.roomStayType))]
+    const stayType =
+      stayTypes.length >= 2 ? 'both' : (stayTypes[0] as 'transient' | 'non_transient') ?? 'both'
+    return {
+      accommodationId: acc.id,
+      accommodationName: acc.accommodationName,
+      accommodationLocation: acc.accommodationLocation,
+      accommodationType: acc.accommodationType,
+      accommodationCapacity: acc.accommodationCapacity,
+      tenantRestriction: acc.tenantRestriction,
+      latitude: acc.latitude,
+      longitude: acc.longitude,
+      walkingDistance: acc.walkingDistance ?? 0,
+      bikingDistance: acc.bikingDistance ?? 0,
+      drivingDistance: acc.drivingDistance ?? 0,
+      minRent: rents.length ? Math.min(...rents) : 0,
+      maxRent: rents.length ? Math.max(...rents) : 0,
+      stayType,
+    } satisfies AccommodationPin
+  })
+}
 
 export default function MapPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
+  const { data: accommodations = [], isLoading, isError } = useQuery({
+    queryKey: ['accommodations'],
+    queryFn: fetchAccommodations,
+  })
+
   // ─── Read filters from URL query params ──────────────────────────────────
-  // This way filters set on the cards/browse page carry over to the map
   const search = searchParams.get('search') ?? ''
   const type = searchParams.get('type') ?? 'all'
   const restriction = searchParams.get('restriction') ?? 'all'
@@ -111,11 +56,11 @@ export default function MapPage() {
   const minCapacity = Number(searchParams.get('min_capacity') ?? 0)
   const stayType = searchParams.get('stay_type') ?? 'all'
 
-  // center=:id — which accommodation to center on (from "View Location" button)
   const centerId = searchParams.get('center')
-  const centeredAccommodation = centerId
-    ? MOCK_ACCOMMODATIONS.find((a) => a.accommodationId === Number(centerId)) ?? null
-    : null
+  const centeredAccommodation = useMemo(
+    () => (centerId ? accommodations.find((a) => a.accommodationId === Number(centerId)) ?? null : null),
+    [centerId, accommodations]
+  )
 
   // ─── Update a single filter in URL ───────────────────────────────────────
   const updateFilter = (key: string, value: string | number) => {
@@ -125,20 +70,18 @@ export default function MapPage() {
     } else {
       params.set(key, String(value))
     }
-    // Keep center param if it exists
     setSearchParams(params)
   }
 
   const resetFilters = () => {
     const params = new URLSearchParams()
-    // Preserve center if it exists
     if (centerId) params.set('center', centerId)
     setSearchParams(params)
   }
 
   // ─── Apply filters ────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
-    return MOCK_ACCOMMODATIONS.filter((acc) => {
+    return accommodations.filter((acc) => {
       const matchSearch =
         acc.accommodationName.toLowerCase().includes(search.toLowerCase()) ||
         acc.accommodationLocation.toLowerCase().includes(search.toLowerCase())
@@ -150,7 +93,7 @@ export default function MapPage() {
       const matchStayType = stayType === 'all' || acc.stayType === stayType || acc.stayType === 'both'
       return matchSearch && matchType && matchRestriction && matchRent && matchWalk && matchCapacity && matchStayType
     })
-  }, [search, type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType])
+  }, [accommodations, search, type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType])
 
   // ─── Styles ───────────────────────────────────────────────────────────────
   const labelStyle: React.CSSProperties = {
@@ -194,7 +137,6 @@ export default function MapPage() {
           borderBottom: '1px solid #F3F4F6',
           background: 'linear-gradient(135deg, #1e3a5f 0%, #2563EB 100%)',
         }}>
-          {/* Back button if coming from "View Location" */}
           {centerId && (
             <button
               onClick={() => window.history.back()}
@@ -218,7 +160,7 @@ export default function MapPage() {
             🏠 {centeredAccommodation ? centeredAccommodation.accommodationName : 'Find Accommodation'}
           </h2>
           <p style={{ fontSize: '12px', color: '#BFDBFE', margin: 0 }}>
-            {filtered.length} of {MOCK_ACCOMMODATIONS.length} accommodations shown
+            {isLoading ? 'Loading...' : `${filtered.length} of ${accommodations.length} accommodations shown`}
           </p>
         </div>
 
@@ -358,18 +300,23 @@ export default function MapPage() {
 
       {/* ─── Map ─────────────────────────────────────────────────────────── */}
       <div style={{ flex: 1, position: 'relative', height: '100vh' }}>
-        {filtered.length === 0 && (
+        {isError && (
           <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 10,
-            backgroundColor: 'white',
-            padding: '20px 32px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-            textAlign: 'center',
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)', zIndex: 10,
+            backgroundColor: 'white', padding: '20px 32px',
+            borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', textAlign: 'center',
+          }}>
+            <p style={{ fontWeight: '600', color: '#EF4444', margin: '0 0 4px 0' }}>Failed to load accommodations</p>
+            <p style={{ fontSize: '13px', color: '#9CA3AF', margin: 0 }}>Please check your connection.</p>
+          </div>
+        )}
+        {!isError && !isLoading && filtered.length === 0 && (
+          <div style={{
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)', zIndex: 10,
+            backgroundColor: 'white', padding: '20px 32px',
+            borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', textAlign: 'center',
           }}>
             <p style={{ fontSize: '32px', margin: '0 0 8px 0' }}>🔍</p>
             <p style={{ fontWeight: '600', color: '#374151', margin: '0 0 4px 0' }}>No accommodations found</p>
