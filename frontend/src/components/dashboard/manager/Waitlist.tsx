@@ -59,6 +59,7 @@ export default function Waitlist({ waitlists, className="" }: {waitlists: Applic
             onClose={() => setSelectedApplication(null)}
             title="Application"
             maxWidth={900}
+            maxHeight={650}
             children={
                 selectedApplication && (
                 <Card 
