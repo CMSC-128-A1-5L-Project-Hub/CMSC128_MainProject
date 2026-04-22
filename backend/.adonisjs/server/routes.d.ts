@@ -59,6 +59,7 @@ export type ScannedRoutes = {
     'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
     'admin_accommodations.index': { paramsTuple?: []; params?: {} }
     'admin_accommodations.verify': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'manager_profiles.show': { paramsTuple?: []; params?: {} }
     'notifications.index': { paramsTuple?: []; params?: {} }
     'notifications.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
@@ -93,6 +94,7 @@ export type ScannedRoutes = {
     'admin_settings.count_users': { paramsTuple?: []; params?: {} }
     'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
     'admin_accommodations.index': { paramsTuple?: []; params?: {} }
+    'manager_profiles.show': { paramsTuple?: []; params?: {} }
     'notifications.index': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
@@ -126,6 +128,7 @@ export type ScannedRoutes = {
     'admin_settings.count_users': { paramsTuple?: []; params?: {} }
     'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
     'admin_accommodations.index': { paramsTuple?: []; params?: {} }
+    'manager_profiles.show': { paramsTuple?: []; params?: {} }
     'notifications.index': { paramsTuple?: []; params?: {} }
   }
   PUT: {

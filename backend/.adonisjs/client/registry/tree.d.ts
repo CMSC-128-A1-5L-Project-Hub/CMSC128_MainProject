@@ -95,6 +95,9 @@ export interface ApiDefinition {
     index: typeof routes['admin_accommodations.index']
     verify: typeof routes['admin_accommodations.verify']
   }
+  managerProfiles: {
+    show: typeof routes['manager_profiles.show']
+  }
   notifications: {
     index: typeof routes['notifications.index']
     update: typeof routes['notifications.update']

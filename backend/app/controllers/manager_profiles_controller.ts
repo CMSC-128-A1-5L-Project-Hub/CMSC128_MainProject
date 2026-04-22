@@ -55,7 +55,7 @@ export default class ManagerProfileController {
       verifiedSince:
         manager.managerStatus === 'active' && manager.verifiedAt
           ? formatDate(manager.verifiedAt.toJSDate())
-          : 'Pending',
+          : '---',
       currentDorm: accommodation?.accommodationName ?? 'No assigned dorm yet',
       dormMeta: accommodation?.accommodationType ?? 'NONE',
     })

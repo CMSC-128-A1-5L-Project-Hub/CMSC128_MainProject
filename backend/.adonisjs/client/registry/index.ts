@@ -336,6 +336,12 @@ const routes = {
     tokens: [{"old":"/admin/accommodations/:id/verify","type":0,"val":"admin","end":""},{"old":"/admin/accommodations/:id/verify","type":0,"val":"accommodations","end":""},{"old":"/admin/accommodations/:id/verify","type":1,"val":"id","end":""},{"old":"/admin/accommodations/:id/verify","type":0,"val":"verify","end":""}],
     types: placeholder as Registry['admin_accommodations.verify']['types'],
   },
+  'manager_profiles.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/manager/profile',
+    tokens: [{"old":"/manager/profile","type":0,"val":"manager","end":""},{"old":"/manager/profile","type":0,"val":"profile","end":""}],
+    types: placeholder as Registry['manager_profiles.show']['types'],
+  },
   'notifications.index': {
     methods: ["GET","HEAD"],
     pattern: '/notifications',

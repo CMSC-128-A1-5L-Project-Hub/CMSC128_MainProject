@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../api/axios";
 
 import Sidebar from "../../components/Sidebar";
 
@@ -21,24 +24,103 @@ interface ProfileData {
   dormMeta: string;
 }
 
-const initialData: ProfileData = {
-  fullName: "Ana Marie Reyes",
-  upMail: "ana.reyes@up.edu.ph",
-  facebook: "facebook.com/anareyes",
-  phone: "+63 912 345 6789",
-  employer: "JANELLA CASSANDRA SISON",
-  altPhone: "NONE",
-  verifiedSince: "Mar 2026",
-  currentDorm: "Kamia Residence Hall",
-  dormMeta: "Shared • 2nd Semester, AY 2025–26",
+const formatAccommodationType = (value: string) => {
+  if (!value) return "";
+  if (value === "on-campus") return "On-campus";
+  if (value === "off-campus") return "Off-campus";
+  if (value === "partner_housing") return "UPLB Partner";
+  return value;
 };
 
 export default function Profile() {
+  const navigate = useNavigate();
+
   const [editing, setEditing] = useState(false);
-  const [data, setData] = useState<ProfileData>(initialData);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  const {
+    data: user,
+    isLoading: isUserLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+      const res = await api.get("/me");
+      return res.data.data ?? res.data;
+    },
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/manager/profile");
+        console.log("MANAGER PROFILE:", res.data);
+        const data = res.data.data ?? res.data;
+
+        setProfile({
+        fullName: data.fullName ?? "NONE",
+        upMail: data.upMail ?? "NONE",
+        facebook: data.facebook ?? "NONE",
+        phone: data.phone ?? "NONE",
+        employer: data.employer ?? "NONE",
+        altPhone: data.altPhone ?? "NONE",
+        verifiedSince: data.verifiedSince ?? "NONE",
+        currentDorm: data.currentDorm ?? "No assigned dorm yet",
+        dormMeta: formatAccommodationType(data.dormMeta ?? ""),
+      });
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    if (isError) {
+      navigate("/auth/signin");
+    }
+  }, [isError, navigate]);
+
+  useEffect(() => {
+    if (user && user.role !== "manager") {
+      navigate("/auth/signin");
+    }
+  }, [user, navigate]);
 
   const update = (k: keyof ProfileData, v: string) =>
-    setData((prev) => ({ ...prev, [k]: v }));
+    setProfile((prev) => (prev ? { ...prev, [k]: v } : prev));
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
+        <p className="text-gray-600">Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
+        <p className="text-gray-600">Profile not found.</p>
+      </div>
+    );
+  }
+
+  if (isUserLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "manager") {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF6F2] text-[#2A1F1A] lg:flex">
@@ -91,7 +173,7 @@ export default function Profile() {
                       </p>
 
                       <input
-                        value={data.fullName}
+                        value={profile.fullName}
                         onChange={(e) => update("fullName", e.target.value)}
                         readOnly={!editing}
                         className="w-full bg-transparent text-3x1 font-bold leading-none text-[#2A1F1A] outline-none read-only:cursor-default md:text-[2rem]"
@@ -109,7 +191,7 @@ export default function Profile() {
                               Verified Dormitory Manager
                             </p>
                             <p className="text-xs opacity-80">
-                              Since {data.verifiedSince}
+                              Since {profile.verifiedSince}
                             </p>
                           </div>
                         </div>
@@ -159,14 +241,14 @@ export default function Profile() {
                      
                       <div className="flex flex-col leading-tight text-center">
                         <p className="text-base lg:text-sm font-semibold">
-                            Verify Dormitory Manager
+                            Verified Dormitory Manager
                         </p>
                         <span className="text-xs opacity-80">
-                            Since {data.verifiedSince}
+                          Since {profile.verifiedSince}
                         </span>
-                        </div>
+                      </div>
                     </div>
-                    </div>
+                  </div>
                 </div>
 
                 {/* RIGHT COLUMN */}
@@ -178,7 +260,7 @@ export default function Profile() {
                       </p>
 
                       <input
-                        value={data.fullName}
+                        value={profile.fullName}
                         onChange={(e) => update("fullName", e.target.value)}
                         readOnly={!editing}
                         className="w-full bg-transparent text-[3rem] font-bold leading-none text-[#2A1F1A] outline-none read-only:cursor-default"
@@ -201,25 +283,25 @@ export default function Profile() {
                   <div className="mt-5 hidden grid-cols-1 gap-x-10 gap-y-5 md:grid-cols-2 lg:mt-6 lg:grid">
                     <Field
                       label="UP MAIL"
-                      value={data.upMail}
+                      value={profile.upMail}
                       editing={editing}
                       onChange={(v) => update("upMail", v)}
                     />
                     <Field
                       label="FACEBOOK LINK"
-                      value={data.facebook}
+                      value={profile.facebook}
                       editing={editing}
                       onChange={(v) => update("facebook", v)}
                     />
                     <Field
                       label="PHONE NUMBER"
-                      value={data.phone}
+                      value={profile.phone}
                       editing={editing}
                       onChange={(v) => update("phone", v)}
                     />
                     <Field
                       label="2ND PHONE NUMBER"
-                      value={data.altPhone}
+                      value={profile.altPhone}
                       editing={editing}
                       onChange={(v) => update("altPhone", v)}
                     />
@@ -232,14 +314,14 @@ export default function Profile() {
 
                     <div className="flex items-center gap-3 rounded-2xl border border-[#EADFD3] bg-[#F8EFF2] px-4 py-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8C1535] text-sm font-bold text-white">
-                        K
+                        {profile.currentDorm?.charAt(0) || "D"}
                       </div>
 
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-[#2A1F1A]">
-                          {data.currentDorm}
+                          {profile.currentDorm}
                         </p>
-                        <p className="text-xs text-[#A88993]">{data.dormMeta}</p>
+                        <p className="text-xs text-[#A88993]">{profile.dormMeta}</p>
                       </div>
                     </div>
                   </div>
@@ -251,25 +333,25 @@ export default function Profile() {
                 <div className="grid grid-cols-1 gap-x-8 gap-y-5 border-t border-[#F0E3E8] pt-5 md:grid-cols-2">
                   <Field
                     label="UP MAIL"
-                    value={data.upMail}
+                    value={profile.upMail}
                     editing={editing}
                     onChange={(v) => update("upMail", v)}
                   />
                   <Field
                     label="FACEBOOK LINK"
-                    value={data.facebook}
+                    value={profile.facebook}
                     editing={editing}
                     onChange={(v) => update("facebook", v)}
                   />
                   <Field
                     label="PHONE NUMBER"
-                    value={data.phone}
+                    value={profile.phone}
                     editing={editing}
                     onChange={(v) => update("phone", v)}
                   />
                   <Field
                     label="2ND PHONE NUMBER"
-                    value={data.altPhone}
+                    value={profile.altPhone}
                     editing={editing}
                     onChange={(v) => update("altPhone", v)}
                   />
@@ -282,14 +364,14 @@ export default function Profile() {
 
                   <div className="flex items-center gap-3 rounded-2xl border border-[#EADFD3] bg-[#F8EFF2] px-4 py-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8C1535] text-sm font-bold text-white">
-                      K
+                      {profile.currentDorm?.charAt(0) || "D"}
                     </div>
 
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-[#2A1F1A]">
-                        {data.currentDorm}
+                        {profile.currentDorm}
                       </p>
-                      <p className="text-xs text-[#A88993]">{data.dormMeta}</p>
+                      <p className="text-xs text-[#A88993]">{profile.dormMeta}</p>
                     </div>
                   </div>
                 </div>
