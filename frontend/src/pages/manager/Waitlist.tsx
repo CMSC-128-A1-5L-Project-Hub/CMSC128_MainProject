@@ -112,7 +112,6 @@ const waitlistRecords: Application[] = [
     }
 ]
 
-
 const HISTORY_PER_PAGE = 3
 const SORT_OPTS = ["Room Type", "Room No.", "Date", "Action"]
 
@@ -158,7 +157,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
         setCurrentPage(1)
     }
 
-    //avatar initials from name
+    //AVATAR INITIALS 
     const getInitials = (name: string) =>
         name[0]
 
@@ -167,7 +166,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
       <Modal 
           open={!!selectedRecord}
           onClose={() => setSelectedRecord(null)}
-          title="APPLICATION" // 👈 keeps RED HEADER + X button
+          title="APPLICATION" 
           maxWidth={900}
           maxHeight={650}
       >
@@ -194,7 +193,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                       <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-6 items-start">
 
 
-                          {/* Applicant Details */}
+                          {/* APPLICANT DETAILS */}
                           <div>
                               <p className="flex items-center gap-2 font-semibold text-[#1A0008] mb-3">
                                   <IoPersonSharp size={18} color="#6B0F2B" />
@@ -235,7 +234,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                           {/* DIVIDER L | R */}
                           <div className="hidden md:block w-px h-full bg-[#F5ECF0]" />
 
-                          {/* Occupancy Details */}
+                          {/* OCCUPANCY DETAILS */}
                           <div>
                               <p className="flex items-center gap-2 font-semibold text-[#1A0008] mb-3">
                                   <IoCalendarSharp size={18} color="#6B0F2B" />
@@ -267,7 +266,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                       {/* BOTTOM */}
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
-                          {/* Room Preference */}
+                          {/* ROOM PREFERENCE */}
                           <div>
                               <p className="flex items-center gap-2 font-semibold text-[#1A0008] mb-3">
                                   <IoBedSharp size={18} color="#6B0F2B" />
@@ -291,46 +290,45 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                                 </div>
                           </div>
 
-                          {/* Documents */}
+                          {/* DOCUMENTS */}
                           <div>
-                              <p className="flex items-center gap-2 font-semibold text-[#1A0008] mb-3">
-                                  <IoDocumentSharp size={18} color="#6B0F2B" />
-                                  Uploaded Documents
-                              </p>
+                            <p className="flex items-center gap-2 font-semibold text-[#1A0008] mb-3">
+                              <IoDocumentSharp size={18} color="#6B0F2B" />
+                              Uploaded Documents
+                            </p>
 
-                              <div className="flex flex-col gap-3">
-                                  {[
-                                      { label: "FORM 5", icon: <IoDocumentTextSharp size={16} color="white" /> },
-                                      { label: "VALID ID", icon: <IoIdCardSharp size={16} color="white" /> },
-                                  ].map((doc) => (
-                                      <div key={doc.label} className="flex items-center justify-between">
-                                          <div className="flex items-center gap-2">
-                                              <div
-                                                  className="w-8 h-8 rounded-lg flex items-center justify-center"
-                                                  style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                                              >
-                                                  {doc.icon}
-                                              </div>
-                                              <p className="text-xs font-semibold text-[#1A0008]">
-                                                  {doc.label}
-                                              </p>
-                                          </div>
+                            <div className="flex flex-col gap-3">
+                              {[
+                                { label: "FORM 5", icon: <IoDocumentTextSharp size={16} color="white" /> },
+                                { label: "VALID ID", icon: <IoIdCardSharp size={16} color="white" /> },
+                              ].map((doc) => (
+                                <div key={doc.label} className="flex items-center justify-between max-w-[210px]">
+                                  {/* icon + label */}
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <div
+                                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                                      style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                                    >
+                                      {doc.icon}
+                                    </div>
+                                    <p className="text-xs font-semibold text-[#1A0008] truncate">
+                                      {doc.label}
+                                    </p>
+                                  </div>
 
-                                          <Button variant="reddishPink" size="sm">
-                                              View
-                                          </Button>
-                                      </div>
-                                  ))}
-                              </div>
+                                  <Button variant="reddishPink" size="sm">
+                                    View
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-
                       </div>
                   </div>
               </Card>
           )}
       </Modal>
 
-        
         <Card className={className}>
             {/* Header row */}
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
@@ -339,7 +337,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                 </h2>
                 <p className="text-xs text-gray-400">{filtered.length} total applications</p>
                 <div className="flex items-center gap-2 ml-auto">
-                    {/* Sort dropdown */}
+                    {/* DROPDOWN */}
                     <div className="relative">
                         <button
                             onClick={() => setSortOpen(o => !o)}
@@ -369,7 +367,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                         )}
                     </div>
 
-                    {/* Search */}
+                    {/* SEARCH */}
                     <div className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 bg-white">
                         <svg className="w-4 h-4 text-[#9A7080] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
@@ -385,7 +383,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                 </div>
             </div>
 
-                    {/* Table header */}
+                    {/* HEADER -- TABLE  */}
                     <div className="grid grid-cols-12 lg:grid-cols-12 border-b border-[#F5ECF0] uppercase pb-1 mb-1">
                         <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Students</p>
                         <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
@@ -401,11 +399,11 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                         
                     </div>
 
-                    {/* Rows */}
+                    {/* ROWS */}
                     <div className="flex flex-col divide-y divide-[#F5ECF0]">
                         {paginated.length > 0 ? paginated.map((record, i) => (
                             <div key={i} className="grid grid-cols-12 lg:grid-cols-12 items-center py-3">
-                                {/* Student */}
+                                {/* STUDENT */}
                                 <div className="col-span-2 flex items-center gap-2">
                                     <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
                                         style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
@@ -429,7 +427,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                         )}
                     </div>
 
-            {/* Footer */}
+            {/* FOOTER */}
             <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#F5ECF0]">
                 <p className="text-xs text-[#9A7080]">
                     Showing {sorted.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + HISTORY_PER_PAGE, sorted.length)} of {sorted.length} records
