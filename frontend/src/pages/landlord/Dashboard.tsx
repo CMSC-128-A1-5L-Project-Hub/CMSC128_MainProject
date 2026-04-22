@@ -335,7 +335,7 @@ export default function Dashboard() {
           </div>
         </main>
 
-        {/* RIGHT PANEL — matching manager dashboard width and padding */}
+        {/* RIGHT PANEL*/}
         <aside className="hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
           <ProfileCard
             status="assigned"
