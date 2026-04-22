@@ -243,7 +243,7 @@ export default function MapPage() {
           
           {/* SHOW FAVORITES ONLY */}
           <div className="space-y-3">
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Show Favorites Only</label>
+            <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Show Favorites Only</label>
             <div className="flex items-center justify-between p-4 bg-[#FDF7F8] rounded-2xl border border-[#F5EBEB]">
               <div className="flex items-center gap-3">
                 <div className="text-[#710A2B]">
@@ -266,7 +266,7 @@ export default function MapPage() {
 
           {/* DORM TYPE */}
           <div className="space-y-3">
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Dorm Type</label>
+            <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Dorm Type</label>
             <select 
               value={type} 
               onChange={(e) => updateFilter('type', e.target.value)}
@@ -281,7 +281,7 @@ export default function MapPage() {
 
           {/* ROOM TYPE */}
           <div className="space-y-3">
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Room Type</label>
+            <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Room Type</label>
             <select className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none">
               <option>All</option>
               <option>Studio</option>
@@ -291,7 +291,7 @@ export default function MapPage() {
 
           {/* PRICE RANGE SECTION */}
           <div className="space-y-4">
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">
+            <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest block">
               Price Range
             </label>
             
@@ -319,7 +319,6 @@ export default function MapPage() {
                 style={{ 
                   left: `${((minRent - 1000) / 14000) * 100}%`, 
                   right: `${100 - ((maxRent - 1000) / 14000) * 100}%`,
-                  // Changed from solid color to gradient:
                   background: 'linear-gradient(135deg, #C9973A, #a07825)' 
                 }}>
               </div>
@@ -349,7 +348,7 @@ export default function MapPage() {
                 className="range-input"/>
             </div>
 
-            <div className="flex justify-between text-[10px] font-bold text-gray-300 uppercase">
+            <div className="flex justify-between text-[10px] font-bold text-[#C8B0B8] uppercase">
               <span>₱1,000</span>
               <span>₱15,000</span>
             </div>
@@ -357,7 +356,7 @@ export default function MapPage() {
 
           {/* MIN RATING */}
           <div className="space-y-3">
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">
+            <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest block">
               Min Rating
             </label>
             
@@ -387,26 +386,25 @@ export default function MapPage() {
               </span>
             </div>
             
-            <p className="text-[10px] text-gray-400">Tap stars to change minimum</p>
+            <p className="text-[10px] text-[#C8B0B8]">Tap stars to change minimum</p>
           </div>
 
           {/* OTHERS (TAGS) SECTION */}
           <div className="space-y-4">
-            {/* Row for Label and Clear Button */}
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">
-                Others
-              </label>
-              
-              {selectedTags.length > 0 && (
-                <button 
-                  onClick={() => setSelectedTags([])}
-                  className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-[#710A2B] transition-colors"
-                >
-                  Clear all ({selectedTags.length})
-                </button>
-              )}
-            </div>
+            <div className="flex items-center justify-between text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">
+            <label className="...">Others</label>
+            
+            <button 
+              onClick={() => setSelectedTags([])}
+              className={`text-[10px] font-bold uppercase transition-colors ${
+                selectedTags.length > 0 
+                  ? 'text-gray-400 hover:text-[#710A2B] cursor-pointer' 
+                  : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              Clear all ({selectedTags.length})
+            </button>
+          </div>
             
             <div className="flex flex-wrap gap-2">
               {availableTags.map(tag => {
@@ -419,7 +417,7 @@ export default function MapPage() {
                     className={`px-4 py-2 text-xs font-semibold rounded-full transition-all border ${
                       isActive 
                         ? 'bg-[#710A2B] text-white border-[#710A2B] shadow-md shadow-[#710A2B]/20' 
-                        : 'bg-white text-gray-500 border-gray-200 hover:border-[#710A2B]/40'
+                        : 'bg-white text-[#6B0F2B] border-[#6B0F2B]/20 hover:border-[#710A2B]/40'
                     }`}
                   >
                     {tag}
