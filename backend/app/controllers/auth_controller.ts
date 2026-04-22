@@ -43,9 +43,9 @@ export default class AuthController {
 
   switch (user.role) {
     case 'landlord':
-      return response.redirect('http://localhost:5173/landlord/manage/accommodation')
+      return response.redirect('http://localhost:5173/landlord/dashboard')
     case 'student':
-      return response.redirect('http://localhost:5173/studentDashboard')
+      return response.redirect('http://localhost:5173/student/dashboard')
     case 'manager':
       return response.redirect('http://localhost:5173/manager/dashboard')
     case 'super_admin':
