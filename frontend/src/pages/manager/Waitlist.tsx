@@ -409,28 +409,48 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
 
         <Card className={className}>
             {/* Header row */}
-            <div className="flex flex-col items-start mb-4 gap-1">
-                <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">
-                    Waitlist History 
-                </h2>
-                <p className="text-xs text-gray-400">
-                    {filtered.length} total applications
-                </p>
-                <div className="flex items-center gap-2 ml-auto">
-                    {/* DROPDOWN */}
-                    <div className="relative">
-                        <button
-                            onClick={() => setSortOpen(o => !o)}
-                            className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 text-sm bg-white hover:bg-[#F5ECF0] transition min-w-[140px]"
-                        >
-                            <span className="flex flex-col text-left">
-                                <span className="text-[9px] uppercase text-[#9A7080] font-bold leading-none">Sort By</span>
-                                <span className="text-[#1A0008] font-medium text-sm">{sortBy}</span>
-                            </span>
-                            <svg className="ml-auto w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
+            <div className="flex items-start justify-between mb-4">
+
+              {/* LEFT: grouped */}
+              <div className="flex flex-col gap-1">
+                  <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">
+                      Waitlist History
+                  </h2>
+                  <p className="text-xs text-gray-400">
+                      {filtered.length} total applications
+                  </p>
+              </div>
+            {/* RIGHT: filters */}
+          <div className="flex items-center gap-2">
+              {/* DROPDOWN */}
+              <div className="relative">
+                  <button
+                      onClick={() => setSortOpen(o => !o)}
+                      className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 text-sm bg-white hover:bg-[#F5ECF0] transition min-w-[140px]"
+                  >
+                      <span className="flex flex-col text-left">
+                          <span className="text-[9px] uppercase text-[#9A7080] font-bold leading-none">
+                              Sort By
+                          </span>
+                          <span className="text-[#1A0008] font-medium text-sm">
+                              {sortBy}
+                          </span>
+                      </span>
+                      <svg
+                          className="ml-auto w-4 h-4 text-[#9A7080]"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                      >
+                          <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                          />
+                      </svg>
+                  </button>
+               
                         {sortOpen && (
                             <div className="absolute z-10 top-full mt-1 right-0 bg-white border border-[#E8D5DC] rounded-xl shadow-md overflow-hidden w-full">
                                 {SORT_OPTS.map(opt => (
