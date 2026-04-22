@@ -19,6 +19,7 @@ import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import LandlordDashboard from "./pages/landlord/Dashboard"
+import Profile from "./pages/manager/Profile"
 
 function FullLandingPage() {
   return (
@@ -51,6 +52,8 @@ function App() {
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/pending-verification" element={<PendingVerification />} />
         <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
+        <Route path="/manager/profile" element={<Profile />} />
+        <Route path="/SignUpForm" element={<SignUpForm />} />
       </Routes>
     </BrowserRouter>
   )
