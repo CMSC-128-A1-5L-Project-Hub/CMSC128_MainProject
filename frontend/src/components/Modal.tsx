@@ -9,7 +9,9 @@ interface ModalProps {
   children: React.ReactNode;
   title?: string;
   eyebrow?: string;
-  maxWidth?: number;
+  /** Max width of the modal card in px (default 560) */
+  maxWidth?: number | string;
+  /** Optional footer slot — rendered below the body */
   maxHeight?: number;
   footer?: React.ReactNode;
 }
@@ -64,10 +66,30 @@ export function Modal({
       >
         {/* CARD */}
         <div
-          className={`w-full bg-white rounded-[24px] overflow-hidden shadow-[...] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col
-            ${open ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-95"}
+          style={{
+            width: "100%",
+            maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
+            maxHeight: "70vh",
+            overflowY: "auto",
+            display:"flex",
+            flexDirection: "column",
+            background: "#fff",
+            borderRadius: 24,
+            overflow: "hidden",
+            boxShadow:
+              "0 40px 100px rgba(26,10,15,0.55), 0 8px 32px rgba(26,10,15,0.25)",
+            opacity:   open ? 1 : 0,
+            transform: open ? "translateY(0) scale(1)" : "translateY(32px) scale(0.95)",
+            transition:
+              "opacity 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1)",
+          }}
+          className={` w-full bg-white rounded-[24px] overflow-hidden shadow-[0_40px_100px_rgba(26,10,15,0.55),0_8px_32px_rgba(26,10,15,0.25)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+            ${
+              open
+                ? "opacity-100 translate-y-0 scale-100"
+                : "opacity-0 translate-y-8 scale-95"
+            }
           `}
-          style={{ maxWidth, maxHeight }}
         >
           {/* HEADER */}
           {(title || eyebrow) && (
@@ -87,7 +109,18 @@ export function Modal({
                   </p>
                 )}
                 {title && (
-                  <h2 className="text-[22px] font-extrabold tracking-[0.06em] uppercase text-white leading-none font-['Plus_Jakarta_Sans']">
+                  <h2
+                  className="text-[22px] font-extrabold tracking-[0.06em] uppercase text-white leading-none font-['Plus_Jakarta_Sans']"  
+                  style={{
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      fontSize: "clamp(16px, 2vw, 22px)",
+                      fontWeight: 800,
+                      color: "#fff",
+                      letterSpacing: "0.06em",
+                      lineHeight: 1,
+                      textTransform: "uppercase",
+                    }}
+                  >
                     {title}
                   </h2>
                 )}
@@ -112,8 +145,16 @@ export function Modal({
             </div>
           )}
 
-          {/* BODY */}
-          <div className="px-7 py-6 overflow-y-auto flex-1 min-h-0">
+          {/* ── Body ── */}
+          <div
+            className="px-7 py-6 max-h-[52vh] overflow-y-auto flex-1 min-h-0"
+            style={{
+              padding: "24px 28px",
+              maxHeight: "70vh",
+              overflowY: "auto",
+              position: "relative",
+            }}
+          >
             {children}
           </div>
 
