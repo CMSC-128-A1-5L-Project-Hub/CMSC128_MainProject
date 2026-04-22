@@ -181,7 +181,7 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                     <div className="overflow-y-auto -mx-0">
                         <div className="min-w-[680px] pb-3 lg:pb-0 px-1">
                             <div className="grid grid-cols-5 border-b border-[#F5ECF0] uppercase"
-                                style={{ gridTemplateColumns: "2fr 1.5fr 1.5fr 1.5fr 1.5fr" }}
+                                style={{ gridTemplateColumns: "2fr 1.5fr 1fr 1.5fr 1.5fr" }}
                             >
                                 <p className="col-span-1 text-[#9A7080] text-xs font-bold p-1">Student</p>
                                 <p className="col-span-1 px-2 text-[#9A7080] text-xs font-bold p-1">Room</p>
@@ -193,7 +193,7 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                                 <div className="flex flex-col">
                                     {data.map((assignment: Assignment, i: number) => (
                                         <div key={i} className="grid grid-cols-5 items-center mt-3"
-                                            style={{ gridTemplateColumns: "2fr 1.5fr 1.5fr 1.5fr 1.5fr" }}
+                                            style={{ gridTemplateColumns: "2fr 1.5fr 1fr 1.5fr 1.5fr" }}
                                         >
                                             <div className="col-span-1 flex flex-row items-center">
                                                 <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
