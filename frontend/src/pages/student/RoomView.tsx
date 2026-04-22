@@ -105,6 +105,16 @@ interface Accommodation {
   avgrating: number;
 }
 
+//Mock data for requirements
+
+const MOCK_REQUIREMENTS = [
+  { id: 1, name: "Parent's Consent Form", size: "256 KB", dateModified: "04/05/26 at 1:02PM" },
+  { id: 2, name: "Dormitory Agreement Form", size: "189 KB", dateModified: "04/05/26 at 1:02PM" },
+  { id: 3, name: "Medical Certificate Template", size: "98 KB", dateModified: "04/03/26 at 9:00AM" },
+  { id: 4, name: "Parent's Valid ID", size: "—", dateModified: "—" },
+  { id: 5, name: "Enrollment Form / COR", size: "—", dateModified: "—" },
+];
+
 //Inline icons
 const IconPlus = () => (
   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -471,6 +481,34 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
   )
 }
 
+function RequirementsTab() {
+  const [downloaded, setDownloaded] = useState<Set<number>>(new Set());
+
+  return(
+    <div className="space y-4 font-sans mt-4">
+      <div>
+        <p className="text-[15px] font-bold text-[#6B0F2B] mt-3">
+          Please download and fill-up the necessary files before filing for an application.
+        </p>
+        <p className="text-[12px] text-gray-500 mt-1 flex items-start gap-1">
+            <span className="mt-0.5">ⓘ</span>
+            <span>
+              To help manage your accommodation, assigned dormitory personnel may also be able to view your login
+              information. Files and credentials are only used for housing and administrative support. See our data privacy
+              clause.
+              {/*<button className="font-semibold underline text-[#6B0F2B] mt-1">here</button>.*/}
+            </span>
+        </p>
+      </div>
+
+      <div className="w-full overflow">
+
+
+      </div>
+    </div>
+  )
+}
+
 
 
 
@@ -634,7 +672,7 @@ export default function RoomView() {
             selectedArrangement={selectedArrangement} setSelectedArrangement={setSelectedArrangement} />
         )}
         {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={accommodation.avgrating} />}
-
+        {selectedTab === "Requirements" && <RequirementsTab />}
 
 
 
