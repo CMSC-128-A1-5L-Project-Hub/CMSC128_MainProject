@@ -6,6 +6,9 @@ import svgr from 'vite-plugin-svgr'
 export default defineConfig({
   plugins: [react(), svgr()],
   server: {
+    watch: {
+      usePolling:true,
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3333',

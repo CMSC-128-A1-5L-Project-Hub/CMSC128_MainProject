@@ -13,6 +13,7 @@ import InteractiveMap from "./pages/MapPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
+import RoomDetails from "./pages/student/RoomView"
 
 function FullLandingPage() {
   return (
@@ -35,6 +36,7 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/signup/form" element={<SignUpForm/>}/>
         <Route path="/student/dashboard" element={<StudentDashboard/>}/>
+        <Route path="/student/roomview" element={<RoomDetails/>}/>
         <Route path="/landingpage" element={<FullLandingPage />} /> 
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
