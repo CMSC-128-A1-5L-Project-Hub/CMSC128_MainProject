@@ -289,14 +289,14 @@ export default function Sidebar({ role, profile }: SidebarProps) {
   const [active, setActive] = useState(() => {
     const path = location.pathname;
     if (path.includes("dashboard")) return "dashboard";
+    if (path.includes("occupancy-records")) return "reports";
+    if (path.includes("room-assignment")) return "users";
     if (path.includes("room"))        return "room";
     if (path.includes("application")) return "application";
     if (path.includes("fees"))        return "fees";
     if (path.includes("search") || path.includes("properties")) return "search";
     if (path.includes("tenants")) return "applications";
     if (path.includes("documents") || path.includes("reports") || path.includes("users")) return "documents"
-    if (path.includes("occupancy-records")) return "reports";
-    if (path.includes("room-assignment")) return "users";
     if (path.includes("documents") || path.includes("reports") || path.includes("users")) return "documents";
     return "dashboard";
   });
