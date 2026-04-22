@@ -27,6 +27,7 @@ import ProfilePage from "./pages/student/ProfilePage"
 import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
+import ApplicationsScreen from "./pages/manager/ApplicationsPage"
 
 function FullLandingPage() {
   return (
@@ -46,28 +47,15 @@ function App() {
       <Routes>
         {/* ── Public routes ── */}
         <Route path="/" element={<FullLandingPage />} />
-        <Route path="/landingpage" element={<Navigate to="/" replace />} />
+        {/* Get rid of this once theres no more references to /landingpage in the pages */}
+        <Route path="/landingpage" element={<Navigate to="/" replace />} /> 
         <Route path="/auth/signin" element={<SignIn/>}/>
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/signup/form" element={<SignUpForm/>}/>
-        <Route path="/student/applicationstatus" element={<ApplicationStatus/>}/>
-        <Route path="/student/billingdashboard" element={<BillingDashboard/>}/>
-        <Route path="/student/dashboard" element={<StudentDashboard/>}/>
-        <Route path="/manager/dashboard/" element={<ManagerDashboard/>}/>
-        <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/manager/occupancy-records" element={<OccupancyRecords />}/>
-        <Route path="/manager/room-assignment" element={<RoomAssignment />}/>
-        <Route path="/" element={<FullLandingPage />} /> 
+        <Route path="/auth/signup/:role" element={<SignUpForm/>}/>
         <Route path="/auth/success" element={<AuthSuccess/>}/>
         <Route path="/auth/role" element={<RoleSelection/>}/>
-        <Route path="/auth/signup/:role" element={<SignUpForm/>}/>
-        <Route path="/pending-verification" element={<PendingVerification/>}/>
-        <Route path="/studentDashboard" element={<StudentDashboard/>}/>
-        <Route path="/landingpage" element={<Navigate to="/" replace />} />
         <Route path="/map" element={<InteractiveMap />} />
-        <Route path="/browse" element={<BrowsePage />} />
-        <Route path="landlord/rooms" element={<RoomsPage />} />
 
         {/* ── Logged-in only (any role) ── */}
         <Route path="/auth/success" element={<AuthSuccess/>}/>
@@ -81,11 +69,16 @@ function App() {
         <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
+        <Route path="/student/applicationstatus" element={<ApplicationStatus/>}/>
+        <Route path="/student/billingdashboard" element={<BillingDashboard/>}/>
+        <Route path="/browse" element={<BrowsePage />} />
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
         <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
         <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
+        <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
+        <Route path="/manager/application" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>}/>
 
         {/* ── Landlord routes ── */}
         <Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
