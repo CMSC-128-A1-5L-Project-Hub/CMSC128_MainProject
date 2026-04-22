@@ -67,6 +67,7 @@ function App() {
         <Route path="/landingpage" element={<Navigate to="/" replace />} />
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/browse" element={<BrowsePage />} />
+        <Route path="landlord/rooms" element={<RoomsPage />} />
 
         {/* ── Logged-in only (any role) ── */}
         <Route path="/auth/success" element={<AuthSuccess/>}/>
@@ -89,6 +90,7 @@ function App() {
         {/* ── Landlord routes ── */}
         <Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/manage/accommodation" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
+        <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />

@@ -103,8 +103,11 @@ export default function Dashboard() {
               >
                 ← Back
               </Button>
-              <span className="text-gray-300">|</span>
-              <h2 className="font-semibold text-lg">Dashboard</h2>
+            <div
+              className="hidden lg:inline w-2 h-8 rounded-xl mt-1"
+              style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)" }}
+            />
+            <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">Dashboard</h1>
             </div>
 
             {/* HERO */}
