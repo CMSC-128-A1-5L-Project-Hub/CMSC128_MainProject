@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+
 import Button from "../../Button"
 import Modal from "../../Modal"
 import Card from "../../ui/Card"
@@ -61,6 +63,7 @@ const availableRooms: Room[] = [
 ]
 
 export default function ConfirmedStudents({ data, className = "" }: { data: Assignment[], className: string }) {
+    const navigate = useNavigate()
     const getInitials = (name: string) => name[0]
 
     const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
@@ -174,7 +177,7 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                         <p className="text-[#1A0008] font-bold">
                             Confirmed Students
                         </p>
-                        <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer">
+                        <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/assignments")}>
                             View all →
                         </p>
                     </div>
