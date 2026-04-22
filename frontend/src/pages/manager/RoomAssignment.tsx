@@ -6,7 +6,7 @@ import Card from "../../components/ui/Card"
 import StatBar from "../../components/ui/StatBar"
 import DonutStatCard from "../../components/dashboard/DonutStatCard"
 import Button from "../../components/Button"
-import StatusBadge from "../../components/ui/StatusBadge"
+import Modal from "../../components/Modal"
 
 //Interfaces
 interface ManagerProfile {
@@ -392,8 +392,184 @@ const assignments: Assignment[] = [
   },
 ]
 
+type Room = {
+    roomNumber: string
+    roomType: "single" | "double" | "shared"
+    roomBuilding: string
+    roomCapacity: number
+    roomCurrentOccupancy: number
+    roomRent: number
+}
+
+const availableRooms: Room[] = [
+    { roomNumber: "204", roomType: "shared",  roomBuilding: "Building 6", roomCapacity: 4, roomCurrentOccupancy: 1, roomRent: 3200 },
+    { roomNumber: "210", roomType: "shared",  roomBuilding: "Building 3", roomCapacity: 4, roomCurrentOccupancy: 2, roomRent: 3200 },
+    { roomNumber: "221", roomType: "shared",  roomBuilding: "Building 5", roomCapacity: 4, roomCurrentOccupancy: 2, roomRent: 3200 },
+    { roomNumber: "105", roomType: "single",  roomBuilding: "Building 1", roomCapacity: 1, roomCurrentOccupancy: 0, roomRent: 4500 },
+    { roomNumber: "312", roomType: "double",  roomBuilding: "Building 4", roomCapacity: 2, roomCurrentOccupancy: 1, roomRent: 3800 },
+]
+
 const ASSIGNMENTS_PER_PAGE = 5
 const SORT_OPTS = ["Name", "Status", "Date", "Room Type"]
+
+const AssignModal = ({
+    assignment,
+    onClose,
+    filteredRooms
+}: {
+    assignment: Assignment | null
+    onClose: () => void
+    filteredRooms: Room[]
+}) => {
+    return (
+        <>
+        {assignment && (
+            <Card
+                children={
+                    <div className="flex flex-col gap-4">
+                        {/* Header */}
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                            <div className="flex flex-col">
+                                <p className="text-[#1A0008] font-bold text-xl">
+                                    {assignment.student.student.fullName}
+                                </p>
+                                <p className="text-[#C8B0B8] text-xs mt-1">
+                                    Select a room to assign
+                                </p>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</span>
+                                <span className="text-[#1A0008] text-sm font-semibold capitalize">{assignment.roomType}</span>
+                            </div>
+                        </div>
+
+                        {/* Room List */}
+                        <div className="flex flex-col gap-3">
+                            {filteredRooms.length > 0 ? filteredRooms.map((room, i) => (
+                                <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-3 border border-[#F5ECF0] rounded-xl p-3 sm:p-4">
+                                    <div className="flex flex-col items-start gap-1 min-w-[120px]">
+                                        <div className="px-4 py-2 rounded-full text-white text-sm font-extrabold uppercase tracking-wide"
+                                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                                            ROOM {room.roomNumber}
+                                        </div>
+                                        <p className="text-[#1A0008] text-sm font-medium pl-1">{room.roomBuilding}</p>
+                                    </div>
+                                    <div className="hidden sm:block w-px self-stretch bg-[#F5ECF0]" />
+                                    <div className="flex flex-col gap-1 flex-1">
+                                        <p className="text-[#1A0008] text-sm">
+                                            Type : <span className="font-semibold capitalize">{room.roomType}</span>
+                                        </p>
+                                        <p className="text-[#1A0008] text-sm">
+                                            Price : <span className="font-semibold">₱{room.roomRent.toLocaleString()} / month</span>
+                                        </p>
+                                        <p className="text-[#1A0008] text-sm">
+                                            Occupants : <span className="font-semibold">{room.roomCurrentOccupancy}/{room.roomCapacity}</span>
+                                        </p>
+                                    </div>
+                                    <Button
+                                        variant="reddishPink"
+                                        size="sm"
+                                        onClick={() => onClose()}
+                                        className="w-full sm:w-auto"
+                                    >
+                                        Assign Room
+                                    </Button>
+                                </div>
+                            )) : (
+                                <div className="flex justify-center items-center py-6 italic text-gray-400 text-sm">
+                                    No available rooms for this room type
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                }
+            />
+        )}
+        </>
+    )
+}
+
+const ViewModal = ({ assignment }: { assignment: Assignment | null}) => {
+    if (!assignment) return null
+
+    return (
+        <Card
+            children={
+                <div className="flex flex-col gap-5">
+                    {/* Room pill */}
+                    <div>
+                        <span className="inline-block px-5 py-2 rounded-full text-white text-sm font-bold uppercase"
+                            style={{ background: "linear-gradient(135deg, #3D0718, #6B0F2B)" }}>
+                            Room {assignment.roomNumber}
+                        </span>
+                    </div>
+
+                    {/* Student Name */}
+                    <div>
+                        <p className="text-[#C8B0B8] text-xs uppercase font-bold mb-0.5">Student Name</p>
+                        <p className="text-[#1A0008] text-2xl font-bold">{assignment.student.student.fullName}</p>
+                    </div>
+
+                    <hr className="border-[#F5ECF0]" />
+
+                    {/* Occupancy Details */}
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[#6B0F2B] text-lg">📅</span>
+                            <p className="text-[#1A0008] font-semibold text-base">Occupancy Details</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 pl-1">
+                            <div>
+                                <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5">Semester</p>
+                                <p className="text-[#1A0008] text-sm font-medium">Semester 2, AY 2025–2026</p>
+                            </div>
+                            <div>
+                                <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5">Duration</p>
+                                <p className="text-[#1A0008] text-sm font-medium">
+                                    {assignment.moveIn || "—"} – {assignment.expectedMoveOut || "—"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr className="border-[#F5ECF0]" />
+
+                    {/* Room Details */}
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[#6B0F2B] text-lg">🏠</span>
+                            <p className="text-[#1A0008] font-semibold text-base">Room Details</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 pl-1">
+                            <div>
+                                <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5">Room Type</p>
+                                <p className="text-[#1A0008] text-sm font-medium capitalize">{assignment.stayType}</p>
+                            </div>
+                            <div>
+                                <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5">Building</p>
+                                <p className="text-[#1A0008] text-sm font-medium">{assignment.roomBuilding || "—"}</p>
+                            </div>
+                            <div>
+                                <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5 text-[#C9973A]">Monthly Rate</p>
+                                <p className="text-[#1A0008] text-sm font-bold">₱3,200 / month</p>
+                            </div>
+                            <div>
+                                <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5">Room Arrangement</p>
+                                <p className="text-[#1A0008] text-sm font-medium capitalize">{assignment.roomType} Room</p>
+                            </div>
+                            <div>
+                                <p className="text-[#C8B0B8] text-[10px] uppercase font-bold mb-0.5">Room Number</p>
+                                <p className="text-[#1A0008] text-sm font-medium">
+                                    {assignment.roomNumber ? `Room ${assignment.roomNumber}` : "—"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        />
+    )
+}
 
 export default function RoomAssignment() {
     const [currentPage, setCurrentPage] = useState(1)
@@ -434,13 +610,17 @@ export default function RoomAssignment() {
     const startIndex = (currentPage - 1) * ASSIGNMENTS_PER_PAGE
     const paginatedAssignments = sortedAssignments.slice(startIndex, startIndex + ASSIGNMENTS_PER_PAGE)
 
+    const filteredRooms = modalAssignment
+        ? availableRooms.filter((r) => r.roomType.toLowerCase() === modalAssignment.roomType.toLowerCase())
+        : availableRooms
+
     //avatar initials from name
     const getInitials = (name: string) =>
         name[0]
 
     const openModal = (assignment: Assignment) => {
         setModalAssignment(assignment)
-        setModalAssignment(assignment)
+        setSelectedAssignment(assignment)
     }
 
     const closeModal = () => {
@@ -479,8 +659,22 @@ export default function RoomAssignment() {
 
         return "Just now"
     }
+    
 
     return (
+        <>
+        <Modal
+            open={!!selectedAssignment}
+            onClose={closeModal}
+            title={selectedAssignment?.status === "not assigned" ? "Room Assignment" : "View Room Assignment"}
+            maxWidth={700}
+            maxHeight={600}
+        >
+            {selectedAssignment?.status === "not assigned"
+                ? <AssignModal assignment={selectedAssignment} filteredRooms={filteredRooms} onClose={closeModal}/>
+                : <ViewModal assignment={selectedAssignment} />
+            }
+        </Modal>
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
             <Sidebar role="manager" profile={managerProfile}/>
 
@@ -745,5 +939,6 @@ export default function RoomAssignment() {
                 </main>
             </div>
         </div>
+        </>
     )
 }
