@@ -36,18 +36,44 @@ interface Stat {
     subtitle: string
 }
 
-interface Application {
-    studentName: string
-    type: string
-    building: string
-    appliedDate: string 
+interface Student {
+  fullName: string
+  shortName: string
+  course: string
+  campus: string
+  email: string
+  phone: string
+  studentNo: string
+  college: string
+  yearLevel: string
+  status: string
 }
 
-interface ConfirmedStudent {
-    studentName: string
-    stayType: string
+interface Accomodation {
+    building: string
+}
+
+interface Application {
+    student: Student
+    accommodation: Accomodation
+    type: string
+    roomType: "single" | "double" | "shared"
+    stayType: "transient" | "non-transient"
+    rejectionReason?: string | null
+    applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review'
+    durationOfStayDays: number
+    applicationDate: string 
+}
+
+//update na lang para sa Room model
+interface Assignment {
+    student: Application
+    roomNumber: string
+    roomBuilding: string
     roomType: string
-    dateConfirmed: string
+    stayType: string
+    moveIn: string
+    expectedMoveOut: string
     status: "assigned" | "not assigned"
 }
 
@@ -84,29 +110,250 @@ const stats: Stat[] = [
     {title: "Total Tenants", subtitle: "Subtitle", value:64, total: 100}
 ]
 
-const applications: Application[] = [
-    {studentName: "Ana Marie Reyes", type: "Non-transient", building: "Building 6", appliedDate: "Mar 12, 2026"},
-    {studentName: "Ana Marie Reyes", type: "Non-transient", building: "Building 6", appliedDate: "Mar 14, 2026"},
-    {studentName: "Ana Marie Reyes", type: "Non-transient", building: "Building 6", appliedDate: "Mar 15, 2026"}
+const students: Student[] = [
+  {
+    fullName: "Ana Marie Reyes",
+    shortName: "Ana Reyes",
+    course: "BS Computer Science",
+    campus: "Main Campus",
+    email: "anamariel.reyes@student.edu.ph",
+    phone: "09171234567",
+    studentNo: "2021-00123",
+    college: "College of Engineering",
+    yearLevel: "3rd Year",
+    status: "Regular"
+  },
+  {
+    fullName: "Carlos Miguel Santos",
+    shortName: "Carlos Santos",
+    course: "BS Civil Engineering",
+    campus: "Main Campus",
+    email: "carlos.santos@student.edu.ph",
+    phone: "09189876543",
+    studentNo: "2020-00456",
+    college: "College of Engineering",
+    yearLevel: "4th Year",
+    status: "Regular"
+  },
+  {
+    fullName: "Maria Cristina Dela Cruz",
+    shortName: "Maria Dela Cruz",
+    course: "BS Nursing",
+    campus: "North Campus",
+    email: "mariacristina.delacruz@student.edu.ph",
+    phone: "09201122334",
+    studentNo: "2022-00789",
+    college: "College of Allied Health",
+    yearLevel: "2nd Year",
+    status: "Regular"
+  },
+  {
+    fullName: "Jose Ramon Villanueva",
+    shortName: "Jose Villanueva",
+    course: "BS Architecture",
+    campus: "Main Campus",
+    email: "jose.villanueva@student.edu.ph",
+    phone: "09334455667",
+    studentNo: "2019-01011",
+    college: "College of Architecture",
+    yearLevel: "5th Year",
+    status: "Irregular"
+  },
+  {
+    fullName: "Liza Mae Fontanilla",
+    shortName: "Liza Fontanilla",
+    course: "BS Education",
+    campus: "South Campus",
+    email: "lizamae.fontanilla@student.edu.ph",
+    phone: "09451234567",
+    studentNo: "2023-00321",
+    college: "College of Education",
+    yearLevel: "1st Year",
+    status: "Regular"
+  },
+  {
+    fullName: "Ramon Kristoffer Aquino",
+    shortName: "Ramon Aquino",
+    course: "BS Information Technology",
+    campus: "Main Campus",
+    email: "ramon.aquino@student.edu.ph",
+    phone: "09278765432",
+    studentNo: "2022-00654",
+    college: "College of Engineering",
+    yearLevel: "2nd Year",
+    status: "Regular"
+  }
 ]
 
-const confirmedStudents: ConfirmedStudent[] = [
-    {studentName: "Ana Marie Reyes", stayType: "Transient", roomType: "Shared", dateConfirmed: "Mar 14, 2026", status:"assigned"}
+const accommodations: Accomodation[] = [
+  { building: "Building 6" },
+  { building: "Building 3" },
+  { building: "Building 1" },
+  { building: "Building 4" },
+  { building: "Building 2" },
+  { building: "Building 5" }  
+]
+
+const applications: Application[] = [
+  {
+    student: students[0],
+    accommodation: accommodations[0],
+    type: "Dormitory",
+    roomType: "single",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 12, 2026"
+  },
+  {
+    student: students[1],
+    accommodation: accommodations[1],
+    type: "Dormitory",
+    roomType: "double",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "approved",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 14, 2026"
+  },
+  {
+    student: students[2],
+    accommodation: accommodations[2],
+    type: "Transient Housing",
+    roomType: "shared",
+    stayType: "transient",
+    rejectionReason: null,
+    applicationStatus: "under_review",
+    durationOfStayDays: 7,
+    applicationDate: "Mar 15, 2026"
+  },
+  {
+    student: students[3],
+    accommodation: accommodations[3],
+    type: "Dormitory",
+    roomType: "single",
+    stayType: "non-transient",
+    rejectionReason: "No available slots for the selected room type.",
+    applicationStatus: "rejected",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 16, 2026"
+  },
+  {
+    student: students[4],
+    accommodation: accommodations[4],
+    type: "Dormitory",
+    roomType: "double",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "waitlisted",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 17, 2026"
+  },
+  {
+    student: students[5],
+    accommodation: accommodations[5],
+    type: "Dormitory",
+    roomType: "shared",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "waitlisted",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 18, 2026"
+  },
+  {
+    student: students[0],
+    accommodation: accommodations[2],
+    type: "Dormitory",
+    roomType: "double",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 19, 2026"
+  },
+  {
+    student: students[2],
+    accommodation: accommodations[3],
+    type: "Transient Housing",
+    roomType: "single",
+    stayType: "transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 14,
+    applicationDate: "Mar 20, 2026"
+  },
+  {
+    student: students[4],
+    accommodation: accommodations[0],
+    type: "Dormitory",
+    roomType: "shared",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 21, 2026"
+  },
+  {
+    student: students[5],
+    accommodation: accommodations[1],
+    type: "Dormitory",
+    roomType: "single",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 22, 2026"
+  },
+  {
+    student: students[3],
+    accommodation: accommodations[5],
+    type: "Transient Housing",
+    roomType: "double",
+    stayType: "transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 7,
+    applicationDate: "Mar 23, 2026"
+  }
+]
+
+const assignments: Assignment[] = [
+    {
+        student: applications[1], // Carlos Miguel Santos — applicationStatus: "approved"
+        roomNumber: "312",
+        roomBuilding: "Building 4",
+        roomType: "Double",
+        stayType: "Non-Transient",
+        moveIn: "Mar 15, 2026",
+        expectedMoveOut: "Aug 15, 2026",
+        status: "not assigned"
+    }
 ]
 
 const moves: Move[] = [
     {studentName: "Ana Marie Reyes", room: "Room 6543", building: "Building 6", roomType: "Shared", stayType: "Transient", type: "move-out", date:"March 28, 2026"}
 ]
 
-
-
 export default function Dashboard() {
+    const waitlistedApplications = applications.filter(
+        (application) => application.applicationStatus === "waitlisted"
+    ).slice(0, 5)
+
+    const pendingApplications = applications.filter(
+        (application) => application.applicationStatus === "pending"
+    ).slice(0, 5)
+
+    const confirmedStudents = assignments.filter(
+        (assignment) => assignment.student.applicationStatus === "approved"
+    ).slice(0, 5)
+
     return (
-        <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
-            <Sidebar role="manager" profile={managerProfile}/>
+        <div className="relative flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
+            <Sidebar role="manager" profile={managerProfile} />
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col p-8 overflow-y-auto">
+            <div className="relative z-10 flex-1 flex flex-col px-8 py-5 overflow-y-auto">
                 <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
                     <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
                         style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
@@ -137,11 +384,11 @@ export default function Dashboard() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
                         <Applications 
-                            data={applications}
+                            data={pendingApplications}
                             className="col-span-1 lg:col-span-2 w-full h-full min-w-0"
                         />
                         <Waitlist 
-                            students={["Ana Marie Reyes", "Ana Marie Reyes"]}
+                            waitlists={waitlistedApplications}
                             className="col-span-1 w-full h-full min-w-0"
                         />
 
@@ -156,7 +403,7 @@ export default function Dashboard() {
                     </div>
                 </main>
             </div>
-            <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4] overflow-y-auto">
+            <aside className="relative z-10 hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F5EEF0] overflow-y-auto">
                 <ProfileCard
                     fullName={managerProfile.fullName}
                     role="Dormitory Manager"
@@ -166,7 +413,6 @@ export default function Dashboard() {
                     status={managerProfile.status}
                     //change these sa backend connection 
                     onNotification={() => console.log("notifications")}
-                    onReport={() => console.log("report")}
                 />
                 <AvailableRooms 
                     totalRooms={100}

@@ -10,6 +10,7 @@ interface ModalProps {
   title?: string;
   eyebrow?: string;
   maxWidth?: number;
+  maxHeight?: number;
   footer?: React.ReactNode;
 }
 
@@ -20,6 +21,7 @@ export function Modal({
   title,
   eyebrow,
   maxWidth = 560,
+  maxHeight= 560,
   footer,
 }: ModalProps) {
   const [mounted, setMounted] = useState(false);
@@ -62,14 +64,10 @@ export function Modal({
       >
         {/* CARD */}
         <div
-          className={` w-full bg-white rounded-[24px] overflow-hidden shadow-[0_40px_100px_rgba(26,10,15,0.55),0_8px_32px_rgba(26,10,15,0.25)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
-            ${
-              open
-                ? "opacity-100 translate-y-0 scale-100"
-                : "opacity-0 translate-y-8 scale-95"
-            }
+          className={`w-full bg-white rounded-[24px] overflow-hidden shadow-[...] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col
+            ${open ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-95"}
           `}
-          style={{ maxWidth }}
+          style={{ maxWidth, maxHeight }}
         >
           {/* HEADER */}
           {(title || eyebrow) && (
@@ -115,7 +113,7 @@ export function Modal({
           )}
 
           {/* BODY */}
-          <div className="px-7 py-6 max-h-[52vh] overflow-y-auto">
+          <div className="px-7 py-6 overflow-y-auto flex-1 min-h-0">
             {children}
           </div>
 
