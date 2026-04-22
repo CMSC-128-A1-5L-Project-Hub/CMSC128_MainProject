@@ -409,11 +409,13 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
 
         <Card className={className}>
             {/* Header row */}
-            <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+            <div className="flex flex-col items-start mb-4 gap-1">
                 <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">
                     Waitlist History 
                 </h2>
-                <p className="text-xs text-gray-400">{filtered.length} total applications</p>
+                <p className="text-xs text-gray-400">
+                    {filtered.length} total applications
+                </p>
                 <div className="flex items-center gap-2 ml-auto">
                     {/* DROPDOWN */}
                     <div className="relative">
