@@ -258,10 +258,11 @@ export default function ProfileCard({
                                 {item.label}
                             </p>
                             {item.label === "Status" ? (
-                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold capitalize
                                     ${item.value.toLowerCase() === "active"
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-red-100 text-red-700"
+                                        ? "bg-[#2D7A4A]/35 text-[#6FD49A] border border-[#2D7A4A]/50"
+                                        //suggest kayo ano magandang kulay dito pls
+                                        : "bg-[#7A2D2D]/35 text-[#D46F6F] border border-[#7A2D2D]/70"
                                     }`}
                                 >
                                     {item.value}
