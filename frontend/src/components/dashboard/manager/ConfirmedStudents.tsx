@@ -25,7 +25,6 @@ type Accomodation = {
 type Application = {
     student: Student
     accommodation: Accomodation
-    type: string
     roomType: "single" | "double" | "shared"
     stayType: "transient" | "non-transient"
     rejectionReason?: string | null

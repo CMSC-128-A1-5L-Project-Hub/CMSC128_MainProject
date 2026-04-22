@@ -37,7 +37,6 @@ type Accomodation = {
 type Application = {
     student: Student
     accommodation: Accomodation
-    type: string
     roomType: "single" | "double" | "shared"
     stayType: "transient" | "non-transient"
     rejectionReason?: string | null
@@ -326,8 +325,8 @@ export default function Applications({ data, className="" }: any) {
                                             <p className="col-span-1 text-[#1A0008] text-sm">
                                                 {application.accommodation.building}
                                             </p>
-                                            <p className="col-span-1 text-[#9A7080] text-xs">
-                                                {application.type}
+                                            <p className="col-span-1 text-[#9A7080] text-xs capitalize">
+                                                {application.stayType}
                                             </p>
                                         </div>
                                         <p className="col-span-1 text-[#9A7080] text-sm p-1 flex items-center">
