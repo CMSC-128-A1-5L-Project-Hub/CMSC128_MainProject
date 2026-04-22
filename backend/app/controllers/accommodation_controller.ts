@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
+import Student from '#models/student'
 import AccommodationImage from '#models/accommodation_image'
 import FileMetadata from '#models/file_metadatum'
 import DistanceService from '#services/distance'
@@ -76,6 +77,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
     accommodation_location,
     accommodation_type,
     accommodation_capacity,
+    accommodation_size,
     tenant_restriction,
     latitude,
     longitude,
@@ -205,6 +207,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
         accommodationType: accommodation_type,
         accommodationCapacity: accommodation_capacity,
         tenantRestriction: tenant_restriction,
+        accommodationSize: accommodation_size,
         applicationStartDate: null,
         applicationEndDate: null,
         latitude: Number(latitude),
@@ -284,6 +287,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
       accommodation_type,
       accommodation_capacity,
       tenant_restriction,
+      accommodation_size,
       application_start_date,
       application_end_date,
       latitude,
@@ -310,6 +314,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
       ...(accommodation_type && { accommodationType: accommodation_type }),
       ...(accommodation_capacity && { accommodationCapacity: accommodation_capacity }),
       ...(tenant_restriction && { tenantRestriction: tenant_restriction }),
+      ...(accommodation_size && { accommodationSize: accommodation_size }),
       ...(application_start_date && { applicationStartDate: application_start_date }),
       ...(application_end_date && { applicationEndDate: application_end_date }),
       ...distances,
@@ -523,5 +528,51 @@ async store({ request, auth, response, serialize }: HttpContext) {
     } catch (err) {
       console.error('[exportDocuments] Zip streaming error:', err)
     }
+  }
+
+  // Recommendation 
+  async recommended({ auth, response }: HttpContext) {
+    const user = auth.user
+
+    if (!user) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
+    const student = await Student.findByOrFail('userId', user.id)
+
+    const gender = (student.gender ?? '').toLowerCase()
+
+    const allowedRestrictions =
+      gender === 'female'
+        ? ['female-only', 'coed']
+        : gender === 'male'
+        ? ['male-only', 'coed']
+        : ['coed']
+
+    const accommodations = await db
+      .from('accommodations')
+      .leftJoin('reviews', 'accommodations.id', 'reviews.accommodation_id')
+      .leftJoin('accommodation_images', 'accommodations.id', 'accommodation_images.accommodation_id')
+      .leftJoin('file_metadata', 'accommodation_images.image_file_id', 'file_metadata.id')
+      .where('accommodations.status', 'verified')
+      .whereIn('accommodations.tenant_restriction', allowedRestrictions)
+      .groupBy('accommodations.id')
+      .select(
+        'accommodations.id',
+        'accommodations.accommodation_name',
+        'accommodations.accommodation_location',
+        'accommodations.accommodation_type',
+        'accommodations.tenant_restriction',
+        'accommodations.accommodation_size'
+      )
+      .select(db.raw('COALESCE(AVG(reviews.rating), 0) as average_rating'))
+      .select(db.raw('MIN(file_metadata.file_path) as primaryImageUrl'))
+      .orderBy('average_rating', 'desc')
+      .limit(5)
+
+    return response.ok({
+      message: 'Recommended accommodations retrieved successfully',
+      data: accommodations,
+    })
   }
 }

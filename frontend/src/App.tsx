@@ -24,6 +24,7 @@ import NotificationsPage from "./pages/shared/Notifications"
 import ApplicationsPage from "./pages/student/Applications"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
+import FullRoomView from "./pages/student/FullRoomView"
 import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
@@ -67,6 +68,7 @@ function App() {
         <Route path="/landingpage" element={<Navigate to="/" replace />} />
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/browse" element={<BrowsePage />} />
+        <Route path="/accommodations/:id" element={<FullRoomView />} />
 
         {/* ── Logged-in only (any role) ── */}
         <Route path="/auth/success" element={<AuthSuccess/>}/>
