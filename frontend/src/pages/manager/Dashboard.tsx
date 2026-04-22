@@ -370,6 +370,25 @@ export default function Dashboard() {
                         ))}
                     </div>
 
+                    {/* For mobile ver */}
+                    <div className="flex flex-col gap-4 sm:hidden">
+                        <AvailableRooms 
+                            totalRooms={100}
+                            soloRooms={10}
+                            doubleRooms={15}
+                            sharedRooms={20}
+                        />
+                        <OccupiedRooms 
+                            occupiedSolo={2}
+                            totalSolo={15}
+                            occupiedDouble={5}
+                            totalDouble={20}
+                            occupiedShared={13}
+                            totalShared={25}
+                        />
+                        <ActivityLogs />
+                    </div>
+
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
                         <Applications 
                             data={pendingApplications}
