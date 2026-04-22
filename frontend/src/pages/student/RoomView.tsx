@@ -528,6 +528,21 @@ function RequirementsTab() {
                         className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-semibold text-white transition-colors"
                         style={{ background: isDownloaded ? "linear-gradient(135deg, #1A7A4A, #2D9A5F" : "linear-gradient(130deg, #6B0F2B, #9A7080)" }}
                       >
+                        {isDownloaded ? (
+                          <>
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Downloaded
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download
+                          </>
+                        )}
                       </button>
                     ) : (
                       <span className="text-[10px] text-gray-400 italic">To be submitted</span>
@@ -597,17 +612,6 @@ export default function RoomView() {
       <Sidebar role="student"/>
 
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
-
-        {/* 👇 Gallery goes right here, at the top
-        <PhotoGallery
-          photos={[
-            "https://scontent.fmnl17-2.fna.fbcdn.net/v/t39.30808-6/470222608_983930173757933_998118782445933365_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=2a1932&_nc_ohc=ZFZK7m7SOa0Q7kNvwGOPvqH&_nc_oc=AdqDd-9KAVigCK_3EWtYSiKPI3LQcUVYJnrsKNS8FkAFYu_F7R1kEigwCaFZR-vRmV0&_nc_zt=23&_nc_ht=scontent.fmnl17-2.fna&_nc_gid=r4rDrZ-9ks0O0mnDt0AqYw&_nc_ss=7a3a8&oh=00_Af2gqklSV4YC1rlAVLymw3a5pkNBSRrBaSnbwKxtYMPVLQ&oe=69E8489C",
-            "https://scontent.fmnl17-1.fna.fbcdn.net/v/t1.6435-9/66008036_487367045400857_1488351947843960832_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=f798df&_nc_ohc=ElHr-WrKZYcQ7kNvwFwvO8u&_nc_oc=Adpjp6BtjtcqZipKB0kvZwUKfdfmdA8FthjEjzcTTLJr_QrG8CJ_ziH_ueBWDhIj5m0&_nc_zt=23&_nc_ht=scontent.fmnl17-1.fna&_nc_gid=ohCc0hgO7ItkIo1D4h39dg&_nc_ss=7a3a8&oh=00_Af3SRsAoAaRLisofJivkX9TI-NV5f32-PPjLFNVUdbIgQw&oe=6A09DE9E",
-            "https://scontent.fmnl17-2.fna.fbcdn.net/v/t1.6435-9/65525855_487366502067578_6498764386226667520_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=f798df&_nc_ohc=lwgSYY8aRXMQ7kNvwG8DE1O&_nc_oc=Adr3QJE6pJ4Ix9GhvyrIm46YivGbyqqWj91r19RGHeKAk1ek9OjWbNZ3W7X__QQmkwQ&_nc_zt=23&_nc_ht=scontent.fmnl17-2.fna&_nc_gid=Y31MEwZ9ofBlvh9xazaSVg&_nc_ss=7a3a8&oh=00_Af2hAC2OUloa4E3JKdO0biDPLF0cJGI2De9EDWbNGJ4spg&oe=6A09D9E6",
-            "https://scontent.fmnl17-8.fna.fbcdn.net/v/t1.6435-9/65574464_487366468734248_8178610199741857792_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=f798df&_nc_ohc=EXZOAFgaSmEQ7kNvwGNMSIY&_nc_oc=Ado7mmT6oORNQgtkYEGMBuw_N8AtiWN5U0vvytCYvNjXU_uRCnqO7vejL1BEgWXksQo&_nc_zt=23&_nc_ht=scontent.fmnl17-8.fna&_nc_gid=G05aAyHCbEbugO1lM86-kA&_nc_ss=7a3a8&oh=00_Af0T8tdQzHrWjB2zeUZjedH8I5CpGvUDfq11soKx1O_Zwg&oe=6A09D02E",
-          ]}
-          onViewAll={() => setShowAllPhotosModal(true)}
-        /> */}
 
         <button onClick={() => navigate(-1)}
           className="flex items-center gap-1.5 text-sm font-semibold mb-3 hover:underline"
@@ -798,7 +802,6 @@ export default function RoomView() {
           </div>
       </div>
 
-        {/* rest of listing details below... */}
 
       </main>
         {showAllPhotos && (
