@@ -27,7 +27,7 @@ export default function ProfileCard({
 }: ProfileCardProps) {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const [editData, setEditData] = useState({ name, role, phone, email });
+  const [replacementEmail, setReplacementEmail] = useState("");
 
   const CLR = {
     dark: "#3D0718",
@@ -38,9 +38,10 @@ export default function ProfileCard({
     goldDk: "#a07825",
   };
 
-  const handleEditSubmit = () => {
-    console.log("Updated manager:", editData);
+  const handleSendInvite = () => {
+    console.log("Send invite to:", replacementEmail);
     setEditModalOpen(false);
+    setReplacementEmail("");
   };
 
   const SilhouetteAvatar = () => (
@@ -51,55 +52,39 @@ export default function ProfileCard({
     </svg>
   );
 
+  // EditModal – only email field for replacing manager
   const EditModal = (
     <Modal
       open={editModalOpen}
-      onClose={() => setEditModalOpen(false)}
-      title={status === "assigned" ? "Replace Your Manager" : "Add a Manager"}
+      onClose={() => {
+        setEditModalOpen(false);
+        setReplacementEmail("");
+      }}
+      title="Replace Your Manager"
       eyebrow="Manager Profile"
       footer={
-        <Button variant="primary" size="md" className="ml-auto" onClick={handleEditSubmit}>
-          Save Changes
+        <Button variant="primary" size="md" className="ml-auto" onClick={handleSendInvite}>
+          Send Invite
         </Button>
       }
     >
       <div className="flex flex-col gap-4">
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Full Name</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+            Invite using their Google Account
+          </p>
           <input
             className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]"
-            value={editData.name}
-            onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-          />
-        </div>
-        <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Role</p>
-          <input
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]"
-            value={editData.role}
-            onChange={(e) => setEditData({ ...editData, role: e.target.value })}
-          />
-        </div>
-        <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Phone</p>
-          <input
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]"
-            value={editData.phone}
-            onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-          />
-        </div>
-        <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Email</p>
-          <input
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]"
-            value={editData.email}
-            onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+            placeholder="email@example.com"
+            value={replacementEmail}
+            onChange={(e) => setReplacementEmail(e.target.value)}
           />
         </div>
       </div>
     </Modal>
   );
 
+  // InviteModal (for adding a manager when none exists or pending)
   const InviteModal = (
     <Modal
       open={inviteModalOpen}
