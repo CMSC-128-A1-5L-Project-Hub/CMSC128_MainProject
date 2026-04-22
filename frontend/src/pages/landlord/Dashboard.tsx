@@ -340,7 +340,7 @@ export default function Dashboard() {
           <ProfileCard
             status="assigned"
             name={landlordProfile.fullName}
-            role="Property Owner / Landlord"
+            role="Manager"
             phone={landlordProfile.phoneNumber}
             email={landlordProfile.email}
             dormitory={landlordProfile.dormitory}
