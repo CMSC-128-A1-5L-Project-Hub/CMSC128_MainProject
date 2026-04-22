@@ -331,7 +331,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         return [
           { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" />,          path: "/student/dashboard",     label: "Dashboard" },
           { id: "search",       icon: <SearchIcon      className="w-[21px] h-[21px]" />, path: "/browse",        label: "Browse Rooms" },
-          { id: "applications", icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/applications",  label: "Applications" },
+          { id: "applications", icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/student/applicationstatus",  label: "Applications" },
           { id: "documents",    icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/documents",     label: "Documents" },
         ];
       case "landlord":
@@ -341,7 +341,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
       case "landlordDashboard":
         return [
           { id: "dashboard",   icon: <DashboardIcon        className="w-5 h-5" />,   path: "/landlord/dashboard", label: "Dashboard" },
-          { id: "room",        icon: <MdOutlineMeetingRoom className="w-6 h-6" />,   path: "",                    label: "Rooms" },
+          { id: "room",        icon: <MdOutlineMeetingRoom className="w-6 h-6" />,   path: "/landlord/rooms",                    label: "Rooms" },
           { id: "application", icon: <BsUiChecks           className="w-5 h-5" />,   path: "",                    label: "Applications & Waitlisted" },
           { id: "fees",        icon: <PiCashRegister       className="w-6 h-6" />,   path: "",                    label: "Fees" },
         ];

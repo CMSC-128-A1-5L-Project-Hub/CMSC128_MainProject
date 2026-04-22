@@ -6,8 +6,6 @@ import SignUp from "./pages/shared/SignUp"
 import SignUpForm from "./pages/shared/SignUpForm"
 import ApplicationStatus from "./pages/student/ApplicationStatus"
 import RoleSelection from "./pages/shared/RoleSelection"
-import AuthSuccess from "./pages/shared/AuthSuccess"
-import PendingVerification from "./pages/shared/PendingVerification"
 import StudentDashboard from "./pages/student/Dashboard"
 import ManagerDashboard from "./pages/manager/Dashboard"
 import OccupancyRecords from "./pages/manager/OccupancyRecords"
@@ -26,6 +24,9 @@ import NotificationsPage from "./pages/shared/Notifications"
 import ApplicationsPage from "./pages/student/Applications"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
+import RoomsPage from "./pages/landlord/RoomPage"
+import AuthSuccess from "./pages/shared/AuthSuccess"
+import PendingVerification from "./pages/shared/PendingVerification"
 
 function FullLandingPage() {
   return (
