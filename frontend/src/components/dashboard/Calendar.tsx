@@ -218,14 +218,38 @@ function MiniCalendar({
   );
 }
 
-export default function ApplicationPeriod() {
-  const [savedStart, setSavedStart] = useState<DateVal>(null);
-  const [savedEnd, setSavedEnd] = useState<DateVal>(null);
+function toDateVal(dateStr: string | null | undefined): DateVal {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  return { year: d.getUTCFullYear(), month: d.getUTCMonth(), day: d.getUTCDate() };
+}
+
+interface ApplicationPeriodProps {
+  initialStart?: string | null   // ISO date string e.g. "2026-04-01"
+  initialEnd?: string | null
+  onSave?: (startIso: string, endIso: string) => void
+  isSaving?: boolean
+}
+
+export default function ApplicationPeriod({
+  initialStart,
+  initialEnd,
+  onSave,
+  isSaving = false,
+}: ApplicationPeriodProps) {
+  const [savedStart, setSavedStart] = useState<DateVal>(() => toDateVal(initialStart));
+  const [savedEnd, setSavedEnd] = useState<DateVal>(() => toDateVal(initialEnd));
   const [draftStart, setDraftStart] = useState<DateVal>(null);
   const [draftEnd, setDraftEnd] = useState<DateVal>(null);
   const [editing, setEditing] = useState(false);
   const [selecting, setSelecting] = useState<"start" | "end">("start");
   const ref = useRef<HTMLDivElement>(null);
+
+  // Sync when parent provides fresh data (e.g. after query loads)
+  useEffect(() => {
+    setSavedStart(toDateVal(initialStart));
+    setSavedEnd(toDateVal(initialEnd));
+  }, [initialStart, initialEnd]);
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
@@ -247,6 +271,11 @@ export default function ApplicationPeriod() {
     setSavedStart(draftStart);
     setSavedEnd(draftEnd);
     setEditing(false);
+    if (onSave) {
+      const toIso = (v: DateVal) =>
+        `${v!.year}-${String(v!.month + 1).padStart(2, "0")}-${String(v!.day).padStart(2, "0")}`;
+      onSave(toIso(draftStart), toIso(draftEnd));
+    }
   };
 
   const isSet = !!savedStart && !!savedEnd;
@@ -392,9 +421,9 @@ export default function ApplicationPeriod() {
                 size="sm"
                 fullWidth
                 onClick={handleSave}
-                disabled={!canSave}
+                disabled={!canSave || isSaving}
             >
-                <Check size={11} /> Save Period
+                <Check size={11} /> {isSaving ? "Saving…" : "Save Period"}
             </Button>
             </div>
         </div>
