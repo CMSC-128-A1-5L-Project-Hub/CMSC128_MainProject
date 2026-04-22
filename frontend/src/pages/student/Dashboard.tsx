@@ -501,92 +501,117 @@ interface DesktopProfilePanelProps {
 }
 
 const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePanelProps) => (
-  <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4]">
-    {/* Top Gradient  */}
-    <div
-      className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-[...]"
-      style={{ background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)` }}
-    > 
+  <aside className="hidden lg:flex h-screen w-[390px] xl:w-[420px] flex-shrink-0 flex-col bg-[#F6F2F4]">
+    <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
+      {/* Top Gradient */}
       <div
-        className="absolute top-0 left-0 w-full h-[79px] px] pointer-events-none"
+        className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-[0_10px_24px_rgba(61,7,24,0.18)]"
         style={{
-          background: "linear-gradient(90deg, #7A0C23 0%, #A61C3C 100%)"
+          background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)`,
         }}
-      />
-    <div className="relative z-10">
-    {/* Profile Title and Notif Button */}
-      <div className="flex items-center justify-between mb-6">
-        <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
+      >
+        <div
+          className="absolute top-0 left-0 w-full h-[79px] pointer-events-none"
+          style={{
+            background: "linear-gradient(90deg, #7A0C23 0%, #A61C3C 100%)",
+          }}
+        />
 
-       <button
-          className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.08)" }}
-        >
-          <img
-            src={notif_icon}
-            alt="Notifications"
-            className="w-full h-full object-contain scale-[2.5]"
-          />
+        <div className="relative z-10">
+          {/* Profile Title and Notif Button */}
+          <div className="flex items-center justify-between mb-6">
+            <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">
+              My Profile
+            </span>
 
-          <span
-            className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
-            style={{ background: CLR.gold }}
-          />
-        </button>
-      </div>
-      {/* Profile Content */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-shrink-0">
-          <div
-            className="w-[78px] h-[78px] rounded-full bg-white flex items-center justify-center border-[4px] overflow-hidden shadow-md"
-            style={{ borderColor: CLR.gold }}
-          >
-            <img
-              src={default_profile}
-              alt="Default profile"
-              className="w-full h-full object-cover"
-            />
+            <button
+              className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.08)" }}
+            >
+              <img
+                src={notif_icon}
+                alt="Notifications"
+                className="w-full h-full object-contain scale-[2.5]"
+              />
+
+              <span
+                className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
+                style={{ background: CLR.gold }}
+              />
+            </button>
           </div>
 
-          <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
-            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+          {/* Profile Content */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-shrink-0">
+              <div
+                className="w-[78px] h-[78px] rounded-full bg-white flex items-center justify-center border-[4px] overflow-hidden shadow-md"
+                style={{ borderColor: CLR.gold }}
+              >
+                <img
+                  src={default_profile}
+                  alt="Default profile"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
+                <svg
+                  className="w-3 h-3 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={3}
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
+              <p
+                className="text-[15px] font-bold leading-tight mt-1"
+                style={{ color: CLR.goldLt }}
+              >
+                {profile.course} · {profile.campus}
+              </p>
+              <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
+              <p className="text-white/70 text-sm">{profile.phone}</p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-4">
+            {[
+              { label: "Student No.", value: profile.studentNo },
+              { label: "College", value: profile.college },
+              { label: "Year Level", value: profile.yearLevel },
+              { label: "Status", value: profile.status, green: true },
+            ].map((item) => (
+              <div key={item.label}>
+                <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">
+                  {item.label}
+                </p>
+
+                {"green" in item && item.green ? (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
+                    {item.value}
+                  </span>
+                ) : (
+                  <p className="text-white text-[14px] font-bold leading-tight whitespace-nowrap">
+                    {item.value}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
         </div>
-
-        <div className="min-w-0">
-          <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
-          <p className="text-[15px] font-bold leading-tight mt-1" style={{ color: CLR.goldLt }}>
-            {profile.course} · {profile.campus}
-          </p>
-          <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
-          <p className="text-white/70 text-sm">{profile.phone}</p>
-        </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-4">        {[
-          { label: "Student No.", value: profile.studentNo },
-          { label: "College", value: profile.college },
-          { label: "Year Level", value: profile.yearLevel },
-          { label: "Status", value: profile.status, green: true },
-        ].map((item) => (
-          <div key={item.label}>
-            <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
-            {"green" in item && item.green ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
-                {item.value}
-              </span>
-            ) : (
-              <p className="text-white text-[14px] font-bold leading-tight whitespace-nowrap"> {item.value} </p>
-            )}
-          </div>
-        ))}
+      {/* Billing Card */}
+      <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
+        <BillingSection overview={billing} statements={statements} />
       </div>
-    </div>
-    </div>
-    <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
-      <BillingSection overview={billing} statements={statements} />
     </div>
   </aside>
 );
@@ -612,23 +637,24 @@ export default function Dashboard() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5">
         <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
-          <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
-              style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
+          <div
+            className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
+            style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)" }}
           />
           <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">
-              Dashboard
+            Dashboard
           </h1>
         </div>
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5 space-y-4 lg:space-y-5">
-          <HeroBanner 
+        <div className="space-y-4 lg:space-y-5">
+          <HeroBanner
             greeting={heroContent.greeting}
             title={heroContent.title}
             subtitle={heroContent.subtitle}
             name={studentProfile.fullName}
             type="full"
           />
-
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-3">
               <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
@@ -865,6 +891,7 @@ export default function Dashboard() {
             <BillingSection overview={billingOverview} statements={billingStatements} />
           </div>
         </div>
+      </div>
       </main>
 
       <DesktopProfilePanel profile={studentProfile} billing={billingOverview} statements={billingStatements} />
