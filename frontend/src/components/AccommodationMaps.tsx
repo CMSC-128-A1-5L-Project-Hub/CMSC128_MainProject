@@ -140,7 +140,7 @@ export default function AccommodationMap({
         )}
 
         {/* UPLB Pin */}
-        <Marker
+        {/* <Marker
           longitude={UPLB.longitude}
           latitude={UPLB.latitude}
           anchor="bottom"
@@ -174,80 +174,22 @@ export default function AccommodationMap({
               <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>University of the Philippines Los Baños</p>
             </div>
           </Popup>
-        )}
-
-        {/* Accommodation Pins */}
-        {accommodations.map((acc) => {
-        // Check if this specific pin is the one selected
-        const isSelected = selectedPin?.accommodationId === acc.accommodationId;
-
-        return (
-          <Marker
-            key={acc.accommodationId}
-            longitude={acc.longitude}
-            latitude={acc.latitude}
-            anchor="bottom"
-            onClick={(e) => {
-              e.originalEvent.stopPropagation();
-              setSelectedPin(acc);
-              setSelectedUPLB(false);
-            }}
-          >
-            <div 
-              className="relative flex flex-col items-center cursor-pointer transition-all duration-300 ease-in-out"
-              style={{
-                // Scaled up if selected, slightly lifted
-                transform: isSelected ? 'scale(1.25) translateY(-5px)' : 'scale(1)',
-                zIndex: isSelected ? 20 : 1, // Ensure the selected pin stays on top of others
-              }}
-            >
-              {/* Top Capsule */}
-              <div className={`
-                h-auto min-w-[70px] px-3 py-1.5 rounded-full flex flex-row items-center justify-center gap-1.5 shadow-lg border 
-                ${isSelected ? 'bg-[#6B0F2B] border-white' : 'bg-[#801831] border-white/20'}
-              `}>
-                
-                {/* White Star and Rating */}
-                <div className="flex items-center gap-1">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192L12 .587z"/>
-                  </svg>
-                  <span className="text-white text-[10px] font-medium leading-none">
-                    {acc.rating || '4.5'}
-                  </span>
-                </div>
-
-                <div className="w-[1px] h-3 bg-white/30" />
-
-                {/* Dorm Name */}
-                <span className="text-white text-[10px] font-bold whitespace-nowrap leading-none">
-                  {acc.accommodationName.split(' ')[0]}
-                </span>
-              </div>
-
-              {/* Triangle Pointer */}
-              <div 
-                className={`w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] -mt-[1px]
-                  ${isSelected ? 'border-t-[#6B0F2B]' : 'border-t-[#801831]'}
-                `} 
-              />
-            </div>
-          </Marker>
-        );
-      })}
+        )} */}
 
         {/* Accommodation Popup */}
         {selectedPin && (
-          <Popup
+         <Popup
             longitude={selectedPin.longitude}
             latitude={selectedPin.latitude}
             anchor="top"
             onClose={() => setSelectedPin(null)}
             closeButton
             closeOnClick={false}
-            maxWidth="300px" /* Slightly wider to match design better */
+            maxWidth="300px"
+            offset={[85, 5]}
+            style={{ zIndex: 500 }} 
           >
-            {/* Main Container - Added onClick and Tailwind classes for shape/shadow */}
+            {/* Main Container */}
             <div 
               className="font-sans overflow-hidden rounded-2xl bg-white shadow-2xl cursor-pointer" 
               onClick={() => onCardClick(selectedPin)}
@@ -350,6 +292,66 @@ export default function AccommodationMap({
             </div>
           </Popup>
         )}
+
+        {/* Accommodation Pins */}
+        {accommodations.map((acc) => {
+          const isSelected = selectedPin?.accommodationId === acc.accommodationId;
+
+          return (
+            <Marker
+              key={acc.accommodationId}
+              longitude={acc.longitude}
+              latitude={acc.latitude}
+              style={{ zIndex: isSelected ? 9999 : 1 }} 
+              onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                setSelectedPin(acc);
+                setSelectedUPLB(false);
+              }}
+            >
+              <div 
+                className="relative flex flex-col items-center cursor-pointer transition-all duration-300 ease-in-out"
+                style={{
+                  transform: isSelected ? 'scale(1.25) translateY(-5px)' : 'scale(1)',
+                }}
+              >
+                {/* Top Capsule */}
+                <div className={`
+                  h-auto min-w-[70px] px-3 py-1.5 rounded-full flex flex-row items-center justify-center gap-1.5 shadow-lg border 
+                  ${isSelected ? 'bg-[#6B0F2B] border-white' : 'bg-[#801831] border-white/20'}
+                `}>
+                  
+                  {/* White Star and Rating */}
+                  <div className="flex items-center gap-1">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192L12 .587z"/>
+                    </svg>
+                    <span className="text-white text-[10px] font-medium leading-none">
+                      {acc.rating || '4.5'}
+                    </span>
+                  </div>
+
+                  <div className="w-[1px] h-3 bg-white/30" />
+
+                  {/* Dorm Name */}
+                  <span className="text-white text-[10px] font-bold whitespace-nowrap leading-none">
+                    {acc.accommodationName.split(' ')[0]}
+                  </span>
+                </div>
+
+                {/* Triangle Pointer */}
+                <div 
+                  className={`w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent transition-all duration-300
+                    ${isSelected 
+                      ? 'border-t-[10px] border-t-[#6B0F2B] -mt-[1px]'
+                      : 'border-b-[10px] border-b-[#801831] -mb-[1px]'
+                    }
+                  `}
+                />
+              </div>
+            </Marker>
+          );
+        })}
       </Map>
 
       {/* Travel Mode Toggle — only visible when a pin is selected */}

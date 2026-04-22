@@ -150,6 +150,9 @@ export default function MapPage() {
   // ─── Apply filters ────────────────────────────────────────────────────────
   const [minRating, setMinRating] = useState(0);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState([
+  'WiFi', 'Furnished', 'Air-con', 'Transient', 'Laundry', 'Study-Friendly'
+]);
 
   const [appliedFilters, setAppliedFilters] = useState({
     rating: 0,
@@ -411,7 +414,7 @@ export default function MapPage() {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              {['WiFi', 'Furnished', 'Air-con', 'Transient', 'Laundry', 'Study-Friendly'].map(tag => {
+              {availableTags.map(tag => {
                 const isActive = selectedTags.includes(tag);
                 
                 return (
@@ -433,7 +436,19 @@ export default function MapPage() {
               <button 
                 onClick={() => {
                   const newTag = prompt("Enter a feature (e.g., Gym, Pet Friendly):");
-                  if (newTag) toggleTag(newTag);
+                  if (newTag && newTag.trim() !== "") {
+                    const formattedTag = newTag.trim();
+                    
+                    // 1. Add to the list of visible buttons if it's not already there
+                    if (!availableTags.includes(formattedTag)) {
+                      setAvailableTags(prev => [...prev, formattedTag]);
+                    }
+                    
+                    // 2. Select it automatically
+                    if (!selectedTags.includes(formattedTag)) {
+                      toggleTag(formattedTag);
+                    }
+                  }
                 }}
                 className="px-4 py-2 border-2 border-dashed border-gray-200 text-gray-400 text-xs font-bold rounded-full hover:border-[#710A2B] hover:text-[#710A2B] transition-colors flex items-center gap-1"
               >
