@@ -12,6 +12,7 @@ interface ModalProps {
   /** Max width of the modal card in px (default 560) */
   maxWidth?: number | string;
   /** Optional footer slot — rendered below the body */
+  maxHeight?: number;
   footer?: React.ReactNode;
 }
 
@@ -22,6 +23,7 @@ export function Modal({
   title,
   eyebrow,
   maxWidth = 560,
+  maxHeight= 560,
   footer,
 }: ModalProps) {
   const [mounted, setMounted] = useState(false);
@@ -145,7 +147,7 @@ export function Modal({
 
           {/* ── Body ── */}
           <div
-            className="px-7 py-6 max-h-[52vh] overflow-y-auto"
+            className="px-7 py-6 max-h-[52vh] overflow-y-auto flex-1 min-h-0"
             style={{
               padding: "24px 28px",
               maxHeight: "70vh",
