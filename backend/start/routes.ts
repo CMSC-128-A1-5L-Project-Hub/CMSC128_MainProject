@@ -171,7 +171,7 @@ router
       // ─── MANAGER ───
       // ====================================================================
 
-      router.get('/manager/profile', [ManagerProfileController, 'show'])
+      router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
   })
   .use(middleware.auth())
 

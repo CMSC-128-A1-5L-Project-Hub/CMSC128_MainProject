@@ -201,12 +201,14 @@ export class LogSchema extends BaseModel {
 }
 
 export class ManagerSchema extends BaseModel {
-  static $columns = ['managerStatus', 'userId'] as const
+  static $columns = ['managerStatus', 'userId', 'verifiedAt'] as const
   $columns = ManagerSchema.$columns
   @column()
   declare managerStatus: string
   @column({ isPrimary: true })
   declare userId: number
+  @column.dateTime()
+  declare verifiedAt: DateTime | null
 }
 
 export class NotificationSchema extends BaseModel {

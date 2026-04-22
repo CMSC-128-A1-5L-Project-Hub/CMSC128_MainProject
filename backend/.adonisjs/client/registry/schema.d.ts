@@ -667,6 +667,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_accommodations_controller').default['verify']>>>
     }
   }
+  'manager_profiles.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/manager/profile'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/manager_profiles_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/manager_profiles_controller').default['show']>>>
+    }
+  }
   'notifications.index': {
     methods: ["GET","HEAD"]
     pattern: '/notifications'
