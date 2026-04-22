@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import RoomService from '#services/room_service'
 import { createRoomValidator, updateRoomValidator } from '#validators/room'
+import Room from '#models/room'
 
 export default class RoomsController {
   private roomService = new RoomService()
@@ -63,5 +64,18 @@ export default class RoomsController {
       }
       throw error
     }
+  }
+
+  async countAvailableRooms({ response }: HttpContext) {
+    const availableRooms = await Room.query()
+      .where('roomAvailability', 'available')
+      .count('* as total')
+
+    return response.ok({
+      status: 200,
+      data: {
+        total: Number(availableRooms[0].$extras.total),
+      },
+    })
   }
 }

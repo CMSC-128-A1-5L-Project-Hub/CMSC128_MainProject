@@ -229,6 +229,39 @@ export default class NotificationService {
     )
   }
 
+  // ─── Account Approved Email ───────────────────────────────────────────────
+  // Called when: admin approves a user's account (student or landlord)
+  async sendAccountApprovedEmail(user: User, role: string) {
+    const roleLabel = role === 'landlord' ? 'Housing Administrator' : 'Student'
+    await this.send(
+      user.email,
+      'Your UBLE account has been approved!',
+      `
+        <p>Hello ${user.fname},</p>
+        <p>Your UBLE account has been reviewed and approved as a <strong>${roleLabel}</strong>.</p>
+        <p>You can now log in and access your dashboard.</p>
+        <br/>
+        <p>UBLE Housing</p>
+      `
+    )
+  }
+
+  // ─── Accommodation Approved Email ─────────────────────────────────────────
+  // Called when: admin approves a landlord's accommodation listing
+  async sendAccommodationApprovedEmail(user: User, accommodationName: string) {
+    await this.send(
+      user.email,
+      'Your accommodation listing has been approved!',
+      `
+        <p>Hello ${user.fname},</p>
+        <p>Your accommodation listing <strong>${accommodationName}</strong> has been reviewed and approved by the admin.</p>
+        <p>It is now live on the UBLE platform and visible to students. You may now manage it from your dashboard.</p>
+        <br/>
+        <p>UBLE Housing</p>
+      `
+    )
+  }
+
   async sendManagerInvitationEmail(
     email: string,
     accommodationName: string,
