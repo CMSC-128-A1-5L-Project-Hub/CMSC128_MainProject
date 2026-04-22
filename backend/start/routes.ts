@@ -166,6 +166,12 @@ router
         router.patch('/admin/accommodations/:id/verify', [controllers.AdminAccommodations, 'verify'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
+
+      /// ====================================================================
+      // ─── MANAGER ───
+      // ====================================================================
+
+      router.get('/manager/profile', [ManagerProfileController, 'show'])
   })
   .use(middleware.auth())
 
