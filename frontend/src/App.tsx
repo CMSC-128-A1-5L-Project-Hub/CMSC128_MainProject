@@ -6,13 +6,20 @@ import RoleSelection from "./pages/shared/RoleSelection"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import StudentDashboard from "./pages/student/Dashboard"
+import ManagerDashboard from "./pages/manager/Dashboard"
+import OccupancyRecords from "./pages/manager/OccupancyRecords"
+import RoomAssignment from "./pages/manager/RoomAssignment"
 import LandingPage from "./pages/shared/Landingpage"
 import AboutSection from "./pages/shared/Aboutsection"
 import FeaturesSection from "./pages/shared/Featuresection"
 import ResidenceCarousel from "./pages/shared/Recommendedsection"
 import UBLEFooter from "./pages/shared/SupportSection"
 import InteractiveMap from "./pages/MapPage"
+import BrowsePage from "./pages/student/Browse"
+import AuthSuccess from "./pages/shared/AuthSuccess"
+import PendingVerification from "./pages/shared/PendingVerification"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
+import LandlordDashboard from "./pages/landlord/Dashboard"
 import NotificationsPage from "./pages/shared/Notifications"
 import ApplicationsPage from "./pages/student/Applications"
 import AdminDashboard from "./pages/admin/Dashboard"
@@ -37,20 +44,25 @@ function App() {
         {/* Auth Routes */}
         <Route path="/auth/signin" element={<SignIn/>}/>
         <Route path="/auth/signup" element={<SignUp/>}/>
+        <Route path="/auth/signup/form" element={<SignUpForm/>}/>
+        <Route path="/student/dashboard" element={<StudentDashboard/>}/>
+        <Route path="/manager/dashboard/" element={<ManagerDashboard/>}/>
+        <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/manager/occupancy-records" element={<OccupancyRecords />}/>
+        <Route path="/manager/room-assignment" element={<RoomAssignment />}/>
+        <Route path="/" element={<FullLandingPage />} /> 
         <Route path="/auth/success" element={<AuthSuccess/>}/>
         <Route path="/auth/role" element={<RoleSelection/>}/>
         <Route path="/auth/signup/:role" element={<SignUpForm/>}/>
         <Route path="/pending-verification" element={<PendingVerification/>}/>
         <Route path="/studentDashboard" element={<StudentDashboard/>}/>
-        <Route path="/" element={<FullLandingPage />} />
         <Route path="/landingpage" element={<Navigate to="/" replace />} />
         <Route path="/map" element={<InteractiveMap />} />
+        <Route path="/browse" element={<BrowsePage />} />
         <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
-        <Route path="/auth/success" element={<AuthSuccess />} />
-        <Route path="/pending-verification" element={<PendingVerification />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/applications" element={<ApplicationsPage />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/student/profile" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
