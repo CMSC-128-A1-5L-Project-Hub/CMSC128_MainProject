@@ -10,12 +10,13 @@
 
   Endpoints this page talks to:
     GET  /api/me               - pulls current user + student record
-    PUT  /api/me               - saves editable fields (route not added yet, see routes.ts)
+    PUT  /api/me               - saves editable fields
     GET  /api/my-stay/history  - all past and current dorm assignments
 */
 
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { create } from "zustand";
 import { api } from "../../api/axios";
 import Sidebar from "../../components/Sidebar";
 
@@ -28,7 +29,8 @@ const CLR = {
   goldDk: "#a07825",
 } as const;
 
-// these mirror what /me returns — update if the response shape changes
+// Types and interfaces for API data and component state
+
 interface UserProfile {
   id: number;
   fname: string;
@@ -51,7 +53,6 @@ interface UserProfile {
   } | null;
 }
 
-// mirrors what /my-stay/history returns per item
 interface AccommodationHistoryItem {
   id: number;
   roomId: number;
@@ -67,12 +68,69 @@ interface AccommodationHistoryItem {
       accommodationType: string;
     };
   };
-  review?: {
-    rating: number;
-  } | null;
+  review?: { rating: number } | null;
 }
 
-// small utility functions kept up here so the component stays readable below
+interface ProfileEditFields {
+  college: string;
+  degreeProgram: string;
+  facebookAccount: string;
+  emergencyContactNumber: string;
+  emergencyContactName: string;
+  gender: string;
+}
+
+// Zustand store for edit-form state 
+
+interface ProfileEditStore {
+  isEditing: boolean;
+  showHistory: boolean;
+  form: ProfileEditFields;
+  setIsEditing: (v: boolean) => void;
+  setShowHistory: (v: boolean) => void;
+  setForm: (f: ProfileEditFields) => void;
+  patchForm: (patch: Partial<ProfileEditFields>) => void;
+}
+
+const useProfileStore = create<ProfileEditStore>((set) => ({
+  isEditing: false,
+  showHistory: false,
+  form: {
+    college: "",
+    degreeProgram: "",
+    facebookAccount: "",
+    emergencyContactNumber: "",
+    emergencyContactName: "",
+    gender: "",
+  },
+  setIsEditing: (v) => set({ isEditing: v }),
+  setShowHistory: (v) => set({ showHistory: v }),
+  setForm: (form) => set({ form }),
+  patchForm: (patch) => set((s) => ({ form: { ...s.form, ...patch } })),
+}));
+
+// API helpers 
+
+async function fetchMe(): Promise<UserProfile> {
+  const res = await api.get("/me");
+  return res.data;
+}
+
+async function fetchHistory(): Promise<AccommodationHistoryItem[]> {
+  try {
+    const res = await api.get("/my-stay/history");
+    return Array.isArray(res.data) ? res.data : [];
+  } catch {
+    return [];
+  }
+}
+
+async function updateMe(form: ProfileEditFields): Promise<UserProfile> {
+  const res = await api.put("/me", form);
+  return res.data;
+}
+
+// Utility functions 
 
 function fullName(p: UserProfile) {
   return [p.fname, p.mname, p.lname].filter(Boolean).join(" ");
@@ -96,10 +154,9 @@ function yearLevel(student: UserProfile["student"]) {
   return student.yearLevel ?? "—";
 }
 
-// rough semester label based on move-in month -- good enough for display
 function formatSemester(dateStr: string) {
   const d = new Date(dateStr);
-  const mo = d.getMonth(); // 0-indexed
+  const mo = d.getMonth();
   const sem = mo >= 5 && mo <= 10 ? 1 : 2;
   const ayStart = sem === 1 ? d.getFullYear() : d.getFullYear() - 1;
   return `Semester ${sem}, AY ${ayStart}–${String(ayStart + 1).slice(2)}`;
@@ -108,6 +165,8 @@ function formatSemester(dateStr: string) {
 function formatCurrency(n: number) {
   return `₱${n.toLocaleString("en-PH")}`;
 }
+
+// Sub-components 
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -119,7 +178,6 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-// the modal that shows when the student clicks "Accommodation History"
 function AccomHistoryModal({
   history,
   onClose,
@@ -129,7 +187,6 @@ function AccomHistoryModal({
   onClose: () => void;
   studentName: string;
 }) {
-  // rough total -- multiplies monthly rate by estimated months stayed
   const totalSpent = history.reduce((sum, h) => {
     const months = Math.max(
       1,
@@ -174,7 +231,6 @@ function AccomHistoryModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* modal header */}
         <div
           style={{
             background: CLR.mid,
@@ -206,11 +262,10 @@ function AccomHistoryModal({
               justifyContent: "center",
             }}
           >
-            x
+            ×
           </button>
         </div>
 
-        {/* list of dorm cards */}
         <div
           style={{
             overflowY: "auto",
@@ -240,7 +295,6 @@ function AccomHistoryModal({
                     border: `1px solid ${isActive ? CLR.gold : "#e0d0d5"}`,
                   }}
                 >
-                  {/* thumbnail -- replace with real image once we have one */}
                   <div
                     style={{
                       width: 90,
@@ -262,7 +316,6 @@ function AccomHistoryModal({
                     {String(new Date(item.moveIn).getFullYear() + 1).slice(2)}
                   </div>
 
-                  {/* dorm details */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 15, color: CLR.dark }}>
                       {item.room.accommodation.accommodationName}
@@ -323,7 +376,6 @@ function AccomHistoryModal({
                     </div>
                   </div>
 
-                  {/* active / inactive badge */}
                   <div style={{ display: "flex", alignItems: "flex-start" }}>
                     <span
                       style={{
@@ -345,7 +397,6 @@ function AccomHistoryModal({
           )}
         </div>
 
-        {/* summary row at the bottom */}
         <div
           style={{
             borderTop: "1px solid #eee",
@@ -388,156 +439,129 @@ function AccomHistoryModal({
   );
 }
 
+// Shared style objects 
+const labelStyle: React.CSSProperties = {
+        fontSize: 10,
+        color: "#999",
+        textTransform: "uppercase",
+        letterSpacing: "0.5px",
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        marginBottom: 2,
+      };
+
+const fieldStyle: React.CSSProperties = {
+  fontSize: 14,
+  color: "#222",
+  fontWeight: 500,
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "6px 10px",
+  border: `1px solid ${CLR.goldLt}`,
+  borderRadius: 6,
+  fontSize: 13,
+  color: "#222",
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  background: "#fff",
+  boxSizing: "border-box",
+};
+
+function Field({ label, value }: { label: string; value: string }) {
+    return (
+      <div>
+        <div style={labelStyle}>{label}</div>
+        <div style={fieldStyle}>{value || "—"}</div>
+      </div>
+    );
+  }
+
+function EditableField({
+    label,
+    field,
+    readOnly = false,
+  }: {
+    label: string;
+    field: keyof ProfileEditFields | null;
+    readOnly?: boolean;
+  }) {
+    const { isEditing, form, patchForm } = useProfileStore();
+
+    if (!isEditing || readOnly || !field) {
+      return <Field label={label} value={field ? form[field] : ""} />;
+    }
+    return (
+      <div>
+        <div style={labelStyle}>{label}</div>
+        <input
+          style={inputStyle}
+          value={form[field]}
+          onChange={(e) => patchForm({ [field]: e.target.value })}
+        />
+      </div>
+    );
+  }
+
+// Main Component 
+
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [history, setHistory] = useState<AccommodationHistoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isEditing, showHistory, form, setIsEditing, setShowHistory, setForm } =
+    useProfileStore();
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [saving, setSaving] = useState(false);
+  // Queries 
 
-  // only fields the student is allowed to change
-  const [editForm, setEditForm] = useState({
-    college: "",
-    degreeProgram: "",
-    facebookAccount: "",
-    emergencyContactNumber: "",
-    emergencyContactName: "",
-    gender: "",
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    isError: profileError,
+  } = useQuery<UserProfile>({
+    queryKey: ["me"],
+    queryFn: fetchMe,
+    // Seed the edit form whenever fresh profile data arrives, but only when
+    // the user is not actively editing so we don't clobber unsaved changes.
+    select: (data) => {
+      if (!useProfileStore.getState().isEditing) {
+        useProfileStore.getState().setForm({
+          college: data.student?.college ?? "",
+          degreeProgram: data.student?.degreeProgram ?? "",
+          facebookAccount: data.facebookAccount ?? "",
+          emergencyContactNumber: data.student?.emergencyContactNumber ?? "",
+          emergencyContactName: data.student?.emergencyContactName ?? "",
+          gender: data.student?.gender ?? "",
+        });
+      }
+      return data;
+    },
   });
 
-  // ─── DEV PLACEHOLDER ─────────────────────────────────────────────────────────
-  // Remove (or comment out) this block and uncomment the line in catch() below
-  // once the backend auth is connected and real users exist.
-  const PLACEHOLDER: { profile: UserProfile; history: AccommodationHistoryItem[] } = {
-    profile: {
-      id: 0,
-      fname: "Juan",
-      mname: "dela",
-      lname: "Cruz",
-      email: "jdelacruz@up.edu.ph",
-      facebookAccount: "facebook.com/jdelacruz",
-      role: "student",
-      accountStatus: "active",
-      profilePictureUrl: null,
-      phoneNumbers: [
-        { contactNumber: "09171234567", isPrimary: true },
-        { contactNumber: "09281234567", isPrimary: false },
-      ],
-      student: {
-        studentNumber: "2021-12345",
-        college: "College of Engineering and Agro-Industrial Technology",
-        degreeProgram: "BS Computer Science",
-        gender: "Male",
-        emergencyContactName: "Maria dela Cruz",
-        emergencyContactNumber: "09171112222",
-      },
+  const { data: history = [] } = useQuery<AccommodationHistoryItem[]>({
+    queryKey: ["my-stay-history"],
+    queryFn: fetchHistory,
+  });
+
+  // Mutation 
+
+  const saveMutation = useMutation({
+    mutationFn: updateMe,
+    onSuccess: (updated) => {
+      // Push fresh data straight into the cache so the UI reflects changes
+      qc.setQueryData<UserProfile>(["me"], updated);
+      setIsEditing(false);
     },
-    history: [
-      {
-        id: 1, roomId: 1,
-        moveIn: "2023-08-15", expectedMoveOut: "2024-05-30", actualMoveOut: "2024-05-28",
-        room: { roomName: "202", monthlyRate: 3500, roomType: "Double",
-          accommodation: { accommodationName: "Molave Residence Hall", accommodationType: "Dormitory" } },
-        review: { rating: 4 },
-      },
-      {
-        id: 2, roomId: 5,
-        moveIn: "2024-08-12", expectedMoveOut: "2025-05-31", actualMoveOut: null,
-        room: { roomName: "104", monthlyRate: 4200, roomType: "Single",
-          accommodation: { accommodationName: "Narra Residence Hall", accommodationType: "Dormitory" } },
-        review: null,
-      },
-    ],
-  };
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        const [meRes, historyRes] = await Promise.all([
-          api.get("/me"),
-          // history might be empty for a new student, so we catch and return []
-          api.get("/my-stay/history").catch(() => ({ data: [] })),
-        ]);
-        const user: UserProfile = meRes.data;
-        setProfile(user);
-        setEditForm({
-          college: user.student?.college ?? "",
-          degreeProgram: user.student?.degreeProgram ?? "",
-          facebookAccount: user.facebookAccount ?? "",
-          emergencyContactNumber: user.student?.emergencyContactNumber ?? "",
-          emergencyContactName: user.student?.emergencyContactName ?? "",
-          gender: user.student?.gender ?? "",
-        });
-        setHistory(Array.isArray(historyRes.data) ? historyRes.data : []);
-      } catch (err: any) {
-        // ─── TO RESTORE ORIGINAL: comment line below, uncomment the next line ───
-        usePlaceholder(PLACEHOLDER);
-        // setError(err?.response?.data?.message ?? "Failed to load profile.");
-      } finally {
-        setLoading(false);
-      }
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      alert(error.response?.data?.message ?? "Failed to save profile.");
     }
-    load();
-  }, []);
+  });
 
-  // Called by the catch block above when the backend is unreachable / unauthenticated.
-  // Delete this function together with PLACEHOLDER when going live.
-  function usePlaceholder(p: typeof PLACEHOLDER) {
-    setProfile(p.profile);
-    setEditForm({
-      college: p.profile.student?.college ?? "",
-      degreeProgram: p.profile.student?.degreeProgram ?? "",
-      facebookAccount: p.profile.facebookAccount ?? "",
-      emergencyContactNumber: p.profile.student?.emergencyContactNumber ?? "",
-      emergencyContactName: p.profile.student?.emergencyContactName ?? "",
-      gender: p.profile.student?.gender ?? "",
-    });
-    setHistory(p.history);
-  }
+  // Derived values 
 
-  // active assignment = no actualMoveOut date yet
   const currentDorm = history.find((h) => !h.actualMoveOut) ?? null;
 
-  async function handleSave() {
-    if (!profile) return;
-    setSaving(true);
-    try {
-      // TODO: PUT /api/me needs to be added to routes.ts before this will work
-      await api.put("/me", editForm);
-      setProfile((prev) =>
-        prev
-          ? {
-              ...prev,
-              facebookAccount: editForm.facebookAccount,
-              student: prev.student
-                ? {
-                    ...prev.student,
-                    college: editForm.college,
-                    degreeProgram: editForm.degreeProgram,
-                    gender: editForm.gender,
-                    emergencyContactName: editForm.emergencyContactName,
-                    emergencyContactNumber: editForm.emergencyContactNumber,
-                  }
-                : null,
-            }
-          : prev
-      );
-      setIsEditing(false);
-    } catch (err: any) {
-      alert(err?.response?.data?.message ?? "Failed to save profile.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  // shape the sidebar expects
   const sidebarProfile = profile
     ? {
         fullName: fullName(profile),
@@ -551,7 +575,10 @@ export default function ProfilePage() {
       }
     : undefined;
 
-  if (loading) {
+
+  // Loading / error states 
+
+  if (profileLoading) {
     return (
       <div style={{ display: "flex", height: "100vh", background: "#f5f0f1" }}>
         <Sidebar role="student" profile={sidebarProfile} />
@@ -572,7 +599,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (error || !profile) {
+  if (profileError || !profile) {
     return (
       <div style={{ display: "flex", height: "100vh", background: "#f5f0f1" }}>
         <Sidebar role="student" profile={sidebarProfile} />
@@ -587,7 +614,7 @@ export default function ProfilePage() {
             color: CLR.accent,
           }}
         >
-          <span style={{ fontSize: 18 }}>{error ?? "Profile not found."}</span>
+          <span style={{ fontSize: 18 }}>Failed to load profile.</span>
           <button
             onClick={() => navigate("/student/dashboard")}
             style={{
@@ -606,69 +633,7 @@ export default function ProfilePage() {
     );
   }
 
-  // shared style objects to avoid repeating inline styles
-  const fieldStyle: React.CSSProperties = {
-    fontSize: 14,
-    color: "#222",
-    fontWeight: 500,
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-  };
-  const labelStyle: React.CSSProperties = {
-    fontSize: 10,
-    color: "#999",
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    marginBottom: 2,
-  };
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    padding: "6px 10px",
-    border: `1px solid ${CLR.goldLt}`,
-    borderRadius: 6,
-    fontSize: 13,
-    color: "#222",
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    background: "#fff",
-    boxSizing: "border-box",
-  };
-
-  // read-only display field
-  function Field({ label, value }: { label: string; value: string }) {
-    return (
-      <div>
-        <div style={labelStyle}>{label}</div>
-        <div style={fieldStyle}>{value || "—"}</div>
-      </div>
-    );
-  }
-
-  // switches between a read-only display and an input depending on edit mode
-  function EditableField({
-    label,
-    field,
-    readOnly = false,
-  }: {
-    label: string;
-    field: keyof typeof editForm | null;
-    readOnly?: boolean;
-  }) {
-    if (!isEditing || readOnly || !field) {
-      return <Field label={label} value={field ? editForm[field] : ""} />;
-    }
-    return (
-      <div>
-        <div style={labelStyle}>{label}</div>
-        <input
-          style={inputStyle}
-          value={editForm[field]}
-          onChange={(e) =>
-            setEditForm((prev) => ({ ...prev, [field!]: e.target.value }))
-          }
-        />
-      </div>
-    );
-  }
+  // Render 
 
   return (
     <div
@@ -683,7 +648,6 @@ export default function ProfilePage() {
       <Sidebar role="student" profile={sidebarProfile} />
 
       <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
-        {/* page title with the gold accent bar matching the rest of the app */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
           <div style={{ width: 4, height: 22, background: CLR.gold, borderRadius: 2 }} />
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: CLR.dark }}>Profile</h1>
@@ -699,7 +663,7 @@ export default function ProfilePage() {
             boxShadow: "0 2px 12px rgba(61,7,24,0.07)",
           }}
         >
-          {/* left column: avatar, photo/docs buttons, verified badge */}
+          {/* ── Left column: avatar, photo/docs, verified badge ── */}
           <div style={{ width: 200, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12 }}>
             <div
               style={{
@@ -738,7 +702,6 @@ export default function ProfilePage() {
                   {initials(profile)}
                 </div>
               )}
-              {/* photo upload button -- wire this to a file input later */}
               <button
                 style={{
                   position: "absolute",
@@ -824,7 +787,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* right column: all the profile fields */}
+          {/* ── Right column: all profile fields ── */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
@@ -842,22 +805,53 @@ export default function ProfilePage() {
               </div>
 
               {isEditing ? (
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  style={{
-                    padding: "8px 22px",
-                    background: "#fff",
-                    border: `1.5px solid ${CLR.accent}`,
-                    borderRadius: 8,
-                    color: CLR.accent,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    fontSize: 13,
-                  }}
-                >
-                  {saving ? "Saving..." : "SAVE"}
-                </button>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    onClick={() => {
+                      // Reset form to current profile data
+                      if (profile) {
+                        setForm({
+                          college: profile.student?.college ?? "",
+                          degreeProgram: profile.student?.degreeProgram ?? "",
+                          facebookAccount: profile.facebookAccount ?? "",
+                          emergencyContactNumber: profile.student?.emergencyContactNumber ?? "",
+                          emergencyContactName: profile.student?.emergencyContactName ?? "",
+                          gender: profile.student?.gender ?? "",
+                        });
+                      }
+                      setIsEditing(false);
+                    }}
+                    style={{
+                      padding: "8px 18px",
+                      background: "#fff",
+                      border: "1.5px solid #ccc",
+                      borderRadius: 8,
+                      color: "#666",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontSize: 13,
+                    }}
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    onClick={() => saveMutation.mutate(form)}
+                    disabled={saveMutation.isPending}
+                    style={{
+                      padding: "8px 22px",
+                      background: "#fff",
+                      border: `1.5px solid ${CLR.accent}`,
+                      borderRadius: 8,
+                      color: CLR.accent,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontSize: 13,
+                      opacity: saveMutation.isPending ? 0.6 : 1,
+                    }}
+                  >
+                    {saveMutation.isPending ? "Saving..." : "SAVE"}
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
@@ -877,7 +871,6 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* two-column grid of fields, matching the mockup layout */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 32px" }}>
               <Field label="UP Mail" value={profile.email} />
               <EditableField label="College" field="college" />
@@ -897,7 +890,7 @@ export default function ProfilePage() {
               <EditableField label="Emergency Contact Name" field="emergencyContactName" />
             </div>
 
-            {/* current dorm display and history button */}
+            {/* current dorm + history button */}
             <div style={{ marginTop: 24 }}>
               <div style={labelStyle}>Current Dorm</div>
               {currentDorm ? (
