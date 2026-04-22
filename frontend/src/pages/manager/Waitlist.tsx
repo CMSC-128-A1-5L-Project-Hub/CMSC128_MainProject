@@ -65,54 +65,132 @@ const managerProfile: ManagerProfile = {
 const waitlistRecords: Application[] = [
     {
         student: {
-            fullName: "Ana Marie Reyes",
-            shortName: "Ana",
-            course: "BS Computer Science",
+            fullName: "Sofia Lim",
+            shortName: "Sofia",
+            course: "BS Information Technology",
             campus: "UPLB",
-            email: "ana.reyes@student.edu.ph",
-            phone: "09171234567",
-            studentNo: "2021-12345",
-            college: "CAS",
-            yearLevel: "3rd Year",
+            email: "sofia.lim@student.edu.ph",
+            phone: "09178881234",
+            studentNo: "2022-10001",
+            college: "CCS",
+            yearLevel: "2nd Year",
             status: "Active"
         },
-        accommodation: {
-            building: "Building 1"
-        },
+        accommodation: { building: "Building 3" },
         roomType: "single",
         stayType: "transient",
         applicationStatus: "waitlisted",
-        durationOfStayDays: 30,
-        applicationDate: "Mar 21, 2026",
-        timeSubmitted:"10:00 PM"
+        durationOfStayDays: 14,
+        applicationDate: "Mar 20, 2026",
+        timeSubmitted: "09:15 AM"
     },
     {
         student: {
-            fullName: "Carlos Santos",
-            shortName: "Carlos",
-            course: "BS Biology",
+            fullName: "Miguel Torres",
+            shortName: "Miguel",
+            course: "BS Civil Engineering",
             campus: "UPLB",
-            email: "carlos.santos@student.edu.ph",
-            phone: "09189876543",
-            studentNo: "2020-54321",
-            college: "CAS",
-            yearLevel: "4th Year",
+            email: "miguel.torres@student.edu.ph",
+            phone: "09179992345",
+            studentNo: "2021-11223",
+            college: "CEAT",
+            yearLevel: "3rd Year",
             status: "Active"
         },
-        accommodation: {
-            building: "Building 2"
-        },
+        accommodation: { building: "Building 1" },
         roomType: "double",
         stayType: "non-transient",
         applicationStatus: "waitlisted",
-        durationOfStayDays: 60,
+        durationOfStayDays: 90,
+        applicationDate: "Mar 21, 2026",
+        timeSubmitted: "11:40 AM"
+    },
+    {
+        student: {
+            fullName: "Jasmine Reyes",
+            shortName: "Jasmine",
+            course: "BS Psychology",
+            campus: "UPLB",
+            email: "jasmine.reyes@student.edu.ph",
+            phone: "09171239876",
+            studentNo: "2023-14567",
+            college: "CAS",
+            yearLevel: "1st Year",
+            status: "Active"
+        },
+        accommodation: { building: "Building 2" },
+        roomType: "shared",
+        stayType: "transient",
+        applicationStatus: "waitlisted",
+        durationOfStayDays: 7,
+        applicationDate: "Mar 21, 2026",
+        timeSubmitted: "02:05 PM"
+    },
+    {
+        student: {
+            fullName: "Daniel Cruz",
+            shortName: "Daniel",
+            course: "BS Agriculture",
+            campus: "UPLB",
+            email: "daniel.cruz@student.edu.ph",
+            phone: "09173334455",
+            studentNo: "2020-16789",
+            college: "CAFS",
+            yearLevel: "4th Year",
+            status: "Active"
+        },
+        accommodation: { building: "Building 4" },
+        roomType: "single",
+        stayType: "non-transient",
+        applicationStatus: "waitlisted",
+        durationOfStayDays: 120,
         applicationDate: "Mar 22, 2026",
-        timeSubmitted:"10:00 PM"
-
+        timeSubmitted: "08:50 AM"
+    },
+    {
+        student: {
+            fullName: "Andrea Castillo",
+            shortName: "Andrea",
+            course: "BS Development Communication",
+            campus: "UPLB",
+            email: "andrea.castillo@student.edu.ph",
+            phone: "09175556677",
+            studentNo: "2022-18890",
+            college: "CDC",
+            yearLevel: "2nd Year",
+            status: "Active"
+        },
+        accommodation: { building: "Building 5" },
+        roomType: "double",
+        stayType: "transient",
+        applicationStatus: "waitlisted",
+        durationOfStayDays: 30,
+        applicationDate: "Mar 23, 2026",
+        timeSubmitted: "04:30 PM"
+    },
+    {
+        student: {
+            fullName: "Kevin Mendoza",
+            shortName: "Kevin",
+            course: "BS Forestry",
+            campus: "UPLB",
+            email: "kevin.mendoza@student.edu.ph",
+            phone: "09178889900",
+            studentNo: "2019-19901",
+            college: "CFNR",
+            yearLevel: "5th Year",
+            status: "Active"
+        },
+        accommodation: { building: "Building 6" },
+        roomType: "shared",
+        stayType: "non-transient",
+        applicationStatus: "waitlisted",
+        durationOfStayDays: 180,
+        applicationDate: "Mar 24, 2026",
+        timeSubmitted: "10:10 AM"
     }
 ]
-
-const HISTORY_PER_PAGE = 3
+const HISTORY_PER_PAGE = 5
 const SORT_OPTS = ["Room Type", "Room No.", "Date", "Action"]
 
 const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: Application[], className?: string }) => {
