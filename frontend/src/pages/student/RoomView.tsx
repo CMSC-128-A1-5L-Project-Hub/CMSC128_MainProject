@@ -500,8 +500,47 @@ function RequirementsTab() {
             </span>
         </p>
       </div>
+      {/*https://tailwindcss.com/docs/table-layout*/}
+      <div className="w-full overflow-x-auto rounded-mdborder border-[#F0E8EC] mt-5">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-[#F7EFF2]">
+              <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Requirement</th>
+              <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Size</th>
+              <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Date Modified</th>
+              <th className="text-right px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#F0E8EC]">
+            {MOCK_REQUIREMENTS.map((req) => {
+              const isDownloaded = downloaded.has(req.id);
+              const hasFile = req.size !== "—";
 
-      <div className="w-full overflow">
+              return(
+                <tr key={req.id} className="bg-white hover:bg-[#FDF8FA] transition-colors">
+                  <td className="px-4 py-3 text-[11px] font-medium text-[#3D0718]">{req.name}</td>
+                  <td className="px-4 py-3 text-[11px] text-gray-500">{req.size}</td>
+                  <td className="px-4 py-3 text-[11px] text-gray-500">{req.dateModified}</td>
+                  <td className="px-4 py-3 text-right">
+                    {hasFile ? (
+                      <button
+                        onClick={() => setDownloaded((prev) => new Set([...prev, req.id]))}
+                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-semibold text-white transition-colors"
+                        style={{ background: isDownloaded ? "linear-gradient(135deg, #1A7A4A, #2D9A5F" : "linear-gradient(130deg, #6B0F2B, #9A7080)" }}
+                      >
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-gray-400 italic">To be submitted</span>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+
+          </tbody>
+
+
+        </table>
 
 
       </div>
