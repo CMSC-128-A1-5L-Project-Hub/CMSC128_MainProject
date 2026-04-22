@@ -3,8 +3,6 @@ import SignIn from "./pages/shared/SignIn"
 import SignUp from "./pages/shared/SignUp"
 import SignUpForm from "./pages/shared/SignUpForm"
 import RoleSelection from "./pages/shared/RoleSelection"
-import AuthSuccess from "./pages/shared/AuthSuccess"
-import PendingVerification from "./pages/shared/PendingVerification"
 import StudentDashboard from "./pages/student/Dashboard"
 import ManagerDashboard from "./pages/manager/Dashboard"
 import OccupancyRecords from "./pages/manager/OccupancyRecords"
@@ -24,6 +22,7 @@ import NotificationsPage from "./pages/shared/Notifications"
 import ApplicationsPage from "./pages/student/Applications"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
+import RoomsPage from "./pages/landlord/RoomPage"
 
 function FullLandingPage() {
   return (
@@ -64,6 +63,7 @@ function App() {
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/applications" element={<ApplicationsPage />} />
         <Route path="/student/profile" element={<ProfilePage />} />
+        <Route path="/landlord/rooms" element = {<RoomsPage /> } />
       </Routes>
     </BrowserRouter>
   )
