@@ -426,12 +426,38 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
                   >
                     {review.student?.user?.fname?.[0] ?? "?"}
                   </div>
+                  <div>
+                    <p className="text-[15px] font-bold text-gray-800">
+                      {review.student?.user 
+                        ? `${review.student.user.fname} ${review.student.user.lname}`
+                        : "Anonymous"}
+                    </p>
+                    {review.created_at && (
+                      <p className="text-[8px] font-light text-gray-800">
+                        {new Date(review.created_at).toLocaleDateString("en-PH", {
+                          month: "long",
+                          day: "2-digit",
+                          year: "numeric",
+                        })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <span className="text-[15px] font-bold" style={{ color: CLR.gold }}>
+                    {review.rating}
 
-
+                  </span>
+                  <StarRating rating={review.rating} size="md" />
                 </div>
 
 
+
               </div>
+
+                {review.content && (
+                  <p className="text-[10px] text-gray-600">{review.content}</p>
+                )}
 
             </div>
           ))}
