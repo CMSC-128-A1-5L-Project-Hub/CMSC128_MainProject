@@ -25,6 +25,8 @@ import ApplicationsPage from "./pages/student/Applications"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
 import RoomsPage from "./pages/landlord/RoomPage"
+import AuthSuccess from "./pages/shared/AuthSuccess"
+import PendingVerification from "./pages/shared/PendingVerification"
 
 function FullLandingPage() {
   return (

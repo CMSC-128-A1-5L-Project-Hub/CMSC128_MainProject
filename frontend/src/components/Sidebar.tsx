@@ -331,7 +331,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         return [
           { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" />,          path: "/student/dashboard",     label: "Dashboard" },
           { id: "search",       icon: <SearchIcon      className="w-[21px] h-[21px]" />, path: "/browse",        label: "Browse Rooms" },
-          { id: "applications", icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/applications",  label: "Applications" },
+          { id: "applications", icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/student/applicationstatus",  label: "Applications" },
           { id: "documents",    icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/documents",     label: "Documents" },
         ];
       case "landlord":
