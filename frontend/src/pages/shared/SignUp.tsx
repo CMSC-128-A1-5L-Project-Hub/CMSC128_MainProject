@@ -3,6 +3,10 @@ import { Link } from "react-router-dom"
 import Logo from "../../components/Logo"
 
 export default function SignUp() {
+    const handleGoogleSignUp = () => {
+        window.location.href = "http://localhost:3333/auth/google/redirect"
+    }
+
     return(
         <div className="h-screen flex flex-col lg:flex-row relative overflow-hidden lg:items-center">
 
@@ -75,7 +79,7 @@ export default function SignUp() {
                     Find verified dorms near UPLB. Sign up to start your search or manage your listings.
                 </p>
                 
-                <button className="w-full flex items-center justify-center gap-3 border border-[#E8E0E4] rounded-xl py-5 bg-white hover:bg-[#FDF5F7] transition mb-4 relative shadow-sm">
+                <button className="w-full flex items-center justify-center gap-3 border border-[#E8E0E4] rounded-xl py-5 bg-white hover:bg-[#FDF5F7] transition mb-4 relative shadow-sm" onClick={handleGoogleSignUp}>
                     <img
                         src="https://www.svgrepo.com/show/475656/google-color.svg"
                         alt="google"
