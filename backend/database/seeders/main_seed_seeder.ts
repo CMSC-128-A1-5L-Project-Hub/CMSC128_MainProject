@@ -337,6 +337,65 @@ export default class extends BaseSeeder {
     const allRooms = await db.from('rooms').select('id', 'room_number', 'accommodation_id')
     const getRoom = (roomNum: string, accomName: string) => allRooms.find(r => r.room_number === roomNum && r.accommodation_id === getAccom(accomName))?.id
 
+    // ─── ROOM TAGS ────────────────────────────────────────────────────────────
+    await db.table('room_tags').multiInsert([
+      // White House — 101 (single, transient)
+      { room_id: getRoom('101', 'White House'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('101', 'White House'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('101', 'White House'), tag_detail: 'Ground floor' },
+      // White House — 102 (double, transient)
+      { room_id: getRoom('102', 'White House'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('102', 'White House'), tag_detail: 'Has study desk' },
+      { room_id: getRoom('102', 'White House'), tag_detail: 'Has wardrobe' },
+      // White House — 303 (shared, non-transient)
+      { room_id: getRoom('303', 'White House'), tag_detail: 'Has study desk' },
+      { room_id: getRoom('303', 'White House'), tag_detail: 'Has wardrobe' },
+      // One Silangan — 201 (single, transient)
+      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Has ref' },
+      // One Silangan — 202 (double, transient)
+      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Has study desk' },
+      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Near elevator' },
+      // One Silangan — 203 (single, non-transient)
+      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Has balcony' },
+      // Men's Dorm — 301 (shared, transient)
+      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Shared bathroom' },
+      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Has study area' },
+      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Has locker' },
+      // Men's Dorm — 302 (shared, transient)
+      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Shared bathroom' },
+      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Has locker' },
+      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Ground floor' },
+      // ATI — 401 (shared, non-transient)
+      { room_id: getRoom('401', 'ATI'), tag_detail: 'Shared bathroom' },
+      { room_id: getRoom('401', 'ATI'), tag_detail: 'Has study area' },
+      { room_id: getRoom('401', 'ATI'), tag_detail: 'Has locker' },
+      // ATI — 402 (shared, non-transient)
+      { room_id: getRoom('402', 'ATI'), tag_detail: 'Shared bathroom' },
+      { room_id: getRoom('402', 'ATI'), tag_detail: 'Has study area' },
+      { room_id: getRoom('402', 'ATI'), tag_detail: 'Near comfort room' },
+      // Scholar's Dorm — 501 (single, non-transient)
+      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Has study desk' },
+      // Scholar's Dorm — 502 (shared, non-transient)
+      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Has study desk' },
+      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Has wardrobe' },
+      // One Sapphire Place — 601 (single, transient)
+      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Has ref' },
+      // One Sapphire Place — 602 (double, non-transient)
+      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has study desk' },
+      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has wardrobe' },
+    ])
+
     // =========================================================================
     // 10. APPLICATIONS, ASSIGNMENTS, BOOKMARKS
     // =========================================================================
