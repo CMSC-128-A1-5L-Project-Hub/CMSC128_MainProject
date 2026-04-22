@@ -403,7 +403,7 @@ export default function Dashboard() {
                     </div>
                 </main>
             </div>
-            <aside className="relative z-10 hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4] overflow-y-auto">
+            <aside className="relative z-10 hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F5EEF0] overflow-y-auto">
                 <ProfileCard
                     fullName={managerProfile.fullName}
                     role="Dormitory Manager"
