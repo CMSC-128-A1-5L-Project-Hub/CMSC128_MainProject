@@ -16,8 +16,6 @@ import ResidenceCarousel from "./pages/shared/Recommendedsection"
 import UBLEFooter from "./pages/shared/SupportSection"
 import InteractiveMap from "./pages/MapPage"
 import BrowsePage from "./pages/student/Browse"
-import AuthSuccess from "./pages/shared/AuthSuccess"
-import PendingVerification from "./pages/shared/PendingVerification"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import LandlordDashboard from "./pages/landlord/Dashboard"
 import NotificationsPage from "./pages/shared/Notifications"
@@ -56,7 +54,6 @@ function App() {
         <Route path="/auth/role" element={<RoleSelection/>}/>
         <Route path="/auth/signup/:role" element={<SignUpForm/>}/>
         <Route path="/pending-verification" element={<PendingVerification/>}/>
-        <Route path="/studentDashboard" element={<StudentDashboard/>}/>
         <Route path="/landingpage" element={<Navigate to="/" replace />} />
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/browse" element={<BrowsePage />} />
