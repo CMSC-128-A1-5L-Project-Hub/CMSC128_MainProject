@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 import NotFound from "./pages/shared/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
 import SignIn from "./pages/shared/SignIn"
@@ -28,6 +28,7 @@ import FullRoomView from "./pages/student/FullRoomView"
 import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
+import ApplicationsScreen from "./pages/manager/ApplicationsPage"
 
 function FullLandingPage() {
   return (
@@ -45,35 +46,18 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ── Public routes ── */}
+        {/* ── Public routes (guest-accessible) ── */}
         <Route path="/" element={<FullLandingPage />} />
-        <Route path="/landingpage" element={<Navigate to="/" replace />} />
         <Route path="/auth/signin" element={<SignIn/>}/>
         <Route path="/auth/signup" element={<SignUp/>}/>
-        <Route path="/auth/signup/form" element={<SignUpForm/>}/>
-        <Route path="/student/applicationstatus" element={<ApplicationStatus/>}/>
-        <Route path="/student/billingdashboard" element={<BillingDashboard/>}/>
-        <Route path="/student/dashboard" element={<StudentDashboard/>}/>
-        <Route path="/manager/dashboard/" element={<ManagerDashboard/>}/>
-        <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/manager/occupancy-records" element={<OccupancyRecords />}/>
-        <Route path="/manager/room-assignment" element={<RoomAssignment />}/>
-        <Route path="/" element={<FullLandingPage />} /> 
         <Route path="/auth/success" element={<AuthSuccess/>}/>
-        <Route path="/auth/role" element={<RoleSelection/>}/>
-        <Route path="/auth/signup/:role" element={<SignUpForm/>}/>
-        <Route path="/pending-verification" element={<PendingVerification/>}/>
-        <Route path="/studentDashboard" element={<StudentDashboard/>}/>
-        <Route path="/landingpage" element={<Navigate to="/" replace />} />
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/browse" element={<BrowsePage />} />
         <Route path="/accommodations/:id" element={<FullRoomView />} />
 
-        {/* ── Logged-in only (any role) ── */}
-        <Route path="/auth/success" element={<AuthSuccess/>}/>
+        {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
-        <Route path="/auth/signup/form" element={<SignUpForm/>}/>
+        <Route path="/auth/signup/form" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
         <Route path="/auth/signup/:role" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
         <Route path="/pending-verification" element={<ProtectedRoute><PendingVerification/></ProtectedRoute>}/>
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
@@ -81,16 +65,20 @@ function App() {
         {/* ── Student routes ── */}
         <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
+        <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
         <Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
         <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
         <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
+        <Route path="/manager/application" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>}/>
 
         {/* ── Landlord routes ── */}
         <Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/manage/accommodation" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
+        <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />

@@ -7,7 +7,7 @@ import Waitlist from "../../components/dashboard/manager/Waitlist"
 import ConfirmedStudents from "../../components/dashboard/manager/ConfirmedStudents"
 import Moves from "../../components/dashboard/manager/Moves"
 import ProfileCard from "../../components/dashboard/manager/ProfileCard"
-import ActivityLogs from "../../components/dashboard/ActivityLogs"
+import ActivityLogs from "../../components/dashboard/landlord/rooms/dashboard/ActivityLogs"
 import AvailableRooms from "../../components/dashboard/manager/AvailableRooms"
 import OccupiedRooms from "../../components/dashboard/manager/OccupiedRooms"
 
