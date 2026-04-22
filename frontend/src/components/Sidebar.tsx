@@ -159,7 +159,7 @@ const DesktopSidebar = ({
 }) => {
   return (
     <aside
-      className="hidden lg:flex w-16 flex-col items-center py-4 gap-2 flex-shrink-0 h-screen sticky top-0"
+      className="hidden lg:flex w-16 flex-col items-center py-4 gap-2 flex-shrink-0 h-screen sticky top-0 overflow-visible z-20"
       style={{ background: GRADIENT_DESKTOP }}
     >
       {/* Brand mark */}
@@ -200,7 +200,7 @@ const DesktopSidebar = ({
                   transition-all duration-200 ease-out
 
                   text-[11px] font-semibold tracking-wide
-                  px-3 py-1.5 rounded-lg whitespace-nowrap z-50
+                  px-3 py-1.5 rounded-lg whitespace-nowrap z-500
 
                   backdrop-blur-md
                 "
@@ -251,7 +251,7 @@ const DesktopSidebar = ({
                 transition-all duration-200 ease-out
 
                 text-[11px] font-semibold tracking-wide
-                px-3 py-1.5 rounded-lg whitespace-nowrap z-50
+                px-3 py-1.5 rounded-lg whitespace-nowrap z-500
 
                 backdrop-blur-md
               "
@@ -289,6 +289,8 @@ export default function Sidebar({ role, profile }: SidebarProps) {
   const [active, setActive] = useState(() => {
     const path = location.pathname;
     if (path.includes("dashboard")) return "dashboard";
+    if (path.includes("occupancy-records")) return "reports";
+    if (path.includes("room-assignment")) return "users";
     if (path.includes("room"))        return "room";
     if (path.includes("application")) return "application";
     if (path.includes("fees"))        return "fees";

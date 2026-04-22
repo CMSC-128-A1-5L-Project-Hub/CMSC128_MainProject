@@ -5,6 +5,17 @@ import HeroBanner from "../../components/dashboard/HeroBanner"
 import Card from "../../components/ui/Card"
 import Button from "../../components/Button"
 import Modal from "../../components/Modal"
+import StatusBadge from "../../components/ui/StatusBadge"
+
+
+import { 
+    IoPersonSharp, 
+    IoCalendarSharp, 
+    IoBedSharp,
+    IoDocumentSharp,
+    IoDocumentTextSharp,
+    IoIdCardSharp
+} from "react-icons/io5"
 
 interface ManagerProfile {
     fullName: string
@@ -14,31 +25,33 @@ interface ManagerProfile {
     status: string
     dormitory: string
 }
-
-interface Room {
-    roomNumber: string
-    stayType: "transient" | "non-transient"
-    roomType: "single" | "double" | "shared"
-    roomCapacity: number
-    roomCurrentOccupancy: number
-    roomBuilding: string
-    tenants: Tenant[]
-}
-
-interface Tenant {
+type Student = {
     fullName: string
+    shortName: string
+    course: string
+    campus: string
     email: string
-    phoneNumber: string
+    phone: string
+    studentNo: string
+    college: string
+    yearLevel: string
+    status: string
 }
 
-interface HistoryRecord {
-    tenant: Tenant
-    roomNumber: string
-    roomBuilding: string
+type Accomodation = {
+    building: string
+}
+
+type Application = {
+    student: Student
+    accommodation: Accomodation
     roomType: "single" | "double" | "shared"
-    action: "Move-in" | "Move-out"
-    date: string
-    time: string
+    stayType: "transient" | "non-transient"
+    rejectionReason?: string | null
+    applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review'
+    durationOfStayDays: number
+    applicationDate: string 
+    timeSubmitted:string
 }
 
 const managerProfile: ManagerProfile = {
@@ -49,373 +62,83 @@ const managerProfile: ManagerProfile = {
     status: "Active",
     dormitory: "Narra Residences"
 }
+const waitlistRecords: Application[] = [
+    {
+        student: {
+            fullName: "Ana Marie Reyes",
+            shortName: "Ana",
+            course: "BS Computer Science",
+            campus: "UPLB",
+            email: "ana.reyes@student.edu.ph",
+            phone: "09171234567",
+            studentNo: "2021-12345",
+            college: "CAS",
+            yearLevel: "3rd Year",
+            status: "Active"
+        },
+        accommodation: {
+            building: "Building 1"
+        },
+        roomType: "single",
+        stayType: "transient",
+        applicationStatus: "waitlisted",
+        durationOfStayDays: 30,
+        applicationDate: "Mar 21, 2026",
+        timeSubmitted:"10:00 PM"
+    },
+    {
+        student: {
+            fullName: "Carlos Santos",
+            shortName: "Carlos",
+            course: "BS Biology",
+            campus: "UPLB",
+            email: "carlos.santos@student.edu.ph",
+            phone: "09189876543",
+            studentNo: "2020-54321",
+            college: "CAS",
+            yearLevel: "4th Year",
+            status: "Active"
+        },
+        accommodation: {
+            building: "Building 2"
+        },
+        roomType: "double",
+        stayType: "non-transient",
+        applicationStatus: "waitlisted",
+        durationOfStayDays: 60,
+        applicationDate: "Mar 22, 2026",
+        timeSubmitted:"10:00 PM"
 
-const Rooms: Room[] = [
-    {roomNumber: "6101", stayType: "transient", roomType: "double", roomCapacity:2 , roomCurrentOccupancy:2 , roomBuilding: "6", 
-        tenants:[
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"}
-        ]},
-    {roomNumber: "6102", stayType: "non-transient", roomType: "double", roomCapacity:2 , roomCurrentOccupancy:2 , roomBuilding: "6", 
-        tenants:[
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"}
-        ]},
-    {roomNumber: "6103", stayType: "transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:1 , roomBuilding: "6", 
-        tenants:[
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
-        ]},
-    {roomNumber: "6104", stayType: "non-transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:0 , roomBuilding: "6", 
-        tenants:[]},
-    {roomNumber: "6105", stayType: "transient", roomType: "shared", roomCapacity:4 , roomCurrentOccupancy:1 , roomBuilding: "6", 
-        tenants:[
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
-        ]},
-    {roomNumber: "6106", stayType: "transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:1 , roomBuilding: "6", 
-        tenants:[
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
-        ]},
+    }
 ]
 
-const historyRecords: HistoryRecord[] = [
-    { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
-      roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-in",  date: "Mar 14, 2026", time: "10:30 AM" },
-    { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
-      roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-in",  date: "Mar 14, 2026", time: "10:30 AM" },
-    { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
-      roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-out", date: "Mar 14, 2026", time: "10:30 AM" },
-    { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
-      roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-in",  date: "Mar 14, 2026", time: "10:30 AM" },
-]
 
-const ROOMS_PER_PAGE = 3
 const HISTORY_PER_PAGE = 3
 const SORT_OPTS = ["Room Type", "Room No.", "Date", "Action"]
 
-const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:string}) => {
+const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: Application[], className?: string }) => {
+    const [selectedRecord, setSelectedRecord] = useState<Application | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
-    const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
-    const totalPages = Math.ceil(rooms.length / ROOMS_PER_PAGE)
-    const startIndex = (currentPage - 1) * ROOMS_PER_PAGE
-    const paginatedRooms = rooms.slice(startIndex, startIndex + ROOMS_PER_PAGE)
-    
-    const getStatus = (room:Room) => {
-        if (room.roomCurrentOccupancy < room.roomCapacity) return "Available"
-        return "Full"
-    }
-
-    return (
-        <>
-        <Modal 
-            open={!!selectedRoom}
-            onClose={() => setSelectedRoom(null)}
-            title="View Room Details"
-            maxWidth={652}
-            children={
-                selectedRoom && (
-                    <Card 
-                        children={
-                            <div className="flex flex-col gap-4">
-                                {/* Room Header */}
-                                <div>
-                                    <h1 className="font-bold text-xl text-[#1A0008] uppercase">
-                                        Room {selectedRoom.roomNumber}
-                                    </h1>
-                                    <p className="text-[#C8B0B8] text-xs uppercase border-b border-[#F5ECF0] pb-1">
-                                        Building {selectedRoom.roomBuilding}
-                                    </p>
-                                </div>
-
-                                {/* Room Info Grid */}
-                                <div className="grid grid-cols-4 gap-2 -mt-2">
-                                    <div>
-                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Room Type</p>
-                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008] capitalize">{selectedRoom.stayType}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Room Arrangement</p>
-                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008] capitalize">{selectedRoom.roomType} Room</p>
-                                    </div>
-                                    <div className="px-2">
-                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Room Capacity</p>
-                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008]">{selectedRoom.roomCurrentOccupancy}/{selectedRoom.roomCapacity}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Status</p>
-                                        <p className={`font-semibold text-sm lg:text-lg ${selectedRoom.roomCurrentOccupancy === selectedRoom.roomCapacity ? "text-[#9E2040]" : "text-[#1A7A4A]"}`}>
-                                            {selectedRoom.roomCurrentOccupancy === selectedRoom.roomCapacity
-                                                ? "Fully Occupied"
-                                                : "Available"}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Current Occupants */}
-                                <div>
-                                    <p className="font-bold text-md lg:text-lg text-[#1A0008] mb-3">Current Occupants</p>
-                                    {selectedRoom.tenants.length > 0 ? (
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                            {selectedRoom.tenants.map((tenant, i) => (
-                                                <div key={i} className="flex flex-col gap-3">
-                                                    {/* Avatar + Name */}
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
-                                                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                                            {tenant.fullName[0]}
-                                                        </div>
-                                                        <p className="font-bold text-sm lg:text-md text-[#1A0008]">{tenant.fullName}</p>
-                                                    </div>
-                                                    {/* Email */}
-                                                    <div>
-                                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-0.5">Email</p>
-                                                        <p className="text-[#1A0008] text-xs lg:text-sm">{tenant.email}</p>
-                                                    </div>
-                                                    {/* Phone */}
-                                                    <div>
-                                                        <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-0.5">Phone Number</p>
-                                                        <p className="text-[#1A0008] text-xs lg:text-sm">{tenant.phoneNumber}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-sm text-[#9A7080]">No current occupants.</p>
-                                    )}
-                                </div>
-                            </div>
-                        }
-                    />
-                )
-            }
-        />
-        <Card 
-            className={className}
-            children={
-                <div className="">
-                    <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">
-                        Room Occupancy Details
-                    </h2>
-                    <div className="grid grid-cols-4 lg:grid-cols-5 border-b border-[#F5ECF0] uppercase">
-                        <p className="col-span-1 text-[#9A7080] text-xs lg:text-md font-bold p-1">
-                            Room No.
-                        </p>
-                        <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
-                            Room Type
-                        </p>
-                        <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
-                            Capacity
-                        </p>
-                        <p className="hidden lg:block col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
-                            Status
-                        </p>
-                        <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
-                            Action
-                        </p>
-                    </div>
-                    {rooms.length > 0 
-                        ? (
-                            <>
-                            <div className="flex flex-col">
-                                {paginatedRooms.map((room, i) => {
-                                    const status = getStatus(room)
-                                    return(
-                                        <div key={i} className="grid grid-cols-4 lg:grid-cols-5 flex justify-between items-center py-1 pl-1">
-                                            <div className="col-span-1 flex flex-col">
-                                                <p className="font-bold text-sm lg:text-md text-[#1A0008]">
-                                                    Room {room.roomNumber}
-                                                </p>
-                                                <p className="text-[10px] lg:text-sm text-[#9A7080]">
-                                                    Building {room.roomBuilding}
-                                                </p>
-                                            </div>
-                                            <p className="col-span-1 text-center text-sm text-[#1A0008] capitalize">
-                                                {room.roomType}
-                                            </p>
-                                            <p className="col-span-1 text-center text-sm text-[#1A0008]">
-                                                {room.roomCurrentOccupancy}/{room.roomCapacity}
-                                            </p>
-                                            <div className="hidden lg:flex col-span-1 justify-center">
-                                                <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1 min-w-[90px] rounded-full font-bold
-                                                    ${status === "Full" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
-                                                    `}>
-                                                    <span className={`w-2 h-2 rounded-full 
-                                                        ${status === "Full" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}
-                                                        `}/>
-                                                    {status}
-                                                </span>
-                                            </div>
-                                            <div className="col-span-1 flex justify-center">
-                                                <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRoom(room)}>
-                                                        View
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )    
-                                })}
-                            </div>
-                            <div className="flex items-center justify-between mt-3">
-                                <p className="text-xs text-[#9A7080]">
-                                    Showing {startIndex + 1}–{Math.min(startIndex + ROOMS_PER_PAGE, rooms.length)} of {rooms.length} records
-                                </p>
-                                <div className="flex items-center justify-center gap-1">
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                        <button
-                                            key={page}
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
-                                                ${currentPage === page
-                                                    ? "text-white"
-                                                    : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"
-                                                }`}
-                                            style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
-                                        >
-                                            {page}
-                                        </button>
-                                    ))}
-                                    {currentPage < totalPages && (
-                                        <button
-                                            onClick={() => setCurrentPage(p => p + 1)}
-                                            className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
-                                        >
-                                            {">"}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                            </>
-                        )
-                        : (
-                            <div>
-
-                            </div>
-                        )
-                    }
-                </div>
-            }
-        />
-        </>
-    )
-}
-
-const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: string }) => {
-    //compute stats from rooms data
-    const full = rooms.filter(r => r.roomCurrentOccupancy === r.roomCapacity && r.roomCapacity > 0).length
-    const partial = rooms.filter(r => r.roomCurrentOccupancy > 0 && r.roomCurrentOccupancy < r.roomCapacity).length
-    const available = rooms.filter(r => r.roomCurrentOccupancy === 0).length
-    const totalOccupied = rooms.reduce((sum, r) => sum + r.roomCurrentOccupancy, 0)
-    const totalCapacity = rooms.reduce((sum, r) => sum + r.roomCapacity, 0)
-    const total = full + partial + available
-
-    //SVG donut config
-    const cx = 60, cy = 60, r = 48, strokeWidth = 13
-    const circumference = 2 * Math.PI * r
-
-    const segments = [
-        { value: full,      color: "#3D0A1A" }, // dark maroon  - fully occupied
-        { value: partial,   color: "#C47A8A" }, // muted pink   - partially occupied
-        { value: available, color: "#9E2040" }, // maroon       - available
-    ]
-
-    //build stroke-dasharray offsets for each segment
-    let cumulativeOffset = 0
-    //start from top (-25% = -90deg)
-    const GAP = 4 // gap in px between segments
-
-    const arcs = segments.map(seg => {
-        const segLength = total > 0 ? (seg.value / total) * circumference : 0
-        const dashArray = `${Math.max(segLength - GAP, 0)} ${circumference - Math.max(segLength - GAP, 0)}`
-        const dashOffset = -(cumulativeOffset) + circumference * 0.25
-        cumulativeOffset += segLength
-        return { ...seg, dashArray, dashOffset }
-    })
-
-    return (
-        <Card className={className}>
-            <h2 className="text-[#1A0008] font-bold text-base lg:text-lg mb-3">
-                Occupancy Rooms
-            </h2>
-            <div className="flex items-center gap-6">
-                {/* Donut SVG */}
-                <div className="relative flex-shrink-0">
-                    <svg width="180" height="180" viewBox="0 0 120 120">
-                        {/* Background track */}
-                        <circle
-                            cx={cx} cy={cy} r={r}
-                            fill="none"
-                            stroke="#F5ECF0"
-                            strokeWidth={strokeWidth}
-                        />
-                        {arcs.map((arc, i) => (
-                            <circle
-                                key={i}
-                                cx={cx} cy={cy} r={r}
-                                fill="none"
-                                stroke={arc.color}
-                                strokeWidth={strokeWidth}
-                                strokeDasharray={arc.dashArray}
-                                strokeDashoffset={arc.dashOffset}
-                                strokeLinecap="round"
-                                style={{ transition: "stroke-dasharray 0.5s ease" }}
-                            />
-                        ))}
-                    </svg>
-                    {/* Center label */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <p className="text-sm font-bold text-[#1A0008] leading-tight">
-                            {totalOccupied}/{totalCapacity}
-                        </p>
-                        <p className="text-[9px] text-[#9A7080] text-center leading-tight">
-                            Occupied Slots
-                        </p>
-                    </div>
-                </div>
-
-                {/* Legend */}
-                <div className="flex flex-col gap-3">
-                    {[
-                        { label: "Fully Occupied Rooms",    value: full,      color: "#3D0A1A" },
-                        { label: "Partially Occupied Rooms", value: partial,  color: "#C47A8A" },
-                        { label: "Available Rooms",          value: available, color: "#9E2040" },
-                    ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                            <span
-                                className="w-3 h-3 rounded-full mt-0.5 flex-shrink-0"
-                                style={{ backgroundColor: item.color }}
-                            />
-                            <div>
-                                <p className="text-xl font-bold text-[#1A0008] leading-none">{item.value}</p>
-                                <p className="text-[10px] text-[#9A7080] mt-0.5">{item.label}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </Card>
-    )
-}
-
-const OccupancyHistory = ({ records = historyRecords, className }: { records?: HistoryRecord[], className?: string }) => {
-    const [currentPage, setCurrentPage] = useState(1)
-    const [sortBy, setSortBy] = useState("Room Type")
+    const [sortBy, setSortBy] = useState("Date")
     const [sortOpen, setSortOpen] = useState(false)
     const [search, setSearch] = useState("")
 
+    // FILTER
     const filtered = useMemo(() => {
         const q = search.toLowerCase()
         return records.filter(r =>
-            r.tenant.fullName.toLowerCase().includes(q) ||
-            r.roomNumber.includes(q) ||
-            r.roomBuilding.includes(q) ||
-            r.roomType.includes(q)
+            r.student.fullName.toLowerCase().includes(q) ||
+            r.accommodation.building.toLowerCase().includes(q) ||
+            r.roomType.toLowerCase().includes(q)
         )
     }, [records, search])
 
+    //SORT
     const sorted = useMemo(() => {
         return [...filtered].sort((a, b) => {
-            if (sortBy === "Room Type")  return a.roomType.localeCompare(b.roomType)
-            if (sortBy === "Room No.")   return a.roomNumber.localeCompare(b.roomNumber)
-            if (sortBy === "Action")     return a.action.localeCompare(b.action)
-            if (sortBy === "Date")       return new Date(a.date).getTime() - new Date(b.date).getTime()
+            if (sortBy === "Room Type") return a.roomType.localeCompare(b.roomType)
+            if (sortBy === "accommodation.building") return a.accommodation.building.localeCompare(b.accommodation.building)
+            if (sortBy === "Date") return new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime()
             return 0
         })
     }, [filtered, sortBy])
@@ -440,6 +163,174 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
         name[0]
 
     return (
+      <>
+      <Modal 
+          open={!!selectedRecord}
+          onClose={() => setSelectedRecord(null)}
+          title="APPLICATION" // 👈 keeps RED HEADER + X button
+          maxWidth={900}
+          maxHeight={650}
+      >
+          {selectedRecord && (
+              <Card>
+                  <div className="flex flex-col gap-6 p-2">
+
+                      {/* HEADER */}
+                      <div className="flex justify-between items-start">
+                          <div>
+                              <h1 className="text-2xl font-bold text-[#1A0008]">
+                                  {selectedRecord.student.fullName}
+                              </h1>
+                              <p className="text-sm text-[#C8B0B8] mt-1">
+                                  Date Applied: {selectedRecord.applicationDate}
+                              </p>
+                          </div>
+
+                          {/* STATUS BADGE */}
+                          <StatusBadge status={selectedRecord.applicationStatus} />
+                      </div>
+
+                      {/* TOP SECTION */}
+                      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-6 items-start">
+
+
+                          {/* Applicant Details */}
+                          <div>
+                              <p className="flex items-center gap-2 font-semibold text-[#1A0008] mb-3">
+                                  <IoPersonSharp size={18} color="#6B0F2B" />
+                                  Applicant Details
+                              </p>
+
+                              <div className="grid grid-cols-2 gap-y-4">
+                                  <div className="col-span-2">
+                                      <p className="text-[10px] uppercase text-[#9A7080] font-semibold">Email</p>
+                                      <p className="text-sm text-[#1A0008]">
+                                          {selectedRecord.student.email}
+                                      </p>
+                                  </div>
+
+                                  <div>
+                                      <p className="text-[10px] uppercase text-[#9A7080] font-semibold">Phone Number</p>
+                                      <p className="text-sm text-[#1A0008]">
+                                          {selectedRecord.student.phone}
+                                      </p>
+                                  </div>
+
+                                  <div>
+                                      <p className="text-[10px] uppercase text-[#9A7080] font-semibold">Year Level</p>
+                                      <p className="text-sm text-[#1A0008]">
+                                          {selectedRecord.student.yearLevel}
+                                      </p>
+                                  </div>
+
+                                  <div className="col-span-2">
+                                      <p className="text-[10px] uppercase text-[#9A7080] font-semibold">Course</p>
+                                      <p className="text-sm text-[#1A0008]">
+                                          {selectedRecord.student.course}
+                                      </p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          {/* DIVIDER L | R */}
+                          <div className="hidden md:block w-px h-full bg-[#F5ECF0]" />
+
+                          {/* Occupancy Details */}
+                          <div>
+                              <p className="flex items-center gap-2 font-semibold text-[#1A0008] mb-3">
+                                  <IoCalendarSharp size={18} color="#6B0F2B" />
+                                  Occupancy Details
+                              </p>
+                              
+
+                              <div className="flex flex-col gap-4">
+                                  <div>
+                                      <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Semester</p>
+                                      <p className="text-[#1A0008] text-sm">Semester 2, AY 2025-2026</p>
+                                  </div>
+
+                                  <div>
+                                      <p className="text-[10px] uppercase text-[#9A7080] font-semibold">Duration</p>
+                                      <p className="text-sm text-[#1A0008]">
+                                          {selectedRecord.durationOfStayDays} day
+                                          {selectedRecord.durationOfStayDays !== 1 ? "s" : ""}
+                                      </p>
+                                  </div>
+
+                          
+                              </div>
+                          </div>
+                      </div>
+
+                      {/* DIVIDER */}
+                      <div className="border-t border-[#F5ECF0]" />
+                      {/* BOTTOM */}
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+
+                          {/* Room Preference */}
+                          <div>
+                              <p className="flex items-center gap-2 font-semibold text-[#1A0008] mb-3">
+                                  <IoBedSharp size={18} color="#6B0F2B" />
+                                  Room Preference
+                              </p>
+                              <div className="grid grid-cols-2 gap-y-3">
+                                    <div className="col-span-1">
+                                        <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Stay</p>
+                                        <p className="text-[#1A0008] text-sm capitalize">
+                                            {selectedRecord.stayType === "non-transient" ? "Non-Transient" : "Transient"}
+                                        </p>
+                                    </div>
+                                    <div className="col-span-1">
+                                        <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Building</p>
+                                        <p className="text-[#1A0008] text-sm">{selectedRecord.accommodation.building}</p>
+                                    </div>
+                                    <div className="col-span-1">
+                                        <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</p>
+                                        <p className="text-[#1A0008] text-sm capitalize">{selectedRecord.roomType}</p>
+                                    </div>
+                                </div>
+                          </div>
+
+                          {/* Documents */}
+                          <div>
+                              <p className="flex items-center gap-2 font-semibold text-[#1A0008] mb-3">
+                                  <IoDocumentSharp size={18} color="#6B0F2B" />
+                                  Uploaded Documents
+                              </p>
+
+                              <div className="flex flex-col gap-3">
+                                  {[
+                                      { label: "FORM 5", icon: <IoDocumentTextSharp size={16} color="white" /> },
+                                      { label: "VALID ID", icon: <IoIdCardSharp size={16} color="white" /> },
+                                  ].map((doc) => (
+                                      <div key={doc.label} className="flex items-center justify-between">
+                                          <div className="flex items-center gap-2">
+                                              <div
+                                                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                                                  style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                                              >
+                                                  {doc.icon}
+                                              </div>
+                                              <p className="text-xs font-semibold text-[#1A0008]">
+                                                  {doc.label}
+                                              </p>
+                                          </div>
+
+                                          <Button variant="reddishPink" size="sm">
+                                              View
+                                          </Button>
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
+
+                      </div>
+                  </div>
+              </Card>
+          )}
+      </Modal>
+
+        
         <Card className={className}>
             {/* Header row */}
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
@@ -518,18 +409,18 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                                 <div className="col-span-2 flex items-center gap-2">
                                     <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
                                         style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                        {getInitials(record.tenant.fullName)}
+                                        {getInitials(record.student.fullName)}
                                     </div>
-                                    <p className="font-bold text-[12px] ml-1 lg:ml-0 lg:text-sm text-[#1A0008]">{record.tenant.fullName}</p>
+                                    <p className="font-bold text-[12px] ml-1 lg:ml-0 lg:text-sm text-[#1A0008]">{record.student.fullName}</p>
                                 </div>
-                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">{record.date}</p>
-                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">{record.time}</p>
-                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">Building {record.roomBuilding}</p>
+                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">{record.applicationDate}</p>
+                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">{record.timeSubmitted}</p>
+                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">{record.accommodation.building}</p>
                                  <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">{record.roomType}</p>
 
                                 <div className="col-span-2 flex justify-center">
-                                    <Button variant="reddishPink" size="sm" className="px-6">
-                                            View
+                                    <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
+                                        View
                                     </Button>
                                 </div>
                             </div>
@@ -568,6 +459,7 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                 </div>
             </div>
         </Card>
+      </>
     )
 }
 
@@ -594,8 +486,8 @@ export default function Waitlist() {
                         type="mini"
                     />
 
-                    <OccupancyHistory 
-                        records={historyRecords}
+                    <WaitlistHistory 
+                        records={waitlistRecords}
                     />
                 </main>
             </div>
