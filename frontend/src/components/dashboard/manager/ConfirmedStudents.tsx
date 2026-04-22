@@ -109,7 +109,7 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                                 <div className="flex flex-col gap-4">
 
                                     {/* Header */}
-                                    <div className="flex flex-row justify-between items-start">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                                         <div className="flex flex-col">
                                             <p className="text-[#1A0008] font-bold text-xl">
                                                 {selectedAssignment.student.student.fullName}
@@ -118,7 +118,7 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                                                 Select a room to assign
                                             </p>
                                         </div>
-                                        <div className="flex flex-col items-end gap-1">
+                                        <div className="flex flex-col gap-1">
                                             <span className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</span>
                                             <span className="text-[#1A0008] text-sm font-semibold capitalize">{selectedAssignment.roomType}</span>
                                         </div>
@@ -127,7 +127,7 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                                     {/* Room List */}
                                     <div className="flex flex-col gap-3">
                                         {filteredRooms.length > 0 ? filteredRooms.map((room, i) => (
-                                            <div key={i} className="flex flex-row items-center gap-4 border border-[#F5ECF0] rounded-xl p-4">
+                                            <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-3 border border-[#F5ECF0] rounded-xl p-3 sm:p-4">
                                                 <div className="flex flex-col items-start gap-1 min-w-[120px]">
                                                     <div className="px-4 py-2 rounded-full text-white text-sm font-extrabold uppercase tracking-wide"
                                                         style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
@@ -135,15 +135,15 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                                                     </div>
                                                     <p className="text-[#1A0008] text-sm font-medium pl-1">{room.roomBuilding}</p>
                                                 </div>
-                                                <div className="w-px self-stretch bg-[#F5ECF0]" />
+                                                <div className="hidden sm:block w-px self-stretch bg-[#F5ECF0]" />
                                                 <div className="flex flex-col gap-1 flex-1">
-                                                    <p className="text-[#1A0008] text-sm">
+                                                    <p className="text-[#1A0008] text-sm break-words">
                                                         Type : <span className="font-semibold capitalize">{room.roomType}</span>
                                                     </p>
-                                                    <p className="text-[#1A0008] text-sm">
+                                                    <p className="text-[#1A0008] text-sm break-words">
                                                         Price : <span className="font-semibold">₱{room.roomRent.toLocaleString()} / month</span>
                                                     </p>
-                                                    <p className="text-[#1A0008] text-sm">
+                                                    <p className="text-[#1A0008] text-sm break-words">
                                                         Occupants : <span className="font-semibold">{room.roomCurrentOccupancy}/{room.roomCapacity}</span>
                                                     </p>
                                                 </div>
@@ -154,6 +154,7 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                                                         console.log("Assigned", selectedAssignment.student.student.fullName, "to Room", room.roomNumber)
                                                         setSelectedAssignment(null)
                                                     }}
+                                                    className="w-full sm:w-auto"
                                                 >
                                                     Assign Room
                                                 </Button>
