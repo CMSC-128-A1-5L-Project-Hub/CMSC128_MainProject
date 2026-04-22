@@ -9,8 +9,11 @@ export type ScannedRoutes = {
     'accommodation.index': { paramsTuple?: []; params?: {} }
     'accommodation.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.me': { paramsTuple?: []; params?: {} }
+    'auth.update_me': { paramsTuple?: []; params?: {} }
     'setups.show': { paramsTuple?: []; params?: {} }
     'setups.store': { paramsTuple?: []; params?: {} }
+    'sms_verifications.verify': { paramsTuple?: []; params?: {} }
+    'sms_verifications.send': { paramsTuple?: []; params?: {} }
     'application.store': { paramsTuple?: []; params?: {} }
     'application.index': { paramsTuple?: []; params?: {} }
     'assignments.current_stay': { paramsTuple?: []; params?: {} }
@@ -20,6 +23,9 @@ export type ScannedRoutes = {
     'reviews.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'fees.index': { paramsTuple?: []; params?: {} }
     'payments.upload_proof': { paramsTuple: [ParamValue]; params: {'feeId': ParamValue} }
+    'payments.get_student_payment_history': { paramsTuple?: []; params?: {} }
+    'student_profiles.show': { paramsTuple?: []; params?: {} }
+    'accommodation.recommended': { paramsTuple?: []; params?: {} }
     'reports.revenue': { paramsTuple?: []; params?: {} }
     'reports.delinquency': { paramsTuple?: []; params?: {} }
     'accommodation.landlord_index': { paramsTuple?: []; params?: {} }
@@ -43,11 +49,18 @@ export type ScannedRoutes = {
     'payments.verify': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'reports.occupancy': { paramsTuple?: []; params?: {} }
     'reports.application_trends': { paramsTuple?: []; params?: {} }
+    'accommodation.export_documents': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin_verifications.index': { paramsTuple?: []; params?: {} }
     'admin_verifications.verify': { paramsTuple: [ParamValue]; params: {'userId': ParamValue} }
     'admin_settings.index': { paramsTuple?: []; params?: {} }
     'admin_settings.update': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
+    'admin_settings.count_users': { paramsTuple?: []; params?: {} }
+    'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
+    'admin_accommodations.index': { paramsTuple?: []; params?: {} }
+    'admin_accommodations.verify': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'notifications.index': { paramsTuple?: []; params?: {} }
+    'notifications.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
@@ -61,6 +74,9 @@ export type ScannedRoutes = {
     'assignments.stay_history': { paramsTuple?: []; params?: {} }
     'bookmark.index': { paramsTuple?: []; params?: {} }
     'fees.index': { paramsTuple?: []; params?: {} }
+    'payments.get_student_payment_history': { paramsTuple?: []; params?: {} }
+    'student_profiles.show': { paramsTuple?: []; params?: {} }
+    'accommodation.recommended': { paramsTuple?: []; params?: {} }
     'reports.revenue': { paramsTuple?: []; params?: {} }
     'reports.delinquency': { paramsTuple?: []; params?: {} }
     'accommodation.landlord_index': { paramsTuple?: []; params?: {} }
@@ -70,9 +86,14 @@ export type ScannedRoutes = {
     'payments.pending': { paramsTuple?: []; params?: {} }
     'reports.occupancy': { paramsTuple?: []; params?: {} }
     'reports.application_trends': { paramsTuple?: []; params?: {} }
+    'accommodation.export_documents': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin_verifications.index': { paramsTuple?: []; params?: {} }
     'admin_settings.index': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
+    'admin_settings.count_users': { paramsTuple?: []; params?: {} }
+    'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
+    'admin_accommodations.index': { paramsTuple?: []; params?: {} }
+    'notifications.index': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'auth.redirect': { paramsTuple?: []; params?: {} }
@@ -86,6 +107,9 @@ export type ScannedRoutes = {
     'assignments.stay_history': { paramsTuple?: []; params?: {} }
     'bookmark.index': { paramsTuple?: []; params?: {} }
     'fees.index': { paramsTuple?: []; params?: {} }
+    'payments.get_student_payment_history': { paramsTuple?: []; params?: {} }
+    'student_profiles.show': { paramsTuple?: []; params?: {} }
+    'accommodation.recommended': { paramsTuple?: []; params?: {} }
     'reports.revenue': { paramsTuple?: []; params?: {} }
     'reports.delinquency': { paramsTuple?: []; params?: {} }
     'accommodation.landlord_index': { paramsTuple?: []; params?: {} }
@@ -95,12 +119,25 @@ export type ScannedRoutes = {
     'payments.pending': { paramsTuple?: []; params?: {} }
     'reports.occupancy': { paramsTuple?: []; params?: {} }
     'reports.application_trends': { paramsTuple?: []; params?: {} }
+    'accommodation.export_documents': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin_verifications.index': { paramsTuple?: []; params?: {} }
     'admin_settings.index': { paramsTuple?: []; params?: {} }
     'logs.index': { paramsTuple?: []; params?: {} }
+    'admin_settings.count_users': { paramsTuple?: []; params?: {} }
+    'rooms.count_available_rooms': { paramsTuple?: []; params?: {} }
+    'admin_accommodations.index': { paramsTuple?: []; params?: {} }
+    'notifications.index': { paramsTuple?: []; params?: {} }
+  }
+  PUT: {
+    'auth.update_me': { paramsTuple?: []; params?: {} }
+    'accommodation.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'rooms.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin_settings.update': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'setups.store': { paramsTuple?: []; params?: {} }
+    'sms_verifications.verify': { paramsTuple?: []; params?: {} }
+    'sms_verifications.send': { paramsTuple?: []; params?: {} }
     'application.store': { paramsTuple?: []; params?: {} }
     'bookmark.toggle': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'reviews.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -113,11 +150,6 @@ export type ScannedRoutes = {
     'rooms.store': { paramsTuple: [ParamValue]; params: {'accommodationId': ParamValue} }
     'assignments.store': { paramsTuple?: []; params?: {} }
   }
-  PUT: {
-    'accommodation.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'rooms.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'admin_settings.update': { paramsTuple?: []; params?: {} }
-  }
   DELETE: {
     'accommodation.delete_image': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'imageId': ParamValue} }
     'rooms.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -127,6 +159,8 @@ export type ScannedRoutes = {
     'assignments.move_out': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'payments.verify': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin_verifications.verify': { paramsTuple: [ParamValue]; params: {'userId': ParamValue} }
+    'admin_accommodations.verify': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'notifications.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

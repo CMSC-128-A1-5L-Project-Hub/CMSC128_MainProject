@@ -6,19 +6,26 @@ export interface ApiDefinition {
     redirect: typeof routes['auth.redirect']
     callback: typeof routes['auth.callback']
     me: typeof routes['auth.me']
+    updateMe: typeof routes['auth.update_me']
   }
   accommodation: {
     index: typeof routes['accommodation.index']
     show: typeof routes['accommodation.show']
+    recommended: typeof routes['accommodation.recommended']
     landlordIndex: typeof routes['accommodation.landlord_index']
     store: typeof routes['accommodation.store']
     update: typeof routes['accommodation.update']
     uploadImages: typeof routes['accommodation.upload_images']
     deleteImage: typeof routes['accommodation.delete_image']
+    exportDocuments: typeof routes['accommodation.export_documents']
   }
   setups: {
     show: typeof routes['setups.show']
     store: typeof routes['setups.store']
+  }
+  smsVerifications: {
+    verify: typeof routes['sms_verifications.verify']
+    send: typeof routes['sms_verifications.send']
   }
   application: {
     store: typeof routes['application.store']
@@ -44,8 +51,12 @@ export interface ApiDefinition {
   }
   payments: {
     uploadProof: typeof routes['payments.upload_proof']
+    getStudentPaymentHistory: typeof routes['payments.get_student_payment_history']
     pending: typeof routes['payments.pending']
     verify: typeof routes['payments.verify']
+  }
+  studentProfiles: {
+    show: typeof routes['student_profiles.show']
   }
   reports: {
     revenue: typeof routes['reports.revenue']
@@ -66,6 +77,7 @@ export interface ApiDefinition {
     store: typeof routes['rooms.store']
     update: typeof routes['rooms.update']
     destroy: typeof routes['rooms.destroy']
+    countAvailableRooms: typeof routes['rooms.count_available_rooms']
   }
   adminVerifications: {
     index: typeof routes['admin_verifications.index']
@@ -74,8 +86,17 @@ export interface ApiDefinition {
   adminSettings: {
     index: typeof routes['admin_settings.index']
     update: typeof routes['admin_settings.update']
+    countUsers: typeof routes['admin_settings.count_users']
   }
   logs: {
     index: typeof routes['logs.index']
+  }
+  adminAccommodations: {
+    index: typeof routes['admin_accommodations.index']
+    verify: typeof routes['admin_accommodations.verify']
+  }
+  notifications: {
+    index: typeof routes['notifications.index']
+    update: typeof routes['notifications.update']
   }
 }

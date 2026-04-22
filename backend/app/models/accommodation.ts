@@ -57,6 +57,9 @@ export default class Accommodation extends BaseModel {
   declare accommodationCapacity: number
 
   @column()
+  declare accommodationSize: number
+
+  @column()
   declare tenantRestriction: 'male-only' | 'female-only' | 'coed'
 
   @column()
@@ -81,10 +84,10 @@ export default class Accommodation extends BaseModel {
   @column.dateTime()
   declare freezeStartedAt: DateTime | null
 
-  @belongsTo(() => Landlord, { foreignKey: 'userId' })
+  @belongsTo(() => Landlord, { foreignKey: 'landlordId', localKey: 'userId' })
   declare landlord: BelongsTo<typeof Landlord>
 
-  @belongsTo(() => Manager, { foreignKey: 'userId' })
+  @belongsTo(() => Manager, { foreignKey: 'managerId', localKey: 'userId' })
   declare manager: BelongsTo<typeof Manager>
 
   @belongsTo(() => FileMetadata, { foreignKey: 'businessPermitId' })

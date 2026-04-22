@@ -13,5 +13,16 @@ export default class AdminSeeder extends BaseSeeder {
         // pfpFileId is nullable, so we can leave it out
       }
     )
+
+    await User.firstOrCreate(
+      { email: 'windee0109@gmail.com' },
+      {
+        fname: 'System',
+        lname: 'Administrator',
+        email: 'windee0109@gmail.com',
+        role: 'super_admin',
+        // pfpFileId is nullable, so we can leave it out
+      }
+    )
   }
 }

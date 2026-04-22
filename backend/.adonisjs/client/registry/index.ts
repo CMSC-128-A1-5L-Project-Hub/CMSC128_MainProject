@@ -36,6 +36,12 @@ const routes = {
     tokens: [{"old":"/me","type":0,"val":"me","end":""}],
     types: placeholder as Registry['auth.me']['types'],
   },
+  'auth.update_me': {
+    methods: ["PUT"],
+    pattern: '/me',
+    tokens: [{"old":"/me","type":0,"val":"me","end":""}],
+    types: placeholder as Registry['auth.update_me']['types'],
+  },
   'setups.show': {
     methods: ["GET","HEAD"],
     pattern: '/setup',
@@ -47,6 +53,18 @@ const routes = {
     pattern: '/setup',
     tokens: [{"old":"/setup","type":0,"val":"setup","end":""}],
     types: placeholder as Registry['setups.store']['types'],
+  },
+  'sms_verifications.verify': {
+    methods: ["POST"],
+    pattern: '/auth/verify-sms',
+    tokens: [{"old":"/auth/verify-sms","type":0,"val":"auth","end":""},{"old":"/auth/verify-sms","type":0,"val":"verify-sms","end":""}],
+    types: placeholder as Registry['sms_verifications.verify']['types'],
+  },
+  'sms_verifications.send': {
+    methods: ["POST"],
+    pattern: '/auth/send-otp',
+    tokens: [{"old":"/auth/send-otp","type":0,"val":"auth","end":""},{"old":"/auth/send-otp","type":0,"val":"send-otp","end":""}],
+    types: placeholder as Registry['sms_verifications.send']['types'],
   },
   'application.store': {
     methods: ["POST"],
@@ -101,6 +119,24 @@ const routes = {
     pattern: '/payments/:feeId/pay',
     tokens: [{"old":"/payments/:feeId/pay","type":0,"val":"payments","end":""},{"old":"/payments/:feeId/pay","type":1,"val":"feeId","end":""},{"old":"/payments/:feeId/pay","type":0,"val":"pay","end":""}],
     types: placeholder as Registry['payments.upload_proof']['types'],
+  },
+  'payments.get_student_payment_history': {
+    methods: ["GET","HEAD"],
+    pattern: '/my-payments',
+    tokens: [{"old":"/my-payments","type":0,"val":"my-payments","end":""}],
+    types: placeholder as Registry['payments.get_student_payment_history']['types'],
+  },
+  'student_profiles.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/student/profile',
+    tokens: [{"old":"/student/profile","type":0,"val":"student","end":""},{"old":"/student/profile","type":0,"val":"profile","end":""}],
+    types: placeholder as Registry['student_profiles.show']['types'],
+  },
+  'accommodation.recommended': {
+    methods: ["GET","HEAD"],
+    pattern: '/recommended-accommodations',
+    tokens: [{"old":"/recommended-accommodations","type":0,"val":"recommended-accommodations","end":""}],
+    types: placeholder as Registry['accommodation.recommended']['types'],
   },
   'reports.revenue': {
     methods: ["GET","HEAD"],
@@ -240,6 +276,12 @@ const routes = {
     tokens: [{"old":"/reports/applications","type":0,"val":"reports","end":""},{"old":"/reports/applications","type":0,"val":"applications","end":""}],
     types: placeholder as Registry['reports.application_trends']['types'],
   },
+  'accommodation.export_documents': {
+    methods: ["GET","HEAD"],
+    pattern: '/accommodations/:id/export-documents',
+    tokens: [{"old":"/accommodations/:id/export-documents","type":0,"val":"accommodations","end":""},{"old":"/accommodations/:id/export-documents","type":1,"val":"id","end":""},{"old":"/accommodations/:id/export-documents","type":0,"val":"export-documents","end":""}],
+    types: placeholder as Registry['accommodation.export_documents']['types'],
+  },
   'admin_verifications.index': {
     methods: ["GET","HEAD"],
     pattern: '/admin/users/pending',
@@ -269,6 +311,42 @@ const routes = {
     pattern: '/admin/logs',
     tokens: [{"old":"/admin/logs","type":0,"val":"admin","end":""},{"old":"/admin/logs","type":0,"val":"logs","end":""}],
     types: placeholder as Registry['logs.index']['types'],
+  },
+  'admin_settings.count_users': {
+    methods: ["GET","HEAD"],
+    pattern: '/admin/users/count',
+    tokens: [{"old":"/admin/users/count","type":0,"val":"admin","end":""},{"old":"/admin/users/count","type":0,"val":"users","end":""},{"old":"/admin/users/count","type":0,"val":"count","end":""}],
+    types: placeholder as Registry['admin_settings.count_users']['types'],
+  },
+  'rooms.count_available_rooms': {
+    methods: ["GET","HEAD"],
+    pattern: '/admin/rooms/available/count',
+    tokens: [{"old":"/admin/rooms/available/count","type":0,"val":"admin","end":""},{"old":"/admin/rooms/available/count","type":0,"val":"rooms","end":""},{"old":"/admin/rooms/available/count","type":0,"val":"available","end":""},{"old":"/admin/rooms/available/count","type":0,"val":"count","end":""}],
+    types: placeholder as Registry['rooms.count_available_rooms']['types'],
+  },
+  'admin_accommodations.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/admin/accommodations/pending',
+    tokens: [{"old":"/admin/accommodations/pending","type":0,"val":"admin","end":""},{"old":"/admin/accommodations/pending","type":0,"val":"accommodations","end":""},{"old":"/admin/accommodations/pending","type":0,"val":"pending","end":""}],
+    types: placeholder as Registry['admin_accommodations.index']['types'],
+  },
+  'admin_accommodations.verify': {
+    methods: ["PATCH"],
+    pattern: '/admin/accommodations/:id/verify',
+    tokens: [{"old":"/admin/accommodations/:id/verify","type":0,"val":"admin","end":""},{"old":"/admin/accommodations/:id/verify","type":0,"val":"accommodations","end":""},{"old":"/admin/accommodations/:id/verify","type":1,"val":"id","end":""},{"old":"/admin/accommodations/:id/verify","type":0,"val":"verify","end":""}],
+    types: placeholder as Registry['admin_accommodations.verify']['types'],
+  },
+  'notifications.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/notifications',
+    tokens: [{"old":"/notifications","type":0,"val":"notifications","end":""}],
+    types: placeholder as Registry['notifications.index']['types'],
+  },
+  'notifications.update': {
+    methods: ["PATCH"],
+    pattern: '/notifications/:id',
+    tokens: [{"old":"/notifications/:id","type":0,"val":"notifications","end":""},{"old":"/notifications/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['notifications.update']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 

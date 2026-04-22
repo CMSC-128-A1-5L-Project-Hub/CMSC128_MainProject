@@ -4,13 +4,14 @@ import Logo from "../../components/Logo"
 
 export default function SignIn() {
     const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:3333/auth/google/redirect';
-    };
+        window.location.href="http://localhost:3333/auth/google/redirect"
+    }
 
     return(
         <div className="h-screen flex flex-col lg:flex-row relative overflow-hidden lg:items-center">
             {/* Left Section — pure white */}
-            <section className="w-full lg:w-1/2 flex flex-col justify-center px-6 pt-32 pb-6 max-w-md mx-auto lg:max-w-none lg:mx-0 lg:px-20 lg:py-20 lg:pt-20 lg:h-screen bg-white z-10 flex-shrink-0">                <Logo />
+            <section className="w-full lg:w-1/2 flex flex-col justify-center px-6 pt-32 pb-6 max-w-md mx-auto lg:max-w-none lg:mx-0 lg:px-20 lg:py-20 lg:pt-20 lg:h-screen bg-white z-10 flex-shrink-0">                
+                <Logo />
 
                 <h1 className="font-serif font-bold text-3xl sm:text-5xl text-black leading-tight mb-3">
                     Right Where You Belong <br/>
@@ -24,8 +25,9 @@ export default function SignIn() {
                     Find verified dorms near UPLB. Sign in to continue your search or manage your listings.
                 </p>
                 
-                {/* Google */}
-                <button className="w-full flex items-center justify-center gap-3 border border-[#E8E0E4] rounded-xl py-5 hover:bg-gray-50 transition mb-4 relative" onClick={handleGoogleLogin}>
+                <button className="w-full flex items-center justify-center gap-3 border border-[#E8E0E4] rounded-xl py-5 bg-white hover:bg-[#FDF5F7] transition mb-4 relative shadow-sm"
+                    onClick={handleGoogleLogin}
+                >
                     <img
                         src="https://www.svgrepo.com/show/475656/google-color.svg"
                         alt="google"
