@@ -56,7 +56,6 @@ interface Accomodation {
 interface Application {
     student: Student
     accommodation: Accomodation
-    type: string
     roomType: "single" | "double" | "shared"
     stayType: "transient" | "non-transient"
     rejectionReason?: string | null
@@ -198,7 +197,6 @@ const applications: Application[] = [
   {
     student: students[0],
     accommodation: accommodations[0],
-    type: "Dormitory",
     roomType: "single",
     stayType: "non-transient",
     rejectionReason: null,
@@ -209,7 +207,6 @@ const applications: Application[] = [
   {
     student: students[1],
     accommodation: accommodations[1],
-    type: "Dormitory",
     roomType: "double",
     stayType: "non-transient",
     rejectionReason: null,
@@ -220,7 +217,6 @@ const applications: Application[] = [
   {
     student: students[2],
     accommodation: accommodations[2],
-    type: "Transient Housing",
     roomType: "shared",
     stayType: "transient",
     rejectionReason: null,
@@ -231,7 +227,6 @@ const applications: Application[] = [
   {
     student: students[3],
     accommodation: accommodations[3],
-    type: "Dormitory",
     roomType: "single",
     stayType: "non-transient",
     rejectionReason: "No available slots for the selected room type.",
@@ -242,7 +237,6 @@ const applications: Application[] = [
   {
     student: students[4],
     accommodation: accommodations[4],
-    type: "Dormitory",
     roomType: "double",
     stayType: "non-transient",
     rejectionReason: null,
@@ -253,7 +247,6 @@ const applications: Application[] = [
   {
     student: students[5],
     accommodation: accommodations[5],
-    type: "Dormitory",
     roomType: "shared",
     stayType: "non-transient",
     rejectionReason: null,
@@ -264,7 +257,6 @@ const applications: Application[] = [
   {
     student: students[0],
     accommodation: accommodations[2],
-    type: "Dormitory",
     roomType: "double",
     stayType: "non-transient",
     rejectionReason: null,
@@ -275,7 +267,6 @@ const applications: Application[] = [
   {
     student: students[2],
     accommodation: accommodations[3],
-    type: "Transient Housing",
     roomType: "single",
     stayType: "transient",
     rejectionReason: null,
@@ -286,7 +277,6 @@ const applications: Application[] = [
   {
     student: students[4],
     accommodation: accommodations[0],
-    type: "Dormitory",
     roomType: "shared",
     stayType: "non-transient",
     rejectionReason: null,
@@ -297,7 +287,6 @@ const applications: Application[] = [
   {
     student: students[5],
     accommodation: accommodations[1],
-    type: "Dormitory",
     roomType: "single",
     stayType: "non-transient",
     rejectionReason: null,
@@ -308,7 +297,6 @@ const applications: Application[] = [
   {
     student: students[3],
     accommodation: accommodations[5],
-    type: "Transient Housing",
     roomType: "double",
     stayType: "transient",
     rejectionReason: null,
@@ -382,6 +370,25 @@ export default function Dashboard() {
                         ))}
                     </div>
 
+                    {/* For mobile ver */}
+                    <div className="flex flex-col gap-4 sm:hidden">
+                        <AvailableRooms 
+                            totalRooms={100}
+                            soloRooms={10}
+                            doubleRooms={15}
+                            sharedRooms={20}
+                        />
+                        <OccupiedRooms 
+                            occupiedSolo={2}
+                            totalSolo={15}
+                            occupiedDouble={5}
+                            totalDouble={20}
+                            occupiedShared={13}
+                            totalShared={25}
+                        />
+                        <ActivityLogs />
+                    </div>
+
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
                         <Applications 
                             data={pendingApplications}
@@ -403,7 +410,7 @@ export default function Dashboard() {
                     </div>
                 </main>
             </div>
-            <aside className="relative z-10 hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F5EEF0] overflow-y-auto">
+            <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
                 <ProfileCard
                     fullName={managerProfile.fullName}
                     role="Dormitory Manager"
