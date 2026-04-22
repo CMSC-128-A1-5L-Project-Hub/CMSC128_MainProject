@@ -38,6 +38,21 @@ const formatAccommodationType = (value: string) => {
 const formatRating = (value: number | string | null | undefined) =>
   Number(value ?? 0).toFixed(1);
 
+const emptyBilling: BillingOverview = {
+  residenceHall: "-",
+  dueDay: "-",
+  dueMonth: "-",
+  summaryTitle: "No Billing Yet",
+  paidOn: "-",
+  amountPaid: 0,
+  nextDue: "-",
+  monthlyRent: 0,
+  remainingAmount: 0,
+  totalPaid: 0,
+  totalDue: 0,
+  progressPercent: 0,
+};
+
 // ── SVG / asset imports ────────────────────────────────────────────────────
 import house_icon from "../../assets/icons/house_icon.svg";
 import notif_icon from "../../assets/icons/notif_icon.svg";
@@ -644,6 +659,9 @@ export default function Dashboard() {
   const [applicationsLoading, setApplicationsLoading] = useState(true);
   const [recommendedDorms, setRecommendedDorms] = useState<any[]>([]);
   const [recommendedLoading, setRecommendedLoading] = useState(true);
+  const [billingOverviewData, setBillingOverviewData] = useState<BillingOverview | null>(null);
+  const [billingStatementsData, setBillingStatementsData] = useState<BillingStatement[]>([]);
+  const [billingLoading, setBillingLoading] = useState(true);
 
     
   const {data: user,
@@ -801,6 +819,99 @@ useEffect(() => {
 
   fetchRecommendedDorms()
 }, [])
+// ---------------------------------
+
+// Billing info fetch---------------------------------
+useEffect(() => {
+  const fetchBilling = async () => {
+    try {
+      const res = await api.get("/my-fees");
+      const fees = res.data.data ?? res.data ?? [];
+
+      console.log("BILLING:", fees);
+
+      if (!Array.isArray(fees) || fees.length === 0) {
+        setBillingOverviewData(null);
+        setBillingStatementsData([]);
+        return;
+      }
+
+      const sortedFees = [...fees].sort(
+        (a, b) =>
+          new Date(b.due_date).getTime() - new Date(a.due_date).getTime()
+      );
+
+      const latestFee = sortedFees[0];
+
+      const totalDue = sortedFees.reduce(
+        (sum, fee) => sum + Number(fee.fee_amount ?? 0),
+        0
+      );
+
+      const remainingAmount = sortedFees.reduce(
+        (sum, fee) => sum + Number(fee.fee_balance ?? 0),
+        0
+      );
+
+      const totalPaid = totalDue - remainingAmount;
+
+      const progressPercent =
+        totalDue > 0 ? Math.round((totalPaid / totalDue) * 100) : 0;
+
+      const dueDate = new Date(latestFee.due_date);
+
+      const overview: BillingOverview = {
+        residenceHall:
+          latestFee.accommodation_name ?? "Unknown Residence Hall",
+        dueDay: dueDate.getDate().toString(),
+        dueMonth: dueDate.toLocaleString("en-US", { month: "short" }),
+        summaryTitle:
+          remainingAmount === 0
+            ? "All Fees Paid"
+            : totalPaid > 0
+            ? "Partially Paid"
+            : "Payment Due",
+        paidOn: totalPaid > 0 ? "Recorded" : "-",
+        amountPaid: totalPaid,
+        nextDue: dueDate.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }),
+        monthlyRent: Number(latestFee.fee_amount ?? 0),
+        remainingAmount,
+        totalPaid,
+        totalDue,
+        progressPercent,
+      };
+
+      const capitalize = (str?: string) =>
+        str ? str.charAt(0).toUpperCase() + str.slice(1) : "Fee";
+
+      const statements: BillingStatement[] = fees.map((f: any) => ({
+        label: `${capitalize(f.fee_category)} - ${new Date(
+          f.due_date
+        ).toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })}`,
+        status: f.fee_status === "paid" ? "Paid" : "Unpaid",
+      }));
+
+      setBillingOverviewData(overview);
+      setBillingStatementsData(statements);
+    } catch (error) {
+      console.error("Failed to fetch billing:", error);
+      setBillingOverviewData(null);
+      setBillingStatementsData([]);
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
+  fetchBilling();
+}, []);
 // ---------------------------------
 
 if (profileLoading) {
@@ -1131,12 +1242,29 @@ if (isUserLoading) {
           </div>
 
           <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
-            <BillingSection overview={billingOverview} statements={billingStatements} />
+            {billingLoading ? (
+              <div className="bg-white rounded-2xl p-4">
+                <p className="text-sm text-gray-500">Loading billing...</p>
+              </div>
+            ) : billingOverviewData ? (
+              <BillingSection
+                overview={billingOverviewData ?? emptyBilling}
+                statements={billingStatementsData}
+              />
+            ) : (
+              <div className="bg-white rounded-2xl p-4">
+                <p className="text-sm text-gray-500">No billing data found.</p>
+              </div>
+            )}
           </div>
         </div>
-      </main>
+      </main> 
 
-      <DesktopProfilePanel profile={profile} billing={billingOverview} statements={billingStatements} />
+      <DesktopProfilePanel
+        profile={profile}
+        billing={billingOverviewData ?? emptyBilling}
+        statements={billingStatementsData}
+      />
     </div>
   );
 }
