@@ -57,7 +57,7 @@ export default function AccommodationMap({
     const [routeGeoJSON, setRouteGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null) // Stores the route from MapBox 
     const [loadingRoute, setLoadingRoute] = useState(false) // Checks is we are loading a route
 
-    const dormValues = { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 }
+    const dormValues = { subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 }
     // Center on specific accommodation if provided, otherwise center on UPLB area
     const initialView = centeredAccommodation
         ? { longitude: centeredAccommodation.longitude, latitude: centeredAccommodation.latitude, zoom: 16, pitch: 45, bearing: 0 }
@@ -214,7 +214,7 @@ export default function AccommodationMap({
                                     <Star size={12} fill="white" stroke="white" strokeWidth={1} />
                                     <div className="flex gap-1 items-center text-white">
                                         <span className="text-sm font-bold tracking-tight">4.0</span>
-                                        <span className="text-sm font-medium tracking-tight">Yakal</span>
+                                        <span className="text-sm font-medium tracking-tight">{acc.accommodationName}</span>
                                     </div>
                                 </div>
                             </div>
@@ -257,7 +257,7 @@ export default function AccommodationMap({
                         </div> */}
 
                         <div className="w-full flex items-center justify-center">
-                            <DormCard {...{ ...dormValues, isSmall: true }} verified onView={() => { }} />
+                            <DormCard {...{ ...dormValues, isSmall: true, name: selectedPin.accommodationName }} verified onView={() => { }} />
                         </div>
 
                     </Popup>

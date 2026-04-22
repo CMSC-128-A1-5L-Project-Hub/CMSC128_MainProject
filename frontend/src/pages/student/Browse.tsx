@@ -4,6 +4,8 @@ import DormCard from "../../components/DormCardBrowse";
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { Star } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
+import { api } from "../../api/axios"
+import { useQuery } from "@tanstack/react-query";
 
 type Dorm = {
     name: string;
@@ -570,31 +572,126 @@ function DualRangeSlider({
 
 
 export default function BrowsePage() {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [activeFilter, setActiveFilter] = useState("All");
+    const [profileLoading, setProfileLoading] = useState(true);
+
+    const navigate = useNavigate()
+
+
+
+    const {
+        data: accommodations = [],
+        isLoading: accommodationsLoading,
+        isError: accommodationsError,
+    } = useQuery({
+        queryKey: ["accommodations", searchTerm, activeFilter],
+        queryFn: async () => {
+            const params: Record<string, any> = {};
+
+            if (searchTerm.trim()) {
+                params.search = searchTerm.trim();
+            }
+
+            if (activeFilter !== "All") {
+                if (activeFilter === "On-Campus") params.dormType = "On-Campus";
+                else if (activeFilter === "Off-Campus") params.dormType = "Off-Campus";
+                else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner";
+            }
+
+            const res = await api.get("/accommodations", { params });
+            console.log("ACCOMMODATIONS RAW RESPONSE:", res.data);
+            console.log("ACCOMMODATIONS ARRAY:", res.data?.data?.data);
+
+            return Array.isArray(res.data?.data?.data) ? res.data.data.data : [];
+        },
+    });
+
+    const { data: user, isLoading: isUserLoading, isError } = useQuery({
+        queryKey: ["me"],
+        queryFn: async () => {
+            const res = await api.get("/me");
+            console.log("hello")
+            console.log(res.data.data)
+            return res.data.data;
+        },
+    });
+
+    const safeAccommodations = Array.isArray(accommodations) ? accommodations : [];
+
+
+    useEffect(() => {
+        if (isError) {
+            navigate("/auth/signin");
+        }
+    }, [isError, navigate]);
+
+    useEffect(() => {
+        if (user && user.role !== "student") {
+            navigate("/auth/signin");
+        }
+    }, [user, navigate]);
+
+
+    // if (profileLoading) {
+    //     return (
+    //         <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
+    //             <p className="text-gray-600">Loading profile...</p>
+    //         </div>
+    //     );
+    // }
+
+    // if (isUserLoading) {
+    //     return (
+    //         <div className="flex items-center justify-center h-screen">
+    //             <p>Loading...</p>
+    //         </div>
+    //     );
+    // }
+
     const [dorms, setDorms] = useState<{ [key: number]: Dorm[] }>(
-        {
-            0: [
-                { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-                { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-                { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-                { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-            ], 1: [
-                { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-                { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-                { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-                { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-            ], 2: [
-                { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-                { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-                { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-                { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-            ]
-        });
+        {});
+
+    const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([]);
+    
+    useEffect(() => {
+        const tempAccommodations: AccommodationPin[] = [];
+        let temp: { [key: number]: Dorm[] } = {}
+        let tempCounter = 0
+        temp[tempCounter] = []
+        for (let i = 0; i < accommodations.length; i++) {
+            if (i != 0 && i % 4 == 0) {
+                tempCounter++;
+                temp[tempCounter] = []
+            }
+            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance } = accommodations[i]
+            tempAccommodations.push({
+                accommodationId: id,
+                accommodationName,
+                accommodationLocation,
+                accommodationType,
+                accommodationCapacity,
+                tenantRestriction,
+                latitude,
+                longitude,
+                minRent: 1000,
+                maxRent: 2000,
+                walkingDistance,
+                drivingDistance,
+                bikingDistance,
+            })
+            temp[tempCounter].push({ name: accommodationName, subtitle: accommodationLocation, meta: accommodationType, price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 })
+        }
+        setDorms(temp)
+        setMapAccommodations(tempAccommodations)
+        console.log("eto", accommodations)
+    }, [accommodations]);
+
 
     const [pageNumber, setPageNumber] = useState(0);
     const [pageLimits, setPageLimits] = useState([0, 2])
 
     // everything under here is for map
-    const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
 
     // ─── Read filters from URL query params ──────────────────────────────────
@@ -610,7 +707,8 @@ export default function BrowsePage() {
 
     // ─── Apply filters ────────────────────────────────────────────────────────
     const filtered = useMemo(() => {
-        return MOCK_ACCOMMODATIONS.filter((acc) => {
+        return mapAccommodations.filter((acc) => {
+            console.log(acc)
             const matchSearch =
                 acc.accommodationName.toLowerCase().includes(search.toLowerCase()) ||
                 acc.accommodationLocation.toLowerCase().includes(search.toLowerCase())
@@ -626,7 +724,7 @@ export default function BrowsePage() {
 
     const centerId = searchParams.get('center')
     const centeredAccommodation = centerId
-        ? MOCK_ACCOMMODATIONS.find((a) => a.accommodationId === Number(centerId)) ?? null
+        ? mapAccommodations.find((a) => a.accommodationId === Number(centerId)) ?? null
         : null
 
     const [isBelowSm, setIsBelowSm] = useState(false);

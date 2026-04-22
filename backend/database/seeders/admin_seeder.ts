@@ -118,5 +118,46 @@ export default class AdminSeeder extends BaseSeeder {
         gender: 'Male',
       }
     )
+
+    const placeholderFile_jd = await FileMetadata.firstOrCreate(
+      { fileName: 'enroll_placeholder_johndavid.pdf' },
+      {
+        fileName: 'enroll_placeholder_johndavid.pdf',
+        filePath: '/uploads/documents/enroll_placeholder_johndavid.pdf',
+        fileType: 'document',
+      }
+    )
+    
+    await User.firstOrCreate(
+      { email: 'jdestadilla@up.edu.ph' },
+      {
+        fname: 'System',
+        lname: 'Administrator',
+        email: 'jdestadilla@up.edu.ph',
+        role: 'super_admin',
+      }
+    )
+
+    const jdUser = await User.firstOrCreate(
+      { email: 'davidestadilla16@gmail.com' },
+      {
+        fname: 'John David',
+        lname: 'Estadilla',
+        email: 'davidestadilla16@gmail.com',
+        role: 'student',
+      }
+    )
+
+    await Student.firstOrCreate(
+      { userId: jdUser.id },
+      {
+        studentNumber: '2024-000005',
+        userId: jdUser.id,
+        enrollmentProofFileId: placeholderFile_jd.id,
+        college: 'CAS',
+        degreeProgram: 'BS Computer Science',
+        gender: 'Male',
+      }
+    )
   }
 }
