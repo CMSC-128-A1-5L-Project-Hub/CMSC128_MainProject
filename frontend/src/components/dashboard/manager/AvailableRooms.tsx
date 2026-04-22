@@ -32,7 +32,7 @@ export default function AvailableRooms({
                             percentage={percentage}
                             size={120}
                             strokeWidth={12}
-                            textSize="base"
+                            pctSize="lg"
                         />
                         <div className="flex flex-col gap-2 flex-1 min-w-0">
                             {rooms.map((room) => (
