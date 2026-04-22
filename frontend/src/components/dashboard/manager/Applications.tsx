@@ -134,6 +134,7 @@ export default function Applications({ data, className="" }: any) {
             onClose={() => setSelectedApplication(null)}
             title="Application"
             maxWidth={900}
+            maxHeight={700}
             children={
                 selectedApplication && (
                 <Card 
@@ -154,27 +155,27 @@ export default function Applications({ data, className="" }: any) {
                         </div>
 
                         {/* Applicant Details + Occupancy Details */}
-                        <div className="grid grid-cols-2 gap-4 border border-[#F5ECF0] rounded-xl p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-[#F5ECF0] rounded-xl p-4">
                             {/* Applicant Details */}
-                            <div className="col-span-1 border-r border-[#F5ECF0] pr-4">
+                            <div className="col-span-1 sm:border-r border-[#F5ECF0] sm:pr-4">
                                 <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
                                     <IoPersonSharp size={18} color="#6B0F2B" />
                                     Applicant Details
                                 </p>
-                                <div className="grid grid-cols-3 gap-y-3">
+                                <div className="grid grid-cols-2 gap-y-3">
                                     <div className="col-span-2">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Email</p>
-                                        <p className="text-[#1A0008] text-sm">{selectedApplication.student.email}</p>
+                                        <p className="text-[#1A0008] text-sm break-all">{selectedApplication.student.email}</p>
                                     </div>
                                     <div className="col-span-1">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Year Level</p>
                                         <p className="text-[#1A0008] text-sm">{selectedApplication.student.yearLevel}</p>
                                     </div>
-                                    <div className="col-span-2">
+                                    <div className="col-span-1">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Phone Number</p>
                                         <p className="text-[#1A0008] text-sm">{selectedApplication.student.phone}</p>
                                     </div>
-                                    <div className="col-span-1">
+                                    <div className="col-span-2">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Degree Program</p>
                                         <p className="text-[#1A0008] text-sm">{selectedApplication.student.course}</p>
                                     </div>
@@ -182,7 +183,7 @@ export default function Applications({ data, className="" }: any) {
                             </div>
 
                             {/* Occupancy Details */}
-                            <div className="col-span-1 pl-2">
+                            <div className="col-span-1 sm:pl-2">
                                 <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
                                     <IoCalendarSharp size={18} color="#6B0F2B" />
                                     Occupancy Details
@@ -195,7 +196,7 @@ export default function Applications({ data, className="" }: any) {
                                     <div>
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Duration</p>
                                         <p className="text-[#1A0008] text-sm">
-                                        {selectedApplication.durationOfStayDays} day{selectedApplication.durationOfStayDays !== 1 ? "s" : ""}
+                                            {selectedApplication.durationOfStayDays} day{selectedApplication.durationOfStayDays !== 1 ? "s" : ""}
                                         </p>
                                     </div>
                                 </div>
@@ -203,9 +204,9 @@ export default function Applications({ data, className="" }: any) {
                         </div>
 
                         {/* Room Preference + Uploaded Documents */}
-                        <div className="grid grid-cols-2 gap-4 border border-[#F5ECF0] rounded-xl p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-[#F5ECF0] rounded-xl p-4">
                             {/* Room Preference */}
-                            <div className="col-span-1 border-r border-[#F5ECF0] pr-4">
+                            <div className="col-span-1 sm:border-r border-[#F5ECF0] sm:pr-4">
                                 <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
                                     <IoBedSharp size={18} color="#6B0F2B" />
                                     Room Preference
@@ -229,7 +230,7 @@ export default function Applications({ data, className="" }: any) {
                             </div>
 
                             {/* Uploaded Documents */}
-                            <div className="col-span-1 pl-2">
+                            <div className="col-span-1 sm:pl-2">
                                 <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
                                     <IoDocumentSharp size={18} color="#6B0F2B" />
                                     Uploaded Documents
@@ -237,7 +238,7 @@ export default function Applications({ data, className="" }: any) {
                                 <div className="flex flex-col gap-2">
                                 {[
                                     { label: "FORM 5", icon: <IoDocumentTextSharp size={16} color="white" /> },
-                                    { label: "VALID ID",  icon: <IoIdCardSharp size={16} color="white" /> },
+                                    { label: "VALID ID", icon: <IoIdCardSharp size={16} color="white" /> },
                                 ].map((doc) => (
                                     <div key={doc.label} className="flex flex-row items-center justify-between">
                                         <div className="flex flex-row items-center gap-2">
@@ -247,9 +248,7 @@ export default function Applications({ data, className="" }: any) {
                                             </div>
                                             <p className="text-[#1A0008] text-xs font-semibold">{doc.label}</p>
                                         </div>
-                                        <Button variant="reddishPink" size="sm">
-                                            View
-                                        </Button>
+                                        <Button variant="reddishPink" size="sm">View</Button>
                                     </div>
                                 ))}
                                 </div>
@@ -292,7 +291,7 @@ export default function Applications({ data, className="" }: any) {
                         </p>
                     </div>
                     <div className="overflow-x-auto -mx-0">
-                        <div className="min-w-[560px] pb-3 lg:pb-0">
+                        <div className="min-w-[650px] pb-3 lg:pb-0">
                             <div className="grid grid-cols-5 border-b border-[#F5ECF0] uppercase"
                                 style={{ gridTemplateColumns: "2fr 1.0fr 2fr 1.5fr 2fr" }}
                             >
