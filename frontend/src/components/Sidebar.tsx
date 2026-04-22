@@ -341,7 +341,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
       case "landlordDashboard":
         return [
           { id: "dashboard",   icon: <DashboardIcon        className="w-5 h-5" />,   path: "/landlord/dashboard", label: "Dashboard" },
-          { id: "room",        icon: <MdOutlineMeetingRoom className="w-6 h-6" />,   path: "",                    label: "Rooms" },
+          { id: "room",        icon: <MdOutlineMeetingRoom className="w-6 h-6" />,   path: "/landlord/rooms",                    label: "Rooms" },
           { id: "application", icon: <BsUiChecks           className="w-5 h-5" />,   path: "",                    label: "Applications & Waitlisted" },
           { id: "fees",        icon: <PiCashRegister       className="w-6 h-6" />,   path: "",                    label: "Fees" },
         ];
