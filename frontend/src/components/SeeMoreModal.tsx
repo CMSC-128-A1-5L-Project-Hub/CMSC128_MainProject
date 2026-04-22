@@ -29,7 +29,6 @@ export default function SeeMoreModal({ open, onClose, extraTags, setExtraTags }:
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  // Close on Escape
   useEffect(() => {
     const handler = (e: globalThis.KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
@@ -61,182 +60,90 @@ export default function SeeMoreModal({ open, onClose, extraTags, setExtraTags }:
       <div
         aria-hidden="true"
         onClick={onClose}
-        style={{
-          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-          zIndex: 9998,
-          background: "rgba(10,2,6,0.72)",
-          backdropFilter: open ? "blur(8px)" : "blur(0px)",
-          WebkitBackdropFilter: open ? "blur(8px)" : "blur(0px)",
-          opacity: open ? 1 : 0,
-          pointerEvents: open ? "all" : "none",
-          transition: "opacity 0.3s ease, backdrop-filter 0.3s ease",
-        }}
+        className={`
+          fixed inset-0 z-[9998]
+          transition-all duration-300 ease-out
+          ${open 
+            ? 'opacity-100 pointer-events-auto backdrop-blur-md' 
+            : 'opacity-0 pointer-events-none backdrop-blur-none'
+          }
+        `}
+        style={{ background: "rgba(10,2,6,0.72)" }}
       />
 
       {/* Centering container */}
       <div
         role="dialog"
         aria-modal="true"
-        style={{
-          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-          zIndex: 9999,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          // Generous but not excessive padding — keeps card from touching edges
-          padding: "clamp(10px, 4vw, 24px)",
-          boxSizing: "border-box",
-          pointerEvents: open ? "all" : "none",
-        }}
+        className={`
+          fixed inset-0 z-[9999]
+          flex items-center justify-center
+          p-[clamp(10px,4vw,24px)] box-border
+          ${open ? 'pointer-events-auto' : 'pointer-events-none'}
+        `}
         onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       >
         {/* Modal card */}
         <div
-          style={{
-            width: "100%",
-            maxWidth: 580,
-            background: "#fff",
-            borderRadius: 24,
-            overflow: "hidden",
-            boxShadow: "0 40px 100px rgba(26,10,15,0.55), 0 8px 32px rgba(26,10,15,0.25)",
-            opacity: open ? 1 : 0,
-            transform: open ? "translateY(0) scale(1)" : "translateY(32px) scale(0.95)",
-            transition: "opacity 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1)",
-          }}
+          className={`
+            w-full max-w-[580px] bg-white rounded-3xl overflow-hidden
+            transition-all duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]
+            ${open 
+              ? 'opacity-100 translate-y-0 scale-100' 
+              : 'opacity-0 translate-y-8 scale-95'
+            }
+          `}
+          style={{ boxShadow: "0 40px 100px rgba(26,10,15,0.55), 0 8px 32px rgba(26,10,15,0.25)" }}
         >
           {/* ── Maroon header ── */}
-          <div
-            style={{
-              position: "relative",           // ← critical: keeps × inside
-              overflow: "hidden",
-              background: "linear-gradient(135deg, #8C1535 0%, #3D0718 100%)",
-              // Generous vertical padding; horizontal has room for the × button
-              padding: "28px 60px 28px 32px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#8C1535] to-[#3D0718] p-[28px_60px_28px_32px] flex items-center justify-center">
             {/* Grid texture */}
             <div
               aria-hidden="true"
+              className="absolute inset-0 pointer-events-none"
               style={{
-                position: "absolute", inset: 0,
                 backgroundImage:
                   "linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px)," +
                   "linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px)",
                 backgroundSize: "28px 28px",
-                pointerEvents: "none",
               }}
             />
+            
             {/* Gold glow */}
             <div
               aria-hidden="true"
-              style={{
-                position: "absolute",
-                top: "-60px", right: "10%",
-                width: 200, height: 200,
-                background: "radial-gradient(circle, rgba(201,151,58,0.14) 0%, transparent 65%)",
-                pointerEvents: "none",
-              }}
+              className="absolute -top-[60px] right-[10%] w-[200px] h-[200px] pointer-events-none"
+              style={{ background: "radial-gradient(circle, rgba(201,151,58,0.14) 0%, transparent 65%)" }}
             />
 
             {/* Title block */}
-            <div style={{ position: "relative", zIndex: 2, textAlign: "center" }}>
-              <p
-                style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: "0.22em",
-                  textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.5)",
-                  marginBottom: 8,
-                  margin: "0 0 8px",
-                }}
-              >
+            <div className="relative z-10 text-center">
+              <p className="font-['Plus_Jakarta_Sans',sans-serif] text-[9px] font-bold tracking-[0.22em] uppercase text-white/50 mb-2">
                 SEARCH FILTERS
               </p>
-              <h2
-                style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  fontSize: "clamp(20px, 5vw, 26px)",
-                  fontWeight: 800,
-                  color: "#fff",
-                  letterSpacing: "0.04em",
-                  lineHeight: 1,
-                  textTransform: "uppercase",
-                  margin: 0,
-                }}
-              >
+              <h2 className="font-['Plus_Jakarta_Sans',sans-serif] text-[clamp(20px,5vw,26px)] font-extrabold text-white tracking-[0.04em] leading-none uppercase m-0">
                 More Filters
               </h2>
             </div>
 
-            {/* ── Circular × — contained within header ── */}
+            {/* ── Circular × button ── */}
             <button
               onClick={onClose}
               aria-label="Close modal"
-              style={{
-                position: "absolute",
-                top: 16,
-                right: 16,
-                zIndex: 3,
-                width: 36,
-                height: 36,
-                flexShrink: 0,
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.15)",
-                border: "1.5px solid rgba(255,255,255,0.30)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "rgba(255,255,255,0.9)",
-                fontSize: 20,
-                lineHeight: 1,
-                padding: 0,
-                transition: "background 0.2s, transform 0.2s",
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.28)";
-                (e.currentTarget as HTMLElement).style.transform = "scale(1.1)";
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.15)";
-                (e.currentTarget as HTMLElement).style.transform = "scale(1)";
-              }}
+              className="absolute top-4 right-4 z-30 w-9 h-9 shrink-0 rounded-full bg-white/15 border-[1.5px] border-white/30 cursor-pointer flex items-center justify-center text-white/90 text-[20px] leading-none p-0 transition-all duration-200 hover:bg-white/28 hover:scale-110"
             >
               ×
             </button>
           </div>
 
           {/* ── Body ── */}
-          <div
-            style={{
-              // Generous, responsive padding — clamp gives mobile-friendly values
-              padding: "clamp(16px, 4vw, 28px)",
-              maxHeight: "52vh",
-              overflowY: "auto",
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontSize: 9,
-                fontWeight: 700,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "#9A7080",
-                marginBottom: 14,
-                margin: "0 0 14px",
-              }}
-            >
+          <div className="p-[clamp(16px,4vw,28px)] max-h-[52vh] overflow-y-auto">
+            <p className="font-['Plus_Jakarta_Sans',sans-serif] text-[9px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-[14px]">
               Select Filters
             </p>
 
             {/* Tag grid */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 24 }}>
+            <div className="flex flex-wrap gap-2.5 mb-6">
               {allTags.map(tag => {
                 const isActive = selected.includes(tag);
                 const isCustom = customList.includes(tag);
@@ -244,105 +151,46 @@ export default function SeeMoreModal({ open, onClose, extraTags, setExtraTags }:
                   <button
                     key={tag}
                     onClick={() => toggle(tag)}
-                    style={{
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      padding: "9px 18px",
-                      borderRadius: 999,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      transition: "all 0.2s",
-                      background: isActive
-                        ? "linear-gradient(135deg,#6B0F2B,#3D0718)"
+                    className={`
+                      font-['Plus_Jakarta_Sans',sans-serif] text-[13px] font-semibold
+                      py-[9px] px-[18px] rounded-full cursor-pointer flex items-center gap-1.5
+                      transition-all duration-200
+                      ${isActive 
+                        ? 'bg-gradient-to-br from-[#6B0F2B] to-[#3D0718] text-white shadow-[0_4px_14px_rgba(107,15,43,0.28)] scale-104 border-none' 
                         : isCustom
-                          ? "rgba(107,15,43,0.05)"
-                          : "#f5f0f2",
-                      color: isActive ? "#fff" : "#5A3040",
-                      border: isActive
-                        ? "none"
-                        : isCustom
-                          ? "1.5px dashed #B5344F"
-                          : "1.5px solid #e8dfe3",
-                      boxShadow: isActive ? "0 4px 14px rgba(107,15,43,0.28)" : "none",
-                      transform: isActive ? "scale(1.04)" : "scale(1)",
-                    }}
+                          ? 'bg-[rgba(107,15,43,0.05)] text-[#5A3040] border-[1.5px] border-dashed border-[#B5344F]'
+                          : 'bg-[#f5f0f2] text-[#5A3040] border-[1.5px] border-[#e8dfe3]'
+                      }
+                    `}
                   >
                     {tag}
-                    {isActive && <span style={{ fontSize: 10, opacity: 0.75 }}>✓</span>}
+                    {isActive && <span className="text-[10px] opacity-75">✓</span>}
                   </button>
                 );
               })}
             </div>
 
             {/* Divider */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{ flex: 1, height: 1, background: "rgba(107,15,43,0.1)" }} />
-              <span
-                style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: "0.14em",
-                  textTransform: "uppercase",
-                  color: "#9A7080",
-                  whiteSpace: "nowrap",
-                }}
-              >
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="flex-1 h-px bg-[rgba(107,15,43,0.1)]" />
+              <span className="font-['Plus_Jakarta_Sans',sans-serif] text-[9px] font-bold tracking-[0.14em] uppercase text-[#9A7080] whitespace-nowrap">
                 Add Your Own
               </span>
-              <div style={{ flex: 1, height: 1, background: "rgba(107,15,43,0.1)" }} />
+              <div className="flex-1 h-px bg-[rgba(107,15,43,0.1)]" />
             </div>
 
             {/* Custom input */}
-            <div style={{ display: "flex", gap: 10 }}>
+            <div className="flex gap-2.5">
               <input
                 value={customInput}
                 onChange={e => setCustomInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder='e.g. "Near Gym", "With Desk"…'
-                style={{
-                  flex: 1,
-                  padding: "11px 16px",
-                  borderRadius: 12,
-                  fontSize: 13,
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: "#1A0A0F",
-                  border: "1.5px solid rgba(107,15,43,0.15)",
-                  background: "#fdf8fa",
-                  outline: "none",
-                  transition: "border-color 0.2s, box-shadow 0.2s",
-                  minWidth: 0,        // ← prevents flex overflow
-                }}
-                onFocus={e => {
-                  e.currentTarget.style.borderColor = "#6B0F2B";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(107,15,43,0.08)";
-                }}
-                onBlur={e => {
-                  e.currentTarget.style.borderColor = "rgba(107,15,43,0.15)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
+                className="flex-1 py-[11px] px-4 rounded-xl text-[13px] font-['Plus_Jakarta_Sans',sans-serif] text-[#1A0A0F] border-[1.5px] border-[rgba(107,15,43,0.15)] bg-[#fdf8fa] outline-none transition-all duration-200 focus:border-[#6B0F2B] focus:shadow-[0_0_0_3px_rgba(107,15,43,0.08)] min-w-0"
               />
               <button
                 onClick={addCustom}
-                style={{
-                  flexShrink: 0,
-                  padding: "11px 22px",
-                  borderRadius: 12,
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: "#fff",
-                  background: "linear-gradient(135deg,#6B0F2B,#3D0718)",
-                  boxShadow: "0 4px 14px rgba(107,15,43,0.28)",
-                  transition: "transform 0.15s",
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.05)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
+                className="shrink-0 py-[11px] px-[22px] rounded-xl border-none cursor-pointer text-[13px] font-bold font-['Plus_Jakarta_Sans',sans-serif] text-white bg-gradient-to-br from-[#6B0F2B] to-[#3D0718] shadow-[0_4px_14px_rgba(107,15,43,0.28)] transition-transform duration-150 hover:scale-105"
               >
                 Add
               </button>
@@ -350,79 +198,23 @@ export default function SeeMoreModal({ open, onClose, extraTags, setExtraTags }:
           </div>
 
           {/* ── Footer ── */}
-          <div
-            style={{
-              padding: "16px clamp(16px, 4vw, 28px) 22px",
-              borderTop: "1px solid rgba(107,15,43,0.08)",
-              display: "flex",
-              flexWrap: "wrap",       // ← wraps on very narrow screens
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <span
-              style={{
-                flex: 1,
-                minWidth: 100,        // ← prevents squishing
-                fontSize: 12,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: "#9A7080",
-              }}
-            >
+          <div className="p-[16px_clamp(16px,4vw,28px)_22px] border-t border-[rgba(107,15,43,0.08)] flex flex-wrap items-center gap-3">
+            <span className="flex-1 min-w-[100px] text-xs font-['Plus_Jakarta_Sans',sans-serif] text-[#9A7080]">
               {selected.length > 0
-                ? <><strong style={{ color: "#6B0F2B" }}>{selected.length}</strong> filter{selected.length !== 1 ? "s" : ""} selected</>
+                ? <><strong className="text-[#6B0F2B]">{selected.length}</strong> filter{selected.length !== 1 ? "s" : ""} selected</>
                 : "No filters selected"}
             </span>
 
             <button
               onClick={handleReset}
-              style={{
-                flexShrink: 0,
-                padding: "10px 22px",
-                borderRadius: 999,
-                fontSize: 13,
-                fontWeight: 600,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                border: "1.5px solid rgba(107,15,43,0.2)",
-                background: "transparent",
-                color: "#5A3040",
-                cursor: "pointer",
-                transition: "border-color 0.2s, color 0.2s",
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#6B0F2B";
-                (e.currentTarget as HTMLElement).style.color = "#6B0F2B";
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(107,15,43,0.2)";
-                (e.currentTarget as HTMLElement).style.color = "#5A3040";
-              }}
+              className="shrink-0 py-2.5 px-[22px] rounded-full text-[13px] font-semibold font-['Plus_Jakarta_Sans',sans-serif] border-[1.5px] border-[rgba(107,15,43,0.2)] bg-transparent text-[#5A3040] cursor-pointer transition-all duration-200 hover:border-[#6B0F2B] hover:text-[#6B0F2B]"
             >
               Reset
             </button>
 
             <button
               onClick={handleApply}
-              style={{
-                flexShrink: 0,
-                padding: "10px 28px",
-                borderRadius: 999,
-                border: "none",
-                fontSize: 13,
-                fontWeight: 700,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: "#fff",
-                cursor: "pointer",
-                background: "linear-gradient(135deg,#6B0F2B,#3D0718)",
-                boxShadow: "0 6px 20px rgba(107,15,43,0.35)",
-                transition: "transform 0.2s, box-shadow 0.2s",
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-1px) scale(1.03)";
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0) scale(1)";
-              }}
+              className="shrink-0 py-2.5 px-7 rounded-full border-none text-[13px] font-bold font-['Plus_Jakarta_Sans',sans-serif] text-white cursor-pointer bg-gradient-to-br from-[#6B0F2B] to-[#3D0718] shadow-[0_6px_20px_rgba(107,15,43,0.35)] transition-all duration-200 hover:-translate-y-px hover:scale-103"
             >
               Apply Filters
             </button>

@@ -4,7 +4,7 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable('users', (table) => {
       table.increments('id').primary()
-      table.integer('pfp_file_id').unsigned().nullable().unique().references('id').inTable('file_metadata').onDelete('RESTRICT')
+      table.integer('pfp_file_id').unsigned().nullable().references('id').inTable('file_metadata').onDelete('RESTRICT')
       table.string('fname', 50).notNullable()
       table.string('mname', 50).nullable()
       table.string('lname', 50).notNullable()
@@ -12,6 +12,7 @@ export default class extends BaseSchema {
       table.string('email', 75).notNullable().unique()
       table.string('facebook_account', 100).nullable()
       table.enum('role', ['student', 'landlord', 'manager', 'unassigned', 'super_admin']).notNullable().defaultTo('unassigned')
+      table.enum('account_status', ['pending', 'active', 'suspended', 'initial']).defaultTo('initial')
     })
 
     this.schema.createTable('phone_numbers', (table) => {

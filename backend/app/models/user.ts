@@ -36,6 +36,9 @@ export default class User extends BaseModel {
   @column()
   declare role: 'student' | 'landlord' | 'manager' | 'unassigned' | 'super_admin'
 
+  @column()
+  declare accountStatus: 'pending' | 'active' | 'suspended' | 'initial'
+  
   @belongsTo(() => FileMetadata, { foreignKey: 'pfpFileId' })
   declare profilePicture: BelongsTo<typeof FileMetadata>
 

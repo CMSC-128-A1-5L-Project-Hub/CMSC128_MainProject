@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 import type {ButtonHTMLAttributes} from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type ButtonVariant = "primary" | "secondary" | "ghost" | "gold" | "danger";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "gold" | "danger" | "reddishPink" | "dashed";
 type ButtonSize    = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,6 +17,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // ─── Base Tailwind classes (no arbitrary values — safe without JIT) ───────────
 const BASE =
   "inline-flex items-center justify-center gap-2 font-sans font-bold " +
+  "cursor-pointer border-none rounded-xl transition-all duration-200 " + 
   "cursor-pointer border-none rounded-full transition-all duration-200 " +
   "select-none whitespace-nowrap tracking-wide leading-none " +
   "disabled:opacity-50 disabled:cursor-not-allowed " +
@@ -24,6 +25,8 @@ const BASE =
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:   "hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-900",
+  reddishPink: "hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-900",
+  dashed: "hover:opacity-80 active:scale-95 focus-visible:ring-[#C9A8B2]",
   secondary: "hover:scale-105 active:scale-95 focus-visible:ring-red-900",
   ghost:     "hover:opacity-80 active:scale-95 focus-visible:ring-gray-400",
   gold:      "hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-yellow-500",
@@ -48,6 +51,18 @@ const VARIANT_STYLES: Record<ButtonVariant, React.CSSProperties> = {
     border:     "1.5px solid rgba(107,15,43,0.25)",
     boxShadow:  "none",
     color:      "#5A3040",
+  },
+  reddishPink: {
+    background: "rgba(140,21,53,0.08)",
+    border:     "1.5px solid rgba(140,21,53,0.2)",
+    boxShadow:  "none",
+    color:      "#6B0F2B",
+  },
+  dashed: {
+    background: "transparent",
+    border:     "2px dashed #D4B0BA",
+    boxShadow:  "none",
+    color:      "#9A7080",
   },
   ghost: {
     background: "none",
