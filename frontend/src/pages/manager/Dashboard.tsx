@@ -65,11 +65,15 @@ interface Application {
     applicationDate: string 
 }
 
-interface ConfirmedStudent {
-    studentName: string
-    stayType: string
+//update na lang para sa Room model
+interface Assignment {
+    student: Application
+    roomNumber: string
+    roomBuilding: string
     roomType: string
-    dateConfirmed: string
+    stayType: string
+    moveIn: string
+    expectedMoveOut: string
     status: "assigned" | "not assigned"
 }
 
@@ -314,15 +318,22 @@ const applications: Application[] = [
   }
 ]
 
-const confirmedStudents: ConfirmedStudent[] = [
-    {studentName: "Ana Marie Reyes", stayType: "Transient", roomType: "Shared", dateConfirmed: "Mar 14, 2026", status:"assigned"}
+const assignments: Assignment[] = [
+    {
+        student: applications[1], // Carlos Miguel Santos — applicationStatus: "approved"
+        roomNumber: "312",
+        roomBuilding: "Building 4",
+        roomType: "Double",
+        stayType: "Non-Transient",
+        moveIn: "Mar 15, 2026",
+        expectedMoveOut: "Aug 15, 2026",
+        status: "not assigned"
+    }
 ]
 
 const moves: Move[] = [
     {studentName: "Ana Marie Reyes", room: "Room 6543", building: "Building 6", roomType: "Shared", stayType: "Transient", type: "move-out", date:"March 28, 2026"}
 ]
-
-
 
 export default function Dashboard() {
     const waitlistedApplications = applications.filter(
@@ -331,6 +342,10 @@ export default function Dashboard() {
 
     const pendingApplications = applications.filter(
         (application) => application.applicationStatus === "pending"
+    ).slice(0, 5)
+
+    const confirmedStudents = assignments.filter(
+        (assignment) => assignment.student.applicationStatus === "approved"
     ).slice(0, 5)
 
     return (
