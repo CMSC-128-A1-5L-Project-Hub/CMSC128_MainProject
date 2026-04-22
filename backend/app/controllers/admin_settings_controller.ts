@@ -1,71 +1,80 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import SysVariables from '#models/sys_variable'
 import Student from '#models/student'
+import User from '#models/user'
 
+// This can be refactored to use a service class if we want to separate the business logic from the controller
 export default class AdminSettingsController {
-    async index({ request, response }: HttpContext) {
-        const {
-            id
-        } = request.qs()
+  async index({ response }: HttpContext) {
+    const settings = await SysVariables.query()
+      .orderBy('semStartDate', 'desc')
+      .first()
 
-        const admin = await SysVariables.query().where('id', id).first();
-
-        if (!admin) {
-            return response.notFound({
-                status: 404,
-                error: 'Not Found',
-                message: 'System variable not found or does not belong to you.',
-            })
-        }
-
-        return response.ok({
-            status: 200,
-            data: {
-                id: admin.id,
-                currentSemester: admin.currentSemester,
-                currentSy: admin.currentSy,
-                semStartDate: admin.semStartDate,
-                uplbLatitude: admin.uplbLatitude,
-                uplbLongitude: admin.uplbLongitude,
-            }
-        })
+    const semesterMap: Record<string, string> = {
+      first_sem: '1st Semester',
+      second_sem: '2nd Semester',
+      midyear: 'Midyear',
     }
 
-
-    async update({ request, auth, response, serialize }: HttpContext) {
-        const admin = auth.user!.id
-
-        const sys_variables = await SysVariables.query()
-            .where('id', admin)
-            .first()
-
-        if (!sys_variables) {
-            return response.notFound({
-                status: 404,
-                error: 'Not Found',
-                message: 'System variable not found or does not belong to you.',
-            })
-        }
-
-        const {
-            currentSemester,
-            currentSy
-        } = request.body()
-
-
-        sys_variables.merge({
-            ...(currentSemester && { currentSemester: currentSemester }),
-            ...(currentSy && { currentSy: currentSy }),
-        })
-
-        await Student
-            .query()
-            .update({
-                form5_renewal: true
-            })
-
-        await sys_variables.save()
-
-        return serialize(sys_variables.serialize())
+    if (!settings) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'System settings not found.',
+      })
     }
+
+    return response.ok({
+      status: 200,
+      data: {
+        id: settings.id,
+        currentSemester: semesterMap[settings.currentSemester] ?? settings.currentSemester,
+        currentSy: settings.currentSy,
+        semStartDate: settings.semStartDate,
+        uplbLatitude: settings.uplbLatitude,
+        uplbLongitude: settings.uplbLongitude,
+      },
+    })
+  }
+
+  async update({ request, response, serialize }: HttpContext) {
+    const settings = await SysVariables.query()
+      .orderBy('semStartDate', 'desc')
+      .first()
+
+    if (!settings) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'System settings not found.',
+      })
+    }
+
+    const { currentSemester, currentSy } = request.body()
+
+    settings.merge({
+      ...(currentSemester && { currentSemester }),
+      ...(currentSy && { currentSy }),
+    })
+
+    await Student.query().update({
+      form5_renewal: true,
+    })
+
+    await settings.save()
+
+    return serialize(settings.serialize())
+  }
+
+  async countUsers({ response }: HttpContext) {
+  const totalUsers = await User.query().count('* as total')
+
+  return response.ok({
+    status: 200,
+    data: {
+      total: Number(totalUsers[0].$extras.total),
+    },
+  })
 }
+}
+

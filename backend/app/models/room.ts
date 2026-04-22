@@ -2,6 +2,7 @@ import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Accommodation from '#models/accommodation'
 import Assignment from '#models/assignment'
+import RoomTag from '#models/room_tag'
 
 export default class Room extends BaseModel {
   static table = 'rooms'
@@ -44,4 +45,7 @@ export default class Room extends BaseModel {
 
   @hasMany(() => Assignment, { foreignKey: 'roomId' })
   declare assignments: HasMany<typeof Assignment>
+
+  @hasMany(() => RoomTag, { foreignKey: 'roomId' })
+  declare tags: HasMany<typeof RoomTag>
 }

@@ -5,7 +5,7 @@ import LogService from '#services/log_service'
 @inject()
 export default class LogsController {
   
-  constructor(protected logService: LogService) {}
+  // constructor(protected logService: LogService) {}
 
   /**
    * GET /logs
@@ -16,7 +16,7 @@ export default class LogsController {
     const filters = request.qs()
 
     // 2. Get data from service
-    const logs = await this.logService.getFilteredLogs(filters)
+    const logs = await LogService.getFilteredLogs(filters)
 
     // 3. Serve it to the frontend
     return serialize(logs)

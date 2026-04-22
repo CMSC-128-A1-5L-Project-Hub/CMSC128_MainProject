@@ -19,6 +19,7 @@ export default class SetupController {
 
   async store({ request, auth, serialize }: HttpContext) {
     const user = auth.user as User
+    console.log(`[SetupForm] User ${user.id} (${user.email}) submitted setup form for review`)
     try {
       const validatedData = await request.validateUsing(setupProfileValidator)
       const result = await this.profileService.setupProfile(user, validatedData)
