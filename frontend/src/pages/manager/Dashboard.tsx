@@ -413,7 +413,6 @@ export default function Dashboard() {
                     status={managerProfile.status}
                     //change these sa backend connection 
                     onNotification={() => console.log("notifications")}
-                    onReport={() => console.log("report")}
                 />
                 <AvailableRooms 
                     totalRooms={100}
