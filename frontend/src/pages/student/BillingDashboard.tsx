@@ -165,37 +165,36 @@ export default function BillingDashboard(){
                     </div>
                 </div>
 
-
-                <div className="flex flex-row  justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-4 mx-4 mt-6 lg:mt-7 mb-2 rounded-xl shrink-0">
-                    <div>
-                        <p className="uppercase font-bold text-white text-opacity-55 text-[12px] lg:text-[13px]">pay now</p>
-                        <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">₱{earliestBill.amount.toLocaleString()}</h1>
-                        <p className="text-white font-semibold text-opacity-55 text-[12.5px] lg:text-[13.5px]">{earliestBill.dateIssued.toLocaleDateString('en-US', {month: 'long', year:'numeric'})}</p>
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mx-4 mt-6 my-2">
+                    <div className="flex items-center flex-row justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-4 col-span-2 lg:col-span-1 rounded-xl shrink-0">
+                        <div>
+                            <p className="uppercase font-bold text-white text-opacity-55 text-[12px] lg:text-[13px]">pay now</p>
+                            <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">₱{earliestBill.amount.toLocaleString()}</h1>
+                            <p className="text-white font-semibold text-opacity-55 text-[12.5px] lg:text-[13.5px]">{earliestBill.dateIssued.toLocaleDateString('en-US', {month: 'long', year:'numeric'})}</p>
+                        </div>
+                        <button 
+                            onClick={() => {setPayOpen(true); setSelectedBill(earliestBill); }}
+                            className="flex shrink-0 justify-center items-center w-30 h-10 flex-row text-[13px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25">
+                            Pay Now
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-4 h-4 text-[#6B0F2B] self-center ml-2"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+                                <path
+                                    d="M9 18l6-6-6-6"
+                                    stroke="white"
+                                    strokeWidth="3"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        </button>
                     </div>
-                    <button 
-                        onClick={() => {setPayOpen(true); setSelectedBill(earliestBill); }}
-                        className="flex self-center w-30 h-10 flex-row text-[13px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25">
-                        Pay Now
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 h-4 text-[#6B0F2B] self-center ml-2"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                        >
-                            <path
-                                d="M9 18l6-6-6-6"
-                                stroke="white"
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-                    </button>
-                </div>
-
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mx-4 my-2">
+                    
                     {summaryCards.map(card => (
-                        <div key={card.label} className="flex flex-1 flex-col bg-white rounded-xl p-4">
+                        <div key={card.label} className="flex flex-col bg-white rounded-xl shrink-0 justify-center p-4">
                             <p className="text-[#9A7080] font-bold uppercase text-[11px]">{card.label}</p>
                             <p className="font-bold"
                             style={{ color: card.color }}
