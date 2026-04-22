@@ -115,12 +115,12 @@ export default function MapPage() {
   // This way filters set on the cards/browse page carry over to the map
   const search = searchParams.get('search') ?? ''
   const type = searchParams.get('type') ?? 'all'
-  const restriction = searchParams.get('restriction') ?? 'all'
   const minRent = Number(searchParams.get('min_rent') ?? 1000)
   const maxRent = Number(searchParams.get('max_rent') ?? 10000)
-  const maxWalk = Number(searchParams.get('max_walk') ?? 60)
-  const minCapacity = Number(searchParams.get('min_capacity') ?? 0)
-  const stayType = searchParams.get('stay_type') ?? 'all'
+
+  const [minRating, setMinRating] = useState(0);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState(['WiFi', 'Furnished', 'Air-con', 'Transient', 'Laundry', 'Study-Friendly']);
 
   // center=:id — which accommodation to center on (from "View Location" button)
   const centerId = searchParams.get('center')
@@ -136,37 +136,37 @@ export default function MapPage() {
     } else {
       params.set(key, String(value))
     }
-    // Keep center param if it exists
     setSearchParams(params)
   }
 
   const resetFilters = () => {
     const params = new URLSearchParams()
-    // Preserve center if it exists
     if (centerId) params.set('center', centerId)
     setSearchParams(params)
+
+    setMinRating(0)
+    setSelectedTags([])
   }
 
   // ─── Apply filters ────────────────────────────────────────────────────────
-  const [minRating, setMinRating] = useState(0);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState([
-  'WiFi', 'Furnished', 'Air-con', 'Transient', 'Laundry', 'Study-Friendly'
-]);
-
   const [appliedFilters, setAppliedFilters] = useState({
     rating: 0,
-    tags: [] as string[]
+    tags: [] as string[],
+    minRent: 1000,
+    maxRent: 15000,
+    type: searchParams.get('type') ?? 'all',
   });
 
   const handleApplyFilters = () => {
     setAppliedFilters({
       rating: minRating,
-      tags: selectedTags
+      tags: selectedTags,
+      minRent: minRent,
+      maxRent: maxRent,
+      type: type,
     });
   };
 
-  // Toggle tag selection
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => 
       prev.includes(tag) 
@@ -178,19 +178,13 @@ export default function MapPage() {
   const filtered = useMemo(() => {
     return MOCK_ACCOMMODATIONS.filter((acc) => {
       const matchSearch = acc.accommodationName.toLowerCase().includes(search.toLowerCase());
-      const matchType = type === 'all' || acc.accommodationType === type;
-      const matchRestriction = restriction === 'all' || acc.tenantRestriction === restriction;
-      const matchRent = acc.minRent >= minRent && acc.minRent <= maxRent;
-      
-      // Use appliedFilters instead of the raw states
+      const matchType = appliedFilters.type === 'all' || acc.accommodationType === appliedFilters.type;
+      const matchRent = acc.minRent >= appliedFilters.minRent && acc.minRent <= appliedFilters.maxRent;   
       const matchRating = acc.rating >= appliedFilters.rating;
-      
-      const matchTags = appliedFilters.tags.length === 0 || 
-        appliedFilters.tags.every(tag => acc.amenities?.includes(tag));
+      const matchTags = appliedFilters.tags.length === 0 || appliedFilters.tags.every(tag => acc.amenities?.includes(tag));
 
       return matchSearch && matchType && matchRent && matchRating && matchTags;
     });
-    // Update dependencies to watch appliedFilters
   }, [search, type, minRent, maxRent, appliedFilters]);
 
   // ─── Styles ───────────────────────────────────────────────────────────────
@@ -221,7 +215,7 @@ export default function MapPage() {
       {/* ─── Sidebar ─────────────────────────────────────────────────────── */}
       <div className="hide-scrollbar"
         style={{
-          width: '350px', // Slightly wider to match the reference image
+          width: '350px',
           minWidth: '350px',
           backgroundColor: 'white',
           boxShadow: '2px 0 12px rgba(0,0,0,0.08)',
@@ -337,7 +331,6 @@ export default function MapPage() {
                 max="15000"
                 step="100"
                 value={minRent}
-                // Logic: Don't let min cross max
                 onChange={(e) => {
                   const val = Math.min(Number(e.target.value), maxRent - 500);
                   updateFilter('min_rent', val);
@@ -349,7 +342,6 @@ export default function MapPage() {
                 max="15000"
                 step="100"
                 value={maxRent}
-                // Logic: Don't let max cross min
                 onChange={(e) => {
                   const val = Math.max(Number(e.target.value), minRent + 500);
                   updateFilter('max_rent', val);
@@ -374,7 +366,10 @@ export default function MapPage() {
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button 
                     key={star} 
-                    onClick={() => setMinRating(star)}
+                    onClick={() => {
+                      setMinRating(star)
+                      updateFilter('rating', star)
+                    }}
                     className="flex items-center justify-center p-0 border-none bg-transparent outline-none transition-transform active:scale-90">
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
