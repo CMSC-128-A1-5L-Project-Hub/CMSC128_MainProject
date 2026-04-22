@@ -52,6 +52,8 @@ const emptyBilling: BillingOverview = {
   totalDue: 0,
   progressPercent: 0,
 };
+import HeroBanner from "../../components/dashboard/HeroBanner";
+import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 
 // ── SVG / asset imports ────────────────────────────────────────────────────
 import house_icon from "../../assets/icons/house_icon.svg";
@@ -234,6 +236,77 @@ const recommended = [
     review:
       "Affordable and decent stay. Best for short-term use. The place is clean but can get a bit noisy during peak hours.",
     img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+];
+
+const dashboardMapAccommodations: AccommodationPin[] = [
+  {
+    accommodationId: 1,
+    accommodationName: "Kamia Residence",
+    accommodationLocation: "UPLB Campus, Los Baños, Laguna",
+    accommodationType: "on-campus",
+    accommodationCapacity: 50,
+    tenantRestriction: "female-only",
+    latitude: 14.1672,
+    longitude: 121.2430,
+    minRent: 3200,
+    maxRent: 3200,
+    walkingDistance: 3,
+    drivingDistance: 2,
+    bikingDistance: 2,
+    stayType: "transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    accommodationId: 2,
+    accommodationName: "Narra Residence",
+    accommodationLocation: "Off-campus, Los Baños, Laguna",
+    accommodationType: "off-campus",
+    accommodationCapacity: 30,
+    tenantRestriction: "coed",
+    latitude: 14.1690,
+    longitude: 121.2455,
+    minRent: 8500,
+    maxRent: 8500,
+    walkingDistance: 8,
+    drivingDistance: 4,
+    bikingDistance: 5,
+    stayType: "non_transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    accommodationId: 3,
+    accommodationName: "Molave Dorm",
+    accommodationLocation: "On-campus, Los Baños, Laguna",
+    accommodationType: "on-campus",
+    accommodationCapacity: 40,
+    tenantRestriction: "male-only",
+    latitude: 14.1658,
+    longitude: 121.2418,
+    minRent: 5000,
+    maxRent: 5000,
+    walkingDistance: 5,
+    drivingDistance: 3,
+    bikingDistance: 3,
+    stayType: "non_transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    accommodationId: 4,
+    accommodationName: "Acacia Suites",
+    accommodationLocation: "Near Gate 1, Los Baños, Laguna",
+    accommodationType: "off-campus",
+    accommodationCapacity: 20,
+    tenantRestriction: "coed",
+    latitude: 14.1645,
+    longitude: 121.2400,
+    minRent: 4200,
+    maxRent: 4200,
+    walkingDistance: 10,
+    drivingDistance: 6,
+    bikingDistance: 7,
+    stayType: "transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
   },
 ];
 
@@ -1180,27 +1253,20 @@ if (isUserLoading) {
             </div>
 
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
-              <div
-                className="rounded-xl overflow-hidden flex-1 min-h-[130px] sm:min-h-[150px] relative cursor-pointer group"
-                onClick={() => navigate("/map")}
-              >
-                <iframe
-                  title="UPLB Map Preview"
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=121.2380%2C14.1630%2C121.2490%2C14.1720&layer=mapnik&marker=14.1672%2C121.2430"
-                  className="w-full h-full border-0 absolute inset-0 pointer-events-none"
-                />
-                <div className="absolute inset-0 bg-[#3D0718]/0 group-hover:bg-[#3D0718]/20 transition-colors flex items-center justify-center">
-                  <span
-                    className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg"
-                    style={{ color: CLR.mid }}
-                  >
-                    Open Full Map
-                  </span>
+              <div className="rounded-xl overflow-hidden flex-1 min-h-[220px] sm:min-h-[260px] relative">
+                <div className="absolute inset-0">
+                  <AccommodationMap
+                    accommodations={dashboardMapAccommodations}
+                    centeredAccommodation={dashboardMapAccommodations[0]}
+                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+                  />
                 </div>
               </div>
 
               <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Dorm Type</p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">
+                  Dorm Type
+                </p>
 
                 <div className="relative mb-3">
                   <select className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition">
@@ -1229,7 +1295,7 @@ if (isUserLoading) {
                 </div>
 
                 <button
-                  onClick={() => navigate("/map")}
+                  onClick={() => navigate("/browse")}
                   className="w-full text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-sm"
                   style={{ background: CLR.mid }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = CLR.dark)}
@@ -1239,8 +1305,7 @@ if (isUserLoading) {
                 </button>
               </div>
             </div>
-          </div>
-
+            </div>
           <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
             {billingLoading ? (
               <div className="bg-white rounded-2xl p-4">

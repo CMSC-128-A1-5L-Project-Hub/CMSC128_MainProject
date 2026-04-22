@@ -140,7 +140,7 @@ export function Modal({
                       hover:bg-white/30 hover:scale-110
                   "
               >
-                  X
+                  ✕
               </button>
             </div>
           )}
