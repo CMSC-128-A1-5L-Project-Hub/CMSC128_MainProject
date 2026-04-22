@@ -47,20 +47,30 @@ type Application = {
 export default function Waitlist({ waitlists, className="" }: {waitlists: Application[], className: string}) {
     const navigate = useNavigate()
     const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)
+    const [modalWaitlist, setModalWaitlist] = useState<Application | null>(null)
 
     //avatar initials from name
     const getInitials = (name: string) => name[0]
+
+    const openModal = (app: Application) => {
+        setModalWaitlist(app)
+        setSelectedApplication(app)
+    }
+
+    const closeModal = () => {
+        setSelectedApplication(null)
+    }
 
     return (
         <>
         <Modal 
             open={!!selectedApplication}
-            onClose={() => setSelectedApplication(null)}
+            onClose={closeModal}
             title="Application"
             maxWidth={900}
             maxHeight={650}
             children={
-                selectedApplication && (
+                modalWaitlist && (
                 <Card 
                     children={
                     <div className="flex flex-col gap-6">
@@ -69,13 +79,13 @@ export default function Waitlist({ waitlists, className="" }: {waitlists: Applic
                         <div className="flex flex-row justify-between items-start">
                             <div className="flex flex-col">
                                 <p className="text-[#1A0008] font-bold text-xl">
-                                    {selectedApplication.student.fullName}
+                                    {modalWaitlist.student.fullName}
                                 </p>
                                 <p className="text-[#C8B0B8] text-xs mt-1">
-                                    Date Applied: {selectedApplication.applicationDate}
+                                    Date Applied: {modalWaitlist.applicationDate}
                                 </p>
                             </div>
-                            <StatusBadge status={selectedApplication.applicationStatus} />
+                            <StatusBadge status={modalWaitlist.applicationStatus} />
                         </div>
 
                         {/* Applicant Details + Occupancy Details */}
@@ -89,19 +99,19 @@ export default function Waitlist({ waitlists, className="" }: {waitlists: Applic
                                 <div className="grid grid-cols-2 gap-y-3">
                                     <div className="col-span-2">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Email</p>
-                                        <p className="text-[#1A0008] text-sm break-all">{selectedApplication.student.email}</p>
+                                        <p className="text-[#1A0008] text-sm break-all">{modalWaitlist.student.email}</p>
                                     </div>
                                     <div className="col-span-1">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Year Level</p>
-                                        <p className="text-[#1A0008] text-sm">{selectedApplication.student.yearLevel}</p>
+                                        <p className="text-[#1A0008] text-sm">{modalWaitlist.student.yearLevel}</p>
                                     </div>
                                     <div className="col-span-1">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Phone Number</p>
-                                        <p className="text-[#1A0008] text-sm">{selectedApplication.student.phone}</p>
+                                        <p className="text-[#1A0008] text-sm">{modalWaitlist.student.phone}</p>
                                     </div>
                                     <div className="col-span-2">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Degree Program</p>
-                                        <p className="text-[#1A0008] text-sm">{selectedApplication.student.course}</p>
+                                        <p className="text-[#1A0008] text-sm">{modalWaitlist.student.course}</p>
                                     </div>
                                 </div>
                             </div>
@@ -120,7 +130,7 @@ export default function Waitlist({ waitlists, className="" }: {waitlists: Applic
                                     <div>
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Duration</p>
                                         <p className="text-[#1A0008] text-sm">
-                                            {selectedApplication.durationOfStayDays} day{selectedApplication.durationOfStayDays !== 1 ? "s" : ""}
+                                            {modalWaitlist.durationOfStayDays} day{modalWaitlist.durationOfStayDays !== 1 ? "s" : ""}
                                         </p>
                                     </div>
                                 </div>
@@ -139,16 +149,16 @@ export default function Waitlist({ waitlists, className="" }: {waitlists: Applic
                                     <div className="col-span-1">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Stay</p>
                                         <p className="text-[#1A0008] text-sm capitalize">
-                                            {selectedApplication.stayType === "non-transient" ? "Non-Transient" : "Transient"}
+                                            {modalWaitlist.stayType === "non-transient" ? "Non-Transient" : "Transient"}
                                         </p>
                                     </div>
                                     <div className="col-span-1">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Building</p>
-                                        <p className="text-[#1A0008] text-sm">{selectedApplication.accommodation.building}</p>
+                                        <p className="text-[#1A0008] text-sm">{modalWaitlist.accommodation.building}</p>
                                     </div>
                                     <div className="col-span-1">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</p>
-                                        <p className="text-[#1A0008] text-sm capitalize">{selectedApplication.roomType}</p>
+                                        <p className="text-[#1A0008] text-sm capitalize">{modalWaitlist.roomType}</p>
                                     </div>
                                 </div>
                             </div>
@@ -217,7 +227,7 @@ export default function Waitlist({ waitlists, className="" }: {waitlists: Applic
                                     </p>
                                 </div>
                                 <div className="col-span-1 flex items-center justify-center">
-                                    <Button variant="reddishPink" size="sm" onClick={() => setSelectedApplication(waitlist)}>
+                                    <Button variant="reddishPink" size="sm" onClick={() => openModal(waitlist)}>
                                         Review
                                     </Button>
                                 </div>

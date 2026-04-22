@@ -26,18 +26,28 @@ export default function Moves({ data, className = "" }: { data: Move[], classNam
     const getInitials = (name: string) => name[0]
 
     const [selectedMove, setSelectedMove] = useState<Move | null>(null)
+    const [modalMove, setModalMove] = useState<Move | null>(null)
+
+    const openModal = (move: Move) => {
+        setModalMove(move)
+        setSelectedMove(move)
+    }
+
+    const closeModal = () => {
+        setSelectedMove(null)
+    }
 
     return (
         <>
             <Modal
                 open={!!selectedMove}
-                onClose={() => setSelectedMove(null)}
+                onClose={closeModal}
                 title="Move Details"
                 eyebrow={selectedMove?.type === "move-out" ? "Move-Out" : "Move-In"}
                 maxWidth={700}
                 maxHeight={600}
                 children={
-                    selectedMove && (
+                    modalMove && (
                         <Card
                             children={
                                 <div className="flex flex-col gap-6">
@@ -46,16 +56,16 @@ export default function Moves({ data, className = "" }: { data: Move[], classNam
                                     <div className="flex flex-row justify-between items-start">
                                         <div className="flex flex-col">
                                             <p className="text-[#1A0008] font-bold text-xl">
-                                                {selectedMove.studentName}
+                                                {modalMove.studentName}
                                             </p>
                                             <p className="text-[#C8B0B8] text-xs mt-1">
-                                                Date: {selectedMove.date}
+                                                Date: {modalMove.date}
                                             </p>
                                         </div>
                                         <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-bold capitalize
-                                            ${selectedMove.type === "move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${selectedMove.type === "move-out" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}`} />
-                                            {selectedMove.type}
+                                            ${modalMove.type === "move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${modalMove.type === "move-out" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}`} />
+                                            {modalMove.type}
                                         </span>
                                     </div>
 
@@ -70,7 +80,7 @@ export default function Moves({ data, className = "" }: { data: Move[], classNam
                                             <div className="flex flex-col gap-3">
                                                 <div>
                                                     <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Full Name</p>
-                                                    <p className="text-[#1A0008] text-sm">{selectedMove.studentName}</p>
+                                                    <p className="text-[#1A0008] text-sm">{modalMove.studentName}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -84,11 +94,11 @@ export default function Moves({ data, className = "" }: { data: Move[], classNam
                                             <div className="flex flex-col gap-3">
                                                 <div>
                                                     <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Date</p>
-                                                    <p className="text-[#1A0008] text-sm">{selectedMove.date}</p>
+                                                    <p className="text-[#1A0008] text-sm">{modalMove.date}</p>
                                                 </div>
                                                 <div>
                                                     <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Type</p>
-                                                    <p className="text-[#1A0008] text-sm capitalize">{selectedMove.type}</p>
+                                                    <p className="text-[#1A0008] text-sm capitalize">{modalMove.type}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -104,19 +114,19 @@ export default function Moves({ data, className = "" }: { data: Move[], classNam
                                             <div className="grid grid-cols-2 gap-y-3">
                                                 <div className="col-span-1">
                                                     <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room</p>
-                                                    <p className="text-[#1A0008] text-sm">{selectedMove.room}</p>
+                                                    <p className="text-[#1A0008] text-sm">{modalMove.room}</p>
                                                 </div>
                                                 <div className="col-span-1">
                                                     <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Building</p>
-                                                    <p className="text-[#1A0008] text-sm">{selectedMove.building}</p>
+                                                    <p className="text-[#1A0008] text-sm">{modalMove.building}</p>
                                                 </div>
                                                 <div className="col-span-1">
                                                     <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</p>
-                                                    <p className="text-[#1A0008] text-sm capitalize">{selectedMove.roomType}</p>
+                                                    <p className="text-[#1A0008] text-sm capitalize">{modalMove.roomType}</p>
                                                 </div>
                                                 <div className="col-span-1">
                                                     <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Stay Type</p>
-                                                    <p className="text-[#1A0008] text-sm capitalize">{selectedMove.stayType}</p>
+                                                    <p className="text-[#1A0008] text-sm capitalize">{modalMove.stayType}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -183,7 +193,7 @@ export default function Moves({ data, className = "" }: { data: Move[], classNam
                                                     variant="reddishPink"
                                                     size="sm"
                                                     className="px-6"
-                                                    onClick={() => setSelectedMove(move)}
+                                                    onClick={() => openModal(move)}
                                                 >
                                                     View
                                                 </Button>

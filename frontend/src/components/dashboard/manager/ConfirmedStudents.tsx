@@ -66,6 +66,16 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
     const getInitials = (name: string) => name[0]
 
     const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
+    const [modalAssignment, setModalAssignment] = useState<Assignment | null>(null)
+
+    const openModal = (assignment: Assignment) => {
+        setModalAssignment(assignment)
+        setSelectedAssignment(assignment)
+    }
+
+    const closeModal = () => {
+        setSelectedAssignment(null)
+    }
 
     const timeAgo = (dateStr: string): string => {
         const date = new Date(dateStr)
@@ -89,20 +99,20 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
         return "Just now"
     }
 
-    const filteredRooms = selectedAssignment
-        ? availableRooms.filter((r) => r.roomType.toLowerCase() === selectedAssignment.roomType.toLowerCase())
+    const filteredRooms = modalAssignment
+        ? availableRooms.filter((r) => r.roomType.toLowerCase() === modalAssignment.roomType.toLowerCase())
         : availableRooms
 
     return (
         <>
             <Modal
                 open={!!selectedAssignment}
-                onClose={() => setSelectedAssignment(null)}
+                onClose={closeModal}
                 title="Room Assignment"
                 maxWidth={700}
                 maxHeight={600}
                 children={
-                    selectedAssignment && (
+                    modalAssignment && (
                         <Card
                             children={
                                 <div className="flex flex-col gap-4">
@@ -111,7 +121,7 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                                         <div className="flex flex-col">
                                             <p className="text-[#1A0008] font-bold text-xl">
-                                                {selectedAssignment.student.student.fullName}
+                                                {modalAssignment.student.student.fullName}
                                             </p>
                                             <p className="text-[#C8B0B8] text-xs mt-1">
                                                 Select a room to assign
@@ -119,7 +129,7 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <span className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</span>
-                                            <span className="text-[#1A0008] text-sm font-semibold capitalize">{selectedAssignment.roomType}</span>
+                                            <span className="text-[#1A0008] text-sm font-semibold capitalize">{modalAssignment.roomType}</span>
                                         </div>
                                     </div>
 
@@ -150,8 +160,8 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                                                     variant="reddishPink"
                                                     size="sm"
                                                     onClick={() => {
-                                                        console.log("Assigned", selectedAssignment.student.student.fullName, "to Room", room.roomNumber)
-                                                        setSelectedAssignment(null)
+                                                        console.log("Assigned", modalAssignment.student.student.fullName, "to Room", room.roomNumber)
+                                                        closeModal()
                                                     }}
                                                     className="w-full sm:w-auto"
                                                 >
@@ -226,7 +236,7 @@ export default function ConfirmedStudents({ data, className = "" }: { data: Assi
                                                 <Button
                                                     variant="reddishPink"
                                                     size="sm"
-                                                    onClick={() => setSelectedAssignment(assignment)}
+                                                    onClick={() => openModal(assignment)}
                                                 >
                                                     Assign Room
                                                 </Button>
