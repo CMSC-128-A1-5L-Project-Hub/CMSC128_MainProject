@@ -1,11 +1,36 @@
 import Button from "../../Button"
 
-type WaitlistProps = {
-    students: string[]
-    className: string
+//based on models (minus a few fields)
+type Student = {
+    fullName: string
+    shortName: string
+    course: string
+    campus: string
+    email: string
+    phone: string
+    studentNo: string
+    college: string
+    yearLevel: string
+    status: string
 }
 
-export default function Waitlist({ students=[], className="" }:WaitlistProps) {
+type Accomodation = {
+    building: string
+}
+
+type Application = {
+    student: Student
+    accommodation: Accomodation
+    type: string
+    roomType: "single" | "double" | "shared"
+    stayType: "transient" | "non-transient"
+    rejectionReason?: string | null
+    applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review'
+    durationOfStayDays: number
+    applicationDate: string 
+}
+
+export default function Waitlist({ waitlists, className="" }: {waitlists: Application[], className: string}) {
     //avatar initials from name
     const getInitials = (name: string) => name[0]
 
@@ -28,17 +53,17 @@ export default function Waitlist({ students=[], className="" }:WaitlistProps) {
                         Action
                     </p>
                 </div>
-                {students.length > 0 ? (
+                {waitlists.length > 0 ? (
                     <div className="grid grid-cols-3">
-                        {students.map((student, i) => (
+                        {waitlists.map((waitlist, i) => (
                             <div key={i} className="col-span-3 grid grid-cols-3 flex justify-between items-center py-2 px-1">
                                 <div className="col-span-2 flex flex-row items-center">
                                     <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
                                         style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                        {getInitials(student)}
+                                        {getInitials(waitlist.student.fullName)}
                                     </div>
                                     <p className="text-sm text-[#1A0008] pl-2">
-                                        {student}
+                                        {waitlist.student.fullName}
                                     </p>
                                 </div>
                                 <div className="col-span-1 flex items-center justify-center">

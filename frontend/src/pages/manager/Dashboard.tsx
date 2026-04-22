@@ -154,6 +154,30 @@ const students: Student[] = [
     college: "College of Architecture",
     yearLevel: "5th Year",
     status: "Irregular"
+  },
+  {
+    fullName: "Liza Mae Fontanilla",
+    shortName: "Liza Fontanilla",
+    course: "BS Education",
+    campus: "South Campus",
+    email: "lizamae.fontanilla@student.edu.ph",
+    phone: "09451234567",
+    studentNo: "2023-00321",
+    college: "College of Education",
+    yearLevel: "1st Year",
+    status: "Regular"
+  },
+  {
+    fullName: "Ramon Kristoffer Aquino",
+    shortName: "Ramon Aquino",
+    course: "BS Information Technology",
+    campus: "Main Campus",
+    email: "ramon.aquino@student.edu.ph",
+    phone: "09278765432",
+    studentNo: "2022-00654",
+    college: "College of Engineering",
+    yearLevel: "2nd Year",
+    status: "Regular"
   }
 ]
 
@@ -161,7 +185,9 @@ const accommodations: Accomodation[] = [
   { building: "Building 6" },
   { building: "Building 3" },
   { building: "Building 1" },
-  { building: "Building 4" }
+  { building: "Building 4" },
+  { building: "Building 2" },
+  { building: "Building 5" }  
 ]
 
 const applications: Application[] = [
@@ -208,6 +234,83 @@ const applications: Application[] = [
     applicationStatus: "rejected",
     durationOfStayDays: 180,
     applicationDate: "Mar 16, 2026"
+  },
+  {
+    student: students[4],
+    accommodation: accommodations[4],
+    type: "Dormitory",
+    roomType: "double",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "waitlisted",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 17, 2026"
+  },
+  {
+    student: students[5],
+    accommodation: accommodations[5],
+    type: "Dormitory",
+    roomType: "shared",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "waitlisted",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 18, 2026"
+  },
+  {
+    student: students[0],
+    accommodation: accommodations[2],
+    type: "Dormitory",
+    roomType: "double",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 19, 2026"
+  },
+  {
+    student: students[2],
+    accommodation: accommodations[3],
+    type: "Transient Housing",
+    roomType: "single",
+    stayType: "transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 14,
+    applicationDate: "Mar 20, 2026"
+  },
+  {
+    student: students[4],
+    accommodation: accommodations[0],
+    type: "Dormitory",
+    roomType: "shared",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 21, 2026"
+  },
+  {
+    student: students[5],
+    accommodation: accommodations[1],
+    type: "Dormitory",
+    roomType: "single",
+    stayType: "non-transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 180,
+    applicationDate: "Mar 22, 2026"
+  },
+  {
+    student: students[3],
+    accommodation: accommodations[5],
+    type: "Transient Housing",
+    roomType: "double",
+    stayType: "transient",
+    rejectionReason: null,
+    applicationStatus: "pending",
+    durationOfStayDays: 7,
+    applicationDate: "Mar 23, 2026"
   }
 ]
 
@@ -222,6 +325,14 @@ const moves: Move[] = [
 
 
 export default function Dashboard() {
+    const waitlistedApplications = applications.filter(
+        (application) => application.applicationStatus === "waitlisted"
+    ).slice(0, 5)
+
+    const pendingApplications = applications.filter(
+        (application) => application.applicationStatus === "pending"
+    ).slice(0, 5)
+
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
             <Sidebar role="manager" profile={managerProfile}/>
@@ -258,11 +369,11 @@ export default function Dashboard() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
                         <Applications 
-                            data={applications}
+                            data={pendingApplications}
                             className="col-span-1 lg:col-span-2 w-full h-full min-w-0"
                         />
                         <Waitlist 
-                            students={["Ana Marie Reyes", "Ana Marie Reyes"]}
+                            waitlists={waitlistedApplications}
                             className="col-span-1 w-full h-full min-w-0"
                         />
 
