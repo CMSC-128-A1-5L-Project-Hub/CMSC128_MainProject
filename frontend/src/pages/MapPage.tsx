@@ -223,21 +223,20 @@ export default function MapPage() {
         
         {/* FULL-HEIGHT COLLAPSIBLE FILTER PANEL */}
         <div 
-          className="hide-scrollbar"
-          style={{
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: isSidebarOpen ? '0px' : '-350px',
-            width: '350px',
-            backgroundColor: 'white',
-            boxShadow: isSidebarOpen ? '4px 0 24px rgba(0,0,0,0.1)' : 'none',
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            zIndex: 100,
-            display: 'flex',
-            flexDirection: 'column',
-            borderRight: '1px solid #F3F4F6'
-          }}
+          className={`
+            absolute z-[100] bg-white transition-all duration-500 ease-in-out flex flex-col overflow-hidden
+            /* Mobile: Top-down drawer */
+            max-md:left-0 max-md:right-0 max-md:w-full max-md:border-b
+            ${isSidebarOpen 
+              ? 'max-md:top-0 max-md:h-[50vh] max-md:shadow-2xl' 
+              : 'max-md:-top-[70vh] max-md:h-[70vh]'}
+            
+            /* Desktop: Left-to-right drawer */
+            md:top-0 md:bottom-0 md:w-[350px] md:border-r
+            ${isSidebarOpen 
+              ? 'md:left-0 md:shadow-2xl' 
+              : 'md:-left-[350px]'}
+          `}
         >
           <div style={{ minWidth: '350px', display: 'flex', flexDirection: 'column', height: '100%' }}>
             {/* Header */}
@@ -294,9 +293,10 @@ export default function MapPage() {
               <div className="space-y-3">
                 <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Room Type</label>
                 <select className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none">
-                  <option>All</option>
-                  <option>Studio</option>
-                  <option>Shared</option>
+                  <option>All Types</option>
+                  <option>Male-only</option>
+                  <option>Female-only</option>
+                  <option>Co-ed</option>
                 </select>
               </div>
 
@@ -469,46 +469,43 @@ export default function MapPage() {
         {/* FLOATING COLLAPSE BUTTON */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: isSidebarOpen ? '334px' : '-16px',
-            transform: 'translateY(-50%)',
-            zIndex: 150,
-            width: '32px',
-            height: '32px',
-            backgroundColor: 'white',
-            border: '1px solid #F5EBEB',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            cursor: 'pointer',
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            padding: 0,
-            outline: 'none'
-          }}
+          className={`
+            absolute z-[150] w-8 h-8 rounded-full flex-shrink-0 p-0
+            bg-white border border-[#F5EBEB] shadow-[0_2px_8px_rgba(0,0,0,0.1)] 
+            
+            flex items-center justify-center cursor-pointer outline-none 
+            transition-all duration-500 ease-in-out
+            
+            md:top-1/2 md:-translate-y-1/2
+            ${isSidebarOpen ? 'md:left-[334px]' : 'md:left-[-16px]'}
+
+            max-md:left-1/2 max-md:-translate-x-1/2
+            ${isSidebarOpen ? 'max-md:top-[48.5vh]' : 'max-md:-top-4'}
+          `}
         >
           <svg 
-            style={{ 
-              width: '18px', 
-              height: '18px', 
-              transition: 'transform 0.5s', 
-              transform: isSidebarOpen ? 'rotate(0deg)' : 'rotate(180deg)',
-              marginLeft: isSidebarOpen ? '-2px' : '2px'
-            }} 
             viewBox="0 0 24 24" 
             fill="none" 
             stroke="#710A2B"
             strokeWidth={4}
             strokeLinecap="round" 
             strokeLinejoin="round"
+            className={`
+              w-[18px] h-[18px] transition-transform duration-500
+              
+              /* Desktop Logic: Horizontal flip */
+              md:rotate-0 
+              ${!isSidebarOpen ? 'md:rotate-180' : ''}
+              
+              /* Mobile Logic: Vertical flip */
+              /* We ensure only one max-md rotation class is present at a time */
+              ${isSidebarOpen ? 'max-md:rotate-90' : 'max-md:-rotate-90'}
+            `}
           >
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-
+        
         {/* THE MAP */}
         <div style={{ width: '100%', height: '100%', zIndex: 1 }}>
           <AccommodationMap
