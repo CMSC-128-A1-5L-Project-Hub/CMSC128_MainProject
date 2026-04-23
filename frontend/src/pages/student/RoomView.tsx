@@ -514,7 +514,7 @@ function RequirementsTab() {
           <tbody className="divide-y divide-[#F0E8EC]">
             {MOCK_REQUIREMENTS.map((req) => {
               const isDownloaded = downloaded.has(req.id);
-              const hasFile = req.size !== "—";
+              const hasAttachment = req.size !== "—";
 
               return(
                 <tr key={req.id} className="bg-white hover:bg-[#FDF8FA] transition-colors">
@@ -522,7 +522,7 @@ function RequirementsTab() {
                   <td className="px-4 py-3 text-[11px] text-gray-500">{req.size}</td>
                   <td className="px-4 py-3 text-[11px] text-gray-500">{req.dateModified}</td>
                   <td className="px-4 py-3 text-right">
-                    {hasFile ? (
+                    {hasAttachment ? (
                       <button
                         onClick={() => setDownloaded((prev) => new Set([...prev, req.id]))}
                         className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-semibold text-white transition-colors"
@@ -533,7 +533,7 @@ function RequirementsTab() {
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
-                            Downloaded
+                            Downloaded 
                           </>
                         ) : (
                           <>
