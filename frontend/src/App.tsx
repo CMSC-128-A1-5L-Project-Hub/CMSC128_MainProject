@@ -22,6 +22,7 @@ import PendingVerification from "./pages/shared/PendingVerification"
 import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import LandlordDashboard from "./pages/landlord/Dashboard"
 import Waitlist from "./pages/manager/Waitlist"
+import MoveinMoveout from "./pages/manager/MoveinMoveout"
 
 function FullLandingPage() {
   return (
@@ -43,18 +44,23 @@ function App() {
         <Route path="/auth/signin" element={<SignIn/>}/>
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/signup/form" element={<SignUpForm/>}/>
+        <Route path="/auth/success" element={<AuthSuccess />} />
+
+        <Route path="/pending-verification" element={<PendingVerification />} />
+        <Route path="/" element={<FullLandingPage />} /> 
+        <Route path="/map" element={<InteractiveMap />} />
+        <Route path="/browse" element={<BrowsePage />} />
+
         <Route path="/student/dashboard" element={<StudentDashboard/>}/>
+        
         <Route path="/manager/dashboard/" element={<ManagerDashboard/>}/>
         <Route path="/manager/occupancy-records" element={<OccupancyRecords />}/>
         <Route path="/manager/room-assignment" element={<RoomAssignment />}/>
-        <Route path="/" element={<FullLandingPage />} /> 
-        <Route path="/map" element={<InteractiveMap />} />
         <Route path="/manager/applications" element={<ApplicationsPage />} />
         <Route path="/manager/waitlist" element={<Waitlist />} />
-        <Route path="/browse" element={<BrowsePage />} />
+        <Route path="/manager/moveinmoveout" element={<MoveinMoveout />} />
+
         <Route path="/landlord/manage/accommodation" element = {<ManageAccommodationDashboard />} />
-        <Route path="/auth/success" element={<AuthSuccess />} />
-        <Route path="/pending-verification" element={<PendingVerification />} />
         <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
       </Routes>
     </BrowserRouter>
