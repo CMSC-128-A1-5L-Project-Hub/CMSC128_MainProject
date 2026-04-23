@@ -224,14 +224,12 @@ export default function MapPage() {
         {/* FULL-HEIGHT COLLAPSIBLE FILTER PANEL */}
         <div 
           className={`
-            absolute z-[100] bg-white transition-all duration-500 ease-in-out flex flex-col overflow-hidden
-            /* Mobile: Top-down drawer */
+            absolute z-[500] bg-white transition-all duration-500 ease-in-out flex flex-col overflow-hidden
             max-md:left-0 max-md:right-0 max-md:w-full max-md:border-b
             ${isSidebarOpen 
               ? 'max-md:top-0 max-md:h-[50vh] max-md:shadow-2xl' 
               : 'max-md:-top-[70vh] max-md:h-[70vh]'}
             
-            /* Desktop: Left-to-right drawer */
             md:top-0 md:bottom-0 md:w-[350px] md:border-r
             ${isSidebarOpen 
               ? 'md:left-0 md:shadow-2xl' 
@@ -250,37 +248,41 @@ export default function MapPage() {
             </div>
 
             {/* Scrollable Filters */}
-            <div className="p-6 space-y-8 flex-1 overflow-y-auto hide-scrollbar">
-              {/* SHOW FAVORITES ONLY */}
-              <div className="space-y-3">
+            <div className={`
+              p-6 flex-1 overflow-y-auto hide-scrollbar
+              max-md:grid max-md:grid-cols-2 max-md:gap-x-4 max-md:gap-y-6 max-md:items-end
+              md:flex md:flex-col md:space-y-8
+            `}>
+              
+              {/* 1. FAVORITES */}
+              <div className="max-md:col-span-1 space-y-2 max-md:order-1">
                 <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Show Favorites Only</label>
-                <div className="flex items-center justify-between p-4 bg-[#FDF7F8] rounded-2xl border border-[#F5EBEB]">
+                <div className="h-[46px] flex items-center justify-between p-3 bg-[#FDF7F8] rounded-2xl border border-[#F5EBEB]">
                   <div className="flex items-center gap-3">
                     <div className="text-[#710A2B]">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
                       </svg>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-800 leading-none">Saved Rooms</p>
-                      <p className="text-[11px] text-gray-400 mt-1">Show only your saved dorms</p>
+                    <div className="min-w-0">
+                      <p className="max-md:text-[11px] text-sm font-bold text-gray-800 leading-none truncate"> Saved Rooms </p>
+                      <p className="max-md:text-[9px] max-md:leading-tight text-[11px] text-gray-400 mt-1"> Show only your saved dorms </p>
                     </div>
                   </div>
-                  {/* Toggle Switch */}
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-pointer scale-90">
                     <input type="checkbox" className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#710A2B]/20 peer-checked:after:bg-[#710A2B]"></div>
+                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#710A2B]/20 peer-checked:after:bg-[#710A2B]"></div>
                   </label>
                 </div>
               </div>
 
-              {/* DORM TYPE */}
-              <div className="space-y-3">
+              {/* 2. DORM TYPE */}
+              <div className="max-md:col-span-1 space-y-2 max-md:order-2">
                 <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Dorm Type</label>
                 <select 
                   value={type} 
                   onChange={(e) => updateFilter('type', e.target.value)}
-                  className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none cursor-pointer"
+                  className="w-full h-[46px] p-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none cursor-pointer"
                 >
                   <option value="all">All Types</option>
                   <option value="on-campus">On-Campus</option>
@@ -289,10 +291,13 @@ export default function MapPage() {
                 </select>
               </div>
 
-              {/* ROOM TYPE */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Room Type</label>
-                <select className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none">
+              {/* 4. ROOM TYPE */}
+              <div className={`
+                max-md:col-span-1 space-y-3
+                max-md:order-4 md:order-none
+              `}>
+                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest"> Room Type </label>
+                <select className="w-full p-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none">
                   <option>All Types</option>
                   <option>Male-only</option>
                   <option>Female-only</option>
@@ -300,28 +305,59 @@ export default function MapPage() {
                 </select>
               </div>
 
-              {/* PRICE RANGE SECTION */}
-              <div className="space-y-4">
-                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest block">
-                  Price Range
-                </label>
-                
-                {/* The Visual Price Labels */}
+              {/* 3. MIN RATING */}
+              <div className={`
+                max-md:col-span-1 space-y-2
+                max-md:order-3 md:order-none
+              `}>
+                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest block"> Min Rating </label>
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button 
+                        key={star} 
+                        onClick={() => {
+                          setMinRating(star)
+                          updateFilter('rating', star)
+                        }}
+                        className="p-0 border-none bg-transparent outline-none transition-transform active:scale-90"
+                      >
+                        <svg 
+                          viewBox="0 0 24 24" 
+                          fill={star <= minRating ? "#C69C3B" : "#F5EBEB"} 
+                          className="w-6 h-6 transition-colors"
+                        >
+                          <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                  <span className="px-2 py-0.5 bg-[#FDF7F8] border border-[#F5EBEB] text-[#710A2B] text-[10px] font-bold rounded-md">
+                    {minRating}{minRating === 5 ? '★' : '★+'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-[#C8B0B8]">Tap stars to change minimum</p>
+              </div>
+
+              {/* 5. PRICE RANGE */}
+              <div className="max-md:col-span-2 space-y-2 max-md:order-5">
+                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest block">Price Range</label>
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 p-3 bg-[#FDF7F8] border border-[#F5EBEB] rounded-xl text-center">
-                    <p className="text-[9px] text-gray-400 uppercase font-bold">From</p>
-                    <p className="text-sm font-bold text-[#710A2B]">₱{minRent.toLocaleString()}</p>
+                  <div className="flex-1 p-2 bg-[#FDF7F8] border border-[#F5EBEB] rounded-xl text-center">
+                    <p className="text-[8px] text-gray-400 uppercase font-bold">From</p>
+                    <p className="text-xs font-bold text-[#710A2B]">₱{minRent.toLocaleString()}</p>
                   </div>
                   <div className="w-3 h-[1px] bg-gray-300"></div>
-                  <div className="flex-1 p-3 bg-[#FDF7F8] border border-[#F5EBEB] rounded-xl text-center">
-                    <p className="text-[9px] text-gray-400 uppercase font-bold">To</p>
-                    <p className="text-sm font-bold text-[#710A2B]">₱{maxRent.toLocaleString()}</p>
+                  <div className="flex-1 p-2 bg-[#FDF7F8] border border-[#F5EBEB] rounded-xl text-center">
+                    <p className="text-[8px] text-gray-400 uppercase font-bold">To</p>
+                    <p className="text-xs font-bold text-[#710A2B]">₱{maxRent.toLocaleString()}</p>
                   </div>
                 </div>
 
-                {/* THE DOUBLE SLIDER */}
+                {/* Double Slider Logic */}
                 <div className="relative h-6 flex items-center group">
                   <div className="absolute w-full h-1.5 bg-gray-100 rounded-full"></div>
+
                   <div 
                     className="absolute h-1.5 rounded-full"
                     style={{ 
@@ -330,6 +366,7 @@ export default function MapPage() {
                       background: 'linear-gradient(135deg, #C9973A, #a07825)' 
                     }}>
                   </div>
+
                   <input
                     type="range"
                     min="1000"
@@ -360,96 +397,43 @@ export default function MapPage() {
                 </div>
               </div>
 
-              {/* MIN RATING */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest block">
-                  Min Rating
-                </label>
-                
-                <div className="flex items-center gap-4"> {/* Container for stars + badge */}
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button 
-                        key={star} 
-                        onClick={() => {
-                          setMinRating(star)
-                          updateFilter('rating', star)
-                        }}
-                        className="flex items-center justify-center p-0 border-none bg-transparent outline-none transition-transform active:scale-90">
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          viewBox="0 0 24 24" 
-                          fill={star <= minRating ? "#C69C3B" : "#F5EBEB"} 
-                          className="w-7 h-7 transition-colors">
-                          <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <span className="px-3 py-1 bg-[#FDF7F8] border border-[#F5EBEB] text-[#710A2B] text-xs font-bold rounded-full">
-                    {minRating}{minRating === 5 ? '★' : '★+'}
-                  </span>
+              {/* 6. OTHERS */}
+              <div className="max-md:col-span-2 space-y-2 max-md:order-6">
+                <div className="flex items-center justify-between text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">
+                  <label>Others</label>
+                  <button 
+                    onClick={() => setSelectedTags([])}
+                    className={`text-[9px] font-bold uppercase ${selectedTags.length > 0 ? 'text-gray-400 hover:text-[#710A2B]' : 'opacity-0'}`}
+                  >
+                    Clear all ({selectedTags.length})
+                  </button>
                 </div>
                 
-                <p className="text-[10px] text-[#C8B0B8]">Tap stars to change minimum</p>
-              </div>
-
-              {/* OTHERS SECTION */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">
-                <label className="...">Others</label>
-                
-                <button 
-                  onClick={() => setSelectedTags([])}
-                  className={`text-[10px] font-bold uppercase transition-colors ${
-                    selectedTags.length > 0 
-                      ? 'text-gray-400 hover:text-[#710A2B] cursor-pointer' 
-                      : 'opacity-0 pointer-events-none'
-                  }`}
-                >
-                  Clear all ({selectedTags.length})
-                </button>
-              </div>
-                
                 <div className="flex flex-wrap gap-2">
-                  {availableTags.map(tag => {
-                    const isActive = selectedTags.includes(tag);
-                    
-                    return (
-                      <button 
-                        key={tag} 
-                        onClick={() => toggleTag(tag)}
-                        className={`px-4 py-2 text-xs font-semibold rounded-full transition-all border ${
-                          isActive 
-                            ? 'bg-[#710A2B] text-white border-[#710A2B] shadow-md shadow-[#710A2B]/20' 
-                            : 'bg-white text-[#6B0F2B] border-[#6B0F2B]/20 hover:border-[#710A2B]/40'
-                        }`}
-                      >
-                        {tag}
-                      </button>
-                    );
-                  })}
-
-                  {/* ADD MORE BUTTON */}
+                  {availableTags.map(tag => (
+                    <button 
+                      key={tag} 
+                      onClick={() => toggleTag(tag)}
+                      className={`px-3 py-1.5 text-[10px] font-semibold rounded-full border transition-all ${
+                        selectedTags.includes(tag) 
+                          ? 'bg-[#710A2B] text-white border-[#710A2B]' 
+                          : 'bg-white text-[#6B0F2B] border-[#6B0F2B]/20'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
                   <button 
                     onClick={() => {
-                      const newTag = prompt("Enter a feature (e.g., Gym, Pet Friendly):");
-                      if (newTag && newTag.trim() !== "") {
-                        const formattedTag = newTag.trim();
-                        
-                        if (!availableTags.includes(formattedTag)) {
-                          setAvailableTags(prev => [...prev, formattedTag]);
-                        }
-                        
-                        if (!selectedTags.includes(formattedTag)) {
-                          toggleTag(formattedTag);
-                        }
+                      const newTag = prompt("Enter a feature:");
+                      if (newTag?.trim()) {
+                        if (!availableTags.includes(newTag.trim())) setAvailableTags(prev => [...prev, newTag.trim()]);
+                        toggleTag(newTag.trim());
                       }
                     }}
-                    className="px-4 py-2 border-2 border-dashed border-gray-200 text-gray-400 text-xs font-bold rounded-full hover:border-[#710A2B] hover:text-[#710A2B] transition-colors flex items-center gap-1"
+                    className="px-3 py-1.5 border border-dashed border-gray-300 text-gray-400 text-[10px] font-bold rounded-full hover:border-[#710A2B]"
                   >
-                    <span>+</span> Add more
+                    + Add more
                   </button>
                 </div>
               </div>
@@ -470,7 +454,7 @@ export default function MapPage() {
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className={`
-            absolute z-[150] w-8 h-8 rounded-full flex-shrink-0 p-0
+            absolute z-[501] w-8 h-8 rounded-full flex-shrink-0 p-0
             bg-white border border-[#F5EBEB] shadow-[0_2px_8px_rgba(0,0,0,0.1)] 
             
             flex items-center justify-center cursor-pointer outline-none 

@@ -187,7 +187,7 @@ export default function AccommodationMap({
             closeOnClick={false}
             maxWidth="300px"
             offset={[85, 5]}
-            style={{ zIndex: 500 }} 
+            style={{ zIndex: 498 }} 
           >
             {/* Main Container */}
             <div 
@@ -302,7 +302,7 @@ export default function AccommodationMap({
               key={acc.accommodationId}
               longitude={acc.longitude}
               latitude={acc.latitude}
-              style={{ zIndex: isSelected ? 9999 : 1 }} 
+              style={{ zIndex: isSelected ? 499 : 1 }} 
               onClick={(e) => {
                 e.originalEvent.stopPropagation();
 
