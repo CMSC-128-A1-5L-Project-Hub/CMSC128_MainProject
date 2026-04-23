@@ -3,7 +3,7 @@ import Sidebar from "../../components/Sidebar";
 import Modal from "../../components/Modal";
 
 /*
-UNFINISHED NO MODAL, MARGIN ISSUES
+UNFINISHED NO MODAL, MARGIN ISSUESS
 */
 const CLR = {
   dark: "#3D0718",
