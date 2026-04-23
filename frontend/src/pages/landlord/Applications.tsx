@@ -17,7 +17,6 @@ const CLR = {
 } as const;
 
 type Status = "Under Review" | "Accepted" |"Waitlisted"| "Rejected";
-type: "Non-transient"
 
 interface Application {
   id: number;
@@ -28,7 +27,26 @@ interface Application {
   type?: string; 
 }
 
-
+function FilterTabs({ active, setActive }: any) {
+  const tabs = ["Application","Waitlist"];
+  return (
+    <div className="bg-white p-1 rounded-xl inline-flex gap-1">
+      {tabs.map((tab) => (
+        <button
+          key={tab}
+          onClick={() => setActive(tab)}
+          className={`px-4 py-1.5 text-sm rounded-lg transition ${
+            active === tab
+              ? "bg-[#6B0F2B] text-white shadow"
+              : "text-gray-500 hover:text-black"
+          }`}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 // sample data 
 const applications: Application[] = [
@@ -46,13 +64,11 @@ const applications: Application[] = [
   { id: 12,  student: "F Reyes",   date: "Mar 18, 2026",reviewed: "Mar 18, 2026" , status: "Under Review"},
 ];
 
-// date and time conversion for sorting 
-function toTimestamp(date: string, time: string): number {
-  return new Date(`${date} ${time}`).getTime();
+function toTimestamp(date: string): number {
+  return new Date(date).getTime();
 }
 
 const ITEMS_PER_PAGE = 6;
-//STATUS COLORS 
 const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> = {
   Accepted:   { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" },
   "Under Review":    { color: "#C9973A", bg: "#fef3c7", dot: "#C9973A" },
@@ -82,11 +98,9 @@ const StatusBadge = ({ status }: { status: Status }) => {
 const DaysAgo = ({ targetDate }: { targetDate: string }) => {
     const daysDifference = useMemo(() => {
         const now = new Date();
-        const past = new Date(targetDate); // Date() constructor accepts strings!
-        
+        const past = new Date(targetDate);
         now.setHours(0, 0, 0, 0);
         past.setHours(0, 0, 0, 0);
-
         const diffTime = Math.abs(now.getTime() - past.getTime());
         return Math.floor(diffTime / (1000 * 60 * 60 * 24));
     }, [targetDate]);
@@ -115,11 +129,9 @@ const FilterSelect = ({
         onChange={(e) => onChange(e.target.value)}
         className="
           appearance-none border border-gray-200 rounded-lg md:rounded-xl 
-          /* Width & Height Logic */
           w-28 md:w-auto 
           px-2 py-1 md:px-3 md:py-2 
           pr-7 md:pr-8 
-          /* Font Logic */
           text-[0.7rem] md:text-sm 
           font-semibold focus:outline-none focus:border-[#6B0F2B] cursor-pointer bg-white"
         style={{ color: CLR.mid }}
@@ -128,14 +140,8 @@ const FilterSelect = ({
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
-      
-      {/* Centered Icon Adjustment */}
       <span className="pointer-events-none absolute right-2 md:right-2.5 top-1/2 -translate-y-1/2 text-gray-400">
-        <svg 
-          width="12"  
-          height="12" 
-          fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"
-        >
+        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </span>
@@ -143,7 +149,6 @@ const FilterSelect = ({
   </div>
 );
 
-//BUTTONS
 const PageBtn = ({
   active,
   disabled,
@@ -171,12 +176,11 @@ const PageBtn = ({
   </button>
 );
 
-// NAVIGATION
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Dashboard"          },
-  { id: "applications", label: "Applications"  },
-  { id: "rooms", label: "Room Assignment"  },
-  { id: "waitlist", label: "Waitlisted",}
+  { id: "dashboard", label: "Dashboard" },
+  { id: "applications", label: "Applications" },
+  { id: "rooms", label: "Room Assignment" },
+  { id: "waitlist", label: "Waitlisted"}
 ];
 
 const DrawerNav = ({
@@ -218,79 +222,68 @@ const DrawerNav = ({
     </div>
   </>
 );
-const waitlistedApps = applications.filter(a => a.status === "Waitlisted");
-
-
 
 export default function Applications() {
-  const [search, setSearch] = useState("");                               // search input val
-  const [drawerOpen, setDrawerOpen] = useState(false);                    //side bar mobile 
-  const [activePage, setActivePage] = useState("applications");           //active page on sidebar 
-  const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");  //sorting option
+  const [activeTab, setActiveTab] = useState("Application");
+  const [search, setSearch] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activePage, setActivePage] = useState("applications");
+  const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");
   const [currentPage, setCurrentPage] = useState(1); 
   const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [selectedApp, setSelectedApp] = useState<Application | null>(null);                     //current page num 
-  //total application
-  const total  = applications.length;
-  //count per status 
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+
+  const total = applications.length;
   const counts = applications.reduce((acc, a) => {
     acc[a.status] = (acc[a.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  //FILTER AND SORT
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    //filter by name 
     const res = applications.filter((a) =>
-      a.student.toLowerCase().includes(q) ||
-      a.facility.toLowerCase().includes(q)
+      a.student.toLowerCase().includes(q)
     );
-    //sort by date 
     return res.sort((a, b) => {
-      const diff = toTimestamp(a.date, a.time) - toTimestamp(b.date, b.time);
+      const diff = toTimestamp(a.date) - toTimestamp(b.date);
       return sortBy === "latest" ? -diff : diff;
     });
   }, [search, sortBy]);
 
-  const totalPages  = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-  const safePage    = Math.min(currentPage, totalPages);
-  const startIndex  = (safePage - 1) * ITEMS_PER_PAGE;
-  const paginated   = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
+  const paginated = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const handleSearch = (v: string) => { setSearch(v);  setCurrentPage(1); };
-  const handleSort   = (v: string) => { setSortBy(v as "latest" | "earliest"); setCurrentPage(1); };
+  const waitlistedApps = applications.filter(a => a.status === "Waitlisted");
 
-  //stats data TOP CARDS 
+  const handleSearch = (v: string) => { setSearch(v); setCurrentPage(1); };
+  const handleSort = (v: string) => { setSortBy(v as "latest" | "earliest"); setCurrentPage(1); };
+
   const stats = [
-    { label: "Under Review",   color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)", text: "#1A7A4A", light_bg: "#F0F7F3" ,value: counts["Under Review"]   || 0 },
-    { label: "Accepted",    color: "linear-gradient(135deg, #C9973A, #E8C37A)", text: "#C9973A", light_bg: "#FEF8EE" ,value: counts.Accepted    || 0 },
-    { label: "Waitlisted", color: "linear-gradient(135deg, #6B3AB7, #9B6AE7)", text: "#6B3AB7", light_bg: "#F4F0FA" ,value: counts.Waitlisted || 0 },
-    { label: "Rejected",  color: "linear-gradient(135deg, #AA2661, #FDCAE0)", text: "#AE2F67", light_bg: "#FAF0F7" ,value: counts.Rejected|| 0 },
+    { label: "Under Review", color: "linear-gradient(135deg, #C9973A, #E8C37A)", text: "#C9973A", light_bg: "#FEF8EE", value: counts["Under Review"] || 0 },
+    { label: "Accepted", color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)", text: "#1A7A4A", light_bg: "#F0F7F3", value: counts.Accepted || 0 },
+    { label: "Waitlisted", color: "linear-gradient(135deg, #6B3AB7, #9B6AE7)", text: "#6B3AB7", light_bg: "#F4F0FA", value: counts.Waitlisted || 0 },
+    { label: "Rejected", color: "linear-gradient(135deg, #AA2661, #FDCAE0)", text: "#AE2F67", light_bg: "#FAF0F7", value: counts.Rejected || 0 },
   ];
 
-// for tracking page number 
   const getVisiblePages = () => {
     const pages: number[] = [];
-
     if (totalPages <= 3) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
       return pages;
     }
-
     if (safePage === 1) return [1, 2, 3];
     if (safePage === totalPages) return [totalPages - 2, totalPages - 1, totalPages];
-
     return [safePage - 1, safePage, safePage + 1];
   };
 
-
   return (
-    <div className="flex h-screen bg-[#F5EEF0] ">
-          <Sidebar role="landlordDashboard" />
+    <div className="flex h-screen bg-[#F5EEF0]">
+      <Sidebar role="landlordDashboard" />
+      <DrawerNav open={drawerOpen} onClose={() => setDrawerOpen(false)} activePage={activePage} setActivePage={setActivePage} />
 
-      <main className="flex-1 p-6">
-        {/* Title row */}
+      <main className="flex-1 p-6 overflow-y-auto">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => setDrawerOpen(true)} className="lg:hidden p-1" aria-label="Open menu" style={{ color: CLR.mid }}>
             <IconMenu />
@@ -301,40 +294,25 @@ export default function Applications() {
           </h1>
         </div>
 
-        {/* Header banner */}
-        <div
-          className="rounded-2xl p-6 mb-6 text-white"
-          style={{ background: `linear-gradient(135deg, ${CLR.dark}, ${CLR.accent})` }}
-        >
+        <div className="rounded-2xl p-6 mb-6 text-white" style={{ background: `linear-gradient(135deg, ${CLR.dark}, ${CLR.accent})` }}>
           <p className="text-xs uppercase tracking-widest opacity-70">Good Day, Dal Cadsawan</p>
           <h2 className="text-2xl font-bold mt-1">Check your applicants for Narra Residences</h2>
           <p className="text-sm opacity-70 mt-1">We make it easy for you to track the accommodation applications you manage.</p>
         </div>
 
-        {/* Stats */}
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((s) => {
               const pct = total ? Math.round((s.value / total) * 100) : 0;
               return (
                 <div key={s.label}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: s.text }}>
-                    {s.label}
-                  </p>
-                  {/* progress bar and %  */}
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: s.text }}>{s.label}</p>
                   <div className="flex items-center gap-3">
-                        <div className="relative flex items-center h-8 rounded-full overflow-hidden w-80" style={{ background: s.light_bg }}>                      <div
-                        className="absolute left-0 top-0 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, minWidth: "55px", background: s.color, transition: "width 0.4s ease" }}
-                      />
-                      <span className="relative z-10 text-white text-xs font-bold px-3 whitespace-nowrap">
-                        {s.value} / {total}
-                      </span>
+                    <div className="relative flex items-center h-8 rounded-full overflow-hidden w-full max-w-[160px]" style={{ background: s.light_bg }}>
+                      <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, minWidth: "20px", background: s.color }} />
+                      <span className="relative z-10 text-white text-[10px] font-bold px-3 whitespace-nowrap">{s.value} / {total}</span>
                     </div>
-                    {/* n% text */}
-                    <span className="text-xs font-semibold text-gray-400 w-6 text-right flex-shrink-0">
-                      {pct}%
-                    </span>
+                    <span className="text-xs font-semibold text-gray-400">{pct}%</span>
                   </div>
                 </div>
               );
@@ -342,348 +320,109 @@ export default function Applications() {
           </div>
         </div>
 
-        {/* Table card */}
-        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
-          <div className="flex items-end gap-3 p-4 border-b">
-          {/* Title — fixed, never shrinks */}
-          <div className="shrink-0">
-            <h2 className="text-sm md:text-lg font-semibold tracking-tight text-black">
-              Application History
-            </h2>
-            <p className="text-[0.7rem] md:text-xs text-gray-400">{filtered.length} total applications</p>
-          </div>
-
-          {/* Right controls — takes remaining space, search absorbs all shrinking */}
-          <div className="flex items-end gap-3 ml-auto min-w-0">
-            
-            {/* Sort — fixed, never shrinks */}
-            <div className="shrink-0">
-              <FilterSelect
-                label="Sort By"
-                value={sortBy}
-                onChange={handleSort}
-                options={[
-                  { value: "latest",   label: "Latest First"   },
-                  { value: "earliest", label: "Earliest First" },
-                ]}
-              />
-            </div>
-
-            {/* Search — absorbs all shrinking */}
-            <div className="flex flex-col gap-0.5 md:gap-1 min-w-0 w-full md:w-56">
-              <label className="text-[0.5rem] md:text-[10px] font-bold uppercase tracking-widest text-gray-400 shrink-0">
-                Search
-              </label>
-              <input
-                type="text"
-                placeholder="Search applicant..."
-                value={search}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="
-                  w-full min-w-0
-                  border border-gray-200 rounded-lg md:rounded-xl
-                  px-2 py-1 md:px-3 md:py-2
-                  text-[0.7rem] md:text-sm
-                  focus:outline-none focus:border-[#6B0F2B]
-                  transition-all duration-200
-                "
-              />
-            </div>
-          </div>
+        <div className="mb-6">
+          <FilterTabs active={activeTab} setActive={setActiveTab} />
         </div>
 
-          {/* Table: Desktop View */}
-          <div className="flex flex-col gap-6">
-<div className="hidden md:block overflow-x-auto">
-  <table className="w-full text-sm table-fixed">
-    
-    {/* ✅ Match EXACT number of columns (5) */}
-    <colgroup>
-      <col style={{ width: "30%" }} /> {/* Student */}
-      <col style={{ width: "22%" }} /> {/* Date Applied */}
-      <col style={{ width: "22%" }} /> {/* Reviewed */}
-      <col style={{ width: "16%" }} /> {/* Status */}
-      <col style={{ width: "10%" }} /> {/* Action */}
-    </colgroup>
-
-    <thead>
-      <tr
-        className="text-left text-xs uppercase tracking-wide bg-gray-50"
-        style={{ color: CLR.mid }}
-      >
-        <th className="px-6 py-3">Student</th>
-        <th className="px-4 py-3">Date Applied</th>
-        <th className="px-4 py-3">Reviewed on</th>
-        <th className="px-4 py-3">Status</th>
-        <th className="px-4 py-3 text-center">Action</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      {paginated.length === 0 ? (
-        <tr>
-          {/* ✅ colspan must match column count */}
-          <td colSpan={5} className="text-center py-16 text-gray-400 text-sm">
-            No applications found.
-          </td>
-        </tr>
-      ) : (
-        paginated.map((app) => {
-          const initial = app.student.charAt(0).toUpperCase();
-          const avatarColor = CLR.avatars[app.id % CLR.avatars.length];
-
-          return (
-            <tr key={`${app.id}-${startIndex}`} className="border-t hover:bg-gray-50 transition-colors">
-              
-              {/* Student */}
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-                    style={{ background: avatarColor }}
-                  >
-                    {initial}
-                  </div>
-                  <span className="font-medium truncate">{app.student}</span>
+        {activeTab === "Application" ? (
+          <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+            <div className="flex flex-wrap items-end gap-3 p-4 border-b">
+              <div className="shrink-0">
+                <h2 className="text-sm md:text-lg font-semibold tracking-tight text-black">Application History</h2>
+                <p className="text-[0.7rem] md:text-xs text-gray-400">{filtered.length} total applications</p>
+              </div>
+              <div className="flex items-end gap-3 ml-auto min-w-0">
+                <FilterSelect label="Sort By" value={sortBy} onChange={handleSort} options={[{ value: "latest", label: "Latest First" }, { value: "earliest", label: "Earliest First" }]} />
+                <div className="flex flex-col gap-0.5 md:gap-1 min-w-0 w-full md:w-56">
+                  <label className="text-[0.5rem] md:text-[10px] font-bold uppercase tracking-widest text-gray-400">Search</label>
+                  <input type="text" placeholder="Search applicant..." value={search} onChange={(e) => handleSearch(e.target.value)} className="w-full border border-gray-200 rounded-lg md:rounded-xl px-2 py-1 md:px-3 md:py-2 text-[0.7rem] md:text-sm focus:outline-none focus:border-[#6B0F2B]" />
                 </div>
-              </td>
-
-              {/* Date Applied */}
-              <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                <p>{app.date}</p>
-                <p><DaysAgo targetDate={app.date} /></p>
-              </td>
-
-              {/* Reviewed */}
-              <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                {app.reviewed}
-              </td>
-
-              {/* Status */}
-              <td className="px-4 py-3">
-                <StatusBadge status={app.status} />
-              </td>
-
-              {/* Action */}
-              <td className="px-4 py-3 text-center">
-                <button
-                  className="text-sm px-4 py-1.5 rounded-xl font-medium"
-                  style={{
-                    color: CLR.mid,
-                    background: "#F5ECF0",
-                    border: `1px solid ${CLR.mid}20`
-                  }}
-                >
-                  View
-                </button>
-              </td>
-
-            </tr>
-          );
-        })
-      )}
-    </tbody>
-  </table>
-  
-</div>
-
-{/* Right controls — takes remaining space, search absorbs all shrinking */}
-          <div className="flex items-end gap-3 ml-auto min-w-0">
-            
-            {/* Sort — fixed, never shrinks */}
-            <div className="shrink-0">
-              <FilterSelect
-                label="Sort By"
-                value={sortBy}
-                onChange={handleSort}
-                options={[
-                  { value: "latest",   label: "Latest First"   },
-                  { value: "earliest", label: "Earliest First" },
-                ]}
-              />
+              </div>
             </div>
 
-            {/* Search — absorbs all shrinking */}
-            <div className="flex flex-col gap-0.5 md:gap-1 min-w-0 w-full md:w-56">
-              <label className="text-[0.5rem] md:text-[10px] font-bold uppercase tracking-widest text-gray-400 shrink-0">
-                Search
-              </label>
-              <input
-                type="text"
-                placeholder="Search applicant..."
-                value={search}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="
-                  w-full min-w-0
-                  border border-gray-200 rounded-lg md:rounded-xl
-                  px-2 py-1 md:px-3 md:py-2
-                  text-[0.7rem] md:text-sm
-                  focus:outline-none focus:border-[#6B0F2B]
-                  transition-all duration-200
-                "
-              />
-            </div>
-         </div>
-
-{/* WAITLIST HISTORY */}
-<div className="bg-white rounded-2xl shadow-sm border overflow-hidden mt-6">
-  <div className="p-4 border-b flex justify-between items-center">
-    <div>
-      <h2 className="text-lg font-semibold">Waitlist History</h2>
-      <p className="text-xs text-gray-400">
-        {waitlistedApps.length} total applicants
-      </p>
-    </div>
-  </div>
-
-  <div className="overflow-x-auto">
-    <table className="w-full text-sm">
-      <thead className="bg-gray-50 text-xs uppercase">
-        <tr>
-          <th className="px-4 py-3 text-left">Student</th>
-          <th className="px-4 py-3 text-left">Applied</th>
-          <th className="px-4 py-3 text-left">Status</th>
-          <th className="px-4 py-3 text-center">Action</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {waitlistedApps.map((app) => (
-          <tr key={app.id} className="border-t">
-            <td className="px-4 py-3">{app.student}</td>
-            <td className="px-4 py-3">{app.date}</td>
-            <td className="px-4 py-3">
-              <StatusBadge status={app.status} />
-            </td>
-            {/* Action */}
-              <td className="px-4 py-3 text-center">
-                <button
-                  className="text-sm px-4 py-1.5 rounded-xl font-medium"
-                  style={{
-                    color: CLR.mid,
-                    background: "#F5ECF0",
-                    border: `1px solid ${CLR.mid}20`
-                  }}
-                >
-                  View
-                </button>
-              </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
-</div>
-
-
-
-
-
-          {/* Table: Phone */}
-          <div className="md:hidden overflow-x-auto">
-            <table className="w-full text-sm table-fixed">
-              <colgroup>
-                <col style={{ width: "15%" }} />
-                <col style={{ width: "20%" }} />
-                <col style={{ width: "20%" }} />
-                <col style={{ width: "20%" }} />
-                <col style={{ width: "15%" }} />
-              </colgroup>
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wide bg-gray-50" style={{ color: CLR.mid }}>
-                  <th className="px-2 py-3 text-center justify-center">Student</th>
-                  <th className="px-4 py-3 text-center justify-center">Date Applied</th>
-                  <th className="px-0 py-3 text-center justify-center">Status</th>
-                  <th className="px-2 py-3 text-center justify-center">Action</th>
-                </tr>
-              </thead>
-              <tbody style={{ minHeight: `${ITEMS_PER_PAGE * 65}px` }}>
-                {paginated.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-16 text-gray-400 text-sm">
-                      No applications found.
-                    </td>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm table-fixed">
+                <colgroup>
+                  <col style={{ width: "30%" }} /><col style={{ width: "22%" }} /><col style={{ width: "22%" }} /><col style={{ width: "16%" }} /><col style={{ width: "10%" }} />
+                </colgroup>
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wide bg-gray-50" style={{ color: CLR.mid }}>
+                    <th className="px-6 py-3">Student</th><th className="px-4 py-3">Date Applied</th><th className="px-4 py-3">Reviewed on</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-center">Action</th>
                   </tr>
-                ) : (
-                  paginated.map((app) => {
-                    const initial     = app.student.charAt(0).toUpperCase();
-                    const avatarColor = CLR.avatars[app.id % CLR.avatars.length];
-                    return (
-                      <tr key={`${app.id}-${startIndex}`} className="border-t hover:bg-gray-50 transition-colors">
-                        {/* Student */}
+                </thead>
+                <tbody>
+                  {paginated.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center py-16 text-gray-400">No applications found.</td></tr>
+                  ) : (
+                    paginated.map((app) => (
+                      <tr key={app.id} className="border-t hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
-                          <div className="flex flex-col items-center justify-center gap-3 leading-tight">
-                            <div
-                              aria-hidden="true"
-                              className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                              style={{ background: avatarColor }}
-                            >
-                              {initial}
-                            </div>
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm" style={{ background: CLR.avatars[app.id % CLR.avatars.length] }}>{app.student.charAt(0)}</div>
                             <span className="font-medium truncate">{app.student}</span>
                           </div>
                         </td>
-
-                        {/* Date Applied */}
-                        <td className="px-0 py-3 text-gray-600 text-[0.7rem] whitespace-nowrap leading-tight">
-                          <p className="flex justify-center">{app.date}</p>
-                          <p className="flex justify-center">{DaysAgo({ targetDate: app.date })}</p>
-                        </td>
-
-
-                        {/* Status */}
-                        <td className="px-0 py-3 text-center"><StatusBadge status={app.status} /></td>
-
-                        {/* Action */}
-                        <td className="px-4 py-3 text-center">
-                        <button
-                            onClick={() => {
-                            setSelectedApp(app);
-                            setViewModalOpen(true);
-                            }}
-                            className="text-sm px-4 py-1.5 rounded-xl font-medium"
-                            style={{
-                            color: CLR.mid,
-                            background: "#F5ECF0",
-                            border: `1px solid ${CLR.mid}20`
-                            }}
-                        >
-                            View
-                        </button>
-                        </td>
+                        <td className="px-4 py-3 text-gray-600"><p>{app.date}</p><p className="text-[10px] text-gray-400"><DaysAgo targetDate={app.date} /></p></td>
+                        <td className="px-4 py-3 text-gray-500">{app.reviewed}</td>
+                        <td className="px-4 py-3"><StatusBadge status={app.status} /></td>
+                        <td className="px-4 py-3 text-center"><button className="text-sm px-4 py-1.5 rounded-xl font-medium" style={{ color: CLR.mid, background: "#F5ECF0", border: `1px solid ${CLR.mid}20` }}>View</button></td>
                       </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-          {/* page footer */}
-          <div className="flex items-center justify-between px-4 py-3 border-t">
-            <p className="text-xs text-gray-400">
-              {filtered.length === 0
-                ? "No results"
-                : `Showing ${startIndex + 1}–${Math.min(startIndex + ITEMS_PER_PAGE, filtered.length)} of ${filtered.length}`}
-            </p>
+            <div className="md:hidden">
+                {paginated.map((app) => (
+                    <div key={app.id} className="p-4 border-t flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style={{ background: CLR.avatars[app.id % CLR.avatars.length] }}>{app.student.charAt(0)}</div>
+                            <div>
+                                <p className="font-bold text-sm">{app.student}</p>
+                                <p className="text-[10px] text-gray-400">{app.date}</p>
+                            </div>
+                        </div>
+                        <StatusBadge status={app.status} />
+                    </div>
+                ))}
+            </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-between px-4 py-3 border-t">
+              <p className="text-xs text-gray-400">{filtered.length === 0 ? "No results" : `Showing ${startIndex + 1}–${Math.min(startIndex + ITEMS_PER_PAGE, filtered.length)} of ${filtered.length}`}</p>
+              <div className="flex items-center gap-1.5">
                 {getVisiblePages().map((page) => (
-                  <PageBtn
-                    key={page}
-                    active={safePage === page}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </PageBtn>
-                ))}     
-                
+                  <PageBtn key={page} active={safePage === page} onClick={() => setCurrentPage(page)}>{page}</PageBtn>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold">Waitlist History</h2>
+              <p className="text-xs text-gray-400">{waitlistedApps.length} total applicants</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-xs uppercase">
+                  <tr><th className="px-4 py-3 text-left">Student</th><th className="px-4 py-3 text-left">Applied</th><th className="px-4 py-3 text-left">Status</th><th className="px-4 py-3 text-center">Action</th></tr>
+                </thead>
+                <tbody>
+                  {waitlistedApps.map((app) => (
+                    <tr key={app.id} className="border-t">
+                      <td className="px-4 py-3 font-medium">{app.student}</td>
+                      <td className="px-4 py-3">{app.date}</td>
+                      <td className="px-4 py-3"><StatusBadge status={app.status} /></td>
+                      <td className="px-4 py-3 text-center"><button className="text-sm px-4 py-1.5 rounded-xl font-medium" style={{ color: CLR.mid, background: "#F5ECF0", border: `1px solid ${CLR.mid}20` }}>View</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </main>
     </div>
-    
   );
 }
