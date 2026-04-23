@@ -3,20 +3,22 @@ import Modal from "../../../../Modal";
 import Button from "../../../../Button";
 import notif_icon from "../../../../../assets/icons/notif_icon.svg";
 import edit_icon from "../../../../../assets/icons/edit.svg";
+import report_icon from "../../../../../assets/icons/report.svg"; // Import report icon
 
 // Layout components
+import ReportModal from "../../../../ReportModal"; // Import ReportModal
 import NotificationPanel, {
     MOCK_NOTIFICATIONS,
     type Notification,
-} from "../../../../NotificationPanel";
+} from "../../../../../components/NotificationPanel"
 
 type ManagerStatus = "assigned" | "pending" | "none" | string;
 
 interface ProfileCardProps {
   status?: ManagerStatus;
-  fullName?: string; // Updated to match dashboard naming
+  fullName?: string;
   role?: string;
-  phoneNumber?: string; // Updated to match dashboard naming
+  phoneNumber?: string;
   email?: string;
   dormitory?: string;
   onNotification?: () => void;
@@ -34,8 +36,11 @@ export default function ProfileCard({
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [replacementEmail, setReplacementEmail] = useState("");
+  
+  // NEW: State for Report Modal
+  const [reportOpen, setReportOpen] = useState(false);
 
-  // Notification state logic from Dashboard
+  // Notification state logic
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
   const notifWrapperRef = useRef<HTMLDivElement>(null);
@@ -124,53 +129,13 @@ export default function ProfileCard({
     </Modal>
   );
 
-  const EmptyShell = ({ children }: { children: React.ReactNode }) => (
-    <div
-      className="relative rounded-b-[30px] overflow-hidden shadow-[0_10px_24px_rgba(61,7,24,0.18)]"
-      style={{ background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)` }}
-    >
-      <div className="flex flex-col items-center justify-center py-12 px-6 gap-4">
-        {children}
-      </div>
-    </div>
-  );
-
-  if (status === "none") {
-    return (
-      <>
-        <EmptyShell>
-          <p className="text-white/80 text-sm text-center">
-            No manager has been assigned to this dormitory yet.
-          </p>
-          <Button variant="secondary" size="sm" onClick={() => setInviteModalOpen(true)}>
-            Add a Manager
-          </Button>
-        </EmptyShell>
-        {InviteModal}
-      </>
-    );
-  }
-
-  if (status === "pending") {
-    return (
-      <>
-        <EmptyShell>
-          <p className="text-white/80 text-sm text-center">
-            Manager has not activated their account yet.
-          </p>
-          <Button variant="secondary" size="sm" onClick={() => setInviteModalOpen(true)}>
-            Edit Invitation
-          </Button>
-        </EmptyShell>
-        {InviteModal}
-      </>
-    );
-  }
-
   const isActive = status === "assigned" || status === "Active";
 
   return (
     <>
+      {/* NEW: Report Modal Component */}
+      <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
+
       <div
         className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-lg w-full"
         style={{ background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)` }}
@@ -186,6 +151,16 @@ export default function ProfileCard({
               Manager Profile
             </span>
             <div className="flex flex-row gap-2">
+              {/* NEW: Report Button */}
+              <button
+                onClick={() => setReportOpen(true)}
+                className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden 
+                          transition-all duration-150 bg-white/10 hover:bg-white/20 active:bg-white/30
+                          hover:-translate-y-1 active:translate-y-0 active:scale-95"
+              >
+                <img src={report_icon} alt="Report" className="w-full h-full object-contain scale-[2.5]" />
+              </button>
+
               <button
                 onClick={() => setEditModalOpen(true)}
                 className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden 
@@ -195,7 +170,6 @@ export default function ProfileCard({
                 <img src={edit_icon} alt="Edit" className="w-full h-full object-contain scale-[2.5]" />
               </button>
 
-              {/* Notification Button with Wrapper Ref for Outside Clicks */}
               <div ref={notifWrapperRef} className="relative">
                 <button
                   onClick={() => {
