@@ -183,7 +183,7 @@ export default function AccommodationMap({
             latitude={selectedPin.latitude}
             anchor="top"
             onClose={() => setSelectedPin(null)}
-            closeButton
+            closeButton={false}
             closeOnClick={false}
             maxWidth="300px"
             offset={[85, 5]}
@@ -305,8 +305,13 @@ export default function AccommodationMap({
               style={{ zIndex: isSelected ? 9999 : 1 }} 
               onClick={(e) => {
                 e.originalEvent.stopPropagation();
-                setSelectedPin(acc);
-                setSelectedUPLB(false);
+
+                if (isSelected) {
+                  setSelectedPin(null);
+                } else {
+                  setSelectedPin(acc);
+                  setSelectedUPLB(false);
+                }
               }}
             >
               <div 
