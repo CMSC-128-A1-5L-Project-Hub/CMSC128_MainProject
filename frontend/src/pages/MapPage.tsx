@@ -121,6 +121,7 @@ export default function MapPage() {
   const [minRating, setMinRating] = useState(0);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState(['WiFi', 'Furnished', 'Air-con', 'Transient', 'Laundry', 'Study-Friendly']);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // center=:id — which accommodation to center on (from "View Location" button)
   const centerId = searchParams.get('center')
@@ -211,258 +212,320 @@ export default function MapPage() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', fontFamily: "'Segoe UI', sans-serif", overflow: 'hidden' }}>
-      <Sidebar role={'student'}></Sidebar> {/* TODO: check how to change between roles */}
-      {/* ─── Sidebar ─────────────────────────────────────────────────────── */}
-      <div className="hide-scrollbar"
-        style={{
-          width: '350px',
-          minWidth: '350px',
-          backgroundColor: 'white',
-          boxShadow: '2px 0 12px rgba(0,0,0,0.08)',
-          overflowY: 'auto',
-          zIndex: 10,
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '0 25px 25px 0'
-        }}>
+      
+      {/* 1. FIXED NAVIGATION SIDEBAR (The component you imported) */}
+      <div style={{ zIndex: 200, backgroundColor: 'white' }}>
+        <Sidebar role={'student'} />
+      </div>
 
-        {/* Header Section */}
-        <div className="p-6 pb-4 border-b border-gray-100">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-2xl font-bold text-gray-800">Filters</h2>
-            <button 
-              onClick={resetFilters}
-              className="text-sm font-semibold text-[#C69C3B] hover:opacity-80 transition-opacity"
-            >
-              Reset all
-            </button>
-          </div>
-        </div>
+      {/* 2. MAIN CONTENT AREA (Map + Collapsible Filter Panel) */}
+      <div style={{ flex: 1, position: 'relative', height: '100%' }}>
+        
+        {/* FULL-HEIGHT COLLAPSIBLE FILTER PANEL */}
+        <div 
+          className="hide-scrollbar"
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: isSidebarOpen ? '0px' : '-350px', // Slides relative to the content area
+            width: '350px',
+            backgroundColor: 'white',
+            boxShadow: isSidebarOpen ? '4px 0 24px rgba(0,0,0,0.1)' : 'none',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            zIndex: 100,
+            display: 'flex',
+            flexDirection: 'column',
+            borderRight: '1px solid #F3F4F6'
+          }}
+        >
+          <div style={{ minWidth: '350px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* Header */}
+            <div className="p-6 pb-4 border-b border-gray-100">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-2xl font-bold text-gray-800">Filters</h2>
+                <button onClick={resetFilters} className="text-sm font-semibold text-[#C69C3B] hover:opacity-80">
+                  Reset all
+                </button>
+              </div>
+            </div>
 
-        <div className="p-6 space-y-8 flex-1">
-          
-          {/* SHOW FAVORITES ONLY */}
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Show Favorites Only</label>
-            <div className="flex items-center justify-between p-4 bg-[#FDF7F8] rounded-2xl border border-[#F5EBEB]">
-              <div className="flex items-center gap-3">
-                <div className="text-[#710A2B]">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                  </svg>
+            {/* Scrollable Filters */}
+            <div className="p-6 space-y-8 flex-1 overflow-y-auto hide-scrollbar">
+              {/* SHOW FAVORITES ONLY */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Show Favorites Only</label>
+                <div className="flex items-center justify-between p-4 bg-[#FDF7F8] rounded-2xl border border-[#F5EBEB]">
+                  <div className="flex items-center gap-3">
+                    <div className="text-[#710A2B]">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-800 leading-none">Saved Rooms</p>
+                      <p className="text-[11px] text-gray-400 mt-1">Show only your saved dorms</p>
+                    </div>
+                  </div>
+                  {/* Toggle Switch */}
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#710A2B]/20 peer-checked:after:bg-[#710A2B]"></div>
+                  </label>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-800 leading-none">Saved Rooms</p>
-                  <p className="text-[11px] text-gray-400 mt-1">Show only your saved dorms</p>
-                </div>
-              </div>
-              {/* Toggle Switch */}
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#710A2B]/20 peer-checked:after:bg-[#710A2B]"></div>
-              </label>
-            </div>
-          </div>
-
-          {/* DORM TYPE */}
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Dorm Type</label>
-            <select 
-              value={type} 
-              onChange={(e) => updateFilter('type', e.target.value)}
-              className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none cursor-pointer"
-            >
-              <option value="all">All Types</option>
-              <option value="on-campus">On-Campus</option>
-              <option value="off-campus">Off-Campus</option>
-              <option value="partner_housing">Partner Housing</option>
-            </select>
-          </div>
-
-          {/* ROOM TYPE */}
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Room Type</label>
-            <select className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none">
-              <option>All</option>
-              <option>Studio</option>
-              <option>Shared</option>
-            </select>
-          </div>
-
-          {/* PRICE RANGE SECTION */}
-          <div className="space-y-4">
-            <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest block">
-              Price Range
-            </label>
-            
-            {/* The Visual Price Labels */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 p-3 bg-[#FDF7F8] border border-[#F5EBEB] rounded-xl text-center">
-                <p className="text-[9px] text-gray-400 uppercase font-bold">From</p>
-                <p className="text-sm font-bold text-[#710A2B]">₱{minRent.toLocaleString()}</p>
-              </div>
-              <div className="w-3 h-[1px] bg-gray-300"></div>
-              <div className="flex-1 p-3 bg-[#FDF7F8] border border-[#F5EBEB] rounded-xl text-center">
-                <p className="text-[9px] text-gray-400 uppercase font-bold">To</p>
-                <p className="text-sm font-bold text-[#710A2B]">₱{maxRent.toLocaleString()}</p>
-              </div>
-            </div>
-
-            {/* THE DOUBLE SLIDER */}
-            <div className="relative h-6 flex items-center group">
-              {/* 1. The Background Track (Gray) */}
-              <div className="absolute w-full h-1.5 bg-gray-100 rounded-full"></div>
-              
-              {/* 2. The Active Track (Gradient) -Calculates position based on values */}
-              <div 
-                className="absolute h-1.5 rounded-full"
-                style={{ 
-                  left: `${((minRent - 1000) / 14000) * 100}%`, 
-                  right: `${100 - ((maxRent - 1000) / 14000) * 100}%`,
-                  background: 'linear-gradient(135deg, #C9973A, #a07825)' 
-                }}>
               </div>
 
-              {/* 3. The Two Invisible Range Inputs */}
-              <input
-                type="range"
-                min="1000"
-                max="15000"
-                step="100"
-                value={minRent}
-                onChange={(e) => {
-                  const val = Math.min(Number(e.target.value), maxRent - 500);
-                  updateFilter('min_rent', val);
-                }}
-                className="range-input"/>
-              <input
-                type="range"
-                min="1000"
-                max="15000"
-                step="100"
-                value={maxRent}
-                onChange={(e) => {
-                  const val = Math.max(Number(e.target.value), minRent + 500);
-                  updateFilter('max_rent', val);
-                }}
-                className="range-input"/>
-            </div>
-
-            <div className="flex justify-between text-[10px] font-bold text-[#C8B0B8] uppercase">
-              <span>₱1,000</span>
-              <span>₱15,000</span>
-            </div>
-          </div>
-
-          {/* MIN RATING */}
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest block">
-              Min Rating
-            </label>
-            
-            <div className="flex items-center gap-4"> {/* Container for stars + badge */}
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button 
-                    key={star} 
-                    onClick={() => {
-                      setMinRating(star)
-                      updateFilter('rating', star)
-                    }}
-                    className="flex items-center justify-center p-0 border-none bg-transparent outline-none transition-transform active:scale-90">
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      viewBox="0 0 24 24" 
-                      fill={star <= minRating ? "#C69C3B" : "#F5EBEB"} 
-                      className="w-7 h-7 transition-colors">
-                      <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                ))}
+              {/* DORM TYPE */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Dorm Type</label>
+                <select 
+                  value={type} 
+                  onChange={(e) => updateFilter('type', e.target.value)}
+                  className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none cursor-pointer"
+                >
+                  <option value="all">All Types</option>
+                  <option value="on-campus">On-Campus</option>
+                  <option value="off-campus">Off-Campus</option>
+                  <option value="partner_housing">Partner Housing</option>
+                </select>
               </div>
-              
-              <span className="px-3 py-1 bg-[#FDF7F8] border border-[#F5EBEB] text-[#710A2B] text-xs font-bold rounded-full">
-                {minRating}{minRating === 5 ? '★' : '★+'}
-              </span>
-            </div>
-            
-            <p className="text-[10px] text-[#C8B0B8]">Tap stars to change minimum</p>
-          </div>
 
-          {/* OTHERS (TAGS) SECTION */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">
-            <label className="...">Others</label>
-            
-            <button 
-              onClick={() => setSelectedTags([])}
-              className={`text-[10px] font-bold uppercase transition-colors ${
-                selectedTags.length > 0 
-                  ? 'text-gray-400 hover:text-[#710A2B] cursor-pointer' 
-                  : 'opacity-0 pointer-events-none'
-              }`}
-            >
-              Clear all ({selectedTags.length})
-            </button>
-          </div>
-            
-            <div className="flex flex-wrap gap-2">
-              {availableTags.map(tag => {
-                const isActive = selectedTags.includes(tag);
+              {/* ROOM TYPE */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Room Type</label>
+                <select className="w-full p-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none">
+                  <option>All</option>
+                  <option>Studio</option>
+                  <option>Shared</option>
+                </select>
+              </div>
+
+              {/* PRICE RANGE SECTION */}
+              <div className="space-y-4">
+                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest block">
+                  Price Range
+                </label>
                 
-                return (
-                  <button 
-                    key={tag} 
-                    onClick={() => toggleTag(tag)}
-                    className={`px-4 py-2 text-xs font-semibold rounded-full transition-all border ${
-                      isActive 
-                        ? 'bg-[#710A2B] text-white border-[#710A2B] shadow-md shadow-[#710A2B]/20' 
-                        : 'bg-white text-[#6B0F2B] border-[#6B0F2B]/20 hover:border-[#710A2B]/40'
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                );
-              })}
+                {/* The Visual Price Labels */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 p-3 bg-[#FDF7F8] border border-[#F5EBEB] rounded-xl text-center">
+                    <p className="text-[9px] text-gray-400 uppercase font-bold">From</p>
+                    <p className="text-sm font-bold text-[#710A2B]">₱{minRent.toLocaleString()}</p>
+                  </div>
+                  <div className="w-3 h-[1px] bg-gray-300"></div>
+                  <div className="flex-1 p-3 bg-[#FDF7F8] border border-[#F5EBEB] rounded-xl text-center">
+                    <p className="text-[9px] text-gray-400 uppercase font-bold">To</p>
+                    <p className="text-sm font-bold text-[#710A2B]">₱{maxRent.toLocaleString()}</p>
+                  </div>
+                </div>
 
-              {/* THE "ADD MORE" BUTTON */}
+                {/* THE DOUBLE SLIDER */}
+                <div className="relative h-6 flex items-center group">
+                  {/* 1. The Background Track (Gray) */}
+                  <div className="absolute w-full h-1.5 bg-gray-100 rounded-full"></div>
+                  
+                  {/* 2. The Active Track (Gradient) -Calculates position based on values */}
+                  <div 
+                    className="absolute h-1.5 rounded-full"
+                    style={{ 
+                      left: `${((minRent - 1000) / 14000) * 100}%`, 
+                      right: `${100 - ((maxRent - 1000) / 14000) * 100}%`,
+                      background: 'linear-gradient(135deg, #C9973A, #a07825)' 
+                    }}>
+                  </div>
+
+                  {/* 3. The Two Invisible Range Inputs */}
+                  <input
+                    type="range"
+                    min="1000"
+                    max="15000"
+                    step="100"
+                    value={minRent}
+                    onChange={(e) => {
+                      const val = Math.min(Number(e.target.value), maxRent - 500);
+                      updateFilter('min_rent', val);
+                    }}
+                    className="range-input"/>
+                  <input
+                    type="range"
+                    min="1000"
+                    max="15000"
+                    step="100"
+                    value={maxRent}
+                    onChange={(e) => {
+                      const val = Math.max(Number(e.target.value), minRent + 500);
+                      updateFilter('max_rent', val);
+                    }}
+                    className="range-input"/>
+                </div>
+
+                <div className="flex justify-between text-[10px] font-bold text-[#C8B0B8] uppercase">
+                  <span>₱1,000</span>
+                  <span>₱15,000</span>
+                </div>
+              </div>
+
+              {/* MIN RATING */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest block">
+                  Min Rating
+                </label>
+                
+                <div className="flex items-center gap-4"> {/* Container for stars + badge */}
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button 
+                        key={star} 
+                        onClick={() => {
+                          setMinRating(star)
+                          updateFilter('rating', star)
+                        }}
+                        className="flex items-center justify-center p-0 border-none bg-transparent outline-none transition-transform active:scale-90">
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          viewBox="0 0 24 24" 
+                          fill={star <= minRating ? "#C69C3B" : "#F5EBEB"} 
+                          className="w-7 h-7 transition-colors">
+                          <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <span className="px-3 py-1 bg-[#FDF7F8] border border-[#F5EBEB] text-[#710A2B] text-xs font-bold rounded-full">
+                    {minRating}{minRating === 5 ? '★' : '★+'}
+                  </span>
+                </div>
+                
+                <p className="text-[10px] text-[#C8B0B8]">Tap stars to change minimum</p>
+              </div>
+
+              {/* OTHERS (TAGS) SECTION */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">
+                <label className="...">Others</label>
+                
+                <button 
+                  onClick={() => setSelectedTags([])}
+                  className={`text-[10px] font-bold uppercase transition-colors ${
+                    selectedTags.length > 0 
+                      ? 'text-gray-400 hover:text-[#710A2B] cursor-pointer' 
+                      : 'opacity-0 pointer-events-none'
+                  }`}
+                >
+                  Clear all ({selectedTags.length})
+                </button>
+              </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.map(tag => {
+                    const isActive = selectedTags.includes(tag);
+                    
+                    return (
+                      <button 
+                        key={tag} 
+                        onClick={() => toggleTag(tag)}
+                        className={`px-4 py-2 text-xs font-semibold rounded-full transition-all border ${
+                          isActive 
+                            ? 'bg-[#710A2B] text-white border-[#710A2B] shadow-md shadow-[#710A2B]/20' 
+                            : 'bg-white text-[#6B0F2B] border-[#6B0F2B]/20 hover:border-[#710A2B]/40'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+
+                  {/* THE "ADD MORE" BUTTON */}
+                  <button 
+                    onClick={() => {
+                      const newTag = prompt("Enter a feature (e.g., Gym, Pet Friendly):");
+                      if (newTag && newTag.trim() !== "") {
+                        const formattedTag = newTag.trim();
+                        
+                        // 1. Add to the list of visible buttons if it's not already there
+                        if (!availableTags.includes(formattedTag)) {
+                          setAvailableTags(prev => [...prev, formattedTag]);
+                        }
+                        
+                        // 2. Select it automatically
+                        if (!selectedTags.includes(formattedTag)) {
+                          toggleTag(formattedTag);
+                        }
+                      }
+                    }}
+                    className="px-4 py-2 border-2 border-dashed border-gray-200 text-gray-400 text-xs font-bold rounded-full hover:border-[#710A2B] hover:text-[#710A2B] transition-colors flex items-center gap-1"
+                  >
+                    <span>+</span> Add more
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Apply Button */}
+            <div className="p-6 pt-4 border-t border-gray-50">
               <button 
-                onClick={() => {
-                  const newTag = prompt("Enter a feature (e.g., Gym, Pet Friendly):");
-                  if (newTag && newTag.trim() !== "") {
-                    const formattedTag = newTag.trim();
-                    
-                    // 1. Add to the list of visible buttons if it's not already there
-                    if (!availableTags.includes(formattedTag)) {
-                      setAvailableTags(prev => [...prev, formattedTag]);
-                    }
-                    
-                    // 2. Select it automatically
-                    if (!selectedTags.includes(formattedTag)) {
-                      toggleTag(formattedTag);
-                    }
-                  }
-                }}
-                className="px-4 py-2 border-2 border-dashed border-gray-200 text-gray-400 text-xs font-bold rounded-full hover:border-[#710A2B] hover:text-[#710A2B] transition-colors flex items-center gap-1"
-              >
-                <span>+</span> Add more
+                onClick={handleApplyFilters}
+                className="w-full py-4 bg-[#710A2B] text-white font-bold rounded-2xl shadow-lg hover:bg-[#5a0822] transition-all transform active:scale-95">
+                Apply Filters
               </button>
             </div>
           </div>
-
-          {/* APPLY BUTTON */}
-          <div className="pt-4">
-            <button 
-              onClick={handleApplyFilters}
-              className="w-full py-4 bg-[#710A2B] text-white font-bold rounded-2xl shadow-lg shadow-[#710A2B]/20 hover:bg-[#5a0822] transition-all transform active:scale-95">
-              Apply Filters
-            </button>
-          </div>
         </div>
-      </div>
 
-      {/* ─── Map ─────────────────────────────────────────────────────────── */}
-      <div style={{ flex: 1, position: 'relative', height: '100vh' }}>
+        {/* FLOATING COLLAPSE BUTTON (Now stuck to the panel edge) */}
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: isSidebarOpen ? '334px' : '-16px', // Tucked so it peeks out when "closed" behind nav
+            transform: 'translateY(-50%)',
+            zIndex: 150, // Higher than Filter Panel, lower than Main Nav
+            width: '32px',
+            height: '32px',
+            backgroundColor: 'white',
+            border: '1px solid #F5EBEB', // Light subtle border from image
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            cursor: 'pointer',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            padding: 0,
+            outline: 'none'
+          }}
+        >
+          <svg 
+            style={{ 
+              width: '18px', 
+              height: '18px', 
+              transition: 'transform 0.5s', 
+              transform: isSidebarOpen ? 'rotate(0deg)' : 'rotate(180deg)',
+              marginLeft: isSidebarOpen ? '-2px' : '2px' // Visual centering for chevron
+            }} 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="#710A2B" // Deep maroon
+            strokeWidth={4} // Thicker weight like the image
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+
+        {/* THE MAP (Fills the remaining space) */}
+        <div style={{ width: '100%', height: '100%', zIndex: 1 }}>
+          <AccommodationMap
+            accommodations={filtered}
+            centeredAccommodation={centeredAccommodation}
+            onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+          />
+        </div>
+
+        {/* No Results Overlay */}
         {filtered.length === 0 && (
           <div style={{
             position: 'absolute',
@@ -471,22 +534,17 @@ export default function MapPage() {
             transform: 'translate(-50%, -50%)',
             zIndex: 10,
             backgroundColor: 'white',
-            padding: '20px 32px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            padding: '24px 40px',
+            borderRadius: '16px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
             textAlign: 'center',
           }}>
-            <p style={{ fontSize: '32px', margin: '0 0 8px 0' }}>🔍</p>
-            <p style={{ fontWeight: '600', color: '#374151', margin: '0 0 4px 0' }}>No accommodations found</p>
-            <p style={{ fontSize: '13px', color: '#9CA3AF', margin: 0 }}>Try adjusting your filters</p>
+            <p style={{ fontSize: '32px', marginBottom: '8px' }}>🔍</p>
+            <p style={{ fontWeight: 'bold', color: '#1F2937' }}>No matches found</p>
+            <p style={{ fontSize: '14px', color: '#6B7280' }}>Try broadening your filters</p>
           </div>
         )}
-        <AccommodationMap
-          accommodations={filtered}
-          centeredAccommodation={centeredAccommodation}
-          onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
-        />
       </div>
     </div>
-  )
+  );
 }
