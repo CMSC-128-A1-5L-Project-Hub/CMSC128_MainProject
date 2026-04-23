@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { api } from "../../api/axios";
+import { useQuery } from "@tanstack/react-query";
 
 const CLR = {
   dark: "#3D0718",
@@ -11,47 +13,107 @@ const CLR = {
   ],
 } as const;
 
-type Status = "Approved" | "Pending" | "Waitlisted" | "Cancelled" | "Rejected";
+type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected";
 
 interface Application {
-  id: number;
-  student: string;
-  date: string;
-  time: string;
-  facility: string;
-  roomType: string;
-  status: Status;
+  id: number
+  accommodationId: number
+  applicationDate: string
+  applicationRoomType: string  
+  applicationStatus: Status
+  applicationStayType: string
+  durationOfStayDays: number
+  studentNumber: string
+}
+
+interface User {
+  id: number
+  accountStatus: string | null
+  email: string
+  facebookAccount: string | null
+  fname: string
+  mname: string | null
+  lname: string
+  suffix: string | null
+  role: string
+  otpCode: string | null
+  otpExpiresAt: string | null
+  pfpFileId: number | null
+}
+
+interface Student {
+  studentNumber: string
+  userId: number
+  college: string
+  degreeProgram: string
+  gender: string
+  yearLevel: string | null
+  emergencyContactName: string | null
+  emergencyContactNumber: string | null
+  enrollmentProofFileId: number
+  form5Renewal: boolean | null
+  user: User
+}
+
+interface Accommodation {
+  id: number
+  landlordId:  number
+  managerId: number | null
+  accommodationName: string
+  accommodationType: string
+  accommodationLocation: string
+  latitude: string | null
+  longitude: string | null
+  accommodationCapacity: number
+  status: string | null
+  tenantRestriction: string
+  businessPermitId: number
+  primaryImageIndex: number | null
+  applicationStartDate: string | null
+  applicationEndDate: string | null
+  walkingDistance: number | null
+  bikingDistance: number | null
+  drivingDistance: number | null
+  invitedManagerEmail: string | null
+}
+
+interface ApplicationResponse {
+  id: number
+  accommodationId: number
+  studentNumber: string
+  applicationDate: string // ISO Timestamp
+  applicationRoomType: string
+  applicationStayType: string
+  applicationStatus: Status
+  durationOfStayDays: number
+  accommodation: Accommodation // Nested Accommodation object
+  student: Student // Nested Student object
 }
 
 // sample data 
-const applications: Application[] = [
-  { id: 1,  student: "A Reyes",  date: "Mar 12, 2026", time: "1:00 PM",  facility: "Building 5", roomType: "Shared Room", status: "Approved"   },
-  { id: 2,  student: "B Reyes",   date: "Mar 14, 2026", time: "11:15 AM", facility: "Building 1", roomType: "Shared Room", status: "Approved"   },
-  { id: 3,  student: "C Reyes",    date: "Mar 15, 2026", time: "2:10 PM",  facility: "Building 6", roomType: "Double Room", status: "Approved"   },
-  { id: 4,  student: "D Reyes",    date: "Mar 16, 2026", time: "9:00 AM",  facility: "Building 2", roomType: "Shared Room", status: "Pending"    },
-  { id: 5,  student: "E Reyes",    date: "Mar 17, 2026", time: "1:46 PM",  facility: "Building 1", roomType: "Single Room", status: "Pending"    },
-  { id: 6,  student: "F Reyes",   date: "Mar 18, 2026", time: "10:30 AM", facility: "Building 1", roomType: "Single Room", status: "Pending"    },
-  { id: 7,  student: "G Reyes",    date: "Mar 19, 2026", time: "8:00 AM",  facility: "Building 3", roomType: "Double Room", status: "Waitlisted" },
-  { id: 8,  student: "H Reyes",   date: "Mar 19, 2026", time: "9:30 AM",  facility: "Building 4", roomType: "Single Room", status: "Cancelled"  },
-  { id: 9,  student: "I Reyes", date: "Mar 20, 2026", time: "10:00 AM", facility: "Building 2", roomType: "Shared Room", status: "Rejected"   },
-  { id: 10, student: "J Reyes",  date: "Mar 20, 2026", time: "2:00 PM",  facility: "Building 5", roomType: "Double Room", status: "Approved"   },
-  { id: 11,  student: "E Reyes",    date: "Mar 17, 2026", time: "1:46 PM",  facility: "Building 1", roomType: "Single Room", status: "Pending"    },
-  { id: 12,  student: "F Reyes",   date: "Mar 18, 2026", time: "10:30 AM", facility: "Building 1", roomType: "Single Room", status: "Pending"    },
-];
-
-// date and time conversion for sorting 
-function toTimestamp(date: string, time: string): number {
-  return new Date(`${date} ${time}`).getTime();
-}
+// const applications: Application[] = [
+//   { id: 1,  student: "A Reyes",  date: "Mar 12, 2026", time: "1:00 PM",  facility: "Building 5", roomType: "Shared Room", status: "Approved"   },
+//   { id: 2,  student: "B Reyes",   date: "Mar 14, 2026", time: "11:15 AM", facility: "Building 1", roomType: "Shared Room", status: "Approved"   },
+//   { id: 3,  student: "C Reyes",    date: "Mar 15, 2026", time: "2:10 PM",  facility: "Building 6", roomType: "Double Room", status: "Approved"   },
+//   { id: 4,  student: "D Reyes",    date: "Mar 16, 2026", time: "9:00 AM",  facility: "Building 2", roomType: "Shared Room", status: "Pending"    },
+//   { id: 5,  student: "E Reyes",    date: "Mar 17, 2026", time: "1:46 PM",  facility: "Building 1", roomType: "Single Room", status: "Pending"    },
+//   { id: 6,  student: "F Reyes",   date: "Mar 18, 2026", time: "10:30 AM", facility: "Building 1", roomType: "Single Room", status: "Pending"    },
+//   { id: 7,  student: "G Reyes",    date: "Mar 19, 2026", time: "8:00 AM",  facility: "Building 3", roomType: "Double Room", status: "Waitlisted" },
+//   { id: 8,  student: "H Reyes",   date: "Mar 19, 2026", time: "9:30 AM",  facility: "Building 4", roomType: "Single Room", status: "Cancelled"  },
+//   { id: 9,  student: "I Reyes", date: "Mar 20, 2026", time: "10:00 AM", facility: "Building 2", roomType: "Shared Room", status: "Rejected"   },
+//   { id: 10, student: "J Reyes",  date: "Mar 20, 2026", time: "2:00 PM",  facility: "Building 5", roomType: "Double Room", status: "Approved"   },
+//   { id: 11,  student: "E Reyes",    date: "Mar 17, 2026", time: "1:46 PM",  facility: "Building 1", roomType: "Single Room", status: "Pending"    },
+//   { id: 12,  student: "F Reyes",   date: "Mar 18, 2026", time: "10:30 AM", facility: "Building 1", roomType: "Single Room", status: "Pending"    },
+// ];
 
 const ITEMS_PER_PAGE = 6;
 //STATUS COLORS 
 const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> = {
-  Approved:   { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" },
-  Pending:    { color: "#C9973A", bg: "#fef3c7", dot: "#C9973A" },
-  Waitlisted: { color: "#7c3aed", bg: "#ede9fe", dot: "#7c3aed" },
-  Cancelled:  { color: "#AA2661", bg: "#ffe4e6", dot: "#AA2661" },
-  Rejected:   { color: "#9E2040", bg: "#ffe4e6", dot: "#9E2040" },
+  approved:   { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" },
+  pending:    { color: "#C9973A", bg: "#fef3c7", dot: "#C9973A" },
+  waitlisted: { color: "#7c3aed", bg: "#ede9fe", dot: "#7c3aed" },
+  cancelled:  { color: "#AA2661", bg: "#ffe4e6", dot: "#AA2661" },
+  rejected:   { color: "#9E2040", bg: "#ffe4e6", dot: "#9E2040" },
 };
 
 const IconMenu = () => (
@@ -73,20 +135,36 @@ const StatusBadge = ({ status }: { status: Status }) => {
   );
 };
 
-const DaysAgo = ({ targetDate }: { targetDate: string }) => {
-    const daysDifference = useMemo(() => {
-        const now = new Date();
-        const past = new Date(targetDate); // Date() constructor accepts strings!
-        
-        now.setHours(0, 0, 0, 0);
-        past.setHours(0, 0, 0, 0);
+const getDaysAgo = (targetDate: string): number => {
+    const now = new Date();
+    const past = new Date(targetDate);
+    
+    now.setHours(0, 0, 0, 0);
+    past.setHours(0, 0, 0, 0);
 
-        const diffTime = Math.abs(now.getTime() - past.getTime());
-        return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    }, [targetDate]);
-
-    return <span>{daysDifference} days ago</span>;
+    const diffTime = Math.abs(now.getTime() - past.getTime());
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 };
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+}
+
+function formatTime(dateString: string) {
+  const date = new Date(dateString);
+
+  return new Intl.DateTimeFormat('en-GB', { // 'en-GB' uses 24-hour clock by default
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).format(date);
+}
 
 const FilterSelect = ({
   label,
@@ -257,28 +335,62 @@ export default function ApplicationsPage() {
   const [activePage, setActivePage] = useState("applications");           //active page on sidebar 
   const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");  //sorting option
   const [currentPage, setCurrentPage] = useState(1);                      //current page num 
-  //total application
-  const total  = applications.length;
-  //count per status 
-  const counts = applications.reduce((acc, a) => {
-    acc[a.status] = (acc[a.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+
+  const { 
+    data: user, 
+    isLoading: isLoadingUser, // Renaming 'isLoading' to 'isLoadingUser'
+    isError: isErrorUser 
+  } = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const res = await api.get('/me')
+      return res.data.data
+    }
+  })
+
+  const { 
+    data: applications = [], 
+    isLoading: isLoadingList, 
+    isError: isErrorList, 
+    refetch
+  } = useQuery({
+      queryKey: ['list'],
+      queryFn: async () => {
+        const res = await api.get('/applications/all-application')
+        console.log('Full Axios application Response: ', res.data)
+        return res.data
+      }
+  })
+
+  const total = useMemo(() => applications.length, [applications]);
+
+  // 2. Count per status - Memoized so it only re-runs when data is refetched
+  const counts = useMemo(() => {
+    return applications.reduce((acc: Record<Status, number>, a: ApplicationResponse) => {
+      // Note: Ensure the key matches your API (e.g., a.applicationStatus)
+      const status = a.applicationStatus || 'unknown'; 
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+  }, [applications]);
 
   //FILTER AND SORT
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     //filter by name 
-    const res = applications.filter((a) =>
-      a.student.toLowerCase().includes(q) ||
-      a.facility.toLowerCase().includes(q)
+    const res = applications.filter((a: ApplicationResponse) =>
+      a.student.user.lname.toLowerCase().includes(q) ||
+      a.accommodation.accommodationType.toLowerCase().includes(q)
     );
     //sort by date 
-    return res.sort((a, b) => {
-      const diff = toTimestamp(a.date, a.time) - toTimestamp(b.date, b.time);
+    return res.sort((a: ApplicationResponse, b: ApplicationResponse) => {
+      const diff = new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime();
       return sortBy === "latest" ? -diff : diff;
     });
-  }, [search, sortBy]);
+  }, [search, sortBy, applications]);
+
+  console.log("Filter: ")
+  console.log(filtered)
 
   const totalPages  = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage    = Math.min(currentPage, totalPages);
@@ -290,11 +402,11 @@ export default function ApplicationsPage() {
 
   //stats data TOP CARDS 
   const stats = [
-    { label: "Approved",   color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)", text: "#1A7A4A", light_bg: "#F0F7F3" ,value: counts.Approved   || 0 },
-    { label: "Pending",    color: "linear-gradient(135deg, #C9973A, #E8C37A)", text: "#C9973A", light_bg: "#FEF8EE" ,value: counts.Pending    || 0 },
-    { label: "Waitlisted", color: "linear-gradient(135deg, #6B3AB7, #9B6AE7)", text: "#6B3AB7", light_bg: "#F4F0FA" ,value: counts.Waitlisted || 0 },
-    { label: "Cancelled",  color: "linear-gradient(135deg, #AA2661, #FDCAE0)", text: "#AE2F67", light_bg: "#FAF0F7" ,value: counts.Cancelled  || 1 },
-    { label: "Rejected",   color: "linear-gradient(135deg, #9E2040, #C84060)", text: "#9E2040", light_bg: "#FDF0F3" ,value: counts.Rejected   || 0 },
+    { label: "Approved",   color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)", text: "#1A7A4A", light_bg: "#F0F7F3" ,value: counts.approved   || 0 },
+    { label: "Pending",    color: "linear-gradient(135deg, #C9973A, #E8C37A)", text: "#C9973A", light_bg: "#FEF8EE" ,value: counts.pending    || 0 },
+    { label: "Waitlisted", color: "linear-gradient(135deg, #6B3AB7, #9B6AE7)", text: "#6B3AB7", light_bg: "#F4F0FA" ,value: counts.waitlisted || 0 },
+    { label: "Cancelled",  color: "linear-gradient(135deg, #AA2661, #FDCAE0)", text: "#AE2F67", light_bg: "#FAF0F7" ,value: counts.cancelled  || 1 },
+    { label: "Rejected",   color: "linear-gradient(135deg, #9E2040, #C84060)", text: "#9E2040", light_bg: "#FDF0F3" ,value: counts.rejected   || 0 },
   ];
 
 // for tracking page number 
@@ -335,7 +447,9 @@ export default function ApplicationsPage() {
           className="rounded-2xl p-6 mb-6 text-white"
           style={{ background: `linear-gradient(135deg, ${CLR.dark}, ${CLR.accent})` }}
         >
-          <p className="text-xs uppercase tracking-widest opacity-70">Good Day, Ana Reyes</p>
+          <p className="text-xs uppercase tracking-widest opacity-70">
+            Good Day, {isLoadingUser ? 'Loading...' : isErrorUser ? 'Error Loading Name' : user?.fname}
+          </p>
           <h2 className="text-2xl font-bold mt-1">Check your applicants</h2>
           <p className="text-sm opacity-70 mt-1">We make it easy for you to track the accommodation applications you manage.</p>
         </div>
@@ -443,16 +557,34 @@ export default function ApplicationsPage() {
                 </tr>
               </thead>
               <tbody style={{ minHeight: `${ITEMS_PER_PAGE * 65}px` }}>
-                {paginated.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-16 text-gray-400 text-sm">
-                      No applications found.
-                    </td>
-                  </tr>
-                ) : (
-                  paginated.map((app) => {
-                    const initial     = app.student.charAt(0).toUpperCase();
+                {isLoadingList ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-16">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: CLR.mid }}></div>
+                          <p className="text-gray-400 text-sm">Fetching applications...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : 
+                  /* STATE 2: ERROR */
+                  isErrorList ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-16 text-red-500 text-sm">
+                        <p>Failed to load applications.</p>
+                        <button 
+                          onClick={() => refetch()} // TanStack Query provides a refetch function
+                          className="mt-2 underline text-xs"
+                        >
+                          Try again
+                        </button>
+                      </td>
+                    </tr>
+                  ) : (
+                  paginated.map((app: ApplicationResponse) => {
+                    const initial     = app.student.user.fname.charAt(0).toUpperCase();
                     const avatarColor = CLR.avatars[app.id % CLR.avatars.length];
+                    console.log(app.applicationStatus)
                     return (
                       <tr key={`${app.id}-${startIndex}`} className="border-t hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
@@ -464,19 +596,21 @@ export default function ApplicationsPage() {
                             >
                               {initial}
                             </div>
-                            <span className="font-medium truncate">{app.student}</span>
+                            <span className="font-medium truncate">{app.student.user.fname} {app.student.user.lname}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                          <p>{app.date}</p>
-                          <p>{DaysAgo({ targetDate: app.date })}</p>
+                          <p>{formatDate(app.applicationDate)}</p>
+                          <p>{getDaysAgo(app.applicationDate)} days ago</p>
                         </td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{app.time}</td>
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{formatTime(app.applicationDate)}</td>
                         <td className="px-4 py-3">
-                          <p className="font-medium">{app.facility}</p>
-                          <p className="text-xs text-gray-400">{app.roomType}</p>
+                          <p className="font-medium">{app.accommodation.accommodationName}</p>
+                          <p className="text-xs text-gray-400">{app.applicationRoomType}</p>
                         </td>
-                        <td className="px-4 py-3"><StatusBadge status={app.status} /></td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={app.applicationStatus} />
+                        </td>
                         <td className="px-4 py-3 text-center">
                           <button
                             className="text-sm px-4 py-1.5 rounded-xl font-medium transition-colors"
@@ -517,15 +651,32 @@ export default function ApplicationsPage() {
                 </tr>
               </thead>
               <tbody style={{ minHeight: `${ITEMS_PER_PAGE * 65}px` }}>
-                {paginated.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-16 text-gray-400 text-sm">
-                      No applications found.
-                    </td>
-                  </tr>
-                ) : (
-                  paginated.map((app) => {
-                    const initial     = app.student.charAt(0).toUpperCase();
+                {isLoadingList ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-16">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: CLR.mid }}></div>
+                          <p className="text-gray-400 text-sm">Fetching applications...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : 
+                  /* STATE 2: ERROR */
+                  isErrorList ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-16 text-red-500 text-sm">
+                        <p>Failed to load applications.</p>
+                        <button 
+                          onClick={() => refetch()} // TanStack Query provides a refetch function
+                          className="mt-2 underline text-xs"
+                        >
+                          Try again
+                        </button>
+                      </td>
+                    </tr>
+                  ) : (
+                  paginated.map((app: ApplicationResponse) => {
+                    const initial     = app.student.user.fname.charAt(0).toUpperCase();
                     const avatarColor = CLR.avatars[app.id % CLR.avatars.length];
                     return (
                       <tr key={`${app.id}-${startIndex}`} className="border-t hover:bg-gray-50 transition-colors">
@@ -539,24 +690,24 @@ export default function ApplicationsPage() {
                             >
                               {initial}
                             </div>
-                            <span className="font-medium truncate">{app.student}</span>
+                            <span className="text-xs font-medium truncate">{app.student.user.lname}</span>
                           </div>
                         </td>
 
                         {/* Date Applied */}
                         <td className="px-0 py-3 text-gray-600 text-[0.7rem] whitespace-nowrap leading-tight">
-                          <p className="flex justify-center">{app.date}</p>
-                          <p className="flex justify-center">{DaysAgo({ targetDate: app.date })}</p>
+                          <p className="flex justify-center">{formatDate(app.applicationDate)}</p>
+                          <p className="flex justify-center">{getDaysAgo(app.applicationDate)} days ago</p>
                         </td>
 
                         {/* Preferred Facility */}
                         <td className="px-4 py-3">
-                          <p className="font-medium text-[0.7rem]">{app.facility}</p>
-                          <p className="text-[0.65rem] text-gray-400 leading-tight">{app.roomType}</p>
+                          <p className="font-medium text-[0.7rem]">{app.accommodation.accommodationType}</p>
+                          <p className="text-[0.65rem] text-gray-400 leading-tight">{app.accommodation.accommodationType}</p>
                         </td>
 
                         {/* Status */}
-                        <td className="px-0 py-3 text-center"><StatusBadge status={app.status} /></td>
+                        <td className="px-0 py-3 text-center"><StatusBadge status={app.applicationStatus} /></td>
 
                         {/* Action */}
                         <td className="px-2 py-3 text-center">
