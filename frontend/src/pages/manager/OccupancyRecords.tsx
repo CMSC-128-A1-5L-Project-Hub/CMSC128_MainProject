@@ -95,6 +95,7 @@ const SORT_OPTS = ["Room Type", "Room No.", "Date", "Action"]
 const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:string}) => {
     const [currentPage, setCurrentPage] = useState(1)
     const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
+    const [modalRoom, setModalRoom] = useState<Room | null>(null)
     const totalPages = Math.ceil(rooms.length / ROOMS_PER_PAGE)
     const startIndex = (currentPage - 1) * ROOMS_PER_PAGE
     const paginatedRooms = rooms.slice(startIndex, startIndex + ROOMS_PER_PAGE)
@@ -104,25 +105,34 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
         return "Full"
     }
 
+    const openModal = (room: Room) => {
+        setModalRoom(room)
+        setSelectedRoom(room)
+    }
+
+    const closeModal = () => {
+        setSelectedRoom(null)
+    }
+
     return (
         <>
         <Modal 
             open={!!selectedRoom}
-            onClose={() => setSelectedRoom(null)}
+            onClose={closeModal}
             title="View Room Details"
             maxWidth={652}
             children={
-                selectedRoom && (
+                modalRoom && (
                     <Card 
                         children={
                             <div className="flex flex-col gap-4">
                                 {/* Room Header */}
                                 <div>
                                     <h1 className="font-bold text-xl text-[#1A0008] uppercase">
-                                        Room {selectedRoom.roomNumber}
+                                        Room {modalRoom.roomNumber}
                                     </h1>
                                     <p className="text-[#C8B0B8] text-xs uppercase border-b border-[#F5ECF0] pb-1">
-                                        Building {selectedRoom.roomBuilding}
+                                        Building {modalRoom.roomBuilding}
                                     </p>
                                 </div>
 
@@ -130,20 +140,20 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                 <div className="grid grid-cols-4 gap-2 -mt-2">
                                     <div>
                                         <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Room Type</p>
-                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008] capitalize">{selectedRoom.stayType}</p>
+                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008] capitalize">{modalRoom.stayType}</p>
                                     </div>
                                     <div>
                                         <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Room Arrangement</p>
-                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008] capitalize">{selectedRoom.roomType} Room</p>
+                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008] capitalize">{modalRoom.roomType} Room</p>
                                     </div>
                                     <div className="px-2">
                                         <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Room Capacity</p>
-                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008]">{selectedRoom.roomCurrentOccupancy}/{selectedRoom.roomCapacity}</p>
+                                        <p className="font-semibold text-sm lg:text-lg text-[#1A0008]">{modalRoom.roomCurrentOccupancy}/{modalRoom.roomCapacity}</p>
                                     </div>
                                     <div>
                                         <p className="text-[#C8B0B8] text-[9px] lg:text-[10px] uppercase font-bold mb-1">Status</p>
-                                        <p className={`font-semibold text-sm lg:text-lg ${selectedRoom.roomCurrentOccupancy === selectedRoom.roomCapacity ? "text-[#9E2040]" : "text-[#1A7A4A]"}`}>
-                                            {selectedRoom.roomCurrentOccupancy === selectedRoom.roomCapacity
+                                        <p className={`font-semibold text-sm lg:text-lg ${modalRoom.roomCurrentOccupancy === modalRoom.roomCapacity ? "text-[#9E2040]" : "text-[#1A7A4A]"}`}>
+                                            {modalRoom.roomCurrentOccupancy === modalRoom.roomCapacity
                                                 ? "Fully Occupied"
                                                 : "Available"}
                                         </p>
@@ -153,9 +163,9 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                 {/* Current Occupants */}
                                 <div>
                                     <p className="font-bold text-md lg:text-lg text-[#1A0008] mb-3">Current Occupants</p>
-                                    {selectedRoom.tenants.length > 0 ? (
+                                    {modalRoom.tenants.length > 0 ? (
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                            {selectedRoom.tenants.map((tenant, i) => (
+                                            {modalRoom.tenants.map((tenant, i) => (
                                                 <div key={i} className="flex flex-col gap-3">
                                                     {/* Avatar + Name */}
                                                     <div className="flex items-center gap-3">
@@ -245,7 +255,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                                 </span>
                                             </div>
                                             <div className="col-span-1 flex justify-center">
-                                                <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRoom(room)}>
+                                                <Button variant="reddishPink" size="sm" className="px-6" onClick={() => openModal(room)}>
                                                         View
                                                 </Button>
                                             </div>
@@ -583,7 +593,7 @@ export default function OccupancyRecords() {
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
             <Sidebar role="manager" profile={managerProfile}/>
 
-            <div className="flex-1 flex flex-col p-5 overflow-y-auto">
+            <div className="flex-1 flex flex-col px-8 py-5 overflow-y-auto">
                 <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
                     <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
                         style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}

@@ -1,13 +1,13 @@
 import HeroBanner from "../../components/dashboard/HeroBanner";
-import StatCard from "../../components/dashboard/StatCard";
-import SectionCard from "../../components/dashboard/SectionCard";
-import CircleProgress from "../../components/dashboard/CircleProgress";
+import StatCard from "../../components/dashboard/landlord/rooms/dashboard/StatCard";
+import SectionCard from "../../components/dashboard/landlord/rooms/dashboard/SectionCard";
+import CircleProgress from "../../components/dashboard/landlord/rooms/dashboard/CircleProgress";
 import Sidebar from "../../components/Sidebar";
-import ProfileCard from "../../components/dashboard/ManagerCard";
-import PaymentList from "../../components/dashboard/PaymentList";
-import ActivityLogs from "../../components/dashboard/ActivityLogs";
-import ReportsPanel from "../../components/dashboard/ReportsPanel";
-import ApplicationPeriod from "../../components/dashboard/Calendar";
+import ProfileCard from "../../components/dashboard/landlord/rooms/dashboard/ManagerCard";
+import PaymentList from "../../components/dashboard/landlord/rooms/dashboard/PaymentList";
+import ActivityLogs from "../../components/dashboard/landlord/rooms/dashboard/ActivityLogs";
+import ReportsPanel from "../../components/dashboard/landlord/rooms/dashboard/ReportsPanel";
+import ApplicationPeriod from "../../components/dashboard/landlord/rooms/dashboard/Calendar";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
 import { useState } from "react";
@@ -103,18 +103,21 @@ export default function Dashboard() {
               >
                 ← Back
               </Button>
-              <span className="text-gray-300">|</span>
-              <h2 className="font-semibold text-lg">Dashboard</h2>
+            <div
+              className="hidden lg:inline w-2 h-8 rounded-xl mt-1"
+              style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)" }}
+            />
+            <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">Dashboard</h1>
             </div>
 
-              {/* HERO */}
-              <HeroBanner 
-                greeting={heroContent.greeting}
-                title={heroContent.title}
-                subtitle={heroContent.subtitle}
-                name={landlordProfile.fullName}
-                type="full"
-              />
+            {/* HERO */}
+            <HeroBanner 
+              greeting={heroContent.greeting}
+              title={heroContent.title}
+              subtitle={heroContent.subtitle}
+              name={landlordProfile.fullName}
+              type="full"
+            />
 
             {/* RIGHT PANEL — mobile only, below hero */}
             <div className="lg:hidden">
@@ -246,156 +249,110 @@ export default function Dashboard() {
 
             {/* ROOMS */}
             {activeTab === "Rooms" && (
-            <div className="space-y-4">
-
+              <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                {/* APPLICATIONS UNDER REVIEW */}
-                <SectionCard title="Applications Under Review" action="View all →">
+                  {/* APPLICATIONS UNDER REVIEW */}
+                  <SectionCard title="Applications Under Review" action="View all →">
                     <div className="overflow-x-auto">
-                    <div className="min-w-[500px] xl:min-w-0">
-
-                        {/* HEADER */}
+                      <div className="min-w-[500px] xl:min-w-0">
                         <div className="flex items-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                        <span className="flex-[5] text-[#9A7080] font-bold">Student</span>
-                        <span className="flex-[3] text-[#9A7080] font-bold">Type</span>
-                        <span className="flex-[3] text-[#9A7080] font-bold">Applied</span>
-                        <span className="flex-[2] text-center text-[#9A7080] font-bold">Action</span>
+                          <span className="flex-[5] text-[#9A7080] font-bold">Student</span>
+                          <span className="flex-[3] text-[#9A7080] font-bold">Type</span>
+                          <span className="flex-[3] text-[#9A7080] font-bold">Applied</span>
+                          <span className="flex-[2] text-center text-[#9A7080] font-bold">Action</span>
                         </div>
-
                         {[
-                        { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 12, 2026" },
-                        { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 14, 2026" },
-                        { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 15, 2026" },
+                          { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 12, 2026" },
+                          { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 14, 2026" },
+                          { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 15, 2026" },
                         ].map((item, i) => (
-                        <div
-                            key={i}
-                            className="flex items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0"
-                        >
-                            {/* STUDENT */}
+                          <div key={i} className="flex items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0">
                             <div className="flex-[5] flex items-center gap-3 min-w-0">
-                            <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
-                            <p className="font-medium whitespace-nowrap text-[clamp(11px,0.9vw,15px)]">
-                                {item.name}
-                            </p>
+                              <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
+                              <p className="font-medium whitespace-nowrap text-[clamp(11px,0.9vw,15px)]">{item.name}</p>
                             </div>
-
-                            {/* TYPE */}
-                            <div className="flex-[3] flex ">
-                            <p className="text-sm text-gray-500">{item.type}</p>
-                            </div>
-
-                            {/* DATE */}
-                            <div className="flex-[3] flex">
-                            <p className="text-sm text-gray-500">{item.date}</p>
-                            </div>
-
-                            {/* ACTION */}
-                            <div className="flex-[2] flex justify-center">
-                            <Button variant="reddishPink" size="sm" className="!rounded-xl">
-                                Review
-                            </Button>
-                            </div>
-                        </div>
+                            <div className="flex-[3] flex"><p className="text-sm text-gray-500">{item.type}</p></div>
+                            <div className="flex-[3] flex"><p className="text-sm text-gray-500">{item.date}</p></div>
+                            <div className="flex-[2] flex justify-center"><Button variant="reddishPink" size="sm" className="!rounded-xl">Review</Button></div>
+                          </div>
                         ))}
-
+                      </div>
                     </div>
-                    </div>
-                </SectionCard>
+                  </SectionCard>
 
-                {/* WAITLISTED */}
-                <SectionCard title="Waitlisted" action="View all →">
+                  {/* WAITLISTED */}
+                  <SectionCard title="Waitlisted" action="View all →">
                     <div className="overflow-x-auto">
-                    <div className="min-w-[500px] xl:min-w-0">
-
-                        {/* HEADER */}
+                      <div className="min-w-[500px] xl:min-w-0">
                         <div className="flex items-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                        <span className="flex-[5] text-[#9A7080] font-bold">Student</span>
-                        <span className="flex-[3] text-[#9A7080] font-bold">Preferred Type</span>
-                        <span className="flex-[3] text-center text-[#9A7080] font-bold">Since</span>
+                          <span className="flex-[5] text-[#9A7080] font-bold">Student</span>
+                          <span className="flex-[3] text-[#9A7080] font-bold">Preferred Type</span>
+                          <span className="flex-[3] text-center text-[#9A7080] font-bold">Since</span>
                         </div>
-
                         {[
-                        { name: "Ana Marie Reyes", type: "Solo", date: "Mar 12, 2026" },
-                        { name: "Ana Marie Reyes", type: "Solo", date: "Mar 14, 2026" },
-                        { name: "Ana Marie Reyes", type: "Double", date: "Mar 15, 2026" },
+                          { name: "Ana Marie Reyes", type: "Solo", date: "Mar 12, 2026" },
+                          { name: "Ana Marie Reyes", type: "Solo", date: "Mar 14, 2026" },
+                          { name: "Ana Marie Reyes", type: "Double", date: "Mar 15, 2026" },
                         ].map((item, i) => (
-                        <div
-                            key={i}
-                            className="flex items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0"
-                        >
-                            {/* STUDENT */}
+                          <div key={i} className="flex items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0">
                             <div className="flex-[5] flex items-center gap-3 min-w-0">
-                            <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
-                            <p className="font-medium whitespace-nowrap text-[clamp(11px,0.9vw,15px)]">
-                                {item.name}
-                            </p>
+                              <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
+                              <p className="font-medium whitespace-nowrap text-[clamp(11px,0.9vw,15px)]">{item.name}</p>
                             </div>
-
-                            {/* TYPE */}
-                            <div className="flex-[3] flex">
-                            <p className="text-sm text-gray-500">{item.type}</p>
-                            </div>
-
-                            {/* DATE (FIXED CENTER) */}
-                            <div className="flex-[3] flex justify-center">
-                            <p className="text-sm text-gray-500">{item.date}</p>
-                            </div>
-                        </div>
+                            <div className="flex-[3] flex"><p className="text-sm text-gray-500">{item.type}</p></div>
+                            <div className="flex-[3] flex justify-center"><p className="text-sm text-gray-500">{item.date}</p></div>
+                          </div>
                         ))}
-
+                      </div>
                     </div>
-                    </div>
-                </SectionCard>
-
+                  </SectionCard>
                 </div>
 
                 {/* ROOMS */}
                 <SectionCard title="Rooms" action="Manage →">
-                <div className="min-w-[500px] xl:min-w-0">
-
-                    {/* HEADER */}
+                  <div className="min-w-[500px] xl:min-w-0">
                     <div className="flex items-center text-[10px] font-semibold uppercase tracking-wider pb-2 border-b border-gray-100">
-                    <span className="flex-1 text-[#9A7080] font-bold">Room Number</span>
-                    <span className="flex-1 text-center text-[#9A7080] font-bold">Type</span>
-                    <span className="flex-1 text-center text-[#9A7080] font-bold">Occupancy</span>
+                      <span className="flex-1 text-[#9A7080] font-bold">Room Number</span>
+                      <span className="flex-1 text-center text-[#9A7080] font-bold">Type</span>
+                      <span className="flex-1 text-center text-[#9A7080] font-bold">Occupancy</span>
                     </div>
-
                     {[
-                    { room: "Room 101", type: "Single", occ: "1/1" },
-                    { room: "Room 102", type: "Double", occ: "1/2" },
-                    { room: "Room 103", type: "Shared", occ: "4/4" },
+                      { room: "Room 101", type: "Single", occ: "1/1" },
+                      { room: "Room 102", type: "Double", occ: "1/2" },
+                      { room: "Room 103", type: "Shared", occ: "4/4" },
                     ].map((r, i) => (
-                    <div key={i} className="flex items-center py-3 border-b border-gray-50 last:border-0">
+                      <div key={i} className="flex items-center py-3 border-b border-gray-50 last:border-0">
                         <div className="flex-1 flex items-center gap-3">
-                        <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
-                        <p className="font-medium text-sm">{r.room}</p>
+                          <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
+                          <p className="font-medium text-sm">{r.room}</p>
                         </div>
-                        <div className="flex-1 flex justify-center">
-                        <p className="text-sm text-gray-500">{r.type}</p>
-                        </div>
-                        <div className="flex-1 flex justify-center">
-                        <p className="text-sm text-gray-500">{r.occ}</p>
-                        </div>
-                    </div>
+                        <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500">{r.type}</p></div>
+                        <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500">{r.occ}</p></div>
+                      </div>
                     ))}
-
-                </div>
+                  </div>
                 </SectionCard>
-
-            </div>
+              </div>
             )}
           </div>
         </main>
 
-        {/* RIGHT PANEL — desktop only, fixed 280px, always pinned to the right edge */}
-        <aside className="hidden lg:flex w-[340px] shrink-0 border-l bg-white/60 backdrop-blur p-4 flex-col gap-4 overflow-y-auto">
-          <ProfileCard />
+        {/* RIGHT PANEL*/}
+        <aside className="hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
+          <ProfileCard
+            status="assigned"
+            name={landlordProfile.fullName}
+            role="Manager"
+            phone={landlordProfile.phoneNumber}
+            email={landlordProfile.email}
+            dormitory={landlordProfile.dormitory}
+            onNotification={() => console.log("Notification clicked")}
+          />
           <ApplicationPeriod />
           <ActivityLogs />
           <ReportsPanel />
         </aside>
-
       </div>
 
       {/* ADD DOCUMENT MODAL */}
@@ -461,13 +418,7 @@ export default function Dashboard() {
         eyebrow="Document Requirements"
         footer={
           <div className="flex gap-2 ml-auto">
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => setDocToDelete(null)}
-            >
-              Cancel
-            </Button>
+            <Button variant="secondary" size="md" onClick={() => setDocToDelete(null)}>Cancel</Button>
             <Button
               variant="primary"
               size="md"
@@ -489,7 +440,6 @@ export default function Dashboard() {
           from the document requirements? This may affect existing tenants.
         </p>
       </Modal>
-
     </div>
   );
 }

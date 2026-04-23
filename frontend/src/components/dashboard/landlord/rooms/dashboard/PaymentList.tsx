@@ -1,5 +1,5 @@
-import Card from "../ui/Card";
-import Button from "../Button";
+import Card from "../../../../ui/Card";
+import Button from "../../../../Button";
 
 const payments = [
   { name: "Ana Marie Reyes", amount: "₱5000", status: "Pending" },
