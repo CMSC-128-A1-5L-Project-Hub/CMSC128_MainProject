@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import HeroBanner from "../../components/dashboard/HeroBanner";
-
+import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 
 // ── SVG / asset imports ────────────────────────────────────────────────────
 import house_icon from "../../assets/icons/house_icon.svg";
@@ -181,6 +181,77 @@ const recommended = [
     review:
       "Affordable and decent stay. Best for short-term use. The place is clean but can get a bit noisy during peak hours.",
     img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+];
+
+const dashboardMapAccommodations: AccommodationPin[] = [
+  {
+    accommodationId: 1,
+    accommodationName: "Kamia Residence",
+    accommodationLocation: "UPLB Campus, Los Baños, Laguna",
+    accommodationType: "on-campus",
+    accommodationCapacity: 50,
+    tenantRestriction: "female-only",
+    latitude: 14.1672,
+    longitude: 121.2430,
+    minRent: 3200,
+    maxRent: 3200,
+    walkingDistance: 3,
+    drivingDistance: 2,
+    bikingDistance: 2,
+    stayType: "transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    accommodationId: 2,
+    accommodationName: "Narra Residence",
+    accommodationLocation: "Off-campus, Los Baños, Laguna",
+    accommodationType: "off-campus",
+    accommodationCapacity: 30,
+    tenantRestriction: "coed",
+    latitude: 14.1690,
+    longitude: 121.2455,
+    minRent: 8500,
+    maxRent: 8500,
+    walkingDistance: 8,
+    drivingDistance: 4,
+    bikingDistance: 5,
+    stayType: "non_transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    accommodationId: 3,
+    accommodationName: "Molave Dorm",
+    accommodationLocation: "On-campus, Los Baños, Laguna",
+    accommodationType: "on-campus",
+    accommodationCapacity: 40,
+    tenantRestriction: "male-only",
+    latitude: 14.1658,
+    longitude: 121.2418,
+    minRent: 5000,
+    maxRent: 5000,
+    walkingDistance: 5,
+    drivingDistance: 3,
+    bikingDistance: 3,
+    stayType: "non_transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    accommodationId: 4,
+    accommodationName: "Acacia Suites",
+    accommodationLocation: "Near Gate 1, Los Baños, Laguna",
+    accommodationType: "off-campus",
+    accommodationCapacity: 20,
+    tenantRestriction: "coed",
+    latitude: 14.1645,
+    longitude: 121.2400,
+    minRent: 4200,
+    maxRent: 4200,
+    walkingDistance: 10,
+    drivingDistance: 6,
+    bikingDistance: 7,
+    stayType: "transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
   },
 ];
 
@@ -501,92 +572,117 @@ interface DesktopProfilePanelProps {
 }
 
 const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePanelProps) => (
-  <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4]">
-    {/* Top Gradient  */}
-    <div
-      className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-[...]"
-      style={{ background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)` }}
-    > 
+  <aside className="hidden lg:flex h-screen w-[390px] xl:w-[420px] flex-shrink-0 flex-col bg-[#F6F2F4]">
+    <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
+      {/* Top Gradient */}
       <div
-        className="absolute top-0 left-0 w-full h-[79px] px] pointer-events-none"
+        className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-[0_10px_24px_rgba(61,7,24,0.18)]"
         style={{
-          background: "linear-gradient(90deg, #7A0C23 0%, #A61C3C 100%)"
+          background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)`,
         }}
-      />
-    <div className="relative z-10">
-    {/* Profile Title and Notif Button */}
-      <div className="flex items-center justify-between mb-6">
-        <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
+      >
+        <div
+          className="absolute top-0 left-0 w-full h-[79px] pointer-events-none"
+          style={{
+            background: "linear-gradient(90deg, #7A0C23 0%, #A61C3C 100%)",
+          }}
+        />
 
-       <button
-          className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.08)" }}
-        >
-          <img
-            src={notif_icon}
-            alt="Notifications"
-            className="w-full h-full object-contain scale-[2.5]"
-          />
+        <div className="relative z-10">
+          {/* Profile Title and Notif Button */}
+          <div className="flex items-center justify-between mb-6">
+            <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">
+              My Profile
+            </span>
 
-          <span
-            className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
-            style={{ background: CLR.gold }}
-          />
-        </button>
-      </div>
-      {/* Profile Content */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-shrink-0">
-          <div
-            className="w-[78px] h-[78px] rounded-full bg-white flex items-center justify-center border-[4px] overflow-hidden shadow-md"
-            style={{ borderColor: CLR.gold }}
-          >
-            <img
-              src={default_profile}
-              alt="Default profile"
-              className="w-full h-full object-cover"
-            />
+            <button
+              className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.08)" }}
+            >
+              <img
+                src={notif_icon}
+                alt="Notifications"
+                className="w-full h-full object-contain scale-[2.5]"
+              />
+
+              <span
+                className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
+                style={{ background: CLR.gold }}
+              />
+            </button>
           </div>
 
-          <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
-            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+          {/* Profile Content */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-shrink-0">
+              <div
+                className="w-[78px] h-[78px] rounded-full bg-white flex items-center justify-center border-[4px] overflow-hidden shadow-md"
+                style={{ borderColor: CLR.gold }}
+              >
+                <img
+                  src={default_profile}
+                  alt="Default profile"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
+                <svg
+                  className="w-3 h-3 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={3}
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
+              <p
+                className="text-[15px] font-bold leading-tight mt-1"
+                style={{ color: CLR.goldLt }}
+              >
+                {profile.course} · {profile.campus}
+              </p>
+              <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
+              <p className="text-white/70 text-sm">{profile.phone}</p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-4">
+            {[
+              { label: "Student No.", value: profile.studentNo },
+              { label: "College", value: profile.college },
+              { label: "Year Level", value: profile.yearLevel },
+              { label: "Status", value: profile.status, green: true },
+            ].map((item) => (
+              <div key={item.label}>
+                <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">
+                  {item.label}
+                </p>
+
+                {"green" in item && item.green ? (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
+                    {item.value}
+                  </span>
+                ) : (
+                  <p className="text-white text-[14px] font-bold leading-tight whitespace-nowrap">
+                    {item.value}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
         </div>
-
-        <div className="min-w-0">
-          <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
-          <p className="text-[15px] font-bold leading-tight mt-1" style={{ color: CLR.goldLt }}>
-            {profile.course} · {profile.campus}
-          </p>
-          <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
-          <p className="text-white/70 text-sm">{profile.phone}</p>
-        </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-4">        {[
-          { label: "Student No.", value: profile.studentNo },
-          { label: "College", value: profile.college },
-          { label: "Year Level", value: profile.yearLevel },
-          { label: "Status", value: profile.status, green: true },
-        ].map((item) => (
-          <div key={item.label}>
-            <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
-            {"green" in item && item.green ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
-                {item.value}
-              </span>
-            ) : (
-              <p className="text-white text-[14px] font-bold leading-tight whitespace-nowrap"> {item.value} </p>
-            )}
-          </div>
-        ))}
+      {/* Billing Card */}
+      <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
+        <BillingSection overview={billing} statements={statements} />
       </div>
-    </div>
-    </div>
-    <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
-      <BillingSection overview={billing} statements={statements} />
     </div>
   </aside>
 );
@@ -612,23 +708,24 @@ export default function Dashboard() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5">
         <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
-          <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
-              style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
+          <div
+            className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
+            style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)" }}
           />
           <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">
-              Dashboard
+            Dashboard
           </h1>
         </div>
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5 space-y-4 lg:space-y-5">
-          <HeroBanner 
+        <div className="space-y-4 lg:space-y-5">
+          <HeroBanner
             greeting={heroContent.greeting}
             title={heroContent.title}
             subtitle={heroContent.subtitle}
             name={studentProfile.fullName}
             type="full"
           />
-
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-3">
               <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
@@ -800,27 +897,20 @@ export default function Dashboard() {
             </div>
 
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
-              <div
-                className="rounded-xl overflow-hidden flex-1 min-h-[130px] sm:min-h-[150px] relative cursor-pointer group"
-                onClick={() => navigate("/map")}
-              >
-                <iframe
-                  title="UPLB Map Preview"
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=121.2380%2C14.1630%2C121.2490%2C14.1720&layer=mapnik&marker=14.1672%2C121.2430"
-                  className="w-full h-full border-0 absolute inset-0 pointer-events-none"
-                />
-                <div className="absolute inset-0 bg-[#3D0718]/0 group-hover:bg-[#3D0718]/20 transition-colors flex items-center justify-center">
-                  <span
-                    className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg"
-                    style={{ color: CLR.mid }}
-                  >
-                    Open Full Map
-                  </span>
+              <div className="rounded-xl overflow-hidden flex-1 min-h-[220px] sm:min-h-[260px] relative">
+                <div className="absolute inset-0">
+                  <AccommodationMap
+                    accommodations={dashboardMapAccommodations}
+                    centeredAccommodation={dashboardMapAccommodations[0]}
+                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+                  />
                 </div>
               </div>
 
               <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Dorm Type</p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">
+                  Dorm Type
+                </p>
 
                 <div className="relative mb-3">
                   <select className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition">
@@ -849,7 +939,7 @@ export default function Dashboard() {
                 </div>
 
                 <button
-                  onClick={() => navigate("/map")}
+                  onClick={() => navigate("/browse")}
                   className="w-full text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-sm"
                   style={{ background: CLR.mid }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = CLR.dark)}
@@ -859,12 +949,12 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
-          </div>
-
+            </div>
           <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
             <BillingSection overview={billingOverview} statements={billingStatements} />
           </div>
         </div>
+      </div>
       </main>
 
       <DesktopProfilePanel profile={studentProfile} billing={billingOverview} statements={billingStatements} />

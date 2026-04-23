@@ -28,11 +28,12 @@ export default function PendingVerification() {
           </p>
         </div>
 
-        <Link to="/login">
+        <Link to="/">
           <button className="w-full py-3 px-4 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition shadow">
-            Return to Login
+            Return to Homepage
           </button>
         </Link>
+
         
       </div>
     </div>

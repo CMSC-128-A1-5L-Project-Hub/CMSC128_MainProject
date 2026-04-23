@@ -8,6 +8,8 @@ import { uploadImage, deleteImage } from '#services/b2_services'
 import { AccommodationService } from '#services/accommodation_service'
 import Landlord from '#models/landlord'
 import drive from '@adonisjs/drive/services/main'
+import ZipExportService from '#services/zip_export_service'
+import type { ZipEntry } from '#services/zip_export_service'
 
 export default class AccommodationController {
   private accommodationService = new AccommodationService()
@@ -30,7 +32,7 @@ export default class AccommodationController {
   // Public: single accommodation with full details
   async show({ params, serialize, response }: HttpContext) {
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
       .preload('manager', (q) => q.preload('user'))
@@ -264,7 +266,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
     const landlordId = auth.user!.id
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', landlordId)
       .first()
 
@@ -324,7 +326,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
     const landlordId = auth.user!.id
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', landlordId)
       .first()
 
@@ -463,5 +465,63 @@ async store({ request, auth, response, serialize }: HttpContext) {
       message: 'Accommodations retrieved successfully',
       data,
     })
+  }
+
+  // ─── GET /api/v1/accommodations/:id/export-documents ─────────────────────
+  // Role: Manager | Landlord
+  // Fetches all Backblaze file URLs for the accommodation (business permit +
+  // images) and streams them as a single .zip download to the client.
+  async exportDocuments({ params, auth, response }: HttpContext) {
+    const userId = auth.user!.id
+
+    // Verify the caller is the landlord or assigned manager of this accommodation
+    const accommodation = await Accommodation.query()
+      .where('id', params.id)
+      .where((q) => {
+        q.where('landlord_id', userId).orWhere('manager_id', userId)
+      })
+      .preload('businessPermit')
+      .preload('images', (q) => q.preload('file'))
+      .first()
+
+    if (!accommodation) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Accommodation not found or you do not have access to it.',
+      })
+    }
+
+    const entries: ZipEntry[] = []
+
+    // Business permit (file_metadata via business_permit_id)
+    if (accommodation.businessPermit) {
+      entries.push({
+        url: accommodation.businessPermit.filePath,
+        archiveName: `business-permit/${accommodation.businessPermit.fileName}`,
+      })
+    }
+
+    // Accommodation images (accommodation_images → file_metadata)
+    for (const image of accommodation.images) {
+      if (!image.file) continue
+      entries.push({
+        url: image.file.filePath,
+        archiveName: `images/${image.file.fileName}`,
+      })
+    }
+
+    if (entries.length === 0) {
+      return response.noContent()
+    }
+
+    const safeName = accommodation.accommodationName.replace(/[^a-z0-9_\-]/gi, '_')
+    const zipService = new ZipExportService()
+
+    try {
+      await zipService.streamZip(entries, `${safeName}-documents.zip`, response)
+    } catch (err) {
+      console.error('[exportDocuments] Zip streaming error:', err)
+    }
   }
 }

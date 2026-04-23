@@ -1,11 +1,11 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Notification from '#models/notification'
+import User from '#models/user'
 
 export default class NotificationsController {
     // retrieve notifications for currently authenticated user
     async index({ auth, response }: HttpContext) {
         try {
-            // ensure the user is authenticated
             const user = auth.user!
 
             // fetch notifications belonging to the user, newest first

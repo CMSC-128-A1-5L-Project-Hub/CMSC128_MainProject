@@ -32,17 +32,21 @@ export default await Env.create(new URL('../', import.meta.url), {
   */
   GOOGLE_CLIENT_ID: Env.schema.string(),
   GOOGLE_CLIENT_SECRET: Env.schema.string(),
+  GOOGLE_CALLBACK_URL: Env.schema.string(),
 
   /*
   |----------------------------------------------------------
   | Variables for configuring database connection
   |----------------------------------------------------------
   */
+  DB_CONNECTION: Env.schema.string(),
   DB_HOST: Env.schema.string({ format: 'host' }),
   DB_PORT: Env.schema.number(),
   DB_USER: Env.schema.string(),
-  DB_PASSWORD: Env.schema.string.optional(),
+  DB_PASSWORD: Env.schema.string(),
   DB_DATABASE: Env.schema.string(),
+  
+  
 
   /*
   |----------------------------------------------------------
@@ -69,8 +73,15 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
-  | Variables for configuring the limiter package
+  | Variables for configuring the rate limiter
   |----------------------------------------------------------
   */
-  LIMITER_STORE: Env.schema.enum(['database', 'memory'] as const)
+  LIMITER_STORE: Env.schema.enum(['database', 'memory'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring SMS (Semaphore)
+  |----------------------------------------------------------
+  */
+  SMS_KEY: Env.schema.string(),
 })
