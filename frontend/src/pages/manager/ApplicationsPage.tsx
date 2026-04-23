@@ -345,8 +345,8 @@ export default function ApplicationsPage() {
   } = useQuery({
       queryKey: ['list'],
       queryFn: async () => {
-        const res = await api.get('/applications/all-application')
-        console.log('Full Axios application Response: ', res.data)
+        const res = await api.get('/applications/applicants')
+        // console.log('Full Axios application Response: ', res.data)
         return res.data
       }
   })
@@ -378,8 +378,8 @@ export default function ApplicationsPage() {
     });
   }, [search, sortBy, applications]);
 
-  console.log("Filter: ")
-  console.log(filtered)
+  // console.log("Filter: ")
+  // console.log(filtered)
 
   const totalPages  = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage    = Math.min(currentPage, totalPages);
@@ -573,7 +573,7 @@ export default function ApplicationsPage() {
                   paginated.map((app: ApplicationResponse) => {
                     const initial     = app.student.user.fname.charAt(0).toUpperCase();
                     const avatarColor = CLR.avatars[app.id % CLR.avatars.length];
-                    console.log(app.applicationStatus)
+                    // console.log(app.applicationStatus)
                     return (
                       <tr key={`${app.id}-${startIndex}`} className="border-t hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">

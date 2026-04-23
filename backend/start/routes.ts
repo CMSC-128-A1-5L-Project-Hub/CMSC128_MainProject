@@ -114,7 +114,7 @@ router
         // Application Review
         router.get('/applications/incoming', [controllers.Application, 'incoming'])
         router.get('/applications/applicants', [controllers.Application, 'viewApplicants'])
-        router.get('/applications/all-application', [controllers.Application, 'viewApplications'])
+        // router.get('/applications/all-application', [controllers.Application, 'viewApplications'])
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
         // Room Management
         router.get('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'index'])
