@@ -9,7 +9,7 @@ export default class ApplicationsController {
   // ─── 1. STUDENT: SUBMIT APPLICATION ───
   async store({ auth, request, response, serialize }: HttpContext) {    
     const user = auth.user!
-    const student = await Student.findByOrFail('user_id', user.id) // Get student_number
+    const student = await Student.findByOrFail('userId', user.id) // Get student_number
     
     const { accommodationId, applicationRoomType, applicationStayType, durationOfStayDays } = request.all()
 
@@ -38,9 +38,14 @@ export default class ApplicationsController {
   }
 
   // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
-  async index({ auth, serialize }: HttpContext) {
-    const user = auth.user!
-    const student = await Student.findByOrFail('user_id', user.id)
+  async index({ auth, response, serialize }: HttpContext) {
+    const user = auth.user
+
+    if (!user) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
+    const student = await Student.findByOrFail('userId', user.id)
 
     const applications = await Application.query()
       .where('studentNumber', student.studentNumber)
@@ -93,7 +98,7 @@ export default class ApplicationsController {
     }
 
     const applicationObject = await Application.query()
-      .where('id', params.id)
+      .where('applicationId', params.id)
       .preload('accommodation')
       .firstOrFail()
 
@@ -156,15 +161,15 @@ export default class ApplicationsController {
   // ─── 5. STUDENT: CANCEL APPLICATION ───
   async cancel({ auth, params, response, serialize }: HttpContext) {
     const user = auth.user!
-    const student = await Student.findByOrFail('user_id', user.id)
+    const student = await Student.findByOrFail('userId', user.id)
 
     const app = await Application.query()
       .where('id', params.id)
       .where('studentNumber', student.studentNumber)
       .firstOrFail()
 
-    if (!['pending', 'under_review'].includes(app.applicationStatus)) {
-      return response.badRequest({ message: 'Can only cancel pending or under review applications' });
+    if (app.applicationStatus !== 'pending') {
+      return response.badRequest({ message: 'Can only cancel pending applications' })
     }
 
     app.applicationStatus = 'cancelled'

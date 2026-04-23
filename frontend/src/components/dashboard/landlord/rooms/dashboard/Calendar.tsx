@@ -7,8 +7,8 @@ import {
   X,
   ArrowRight,
 } from "lucide-react";
-import EditIcon from "../../assets/icons/edit.svg";
-import Button from "../Button";
+import EditIcon from "../../../../../assets/icons/edit.svg"
+import Button from "../../../../Button";
 
 type DateVal = { year: number; month: number; day: number } | null;
 

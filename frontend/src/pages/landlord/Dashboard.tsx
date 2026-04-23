@@ -4,15 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 
 import HeroBanner from "../../components/dashboard/HeroBanner";
-import StatCard from "../../components/dashboard/StatCard";
-import SectionCard from "../../components/dashboard/SectionCard";
-import CircleProgress from "../../components/dashboard/CircleProgress";
+import StatCard from "../../components/dashboard/landlord/rooms/dashboard/StatCard";
+import SectionCard from "../../components/dashboard/landlord/rooms/dashboard/SectionCard";
+import CircleProgress from "../../components/dashboard/landlord/rooms/dashboard/CircleProgress";
 import Sidebar from "../../components/Sidebar";
-import ProfileCard from "../../components/dashboard/ManagerCard";
-import PaymentList from "../../components/dashboard/PaymentList";
-import ActivityLogs from "../../components/dashboard/ActivityLogs";
-import ReportsPanel from "../../components/dashboard/ReportsPanel";
-import ApplicationPeriod from "../../components/dashboard/Calendar";
+import ProfileCard from "../../components/dashboard/landlord/rooms/dashboard/ManagerCard";
+import PaymentList from "../../components/dashboard/landlord/rooms/dashboard/PaymentList";
+import ActivityLogs from "../../components/dashboard/landlord/rooms/dashboard/ActivityLogs";
+import ReportsPanel from "../../components/dashboard/landlord/rooms/dashboard/ReportsPanel";
+import ApplicationPeriod from "../../components/dashboard/landlord/rooms/dashboard/Calendar";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
 
@@ -582,7 +582,6 @@ export default function Dashboard() {
           from the document requirements? This may affect existing tenants.
         </p>
       </Modal>
-
-    </div>
+ </div>
   );
 }

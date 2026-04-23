@@ -1,5 +1,5 @@
-import Card from "../ui/Card";
-import Button from "../Button";
+import Card from "../../../../ui/Card";
+import Button from "../../../../Button";
 
 interface DelinquentStudent {
   fee_id: number

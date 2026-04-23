@@ -43,6 +43,7 @@ export default class AdminVerificationsController {
     const user = await User.findOrFail(params.userId) 
     
     user.role = roleToAssign
+    user.accountStatus = 'active' // Automatically activate their account once verified
     await user.save()
 
     await this.notificationService.sendAccountApprovedEmail(user, roleToAssign)

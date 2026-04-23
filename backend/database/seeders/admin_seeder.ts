@@ -18,11 +18,11 @@ export default class AdminSeeder extends BaseSeeder {
     )
 
     await User.firstOrCreate(
-      { email: 'wederamos@up.edu.ph' },
+      { email: 'windee0109@gmail.com' },
       {
         fname: 'System',
         lname: 'Administrator',
-        email: 'wederamos@up.edu.ph',
+        email: 'windee0109@gmail.com',
         role: 'super_admin',
         // pfpFileId is nullable, so we can leave it out
       }
