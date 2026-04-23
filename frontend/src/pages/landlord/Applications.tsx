@@ -402,6 +402,11 @@ export default function Applications() {
             <div className="p-4 border-b">
               <h2 className="text-lg font-semibold">Waitlist History</h2>
               <p className="text-xs text-gray-400">{waitlistedApps.length} total applicants</p>
+               <FilterSelect label="Sort By" value={sortBy} onChange={handleSort} options={[{ value: "latest", label: "Latest First" }, { value: "earliest", label: "Earliest First" }]} />
+                <div className="flex flex-col gap-0.5 md:gap-1 min-w-0 w-full md:w-56">
+                  <label className="text-[0.5rem] md:text-[10px] font-bold uppercase tracking-widest text-gray-400">Search</label>
+                  <input type="text" placeholder="Search applicant..." value={search} onChange={(e) => handleSearch(e.target.value)} className="w-full border border-gray-200 rounded-lg md:rounded-xl px-2 py-1 md:px-3 md:py-2 text-[0.7rem] md:text-sm focus:outline-none focus:border-[#6B0F2B]" />
+                </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
