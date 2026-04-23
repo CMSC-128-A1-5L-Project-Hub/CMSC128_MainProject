@@ -66,6 +66,18 @@ const routes = {
     tokens: [{"old":"/auth/send-otp","type":0,"val":"auth","end":""},{"old":"/auth/send-otp","type":0,"val":"send-otp","end":""}],
     types: placeholder as Registry['sms_verifications.send']['types'],
   },
+  'notifications.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/notifications',
+    tokens: [{"old":"/notifications","type":0,"val":"notifications","end":""}],
+    types: placeholder as Registry['notifications.index']['types'],
+  },
+  'notifications.update': {
+    methods: ["PATCH"],
+    pattern: '/notifications/:id',
+    tokens: [{"old":"/notifications/:id","type":0,"val":"notifications","end":""},{"old":"/notifications/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['notifications.update']['types'],
+  },
   'application.store': {
     methods: ["POST"],
     pattern: '/applications',
@@ -78,6 +90,12 @@ const routes = {
     tokens: [{"old":"/applications/my-applications","type":0,"val":"applications","end":""},{"old":"/applications/my-applications","type":0,"val":"my-applications","end":""}],
     types: placeholder as Registry['application.index']['types'],
   },
+  'application.cancel': {
+    methods: ["PATCH"],
+    pattern: '/applications/:id',
+    tokens: [{"old":"/applications/:id","type":0,"val":"applications","end":""},{"old":"/applications/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['application.cancel']['types'],
+  },
   'assignments.current_stay': {
     methods: ["GET","HEAD"],
     pattern: '/my-stay/current',
@@ -89,6 +107,12 @@ const routes = {
     pattern: '/my-stay/history',
     tokens: [{"old":"/my-stay/history","type":0,"val":"my-stay","end":""},{"old":"/my-stay/history","type":0,"val":"history","end":""}],
     types: placeholder as Registry['assignments.stay_history']['types'],
+  },
+  'student_profiles.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/student/profile',
+    tokens: [{"old":"/student/profile","type":0,"val":"student","end":""},{"old":"/student/profile","type":0,"val":"profile","end":""}],
+    types: placeholder as Registry['student_profiles.show']['types'],
   },
   'bookmark.toggle': {
     methods: ["POST"],
@@ -125,18 +149,6 @@ const routes = {
     pattern: '/my-payments',
     tokens: [{"old":"/my-payments","type":0,"val":"my-payments","end":""}],
     types: placeholder as Registry['payments.get_student_payment_history']['types'],
-  },
-  'student_profiles.show': {
-    methods: ["GET","HEAD"],
-    pattern: '/student/profile',
-    tokens: [{"old":"/student/profile","type":0,"val":"student","end":""},{"old":"/student/profile","type":0,"val":"profile","end":""}],
-    types: placeholder as Registry['student_profiles.show']['types'],
-  },
-  'accommodation.recommended': {
-    methods: ["GET","HEAD"],
-    pattern: '/recommended-accommodations',
-    tokens: [{"old":"/recommended-accommodations","type":0,"val":"recommended-accommodations","end":""}],
-    types: placeholder as Registry['accommodation.recommended']['types'],
   },
   'reports.revenue': {
     methods: ["GET","HEAD"],
@@ -341,18 +353,6 @@ const routes = {
     pattern: '/manager/profile',
     tokens: [{"old":"/manager/profile","type":0,"val":"manager","end":""},{"old":"/manager/profile","type":0,"val":"profile","end":""}],
     types: placeholder as Registry['manager_profiles.show']['types'],
-  },
-  'notifications.index': {
-    methods: ["GET","HEAD"],
-    pattern: '/notifications',
-    tokens: [{"old":"/notifications","type":0,"val":"notifications","end":""}],
-    types: placeholder as Registry['notifications.index']['types'],
-  },
-  'notifications.update': {
-    methods: ["PATCH"],
-    pattern: '/notifications/:id',
-    tokens: [{"old":"/notifications/:id","type":0,"val":"notifications","end":""},{"old":"/notifications/:id","type":1,"val":"id","end":""}],
-    types: placeholder as Registry['notifications.update']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 

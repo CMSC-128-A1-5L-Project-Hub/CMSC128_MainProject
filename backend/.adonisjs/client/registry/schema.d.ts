@@ -127,6 +127,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/sms_verifications_controller').default['send']>>>
     }
   }
+  'notifications.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/notifications'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/notifications_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/notifications_controller').default['index']>>>
+    }
+  }
+  'notifications.update': {
+    methods: ["PATCH"]
+    pattern: '/notifications/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/notifications_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/notifications_controller').default['update']>>>
+    }
+  }
   'application.store': {
     methods: ["POST"]
     pattern: '/applications'
@@ -151,6 +175,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_controller').default['index']>>>
     }
   }
+  'application.cancel': {
+    methods: ["PATCH"]
+    pattern: '/applications/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/application_controller').default['cancel']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/application_controller').default['cancel']>>>
+    }
+  }
   'assignments.current_stay': {
     methods: ["GET","HEAD"]
     pattern: '/my-stay/current'
@@ -173,6 +209,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/assignments_controller').default['stayHistory']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/assignments_controller').default['stayHistory']>>>
+    }
+  }
+  'student_profiles.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/student/profile'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/student_profiles_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/student_profiles_controller').default['show']>>>
     }
   }
   'bookmark.toggle': {
@@ -245,30 +293,6 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/payments_controller').default['getStudentPaymentHistory']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/payments_controller').default['getStudentPaymentHistory']>>>
-    }
-  }
-  'student_profiles.show': {
-    methods: ["GET","HEAD"]
-    pattern: '/student/profile'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/student_profiles_controller').default['show']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/student_profiles_controller').default['show']>>>
-    }
-  }
-  'accommodation.recommended': {
-    methods: ["GET","HEAD"]
-    pattern: '/recommended-accommodations'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/accommodation_controller').default['recommended']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/accommodation_controller').default['recommended']>>>
     }
   }
   'reports.revenue': {
@@ -677,30 +701,6 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/manager_profiles_controller').default['show']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/manager_profiles_controller').default['show']>>>
-    }
-  }
-  'notifications.index': {
-    methods: ["GET","HEAD"]
-    pattern: '/notifications'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/notifications_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/notifications_controller').default['index']>>>
-    }
-  }
-  'notifications.update': {
-    methods: ["PATCH"]
-    pattern: '/notifications/:id'
-    types: {
-      body: {}
-      paramsTuple: [ParamValue]
-      params: { id: ParamValue }
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/notifications_controller').default['update']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/notifications_controller').default['update']>>>
     }
   }
 }
