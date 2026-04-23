@@ -1,4 +1,4 @@
-// Pa take not nito guys hehe
+// Pa take note nito guys hehe
 // src/pages/MapPage.tsx
 // Route: /map              -> centered on UPLB (browse all)
 // Route: /map?center=:id   -> centered on specific accommodation (from "View Location" button)
@@ -213,12 +213,12 @@ export default function MapPage() {
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', fontFamily: "'Segoe UI', sans-serif", overflow: 'hidden' }}>
       
-      {/* 1. FIXED NAVIGATION SIDEBAR (The component you imported) */}
+      {/* 1. FIXED NAVIGATION SIDEBAR */}
       <div style={{ zIndex: 200, backgroundColor: 'white' }}>
         <Sidebar role={'student'} />
       </div>
 
-      {/* 2. MAIN CONTENT AREA (Map + Collapsible Filter Panel) */}
+      {/* 2. MAIN CONTENT AREA */}
       <div style={{ flex: 1, position: 'relative', height: '100%' }}>
         
         {/* FULL-HEIGHT COLLAPSIBLE FILTER PANEL */}
@@ -228,7 +228,7 @@ export default function MapPage() {
             position: 'absolute',
             top: 0,
             bottom: 0,
-            left: isSidebarOpen ? '0px' : '-350px', // Slides relative to the content area
+            left: isSidebarOpen ? '0px' : '-350px',
             width: '350px',
             backgroundColor: 'white',
             boxShadow: isSidebarOpen ? '4px 0 24px rgba(0,0,0,0.1)' : 'none',
@@ -321,10 +321,7 @@ export default function MapPage() {
 
                 {/* THE DOUBLE SLIDER */}
                 <div className="relative h-6 flex items-center group">
-                  {/* 1. The Background Track (Gray) */}
                   <div className="absolute w-full h-1.5 bg-gray-100 rounded-full"></div>
-                  
-                  {/* 2. The Active Track (Gradient) -Calculates position based on values */}
                   <div 
                     className="absolute h-1.5 rounded-full"
                     style={{ 
@@ -333,8 +330,6 @@ export default function MapPage() {
                       background: 'linear-gradient(135deg, #C9973A, #a07825)' 
                     }}>
                   </div>
-
-                  {/* 3. The Two Invisible Range Inputs */}
                   <input
                     type="range"
                     min="1000"
@@ -400,7 +395,7 @@ export default function MapPage() {
                 <p className="text-[10px] text-[#C8B0B8]">Tap stars to change minimum</p>
               </div>
 
-              {/* OTHERS (TAGS) SECTION */}
+              {/* OTHERS SECTION */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">
                 <label className="...">Others</label>
@@ -436,19 +431,17 @@ export default function MapPage() {
                     );
                   })}
 
-                  {/* THE "ADD MORE" BUTTON */}
+                  {/* ADD MORE BUTTON */}
                   <button 
                     onClick={() => {
                       const newTag = prompt("Enter a feature (e.g., Gym, Pet Friendly):");
                       if (newTag && newTag.trim() !== "") {
                         const formattedTag = newTag.trim();
                         
-                        // 1. Add to the list of visible buttons if it's not already there
                         if (!availableTags.includes(formattedTag)) {
                           setAvailableTags(prev => [...prev, formattedTag]);
                         }
                         
-                        // 2. Select it automatically
                         if (!selectedTags.includes(formattedTag)) {
                           toggleTag(formattedTag);
                         }
@@ -462,7 +455,7 @@ export default function MapPage() {
               </div>
             </div>
 
-            {/* Apply Button */}
+            {/* APPLY BUTTON */}
             <div className="p-6 pt-4 border-t border-gray-50">
               <button 
                 onClick={handleApplyFilters}
@@ -473,19 +466,19 @@ export default function MapPage() {
           </div>
         </div>
 
-        {/* FLOATING COLLAPSE BUTTON (Now stuck to the panel edge) */}
+        {/* FLOATING COLLAPSE BUTTON */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           style={{
             position: 'absolute',
             top: '50%',
-            left: isSidebarOpen ? '334px' : '-16px', // Tucked so it peeks out when "closed" behind nav
+            left: isSidebarOpen ? '334px' : '-16px',
             transform: 'translateY(-50%)',
-            zIndex: 150, // Higher than Filter Panel, lower than Main Nav
+            zIndex: 150,
             width: '32px',
             height: '32px',
             backgroundColor: 'white',
-            border: '1px solid #F5EBEB', // Light subtle border from image
+            border: '1px solid #F5EBEB',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
@@ -503,12 +496,12 @@ export default function MapPage() {
               height: '18px', 
               transition: 'transform 0.5s', 
               transform: isSidebarOpen ? 'rotate(0deg)' : 'rotate(180deg)',
-              marginLeft: isSidebarOpen ? '-2px' : '2px' // Visual centering for chevron
+              marginLeft: isSidebarOpen ? '-2px' : '2px'
             }} 
             viewBox="0 0 24 24" 
             fill="none" 
-            stroke="#710A2B" // Deep maroon
-            strokeWidth={4} // Thicker weight like the image
+            stroke="#710A2B"
+            strokeWidth={4}
             strokeLinecap="round" 
             strokeLinejoin="round"
           >
@@ -516,7 +509,7 @@ export default function MapPage() {
           </svg>
         </button>
 
-        {/* THE MAP (Fills the remaining space) */}
+        {/* THE MAP */}
         <div style={{ width: '100%', height: '100%', zIndex: 1 }}>
           <AccommodationMap
             accommodations={filtered}
