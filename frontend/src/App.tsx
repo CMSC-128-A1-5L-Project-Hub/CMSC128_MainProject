@@ -29,6 +29,7 @@ import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ApplicationsScreen from "./pages/manager/ApplicationsPage"
+import Applications from "./pages/landlord/Applications"
 
 function FullLandingPage() {
   return (
@@ -55,35 +56,36 @@ function App() {
         <Route path="/browse" element={<BrowsePage />} />
         <Route path="/accommodations/:id" element={<FullRoomView />} />
 
-        {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
-        <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
-        <Route path="/auth/signup/form" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
-        <Route path="/auth/signup/:role" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
-        <Route path="/pending-verification" element={<ProtectedRoute><PendingVerification/></ProtectedRoute>}/>
-        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+{/* ── Post-OAuth onboarding (logged-in, any role) ── */}
+<Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
+<Route path="/auth/signup/form" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
+<Route path="/auth/signup/:role" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
+<Route path="/pending-verification" element={<ProtectedRoute><PendingVerification/></ProtectedRoute>}/>
+<Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
-        {/* ── Student routes ── */}
-        <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
-        <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
-        <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
-        <Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
+{/* ── Student routes ── */}
+<Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
+<Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+<Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
+<Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
+<Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
 
-        {/* ── Manager routes ── */}
-        <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
-        <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
-        <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
-        <Route path="/manager/application" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>}/>
+{/* ── Manager routes ── */}
+<Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
+<Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
+<Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
+<Route path="/manager/application" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>}/>
 
-        {/* ── Landlord routes ── */}
-        <Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
-        <Route path="/landlord/manage/accommodation" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
-        <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
+{/* ── Landlord routes ── */}
+<Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
+<Route path="/landlord/manage/accommodation" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
+<Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
+<Route path="/landlord/application" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
 
-        {/* ── Admin routes ── */}
-        <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+{/* ── Admin routes ── */}
+<Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
 
-        {/* ── Catch-all: 404 ── */}
+<Route path="*" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
