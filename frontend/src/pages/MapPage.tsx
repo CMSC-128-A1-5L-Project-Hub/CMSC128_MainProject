@@ -218,7 +218,7 @@ export default function MapPage() {
     <div style={{ display: 'flex', height: '100vh', width: '100vw', fontFamily: "'Segoe UI', sans-serif", overflow: 'hidden' }}>
       
       {/* 1. FIXED NAVIGATION SIDEBAR */}
-      <div style={{ zIndex: 200, backgroundColor: 'white' }}>
+      <div style={{ zIndex: 600, backgroundColor: 'white' }}>
         <Sidebar role={'student'} />
       </div>
 
