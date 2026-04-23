@@ -8,6 +8,7 @@ export class AccommodationService {
       .preload('images')
       .preload('rooms')
 
+
     // 2. Direct Accommodation Filters
     if (filters.dormType) {
       query = query.where('accommodationType', filters.dormType)
