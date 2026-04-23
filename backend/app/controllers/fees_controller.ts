@@ -7,24 +7,43 @@ import Manager from '#models/manager'
 import Assignment from '#models/assignment'
 import Room from '#models/room'
 import Accommodation from '#models/accommodation'
+import db from '@adonisjs/lucid/services/db'
 
 export default class FeesController {
   
   // ─── STUDENT: VIEW MY BILLS ───
   // GET /my-fees
-  async index({ auth, serialize }: HttpContext) {
-    // Logic: Get student_number from auth.user.
-    const user = auth.user!
-    const student = await Student.findByOrFail('userId', user.id)
+async index({ auth, response }: HttpContext) {
+  const user = auth.user
 
-    // Fetch all fees for this student, and .preload('payments') to show history.]
-    const studentFee = await Fee
-      .query()
-      .where('studentNumber', student.studentNumber)
-      .preload('payments')
-
-    return serialize(studentFee)
+  if (!user) {
+    return response.unauthorized({ message: 'Unauthorized' })
   }
+
+  const student = await Student.findByOrFail('userId', user.id)
+
+  const studentFees = await db
+    .from('fees')
+    .leftJoin('assignments', 'fees.student_number', 'assignments.student_number')
+    .leftJoin('rooms', 'assignments.room_id', 'rooms.id')
+    .leftJoin('accommodations', 'rooms.accommodation_id', 'accommodations.id')
+    .where('fees.student_number', student.studentNumber)
+    .select(
+      'fees.id',
+      'fees.landlord_id',
+      'fees.student_number',
+      'fees.due_date',
+      'fees.fee_category',
+      'fees.fee_amount',
+      'fees.fee_balance',
+      'fees.fee_status',
+      'accommodations.accommodation_name'
+    )
+
+  return response.ok({
+    data: studentFees,
+  })
+}
 
   // ─── MANAGER/LANDLORD: CREATE FEES ───
   // POST /fees

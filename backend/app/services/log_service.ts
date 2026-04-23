@@ -80,6 +80,10 @@ export default class LogService {
       query.where('actorId', filters.actor_id)
     }
 
+    if (filters.date) {
+      query.whereRaw('DATE(log_timestamp) = ?', [filters.date])
+    }
+
     return await query
   }
 }

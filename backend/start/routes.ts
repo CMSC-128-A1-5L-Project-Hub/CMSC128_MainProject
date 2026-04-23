@@ -7,10 +7,12 @@ import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 import { ROLES } from '../app/constants/roles.ts'
+import { throttle } from '#start/limiter'
 import AutoSwagger from 'adonis-autoswagger'
 import swagger from '#config/swagger'
 const InviteManagerController = () => import('#controllers/invite_manager_controller')
 import { uploadThrottle } from '#start/limiter'
+import AccommodationController from '#controllers/accommodation_controller'
 
 router.get('/', () => {
   return { status: 'USAT API is running - Sprint 03 Launch' }
@@ -42,11 +44,19 @@ router
   .group(() => {
     // ─── SUCCESSFUL LOGIN/SIGNUP ───
     router.get('/me', [controllers.Auth, 'me'])
+    router.put('/me', [controllers.Auth, 'updateMe'])
 
     // ─── USER ONBOARDING ───
     router.get('/setup', [controllers.Setups, 'show'])
     router.post('/setup', [controllers.Setups, 'store'])
-    // router.post('/auth/verify-sms', [controllers.SmsVerifications, 'verify']) // [SPRINT 03]
+
+    // ─── SMS OTP ───
+    router.post('/auth/verify-sms', [controllers.SmsVerifications, 'verify'])
+    router.post('/auth/send-otp', [controllers.SmsVerifications, 'send']).use(throttle)
+
+    // Notfications
+    router.get('/notifications', [controllers.Notifications, 'index'])
+    router.patch('/notifications/:id', [controllers.Notifications, 'update'])
 
     // ====================================================================
     // ─── STUDENT ROUTES ───
@@ -56,8 +66,10 @@ router
         // Application & Stay
         router.post('/applications', [controllers.Application, 'store'])
         router.get('/applications/my-applications', [controllers.Application, 'index'])
+        router.patch('/applications/:id', [controllers.Application, 'cancel'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
+        router.get('/student/profile', [controllers.StudentProfiles, 'show'])
 
         // Bookmarks & Reviews
         router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
@@ -67,8 +79,8 @@ router
         // Fees & Payments
         router.get('/my-fees', [controllers.Fees, 'index'])
         router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
-      })
-      .use(middleware.role([ROLES.STUDENT]))
+        router.get('/my-payments', [controllers.Payments, 'getStudentPaymentHistory'])
+    }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
     // ─── LANDLORD EXCLUSIVE ROUTES ───
@@ -121,6 +133,12 @@ router
         // Reports
         router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
         router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
+
+        // Document Zip Export (Backblaze)
+        router.get('/accommodations/:id/export-documents', [
+          AccommodationController,
+          'exportDocuments',
+        ])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
 
@@ -139,6 +157,13 @@ router
 
         // System Logs
         router.get('/admin/logs', [controllers.Logs, 'index'])
+
+        router.get('/admin/users/count', [controllers.AdminSettings, 'countUsers'])
+        router.get('/admin/rooms/available/count', [controllers.Rooms, 'countAvailableRooms'])
+
+        // Accommodation Verifications
+        router.get('/admin/accommodations/pending', [controllers.AdminAccommodations, 'index'])
+        router.patch('/admin/accommodations/:id/verify', [controllers.AdminAccommodations, 'verify'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
   })

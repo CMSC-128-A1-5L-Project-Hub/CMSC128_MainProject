@@ -3,11 +3,12 @@ import Application from '#models/application'
 import Assignment from '#models/assignment'
 import Student from '#models/student'
 import LogService from '#services/log_service'
+import User from '#models/user'
 
 export default class ApplicationsController {
   
   // ─── 1. STUDENT: SUBMIT APPLICATION ───
-  async store({ auth, request, response, serialize }: HttpContext) {
+  async store({ auth, request, response, serialize }: HttpContext) {    
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id) // Get student_number
     
@@ -38,8 +39,13 @@ export default class ApplicationsController {
   }
 
   // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
-  async index({ auth, serialize }: HttpContext) {
-    const user = auth.user!
+  async index({ auth, response, serialize }: HttpContext) {
+    const user = auth.user
+
+    if (!user) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
     const student = await Student.findByOrFail('userId', user.id)
 
     const applications = await Application.query()
@@ -154,12 +160,12 @@ export default class ApplicationsController {
   }
 
   // ─── 5. STUDENT: CANCEL APPLICATION ───
-  async destroy({ auth, params, response, serialize }: HttpContext) {
+  async cancel({ auth, params, response, serialize }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
 
     const app = await Application.query()
-      .where('applicationId', params.id)
+      .where('id', params.id)
       .where('studentNumber', student.studentNumber)
       .firstOrFail()
 

@@ -23,6 +23,7 @@ export default class DistanceService {
 
     const data = await res.json() as MapboxRouteResponse
 
+    if (!data.routes?.[0]) return null
     return Math.round(data.routes[0].duration / 60)
     }
 
