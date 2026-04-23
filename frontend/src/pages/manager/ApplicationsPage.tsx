@@ -15,17 +15,6 @@ const CLR = {
 
 type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected";
 
-interface Application {
-  id: number
-  accommodationId: number
-  applicationDate: string
-  applicationRoomType: string  
-  applicationStatus: Status
-  applicationStayType: string
-  durationOfStayDays: number
-  studentNumber: string
-}
-
 interface User {
   id: number
   accountStatus: string | null

@@ -28,6 +28,7 @@ import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
+import Waitlist from "./pages/manager/Waitlist"
 
 function FullLandingPage() {
   return (
@@ -71,6 +72,7 @@ function App() {
         <Route path="/applications" element={<ProtectedRoute><StudentApplicationsPage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ApplicationStatus/>}/>
         <Route path="/student/billingdashboard" element={<BillingDashboard/>}/>
+        <Route path="/manager/waitlist" element={<Waitlist />} />
         <Route path="/browse" element={<BrowsePage />} />
 
         {/* ── Manager routes ── */}
