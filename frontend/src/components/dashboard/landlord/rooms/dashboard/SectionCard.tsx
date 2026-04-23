@@ -1,8 +1,8 @@
-import Card from "../ui/Card";
+import Card from "../../../../ui/Card";
 
-export default function SectionCard({ title, action, onAction, children }: any) {
+export default function SectionCard({ title, action, onAction, children, className = "" }: any) {
   return (
-    <Card>
+    <Card className={className}>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-[14px] font-bold">{title}</h3>
         {action && (

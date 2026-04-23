@@ -54,6 +54,10 @@ router
     router.post('/auth/verify-sms', [controllers.SmsVerifications, 'verify'])
     router.post('/auth/send-otp', [controllers.SmsVerifications, 'send']).use(throttle)
 
+    // Notfications
+    router.get('/notifications', [controllers.Notifications, 'index'])
+    router.patch('/notifications/:id', [controllers.Notifications, 'update'])
+
     // ====================================================================
     // ─── STUDENT ROUTES ───
     // ====================================================================
@@ -62,8 +66,10 @@ router
         // Application & Stay
         router.post('/applications', [controllers.Application, 'store'])
         router.get('/applications/my-applications', [controllers.Application, 'index'])
+        router.patch('/applications/:id', [controllers.Application, 'cancel'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
+        router.get('/student/profile', [controllers.StudentProfiles, 'show'])
 
         // Bookmarks & Reviews
         router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
@@ -74,12 +80,6 @@ router
         router.get('/my-fees', [controllers.Fees, 'index'])
         router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
         router.get('/my-payments', [controllers.Payments, 'getStudentPaymentHistory'])
-
-        // Student Profile
-        router.get('/student/profile', [controllers.StudentProfiles, 'show'])
-
-        // recommended accommodations
-        router.get('/recommended-accommodations', [controllers.Accommodation, 'recommended'])
     }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
@@ -186,10 +186,3 @@ router.get('/swagger', async () => {
 router.get('/docs', async () => {
   return AutoSwagger.ui('/swagger', swagger)
 })
-
-// Notfications
-router.get('/notifications', [controllers.Notifications, 'index'])
-router.patch('/notifications/:id', [controllers.Notifications, 'update'])
-
-// Student Applications
-// router.get('/applications/my-applications', [controllers.Application, 'index'])

@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import ApplicationStatusModal from "../../components/ApplicationStatusModal";
 
 // ── Design tokens ─────────────────────────
 const CLR = {
@@ -27,51 +29,48 @@ interface Application {
   applicationStayType: string;
   applicationStatus: ApplicationStatus;
   durationOfStayDays: number;
-  createdAt: string; // Adonis automatically adds this
-  accommodation: Accommodation; // From the .preload('accommodation') in the controller
+  applicationDate: string;
+  accommodation: Accommodation;
 }
 
-// ── Inline Icons ───────────────────────────────────────────────────────────
-const IconApplication = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
-const IconHouse = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-  </svg>
-);
-
-// ── Helper Component ───────────────────────────────────────────────────────
+// ── Helper Components ──────────────────────────────────────────────────────
 const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
-  const styles: Record<ApplicationStatus, string> = {
-    approved:     "bg-green-100 text-green-700 border border-green-200",
-    pending:      "bg-amber-100 text-amber-700 border border-amber-200",
-    under_review: "bg-sky-100 text-sky-700 border border-sky-200",
-    waitlisted:   "bg-purple-100 text-purple-700 border border-purple-200",
-    rejected:     "bg-red-100 text-red-700 border border-red-200",
-    cancelled:    "bg-gray-100 text-gray-600 border border-gray-200",
+  // Updated to match the softer colors and dot indicator of the new design
+  const config: Record<ApplicationStatus, { bg: string, text: string, dot: string, label: string }> = {
+    approved:     { bg: "bg-green-50", text: "text-green-700", dot: "bg-green-600", label: "Approved" },
+    pending:      { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", label: "Pending" },
+    under_review: { bg: "bg-purple-50", text: "text-purple-700", dot: "bg-purple-600", label: "Under Review" },
+    waitlisted:   { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-600", label: "Waitlisted" },
+    rejected:     { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-600", label: "Rejected" },
+    cancelled:    { bg: "bg-gray-50", text: "text-gray-600", dot: "bg-gray-500", label: "Cancelled" },
   };
 
-  // Format "under_review" to "Under Review"
-  const formattedStatus = status.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase());
+  const { bg, text, dot, label } = config[status] || config.pending;
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap ${styles[status]}`}>
-      {formattedStatus}
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${bg} ${text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dot}`}></span>
+      {label}
     </span>
   );
 };
 
+// Date formatter to match "Mar 12, 2026"
+const formatDate = (dateString: string) => {
+  if (!dateString) return "—";
+  return new Date(dateString).toLocaleDateString("en-US", { 
+    month: "short", 
+    day: "numeric", 
+    year: "numeric" 
+  });
+};
+
 // ── API Fetcher ────────────────────────────────────────────────────────────
 const fetchApplications = async (): Promise<Application[]> => {
-  const res = await fetch("/applications/my-applications");
+  const res = await fetch("/api/applications/my-applications");
   if (!res.ok) throw new Error("Failed to fetch applications");
-  
-  const data = await res.json();
-  return data;
+  const body = await res.json();
+  return body.data ?? body;
 };
 
 // ── Main Component ─────────────────────────────────────────────────────────
@@ -80,11 +79,16 @@ export default function ApplicationsPage() {
     queryKey: ["applications"],
     queryFn: fetchApplications,
   });
+  console.log("Browser log:", typeof window !== "undefined");
+
+  // --- NEW STATE ---
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
+    
     <div className="min-h-screen bg-[#F6F2F4] font-sans flex flex-col items-center py-8 px-4 sm:px-6">
-      <div className="w-full max-w-4xl">
-        
+      <div className="w-full max-w-6xl"> {/* Expanded width slightly for table layout */}
         {/* Header */}
         <header className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
@@ -93,95 +97,119 @@ export default function ApplicationsPage() {
               Application History
             </h1>
           </div>
-          <div 
-            className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md"
-            style={{ background: `linear-gradient(135deg, ${CLR.mid} 0%, ${CLR.accent} 100%)` }}
-          >
-            <IconApplication />
-          </div>
+          <p className="text-sm font-medium text-gray-500">
+            {applications.length} total applications
+          </p>
         </header>
 
         {/* Content Card */}
-        <main className="bg-white rounded-[30px] shadow-[0_10px_24px_rgba(61,7,24,0.06)] p-6 sm:p-8">
+        <main className="bg-white rounded-[30px] shadow-[0_10px_24px_rgba(61,7,24,0.06)] overflow-hidden">
+          
           {isLoading && (
-            <p className="text-gray-400 font-medium text-center py-10 animate-pulse">
+            <p className="text-gray-400 font-medium text-center py-16 animate-pulse">
               Loading your applications...
             </p>
           )}
 
           {isError && (
-            <p className="text-red-500 font-medium text-center py-10">
+            <p className="text-red-500 font-medium text-center py-16">
               Failed to load applications. Please check your connection to the server.
             </p>
           )}
 
           {!isLoading && !isError && applications.length === 0 && (
-            <div className="text-center py-16">
-              <IconApplication className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+            <div className="text-center py-20">
               <p className="text-gray-500 font-medium text-lg">No applications found.</p>
               <p className="text-gray-400 text-sm mt-1">When you apply for an accommodation, it will appear here.</p>
             </div>
           )}
 
-          {/* Applications List */}
-          <div className="space-y-4">
-            {applications.map((app) => (
-              <div 
-                key={app.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors"
-              >
-                {/* Left side: Dorm info */}
-                <div className="flex items-start gap-4">
-                  <div 
-                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-white mt-1"
-                    style={{ background: CLR.mid }}
-                  >
-                    <IconHouse />
-                  </div>
-                  
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-gray-900 text-base">
-                        {app.accommodation?.accommodationName || "Unknown Dorm"}
-                      </h3>
-                      <StatusBadge status={app.applicationStatus} />
-                    </div>
-                    
-                    <p className="text-sm font-medium text-gray-500 mb-1">
-                      {app.applicationRoomType.toUpperCase()} Room • {app.applicationStayType.replace("_", " ").toUpperCase()}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Applied on: {new Date(app.createdAt).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' })}
-                    </p>
-                  </div>
+          {!isLoading && !isError && applications.length > 0 && (
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-[900px]"> {/* Ensures table doesn't crush on small screens */}
+                
+                {/* Table Header Row */}
+                <div className="grid grid-cols-12 gap-4 px-8 py-4 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  <div className="col-span-3">Dormitory</div>
+                  <div className="col-span-2">Date Applied</div>
+                  <div className="col-span-3">Remarks By Admin</div>
+                  <div className="col-span-2">Reviewed On</div>
+                  <div className="col-span-1">Status</div>
+                  <div className="col-span-1 text-center">Action</div>
                 </div>
 
-                {/* Right side: Duration & Action */}
-                <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 border-gray-100 pt-3 sm:pt-0">
-                  <p className="text-sm font-bold text-gray-700">
-                    {app.durationOfStayDays} Days
-                  </p>
-                  <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">
-                    Duration
-                  </p>
-                  
-                  {/* Future feature: We can hook up the cancel button here later! */}
-                  <button 
-                    disabled={app.applicationStatus !== 'pending'}
-                    className={`text-xs font-bold px-4 py-2 rounded-lg transition-colors ${
-                      app.applicationStatus === 'pending'
-                        ? "bg-red-50 text-red-600 hover:bg-red-100"
-                        : "bg-gray-50 text-gray-300 cursor-not-allowed"
-                    }`}
-                  >
-                    Cancel Request
-                  </button>
+                {/* Table Body (Applications List) */}
+                <div className="divide-y divide-gray-50">
+                  {applications.map((app) => (
+                    <div 
+                      key={app.id}
+                      className="grid grid-cols-12 gap-4 px-8 py-4 items-center hover:bg-gray-50/50 transition-colors"
+                    >
+                      {/* 1. Dormitory */}
+                      <div className="col-span-3 flex items-center gap-4">
+                        <div 
+                          className="w-10 h-10 rounded-full text-white flex flex-shrink-0 items-center justify-center font-bold text-lg"
+                          style={{ background: CLR.dark }}
+                        >
+                          {app.accommodation?.accommodationName?.charAt(0).toUpperCase() || "?"}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900 text-sm truncate">
+                            {app.accommodation?.accommodationName || "Unknown Dorm"}
+                          </h3>
+                          <p className="text-[11px] text-gray-500 capitalize">
+                            {app.applicationRoomType.toLowerCase()} • {app.applicationStayType.replace("_", "-").toLowerCase()}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 2. Date Applied */}
+                      <div className="col-span-2">
+                        <p className="text-sm font-medium text-gray-800">{formatDate(app.applicationDate)}</p>
+                      </div>
+
+                      {/* 3. Remarks By Admin (Placeholder) */}
+                      <div className="col-span-3 pr-4">
+                        <p className="text-sm text-gray-400 truncate">—</p>
+                      </div>
+
+                      {/* 4. Reviewed On (Placeholder) */}
+                      <div className="col-span-2">
+                        <p className="text-sm text-gray-400">—</p>
+                        <p className="text-[11px] text-gray-400">Not yet reviewed</p>
+                      </div>
+
+                      {/* 5. Status */}
+                      <div className="col-span-1">
+                        <StatusBadge status={app.applicationStatus} />
+                      </div>
+
+                      {/* 6. Action (View Button) */}
+                      <div className="col-span-1 flex justify-center">
+                        <button 
+                          className="px-5 py-1.5 bg-[#FDF2F4] text-[#8C1535] text-xs font-bold rounded-full border border-[#FDF2F4] hover:border-[#8C1535] hover:bg-white transition-all"
+                          onClick={() => {
+                            setSelectedApp(app);     // 1. Tell React which application to show
+                            setIsModalOpen(true);    // 2. Open the modal
+                          }}
+                        >
+                          View
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+                
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </main>
       </div>
+      <ApplicationStatusModal 
+        open={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        application={selectedApp} 
+      />
     </div>
   );
 }
