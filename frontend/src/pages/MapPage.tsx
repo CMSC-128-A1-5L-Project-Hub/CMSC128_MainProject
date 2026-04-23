@@ -115,6 +115,7 @@ export default function MapPage() {
   // This way filters set on the cards/browse page carry over to the map
   const search = searchParams.get('search') ?? ''
   const type = searchParams.get('type') ?? 'all'
+  const room = searchParams.get('room') ?? 'all'
   const minRent = Number(searchParams.get('min_rent') ?? 1000)
   const maxRent = Number(searchParams.get('max_rent') ?? 10000)
 
@@ -156,6 +157,7 @@ export default function MapPage() {
     minRent: 1000,
     maxRent: 15000,
     type: searchParams.get('type') ?? 'all',
+    room: searchParams.get('room') ?? 'all',
   });
 
   const handleApplyFilters = () => {
@@ -165,6 +167,7 @@ export default function MapPage() {
       minRent: minRent,
       maxRent: maxRent,
       type: type,
+      room: room,
     });
   };
 
@@ -180,13 +183,14 @@ export default function MapPage() {
     return MOCK_ACCOMMODATIONS.filter((acc) => {
       const matchSearch = acc.accommodationName.toLowerCase().includes(search.toLowerCase());
       const matchType = appliedFilters.type === 'all' || acc.accommodationType === appliedFilters.type;
+      const matchRoom = appliedFilters.room === 'all' || acc.tenantRestriction === appliedFilters.room;
       const matchRent = acc.minRent >= appliedFilters.minRent && acc.minRent <= appliedFilters.maxRent;   
       const matchRating = acc.rating >= appliedFilters.rating;
       const matchTags = appliedFilters.tags.length === 0 || appliedFilters.tags.every(tag => acc.amenities?.includes(tag));
 
-      return matchSearch && matchType && matchRent && matchRating && matchTags;
+      return matchSearch && matchType && matchRoom && matchRent && matchRating && matchTags;
     });
-  }, [search, type, minRent, maxRent, appliedFilters]);
+  }, [search, type, room, minRent, maxRent, appliedFilters]);
 
   // ─── Styles ───────────────────────────────────────────────────────────────
   const labelStyle: React.CSSProperties = {
@@ -297,11 +301,15 @@ export default function MapPage() {
                 max-md:order-4 md:order-none
               `}>
                 <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest"> Room Type </label>
-                <select className="w-full p-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none">
-                  <option>All Types</option>
-                  <option>Male-only</option>
-                  <option>Female-only</option>
-                  <option>Co-ed</option>
+                <select
+                  value={room} 
+                  onChange={(e) => updateFilter('room', e.target.value)}
+                  className="w-full p-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-[#710A2B]/20 outline-none appearance-none"
+                >
+                  <option value='all'>All Types</option>
+                  <option value='male-only'>Male-only</option>
+                  <option value='female-only'>Female-only</option>
+                  <option value='coed'>Coed</option>
                 </select>
               </div>
 
@@ -456,7 +464,6 @@ export default function MapPage() {
           className={`
             absolute z-[501] w-8 h-8 rounded-full flex-shrink-0 p-0
             bg-white border border-[#F5EBEB] shadow-[0_2px_8px_rgba(0,0,0,0.1)] 
-            
             flex items-center justify-center cursor-pointer outline-none 
             transition-all duration-500 ease-in-out
             
@@ -476,13 +483,8 @@ export default function MapPage() {
             strokeLinejoin="round"
             className={`
               w-[18px] h-[18px] transition-transform duration-500
-              
-              /* Desktop Logic: Horizontal flip */
               md:rotate-0 
               ${!isSidebarOpen ? 'md:rotate-180' : ''}
-              
-              /* Mobile Logic: Vertical flip */
-              /* We ensure only one max-md rotation class is present at a time */
               ${isSidebarOpen ? 'max-md:rotate-90' : 'max-md:-rotate-90'}
             `}
           >
