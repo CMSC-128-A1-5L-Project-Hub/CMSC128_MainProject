@@ -54,6 +54,9 @@ function App() {
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/browse" element={<BrowsePage />} />
         <Route path="/accommodations/:id" element={<FullRoomView />} />
+        <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
+        <Route path="/landlord/manage/accommodation" element={<ManageAccommodationDashboard />} />
+        <Route path="/landlord/rooms" element={<RoomsPage />} />
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>

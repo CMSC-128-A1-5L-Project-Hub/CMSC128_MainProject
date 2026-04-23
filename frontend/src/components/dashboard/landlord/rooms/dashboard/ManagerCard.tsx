@@ -1,16 +1,22 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Modal from "../../../../Modal";
 import Button from "../../../../Button";
 import notif_icon from "../../../../../assets/icons/notif_icon.svg";
 import edit_icon from "../../../../../assets/icons/edit.svg";
 
-type ManagerStatus = "assigned" | "pending" | "none";
+// Layout components
+import NotificationPanel, {
+    MOCK_NOTIFICATIONS,
+    type Notification,
+} from "../../../../NotificationPanel";
+
+type ManagerStatus = "assigned" | "pending" | "none" | string;
 
 interface ProfileCardProps {
   status?: ManagerStatus;
-  name?: string;
+  fullName?: string; // Updated to match dashboard naming
   role?: string;
-  phone?: string;
+  phoneNumber?: string; // Updated to match dashboard naming
   email?: string;
   dormitory?: string;
   onNotification?: () => void;
@@ -18,9 +24,9 @@ interface ProfileCardProps {
 
 export default function ProfileCard({
   status = "assigned",
-  name = "Dal Cadsawan",
+  fullName = "Dal Cadsawan",
   role = "Dormitory Manager",
-  phone = "+63 912 345 6789",
+  phoneNumber = "+63 912 345 6789",
   email = "ddcadsawan@gmail.com",
   dormitory = "Narra Residence",
   onNotification,
@@ -28,6 +34,16 @@ export default function ProfileCard({
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [replacementEmail, setReplacementEmail] = useState("");
+
+  // Notification state logic from Dashboard
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const notifWrapperRef = useRef<HTMLDivElement>(null);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const markAllRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const markOneRead = (id: number) =>
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
 
   const CLR = {
     dark: "#3D0718",
@@ -39,7 +55,6 @@ export default function ProfileCard({
   };
 
   const handleSendInvite = () => {
-    console.log("Send invite to:", replacementEmail);
     setEditModalOpen(false);
     setReplacementEmail("");
   };
@@ -52,7 +67,6 @@ export default function ProfileCard({
     </svg>
   );
 
-  // EditModal – only email field for replacing manager
   const EditModal = (
     <Modal
       open={editModalOpen}
@@ -84,12 +98,11 @@ export default function ProfileCard({
     </Modal>
   );
 
-  // InviteModal (for adding a manager when none exists or pending)
   const InviteModal = (
     <Modal
       open={inviteModalOpen}
       onClose={() => setInviteModalOpen(false)}
-      title={status === "assigned" ? "Replace Your Manager" : "Add a Manager"}
+      title={status === "assigned" || status === "Active" ? "Replace Your Manager" : "Add a Manager"}
       eyebrow="Manager Profile"
       footer={
         <Button variant="primary" size="md" className="ml-auto">
@@ -154,7 +167,7 @@ export default function ProfileCard({
     );
   }
 
-  const isActive = status === "assigned";
+  const isActive = status === "assigned" || status === "Active";
 
   return (
     <>
@@ -181,18 +194,37 @@ export default function ProfileCard({
               >
                 <img src={edit_icon} alt="Edit" className="w-full h-full object-contain scale-[2.5]" />
               </button>
-              <button
-                onClick={onNotification}
-                className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden 
-                          transition-all duration-150 bg-white/10 hover:bg-white/20 active:bg-white/30
-                          hover:-translate-y-1 active:translate-y-0 active:scale-95"
-              >
-                <img src={notif_icon} alt="Notifications" className="w-full h-full object-contain scale-[2.5]" />
-                <span
-                  className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
-                  style={{ background: CLR.gold }}
+
+              {/* Notification Button with Wrapper Ref for Outside Clicks */}
+              <div ref={notifWrapperRef} className="relative">
+                <button
+                  onClick={() => {
+                    setNotifOpen((prev) => !prev);
+                    if (onNotification) onNotification();
+                  }}
+                  className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden 
+                            transition-all duration-150 bg-white/10 hover:bg-white/20 active:bg-white/30
+                            hover:-translate-y-1 active:translate-y-0 active:scale-95"
+                >
+                  <img src={notif_icon} alt="Notifications" className="w-full h-full object-contain scale-[2.5]" />
+                  {unreadCount > 0 && (
+                    <span
+                      className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
+                      style={{ background: CLR.gold }}
+                    />
+                  )}
+                </button>
+
+                <NotificationPanel
+                  open={notifOpen}
+                  notifications={notifications}
+                  unreadCount={unreadCount}
+                  onMarkAllRead={markAllRead}
+                  onMarkOneRead={markOneRead}
+                  onClose={() => setNotifOpen(false)}
+                  wrapperRef={notifWrapperRef}
                 />
-              </button>
+              </div>
             </div>
           </div>
 
@@ -212,16 +244,15 @@ export default function ProfileCard({
             </div>
 
             <div className="min-w-0">
-              <p className="text-white font-bold text-[20px] leading-tight">{name}</p>
+              <p className="text-white font-bold text-[20px] leading-tight">{fullName}</p>
               <p className="text-[15px] font-bold leading-tight mt-1" style={{ color: CLR.goldLt }}>
                 {role}
               </p>
               <p className="text-white/70 text-sm mt-1 truncate">{email}</p>
-              <p className="text-white/70 text-sm">{phone}</p>
+              <p className="text-white/70 text-sm">{phoneNumber}</p>
             </div>
           </div>
 
-          {/* Footer details - status badge now matches second code */}
           <div className="mt-6 grid grid-cols-2 gap-4">
             <div>
               <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5 uppercase tracking-wider">
