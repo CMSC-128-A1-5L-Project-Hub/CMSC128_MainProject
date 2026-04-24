@@ -63,4 +63,70 @@ export default class ManagerProfileController {
       dormMeta: accommodation?.accommodationType ?? 'NONE',
     })
   }
+
+  async update({ auth, request, response }: HttpContext) {
+    const authUser = auth.user
+
+    if (!authUser) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
+    const user = await User.query()
+      .where('id', authUser.id)
+      .preload('phoneNumbers')
+      .first()
+
+    if (!user) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
+    const manager = await Manager.query()
+      .where('userId', user.id)
+      .first()
+
+    if (!manager) {
+      return response.notFound({ message: 'Manager profile not found' })
+    }
+
+    const {
+      fullName,
+      email,
+      facebook,
+      phone,
+      altPhone,
+    } = request.only([
+      'fullName',
+      'email',
+      'facebook',
+      'phone',
+      'altPhone',
+    ])
+
+    const [fname, ...rest] = fullName.trim().split(' ')
+    const lname = rest.join(' ')
+
+    user.fname = fname
+    user.lname = lname
+    user.email = email
+    user.facebookAccount = facebook
+
+    await user.save()
+
+    const primaryPhone = user.phoneNumbers.find((p) => p.isPrimary)
+    const secondaryPhone = user.phoneNumbers.find((p) => !p.isPrimary)
+
+    if (primaryPhone) {
+      primaryPhone.contactNumber = phone
+      await primaryPhone.save()
+    }
+
+    if (secondaryPhone) {
+      secondaryPhone.contactNumber = altPhone
+      await secondaryPhone.save()
+    }
+
+    return response.ok({
+      message: 'Profile updated successfully',
+    })
+  }
 }

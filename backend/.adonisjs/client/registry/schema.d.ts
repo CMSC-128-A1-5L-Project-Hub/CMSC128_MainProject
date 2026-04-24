@@ -715,6 +715,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/manager_profiles_controller').default['show']>>>
     }
   }
+  'manager_profiles.update': {
+    methods: ["PATCH"]
+    pattern: '/manager/profile'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/manager_profiles_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/manager_profiles_controller').default['update']>>>
+    }
+  }
   'occupancy_records.rooms': {
     methods: ["GET","HEAD"]
     pattern: '/manager/occupancy-records'

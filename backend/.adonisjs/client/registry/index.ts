@@ -360,6 +360,12 @@ const routes = {
     tokens: [{"old":"/manager/profile","type":0,"val":"manager","end":""},{"old":"/manager/profile","type":0,"val":"profile","end":""}],
     types: placeholder as Registry['manager_profiles.show']['types'],
   },
+  'manager_profiles.update': {
+    methods: ["PATCH"],
+    pattern: '/manager/profile',
+    tokens: [{"old":"/manager/profile","type":0,"val":"manager","end":""},{"old":"/manager/profile","type":0,"val":"profile","end":""}],
+    types: placeholder as Registry['manager_profiles.update']['types'],
+  },
   'occupancy_records.rooms': {
     methods: ["GET","HEAD"],
     pattern: '/manager/occupancy-records',
