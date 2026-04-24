@@ -46,12 +46,15 @@ export default class ManagerProfileController {
       user.phoneNumbers.find((p) => !p.isPrimary)?.contactNumber ?? 'NONE'
 
     return response.ok({
+      accommodationId: accommodation?.id ?? null,
       fullName: `${user.fname ?? ''} ${user.lname ?? ''}`.trim(),
-      upMail: user.email ?? 'NONE',
+      shortName: user.fname ?? '',
+      email: user.email ?? 'NONE',
       facebook: user.facebookAccount ?? 'NONE',
       phone: primaryPhone,
-      employer: 'NONE',
+      employer: 'NONE', // i still have to fix this since i have to map it to the landlor. soon. 
       altPhone: secondaryPhone,
+      status: manager.managerStatus === 'active' ? 'Active' : 'Pending',
       verifiedSince:
         manager.managerStatus === 'active' && manager.verifiedAt
           ? formatDate(manager.verifiedAt.toJSDate())

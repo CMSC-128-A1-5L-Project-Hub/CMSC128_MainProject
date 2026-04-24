@@ -14,7 +14,7 @@ import Save from "../../assets/icons/save.svg";
 
 interface ProfileData {
   fullName: string;
-  upMail: string;
+  email: string;
   facebook: string;
   phone: string;
   employer: string;
@@ -60,7 +60,7 @@ export default function Profile() {
 
         setProfile({
         fullName: data.fullName ?? "NONE",
-        upMail: data.upMail ?? "NONE",
+        email: data.email ?? "NONE",
         facebook: data.facebook ?? "NONE",
         phone: data.phone ?? "NONE",
         employer: data.employer ?? "NONE",
@@ -283,9 +283,9 @@ export default function Profile() {
                   <div className="mt-5 hidden grid-cols-1 gap-x-10 gap-y-5 md:grid-cols-2 lg:mt-6 lg:grid">
                     <Field
                       label="UP MAIL"
-                      value={profile.upMail}
+                      value={profile.email}
                       editing={editing}
-                      onChange={(v) => update("upMail", v)}
+                      onChange={(v) => update("email", v)}
                     />
                     <Field
                       label="FACEBOOK LINK"
@@ -332,10 +332,10 @@ export default function Profile() {
               <div className="mt-6 lg:hidden">
                 <div className="grid grid-cols-1 gap-x-8 gap-y-5 border-t border-[#F0E3E8] pt-5 md:grid-cols-2">
                   <Field
-                    label="UP MAIL"
-                    value={profile.upMail}
+                    label="EMAIL"
+                    value={profile.email}
                     editing={editing}
-                    onChange={(v) => update("upMail", v)}
+                    onChange={(v) => update("email", v)}
                   />
                   <Field
                     label="FACEBOOK LINK"
