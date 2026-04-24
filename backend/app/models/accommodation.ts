@@ -57,6 +57,9 @@ export default class Accommodation extends BaseModel {
   declare accommodationCapacity: number
 
   @column()
+  declare accommodationSize: number
+
+  @column()
   declare tenantRestriction: 'male-only' | 'female-only' | 'coed'
 
   @column()
