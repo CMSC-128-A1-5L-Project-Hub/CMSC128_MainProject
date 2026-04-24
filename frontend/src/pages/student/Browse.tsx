@@ -135,8 +135,7 @@ function SearchBar() {
 }
 
 function Form() {
-    const [minPrice, setMinPrice] = useState(2500);
-    const [maxPrice, setMaxPrice] = useState(7000);
+
     const labelStyle: React.CSSProperties = { fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9A7080", marginBottom: 6, fontFamily: "'Plus Jakarta Sans',sans-serif" };
     const [filters, setFilters] = useState<{ [key: string]: boolean }>(
         {
@@ -156,7 +155,7 @@ function Form() {
     if (!context) {
         throw new Error("FilterContext must be used within a Provider");
     }
-    const { dormType, setDormType } = context
+    const { dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType } = context
 
     const [newFilter, setNewFilter] = useState("")
     const [modal, setModal] = useState(false);
@@ -258,12 +257,12 @@ function Form() {
                             <div className="relative w-full">
                                 <select
                                     onChange={(e) => {
-                                        console.log(e.target.value)
-                                        setDormType(e.target.value)}}
+                                        setDormType(e.target.value)
+                                    }}
                                     id="dorm-type"
                                     className="w-full px-3 py-2 sm:px-4 sm:py-4 rounded-xl sm:rounded-2xl border border-[#EDE1E5] sm:border-2 text-sm sm:text-base text-gray-800 appearance-none outline-none"
                                 >
-                                    <option value="All">All Types</option>
+                                    <option value="All">All</option>
                                     <option value="on-campus">On-campus</option>
                                     <option value="off-campus">Off-campus</option>
                                     <option value="partner-housing">Partner-housing</option>
@@ -285,13 +284,16 @@ function Form() {
 
                             <div className="relative w-full">
                                 <select
+                                    onChange={(e) => {
+                                        setRoomType(e.target.value)
+                                    }}
                                     id="room-type"
                                     className="w-full px-3 py-2 sm:px-4 sm:py-4 pr-8 sm:pr-10 rounded-xl sm:rounded-2xl border border-[#EDE1E5] sm:border-2 text-sm sm:text-base text-gray-800 appearance-none outline-none"
                                 >
-                                    <option >All</option>
-                                    <option value="male-only">Male-only</option>
-                                    <option value="female-only">Female-only</option>
-                                    <option value="coed">Co-ed</option>
+                                    <option value="All">All</option>
+                                    <option value="single">Single</option>
+                                    <option value="double">Double</option>
+                                    <option value="shared">Shared</option>
                                 </select>
 
                                 <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-[#6B0F2B] text-xs sm:text-base">
@@ -584,6 +586,12 @@ function DualRangeSlider({
 type FilterContextType = {
     dormType: string;
     setDormType: (value: string) => void;
+    minPrice: number;
+    setMinPrice: (value: number) => void;
+    maxPrice: number;
+    setMaxPrice: (value: number) => void;
+    roomType: string;
+    setRoomType: (value: string) => void;
 };
 
 export const filterContext = createContext<FilterContextType | undefined>(undefined);
@@ -592,7 +600,10 @@ export default function BrowsePage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [activeFilter, setActiveFilter] = useState("All");
     const [profileLoading, setProfileLoading] = useState(true);
-
+    const [minPrice, setMinPrice] = useState(2500);
+    const [maxPrice, setMaxPrice] = useState(7000);
+    const [dormType, setDormType] = useState("All")
+    const [roomType, setRoomType] = useState("All")
     const navigate = useNavigate()
 
     const {
@@ -669,7 +680,6 @@ export default function BrowsePage() {
 
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([]);
 
-    const [dormType, setDormType] = useState("All")
 
     useEffect(() => {
         const tempAccommodations: AccommodationPin[] = [];
@@ -681,49 +691,116 @@ export default function BrowsePage() {
                 tempCounter++;
                 temp[tempCounter] = []
             }
-            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance } = accommodations[i]
+            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance, rooms } = accommodations[i]
+            let minimum = -1;
+            let maximum = -1;
+
+            const roomTypes = new Set();
+            rooms.forEach((element: { roomRent: Number; roomType: String }) => {
+                roomTypes.add(element.roomType)
+                let rent = Number(element.roomRent)
+                if (minimum == -1) {
+                    minimum = rent
+                }
+
+                if (maximum == -1) {
+                    maximum = rent
+                }
+
+                if (Number(rent) < Number(minimum)) {
+                    minimum = rent
+                }
+
+                if (Number(rent) > Number(maximum)) {
+                    maximum = rent
+                }
+            });
+            console.log(roomTypes, accommodationName)
             if (dormType !== "All") {
                 if (accommodationType == dormType) {
-                    tempAccommodations.push({
-                        accommodationId: id,
-                        accommodationName,
-                        accommodationLocation,
-                        accommodationType,
-                        accommodationCapacity,
-                        tenantRestriction,
-                        latitude,
-                        longitude,
-                        minRent: 1000,
-                        maxRent: 2000,
-                        walkingDistance,
-                        drivingDistance,
-                        bikingDistance,
-                    })
+                    if (minimum >= minPrice && maximum <= maxPrice) {
+                        if (roomType !== "All" && roomTypes.has(roomType)) {
+                            tempAccommodations.push({
+                                accommodationId: id,
+                                accommodationName,
+                                accommodationLocation,
+                                accommodationType,
+                                accommodationCapacity,
+                                tenantRestriction,
+                                latitude,
+                                longitude,
+                                minRent: minimum,
+                                maxRent: maximum,
+                                walkingDistance,
+                                drivingDistance,
+                                bikingDistance,
+                            })
+                        }
+                        else {
+                            tempAccommodations.push({
+                                accommodationId: id,
+                                accommodationName,
+                                accommodationLocation,
+                                accommodationType,
+                                accommodationCapacity,
+                                tenantRestriction,
+                                latitude,
+                                longitude,
+                                minRent: minimum,
+                                maxRent: maximum,
+                                walkingDistance,
+                                drivingDistance,
+                                bikingDistance,
+                            })
+                        }
+                    }
                 }
             }
             else {
-                tempAccommodations.push({
-                    accommodationId: id,
-                    accommodationName,
-                    accommodationLocation,
-                    accommodationType,
-                    accommodationCapacity,
-                    tenantRestriction,
-                    latitude,
-                    longitude,
-                    minRent: 1000,
-                    maxRent: 2000,
-                    walkingDistance,
-                    drivingDistance,
-                    bikingDistance,
-                })
+                if (minimum >= minPrice && maximum <= maxPrice) {
+                    console.log("dito", roomType, roomTypes.has(roomType), accommodationName)
+                    if (roomType === "All") {
+                        tempAccommodations.push({
+                            accommodationId: id,
+                            accommodationName,
+                            accommodationLocation,
+                            accommodationType,
+                            accommodationCapacity,
+                            tenantRestriction,
+                            latitude,
+                            longitude,
+                            minRent: minimum,
+                            maxRent: maximum,
+                            walkingDistance,
+                            drivingDistance,
+                            bikingDistance,
+                        })
+                    }
+                    else if (roomTypes.has(roomType)){
+                        tempAccommodations.push({
+                            accommodationId: id,
+                            accommodationName,
+                            accommodationLocation,
+                            accommodationType,
+                            accommodationCapacity,
+                            tenantRestriction,
+                            latitude,
+                            longitude,
+                            minRent: minimum,
+                            maxRent: maximum,
+                            walkingDistance,
+                            drivingDistance,
+                            bikingDistance,
+                        })
+                    }
+                }
             }
             temp[tempCounter].push({ name: accommodationName, subtitle: accommodationLocation, meta: accommodationType, price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 })
+            console.log("boom", minimum, maximum, accommodationName)
         }
         setDorms(temp)
         setMapAccommodations(tempAccommodations)
-        console.log("eto", accommodations)
-    }, [accommodations, dormType]);
+    }, [accommodations, dormType, minPrice, maxPrice, roomType]);
 
 
     const [pageNumber, setPageNumber] = useState(0);
@@ -780,7 +857,7 @@ export default function BrowsePage() {
     }, []);
 
     return <>
-        <filterContext.Provider value={{ dormType, setDormType }}>
+        <filterContext.Provider value={{ dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType }}>
             <div className="flex w-full min-h-screen bg-[#F5EEF0]">
                 <div className="relative z-[9999]">
                     <Sidebar role="student" />
