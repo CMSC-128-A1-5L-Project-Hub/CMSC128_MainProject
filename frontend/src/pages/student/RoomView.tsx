@@ -255,7 +255,7 @@ const MOCK_ACCOMMODATION: Accommodation = {
       student: { user: { fname: "Beyonce", lname: "Dimagiba" } },
     },
     {
-      id: 3, accommodation_id: 1, student_number: "2023-123458", rating: 3,
+      id: 3, accommodation_id: 1, student_number: "2023-123458", rating: 4,
       content: "The layout of the room is nice. There are so many amenities which caters to my needs as a student. It is also a close walk to the campus.",
       created_at: "2026-02-03",
       student: { user: { fname: "Lebron", lname: "James" } },
@@ -809,7 +809,7 @@ export default function RoomView() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mt-3">
             <div className="flex items-center gap-0 flex-wrap mb-2">
               <StarRating rating={accommodation.avgrating} size="md" />
-              <span className="text-[20px] font- text-[#9A7080] font-semibold">
+              <span className="text-[15px] font- text-[#9A7080] font-semibold mr-5">
                 {accommodation.avgrating.toFixed(1)} ({accommodation.reviews.length})
               </span>
               <div className="ml-auto flex items-center gap-1">
@@ -873,6 +873,7 @@ export default function RoomView() {
               {/* Price */}
               <div className="mx-9">
                 <div className="mb-1">
+                  <p className="text-[15px] font-bold text-[#3D0718] mt-2">Starts at: </p>
                   <span className="text-[37px] font-bold font-sans text-[#6B0F2B]">
                     ₱{selectedRoom?.room_rent.toLocaleString() ?? "—"}
                   </span>
