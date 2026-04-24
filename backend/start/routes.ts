@@ -172,6 +172,7 @@ router
       // ====================================================================
 
       router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
+      router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
   })
   .use(middleware.auth())
 

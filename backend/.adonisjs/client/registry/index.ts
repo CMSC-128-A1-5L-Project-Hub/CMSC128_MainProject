@@ -354,6 +354,12 @@ const routes = {
     tokens: [{"old":"/manager/profile","type":0,"val":"manager","end":""},{"old":"/manager/profile","type":0,"val":"profile","end":""}],
     types: placeholder as Registry['manager_profiles.show']['types'],
   },
+  'occupancy_records.rooms': {
+    methods: ["GET","HEAD"],
+    pattern: '/manager/occupancy-records',
+    tokens: [{"old":"/manager/occupancy-records","type":0,"val":"manager","end":""},{"old":"/manager/occupancy-records","type":0,"val":"occupancy-records","end":""}],
+    types: placeholder as Registry['occupancy_records.rooms']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }
