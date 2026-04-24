@@ -1,4 +1,4 @@
-import Card from "../ui/Card";
+import Card from "../../../../ui/Card";
 
 const logs = [
   { type: "approved", name: "Ana Marie Reyes", time: "2 mins ago" },

@@ -17,6 +17,9 @@ export default class Assignment extends BaseModel {
   declare roomId: number
 
   @column.date()
+  declare confirmedDate: DateTime
+
+  @column.date()
   declare moveIn: DateTime
 
   @column.date()

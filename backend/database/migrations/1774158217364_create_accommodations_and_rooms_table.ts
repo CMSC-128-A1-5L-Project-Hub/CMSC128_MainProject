@@ -50,9 +50,17 @@ export default class extends BaseSchema {
       table.enum('tenant_restriction', ['coed', 'non-coed']).notNullable()
       table.enum('room_availability', ['available', 'occupied', 'maintenance']).notNullable()
     })
+
+    this.schema.createTable('room_tags', (table) => {
+      table.increments('id').primary()
+      table.integer('room_id').unsigned().notNullable().references('id').inTable('rooms').onDelete('CASCADE')
+      table.string('tag_detail', 30).notNullable()
+      table.index(['tag_detail', 'room_id'])
+    })
   }
 
   async down() {
+    this.schema.dropTable('room_tags')
     this.schema.dropTable('rooms')
     this.schema.dropTable('accommodation_images')
     this.schema.dropTable('accommodation_tags')

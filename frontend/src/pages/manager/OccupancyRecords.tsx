@@ -593,7 +593,7 @@ export default function OccupancyRecords() {
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
             <Sidebar role="manager" profile={managerProfile}/>
 
-            <div className="flex-1 flex flex-col p-5 overflow-y-auto">
+            <div className="flex-1 flex flex-col px-8 py-5 overflow-y-auto">
                 <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
                     <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
                         style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}

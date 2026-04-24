@@ -1,5 +1,4 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import Payment from '#models/payment'
 import User from '#models/user'
 
 // Imports: Payment, Fee, LogService, etc.

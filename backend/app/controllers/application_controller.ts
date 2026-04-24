@@ -160,12 +160,12 @@ export default class ApplicationsController {
   }
 
   // ─── 5. STUDENT: CANCEL APPLICATION ───
-  async destroy({ auth, params, response, serialize }: HttpContext) {
+  async cancel({ auth, params, response, serialize }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
 
     const app = await Application.query()
-      .where('applicationId', params.id)
+      .where('id', params.id)
       .where('studentNumber', student.studentNumber)
       .firstOrFail()
 
