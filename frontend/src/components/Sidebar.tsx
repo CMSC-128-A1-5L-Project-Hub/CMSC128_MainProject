@@ -40,6 +40,7 @@ interface SidebarProps {
   };
 }
 
+
 const MobileDrawer = ({
   open, onClose, role, profile, topItems, bottomItems, active, onNavigate
 }: {
