@@ -51,6 +51,27 @@ export default function Profile() {
     },
   });
 
+  const update = (k: keyof ProfileData, v: string) =>
+    setProfile((prev) => (prev ? { ...prev, [k]: v } : prev));
+
+  const saveProfile = async () => {
+    if (!profile) return;
+
+    try {
+      await api.patch("/manager/profile", {
+        fullName: profile.fullName,
+        email: profile.email,
+        facebook: profile.facebook,
+        phone: profile.phone,
+        altPhone: profile.altPhone,
+      });
+
+      setEditing(false);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    }
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -91,8 +112,6 @@ export default function Profile() {
     }
   }, [user, navigate]);
 
-  const update = (k: keyof ProfileData, v: string) =>
-    setProfile((prev) => (prev ? { ...prev, [k]: v } : prev));
 
   if (profileLoading) {
     return (
@@ -176,7 +195,7 @@ export default function Profile() {
                         value={profile.fullName}
                         onChange={(e) => update("fullName", e.target.value)}
                         readOnly={!editing}
-                        className="w-full bg-transparent text-3x1 font-bold leading-none text-[#2A1F1A] outline-none read-only:cursor-default md:text-[2rem]"
+                        className="w-full bg-transparent text-3xl font-bold leading-none text-[#2A1F1A] outline-none read-only:cursor-default md:text-[2rem]"
                       />
 
                       <div className="mt-3 flex flex-col items-start gap-3">
@@ -197,7 +216,7 @@ export default function Profile() {
                         </div>
 
                         <button
-                          onClick={() => setEditing((prev) => !prev)}
+                          onClick={editing ? saveProfile : () => setEditing(true)}
                           className="inline-flex items-center gap-2 rounded-xl border border-[#D9BBC4] px-4 py-2 text-sm font-semibold text-[#A04E66]"
                         >
                           <img
