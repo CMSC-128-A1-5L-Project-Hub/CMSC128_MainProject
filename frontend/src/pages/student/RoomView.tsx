@@ -4,6 +4,7 @@ import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
 import GradientPillSelect from "../../components/DropDownGradient.tsx";
 
+
 //MapBox Imports
 import Map, { Marker, NavigationControl, Source, Layer } from 'react-map-gl'
 import type { LayerProps } from 'react-map-gl'
@@ -78,7 +79,7 @@ interface Room{
   room_current_occupancy: number;
   room_building: string;
   room_rent: number;
-  tenant_restriction: string;
+  tenant_restriction: "male" | "female" | "coed";
 }
 
 interface ReviewUser {
@@ -233,12 +234,12 @@ const MOCK_ACCOMMODATION: Accommodation = {
     {
       id: 2, accommodation_id: 1, room_number: "102", room_type: "double",
       room_stay_type: "transient", room_capacity: 2, room_current_occupancy: 1,
-      room_building: "Building A", room_rent: 4500, tenant_restriction: "coed", room_availability: "available",
+      room_building: "Building A", room_rent: 4500, tenant_restriction: "male", room_availability: "available",
     },
     {
       id: 3, accommodation_id: 1, room_number: "103", room_type: "shared",
       room_stay_type: "non_transient", room_capacity: 3, room_current_occupancy: 1,
-      room_building: "Building B", room_rent: 2800, tenant_restriction: "coed", room_availability: "available",
+      room_building: "Building B", room_rent: 2800, tenant_restriction: "female", room_availability: "available",
     },
   ],
   reviews: [
@@ -322,11 +323,13 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
 }
 
 //Features Tab
-function FeaturesTab({ accommodation, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
+function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
   accommodation: Accommodation;
+  selectedTenantRestriction: Room["tenant_restriction"]; setselectedTenantRestriction: (v: Room["tenant_restriction"]) => void;
   selectedStayType: Room["room_stay_type"]; setSelectedStayType: (v: Room["room_stay_type"]) => void;
   selectedArrangement: Room["room_type"]; setSelectedArrangement: (v: Room["room_type"]) => void;
 }) {
+  const tenantRestriction = [...new Set(accommodation.rooms.map((r) => r.tenant_restriction))];
   const stayTypes = [...new Set(accommodation.rooms.map((r) => r.room_stay_type))];
   const arrangements = [...new Set(accommodation.rooms.map((r) => r.room_type))];
   const matchedRoom = accommodation.rooms.find(
@@ -336,12 +339,8 @@ function FeaturesTab({ accommodation, selectedStayType, setSelectedStayType, sel
   return (
     <div className="space-y-5 mt-14">
       <div className="grid grid-cols-3 gap-5 items-start mt-16">
-        <div>
-          <p className="text-[16px] font-bold font-sans tracking-widest text-[#9A7080] mb-1.5">Type</p>
-          <p className="text-[16px] font-semibold font-sans text-gray-800 capitalize mt-3">
-            {accommodation.accommodation_type.replace(/_/g, " ")}
-          </p>
-        </div>
+        <GradientPillSelect label="Tenant Preference" value={selectedTenantRestriction} onChange={setselectedTenantRestriction}
+          options={tenantRestriction.map((st) => ({ value: st, label: st.charAt(0).toUpperCase() + st.slice(1) }))} />
         <GradientPillSelect label="Stay Type" value={selectedStayType} onChange={setSelectedStayType}
           options={stayTypes.map((st) => ({ value: st, label: st === "non_transient" ? "Non-Transient" : "Transient" }))} />
         <GradientPillSelect label="Arrangement" value={selectedArrangement} onChange={setSelectedArrangement}
@@ -725,6 +724,9 @@ export default function RoomView() {
 
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
   const [isFavorited, setIsFavorited] = useState(false);
+  const [selectedTenantRestriction, setselectedTenantRestriction] = useState<Room["tenant_restriction"]>(
+  accommodation.rooms[0]?.tenant_restriction ?? "coed"
+  );
   const [selectedStayType, setSelectedStayType] = useState<Room["room_stay_type"]>(accommodation.rooms[0]?.room_stay_type ?? "non_transient");
   const [selectedArrangement, setSelectedArrangement] = useState<Room["room_type"]>(accommodation.rooms[0]?.room_type ?? "single");
 
@@ -852,9 +854,15 @@ export default function RoomView() {
         </div>
 
         {selectedTab === "Features" && (
-          <FeaturesTab accommodation={accommodation}
-            selectedStayType={selectedStayType} setSelectedStayType={setSelectedStayType}
-            selectedArrangement={selectedArrangement} setSelectedArrangement={setSelectedArrangement} />
+          <FeaturesTab
+            accommodation={accommodation}
+            selectedTenantRestriction={selectedTenantRestriction}
+            setselectedTenantRestriction={setselectedTenantRestriction}
+            selectedStayType={selectedStayType}
+            setSelectedStayType={setSelectedStayType}
+            selectedArrangement={selectedArrangement}
+            setSelectedArrangement={setSelectedArrangement}
+          />
         )}
         {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={accommodation.avgrating} />}
         {selectedTab === "Requirements" && <RequirementsTab />}
