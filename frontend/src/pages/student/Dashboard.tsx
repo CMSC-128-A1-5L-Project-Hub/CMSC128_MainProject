@@ -85,6 +85,7 @@ interface Application {
 }
 
 interface BillingStatement {
+  id: number;
   label: string;
   status: "Paid" | "Unpaid";
   onClick?: () => void;
@@ -325,11 +326,11 @@ const billingOverview: BillingOverview = {
   progressPercent: 100,
 };
 
-const billingStatements: BillingStatement[] = [
-  { label: "March Billing Statement", status: "Paid" },
-  { label: "February Billing Statement", status: "Paid" },
-  { label: "January Billing Statement", status: "Unpaid" },
-];
+// const billingStatements: BillingStatement[] = [
+//   { label: "March Billing Statement", status: "Paid" },
+//   { label: "February Billing Statement", status: "Paid" },
+//   { label: "January Billing Statement", status: "Unpaid" },
+// ];
 
 // ── Inline Icons ───────────────────────────────────────────────────────────
 const IconChevronRight = ({ className = "w-3.5 h-3.5" }: { className?: string }) => (
@@ -575,7 +576,7 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
       <div className="max-h-[280px] overflow-y-auto pr-1 space-y-3">
         {statements.map((b, index) => (
           <button
-            key={b.label}
+            key={b.id}
             type="button"
             onClick={b.onClick}
             className={`w-full text-left flex items-center gap-3 p-4 rounded-2xl bg-[#F8F1F4] border border-[#EFE5E8] transition hover:bg-[#F4EAEE] hover:shadow-[0_6px_14px_rgba(61,7,24,0.10)] focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 ${
@@ -962,6 +963,7 @@ useEffect(() => {
         str ? str.charAt(0).toUpperCase() + str.slice(1) : "Fee";
 
       const statements: BillingStatement[] = fees.map((f: any) => ({
+        id: f.id,
         label: `${capitalize(f.fee_category)} - ${new Date(
           f.due_date
         ).toLocaleDateString("en-US", {
