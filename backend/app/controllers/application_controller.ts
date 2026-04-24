@@ -43,16 +43,50 @@ export default class ApplicationsController {
     return serialize(newApp)
   }
 
-  // ─── STUDENT: VIEW MY APPLICATIONS ───
+  // ─── STUDENT: VIEW MY APPLICATIONS with estimated monthly rent ───
   async index({ auth, response, serialize }: HttpContext) {
     const user = auth.user
     if (!user) return response.unauthorized({ message: 'Unauthorized' })
 
     const student = await Student.findByOrFail('userId', user.id)
+
+    // Fetch all applications, with accommodation and all rooms (with tags)
     const applications = await Application.query()
       .where('studentNumber', student.studentNumber)
       .preload('accommodation')
+      .preload('accommodation', (q) => {
+        q.preload('rooms', (roomQuery) => {
+          roomQuery.preload('tags')
+        })
+      })
       .orderBy('applicationDate', 'desc')
+
+    // For each application, compute the cheapest matching room's rent
+    for (const app of applications) {
+      const accommodationRooms = app.accommodation?.rooms ?? []
+      const preferredTags: string[] = app.preferredTags ?? []
+
+      // Filter rooms that match type, stay type, and all preferred tags (if any)
+      const matchingRooms = accommodationRooms.filter(room => {
+        if (room.roomType !== app.applicationRoomType) return false
+        if (room.roomStayType !== app.applicationStayType) return false
+
+        // Tag matching – only if the student specified tags
+        if (preferredTags.length > 0) {
+          const roomTagNames = room.tags?.map(t => t.tagDetail) ?? []
+          if (!preferredTags.every(tag => roomTagNames.includes(tag))) return false
+        }
+        return true
+      })
+
+      const estimatedRent = matchingRooms.length > 0
+        ? Math.min(...matchingRooms.map(r => r.roomRent))
+        : null
+
+      // Attach computed rent to the application object
+      ;(app as any).estimatedMonthlyRent = estimatedRent
+    }
+
     return serialize(applications)
   }
 
