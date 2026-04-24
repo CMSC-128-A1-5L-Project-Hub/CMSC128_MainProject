@@ -15,10 +15,7 @@ import OccupiedRooms from "../../components/dashboard/manager/OccupiedRooms"
 
 // Extracted components (sorry ngayon ko lang nadiscover, will reformat other pages to do this too (unless maunahan ako ng backend))
 import ReportModal from "../../components/ReportModal"
-import NotificationPanel, {
-    MOCK_NOTIFICATIONS,
-    type Notification,
-} from "../../components/NotificationPanel"
+import NotificationPanel from "../../components/NotificationPanel"
 
 // Icons
 import notif_icon from "../../assets/icons/notif_icon.svg"
@@ -180,13 +177,8 @@ export default function Dashboard() {
 
     //Notify statestuff
     const [notifOpen, setNotifOpen]         = useState(false)
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
-    const notifWrapperRef                   = useRef<HTMLDivElement>(null)
-
-    const unreadCount  = notifications.filter((n) => !n.read).length
-    const markAllRead  = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-    const markOneRead  = (id: number) =>
-        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+    const notifWrapperRef = useRef<HTMLDivElement>(null)
+    const [unreadCount, setUnreadCount] = useState(0)
 
     return (
         <>
@@ -224,34 +216,31 @@ export default function Dashboard() {
                                 <img src={report_icon} alt="Report" className="w-full h-full object-contain scale-[2.5]" />
                             </button>
 
-                            {/* Notification */}
-                            <div ref={notifWrapperRef}>
-                                <button
-                                    onClick={() => setNotifOpen((prev) => !prev)}
-                                    className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
-                                               transition-all duration-150
-                                               bg-[#6B0F2B] hover:bg-[#8C1535] active:bg-[#4A0A1E]
-                                               active:translate-y-1 active:scale-95"
-                                >
-                                    <img src={notif_icon} alt="Notifications" className="w-full h-full object-contain scale-[2.5]" />
-                                    {unreadCount > 0 && (
-                                        <span
-                                            className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
-                                            style={{ background: "#C9973A" }}
-                                        />
-                                    )}
-                                </button>
-
-                                <NotificationPanel
-                                    open={notifOpen}
-                                    notifications={notifications}
-                                    unreadCount={unreadCount}
-                                    onMarkAllRead={markAllRead}
-                                    onMarkOneRead={markOneRead}
-                                    onClose={() => setNotifOpen(false)}
-                                    wrapperRef={notifWrapperRef}
+                        {/* Notification */}
+                        <div ref={notifWrapperRef}>
+                            <button
+                            onClick={() => setNotifOpen((prev) => !prev)}
+                            className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
+                                        transition-all duration-150
+                                        bg-[#6B0F2B] hover:bg-[#8C1535] active:bg-[#4A0A1E]
+                                        active:translate-y-1 active:scale-95"
+                            >
+                            <img src={notif_icon} alt="Notifications" className="w-full h-full object-contain scale-[2.5]" />
+                            {unreadCount > 0 && (
+                                <span
+                                className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
+                                style={{ background: "#C9973A" }}
                                 />
-                            </div>
+                            )}
+                            </button>
+
+                            <NotificationPanel
+                            open={notifOpen}
+                            onClose={() => setNotifOpen(false)}
+                            wrapperRef={notifWrapperRef}
+                            onUnreadCountChange={setUnreadCount}
+                            />
+                        </div>
                         </div>
                     </div>
 
