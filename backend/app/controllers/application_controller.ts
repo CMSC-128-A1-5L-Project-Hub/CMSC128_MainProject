@@ -142,7 +142,7 @@ export default class ApplicationsController {
         action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED',
         detail)
 
-      return serialize(applicationObject)  // ✅ ADD THIS
+      return serialize(applicationObject)  // 
     }
     // Landlord approval – uses injected waitlistService
     if (user.role === 'landlord') {
