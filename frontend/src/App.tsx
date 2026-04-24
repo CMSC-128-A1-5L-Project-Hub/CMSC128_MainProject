@@ -30,6 +30,7 @@ import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ApplicationsScreen from "./pages/manager/ApplicationsPage"
 import Applications from "./pages/landlord/Applications"
+import ManagerProfile from "./pages/manager/Profile"
 
 function FullLandingPage() {
   return (
@@ -62,6 +63,11 @@ function App() {
 <Route path="/auth/signup/:role" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>} />
 <Route path="/pending-verification" element={<ProtectedRoute><PendingVerification/></ProtectedRoute>} />
 <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+        {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
+        <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
+        <Route path="/auth/signup/form" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
+        <Route path="/auth/signup/:role" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
+        <Route path="/pending-verification" element={<ProtectedRoute><PendingVerification/></ProtectedRoute>}/>
 
 {/* ── Student routes ── */}
 <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>} />
@@ -69,12 +75,24 @@ function App() {
 <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>} />
 <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>} />
 <Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
+        {/* ── Student routes ── */}
+        <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
+        <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
+        <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
+        <Route path="/student/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
 
 {/* ── Manager routes ── */}
 <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>} />
 <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>} />
 <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>} />
 <Route path="/manager/application" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
+        {/* ── Manager routes ── */}
+        <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
+        <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
+        <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
+        <Route path="/manager/application" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>}/>
+        <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
 
 {/* ── Landlord routes ── */}
 <Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
