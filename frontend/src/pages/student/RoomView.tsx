@@ -1,8 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
 import GradientPillSelect from "../../components/DropDownGradient.tsx";
+
+//MapBox Imports
+import Map, { Marker, NavigationControl, Source, Layer } from 'react-map-gl'
+import type { LayerProps } from 'react-map-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
+const UPLB_COORDS = { longitude: 121.2436, latitude: 14.1654 }
+
 
 
 const CLR = {
@@ -101,8 +110,10 @@ interface Accommodation {
   tags: AccomTag[];
   rooms: Room[];
   reviews: Review[];
-  manager?: Manager;
+  manager: Manager;
   avgrating: number;
+  latitude: number;
+  longitude: number;
 }
 
 //Mock data for requirements
@@ -201,6 +212,8 @@ const MOCK_ACCOMMODATION: Accommodation = {
   application_start_date: "2026-04-01",
   application_end_date: "2026-05-15",
   avgrating: 4.8,
+  latitude: 14.1684,
+  longitude: 121.2435,
   images: [
     { accommodation_id: 1, image_file_id: 1, file: { id: 1, file_name: "accom1_img1.jpg", file_path: "/uploads/images/accom1_img1.jpg", file_type: "image" } },
     { accommodation_id: 1, image_file_id: 2, file: { id: 2, file_name: "accom1_img2.jpg", file_path: "/uploads/images/accom1_img2.jpg", file_type: "image" } },
@@ -239,7 +252,13 @@ const MOCK_ACCOMMODATION: Accommodation = {
       id: 2, accommodation_id: 1, student_number: "2023-123457", rating: 4,
       content: "The layout of the room is nice. There are so many amenities which caters to my needs as a student. It is also a close walk to the campus.",
       created_at: "2026-02-03",
-      student: { user: { fname: "Katy", lname: "Fukiko" } },
+      student: { user: { fname: "Beyonce", lname: "Dimagiba" } },
+    },
+    {
+      id: 3, accommodation_id: 1, student_number: "2023-123458", rating: 3,
+      content: "The layout of the room is nice. There are so many amenities which caters to my needs as a student. It is also a close walk to the campus.",
+      created_at: "2026-02-03",
+      student: { user: { fname: "Lebron", lname: "James" } },
     },
   ],
   manager: {
@@ -342,6 +361,130 @@ function FeaturesTab({ accommodation, selectedStayType, setSelectedStayType, sel
     </div>
   );
 }
+
+type TravelMode = 'driving' | 'walking'
+
+const routeLayerStyle = (mode: TravelMode): LayerProps => ({
+  id: 'route',
+  type: 'line',
+  layout: { 'line-join': 'round', 'line-cap': 'round' },
+  paint: {
+    'line-color': CLR.mid,
+    'line-width': 4,
+    'line-opacity': 0.85,
+  },
+})
+
+// Common UPLB landmarks the user can route to
+const DESTINATIONS = [
+  { label: "UPLB Main Gate", lat: 14.1675, lng: 121.2433 },
+  { label: "Comtech Building (ICS Area)", lat: 14.1662, lng: 121.2489 },
+  { label: "UPLB Main Library", lat: 14.1656, lng: 121.2389 },
+  { label: "College of Engineering (CEAT)", lat: 14.1641, lng: 121.2471 },
+  { label: "UPLB Market (Shopping Center)", lat: 14.1681, lng: 121.2402 },
+  { label: "Baker Hall", lat: 14.1621, lng: 121.2416 }
+]
+
+function LocationTab({ accommodation }: { accommodation: Accommodation }) {
+
+  // only keep destination selector (optional)
+  const [destIndex, setDestIndex] = useState(0)
+
+  const accomLat = accommodation.latitude
+  const accomLng = accommodation.longitude 
+
+  const selectedDest = DESTINATIONS[destIndex]
+
+  return (
+    <div
+      className="mt-4"
+      style={{
+        height: 460,
+        position: 'relative',
+        borderRadius: 16,
+        overflow: 'hidden'
+      }}
+    >
+      <Map
+        initialViewState={{
+          longitude: accomLng,
+          latitude: accomLat,
+          zoom: 15,
+          pitch: 40,
+          bearing: 0
+        }}
+        style={{ width: '100%', height: '100%' }}
+        mapStyle="mapbox://styles/mapbox/standard"
+        mapboxAccessToken={MAPBOX_TOKEN}
+      >
+        <NavigationControl position="top-right" />
+
+        {/*Dorm r */}
+        <Marker longitude={accomLng} latitude={accomLat} anchor="bottom">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div
+              style={{
+                background: CLR.mid,
+                borderRadius: '50%',
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px solid white',
+                fontSize: 18,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+              }}
+            >
+              🏠
+            </div>
+            <div
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: `8px solid ${CLR.mid}`,
+              }}
+            />
+          </div>
+        </Marker>
+
+        {/* Destination*/}
+        <Marker longitude={selectedDest.lng} latitude={selectedDest.lat} anchor="bottom">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div
+              style={{
+                background: CLR.mid,
+                borderRadius: '50%',
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px solid white',
+                fontSize: 18,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+              }}
+            >
+              📍
+            </div>
+            <div
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: `8px solid ${CLR.mid}`,
+              }}
+            />
+          </div>
+        </Marker>
+      </Map>
+    </div>
+  )
+}
+
 
 function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: number }) {
   const [sortBy, setSortBy] = useState<"recent" | "star" | "date">("recent");
@@ -716,6 +859,8 @@ export default function RoomView() {
         )}
         {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={accommodation.avgrating} />}
         {selectedTab === "Requirements" && <RequirementsTab />}
+        {selectedTab === 'Location' && <LocationTab accommodation={accommodation} />}
+
 
 
 

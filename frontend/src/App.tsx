@@ -29,7 +29,7 @@ import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ApplicationsScreen from "./pages/manager/ApplicationsPage"
-import RoomDetails from "./pages/student/RoomView"
+import RoomView from "./pages/student/RoomView"
 
 function FullLandingPage() {
   return (
@@ -77,6 +77,9 @@ function App() {
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
+        
+        {/*<Route path="/student/roomview" element={<ProtectedRoute><RoomView/></ProtectedRoute>}/>*/}
+        <Route path="/student/roomview" element={<RoomView />} />
         <Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
 
         {/* ── Manager routes ── */}
