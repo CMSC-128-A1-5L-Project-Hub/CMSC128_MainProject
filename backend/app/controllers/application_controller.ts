@@ -99,7 +99,7 @@ export default class ApplicationsController {
         .whereIn('applicationStatus', ['pending', 'waitlisted'])
         .where('applicationStayType', 'non_transient')
         .preload('accommodation')
-        .preload('student', (q) => q.preload('user', (u) => u.preload('phoneNumbers')))  // ‹-- add preload
+        .preload('student', (q) => q.preload('user', (u) => u.preload('phoneNumbers'))) 
         .orderBy('applicationDate', 'asc')
       return serialize(applications)
     }
