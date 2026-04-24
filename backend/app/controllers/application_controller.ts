@@ -39,21 +39,54 @@ export default class ApplicationsController {
   }
 
   // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
+  // — STUDENT: VIEW MY APPLICATIONS with estimated monthly rent —
   async index({ auth, response, serialize }: HttpContext) {
-    const user = auth.user
+    const user = auth.user;
+    if (!user) return response.unauthorized({ message: 'Unauthorized' });
 
-    if (!user) {
-      return response.unauthorized({ message: 'Unauthorized' })
-    }
+    const student = await Student.findByOrFail('userId', user.id);
 
-    const student = await Student.findByOrFail('userId', user.id)
-
+    // Fetch all applications, with accommodation and all rooms (with tags)
     const applications = await Application.query()
       .where('studentNumber', student.studentNumber)
       .preload('accommodation')
-      .orderBy('applicationDate', 'desc')
+      .preload('accommodation', (q) => {
+        q.preload('rooms', (roomQuery) => {
+          roomQuery.preload('tags');
+        });
+      })
+      .orderBy('applicationDate', 'desc');
 
-    return serialize(applications)
+    // For each application, compute the cheapest matching room's rent
+    const serializedApplications = applications.map((app) => {
+      const accommodationRooms = app.accommodation?.rooms ?? [];
+      const preferredTags: string[] = (app as any).preferredTags ?? [];
+
+      const matchingRooms = accommodationRooms.filter(room => {
+        if (room.roomType !== app.applicationRoomType) return false;
+        if (room.roomStayType !== app.applicationStayType) return false;
+
+        if (preferredTags.length > 0) {
+          const roomTagNames = room.tags?.map(t => t.tagDetail) ?? [];
+          if (!preferredTags.every(tag => roomTagNames.includes(tag))) return false;
+        }
+        return true;
+      });
+
+      const estimatedRent = matchingRooms.length > 0
+        ? Math.min(...matchingRooms.map(r => r.roomRent))
+        : null;
+
+      // serialize the individual application model to a plain object
+      const appJson = app.serialize(); 
+      
+      // attach the dynamic property to the plain object
+      appJson.estimatedMonthlyRent = estimatedRent; 
+
+      return appJson;
+    });
+    console.log('Backend serialized apps with rent:', serializedApplications.map(a => ({ id: a.id, estimatedMonthlyRent: a.estimatedMonthlyRent })));
+    return serializedApplications;
   }
 
   // ─── 3. MANAGER/LANDLORD: VIEW INCOMING ───

@@ -30,6 +30,7 @@ interface Application {
   applicationStatus: ApplicationStatus;
   durationOfStayDays: number;
   applicationDate: string;
+  estimatedMonthlyRent?: number | null;
   accommodation: Accommodation;
 }
 
@@ -70,7 +71,14 @@ const fetchApplications = async (): Promise<Application[]> => {
   const res = await fetch("/api/applications/my-applications");
   if (!res.ok) throw new Error("Failed to fetch applications");
   const body = await res.json();
-  return body.data ?? body;
+  const apps = body.data ?? body;
+
+  console.log("Raw API response:", apps);
+  // Map backend's roomRent to estimatedMonthlyRent
+  return apps.map((app: any) => ({
+    ...app,
+    estimatedMonthlyRent: app.estimatedMonthlyRent ?? null,  
+  }));
 };
 
 // ── Main Component ─────────────────────────────────────────────────────────
@@ -80,6 +88,8 @@ export default function ApplicationsPage() {
     queryFn: fetchApplications,
   });
   console.log("Browser log:", typeof window !== "undefined");
+
+  
 
   // --- NEW STATE ---
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);

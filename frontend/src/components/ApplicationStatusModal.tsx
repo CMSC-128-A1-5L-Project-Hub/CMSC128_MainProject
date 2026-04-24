@@ -13,6 +13,7 @@ export interface Application {
   applicationStatus: ApplicationStatus;
   durationOfStayDays: number;
   applicationDate: string;
+  estimatedMonthlyRent?: number | null;
   accommodation: {
     id: number;
     accommodationName: string;
@@ -81,12 +82,8 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
     console.log('application room type:', application.applicationRoomType);
 
   const formattedRate =
-  appliedRoom?.roomRent !== null &&
-  appliedRoom?.roomRent !== undefined
-    ? new Intl.NumberFormat("en-PH", {
-        style: "currency",
-        currency: "PHP",
-      }).format(Number(appliedRoom.roomRent))
+  application.estimatedMonthlyRent !== null && application.estimatedMonthlyRent !== undefined
+    ? new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(application.estimatedMonthlyRent)
     : "—";
 
   const imageUrl = accomData?.images?.[0]?.file?.filePath;
@@ -187,7 +184,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Monthly Rate</p>
+            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Starts at</p>
             {isLoading ? (
               <div className="h-6 w-20 bg-gray-200 rounded animate-pulse ml-auto"></div>
             ) : (
