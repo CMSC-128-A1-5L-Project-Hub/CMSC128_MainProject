@@ -233,7 +233,7 @@ export default class ApplicationsController {
       .whereHas('accommodation', (q) => q.where('managerId', user.id))
       .where('applicationStatus', 'confirmed')
       .preload('accommodation')
-      .preload('student', (q) => q.preload('user', (u) => u.preload('phoneNumbers')))  // ‹-- add
+      .preload('student', (q) => q.preload('user', (u) => u.preload('phoneNumbers')))  
       .orderBy('applicationDate', 'asc')
     return serialize(applications)
   }
