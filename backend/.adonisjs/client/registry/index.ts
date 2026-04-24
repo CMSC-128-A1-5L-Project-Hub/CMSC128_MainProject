@@ -132,6 +132,12 @@ const routes = {
     tokens: [{"old":"/accommodations/:id/reviews","type":0,"val":"accommodations","end":""},{"old":"/accommodations/:id/reviews","type":1,"val":"id","end":""},{"old":"/accommodations/:id/reviews","type":0,"val":"reviews","end":""}],
     types: placeholder as Registry['reviews.store']['types'],
   },
+  'accommodation.recommended': {
+    methods: ["GET","HEAD"],
+    pattern: '/recommended-accommodations',
+    tokens: [{"old":"/recommended-accommodations","type":0,"val":"recommended-accommodations","end":""}],
+    types: placeholder as Registry['accommodation.recommended']['types'],
+  },
   'fees.index': {
     methods: ["GET","HEAD"],
     pattern: '/my-fees',

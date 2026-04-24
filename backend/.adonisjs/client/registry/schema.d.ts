@@ -259,6 +259,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/reviews_controller').default['store']>>>
     }
   }
+  'accommodation.recommended': {
+    methods: ["GET","HEAD"]
+    pattern: '/recommended-accommodations'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/accommodation_controller').default['recommended']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/accommodation_controller').default['recommended']>>>
+    }
+  }
   'fees.index': {
     methods: ["GET","HEAD"]
     pattern: '/my-fees'
