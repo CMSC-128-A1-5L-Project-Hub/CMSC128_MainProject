@@ -117,7 +117,7 @@ const mockApplications: ApplicationResponse[] = [
     studentNumber: "2021-12345",
     applicationDate: "2026-03-12T13:00:00Z",
     applicationRoomType: "Shared Room",
-    applicationStayType: "Long Stay",
+    applicationStayType: "Transient",
     applicationStatus: "approved",
     durationOfStayDays: 120,
     accommodation: {
@@ -175,7 +175,7 @@ const mockApplications: ApplicationResponse[] = [
     studentNumber: "2021-54321",
     applicationDate: "2026-03-14T11:15:00Z",
     applicationRoomType: "Single Room",
-    applicationStayType: "Short Stay",
+    applicationStayType: "Non-Transient",
     applicationStatus: "pending",
     durationOfStayDays: 60,
     accommodation: {
