@@ -59,10 +59,14 @@ function App() {
         <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
         <Route path="/landlord/manage/accommodation" element={<ManageAccommodationDashboard />} />
         <Route path="/landlord/rooms" element={<RoomsPage />} />
-        <Route path="/manager/dashboard" element={<ManagerDashboard/>}/>
         <Route path="/manager/occupancy-records" element={<OccupancyRecords />}/>
         <Route path="/manager/room-assignment" element={<RoomAssignment />}/>
         <Route path="/manager/application" element={<ApplicationsPage />}/>
+        <Route path="/student/dashboard" element={<StudentDashboard />} />
+        <Route path="/student/profile" element={<ProfilePage />} />
+        <Route path="/student/applicationstatus" element={<ApplicationStatus />} />
+        <Route path="/student/billingdashboard" element={<BillingDashboard />} />
+        <Route path="/applications" element={<ApplicationsPage />} />
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
