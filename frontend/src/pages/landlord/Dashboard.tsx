@@ -340,18 +340,18 @@ export default function Dashboard() {
 
         {/* RIGHT PANEL*/}
         <aside className="hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
-          <ProfileCard
+        <ProfileCard
             status="assigned"
-            name={landlordProfile.fullName}
+            fullName={landlordProfile.fullName}
             role="Manager"
-            phone={landlordProfile.phoneNumber}
+            phoneNumber={landlordProfile.phoneNumber} 
             email={landlordProfile.email}
             dormitory={landlordProfile.dormitory}
             onNotification={() => console.log("Notification clicked")}
-          />
-          <ApplicationPeriod />
-          <ActivityLogs />
-          <ReportsPanel />
+        />
+        <ApplicationPeriod />
+        <ActivityLogs />
+        <ReportsPanel />
         </aside>
       </div>
 
