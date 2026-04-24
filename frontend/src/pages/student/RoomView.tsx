@@ -431,7 +431,6 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '2px solid white',
                 fontSize: 18,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
               }}
