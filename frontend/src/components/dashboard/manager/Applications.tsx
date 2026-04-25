@@ -295,30 +295,34 @@ export default function Applications({ data, className = "", onAction }: Props) 
                 <p className="col-span-1 text-[#9A7080] text-xs font-bold p-1">Date Applied</p>
                 <p className="col-span-1 text-center text-[#9A7080] text-xs font-bold p-1">Action</p>
               </div>
-              <div className="grid grid-cols-5">
-                {data.map((application, idx) => (
-                  <div key={idx} className="col-span-5 grid grid-cols-5 mt-3"
-                       style={{ gridTemplateColumns: "2fr 1.0fr 2fr 1.5fr 2fr" }}>
-                    <div className="col-span-2 flex flex-row items-center">
-                      <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                           style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                        {getInitials(application.student.fullName)}
+              {data.length > 0 ? (
+                <div className="grid grid-cols-5">
+                  {data.map((application, idx) => (
+                    <div key={idx} className="col-span-5 grid grid-cols-5 mt-3"
+                        style={{ gridTemplateColumns: "2fr 1.0fr 2fr 1.5fr 2fr" }}>
+                      <div className="col-span-2 flex flex-row items-center">
+                        <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                          {getInitials(application.student.fullName)}
+                        </div>
+                        <p className="text-black text-sm pl-2">{application.student.fullName}</p>
                       </div>
-                      <p className="text-black text-sm pl-2">{application.student.fullName}</p>
+                      <div className="flex flex-col px-1">
+                        <p className="col-span-1 text-[#1A0008] text-sm">{application.accommodation.building}</p>
+                        <p className="col-span-1 text-[#9A7080] text-xs capitalize">{application.stayType}</p>
+                      </div>
+                      <p className="col-span-1 text-[#9A7080] text-sm p-1 flex items-center">{application.applicationDate}</p>
+                      <div className="col-span-1 flex items-center justify-center">
+                        <Button variant="reddishPink" size="sm" onClick={() => openModal(application)}>
+                          Review
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex flex-col px-1">
-                      <p className="col-span-1 text-[#1A0008] text-sm">{application.accommodation.building}</p>
-                      <p className="col-span-1 text-[#9A7080] text-xs capitalize">{application.stayType}</p>
-                    </div>
-                    <p className="col-span-1 text-[#9A7080] text-sm p-1 flex items-center">{application.applicationDate}</p>
-                    <div className="col-span-1 flex items-center justify-center">
-                      <Button variant="reddishPink" size="sm" onClick={() => openModal(application)}>
-                        Review
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex-1 flex justify-center items-center py-4 italic text-gray-500">Nothing to see here</div>
+              )}
             </div>
           </div>
         </div>
