@@ -18,15 +18,62 @@ type Props = {
   onAction: () => void
 }
 
+type RejectionModalProps = {
+  open: boolean
+  target: TransformedApp | null
+  loading: boolean
+  onCancel: () => void
+  onConfirm: (reason: string) => void
+}
+
+//moved rejectionModal outside of Application function to prevent React from rendering both modals (view and this)
+function RejectionModal({ open, target, loading, onCancel, onConfirm }: RejectionModalProps) {
+  const [reason, setReason] = useState("")
+
+  const handleConfirm = () => {
+    if (!reason.trim()) return
+    onConfirm(reason)
+    setReason("")
+  }
+
+  const handleCancel = () => {
+    setReason("")
+    onCancel()
+  }
+
+  return (
+    <Modal open={open} onClose={handleCancel} title="Reject Application">
+      <div className="flex flex-col gap-4">
+        <p className="text-[#1A0008] text-sm">
+          Please provide a reason for rejecting{" "}
+          <span className="font-semibold">{target?.student.fullName}</span>'s application.
+        </p>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Enter rejection reason..."
+          rows={4}
+          className="w-full border border-[#F5ECF0] rounded-xl p-3 text-sm text-[#1A0008] placeholder:text-[#C8B0B8] resize-none focus:outline-none focus:border-[#6B0F2B]"
+        />
+        <div className="flex flex-row justify-end gap-3">
+          <Button variant="secondary" onClick={handleCancel} disabled={loading}>Cancel</Button>
+          <Button variant="reddishPink" disabled={!reason.trim() || loading} onClick={handleConfirm}>
+            {loading ? 'Processing…' : 'Confirm Reject'}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 export default function Applications({ data, className = "", onAction }: Props) {
   const navigate = useNavigate()
   const [selectedApplication, setSelectedApplication] = useState<TransformedApp | null>(null)
   const [modalApplication, setModalApplication] = useState<TransformedApp | null>(null)
   const [rejectionTarget, setRejectionTarget] = useState<TransformedApp | null>(null)
-  const [rejectionReason, setRejectionReason] = useState("")
   const [loading, setLoading] = useState(false)
 
-  const getInitials = (name: string) => name[0]
+  const getInitials = (name: string) => name?.trim()?.[0]?.toUpperCase() ?? "?"
 
   const openModal = (app: TransformedApp) => {
     setModalApplication(app)
@@ -34,10 +81,7 @@ export default function Applications({ data, className = "", onAction }: Props) 
   }
 
   const closeModal = () => {
-    if (loading) return
     setSelectedApplication(null)
-    setRejectionTarget(null)
-    setRejectionReason("")
   }
 
   const firstPendingIndex = data.findIndex(app => app.applicationStatus === 'pending')
@@ -66,8 +110,6 @@ export default function Applications({ data, className = "", onAction }: Props) 
     try {
       await api.patch(`/applications/${rejectionTarget.id}/review`, { action: 'reject', rejection_reason: reason })
       setRejectionTarget(null)
-      setRejectionReason("")
-      closeModal()
       onAction()
     } catch (e) {
       console.error(e)
@@ -77,34 +119,22 @@ export default function Applications({ data, className = "", onAction }: Props) 
     }
   }
 
-  const RejectionModal = () => (
-    <Modal open={!!rejectionTarget} onClose={() => { if (!loading) setRejectionTarget(null) }} title="Reject Application">
-      <div className="flex flex-col gap-4">
-        <p className="text-[#1A0008] text-sm">
-          Please provide a reason for rejecting{" "}
-          <span className="font-semibold">{rejectionTarget?.student.fullName}</span>'s application.
-        </p>
-        <textarea
-          value={rejectionReason}
-          onChange={(e) => setRejectionReason(e.target.value)}
-          placeholder="Enter rejection reason..."
-          rows={4}
-          className="w-full border border-[#F5ECF0] rounded-xl p-3 text-sm text-[#1A0008] placeholder:text-[#C8B0B8] resize-none focus:outline-none focus:border-[#6B0F2B]"
-        />
-        <div className="flex flex-row justify-end gap-3">
-          <Button variant="secondary" onClick={() => setRejectionTarget(null)} disabled={loading}>Cancel</Button>
-          <Button variant="reddishPink" disabled={!rejectionReason.trim() || loading} onClick={() => handleReject(rejectionReason)}>
-            {loading ? 'Processing…' : 'Confirm Reject'}
-          </Button>
-        </div>
-      </div>
-    </Modal>
-  )
-
   return (
     <>
-      <RejectionModal />
-      <Modal open={!!selectedApplication} onClose={closeModal} title="Application" maxWidth={900} maxHeight={700}>
+      <RejectionModal
+        open={!!rejectionTarget}
+        target={rejectionTarget}
+        loading={loading}
+        onCancel={() => {
+          //modified to go back to previous modal when cancelled
+          const application = rejectionTarget
+          setRejectionTarget(null)
+          setTimeout(() => openModal(application!), 150)
+        }}
+        onConfirm={handleReject}
+      />
+
+      <Modal open={!!selectedApplication} onClose={closeModal} title="Application" maxWidth={900} maxHeight={800}>
         {modalApplication && (
           <Card>
             <div className="flex flex-col gap-6">
@@ -227,7 +257,12 @@ export default function Applications({ data, className = "", onAction }: Props) 
                     <Button variant="primary" onClick={handleAccept} disabled={loading}>
                       {loading ? 'Processing…' : 'Accept'}
                     </Button>
-                    <Button variant="secondary" onClick={() => setRejectionTarget(modalApplication)} disabled={loading}>
+                    <Button variant="secondary" onClick={() => { 
+                      //modified to store target application to allow for backtracking to prev modal
+                      const target = modalApplication
+                      closeModal(); 
+                      setTimeout(() => setRejectionTarget(target), 150) 
+                    }} disabled={loading}>
                       Reject
                     </Button>
                   </div>
