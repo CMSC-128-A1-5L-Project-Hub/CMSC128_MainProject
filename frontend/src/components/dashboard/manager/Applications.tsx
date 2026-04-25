@@ -287,7 +287,7 @@ export default function Applications({ data, className = "", onAction }: Props) 
             </p>
           </div>
           <div className="overflow-x-auto -mx-0">
-            <div className="min-w-[600px] pb-3 lg:pb-0">
+            <div className="min-w-[600px] pb-3 xl:pb-0">
               <div className="grid grid-cols-5 border-b border-[#F5ECF0] uppercase"
                    style={{ gridTemplateColumns: "2fr 1.0fr 2fr 1.5fr 2fr" }}>
                 <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Student</p>
