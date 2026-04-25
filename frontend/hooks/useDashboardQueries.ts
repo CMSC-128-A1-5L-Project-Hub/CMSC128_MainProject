@@ -189,9 +189,15 @@ export function mergeAppWithAssignment(
   app: TransformedApp,
   assignments: RawAssignment[]
 ): AssignmentItem {
+  // Only consider assignments that are still pending or active – ignore rejected/cancelled/ended
   const activeAssign = assignments.find(
-    (a) => a.studentNumber === app.student.studentNo && !a.actualMoveOut
+    (a) =>
+      a.studentNumber === app.student.studentNo &&
+      !a.actualMoveOut &&
+      a.confirmationStatus !== 'rejected' &&
+      a.confirmationStatus !== 'cancelled'
   )
+
   if (activeAssign) {
     const confirmationStatus = activeAssign.confirmationStatus ?? 'pending_confirmation'
     return {
@@ -206,6 +212,8 @@ export function mergeAppWithAssignment(
       status: confirmationStatus === 'active' ? 'assigned' : 'pending_confirmation',
     }
   }
+
+  // No active/pending assignment → treat as completely unassigned
   return {
     student: app,
     roomNumber: '',
