@@ -453,7 +453,7 @@ export default function RoomAssignment() {
                                 </p>
                               </div>
                               <div className="px-2 flex justify-center items-center">
-                                <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 w-32 rounded-full font-bold capitalize
+                                <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-full font-bold capitalize whitespace-nowrap
                                   ${assignment.status === "not assigned" ? "bg-[#9E2040]/10 text-[#9E2040]" :
                                     assignment.status === "pending_confirmation" ? "bg-amber-100 text-amber-800" :
                                     "bg-[#1A7A4A]/10 text-[#1A7A4A]"}`}>

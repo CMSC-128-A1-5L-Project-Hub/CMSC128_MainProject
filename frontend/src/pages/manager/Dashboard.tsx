@@ -1,4 +1,3 @@
-// app/pages/dashboard/Dashboard.tsx
 import { useState, useRef } from 'react'
 import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
@@ -61,11 +60,9 @@ export default function Dashboard() {
     )
   }
 
-  // Transform all apps
   const transformedIncoming = incomingApps.map(transformApp)
   const transformedApproved = approvedApps.map(transformApp)
 
-  // Derived lists (limit 5)
   const pendingApps = transformedIncoming
     .filter((a) => a.applicationStatus === 'pending')
     .slice(0, 5)
@@ -78,38 +75,42 @@ export default function Dashboard() {
     .slice(0, 5)
     .map((app) => mergeAppWithAssignment(app, assignments))
     .filter((item) => item.status !== 'assigned')
+    .sort((a, b) => {
+      if (a.status === 'not assigned' && b.status !== 'not assigned') return -1
+      if (a.status !== 'not assigned' && b.status === 'not assigned') return 1
+      return 0
+    })
 
-    // Upcoming moves (next 7 days, limit 5)
-    const today = new Date()
-    const nextWeek = new Date()
-    nextWeek.setDate(today.getDate() + 7)
+  const today = new Date()
+  const nextWeek = new Date()
+  nextWeek.setDate(today.getDate() + 7)
 
-    const moves = assignments
+  const moves = assignments
     .filter((a) => {
-        const moveInDate = new Date(a.moveIn)
-        const moveOutDate = new Date(a.expectedMoveOut)
-        return (
+      const moveInDate = new Date(a.moveIn)
+      const moveOutDate = new Date(a.expectedMoveOut)
+      return (
         (moveInDate >= today && moveInDate <= nextWeek) ||
         (moveOutDate >= today && moveOutDate <= nextWeek)
-        )
+      )
     })
     .sort((a, b) => {
-        const aMoveIn = new Date(a.moveIn)
-        const aMoveOut = new Date(a.expectedMoveOut)
-        const bMoveIn = new Date(b.moveIn)
-        const bMoveOut = new Date(b.expectedMoveOut)
+      const aMoveIn = new Date(a.moveIn)
+      const aMoveOut = new Date(a.expectedMoveOut)
+      const bMoveIn = new Date(b.moveIn)
+      const bMoveOut = new Date(b.expectedMoveOut)
 
-        const dateA = (aMoveIn >= today ? aMoveIn : aMoveOut).getTime()
-        const dateB = (bMoveIn >= today ? bMoveIn : bMoveOut).getTime()
-        return dateA - dateB
+      const dateA = (aMoveIn >= today ? aMoveIn : aMoveOut).getTime()
+      const dateB = (bMoveIn >= today ? bMoveIn : bMoveOut).getTime()
+      return dateA - dateB
     })
     .slice(0, 5)
     .map((a) => {
-        const moveInDate = new Date(a.moveIn)
-        const isMoveIn = moveInDate >= today
-        const displayDate = isMoveIn ? a.moveIn : a.expectedMoveOut
+      const moveInDate = new Date(a.moveIn)
+      const isMoveIn = moveInDate >= today
+      const displayDate = isMoveIn ? a.moveIn : a.expectedMoveOut
 
-        return {
+      return {
         studentName: `${a.student.user.fname} ${a.student.user.lname}`,
         room: a.room.roomNumber,
         building: a.room.roomBuilding,
@@ -117,16 +118,15 @@ export default function Dashboard() {
         stayType: a.room.roomStayType,
         type: isMoveIn ? ('move-in' as const) : ('move-out' as const),
         date: new Date(displayDate).toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
         }),
-        }
+      }
     })
 
   const recentLogs = logs.slice(0, 5)
 
-  // Room stats
   const availableRooms = rooms.filter((r) => r.roomAvailability === 'available')
   const occupiedRooms = rooms.filter((r) => r.roomAvailability === 'occupied')
   const soloAvailable = availableRooms.filter((r) => r.roomType === 'single').length
@@ -152,8 +152,9 @@ export default function Dashboard() {
     <>
       <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
       <div className="relative flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
-        <Sidebar role="manager" profile={profile as any /* temporary until Sidebar updated */} />
+        <Sidebar role="manager" profile={profile as any} />
         <div className="relative z-10 flex-1 flex flex-col px-8 py-5 overflow-y-auto">
+          {/* Header */}
           <div className="relative pl-10 lg:pl-0 flex flex-row items-center justify-between border-b border-[#6B0F2B]/7 mb-2 pb-1">
             <div className="flex flex-row items-center">
               <div
@@ -246,7 +247,6 @@ export default function Dashboard() {
               <Applications
                 data={pendingApps}
                 className="col-span-1 lg:col-span-2"
-                baseUrl="http://localhost:3333"
                 onAction={refreshDashboard}
               />
               <Waitlist waitlists={waitlistedApps} className="col-span-1" />
@@ -254,7 +254,6 @@ export default function Dashboard() {
                 data={readyForAssignment}
                 allRooms={rooms}
                 onAssigned={refreshDashboard}
-                baseUrl="http://localhost:3333"
                 className="col-span-1 lg:col-span-3"
               />
               <Moves data={moves} className="col-span-1 lg:col-span-3" />

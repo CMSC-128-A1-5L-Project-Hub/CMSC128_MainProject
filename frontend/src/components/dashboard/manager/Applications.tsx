@@ -1,4 +1,3 @@
-// app/components/dashboard/manager/Applications.tsx
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Button from "../../Button"
@@ -10,16 +9,16 @@ import {
   IoPersonSharp, IoCalendarSharp, IoBedSharp,
   IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp,
 } from "react-icons/io5"
+import { api } from "../../../api/axios"
 import type { TransformedApp } from "../../../stores/useDashboardStore"
 
 type Props = {
   data: TransformedApp[]
   className?: string
-  baseUrl: string
   onAction: () => void
 }
 
-export default function Applications({ data, className = "", baseUrl, onAction }: Props) {
+export default function Applications({ data, className = "", onAction }: Props) {
   const navigate = useNavigate()
   const [selectedApplication, setSelectedApplication] = useState<TransformedApp | null>(null)
   const [modalApplication, setModalApplication] = useState<TransformedApp | null>(null)
@@ -41,7 +40,6 @@ export default function Applications({ data, className = "", baseUrl, onAction }
     setRejectionReason("")
   }
 
-  // FIFO
   const firstPendingIndex = data.findIndex(app => app.applicationStatus === 'pending')
   const isModalActionable = firstPendingIndex !== -1 && modalApplication?.id === data[firstPendingIndex]?.id
 
@@ -49,24 +47,10 @@ export default function Applications({ data, className = "", baseUrl, onAction }
     if (!modalApplication || loading) return
     setLoading(true)
     try {
-      const res = await fetch(`${baseUrl}/applications/${modalApplication.id}/review`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'approve' }),
-      })
-      if (res.ok) {
+      const res = await api.patch(`/applications/${modalApplication.id}/review`, { action: 'approve' })
+      if (res.status === 200) {
         closeModal()
         onAction()
-      } else {
-        const contentType = res.headers.get('content-type')
-        if (contentType && contentType.includes('application/json')) {
-          const err = await res.json()
-          alert(err.message || `Approval failed (${res.status})`)
-        } else {
-          const text = await res.text()
-          alert(`Approval failed (${res.status}): ${text || 'Unknown error'}`)
-        }
       }
     } catch (e) {
       console.error(e)
@@ -80,27 +64,11 @@ export default function Applications({ data, className = "", baseUrl, onAction }
     if (!rejectionTarget || loading) return
     setLoading(true)
     try {
-      const res = await fetch(`${baseUrl}/applications/${rejectionTarget.id}/review`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reject', rejection_reason: reason }),
-      })
-      if (res.ok) {
-        setRejectionTarget(null)
-        setRejectionReason("")
-        closeModal()
-        onAction()
-      } else {
-        const contentType = res.headers.get('content-type')
-        if (contentType && contentType.includes('application/json')) {
-          const err = await res.json()
-          alert(err.message || `Rejection failed (${res.status})`)
-        } else {
-          const text = await res.text()
-          alert(`Rejection failed (${res.status}): ${text || 'Unknown error'}`)
-        }
-      }
+      await api.patch(`/applications/${rejectionTarget.id}/review`, { action: 'reject', rejection_reason: reason })
+      setRejectionTarget(null)
+      setRejectionReason("")
+      closeModal()
+      onAction()
     } catch (e) {
       console.error(e)
       alert('Network error')
@@ -145,7 +113,6 @@ export default function Applications({ data, className = "", baseUrl, onAction }
                   <p className="text-[#1A0008] font-bold text-xl">{modalApplication.student.fullName}</p>
                   <p className="text-[#C8B0B8] text-xs mt-1">Date Applied: {modalApplication.applicationDate}</p>
                 </div>
-                {/* ✅ FIXED: use modalApplication, not modalWaitlist */}
                 <StatusBadge status={modalApplication.applicationStatus as Status} />
               </div>
 
@@ -234,12 +201,9 @@ export default function Applications({ data, className = "", baseUrl, onAction }
                         <Button variant="reddishPink" size="sm" onClick={async () => {
                           if (doc.label === "FORM 5") {
                             try {
-                              const res = await fetch(`${baseUrl}/applications/${modalApplication.id}/enrollment-proof`, {
-                                credentials: 'include',
-                              })
-                              if (res.ok) {
-                                const { url } = await res.json()
-                                window.open(url, '_blank')
+                              const res = await api.get(`/applications/${modalApplication.id}/enrollment-proof`)
+                              if (res.status === 200) {
+                                window.open(res.data.url, '_blank')
                               } else {
                                 alert('Enrollment proof not available')
                               }

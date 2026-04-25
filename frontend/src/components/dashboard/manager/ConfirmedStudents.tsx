@@ -1,9 +1,9 @@
-// app/components/dashboard/manager/ConfirmedStudents.tsx
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Button from "../../Button"
 import Modal from "../../Modal"
 import Card from "../../ui/Card"
+import { api } from "../../../api/axios"
 import type { AssignmentItem, RawRoom } from "../../../stores/useDashboardStore"
 
 type Props = {
@@ -11,10 +11,9 @@ type Props = {
   allRooms: RawRoom[]
   onAssigned: () => void
   className?: string
-  baseUrl: string
 }
 
-export default function ConfirmedStudents({ data, allRooms, onAssigned, className = "", baseUrl }: Props) {
+export default function ConfirmedStudents({ data, allRooms, onAssigned, className = "" }: Props) {
   const navigate = useNavigate()
   const getInitials = (name: string) => name[0]
 
@@ -31,11 +30,13 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
     setSelectedAssignment(null)
   }
 
-  const timeAgo = (dateStr: string): string => {
+  function timeAgo(dateStr: string): string {
     if (!dateStr) return "—"
     const date = new Date(dateStr)
     const now = new Date()
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    if (seconds < 0) return "Scheduled"
+
     const intervals = [
       { label: "year", seconds: 31536000 },
       { label: "month", seconds: 2592000 },
@@ -44,14 +45,13 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
       { label: "hour", seconds: 3600 },
       { label: "minute", seconds: 60 },
     ]
-    for (const interval of intervals) {
-      const count = Math.floor(seconds / interval.seconds)
-      if (count >= 1) return `${count} ${interval.label}${count !== 1 ? "s" : ""} ago`
+    for (const { label, seconds: s } of intervals) {
+      const count = Math.floor(seconds / s)
+      if (count >= 1) return `${count} ${label}${count !== 1 ? "s" : ""} ago`
     }
     return "Just now"
   }
 
-  // Filter rooms for assignment
   const matchedRooms = modalAssignment
     ? allRooms.filter((room) => {
         const app = modalAssignment.student
@@ -139,18 +139,12 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                             new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString().split('T')[0],
                         }
                         try {
-                          const res = await fetch(`${baseUrl}/assignments`, {
-                            method: 'POST',
-                            credentials: 'include',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload),
-                          })
-                          if (res.ok) {
+                          const res = await api.post('/assignments', payload)
+                          if (res.status === 200 || res.status === 201) {
                             closeModal()
                             onAssigned()
                           } else {
-                            const err = await res.json()
-                            alert(err.message || 'Assignment failed')
+                            alert(res.data?.message || 'Assignment failed')
                           }
                         } catch (e) {
                           console.error(e)
@@ -173,7 +167,9 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
         <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-4 shadow-sm w-full h-full flex flex-col">
           <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
             <p className="text-[#1A0008] font-bold">Room Assignment</p>
-            <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/assignments")}>View all →</p>
+            <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/assignments")}>
+              View all →
+            </p>
           </div>
           <div className="overflow-y-auto -mx-0">
             <div className="min-w-[680px] pb-3 lg:pb-0 px-1">
@@ -197,14 +193,24 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                       </div>
                       <div className="flex flex-col px-2">
                         <p className="text-[#1A0008] text-sm">Room {assignment.roomNumber || '—'}</p>
-                        <p className="text-[#9A7080] text-xs">{assignment.roomBuilding ? `${assignment.roomBuilding} · ${assignment.roomType}` : 'Not assigned'}</p>
+                        <p className="text-[#9A7080] text-xs capitalize">
+                          {assignment.roomBuilding
+                            ? `Building ${assignment.roomBuilding} · ${assignment.roomType.charAt(0).toUpperCase() + assignment.roomType.slice(1)}`
+                            : 'Not assigned'}
+                        </p>
                       </div>
                       <div className="flex flex-col px-2">
-                        <p className="text-[#1A0008] text-sm">{assignment.moveIn || '—'}</p>
-                        <p className="text-[#9A7080] text-xs">{assignment.moveIn ? timeAgo(assignment.moveIn) : ''}</p>
+                        <p className="text-[#1A0008] text-sm">
+                          {assignment.status === 'pending_confirmation' ? 'TBD' : (assignment.moveIn || '—')}
+                        </p>
+                        {assignment.status !== 'pending_confirmation' && (
+                          <p className="text-[#9A7080] text-xs">
+                            {assignment.moveIn ? timeAgo(assignment.moveIn) : ''}
+                          </p>
+                        )}
                       </div>
                       <div className="col-span-1 px-2 flex justify-center items-center">
-                        <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 w-full max-w-[110px] rounded-full font-bold capitalize ${
+                        <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 w-full max-w-[180px] rounded-full font-bold capitalize whitespace-nowrap ${
                           assignment.status === "not assigned" ? "bg-[#9E2040]/10 text-[#9E2040]" :
                           assignment.status === "pending_confirmation" ? "bg-amber-100 text-amber-800" :
                           "bg-[#1A7A4A]/10 text-[#1A7A4A]"
@@ -219,7 +225,9 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                       </div>
                       <div className="col-span-1 px-2 flex justify-center items-center">
                         {assignment.status === "not assigned" ? (
-                          <Button variant="reddishPink" size="sm" onClick={() => openModal(assignment)}>Assign Room</Button>
+                          <Button variant="reddishPink" size="sm" onClick={() => openModal(assignment)}>
+                            Assign Room
+                          </Button>
                         ) : (
                           <span className="text-sm font-semibold text-[#1A7A4A]">
                             {assignment.status === "pending_confirmation" ? "Awaiting Confirmation" : "Assigned"}
@@ -230,7 +238,9 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                   ))}
                 </div>
               ) : (
-                <div className="flex-1 flex justify-center items-center py-4 italic text-gray-500">Nothing to see here</div>
+                <div className="flex-1 flex justify-center items-center py-4 italic text-gray-500">
+                  Nothing to see here
+                </div>
               )}
             </div>
           </div>

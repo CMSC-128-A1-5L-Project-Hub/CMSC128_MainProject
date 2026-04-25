@@ -1,6 +1,17 @@
 import { create } from 'zustand'
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Raw API types ──────────────────────────────────────────────────
+
+export type RawProfile = {
+  fname: string
+  lname: string
+  email: string
+  role: string
+  accountStatus: string
+  dormitory?: string | null
+  phoneNumbers?: { contactNumber: string; isPrimary: boolean }[]
+  profilePictureUrl?: string | null
+}
 
 export type RawApplication = {
   id: number
@@ -74,8 +85,8 @@ export type RawLog = {
   id: number
   entityType: string
   entityId: number
-  activityType: string         
-  activityDetails?: string | null   
+  activityType: string
+  activityDetails?: string | null
   logTimestamp: string
   actor?: {
     fname: string
@@ -85,18 +96,7 @@ export type RawLog = {
   }
 }
 
-export type RawProfile = {
-  fname: string
-  lname: string
-  email: string
-  role: string
-  accountStatus: string
-  dormitory?: string | null
-  phoneNumbers?: { contactNumber: string; isPrimary: boolean }[]
-  profilePictureUrl?: string | null
-}
-
-// ─── Transformed Types ────────────────────────────────────────────────────────
+// ─── Transformed types ──────────────────────────────────────────────
 
 export type TransformedStudent = {
   fullName: string
@@ -135,10 +135,9 @@ export type AssignmentItem = {
   status: 'assigned' | 'not assigned' | 'pending_confirmation'
 }
 
-// ─── Store ────────────────────────────────────────────────────────────────────
+// ─── Store ──────────────────────────────────────────────────────────
 
 interface DashboardState {
-  // Raw API data
   profile: RawProfile | null
   incomingApps: RawApplication[]
   approvedApps: RawApplication[]
@@ -146,7 +145,6 @@ interface DashboardState {
   rooms: RawRoom[]
   logs: RawLog[]
 
-  // Setters
   setProfile: (profile: RawProfile) => void
   setIncomingApps: (apps: RawApplication[]) => void
   setApprovedApps: (apps: RawApplication[]) => void

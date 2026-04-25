@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { api } from '../src/api/axios'
 import { useDashboardStore } from '../src/stores/useDashboardStore'
 import type {
   RawProfile,
@@ -10,17 +11,39 @@ import type {
   AssignmentItem,
 } from '../src/stores/useDashboardStore'
 
-const BASE = 'http://localhost:3333'
+// ─── Fetchers ─────────────────────────────────────────────────────
 
-// ─── Fetchers ─────────────────────────────────────────────────────────────────
-
-async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, { credentials: 'include' })
-  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`)
-  return res.json()
+const fetchProfile = async (): Promise<RawProfile> => {
+  const { data } = await api.get('/me')
+  return data.data ?? data
 }
 
-// ─── Query Keys ───────────────────────────────────────────────────────────────
+const fetchIncomingApps = async (): Promise<RawApplication[]> => {
+  const { data } = await api.get('/applications/incoming')
+  return data.data ?? data
+}
+
+const fetchApprovedApps = async (): Promise<RawApplication[]> => {
+  const { data } = await api.get('/manager/applications/approved')
+  return data.data ?? data
+}
+
+const fetchAssignments = async (): Promise<RawAssignment[]> => {
+  const { data } = await api.get('/manager/assignments')
+  return data.data ?? data
+}
+
+const fetchRooms = async (): Promise<RawRoom[]> => {
+  const { data } = await api.get('/manager/rooms')
+  return data.data ?? data
+}
+
+const fetchLogs = async (): Promise<RawLog[]> => {
+  const { data } = await api.get('/manager/logs')
+  return data.data ?? data
+}
+
+// ─── Query keys ───────────────────────────────────────────────────
 
 export const dashboardKeys = {
   all: ['dashboard'] as const,
@@ -32,18 +55,18 @@ export const dashboardKeys = {
   logs: () => [...dashboardKeys.all, 'logs'] as const,
 }
 
-// ─── Individual Hooks ─────────────────────────────────────────────────────────
+// ─── Hooks ────────────────────────────────────────────────────────
 
 export function useProfile() {
   const setProfile = useDashboardStore((s) => s.setProfile)
   return useQuery({
     queryKey: dashboardKeys.profile(),
     queryFn: async () => {
-      const json = await fetchJson<any>(`${BASE}/me`)
-      const data: RawProfile = json.data ?? json
-      setProfile(data)
-      return data
+      const user = await fetchProfile()
+      setProfile(user)
+      return user
     },
+    staleTime: 1000 * 60 * 5,
   })
 }
 
@@ -52,9 +75,9 @@ export function useIncomingApps() {
   return useQuery({
     queryKey: dashboardKeys.incomingApps(),
     queryFn: async () => {
-      const data = await fetchJson<RawApplication[]>(`${BASE}/applications/incoming`)
-      setIncomingApps(data)
-      return data
+      const apps = await fetchIncomingApps()
+      setIncomingApps(apps)
+      return apps
     },
   })
 }
@@ -64,9 +87,9 @@ export function useApprovedApps() {
   return useQuery({
     queryKey: dashboardKeys.approvedApps(),
     queryFn: async () => {
-      const data = await fetchJson<RawApplication[]>(`${BASE}/manager/applications/approved`)
-      setApprovedApps(data)
-      return data
+      const apps = await fetchApprovedApps()
+      setApprovedApps(apps)
+      return apps
     },
   })
 }
@@ -76,9 +99,9 @@ export function useAssignments() {
   return useQuery({
     queryKey: dashboardKeys.assignments(),
     queryFn: async () => {
-      const data = await fetchJson<RawAssignment[]>(`${BASE}/manager/assignments`)
-      setAssignments(data)
-      return data
+      const assignments = await fetchAssignments()
+      setAssignments(assignments)
+      return assignments
     },
   })
 }
@@ -88,9 +111,9 @@ export function useRooms() {
   return useQuery({
     queryKey: dashboardKeys.rooms(),
     queryFn: async () => {
-      const data = await fetchJson<RawRoom[]>(`${BASE}/manager/rooms`)
-      setRooms(data)
-      return data
+      const rooms = await fetchRooms()
+      setRooms(rooms)
+      return rooms
     },
   })
 }
@@ -100,21 +123,21 @@ export function useLogs() {
   return useQuery({
     queryKey: dashboardKeys.logs(),
     queryFn: async () => {
-      const data = await fetchJson<RawLog[]>(`${BASE}/manager/logs`)
-      setLogs(data)
-      return data
+      const logs = await fetchLogs()
+      setLogs(logs)
+      return logs
     },
   })
 }
 
-// ─── Invalidation helper (replaces loadData()) ────────────────────────────────
+// ─── Invalidation helper ─────────────────────────────────────────
 
 export function useRefreshDashboard() {
   const queryClient = useQueryClient()
-  return () => queryClient.invalidateQueries({ queryKey: dashboardKeys.all })
+  return () => queryClient.refetchQueries({ queryKey: dashboardKeys.all })
 }
 
-// ─── Shared Transformations ───────────────────────────────────────────────────
+// ─── Shared transformations ───────────────────────────────────────
 
 export function formatDate(isoString: string) {
   return new Date(isoString).toLocaleDateString('en-US', {
