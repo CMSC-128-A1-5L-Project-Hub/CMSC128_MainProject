@@ -7,10 +7,86 @@ import Student from '#models/student'
 import LogService from '#services/log_service'
 import drive from '@adonisjs/drive/services/main'
 import WaitlistWorkflowService from '#services/waitlisted_workflow_service'
+import Room from '#models/room'
+import db from '@adonisjs/lucid/services/db'
+import Accommodation from '#models/accommodation'
 
 @inject()
 export default class ApplicationsController {
   constructor(protected waitlistService: WaitlistWorkflowService) {}
+
+async confirmAssignment({ auth, params, request, response }: HttpContext) {
+  const user = auth.user!
+  const student = await Student.findByOrFail('userId', user.id)
+
+  // 1. Verify the assignment belongs to this student and is pending confirmation
+  const assignment = await Assignment.findOrFail(params.id)
+  if (assignment.studentNumber !== student.studentNumber) {
+    return response.forbidden({ message: 'This assignment does not belong to you' })
+  }
+  if (assignment.confirmationStatus !== 'pending_confirmation') {
+    return response.badRequest({ message: 'Assignment is not pending confirmation' })
+  }
+
+  const { action } = request.body()   // 'accept' or 'reject'
+
+  // 2. Load the room and find the related approved application
+  const room = await Room.findOrFail(assignment.roomId)
+
+  const application = await Application.query()
+    .where('studentNumber', student.studentNumber)
+    .where('accommodationId', room.accommodationId)
+    .where('applicationStatus', 'approved')
+    .first()
+
+  if (!application) {
+    return response.badRequest({ message: 'No approved application found for this accommodation' })
+  }
+
+  const trx = await db.transaction()
+
+  try {
+    if (action === 'accept') {
+      assignment.confirmationStatus = 'active'
+      await assignment.useTransaction(trx).save()
+
+      application.applicationStatus = 'confirmed'
+      await application.useTransaction(trx).save()
+
+      await trx.commit()
+      return response.ok({ message: 'Assignment confirmed successfully' })
+
+    } else if (action === 'reject') {
+      // Free the room
+      room.roomCurrentOccupancy -= 1
+      if (room.roomCurrentOccupancy < room.roomCapacity) {
+        room.roomAvailability = 'available'
+      }
+      await room.useTransaction(trx).save()
+
+      // Mark assignment as rejected
+      assignment.confirmationStatus = 'rejected'
+      await assignment.useTransaction(trx).save()
+
+      // Cancel the application
+      application.applicationStatus = 'cancelled'
+      await application.useTransaction(trx).save()
+
+      await trx.commit()
+
+      // 3. Automatically promote the next waitlisted student
+      await this.waitlistService.processMoveOut(room.accommodationId, room)
+
+      return response.ok({ message: 'Slot released and waitlist updated' })
+    }
+
+    return response.badRequest({ message: 'action must be "accept" or "reject"' })
+
+  } catch (error) {
+    await trx.rollback()
+    throw error
+  }
+}
 
   // ─── STUDENT: SUBMIT APPLICATION ───
   async store({ auth, request, response, serialize }: HttpContext) {
@@ -227,13 +303,13 @@ export default class ApplicationsController {
   }
 
   // ─── MANAGER: GET CONFIRMED APPLICATIONS FOR DASHBOARD ───
-  async confirmedForAssignment({ auth, serialize }: HttpContext) {
+  async approvedForAssignment({ auth, serialize }: HttpContext) {
     const user = auth.user!
     const applications = await Application.query()
       .whereHas('accommodation', (q) => q.where('managerId', user.id))
-      .where('applicationStatus', 'confirmed')
+      .where('applicationStatus', 'approved')
       .preload('accommodation')
-      .preload('student', (q) => q.preload('user', (u) => u.preload('phoneNumbers')))  
+      .preload('student', (q) => q.preload('user', (u) => u.preload('phoneNumbers')))
       .orderBy('applicationDate', 'asc')
     return serialize(applications)
   }

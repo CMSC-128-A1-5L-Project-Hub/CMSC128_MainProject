@@ -3,13 +3,13 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Assignment from '#models/assignment'
 import Room from '#models/room'
 import Accommodation from '#models/accommodation'
-import Application from '#models/application'   // <-- ADD THIS
+import Application from '#models/application'
 import LogService from '#services/log_service'
 import { DateTime } from 'luxon'
 
 export default class AssignmentsController {
 
-  // ─── MANAGER: ASSIGN A ROOM (after student confirmed) ───
+  // ─── MANAGER: ASSIGN A ROOM (application must be 'approved') ───
   async store({ auth, request, response, serialize }: HttpContext) {
     const user = auth.user!
     const { studentNumber, roomId, moveIn, expectedMoveOut } = request.body()
@@ -29,15 +29,15 @@ export default class AssignmentsController {
       return response.badRequest({ message: 'Room is already full' })
     }
 
-    // Check the student has a CONFIRMED application for this accommodation
+    // Check the student has an APPROVED application (not 'confirmed')
     const application = await Application.query()
       .where('studentNumber', studentNumber)
       .where('accommodationId', room.accommodationId)
-      .where('applicationStatus', 'confirmed')
+      .where('applicationStatus', 'approved')
       .first()
 
     if (!application) {
-      return response.badRequest({ message: 'Student has no confirmed application for this accommodation' })
+      return response.badRequest({ message: 'Student has no approved application for this accommodation' })
     }
     if (application.applicationRoomType !== room.roomType) {
       return response.badRequest({ message: 'Room type does not match application' })
@@ -46,13 +46,14 @@ export default class AssignmentsController {
       return response.badRequest({ message: 'Stay type does not match application' })
     }
 
-    // Prevent double assignment
+    // Prevent assignment if the student already has a pending or active assignment
     const existing = await Assignment.query()
       .where('studentNumber', studentNumber)
       .whereNull('actualMoveOut')
+      .whereNotIn('confirmation_status', ['rejected', 'cancelled'])
       .first()
     if (existing) {
-      return response.conflict({ message: 'Student already has an active assignment' })
+      return response.conflict({ message: 'Student already has a pending or active assignment' })
     }
 
     const assignment = await Assignment.create({
@@ -63,6 +64,7 @@ export default class AssignmentsController {
       confirmedDate: DateTime.now(),
       gracePeriodDays: 5,
       actualMoveOut: null,
+      confirmationStatus: 'pending_confirmation',
     })
 
     // Update room occupancy
@@ -73,49 +75,36 @@ export default class AssignmentsController {
     await room.save()
 
     await LogService.record(user.id, 'assignment', assignment.id,
-      'MANAGER_ASSIGNED_ROOM', `Student ${studentNumber} assigned to room ${room.roomNumber}`)
+      'MANAGER_ASSIGNED_ROOM',
+      `Student ${studentNumber} assigned to room ${room.roomNumber} (pending confirmation)`)
 
     return serialize(assignment)
   }
 
-  // ─── MOVE OUT (to be implemented later) ───
-  /*
-  async moveOut({ params, request, response, serialize }: HttpContext) {
-    // ...
-  }
-
-  async index({ request, serialize }: HttpContext) {
-    // ...
-  }
-
-  async currentStay({ auth, serialize }: HttpContext) {
-    // ...
-  }
-
-  async stayHistory({ auth, serialize }: HttpContext) {
-    // ...
-  }
-
-  
-  */
-
-   /*Remove this na lang and uncomment ung sa taas */
+  // ─── MOVE OUT (to be implemented) ───
   async moveOut(ctx: HttpContext) {
-    // ...
-  }
-  async index(ctx: HttpContext) {
-      // ...
-  }
-  async currentStay(ctx: HttpContext) {
-      // ...
-  }
-  async stayHistory(ctx: HttpContext) {
-      // ...
+    // TODO: set actualMoveOut, decrement occupancy, promote waitlist
   }
 
-  // ─── MANAGER: GET ALL ASSIGNMENTS FOR DASHBOARD ───
+  // ─── VIEW ASSIGNMENTS BY ROOM ───
+  async index(ctx: HttpContext) {
+    // TODO: retrieve assignments for a specific room
+  }
+
+  // ─── STUDENT: CURRENT STAY ───
+  async currentStay(ctx: HttpContext) {
+    // TODO: fetch assignment where studentNumber matches auth user AND actual_move_out is NULL
+  }
+
+  // ─── STUDENT: PAST STAYS ───
+  async stayHistory(ctx: HttpContext) {
+    // TODO: fetch assignments where studentNumber matches auth user AND actual_move_out is NOT NULL
+  }
+
+  // ─── MANAGER: ALL ASSIGNMENTS FOR DASHBOARD ───
   async managerIndex({ auth, serialize }: HttpContext) {
     const user = auth.user!
+
     const accommodations = await Accommodation.query()
       .where('managerId', user.id)
     const accIds = accommodations.map(a => a.id)

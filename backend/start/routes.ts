@@ -76,6 +76,7 @@ router
 
         // Confirm / decline approved slot
         router.post('/applications/:id/confirm', [ApplicationController, 'confirm'])
+        router.post('/assignments/:id/confirm', [ApplicationController, 'confirmAssignment'])
 
         // Bookmarks & Reviews
         router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
@@ -134,7 +135,7 @@ router
         router.get('/applications/:id/enrollment-proof', [ApplicationController, 'viewEnrollmentProof'])
 
         // Manager dashboard – confirmed applications for assignment
-        router.get('/manager/applications/confirmed', [ApplicationController, 'confirmedForAssignment'])
+        router.get('/manager/applications/approved', [ApplicationController, 'approvedForAssignment'])
 
         // Manager dashboard – assignments list
         router.get('/manager/assignments', [AssignmentsController, 'managerIndex'])

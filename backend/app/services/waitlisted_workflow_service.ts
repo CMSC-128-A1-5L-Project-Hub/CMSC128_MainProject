@@ -123,31 +123,35 @@ export default class WaitlistWorkflowService {
   }
 
   // ─── Promote next waitlisted non‑transient applicant ───
-  private async promoteNextWaitlisted(accommodationId: number, room?: Room) {
-    let query = Application.query()
-      .where('accommodation_id', accommodationId)
-      .where('application_status', 'waitlisted')
-      .orderBy('application_date', 'asc')
-      .preload('student', (q) => q.preload('user'))
-      .preload('accommodation')
+    private async promoteNextWaitlisted(accommodationId: number, room?: Room) {
+        let query = Application.query()
+            .where('accommodation_id', accommodationId)
+            .where('application_status', 'waitlisted')
+            .orderBy('application_date', 'asc')
+            .preload('student', (q) => q.preload('user'))
+            .preload('accommodation')
 
-    // If a room is known, only promote applications that match its stay type
-    if (room) {
-      query = query.where('application_stay_type', room.roomStayType)
+        // If a room is provided, only promote applications that match its stay type AND room type
+        if (room) {
+            query = query
+                .where('application_stay_type', room.roomStayType)
+                .where('application_room_type', room.roomType)   // ← add room type match
+        }
+
+        const next = await query.first()
+        if (!next) return
+
+        next.applicationStatus = 'approved'
+        next.approvedAt = DateTime.now()   // record approval time
+        await next.save()
+
+        // Send notification email
+        await this.notificationService.sendApplicationStatusEmail(
+            next.student.user,
+            'approved',
+            next.accommodation.accommodationName
+        )
     }
-
-    const next = await query.first()
-    if (!next) return
-
-    next.applicationStatus = 'approved'
-    await next.save()
-
-    await this.notificationService.sendApplicationStatusEmail(
-      next.student.user,
-      'approved',
-      next.accommodation.accommodationName
-    )
-  }
 
   // ─── Get current waitlist position for a new waitlisted student ───
   private async getNextWaitlistPosition(accommodationId: number) {
