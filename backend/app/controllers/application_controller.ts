@@ -1,11 +1,16 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { DateTime } from 'luxon'
 import Application from '#models/application'
 import Assignment from '#models/assignment'
 import Student from '#models/student'
 import LogService from '#services/log_service'
-import User from '#models/user'
+import { inject } from '@adonisjs/core'
+import ApplicationService from '#services/application_service'
 
+@inject()
 export default class ApplicationsController {
+
+  constructor(protected applicationService: ApplicationService) {}
   
   // ─── 1. STUDENT: SUBMIT APPLICATION ───
   async store({ auth, request, response, serialize }: HttpContext) {    
@@ -46,47 +51,9 @@ export default class ApplicationsController {
 
     const student = await Student.findByOrFail('userId', user.id);
 
-    // Fetch all applications, with accommodation and all rooms (with tags)
-    const applications = await Application.query()
-      .where('studentNumber', student.studentNumber)
-      .preload('accommodation')
-      .preload('accommodation', (q) => {
-        q.preload('rooms', (roomQuery) => {
-          roomQuery.preload('tags');
-        });
-      })
-      .orderBy('applicationDate', 'desc');
+    const data = await this.applicationService.getFormattedApplications(student.studentNumber)
 
-    // For each application, compute the cheapest matching room's rent
-    const serializedApplications = applications.map((app) => {
-      const accommodationRooms = app.accommodation?.rooms ?? [];
-      const preferredTags: string[] = (app as any).preferredTags ?? [];
-
-      const matchingRooms = accommodationRooms.filter(room => {
-        if (room.roomType !== app.applicationRoomType) return false;
-        if (room.roomStayType !== app.applicationStayType) return false;
-
-        if (preferredTags.length > 0) {
-          const roomTagNames = room.tags?.map(t => t.tagDetail) ?? [];
-          if (!preferredTags.every(tag => roomTagNames.includes(tag))) return false;
-        }
-        return true;
-      });
-
-      const estimatedRent = matchingRooms.length > 0
-        ? Math.min(...matchingRooms.map(r => r.roomRent))
-        : null;
-
-      // serialize the individual application model to a plain object
-      const appJson = app.serialize(); 
-      
-      // attach the dynamic property to the plain object
-      appJson.estimatedMonthlyRent = estimatedRent; 
-
-      return appJson;
-    });
-    console.log('Backend serialized apps with rent:', serializedApplications.map(a => ({ id: a.id, estimatedMonthlyRent: a.estimatedMonthlyRent })));
-    return serializedApplications;
+    return response.ok({ data })
   }
 
   // ─── 3. MANAGER/LANDLORD: VIEW INCOMING ───
@@ -132,7 +99,7 @@ export default class ApplicationsController {
     }
 
     const applicationObject = await Application.query()
-      .where('applicationId', params.id)
+      .where('id', params.id)
       .preload('accommodation')
       .firstOrFail()
 
@@ -156,6 +123,10 @@ export default class ApplicationsController {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
       }
+
+      // stamp who reviewed it and when, regardless of approve/reject
+      applicationObject.reviewedAt = DateTime.now()
+      applicationObject.reviewedBy = user.id
 
       await applicationObject.save()
       await LogService.record(user.id, 'application', applicationObject.id, action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED')
@@ -183,6 +154,10 @@ export default class ApplicationsController {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
       }
+
+      // stamp who reviewed it and when, regardless of approve/reject
+      applicationObject.reviewedAt = DateTime.now()
+      applicationObject.reviewedBy = user.id
 
       await applicationObject.save()
       await LogService.record(user.id, 'application', applicationObject.id, action === 'approve' ? 'LANDLORD_APPROVED' : 'LANDLORD_REJECTED')
