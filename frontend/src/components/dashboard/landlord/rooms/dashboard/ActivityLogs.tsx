@@ -1,17 +1,9 @@
+// app/components/dashboard/landlord/rooms/dashboard/ActivityLogs.tsx
 import Card from "../../../../ui/Card"
-
-type LogEntry = {
-  id: number
-  activityDetails?: string
-  logTimestamp?: string
-  actor?: {
-    fname: string
-    lname: string
-  }
-}
+import type { RawLog } from "../../../../../stores/useDashboardStore"
 
 type Props = {
-  data?: LogEntry[]
+  data?: RawLog[]
 }
 
 export default function ActivityLogs({ data = [] }: Props) {
@@ -24,7 +16,9 @@ export default function ActivityLogs({ data = [] }: Props) {
         <div className="flex flex-col gap-2">
           {data.slice(0, 5).map((log) => (
             <div key={log.id} className="flex flex-col text-sm border-b border-[#F5ECF0] pb-2 last:border-b-0">
-              <p className="text-[#1A0008]">{log.activityDetails || 'No details'}</p>
+              <p className="text-[#1A0008]">
+                {log.activityDetails || log.activityType || 'No details'}
+              </p>
               <p className="text-[#9A7080] text-xs">
                 {log.logTimestamp && new Date(log.logTimestamp).toLocaleString()}
                 {log.actor ? ` by ${log.actor.fname} ${log.actor.lname}` : ''}

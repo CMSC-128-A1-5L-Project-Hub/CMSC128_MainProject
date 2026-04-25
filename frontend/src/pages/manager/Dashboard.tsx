@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef } from 'react'
+// app/pages/dashboard/Dashboard.tsx
+import { useState, useRef } from 'react'
 import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
 import DonutStatCard from '../../components/dashboard/DonutStatCard'
@@ -18,13 +19,26 @@ import NotificationPanel, {
 import notif_icon from '../../assets/icons/notif_icon.svg'
 import report_icon from '../../assets/icons/report.svg'
 
+import {
+  useProfile,
+  useIncomingApps,
+  useApprovedApps,
+  useAssignments,
+  useRooms,
+  useLogs,
+  transformApp,
+  mergeAppWithAssignment,
+  useRefreshDashboard,
+} from '../../../hooks/useDashboardQueries'
+
 export default function Dashboard() {
-  const [profile, setProfile] = useState<any>(null)
-  const [incomingApps, setIncomingApps] = useState<any[]>([])
-  const [confirmedApps, setConfirmedApps] = useState<any[]>([])
-  const [assignments, setAssignments] = useState<any[]>([])
-  const [rooms, setRooms] = useState<any[]>([])
-  const [logs, setLogs] = useState<any[]>([])
+  const { data: profile, isLoading: profileLoading } = useProfile()
+  const { data: incomingApps = [] } = useIncomingApps()
+  const { data: approvedApps = [] } = useApprovedApps()
+  const { data: assignments = [] } = useAssignments()
+  const { data: rooms = [] } = useRooms()
+  const { data: logs = [] } = useLogs()
+  const refreshDashboard = useRefreshDashboard()
 
   const [reportOpen, setReportOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -39,165 +53,77 @@ export default function Dashboard() {
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     )
 
-  const BASE = 'http://localhost:3333'  
-
-  async function loadData() {
-    try {
-      const [meR, incR, confR, asgnR, roomsR, logsR] = await Promise.all([
-        fetch(`${BASE}/me`, { credentials: 'include' }),
-        fetch(`${BASE}/applications/incoming`, { credentials: 'include' }),
-        fetch(`${BASE}/manager/applications/confirmed`, { credentials: 'include' }),
-        fetch(`${BASE}/manager/assignments`, { credentials: 'include' }),
-        fetch(`${BASE}/manager/rooms`, { credentials: 'include' }),
-        fetch(`${BASE}/manager/logs`, { credentials: 'include' }),
-      ])
-      const meJson = await meR.json()
-      setProfile(meJson.data ?? meJson)   // <-- unwrap if wrapped
-      setIncomingApps(await incR.json())
-      setConfirmedApps(await confR.json())
-      setAssignments(await asgnR.json())
-      setRooms(await roomsR.json())
-      setLogs(await logsR.json())
-    } catch (err) {
-      console.error(err)
-    }
+  if (profileLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#F5EEF0]">
+        <p className="text-[#6B0F2B] text-lg font-semibold">Loading dashboard…</p>
+      </div>
+    )
   }
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  // Transform all apps
+  const transformedIncoming = incomingApps.map(transformApp)
+  const transformedApproved = approvedApps.map(transformApp)
 
-  // ---------- Transformations ----------
-  const formatDate = (isoString: string) => {
-    return new Date(isoString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-const transformStudent = (app: any) => {
-  const s = app.student,
-    u = s.user
-  return {
-    ...app,
-    student: {
-      fullName: `${u.fname} ${u.lname}`,
-      shortName: u.fname,
-      email: u.email,
-      course: s.degreeProgram,
-      college: s.college,
-      yearLevel: s.yearLevel,
-      phone: u.phoneNumbers?.find((p: any) => p.isPrimary)?.contactNumber
-      ?? u.phoneNumbers?.[0]?.contactNumber
-      ?? '',
-      studentNo: s.studentNumber,
-      gender: s.gender,
-      status: 'active',
-    },
-    // Add the missing application preference fields
-    stayType: app.applicationStayType?.replace('_', '-'),
-    roomType: app.applicationRoomType,
-    applicationDate: formatDate(app.applicationDate),
-  }
-}
-  const transformAccommodation = (app: any) => ({
-    ...app,
-    accommodation: {
-      ...app.accommodation,
-      building: app.accommodation.accommodationName,
-      tenantRestriction: app.accommodation.tenantRestriction,
-    },
-  })
-
-  const transformApp = (app: any) => transformAccommodation(transformStudent(app))
-
-  // Pending (limit 5)
-  const pendingApps = incomingApps
+  // Derived lists (limit 5)
+  const pendingApps = transformedIncoming
     .filter((a) => a.applicationStatus === 'pending')
-    .map(transformApp)
     .slice(0, 5)
 
-  // Waitlisted (limit 5)
-  const waitlistedApps = incomingApps
+  const waitlistedApps = transformedIncoming
     .filter((a) => a.applicationStatus === 'waitlisted')
-    .map(transformApp)
     .slice(0, 5)
 
-  // Confirmed students (limit 5) – merge with assignments to show assigned status
-  const confirmedStudents = confirmedApps
-    .map(transformApp)
+  const readyForAssignment = transformedApproved
     .slice(0, 5)
-    .map((app) => {
-      const activeAssign = assignments.find(
-        (a) => a.studentNumber === app.student.studentNo && !a.actualMoveOut
-      )
-      if (activeAssign) {
-        return {
-          student: app,
-          roomNumber: activeAssign.room.roomNumber,
-          roomBuilding: activeAssign.room.roomBuilding,
-          roomType: activeAssign.room.roomType,
-          stayType: activeAssign.room.roomStayType,
-          moveIn: activeAssign.moveIn,
-          expectedMoveOut: activeAssign.expectedMoveOut,
-          status: 'assigned' as const,
-        }
-      } else {
-        return {
-          student: app,
-          roomNumber: '',
-          roomBuilding: '',
-          roomType: '',
-          stayType: '',
-          moveIn: '',
-          expectedMoveOut: '',
-          status: 'not assigned' as const,
-        }
-      }
-    }).filter((item) => item.status === 'not assigned')
+    .map((app) => mergeAppWithAssignment(app, assignments))
+    .filter((item) => item.status !== 'assigned')
 
-  // Upcoming moves (next 7 days, limit 5)
-  const today = new Date()
-  const nextWeek = new Date()
-  nextWeek.setDate(today.getDate() + 7)
-  const moves = assignments
+    // Upcoming moves (next 7 days, limit 5)
+    const today = new Date()
+    const nextWeek = new Date()
+    nextWeek.setDate(today.getDate() + 7)
+
+    const moves = assignments
     .filter((a) => {
-      const moveIn = new Date(a.moveIn),
-        moveOut = new Date(a.expectedMoveOut)
-      return (
-        (moveIn >= today && moveIn <= nextWeek) ||
-        (moveOut >= today && moveOut <= nextWeek)
-      )
+        const moveInDate = new Date(a.moveIn)
+        const moveOutDate = new Date(a.expectedMoveOut)
+        return (
+        (moveInDate >= today && moveInDate <= nextWeek) ||
+        (moveOutDate >= today && moveOutDate <= nextWeek)
+        )
     })
     .sort((a, b) => {
-      const dateA = new Date(
-        a.moveIn >= today ? a.moveIn : a.expectedMoveOut
-      ).getTime()
-      const dateB = new Date(
-        b.moveIn >= today ? b.moveIn : b.expectedMoveOut
-      ).getTime()
-      return dateA - dateB
+        const aMoveIn = new Date(a.moveIn)
+        const aMoveOut = new Date(a.expectedMoveOut)
+        const bMoveIn = new Date(b.moveIn)
+        const bMoveOut = new Date(b.expectedMoveOut)
+
+        const dateA = (aMoveIn >= today ? aMoveIn : aMoveOut).getTime()
+        const dateB = (bMoveIn >= today ? bMoveIn : bMoveOut).getTime()
+        return dateA - dateB
     })
     .slice(0, 5)
-    .map((a) => ({
-      studentName: `${a.student.user.fname} ${a.student.user.lname}`,
-      room: a.room.roomNumber,
-      building: a.room.roomBuilding,
-      roomType: a.room.roomType,
-      stayType: a.room.roomStayType,
-      type:
-        new Date(a.moveIn) >= today ? ('move-in' as const) : ('move-out' as const),
-      date: new Date(
-        a.moveIn >= today ? a.moveIn : a.expectedMoveOut
-      ).toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-    }))
+    .map((a) => {
+        const moveInDate = new Date(a.moveIn)
+        const isMoveIn = moveInDate >= today
+        const displayDate = isMoveIn ? a.moveIn : a.expectedMoveOut
 
-  // Activity logs (limit 5)
+        return {
+        studentName: `${a.student.user.fname} ${a.student.user.lname}`,
+        room: a.room.roomNumber,
+        building: a.room.roomBuilding,
+        roomType: a.room.roomType,
+        stayType: a.room.roomStayType,
+        type: isMoveIn ? ('move-in' as const) : ('move-out' as const),
+        date: new Date(displayDate).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+        }),
+        }
+    })
+
   const recentLogs = logs.slice(0, 5)
 
   // Room stats
@@ -219,16 +145,15 @@ const transformStudent = (app: any) => {
   const primaryPhone =
     profile?.phoneNumbers?.find((p: any) => p.isPrimary)?.contactNumber ?? ''
   const heroTitle = 'Efficiently manage applicants & housing accommodation'
-  const heroSubtitle = `You have ${pendingApps.length} pending applications and ${confirmedApps.length} confirmed.`
+  const heroSubtitle = `You have ${pendingApps.length} pending applications and ${readyForAssignment.filter((i) => i.status === 'pending_confirmation').length} waiting for confirmation.`
   const totalTenants = assignments.filter((a) => !a.actualMoveOut).length
 
   return (
     <>
       <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
       <div className="relative flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
-        <Sidebar role="manager" profile={profile} />
+        <Sidebar role="manager" profile={profile as any /* temporary until Sidebar updated */} />
         <div className="relative z-10 flex-1 flex flex-col px-8 py-5 overflow-y-auto">
-          {/* Header */}
           <div className="relative pl-10 lg:pl-0 flex flex-row items-center justify-between border-b border-[#6B0F2B]/7 mb-2 pb-1">
             <div className="flex flex-row items-center">
               <div
@@ -288,9 +213,9 @@ const transformStudent = (app: any) => {
                 total={30}
               />
               <DonutStatCard
-                title="Confirmed Students"
-                value={confirmedApps.length}
-                total={30}
+                title="Pending Confirmations"
+                value={readyForAssignment.filter(item => item.status === 'pending_confirmation').length}
+                total={approvedApps.length}
               />
               <DonutStatCard
                 title="Total Tenants"
@@ -299,7 +224,6 @@ const transformStudent = (app: any) => {
               />
             </div>
 
-            {/* Mobile room stats */}
             <div className="flex flex-col gap-4 lg:hidden">
               <AvailableRooms
                 totalRooms={rooms.length}
@@ -319,18 +243,18 @@ const transformStudent = (app: any) => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
-                <Applications
+              <Applications
                 data={pendingApps}
                 className="col-span-1 lg:col-span-2"
-                baseUrl={BASE}
-                onAction={loadData}
-                />
+                baseUrl="http://localhost:3333"
+                onAction={refreshDashboard}
+              />
               <Waitlist waitlists={waitlistedApps} className="col-span-1" />
               <ConfirmedStudents
-                data={confirmedStudents}
+                data={readyForAssignment}
                 allRooms={rooms}
-                onAssigned={loadData}
-                baseUrl={BASE}              // <-- pass BASE as baseUrl
+                onAssigned={refreshDashboard}
+                baseUrl="http://localhost:3333"
                 className="col-span-1 lg:col-span-3"
               />
               <Moves data={moves} className="col-span-1 lg:col-span-3" />
@@ -338,7 +262,6 @@ const transformStudent = (app: any) => {
           </main>
         </div>
 
-        {/* Desktop Side Panel */}
         <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
           <ProfileCard
             fullName={fullName}

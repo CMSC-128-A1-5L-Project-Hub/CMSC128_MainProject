@@ -1,52 +1,19 @@
 // app/components/dashboard/manager/Applications.tsx
-
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Button from "../../Button"
 import Card from "../../ui/Card"
 import Modal from "../../Modal"
 import StatusBadge from "../../ui/StatusBadge"
-
+import type { Status } from "../../ui/StatusBadge"
 import {
-  IoPersonSharp,
-  IoCalendarSharp,
-  IoBedSharp,
-  IoDocumentSharp,
-  IoDocumentTextSharp,
-  IoIdCardSharp,
+  IoPersonSharp, IoCalendarSharp, IoBedSharp,
+  IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp,
 } from "react-icons/io5"
-
-type Student = {
-  fullName: string
-  shortName: string
-  course: string
-  campus: string
-  email: string
-  phone: string
-  studentNo: string
-  college: string
-  yearLevel: string
-  status: string
-}
-
-type Accomodation = {
-  building: string
-}
-
-type Application = {
-  id: number
-  student: Student
-  accommodation: Accomodation
-  roomType: "single" | "double" | "shared"
-  stayType: "transient" | "non-transient"
-  rejectionReason?: string | null
-  applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review'
-  durationOfStayDays: number
-  applicationDate: string
-}
+import type { TransformedApp } from "../../../stores/useDashboardStore"
 
 type Props = {
-  data: Application[]
+  data: TransformedApp[]
   className?: string
   baseUrl: string
   onAction: () => void
@@ -54,15 +21,15 @@ type Props = {
 
 export default function Applications({ data, className = "", baseUrl, onAction }: Props) {
   const navigate = useNavigate()
-  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)
-  const [modalApplication, setModalApplication] = useState<Application | null>(null)
-  const [rejectionTarget, setRejectionTarget] = useState<Application | null>(null)
+  const [selectedApplication, setSelectedApplication] = useState<TransformedApp | null>(null)
+  const [modalApplication, setModalApplication] = useState<TransformedApp | null>(null)
+  const [rejectionTarget, setRejectionTarget] = useState<TransformedApp | null>(null)
   const [rejectionReason, setRejectionReason] = useState("")
   const [loading, setLoading] = useState(false)
 
   const getInitials = (name: string) => name[0]
 
-  const openModal = (app: Application) => {
+  const openModal = (app: TransformedApp) => {
     setModalApplication(app)
     setSelectedApplication(app)
   }
@@ -74,7 +41,7 @@ export default function Applications({ data, className = "", baseUrl, onAction }
     setRejectionReason("")
   }
 
-  // FIFO: only the first pending application can be accepted/rejected
+  // FIFO
   const firstPendingIndex = data.findIndex(app => app.applicationStatus === 'pending')
   const isModalActionable = firstPendingIndex !== -1 && modalApplication?.id === data[firstPendingIndex]?.id
 
@@ -88,28 +55,22 @@ export default function Applications({ data, className = "", baseUrl, onAction }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve' }),
       })
-
-    if (res.ok) {
-    closeModal()
-    onAction()
-    } else {
-    const text = await res.text()
-    let message: string
-    if (!text) {
-        message = `Cannot process this application — it may have already been reviewed (status ${res.status}).`
-    } else {
-        try {
-        const err = JSON.parse(text)
-        message = err.message ?? err.error ?? JSON.stringify(err)
-        } catch {
-        message = `Error ${res.status}: ${text}`
+      if (res.ok) {
+        closeModal()
+        onAction()
+      } else {
+        const contentType = res.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          const err = await res.json()
+          alert(err.message || `Approval failed (${res.status})`)
+        } else {
+          const text = await res.text()
+          alert(`Approval failed (${res.status}): ${text || 'Unknown error'}`)
         }
-    }
-    alert(message)
-    }
+      }
     } catch (e) {
       console.error(e)
-      alert('Network error — please check your connection and try again.')
+      alert('Network error')
     } finally {
       setLoading(false)
     }
@@ -125,50 +86,36 @@ export default function Applications({ data, className = "", baseUrl, onAction }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reject', rejection_reason: reason }),
       })
-
       if (res.ok) {
         setRejectionTarget(null)
         setRejectionReason("")
         closeModal()
         onAction()
       } else {
-        const text = await res.text()
-        let message: string
-        if (!text) {
-          message = `Cannot reject this application — it may have already been reviewed (status ${res.status}).`
+        const contentType = res.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          const err = await res.json()
+          alert(err.message || `Rejection failed (${res.status})`)
         } else {
-          try {
-            const err = JSON.parse(text)
-            message = err.message ?? err.error ?? JSON.stringify(err)
-          } catch {
-            message = `Error ${res.status}: ${text}`
-          }
+          const text = await res.text()
+          alert(`Rejection failed (${res.status}): ${text || 'Unknown error'}`)
         }
-        alert(message)
-        // Refresh so the UI reflects the latest status
-        onAction()
-        closeModal()
       }
     } catch (e) {
       console.error(e)
-      alert('Network error — please check your connection and try again.')
+      alert('Network error')
     } finally {
       setLoading(false)
     }
   }
 
   const RejectionModal = () => (
-    <Modal
-      open={!!rejectionTarget}
-      onClose={() => { if (!loading) setRejectionTarget(null) }}
-      title="Reject Application"
-    >
+    <Modal open={!!rejectionTarget} onClose={() => { if (!loading) setRejectionTarget(null) }} title="Reject Application">
       <div className="flex flex-col gap-4">
         <p className="text-[#1A0008] text-sm">
           Please provide a reason for rejecting{" "}
           <span className="font-semibold">{rejectionTarget?.student.fullName}</span>'s application.
         </p>
-
         <textarea
           value={rejectionReason}
           onChange={(e) => setRejectionReason(e.target.value)}
@@ -176,20 +123,9 @@ export default function Applications({ data, className = "", baseUrl, onAction }
           rows={4}
           className="w-full border border-[#F5ECF0] rounded-xl p-3 text-sm text-[#1A0008] placeholder:text-[#C8B0B8] resize-none focus:outline-none focus:border-[#6B0F2B]"
         />
-
         <div className="flex flex-row justify-end gap-3">
-          <Button
-            variant="secondary"
-            onClick={() => setRejectionTarget(null)}
-            disabled={loading}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="reddishPink"
-            disabled={!rejectionReason.trim() || loading}
-            onClick={() => handleReject(rejectionReason)}
-          >
+          <Button variant="secondary" onClick={() => setRejectionTarget(null)} disabled={loading}>Cancel</Button>
+          <Button variant="reddishPink" disabled={!rejectionReason.trim() || loading} onClick={() => handleReject(rejectionReason)}>
             {loading ? 'Processing…' : 'Confirm Reject'}
           </Button>
         </div>
@@ -200,32 +136,23 @@ export default function Applications({ data, className = "", baseUrl, onAction }
   return (
     <>
       <RejectionModal />
-
-      <Modal
-        open={!!selectedApplication}
-        onClose={closeModal}
-        title="Application"
-        maxWidth={900}
-        maxHeight={700}
-      >
+      <Modal open={!!selectedApplication} onClose={closeModal} title="Application" maxWidth={900} maxHeight={700}>
         {modalApplication && (
           <Card>
             <div className="flex flex-col gap-6">
-              {/* Header */}
               <div className="flex flex-row justify-between items-start">
                 <div className="flex flex-col">
                   <p className="text-[#1A0008] font-bold text-xl">{modalApplication.student.fullName}</p>
                   <p className="text-[#C8B0B8] text-xs mt-1">Date Applied: {modalApplication.applicationDate}</p>
                 </div>
-                <StatusBadge status={modalApplication.applicationStatus} />
+                {/* ✅ FIXED: use modalApplication, not modalWaitlist */}
+                <StatusBadge status={modalApplication.applicationStatus as Status} />
               </div>
 
-              {/* Applicant Details + Occupancy Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-[#F5ECF0] rounded-xl p-4">
                 <div className="col-span-1 sm:border-r border-[#F5ECF0] sm:pr-4">
                   <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
-                    <IoPersonSharp size={18} color="#6B0F2B" />
-                    Applicant Details
+                    <IoPersonSharp size={18} color="#6B0F2B" /> Applicant Details
                   </p>
                   <div className="grid grid-cols-2 gap-y-3">
                     <div className="col-span-2">
@@ -249,8 +176,7 @@ export default function Applications({ data, className = "", baseUrl, onAction }
 
                 <div className="col-span-1 sm:pl-2">
                   <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
-                    <IoCalendarSharp size={18} color="#6B0F2B" />
-                    Occupancy Details
+                    <IoCalendarSharp size={18} color="#6B0F2B" /> Occupancy Details
                   </p>
                   <div className="flex flex-col gap-3">
                     <div>
@@ -259,20 +185,16 @@ export default function Applications({ data, className = "", baseUrl, onAction }
                     </div>
                     <div>
                       <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Duration</p>
-                      <p className="text-[#1A0008] text-sm">
-                        {modalApplication.durationOfStayDays} day{modalApplication.durationOfStayDays !== 1 ? "s" : ""}
-                      </p>
+                      <p className="text-[#1A0008] text-sm">{modalApplication.durationOfStayDays} day{modalApplication.durationOfStayDays !== 1 ? "s" : ""}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Room Preference + Uploaded Documents */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-[#F5ECF0] rounded-xl p-4">
                 <div className="col-span-1 sm:border-r border-[#F5ECF0] sm:pr-4">
                   <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
-                    <IoBedSharp size={18} color="#6B0F2B" />
-                    Room Preference
+                    <IoBedSharp size={18} color="#6B0F2B" /> Room Preference
                   </p>
                   <div className="grid grid-cols-2 gap-y-3">
                     <div>
@@ -294,8 +216,7 @@ export default function Applications({ data, className = "", baseUrl, onAction }
 
                 <div className="col-span-1 sm:pl-2">
                   <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
-                    <IoDocumentSharp size={18} color="#6B0F2B" />
-                    Uploaded Documents
+                    <IoDocumentSharp size={18} color="#6B0F2B" /> Uploaded Documents
                   </p>
                   <div className="flex flex-col gap-2">
                     {[
@@ -304,59 +225,45 @@ export default function Applications({ data, className = "", baseUrl, onAction }
                     ].map((doc) => (
                       <div key={doc.label} className="flex flex-row items-center justify-between">
                         <div className="flex flex-row items-center gap-2">
-                          <div
-                            className="w-8 h-8 rounded-lg flex items-center justify-center"
-                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                          >
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                               style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                             {doc.icon}
                           </div>
                           <p className="text-[#1A0008] text-xs font-semibold">{doc.label}</p>
                         </div>
-                        <Button
-                          variant="reddishPink"
-                          size="sm"
-                          onClick={async () => {
-                            if (doc.label === "FORM 5") {
-                              try {
-                                const res = await fetch(
-                                  `${baseUrl}/applications/${modalApplication.id}/enrollment-proof`,
-                                  { credentials: 'include' }
-                                )
-                                if (res.ok) {
-                                  const { url } = await res.json()
-                                  window.open(url, '_blank')
-                                } else {
-                                  alert('Enrollment proof not available')
-                                }
-                              } catch (err) {
-                                console.error(err)
-                                alert('Could not fetch document')
+                        <Button variant="reddishPink" size="sm" onClick={async () => {
+                          if (doc.label === "FORM 5") {
+                            try {
+                              const res = await fetch(`${baseUrl}/applications/${modalApplication.id}/enrollment-proof`, {
+                                credentials: 'include',
+                              })
+                              if (res.ok) {
+                                const { url } = await res.json()
+                                window.open(url, '_blank')
+                              } else {
+                                alert('Enrollment proof not available')
                               }
-                            } else {
-                              alert('Valid ID not yet uploaded')
+                            } catch (err) {
+                              console.error(err)
+                              alert('Could not fetch document')
                             }
-                          }}
-                        >
-                          View
-                        </Button>
+                          } else {
+                            alert('Valid ID not yet uploaded')
+                          }
+                        }}>View</Button>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
               {modalApplication.applicationStatus === 'pending' && (
                 isModalActionable ? (
                   <div className="flex flex-row justify-end gap-3 pt-1">
                     <Button variant="primary" onClick={handleAccept} disabled={loading}>
                       {loading ? 'Processing…' : 'Accept'}
                     </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => setRejectionTarget(modalApplication)}
-                      disabled={loading}
-                    >
+                    <Button variant="secondary" onClick={() => setRejectionTarget(modalApplication)} disabled={loading}>
                       Reject
                     </Button>
                   </div>
@@ -366,80 +273,52 @@ export default function Applications({ data, className = "", baseUrl, onAction }
                   </p>
                 )
               )}
-
-              {/* Show rejection reason if rejected */}
-              {modalApplication.applicationStatus === 'rejected' && modalApplication.rejectionReason && (
-                <div className="bg-red-50 border border-red-100 rounded-xl p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-red-400 mb-1">Rejection Reason</p>
-                  <p className="text-sm text-red-700">{modalApplication.rejectionReason}</p>
-                </div>
-              )}
             </div>
           </Card>
         )}
       </Modal>
 
-      {/* Table */}
+      {/* Table View */}
       <Card className={className}>
         <div className="w-full h-full flex flex-col min-w-0">
           <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
             <p className="text-[#1A0008] font-bold">Applications</p>
-            <p
-              className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer"
-              onClick={() => navigate("/manager/applications")}
-            >
+            <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/applications")}>
               View all →
             </p>
           </div>
-
           <div className="overflow-x-auto -mx-0">
             <div className="min-w-[600px] pb-3 lg:pb-0">
-              <div
-                className="grid grid-cols-5 border-b border-[#F5ECF0] uppercase"
-                style={{ gridTemplateColumns: "2fr 1.0fr 2fr 1.5fr 2fr" }}
-              >
+              <div className="grid grid-cols-5 border-b border-[#F5ECF0] uppercase"
+                   style={{ gridTemplateColumns: "2fr 1.0fr 2fr 1.5fr 2fr" }}>
                 <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Student</p>
                 <p className="col-span-1 text-[#9A7080] text-xs font-bold p-1">Preferred Facility</p>
                 <p className="col-span-1 text-[#9A7080] text-xs font-bold p-1">Date Applied</p>
                 <p className="col-span-1 text-center text-[#9A7080] text-xs font-bold p-1">Action</p>
               </div>
-
               <div className="grid grid-cols-5">
-                {data.length === 0 ? (
-                  <div className="col-span-5 py-10 text-center text-sm text-[#9A7080]">
-                    No applications to review.
-                  </div>
-                ) : (
-                  data.map((application, idx) => (
-                    <div
-                      key={idx}
-                      className="col-span-5 grid grid-cols-5 mt-3"
-                      style={{ gridTemplateColumns: "2fr 1.0fr 2fr 1.5fr 2fr" }}
-                    >
-                      <div className="col-span-2 flex flex-row items-center">
-                        <div
-                          className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                          style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                        >
-                          {getInitials(application.student.fullName)}
-                        </div>
-                        <p className="text-black text-sm pl-2">{application.student.fullName}</p>
+                {data.map((application, idx) => (
+                  <div key={idx} className="col-span-5 grid grid-cols-5 mt-3"
+                       style={{ gridTemplateColumns: "2fr 1.0fr 2fr 1.5fr 2fr" }}>
+                    <div className="col-span-2 flex flex-row items-center">
+                      <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                           style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                        {getInitials(application.student.fullName)}
                       </div>
-                      <div className="flex flex-col px-1">
-                        <p className="col-span-1 text-[#1A0008] text-sm">{application.accommodation.building}</p>
-                        <p className="col-span-1 text-[#9A7080] text-xs capitalize">{application.stayType}</p>
-                      </div>
-                      <p className="col-span-1 text-[#9A7080] text-sm p-1 flex items-center">
-                        {application.applicationDate}
-                      </p>
-                      <div className="col-span-1 flex items-center justify-center">
-                        <Button variant="reddishPink" size="sm" onClick={() => openModal(application)}>
-                          Review
-                        </Button>
-                      </div>
+                      <p className="text-black text-sm pl-2">{application.student.fullName}</p>
                     </div>
-                  ))
-                )}
+                    <div className="flex flex-col px-1">
+                      <p className="col-span-1 text-[#1A0008] text-sm">{application.accommodation.building}</p>
+                      <p className="col-span-1 text-[#9A7080] text-xs capitalize">{application.stayType}</p>
+                    </div>
+                    <p className="col-span-1 text-[#9A7080] text-sm p-1 flex items-center">{application.applicationDate}</p>
+                    <div className="col-span-1 flex items-center justify-center">
+                      <Button variant="reddishPink" size="sm" onClick={() => openModal(application)}>
+                        Review
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
