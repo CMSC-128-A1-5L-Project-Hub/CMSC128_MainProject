@@ -189,7 +189,7 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                              style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                           {getInitials(assignment.student.student.fullName)}
                         </div>
-                        <p className="text-black text-sm pl-2">{assignment.student.student.fullName}</p>
+                        <p className="text-black text-sm pl-2 truncate min-w-0">{assignment.student.student.fullName}</p>
                       </div>
                       <div className="flex flex-col px-2">
                         <p className="text-[#1A0008] text-sm">Room {assignment.roomNumber || '—'}</p>

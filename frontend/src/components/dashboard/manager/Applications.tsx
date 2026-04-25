@@ -305,7 +305,7 @@ export default function Applications({ data, className = "", onAction }: Props) 
                             style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                           {getInitials(application.student.fullName)}
                         </div>
-                        <p className="text-black text-sm pl-2">{application.student.fullName}</p>
+                        <p className="text-black text-sm pl-2 truncate min-w-0">{application.student.fullName}</p>
                       </div>
                       <div className="flex flex-col px-1">
                         <p className="col-span-1 text-[#1A0008] text-sm">{application.accommodation.building}</p>

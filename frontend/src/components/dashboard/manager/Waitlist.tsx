@@ -110,7 +110,7 @@ export default function Waitlist({ waitlists, className = "" }: Props) {
                          style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                       {getInitials(waitlist.student.fullName)}
                     </div>
-                    <p className="text-sm text-[#1A0008] pl-2">{waitlist.student.fullName}</p>
+                    <p className="text-sm text-[#1A0008] pl-2 truncate min-w-0">{waitlist.student.fullName}</p>
                   </div>
                   <div className="col-span-1 flex items-center justify-center">
                     <Button variant="reddishPink" size="sm" onClick={() => openModal(waitlist)}>Review</Button>
