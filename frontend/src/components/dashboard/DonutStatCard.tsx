@@ -19,7 +19,7 @@ type StatCardProps = {
     strokeWidth?: number
 }
 
-export default function StatCard({
+export default function DonutStatCard({
     id = "donut",
     title,
     value,
