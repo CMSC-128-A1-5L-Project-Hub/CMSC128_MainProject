@@ -1,6 +1,7 @@
 -- ============================================================
--- FULL RESET & SEED – ALL TABLES INCLUDED
+-- FULL RESET & SEED (with Kristine waitlisted, not assigned)
 -- ============================================================
+
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS notifications, logs, payments, fees, reports, assignments,
@@ -185,7 +186,18 @@ CREATE TABLE logs (
     INDEX idx_entity (entity_type, entity_id)
 ) ENGINE=InnoDB;
 
--- 7. sys_variables (now included)
+-- 7. notifications (for notification panel)
+CREATE TABLE notifications (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    notification_content TEXT NOT NULL,
+    read_status ENUM('read','unread') DEFAULT 'unread',
+    notification_type ENUM('fee_due','application_status','system','other') NOT NULL,
+    notification_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 8. sys_variables
 CREATE TABLE sys_variables (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     current_semester ENUM('first_sem','second_sem','midyear') NOT NULL,
@@ -195,12 +207,11 @@ CREATE TABLE sys_variables (
     uplb_longitude DECIMAL(9,6) NOT NULL
 ) ENGINE=InnoDB;
 
--- (Add any other tables you need: notifications, fees, payments, etc.)
-
 -- ============================================================
 -- SEED DATA
 -- ============================================================
 
+-- file metadata
 INSERT INTO file_metadata (file_name, file_path, file_type) VALUES
 ('pfp.png','/defaults/pfp.png','image'),
 ('enroll_s1.pdf','/docs/enroll_s1.pdf','document'),
@@ -211,6 +222,7 @@ INSERT INTO file_metadata (file_name, file_path, file_type) VALUES
 ('permit1.pdf','/docs/permit1.pdf','document'),
 ('permit2.pdf','/docs/permit2.pdf','document');
 
+-- users (Mimi = manager id 2)
 INSERT INTO users (id, fname, lname, email, role, account_status) VALUES
 (1, 'Larkin', 'Sanchez', 'larkinsanchez@gmail.com', 'landlord', 'active'),
 (2, 'Mimi', 'Yuuhhh', 'yuuhhhmimi@gmail.com', 'manager', 'active'),
@@ -218,17 +230,18 @@ INSERT INTO users (id, fname, lname, email, role, account_status) VALUES
 (4, 'Avrielle', 'Juarez', 'afjuarez@up.edu.ph', 'student', 'active'),
 (5, 'Daniel', 'Santos', 'djsantos@up.edu.ph', 'student', 'active'),
 (6, 'Kristine', 'Villanueva', 'kjvillanueva@up.edu.ph', 'student', 'active'),
-(7, 'Joshua', 'Aguilar', 'jdaguilar@up.edu.ph', 'student', 'active'),
-(8, 'Juan', 'Dela Cruz', 'juan.delacruz@gmail.com', 'manager', 'active');
+(7, 'Joshua', 'Aguilar', 'jdaguilar@up.edu.ph', 'student', 'active');
 
+-- phone numbers
 INSERT INTO phone_numbers (user_id, contact_number, is_primary) VALUES
 (1,'09171234567',TRUE),(2,'09987654321',TRUE),(3,'09281234567',TRUE),
-(4,'09391234567',TRUE),(5,'09451234567',TRUE),(6,'09561234567',TRUE),(7,'09671234567',TRUE),
-(8,'09165478322',TRUE);
+(4,'09391234567',TRUE),(5,'09451234567',TRUE),(6,'09561234567',TRUE),(7,'09671234567',TRUE);
 
+-- landlord / manager
 INSERT INTO landlords (user_id, tin) VALUES (1, '123-456-789-000');
-INSERT INTO managers (user_id, manager_status) VALUES (2, 'active'), (8, 'active');
+INSERT INTO managers (user_id, manager_status) VALUES (2, 'active');
 
+-- students
 INSERT INTO students (student_number, user_id, enrollment_proof_file_id, college, degree_program, gender, year_level) VALUES
 ('2023-123456', 3, 2, 'CEAT', 'BS Industrial Engineering', 'Female', '3rd Year'),
 ('2023-123457', 4, 3, 'CEAT', 'BS Civil Engineering', 'Female', '2nd Year'),
@@ -236,60 +249,67 @@ INSERT INTO students (student_number, user_id, enrollment_proof_file_id, college
 ('2023-123461', 6, 5, 'CBA', 'BS Accountancy', 'Female', '5th Year'),
 ('2023-123462', 7, 6, 'CITE', 'BS Computer Science', 'Male', '3rd Year');
 
+-- accommodations (Mimi manages White House)
 INSERT INTO accommodations (id, landlord_id, manager_id, business_permit_id, accommodation_name, accommodation_location, accommodation_type, accommodation_capacity, tenant_restriction, status, latitude, longitude) VALUES
-(1, 1, 2, 7, 'White House', 'Ruby St., Los Baños', 'off-campus', 60, 'coed', 'verified', 14.1665, 121.2430),
-(2, 1, 8, 8, 'Narra Residences', 'UPLB, Los Baños', 'on-campus', 80, 'female-only', 'verified', 14.1650, 121.2400);
+(1, 1, 2, 7, 'White House', 'Ruby St., Los Baños', 'off-campus', 60, 'coed', 'verified', 14.1665, 121.2430);
 
+-- accommodation tags
 INSERT INTO accommodation_tags (accommodation_id, tag_detail) VALUES
-(1, 'Near campus'), (1, 'Pet friendly'), (2, '24/7 Security');
+(1, 'Near campus'), (1, 'Pet friendly');
 
+-- rooms (mix of types and tags)
 INSERT INTO rooms (id, accommodation_id, room_number, room_type, room_stay_type, room_capacity, room_current_occupancy, room_building, room_rent, tenant_restriction, room_availability) VALUES
 (1, 1, '101', 'single', 'non_transient', 1, 0, 'A', 5000.00, 'coed', 'available'),
 (2, 1, '102', 'single', 'non_transient', 1, 0, 'A', 4800.00, 'coed', 'available'),
-(3, 1, '201', 'double', 'non_transient', 2, 0, 'A', 3500.00, 'coed', 'available'),
-(4, 1, '202', 'double', 'non_transient', 2, 0, 'A', 4000.00, 'coed', 'available'),
-(5, 1, '203', 'double', 'non_transient', 2, 0, 'B', 4200.00, 'coed', 'available'),
+(3, 1, '201', 'double', 'non_transient', 2, 0, 'A', 3500.00, 'coed', 'available'),   -- no AC
+(4, 1, '202', 'double', 'non_transient', 2, 0, 'A', 4000.00, 'coed', 'available'),   -- with AC
+(5, 1, '203', 'double', 'non_transient', 2, 0, 'B', 4200.00, 'coed', 'available'),   -- AC + study desk
 (6, 1, '301', 'shared', 'non_transient', 4, 0, 'B', 900.00, 'coed', 'available'),
-(7, 1, '302', 'shared', 'non_transient', 4, 1, 'C', 800.00, 'coed', 'occupied'),
-(8, 1, '101-T', 'single', 'transient', 1, 0, 'A', 6000.00, 'coed', 'available'),
-(9, 2, 'F101', 'single', 'non_transient', 1, 0, 'Main', 5500.00, 'non-coed', 'available'),
-(10,2, 'F102', 'double', 'non_transient', 2, 0, 'Main', 4000.00, 'non-coed', 'available'),
-(11,2, 'F201', 'shared', 'non_transient', 4, 2, 'Annex', 3000.00, 'non-coed', 'occupied');
+(7, 1, '302', 'shared', 'non_transient', 4, 1, 'C', 800.00, 'coed', 'occupied');   -- one occupant
 
+-- room tags
 INSERT INTO room_tags (room_id, tag_detail) VALUES
 (3, 'fan-cooled'),
 (4, 'air-conditioned'),
 (5, 'air-conditioned'), (5, 'study desk'),
 (6, 'shared bathroom'),
-(7, 'shared bathroom'),
-(10,'air-conditioned'), (10,'study desk');
+(7, 'shared bathroom');
 
+-- applications (various statuses, Kristine waitlisted)
 INSERT INTO applications (id, accommodation_id, student_number, application_room_type, application_stay_type, application_status, duration_of_stay_days, preferred_tags, application_date) VALUES
+-- pending (FIFO order)
 (1, 1, '2023-123456', 'single', 'non_transient', 'pending', 365, NULL, '2026-04-20 10:00:00'),
 (2, 1, '2023-123460', 'double', 'non_transient', 'pending', 180, '["air-conditioned"]', '2026-04-21 10:00:00'),
+-- waitlisted (Kristine)
 (3, 1, '2023-123461', 'double', 'non_transient', 'waitlisted', 180, '["air-conditioned","study desk"]', '2026-04-19 10:00:00'),
 (4, 1, '2023-123462', 'shared', 'non_transient', 'waitlisted', 365, NULL, '2026-04-18 10:00:00'),
+-- under review (already accepted by manager)
 (5, 1, '2023-123457', 'single', 'non_transient', 'under_review', 365, NULL, '2026-04-17 10:00:00'),
+-- approved (ready for assignment)
 (6, 1, '2023-123456', 'single', 'non_transient', 'approved', 365, NULL, '2026-04-16 10:00:00'),
 (7, 1, '2023-123460', 'double', 'non_transient', 'approved', 180, '["air-conditioned"]', '2026-04-15 10:00:00'),
 (8, 1, '2023-123462', 'shared', 'non_transient', 'approved', 365, NULL, '2026-04-14 10:00:00'),
-(9, 1, '2023-123457', 'single', 'non_transient', 'confirmed', 365, NULL, '2026-04-13 10:00:00'),
-(10,2, '2023-123456', 'single', 'non_transient', 'pending', 365, NULL, '2026-04-12 10:00:00'),
-(11,2, '2023-123461', 'double', 'non_transient', 'approved', 180, '["air-conditioned","study desk"]', '2026-04-11 10:00:00');
+-- confirmed (already active assignment)
+(9, 1, '2023-123457', 'single', 'non_transient', 'confirmed', 365, NULL, '2026-04-13 10:00:00');
 
+-- set approved_at for approved apps
 UPDATE applications SET approved_at = '2026-04-25 08:00:00' WHERE application_status = 'approved';
 
+-- assignments (only Avrielle has an active assignment)
 INSERT INTO assignments (id, student_number, room_id, confirmed_date, move_in, expected_move_out, confirmation_status) VALUES
 (1, '2023-123457', 2, '2026-04-20', '2026-04-21', '2026-10-21', 'active');
 UPDATE rooms SET room_current_occupancy = 1, room_availability = 'occupied' WHERE id = 2;
 
-INSERT INTO assignments (id, student_number, room_id, confirmed_date, move_in, expected_move_out, confirmation_status) VALUES
-(2, '2023-123461', 7, '2026-04-22', '2026-04-23', '2027-04-23', 'active');
-UPDATE rooms SET room_current_occupancy = 2 WHERE id = 7;
-
+-- logs
 INSERT INTO logs (actor_id, entity_type, entity_id, activity_type, activity_details) VALUES
 (2, 'application', 5, 'MANAGER_APPROVED', 'Manager approved application #5 for Avrielle Juarez'),
 (2, 'assignment', 1, 'MANAGER_ASSIGNED_ROOM', 'Student Avrielle Juarez assigned to room 102 (active)');
 
+-- notifications (for Mimi)
+INSERT INTO notifications (user_id, notification_content, read_status, notification_type) VALUES
+(2, 'Welcome to UBLE! Your manager account is now active.', 'unread', 'system'),
+(2, 'A new application has been submitted for White House.', 'unread', 'application_status');
+
+-- system variables
 INSERT INTO sys_variables (current_semester, current_sy, sem_start_date, uplb_latitude, uplb_longitude)
 VALUES ('second_sem', '2025-2026', '2026-01-12', 14.1651, 121.2402);
