@@ -6,11 +6,14 @@ interface Option<T extends string> {
   label: string;
 }
 
+//
 interface GradientPillSelectProps<T extends string> {
   label: string;
   options: Option<T>[];
   value: T;
   onChange: (value: T) => void;
+  width?: string;      
+  textSize?: string;    
 }
 
 const IconChevron = ({ open }: { open: boolean }) => (
@@ -37,6 +40,8 @@ export default function GradientPillSelect<T extends string>({
   options,
   value,
   onChange,
+  width = "w-44",  
+  textSize = "text-[15px]",
 }: GradientPillSelectProps<T>) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,12 +60,12 @@ export default function GradientPillSelect<T extends string>({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <p className="text-[16px] font-bold tracking-widest text-[#9A7080]">
+      <p className={`${textSize} font-bold tracking-widest text-[#9A7080]`}>
         {label}
       </p>
 
       {/* Pill butto*/}
-      <div className="relative w-44" ref={containerRef}>
+      <div className={`relative ${width}`} ref={containerRef}>
 
   
         <div
@@ -72,7 +77,7 @@ export default function GradientPillSelect<T extends string>({
         >
           <button
             onClick={() => setOpen((o) => !o)}
-            className="relative flex items-center justify-between gap-3 w-full px-4 py-[7px] bg-white text-[15px] font-semibold transition-all duration-150"
+            className={`relative flex items-center justify-between gap-3 w-full px-4 py-[7px] bg-white ${textSize} font-semibold transition-all duration-150`}
             style={{
               borderRadius: open ? "12px 12px 0 0" : "999px",
               color: "#3D0718",
@@ -111,7 +116,7 @@ export default function GradientPillSelect<T extends string>({
                         onChange(opt.value);
                         setOpen(false);
                       }}
-                      className="flex items-center justify-between w-full px-4 py-[9px] text-[15px] font-semibold text-left transition-colors"
+                      className={`flex items-center justify-between w-full px-4 py-[9px] ${textSize} font-semibold text-left transition-colors`}
                       style={{
                         background: isSelected
                           ? "linear-gradient(90deg, #3D0718, #6B0F2B)"

@@ -339,11 +339,29 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
   return (
     <div className="space-y-5 mt-14">
       <div className="grid grid-cols-3 gap-5 items-start mt-16">
-        <GradientPillSelect label="Tenant Preference" value={selectedTenantRestriction} onChange={setselectedTenantRestriction}
-          options={tenantRestriction.map((st) => ({ value: st, label: st.charAt(0).toUpperCase() + st.slice(1) }))} />
-        <GradientPillSelect label="Stay Type" value={selectedStayType} onChange={setSelectedStayType}
+        <GradientPillSelect 
+          label="Tenant Preference" 
+          value={selectedTenantRestriction} 
+          onChange={setselectedTenantRestriction}
+          width = "w-44"
+          textSize = "text-[15px]"
+          options={tenantRestriction.map((st) => ({ value: st, label: st.charAt(0).toUpperCase() + st.slice(1) }))} 
+        />
+
+        <GradientPillSelect 
+          label="Stay Type" 
+          value={selectedStayType} 
+          onChange={setSelectedStayType}
+          width = "w-44"
+          textSize = "text-[15px]"
           options={stayTypes.map((st) => ({ value: st, label: st === "non_transient" ? "Non-Transient" : "Transient" }))} />
-        <GradientPillSelect label="Arrangement" value={selectedArrangement} onChange={setSelectedArrangement}
+
+        <GradientPillSelect 
+          label="Arrangement" 
+          value={selectedArrangement} 
+          onChange={setSelectedArrangement}
+          width = "w-44"
+          textSize = "text-[15px]"
           options={arrangements.map((a) => ({ value: a, label: a.charAt(0).toUpperCase() + a.slice(1) }))} />
       </div>
 
