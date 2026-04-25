@@ -26,6 +26,7 @@ export interface Application {
     accommodationName: string;
     accommodationLocation: string;
     accommodationType: string;
+    primaryImageUrl?: string;
   };
 }
 
@@ -92,8 +93,9 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   application.estimatedMonthlyRent !== null && application.estimatedMonthlyRent !== undefined
     ? new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(application.estimatedMonthlyRent)
     : "—";
-
-  const imageUrl = accomData?.images?.[0]?.file?.filePath;
+  
+  console.log(application.accommodation)
+  const imageUrl = application.accommodation?.primaryImageUrl;
 
   // Modal footer with confirmation input and buttons
   const modalFooter = (

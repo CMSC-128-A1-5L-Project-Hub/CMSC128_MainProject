@@ -19,6 +19,7 @@ interface Accommodation {
   accommodationName: string;
   accommodationLocation: string;
   accommodationType: string;
+  primaryImageUrl?: string;
 }
 
 interface Application {
