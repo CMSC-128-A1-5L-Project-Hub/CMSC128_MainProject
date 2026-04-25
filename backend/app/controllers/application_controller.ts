@@ -4,6 +4,7 @@ import Assignment from '#models/assignment'
 import Student from '#models/student'
 import LogService from '#services/log_service'
 import User from '#models/user'
+import { withPrimaryImageUrl } from '#services/image_service'
 
 export default class ApplicationsController {
   
@@ -48,12 +49,24 @@ export default class ApplicationsController {
 
     const student = await Student.findByOrFail('userId', user.id)
 
+    // preload images so withPrimaryImageUrl can resolve a B2 signed URL per accommodation
     const applications = await Application.query()
       .where('studentNumber', student.studentNumber)
-      .preload('accommodation')
+      .preload('accommodation', (q) => q.preload('images', (q2) => q2.preload('file')))
       .orderBy('applicationDate', 'desc')
 
-    return serialize(applications)
+    // attach a signed primaryImageUrl onto each application's accommodation
+    const data = await Promise.all(
+      applications.map(async (app) => {
+        const serialized = app.serialize() as any
+        if (app.accommodation) {
+          serialized.accommodation = await withPrimaryImageUrl(app.accommodation)
+        }
+        return serialized
+      })
+    )
+
+    return serialize(data)
   }
 
   // ─── 3. MANAGER/LANDLORD: VIEW INCOMING ───
