@@ -243,10 +243,10 @@ export default function Dashboard() {
               <ActivityLogs data={recentLogs} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch w-full">
               <Applications
                 data={pendingApps}
-                className="col-span-1 lg:col-span-2"
+                className="col-span-1 lg:col-span-1 xl:col-span-2"
                 onAction={refreshDashboard}
               />
               <Waitlist waitlists={waitlistedApps} className="col-span-1" />
@@ -254,9 +254,9 @@ export default function Dashboard() {
                 data={readyForAssignment}
                 allRooms={rooms}
                 onAssigned={refreshDashboard}
-                className="col-span-1 lg:col-span-3"
+                className="col-span-1 lg:col-span-2 xl:col-span-3"
               />
-              <Moves data={moves} className="col-span-1 lg:col-span-3" />
+              <Moves data={moves} className="col-span-1 lg:col-span-2 xl:col-span-3" />
             </div>
           </main>
         </div>
