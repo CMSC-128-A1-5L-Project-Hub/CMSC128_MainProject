@@ -86,6 +86,8 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const formattedRate =
   application.estimatedMonthlyRent !== null && application.estimatedMonthlyRent !== undefined
     ? new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(application.estimatedMonthlyRent)
+  application.estimatedMonthlyRent !== null && application.estimatedMonthlyRent !== undefined
+    ? new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(application.estimatedMonthlyRent)
     : "—";
 
   const imageUrl = accomData?.images?.[0]?.file?.filePath;
@@ -187,6 +189,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
           </div>
           <div className="text-right">
             <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Starts at</p>
+            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Starts at</p>
             {isLoading ? (
               <div className="h-6 w-20 bg-gray-200 rounded animate-pulse ml-auto"></div>
             ) : (
@@ -269,9 +272,15 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
         </div>
 
         {/* Landlord Remarks */}
+        {/* Landlord Remarks */}
         <div>
           <p className="text-[10px] text-gray-400 uppercase font-bold mb-2">Landlord Remarks</p>
           <div className="bg-[#FCFAFA] border border-gray-100 rounded-xl p-3">
+            {application.applicationStatus === 'rejected' && application.rejectionReason ? (
+              <p className="text-sm text-red-600">{application.rejectionReason}</p>
+            ) : (
+              <p className="text-sm text-gray-400 italic">No remarks by admin</p>
+            )}
             {application.applicationStatus === 'rejected' && application.rejectionReason ? (
               <p className="text-sm text-red-600">{application.rejectionReason}</p>
             ) : (

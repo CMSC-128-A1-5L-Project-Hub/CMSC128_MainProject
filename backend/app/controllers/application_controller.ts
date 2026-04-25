@@ -4,8 +4,9 @@ import Application from '#models/application'
 import Assignment from '#models/assignment'
 import Student from '#models/student'
 import LogService from '#services/log_service'
-import User from '#models/user'
-import { withPrimaryImageUrl } from '#services/image_service'
+import { inject } from '@adonisjs/core'
+import ApplicationService from '#services/application_service'
+@inject()
 export default class ApplicationsController {
   
   // ─── 1. STUDENT: SUBMIT APPLICATION ───
