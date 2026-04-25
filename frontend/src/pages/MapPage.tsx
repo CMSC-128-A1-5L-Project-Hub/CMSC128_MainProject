@@ -3,8 +3,9 @@
 // Route: /map              -> centered on UPLB (browse all)
 // Route: /map?center=:id   -> centered on specific accommodation (from "View Location" button)
 // Filters are passed via URL query params so they persist from the browse/cards page
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import AccommodationMap, { type AccommodationPin } from '../components/AccommodationMaps'
 import Sidebar from '../components/Sidebar'
 
@@ -111,8 +112,12 @@ export default function MapPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
+  const { data: accommodations = [], isLoading, isError } = useQuery({
+    queryKey: ['accommodations'],
+    queryFn: fetchAccommodations,
+  })
+
   // ─── Read filters from URL query params ──────────────────────────────────
-  // This way filters set on the cards/browse page carry over to the map
   const search = searchParams.get('search') ?? ''
   const type = searchParams.get('type') ?? 'all'
   const room = searchParams.get('room') ?? 'all'
@@ -124,11 +129,11 @@ export default function MapPage() {
   const [availableTags, setAvailableTags] = useState(['WiFi', 'Furnished', 'Air-con', 'Transient', 'Laundry', 'Study-Friendly']);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // center=:id — which accommodation to center on (from "View Location" button)
   const centerId = searchParams.get('center')
-  const centeredAccommodation = centerId
-    ? MOCK_ACCOMMODATIONS.find((a) => a.accommodationId === Number(centerId)) ?? null
-    : null
+  const centeredAccommodation = useMemo(
+    () => (centerId ? accommodations.find((a) => a.accommodationId === Number(centerId)) ?? null : null),
+    [centerId, accommodations]
+  )
 
   // ─── Update a single filter in URL ───────────────────────────────────────
   const updateFilter = (key: string, value: string | number) => {

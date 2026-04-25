@@ -38,6 +38,7 @@ export default class extends BaseSchema {
       table.increments('id').primary()
       table.string('student_number', 11).notNullable().references('student_number').inTable('students').onDelete('CASCADE')
       table.integer('room_id').unsigned().notNullable().references('id').inTable('rooms').onDelete('CASCADE')
+      table.date('confirmed_date').notNullable()
       table.date('move_in').notNullable()
       table.date('expected_move_out').notNullable()
       table.date('actual_move_out').nullable()

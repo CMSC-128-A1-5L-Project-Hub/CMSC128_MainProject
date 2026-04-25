@@ -17,6 +17,12 @@ export default class Assignment extends BaseModel {
   declare roomId: number
 
   @column.date()
+  declare confirmedDate: DateTime
+  
+  @column()
+  declare confirmationStatus: 'pending_confirmation' | 'active' | 'rejected' | 'cancelled'
+
+  @column.date()
   declare moveIn: DateTime
 
   @column.date()
