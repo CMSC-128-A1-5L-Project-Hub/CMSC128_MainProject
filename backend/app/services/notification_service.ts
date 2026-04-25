@@ -325,4 +325,30 @@ export default class NotificationService {
       `
     )
   }
+
+  async sendRoomIssueReportEmail(
+  landlordUser: User,
+  roomNumber: string,
+  building: string,
+  managerFirstName: string,
+  managerLastName: string,
+  issueDetails: string
+) {
+  await this.send(
+    landlordUser.email,
+    `Room issue reported for Room ${roomNumber}`,
+    `
+      <p>Hello ${landlordUser.fname},</p>
+      <p>The dormitory manager <strong>${managerFirstName} ${managerLastName}</strong> has reported an issue with the following room:</p>
+      <ul>
+        <li>Building: ${building}</li>
+        <li>Room: ${roomNumber}</li>
+        <li>Issue: ${issueDetails}</li>
+      </ul>
+      <p>Please review and take necessary action.</p>
+      <br/>
+      <p>UBLE Housing</p>
+    `
+  )
+}
 }

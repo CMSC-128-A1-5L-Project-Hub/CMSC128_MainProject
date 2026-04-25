@@ -152,6 +152,7 @@ router
         router.post('/accommodations/:accommodationId/rooms', [RoomsController, 'store'])
         router.put('/rooms/:id', [RoomsController, 'update'])
         router.delete('/rooms/:id', [RoomsController, 'destroy'])
+        router.post('/rooms/:id/report-issue', [RoomsController, 'reportIssue'])
 
         // Room Assignments & Move-outs
         router.post('/assignments', [AssignmentsController, 'store'])
