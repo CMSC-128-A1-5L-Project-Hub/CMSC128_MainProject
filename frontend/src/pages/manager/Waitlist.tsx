@@ -62,6 +62,7 @@ const managerProfile: ManagerProfile = {
     status: "Active",
     dormitory: "Narra Residences"
 }
+
 const waitlistRecords: Application[] = [
     {
         student: {

@@ -125,6 +125,8 @@ router
         router.delete('/rooms/:id', [controllers.Rooms, 'destroy'])
 
         // Room Assignments & Move-outs
+        // router.get('/view-all-assignments', [controllers.Assignments, 'viewAllAssignments'])
+        router.get('/view-assignments', [controllers.Assignments, 'viewAssignments'])
         router.post('/assignments', [controllers.Assignments, 'store'])
         router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
 
