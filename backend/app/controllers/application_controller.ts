@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { DateTime } from 'luxon'
 import Application from '#models/application'
 import Assignment from '#models/assignment'
 import Student from '#models/student'
@@ -112,7 +113,7 @@ export default class ApplicationsController {
     }
 
     const applicationObject = await Application.query()
-      .where('applicationId', params.id)
+      .where('id', params.id)
       .preload('accommodation')
       .firstOrFail()
 
@@ -136,6 +137,10 @@ export default class ApplicationsController {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
       }
+
+      // stamp who reviewed it and when, regardless of approve/reject
+      applicationObject.reviewedAt = DateTime.now()
+      applicationObject.reviewedBy = user.id
 
       await applicationObject.save()
       await LogService.record(user.id, 'application', applicationObject.id, action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED')
@@ -163,6 +168,10 @@ export default class ApplicationsController {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
       }
+
+      // stamp who reviewed it and when, regardless of approve/reject
+      applicationObject.reviewedAt = DateTime.now()
+      applicationObject.reviewedBy = user.id
 
       await applicationObject.save()
       await LogService.record(user.id, 'application', applicationObject.id, action === 'approve' ? 'LANDLORD_APPROVED' : 'LANDLORD_REJECTED')
