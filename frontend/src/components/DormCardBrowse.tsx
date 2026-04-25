@@ -8,10 +8,12 @@ export interface DormCardProps {
     name: string;
     subtitle?: string;
     meta?: string;
+    minPrice: number,
+    maxPrice: number,
     price: number;
     priceUnit?: string;
     chips?: string[];
-    rating?: number;
+    rating?: string;
     verified?: boolean;
     isSmall?: boolean;
     onView?: () => void;
@@ -24,6 +26,8 @@ export default function DormCard({
     name,
     subtitle,
     meta,
+    minPrice,
+    maxPrice,
     price,
     priceUnit = "/ month",
     chips = [],
@@ -96,7 +100,7 @@ export default function DormCard({
       
             <div className="flex items-baseline gap-[2px] mt-[3px]">
               <span className="text-[12px] font-bold" style={{ color: "#C9973A" }}>
-                ₱{price.toLocaleString()}
+                ₱{`${minPrice.toLocaleString()} - ${maxPrice.toLocaleString()}`}
               </span>
               <span className="text-[8px]" style={{ color: "#8A5060" }}>
                 {priceUnit}
@@ -238,7 +242,7 @@ export default function DormCard({
                             className="text-[18px] font-bold"
                             style={{ color: "#C9973A", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                         >
-                            ₱{price.toLocaleString()}
+                            ₱{`${minPrice.toLocaleString()} - ${maxPrice.toLocaleString()}`}
                         </span>
                         <span className="text-[10px]" style={{ color: "#8A5060" }}>
                             {priceUnit}

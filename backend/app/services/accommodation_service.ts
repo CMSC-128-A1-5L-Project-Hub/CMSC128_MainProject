@@ -7,6 +7,7 @@ export class AccommodationService {
       .where('status', 'verified')
       .preload('images')
       .preload('rooms')
+      .preload('reviews') // dinagdag ko to for student browse page
 
 
     // 2. Direct Accommodation Filters

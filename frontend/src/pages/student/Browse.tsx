@@ -6,104 +6,9 @@ import { Star } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
 import { api } from "../../api/axios"
 import { useQuery } from "@tanstack/react-query";
+import { number } from "framer-motion";
 
-type Dorm = {
-    name: string;
-    subtitle: string;
-    meta: string;
-    price: number;
-    priceUnit: string;
-    'featured chips': string[];
-    rating: number;
-}
 
-const MOCK_ACCOMMODATIONS: AccommodationPin[] = [
-    {
-        accommodationId: 1,
-        accommodationName: 'Sampaguita Dormitory',
-        accommodationLocation: 'Raymundo Ave, Los Baños, Laguna',
-        accommodationType: 'off-campus',
-        accommodationCapacity: 50,
-        tenantRestriction: 'female-only',
-        latitude: 14.1672,
-        longitude: 121.2430,
-        minRent: 2500,
-        maxRent: 4000,
-        walkingDistance: 3,
-        drivingDistance: 2,
-        bikingDistance: 2,
-        stayType: 'non_transient',
-        imageUrl: 'https://placehold.co/400x200?text=Sampaguita+Dorm',
-    },
-    {
-        accommodationId: 2,
-        accommodationName: 'Molave Residence Hall',
-        accommodationLocation: 'UPLB Campus, Los Baños, Laguna',
-        accommodationType: 'on-campus',
-        accommodationCapacity: 80,
-        tenantRestriction: 'male-only',
-        latitude: 14.1658,
-        longitude: 121.2418,
-        minRent: 2000,
-        maxRent: 3500,
-        walkingDistance: 5,
-        drivingDistance: 3,
-        bikingDistance: 3,
-        stayType: 'non_transient',
-        imageUrl: 'https://placehold.co/400x200?text=Molave+Hall',
-    },
-    {
-        accommodationId: 3,
-        accommodationName: 'Sunrise Boarding House',
-        accommodationLocation: 'Lopez Ave, Los Baños, Laguna',
-        accommodationType: 'off-campus',
-        accommodationCapacity: 20,
-        tenantRestriction: 'coed',
-        latitude: 14.1690,
-        longitude: 121.2455,
-        minRent: 3000,
-        maxRent: 5000,
-        walkingDistance: 10,
-        drivingDistance: 5,
-        bikingDistance: 6,
-        stayType: 'transient',
-        imageUrl: 'https://placehold.co/400x200?text=Sunrise+BH',
-    },
-    {
-        accommodationId: 4,
-        accommodationName: 'UPLB Partner Housing A',
-        accommodationLocation: 'Batong Malake, Los Baños, Laguna',
-        accommodationType: 'partner_housing',
-        accommodationCapacity: 30,
-        tenantRestriction: 'coed',
-        latitude: 14.1645,
-        longitude: 121.2400,
-        minRent: 1500,
-        maxRent: 2500,
-        walkingDistance: 15,
-        drivingDistance: 7,
-        bikingDistance: 8,
-        stayType: 'both',
-        imageUrl: 'https://placehold.co/400x200?text=Partner+Housing+A',
-    },
-    {
-        accommodationId: 5,
-        accommodationName: 'Kalikasan Suites',
-        accommodationLocation: 'Umali Subdivision, Los Baños, Laguna',
-        accommodationType: 'off-campus',
-        accommodationCapacity: 40,
-        tenantRestriction: 'female-only',
-        latitude: 14.1700,
-        longitude: 121.2390,
-        minRent: 4000,
-        maxRent: 7000,
-        walkingDistance: 20,
-        drivingDistance: 10,
-        bikingDistance: 12,
-        stayType: 'transient',
-        imageUrl: 'https://placehold.co/400x200?text=Kalikasan+Suites',
-    },
-]
 
 function SearchBar() {
     return <div className="w-full max-w-5xl mx-auto">
@@ -155,11 +60,10 @@ function Form() {
     if (!context) {
         throw new Error("FilterContext must be used within a Provider");
     }
-    const { dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType } = context
+    const { dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating } = context
 
     const [newFilter, setNewFilter] = useState("")
     const [modal, setModal] = useState(false);
-    const [starRating, setStarRating] = useState(3);
     const [toggled, setToggled] = useState(false);
 
 
@@ -592,6 +496,8 @@ type FilterContextType = {
     setMaxPrice: (value: number) => void;
     roomType: string;
     setRoomType: (value: string) => void;
+    starRating: number;
+    setStarRating: (value: number) => void;
 };
 
 export const filterContext = createContext<FilterContextType | undefined>(undefined);
@@ -604,6 +510,7 @@ export default function BrowsePage() {
     const [maxPrice, setMaxPrice] = useState(7000);
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
+    const [starRating, setStarRating] = useState(3);
     const navigate = useNavigate()
 
     const {
@@ -680,6 +587,17 @@ export default function BrowsePage() {
 
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([]);
 
+    type Dorm = {
+        name: string;
+        subtitle: string;
+        meta: string;
+        price: number;
+        priceUnit: string;
+        'featured chips': string[];
+        rating: string;
+        minPrice: number;
+        maxPrice: number;
+    }
 
     useEffect(() => {
         const tempAccommodations: AccommodationPin[] = [];
@@ -691,11 +609,13 @@ export default function BrowsePage() {
                 tempCounter++;
                 temp[tempCounter] = []
             }
-            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance, rooms } = accommodations[i]
+            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance, rooms, reviews } = accommodations[i]
             let minimum = -1;
             let maximum = -1;
 
             const roomTypes = new Set();
+            let rating = "6";
+
             rooms.forEach((element: { roomRent: Number; roomType: String }) => {
                 roomTypes.add(element.roomType)
                 let rent = Number(element.roomRent)
@@ -715,92 +635,57 @@ export default function BrowsePage() {
                     maximum = rent
                 }
             });
-            console.log(roomTypes, accommodationName)
-            if (dormType !== "All") {
-                if (accommodationType == dormType) {
-                    if (minimum >= minPrice && maximum <= maxPrice) {
-                        if (roomType !== "All" && roomTypes.has(roomType)) {
-                            tempAccommodations.push({
-                                accommodationId: id,
-                                accommodationName,
-                                accommodationLocation,
-                                accommodationType,
-                                accommodationCapacity,
-                                tenantRestriction,
-                                latitude,
-                                longitude,
-                                minRent: minimum,
-                                maxRent: maximum,
-                                walkingDistance,
-                                drivingDistance,
-                                bikingDistance,
-                            })
-                        }
-                        else {
-                            tempAccommodations.push({
-                                accommodationId: id,
-                                accommodationName,
-                                accommodationLocation,
-                                accommodationType,
-                                accommodationCapacity,
-                                tenantRestriction,
-                                latitude,
-                                longitude,
-                                minRent: minimum,
-                                maxRent: maximum,
-                                walkingDistance,
-                                drivingDistance,
-                                bikingDistance,
-                            })
-                        }
-                    }
+
+            reviews.forEach((element: { rating: Number }) => {
+                if (Number(element.rating) < Number(rating)) {
+                    let temp = Number(element.rating);
+                    rating = temp.toFixed(1)
                 }
+            })
+
+
+            temp[tempCounter].push({ name: accommodationName, subtitle: accommodationLocation, meta: accommodationType, price: 3200, minPrice: minimum, maxPrice: maximum, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: rating })
+
+            if (Number(rating) < starRating) {
+                continue
             }
-            else {
-                if (minimum >= minPrice && maximum <= maxPrice) {
-                    console.log("dito", roomType, roomTypes.has(roomType), accommodationName)
-                    if (roomType === "All") {
-                        tempAccommodations.push({
-                            accommodationId: id,
-                            accommodationName,
-                            accommodationLocation,
-                            accommodationType,
-                            accommodationCapacity,
-                            tenantRestriction,
-                            latitude,
-                            longitude,
-                            minRent: minimum,
-                            maxRent: maximum,
-                            walkingDistance,
-                            drivingDistance,
-                            bikingDistance,
-                        })
-                    }
-                    else if (roomTypes.has(roomType)){
-                        tempAccommodations.push({
-                            accommodationId: id,
-                            accommodationName,
-                            accommodationLocation,
-                            accommodationType,
-                            accommodationCapacity,
-                            tenantRestriction,
-                            latitude,
-                            longitude,
-                            minRent: minimum,
-                            maxRent: maximum,
-                            walkingDistance,
-                            drivingDistance,
-                            bikingDistance,
-                        })
-                    }
-                }
+
+            if (minimum < minPrice || maximum > maxPrice) {
+                continue
             }
-            temp[tempCounter].push({ name: accommodationName, subtitle: accommodationLocation, meta: accommodationType, price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 })
-            console.log("boom", minimum, maximum, accommodationName)
+
+            if (dormType !== "All" && accommodationType !== dormType) {
+                continue
+            }
+
+            if (roomType !== "All" && !(roomTypes.has(roomType))) {
+                continue
+            }
+
+            tempAccommodations.push({
+                accommodationId: id,
+                accommodationName,
+                accommodationLocation,
+                accommodationType,
+                accommodationCapacity,
+                tenantRestriction,
+                latitude,
+                longitude,
+                minRent: minimum,
+                maxRent: maximum,
+                walkingDistance,
+                drivingDistance,
+                bikingDistance,
+                rating,
+                price: 500,
+                maxPrice: maximum,
+                minPrice: minimum
+            })
+            
         }
         setDorms(temp)
         setMapAccommodations(tempAccommodations)
-    }, [accommodations, dormType, minPrice, maxPrice, roomType]);
+    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating]);
 
 
     const [pageNumber, setPageNumber] = useState(0);
@@ -857,7 +742,7 @@ export default function BrowsePage() {
     }, []);
 
     return <>
-        <filterContext.Provider value={{ dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType }}>
+        <filterContext.Provider value={{ dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating }}>
             <div className="flex w-full min-h-screen bg-[#F5EEF0]">
                 <div className="relative z-[9999]">
                     <Sidebar role="student" />

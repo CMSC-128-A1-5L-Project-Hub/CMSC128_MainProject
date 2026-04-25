@@ -24,6 +24,10 @@ export interface AccommodationPin {
     bikingDistance: number // in minutes
     stayType?: 'transient' | 'non_transient' | 'both'
     imageUrl?: string
+    rating?: string
+    price: number
+    minPrice: number
+    maxPrice: number
 }
 
 type TravelMode = 'walking' | 'driving' | 'cycling'
@@ -57,7 +61,7 @@ export default function AccommodationMap({
     const [routeGeoJSON, setRouteGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null) // Stores the route from MapBox 
     const [loadingRoute, setLoadingRoute] = useState(false) // Checks is we are loading a route
 
-    const dormValues = { subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 }
+    const dormValues = { subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: "4.9" }
     // Center on specific accommodation if provided, otherwise center on UPLB area
     const initialView = centeredAccommodation
         ? { longitude: centeredAccommodation.longitude, latitude: centeredAccommodation.latitude, zoom: 16, pitch: 45, bearing: 0 }
@@ -213,7 +217,7 @@ export default function AccommodationMap({
                                 <div className="relative flex items-center gap-1 z-10">
                                     <Star size={12} fill="white" stroke="white" strokeWidth={1} />
                                     <div className="flex gap-1 items-center text-white">
-                                        <span className="text-sm font-bold tracking-tight">4.0</span>
+                                        <span className="text-sm font-bold tracking-tight">{acc.rating}</span>
                                         <span className="text-sm font-medium tracking-tight">{acc.accommodationName}</span>
                                     </div>
                                 </div>
@@ -257,7 +261,7 @@ export default function AccommodationMap({
                         </div> */}
 
                         <div className="w-full flex items-center justify-center">
-                            <DormCard {...{ ...dormValues, isSmall: true, name: selectedPin.accommodationName }} verified onView={() => { }} />
+                            <DormCard {...{...{name: selectedPin.accommodationName, subtitle: selectedPin.accommodationLocation, meta: selectedPin.accommodationType, price: selectedPin.price ?? 3200, minPrice: selectedPin.minPrice, maxPrice: selectedPin.maxPrice, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: selectedPin.rating }, ...{isSmall: true}}} verified onView={() => { }} />
                         </div>
 
                     </Popup>
