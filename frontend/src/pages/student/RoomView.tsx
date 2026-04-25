@@ -432,7 +432,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   })
 
   const accomLat = accommodation.latitude
-  const accomLng = accommodation.longitude 
+  const accomLang = accommodation.longitude 
 
   const handleSearch = (val: string) => {
     setSearchQuery(val)
@@ -476,6 +476,48 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
     setShowSuggestions(false) 
   }
 
+  //Data for modes:
+  const fetchModes = async (destLang: number, destLat: number) => {
+    setLoadingRoute(true)
+    setPreviewed(true) 
+
+    try {
+      const origin = `${accomLang},${accomLat}`
+      const destination = `${destLang},${destLat}`
+
+      const [driveRes, walkRes] = await Promise.all([
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),        
+      ])
+
+      const [driveData, walkData] = await Promise.all([driveRes.json(), walkRes.json()])
+
+      const newDurationData = {
+        Driving: driveData.routes?.[0] ? Math.round(driveData.routes[0].duration / 60) : null,
+        Walking: walkData.routes?.[0] ? Math.round(walkData.routes[0].duration / 60) : null,
+      }
+      setDurations(newDurationData)
+
+      const activeData = travelMode === `Driving` ? driveData : walkData
+
+      //actual path corrdinates
+      if (activeData.routes?.[0]) {
+        setRouteGeoJSON({
+          type: 'FeatureCollection',
+          features: [{
+            type: 'Feature',
+            geometry: activeData.routes[0].geometry, // the polyline path
+            properties: {},                           // required field, but we don't need any custom properties
+          }],
+        })
+      }
+    } catch(err) {
+      console.error('Route fetch failed:', err)
+    } finally {
+      setLoadingRoute(false)
+    }
+  }
+
 
   return (
     <div
@@ -489,7 +531,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
     >
       <Map
         initialViewState={{
-          longitude: accomLng,
+          longitude: accomLang,
           latitude: accomLat,
           zoom: 15,
           pitch: 40,
@@ -502,7 +544,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
         <NavigationControl position="top-right" />
 
         {/*Dorm r */}
-        <Marker longitude={accomLng} latitude={accomLat} anchor="bottom">
+        <Marker longitude={accomLang} latitude={accomLat} anchor="bottom">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div
               style={{
@@ -532,7 +574,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
         </Marker>
 
         {/* Destination*/}
-        <Marker longitude={accomLng} latitude={accomLat} anchor="bottom">
+        <Marker longitude={accomLang} latitude={accomLat} anchor="bottom">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div
               style={{
