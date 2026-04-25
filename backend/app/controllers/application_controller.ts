@@ -6,6 +6,7 @@ import Student from '#models/student'
 import LogService from '#services/log_service'
 import { inject } from '@adonisjs/core'
 import ApplicationService from '#services/application_service'
+import { withPrimaryImageUrl } from '#services/image_service';
 @inject()
 export default class ApplicationsController {
   
@@ -53,6 +54,7 @@ export default class ApplicationsController {
     // 1. Fetch all applications and preload all required nested relationships on 'accommodation'
     const applications = await Application.query()
       .where('studentNumber', student.studentNumber)
+      .preload('reviewer')
       .preload('accommodation', (accommodationQuery) => {
         // Preload rooms and their tags for rent calculation
         accommodationQuery.preload('rooms', (roomQuery) => {
@@ -203,6 +205,8 @@ export default class ApplicationsController {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
       }
+      applicationObject.reviewedAt = DateTime.now()
+      applicationObject.reviewedBy = user.id
 
       await applicationObject.save()
       await LogService.record(user.id, 'application', applicationObject.id, action === 'approve' ? 'LANDLORD_APPROVED' : 'LANDLORD_REJECTED')

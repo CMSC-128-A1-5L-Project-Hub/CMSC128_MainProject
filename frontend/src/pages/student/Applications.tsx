@@ -30,7 +30,12 @@ interface Application {
   applicationStatus: ApplicationStatus;
   durationOfStayDays: number;
   applicationDate: string;
-  updatedAt?: string;
+  reviewedAt?: string | null;     
+  reviewedBy?: number | null;     
+  reviewer?: {                    
+    fname: string;
+    lname: string;
+  } | null;
   estimatedMonthlyRent?: number | null;
   rejectionReason?: string | null; 
   accommodation: Accommodation;
@@ -200,7 +205,7 @@ export default function ApplicationsPage() {
                           </>
                         ) : (
                           <p className="text-sm font-medium text-gray-800">
-                            {app.updatedAt ? formatDate(app.updatedAt) : "—"}
+                            {app.reviewedAt ? formatDate(app.reviewedAt) : "—"}
                           </p>
                         )}
                       </div>
