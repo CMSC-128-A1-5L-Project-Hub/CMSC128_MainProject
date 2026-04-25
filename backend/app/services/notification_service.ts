@@ -246,6 +246,48 @@ export default class NotificationService {
     )
   }
 
+  // Add these methods to your existing NotificationService class
+
+  async sendApprovalWithTags(
+    user: User,
+    accommodationName: string,
+    matchedTags: string[],
+    unmatchedTags: string[]
+  ) {
+    const matchedHtml = matchedTags.length > 0
+      ? `<ul>${matchedTags.map(t => `<li>Match ${t}</li>`).join('')}</ul>`
+      : '<p>None of your preferred amenities were matched.</p>'
+    const unmatchedHtml = unmatchedTags.length > 0
+      ? `<ul>${unmatchedTags.map(t => `<li>Not Match ${t}</li>`).join('')}</ul>`
+      : '<p>All your preferred amenities are available.</p>'
+
+    await this.send(user.email, 'Your accommodation application has been approved!', `
+      <p>Hello ${user.fname},</p>
+      <p>Your application for <strong>${accommodationName}</strong> has been approved — a room matching your basic preferences has been found.</p>
+      <p><strong>Your preferred amenities:</strong></p>
+      ${matchedHtml}
+      <p><strong>Amenities that could not be met:</strong></p>
+      ${unmatchedHtml}
+      <p>Please log in and confirm your slot within 3 days, or it will be given to the next waitlisted student.</p>
+      <p>UBLE Housing</p>
+    `)
+  }
+
+  async sendTransientPaymentPending(
+    landlordUser: User,
+    roomNumber: string,
+    studentNumber: string,
+    checkIn: string,
+    checkOut: string
+  ) {
+    await this.send(landlordUser.email, 'New transient booking payment pending', `
+      <p>Hello ${landlordUser.fname},</p>
+      <p>A student (${studentNumber}) has booked room ${roomNumber} for ${checkIn} to ${checkOut}.</p>
+      <p>The payment proof is ready for verification. Please review and confirm or reject the booking.</p>
+      <p>UBLE Housing</p>
+    `)
+  }
+
   // ─── Accommodation Approved Email ─────────────────────────────────────────
   // Called when: admin approves a landlord's accommodation listing
   async sendAccommodationApprovedEmail(user: User, accommodationName: string) {

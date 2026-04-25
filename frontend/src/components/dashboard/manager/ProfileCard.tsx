@@ -2,12 +2,13 @@ import notif_icon from "../../../assets/icons/notif_icon.svg"
 import report_icon from "../../../assets/icons/report.svg"
 import default_pfp from "../../../assets/defaults/female-pfp.png"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import ReportModal from "../../ReportModal"
 import NotificationPanel, {
     MOCK_NOTIFICATIONS,
     type Notification,
 } from "../../NotificationPanel"
+
 
 type ProfileCardProps = {
     fullName: string
