@@ -10,6 +10,7 @@ export default class extends BaseSchema {
       table.string('accommodation_name', 50).notNullable().unique()
       table.string('accommodation_location', 150).notNullable()
       table.string('invited_manager_email').nullable() // tracks pending invite
+      table.integer('accommodation_size').nullable()
       table.decimal('longitude', 9, 6).nullable()
       table.decimal('latitude', 9, 6).nullable()
       table.integer('walking_distance').nullable()

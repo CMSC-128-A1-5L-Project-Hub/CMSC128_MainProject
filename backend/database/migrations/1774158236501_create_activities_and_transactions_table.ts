@@ -32,7 +32,7 @@ export default class extends BaseSchema {
       table.enum('application_stay_type', ['transient', 'non_transient']).notNullable()
       table.enum('application_status', ['pending', 'approved', 'rejected', 'cancelled', 'waitlisted', 'under_review']).notNullable()
       table.integer('duration_of_stay_days').notNullable()
-      table.string('rejection_reason', 500).nullable()
+      table.text('rejection_reason').nullable()
       table.timestamp('reviewed_at', { useTz: true }).nullable()
       table.integer('reviewed_by').unsigned().nullable().references('id').inTable('users').onDelete('SET NULL')
     })
