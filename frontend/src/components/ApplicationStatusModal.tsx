@@ -14,6 +14,7 @@ export interface Application {
   durationOfStayDays: number;
   applicationDate: string;
   estimatedMonthlyRent?: number | null;
+  rejectionReason?: string | null; 
   accommodation: {
     id: number;
     accommodationName: string;
@@ -262,11 +263,15 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
           </div>
         </div>
 
-        {/* Remarks */}
+        {/* Landlord Remarks */}
         <div>
           <p className="text-[10px] text-gray-400 uppercase font-bold mb-2">Landlord Remarks</p>
           <div className="bg-[#FCFAFA] border border-gray-100 rounded-xl p-3">
-            <p className="text-sm text-gray-400 italic">No remark by admin</p>
+            {application.applicationStatus === 'rejected' && application.rejectionReason ? (
+              <p className="text-sm text-red-600">{application.rejectionReason}</p>
+            ) : (
+              <p className="text-sm text-gray-400 italic">No remarks by admin</p>
+            )}
           </div>
         </div>
       </div>

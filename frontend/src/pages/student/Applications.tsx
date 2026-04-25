@@ -31,6 +31,7 @@ interface Application {
   durationOfStayDays: number;
   applicationDate: string;
   estimatedMonthlyRent?: number | null;
+  rejectionReason?: string | null; 
   accommodation: Accommodation;
 }
 
@@ -172,15 +173,21 @@ export default function ApplicationsPage() {
                           </p>
                         </div>
                       </div>
-
+ 
                       {/* 2. Date Applied */}
                       <div className="col-span-2">
                         <p className="text-sm font-medium text-gray-800">{formatDate(app.applicationDate)}</p>
                       </div>
 
-                      {/* 3. Remarks By Admin (Placeholder) */}
+                      {/* 3. Remarks By Admin */}
                       <div className="col-span-3 pr-4">
-                        <p className="text-sm text-gray-400 truncate">—</p>
+                        {app.applicationStatus === 'rejected' && app.rejectionReason ? (
+                          <p className="text-sm text-red-600 truncate" title={app.rejectionReason}>
+                            {app.rejectionReason}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-gray-400 truncate">—</p>
+                        )}
                       </div>
 
                       {/* 4. Reviewed On (Placeholder) */}
