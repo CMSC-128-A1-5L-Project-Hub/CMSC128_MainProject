@@ -7,6 +7,7 @@ import cashIcon from "../../assets/icons/cash.svg";
 import onlineIcon from "../../assets/icons/online.svg";
 import bankIcon from "../../assets/icons/bank.svg";
 import downloadIcon from "../../assets/icons/download.svg";
+import pdfIcon from "../../assets/icons/pdf_icon.svg";
 import HeroBanner from '../../components/dashboard/HeroBanner';
 import Button from '../../components/Button';
 
@@ -286,7 +287,7 @@ export default function BillingDashboard(){
                     
                     <div className='overflow-auto flex-1 min-h-0 mt-3 rounded-t-lg'>
                         <table className= {` ${bills.length === 0 ? "hidden" : "table-fixed w-full"} border-separate border-spacing-0`}>
-                            <thead className={`${bills.length === 0 ? "hidden" : 'sticky top-0 rounded-t-lg bg-white border-y-2 border-[#6B0F2B]/5'}`}>
+                            <thead className={`${bills.length === 0 ? "hidden" : 'sticky top-0 rounded-t-lg bg-white border-y-2 z-10 border-[#6B0F2B]/5'}`}>
                                 <tr className="text-[#9A7080] text-[12px] lg:text-xs tracking-widest font-bold">
                                     <th className='uppercase p-2 text-left whitespace-nowrap w-40 border-y-2 border-[#6B0F2B]/5'>bill name</th>
                                     <th className='uppercase p-2 text-left whitespace-nowrap w-44 border-y-2 border-[#6B0F2B]/5'>period</th>
@@ -302,9 +303,14 @@ export default function BillingDashboard(){
                                     style = {{ backgroundColor: (rowStyles[bill.status]?.bg ?? '#888')  + '0D',
                                         color: (rowStyles[bill.status]?.text ?? '#888'),
                                     }}>
-                                        <td className='px-2 py-2'>
-                                            <span className="block text-[13px] lg:text-sm font-semibold">Billing Statement</span>
-                                            <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">{bill.dateIssued.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}</span>
+                                        <td className='px-2 py-2 flex flex-row'>
+                                            <img className="w-9 h-9 p-0 rounded-xl" src={pdfIcon} alt="" />
+                                            <div className='flex flex-col ml-1 justify-center'>
+                                                <span className="block flex-row text-[13px] lg:text-sm font-semibold">
+                                                    Billing Statement
+                                                    </span>
+                                                <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">{bill.dateIssued.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}</span>
+                                            </div>
                                         </td>
                                         <td className='px-2 py-2'>
                                             <span className="block text-[12px] lg:text-[13px]">
@@ -331,20 +337,23 @@ export default function BillingDashboard(){
                                                 }}>{bill.status}</p>
                                             </div>
                                         </td>
-                                        <td className='px-2 py-2 text-[12px] flex flex-row gap-2 lg:text-[14px]'>
-                                            <Button 
-                                                variant="reddishPink"
-                                                size="sm"
-                                                fullWidth={false}
-                                                isLoading={false}
-                                                onClick={() => {setPayOpen(true); setSelectedBill(bill)}}
-                                                >
-                                                    {bill.status === "paid" ? "View" : "Pay Now"}
-                                            </Button>
-                                            <button 
-                                                className="text-white w-fit p-0 font-semibold text-[12px] lg:text-[15px] lg:border-1 py-1 px-4 lg:py-1.5 lg:px-5 bg-white border-[#6B0F2B]/50 rounded-[8.8px] flex flex-row justify-between">
-                                                    <img src={downloadIcon} alt="cash" className="w-[30px] h-[20px] p-0 mr-1 center-self" />    
-                                            </button>
+                                        <td className='px-2 py-2 text-[12px] lg:text-[14px]'>
+                                            <div className='flex flex-row gap-2 '>
+                                                <Button 
+                                                    variant="reddishPink"
+                                                    size="sm"
+                                                    fullWidth={false}
+                                                    isLoading={false}
+                                                    onClick={() => {setPayOpen(true); setSelectedBill(bill)}}
+                                                    >
+                                                        {bill.status === "paid" ? "View" : "Pay Now"}
+                                                </Button>
+                                                <button 
+                                                    className="text-white p-1 font-semibold text-[12px] lg:text-[15px] lg:border-1 items-center justify-center bg-white border-[#6B0F2B]/40 rounded-[8.8px] flex flex-row">
+                                                        <img src={downloadIcon} alt="cash" className="w-6 h-6 p-0 center-self opacity-50" />    
+                                                </button>
+                                            </div>
+                                            
                                         </td>
                                     </tr>
                                 ))}
@@ -416,8 +425,15 @@ export default function BillingDashboard(){
                                             <h1 className="font-bold text-[18px] text-white">₱{selectedBill.amount.toLocaleString()}</h1>
                                             <p className="text-white font-semibold text-opacity-55 text-[12px]">{selectedBill.dateIssued.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year:'numeric'})}</p>
                                         </div>
-                                        <button className="flex self-center w-10 h-10 flex-row text-[11px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25">
-                                            <img src={downloadIcon} alt="cash" className="w-[50px] h-[50px]" />
+                                        <button 
+                                        className="flex self-center transition-transform duration-150 hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-900 flex-row text-[13px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25">
+                                            <p>Download</p>
+                                            <svg 
+                                                className='w-5 h-5 ml-2 mr-0 fill-white'
+                                                viewBox="0 0 24 24" 
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path fillRule="evenodd" clipRule="evenodd" d="M8 10C8 7.79086 9.79086 6 12 6C14.2091 6 16 7.79086 16 10V11H17C18.933 11 20.5 12.567 20.5 14.5C20.5 16.433 18.933 18 17 18H16.9C16.3477 18 15.9 18.4477 15.9 19C15.9 19.5523 16.3477 20 16.9 20H17C20.0376 20 22.5 17.5376 22.5 14.5C22.5 11.7793 20.5245 9.51997 17.9296 9.07824C17.4862 6.20213 15.0003 4 12 4C8.99974 4 6.51381 6.20213 6.07036 9.07824C3.47551 9.51997 1.5 11.7793 1.5 14.5C1.5 17.5376 3.96243 20 7 20H7.1C7.65228 20 8.1 19.5523 8.1 19C8.1 18.4477 7.65228 18 7.1 18H7C5.067 18 3.5 16.433 3.5 14.5C3.5 12.567 5.067 11 7 11H8V10ZM13 11C13 10.4477 12.5523 10 12 10C11.4477 10 11 10.4477 11 11V16.5858L9.70711 15.2929C9.31658 14.9024 8.68342 14.9024 8.29289 15.2929C7.90237 15.6834 7.90237 16.3166 8.29289 16.7071L11.2929 19.7071C11.6834 20.0976 12.3166 20.0976 12.7071 19.7071L15.7071 16.7071C16.0976 16.3166 16.0976 15.6834 15.7071 15.2929C15.3166 14.9024 14.6834 14.9024 14.2929 15.2929L13 16.5858V11Z" />
+                                            </svg>  
                                         </button>
                                     </div>
                                     <div className="flex w-full flex-row justify-between border-2 border-opacity-10 border-[#6B0F2B] bg-[#FAF4F6] p-4 mt-4 rounded-xl shrink-0">
@@ -426,10 +442,10 @@ export default function BillingDashboard(){
                                             <h1 className="font-bold text-[18px] text-black">{selectedBill.endPeriod.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</h1>
                                             <p className="text-[#9A7080] font-semibold text-opacity-55 text-[12px]">2nd Semester</p>
                                         </div>
-                                        <div className='self-center capitalize bg-opacity-10 p-2 w-fit rounded-[50px] text-[13px] flex flex-row'
+                                        <div className='self-center capitalize bg-opacity-10 p-2 w-fit rounded-[50px] text-[13px] flex flex-row justify-center items-center'
                                             style = {{ backgroundColor: (statusStyles[selectedBill.status]?.bg ?? '#F0F0F0')  + '1A' }}
                                         >
-                                            <div className='p-1 w-1 h-1 mx-1.5 mt-1.5 lg:mt-1 rounded-[100px]'
+                                            <div className='w-2 h-2 m-1 rounded-[100px] '
                                                 style = {{ backgroundColor: statusStyles[selectedBill.status]?.dot ?? '#888' }}
                                             />
                                             <p 
@@ -442,19 +458,19 @@ export default function BillingDashboard(){
                                     <p className='uppercase font-bold text-[#6B4050] text-[13px] mt-2'>payment method</p>
                                     <div className='grid grid-cols-2 grid-rows-1 gap-2 mt-1.5 text-[14px]'>
                                         <button 
-                                            onClick={() => {setPaymentMethod("cash")}}
-                                            className={` ${paymentMethod === "cash" ? "border-[#9E2040]" : "border-opacity-30 border-[#C8B0B8]"} border-2 flex flex-row`}>
-                                                <img src={cashIcon} alt="cash" className="w-4 h-4" />
+                                            onClick={() => {paymentMethod === "cash" ? setPaymentMethod("") : setPaymentMethod("cash")}}
+                                            className={` ${paymentMethod === "cash" ? "border-[#9E2040]" : "border-opacity-30 border-[#C8B0B8]"} border-2 items-center py-2 px-3 flex flex-row transition-transform duration-150 hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-900 `}>
+                                                <img src={cashIcon} alt="cash" className="w-6 h-6 mr-2" />
                                                 <p>Cash</p>
                                         </button>
                                         <button 
-                                            onClick={() => {setPaymentMethod("online")}}
-                                            className={` ${paymentMethod === "online" ? "border-[#9E2040]" : "border-opacity-30 border-[#C8B0B8]"} border-2 flex flex-row`}>
-                                                <img src={onlineIcon} alt="cash" className="w-4 h-4" />
+                                            onClick={() => {paymentMethod === "online" ? setPaymentMethod("") : setPaymentMethod("online")}}
+                                            className={` ${paymentMethod === "online" ? "border-[#9E2040]" : "border-opacity-30 border-[#C8B0B8]"} border-2 items-center py-2 px-3 flex flex-row transition-transform duration-150 hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-900 `}>
+                                                <img src={onlineIcon} alt="cash" className="w-6 h-6 mr-2" />
                                                 <p>Online</p>
                                         </button>
                                     </div>
-                                    <p className={`uppercase font-bold text-[#6B4050] text-[13px] mt-2`}>amount of cash paid</p>
+                                    <p className={`uppercase font-bold text-[#6B4050] text-[13px] mt-2`}>amount paid</p>
                                     <input 
                                         value = {cashAmount}
                                         onChange={(e) => setCashAmount(Number(e.target.value))}
@@ -464,7 +480,7 @@ export default function BillingDashboard(){
                                         pattern="[0-9]*"
                                         placeholder='Input amount' />
                                     <p className={`${paymentMethod === "online" ? "" : "hidden"} uppercase font-bold text-[#6B4050] text-[13px] mt-2`}>upload receipts here</p>
-                                    <button className={` ${paymentMethod === "online" ? "" : "hidden"} flex flex-col border-dashed w-full h-30 border-2 border-[#C8B0B8] mt-2 items-center justify-center p-3`}>
+                                    <button className={` ${paymentMethod === "online" ? "" : "hidden"} flex flex-col border-dashed w-full h-30 border-2 border-[#C8B0B8] mt-2 items-center justify-center p-3 transition-transform duration-150 hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-900 `}>
                                         {/*placeholder icon*/}
                                         <img className="w-10 h-10 p-2 rounded-xl bg-[#F5ECF0]" src={downloadIcon} alt="" />
                                         <p className='text-[14px] text-[#1A0008] font-bold'>Upload Receipt</p>
@@ -516,7 +532,7 @@ export default function BillingDashboard(){
                         <div className='lg:hidden'>
                             <button
                                 onClick={() => setInfoOpen(true)}
-                                className='fixed bottom-6 right-6 z-[10001] w-10 h-10 rounded-full bg-[#6B0F2B] flex items-center justify-center shadow-lg'
+                                className='fixed bottom-6 right-6 z-[10001] w-10 h-10 rounded-full bg-[#6B0F2B] flex items-center justify-center shadow-lg transition-transform duration-150 hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-900 '
                             >
                                 <p className='sticky bottom-4 left-full text-white font-bold text-[14px]'>?</p>
                             </button>
