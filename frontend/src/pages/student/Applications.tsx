@@ -30,6 +30,8 @@ interface Application {
   applicationStatus: ApplicationStatus;
   durationOfStayDays: number;
   applicationDate: string;
+  estimatedMonthlyRent?: number | null;
+  rejectionReason?: string | null; 
   accommodation: Accommodation;
 }
 
@@ -70,7 +72,14 @@ const fetchApplications = async (): Promise<Application[]> => {
   const res = await fetch("/api/applications/my-applications");
   if (!res.ok) throw new Error("Failed to fetch applications");
   const body = await res.json();
-  return body.data ?? body;
+  const apps = body.data ?? body;
+
+  console.log("Raw API response:", apps);
+  // Map backend's roomRent to estimatedMonthlyRent
+  return apps.map((app: any) => ({
+    ...app,
+    estimatedMonthlyRent: app.estimatedMonthlyRent ?? null,  
+  }));
 };
 
 // ── Main Component ─────────────────────────────────────────────────────────
@@ -80,6 +89,8 @@ export default function ApplicationsPage() {
     queryFn: fetchApplications,
   });
   console.log("Browser log:", typeof window !== "undefined");
+
+  
 
   // --- NEW STATE ---
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
@@ -162,15 +173,21 @@ export default function ApplicationsPage() {
                           </p>
                         </div>
                       </div>
-
+ 
                       {/* 2. Date Applied */}
                       <div className="col-span-2">
                         <p className="text-sm font-medium text-gray-800">{formatDate(app.applicationDate)}</p>
                       </div>
 
-                      {/* 3. Remarks By Admin (Placeholder) */}
+                      {/* 3. Remarks By Admin */}
                       <div className="col-span-3 pr-4">
-                        <p className="text-sm text-gray-400 truncate">—</p>
+                        {app.applicationStatus === 'rejected' && app.rejectionReason ? (
+                          <p className="text-sm text-red-600 truncate" title={app.rejectionReason}>
+                            {app.rejectionReason}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-gray-400 truncate">—</p>
+                        )}
                       </div>
 
                       {/* 4. Reviewed On (Placeholder) */}

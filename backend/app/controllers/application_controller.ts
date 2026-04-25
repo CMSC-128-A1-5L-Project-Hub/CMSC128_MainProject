@@ -4,10 +4,13 @@ import Application from '#models/application'
 import Assignment from '#models/assignment'
 import Student from '#models/student'
 import LogService from '#services/log_service'
-import User from '#models/user'
-import { withPrimaryImageUrl } from '#services/image_service'
+import { inject } from '@adonisjs/core'
+import ApplicationService from '#services/application_service'
 
+@inject()
 export default class ApplicationsController {
+
+  constructor(protected applicationService: ApplicationService) {}
   
   // ─── 1. STUDENT: SUBMIT APPLICATION ───
   async store({ auth, request, response, serialize }: HttpContext) {    
@@ -41,33 +44,16 @@ export default class ApplicationsController {
   }
 
   // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
+  // — STUDENT: VIEW MY APPLICATIONS with estimated monthly rent —
   async index({ auth, response, serialize }: HttpContext) {
-    const user = auth.user
+    const user = auth.user;
+    if (!user) return response.unauthorized({ message: 'Unauthorized' });
 
-    if (!user) {
-      return response.unauthorized({ message: 'Unauthorized' })
-    }
+    const student = await Student.findByOrFail('userId', user.id);
 
-    const student = await Student.findByOrFail('userId', user.id)
+    const data = await this.applicationService.getFormattedApplications(student.studentNumber)
 
-    // preload images so withPrimaryImageUrl can resolve a B2 signed URL per accommodation
-    const applications = await Application.query()
-      .where('studentNumber', student.studentNumber)
-      .preload('accommodation', (q) => q.preload('images', (q2) => q2.preload('file')))
-      .orderBy('applicationDate', 'desc')
-
-    // attach a signed primaryImageUrl onto each application's accommodation
-    const data = await Promise.all(
-      applications.map(async (app) => {
-        const serialized = app.serialize() as any
-        if (app.accommodation) {
-          serialized.accommodation = await withPrimaryImageUrl(app.accommodation)
-        }
-        return serialized
-      })
-    )
-
-    return serialize(data)
+    return response.ok({ data })
   }
 
   // ─── 3. MANAGER/LANDLORD: VIEW INCOMING ───
