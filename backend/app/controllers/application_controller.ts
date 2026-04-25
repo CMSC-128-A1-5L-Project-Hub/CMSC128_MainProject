@@ -150,6 +150,8 @@ export default class ApplicationsController {
 
         applicationObject.applicationStatus = 'approved'
         applicationObject.rejectionReason = null
+        // Slot opens now: student has 7 days to confirm or it auto-expires
+        applicationObject.slotConfirmDeadline = DateTime.now().plus({ days: 7 })
       } else {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
@@ -185,6 +187,36 @@ export default class ApplicationsController {
     await app.save()
 
     await LogService.record(user.id, 'application', app.id, 'STUDENT_CANCELLED')
+    return serialize(app)
+  }
+
+  // ─── 6. STUDENT: CONFIRM SLOT ───
+  // After landlord approval, the student has until slotConfirmDeadline to claim
+  // the slot. Confirmation stamps slotConfirmedAt; un-claimed slots are later
+  // auto-cancelled by the scheduler so the next waitlisted applicant can be promoted.
+  async confirmSlot({ auth, params, response, serialize }: HttpContext) {
+    const user = auth.user!
+    const student = await Student.findByOrFail('userId', user.id)
+
+    const app = await Application.query()
+      .where('id', params.id)
+      .where('studentNumber', student.studentNumber)
+      .firstOrFail()
+
+    if (app.applicationStatus !== 'approved') {
+      return response.badRequest({ message: 'Only approved applications can be confirmed' })
+    }
+    if (app.slotConfirmedAt) {
+      return response.badRequest({ message: 'Slot already confirmed' })
+    }
+    if (app.slotConfirmDeadline && DateTime.now() > app.slotConfirmDeadline) {
+      return response.badRequest({ message: 'Slot confirmation deadline has passed' })
+    }
+
+    app.slotConfirmedAt = DateTime.now()
+    await app.save()
+
+    await LogService.record(user.id, 'application', app.id, 'STUDENT_CONFIRMED_SLOT')
     return serialize(app)
   }
 }

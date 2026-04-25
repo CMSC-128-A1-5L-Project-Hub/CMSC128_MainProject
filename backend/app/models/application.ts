@@ -41,6 +41,12 @@ export default class Application extends BaseModel {
   @column()
   declare reviewedBy: number | null
 
+  @column.dateTime()
+  declare slotConfirmedAt: DateTime | null
+
+  @column.dateTime()
+  declare slotConfirmDeadline: DateTime | null
+
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 

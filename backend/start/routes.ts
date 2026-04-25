@@ -67,6 +67,7 @@ router
         router.post('/applications', [controllers.Application, 'store'])
         router.get('/applications/my-applications', [controllers.Application, 'index'])
         router.patch('/applications/:id', [controllers.Application, 'cancel'])
+        router.post('/applications/:id/confirm', [controllers.Application, 'confirmSlot'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
         router.get('/student/profile', [controllers.StudentProfiles, 'show'])
