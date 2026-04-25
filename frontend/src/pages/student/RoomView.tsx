@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
@@ -332,9 +332,6 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
   const tenantRestriction = [...new Set(accommodation.rooms.map((r) => r.tenant_restriction))];
   const stayTypes = [...new Set(accommodation.rooms.map((r) => r.room_stay_type))];
   const arrangements = [...new Set(accommodation.rooms.map((r) => r.room_type))];
-  const matchedRoom = accommodation.rooms.find(
-    (r) => r.room_stay_type === selectedStayType && r.room_type === selectedArrangement
-  );
 
   return (
     <div className="space-y-5 mt-14">
@@ -379,7 +376,7 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
   );
 }
 
-type TravelMode = 'driving' | 'walking'
+type TravelMode = 'Driving' | 'Walking'
 
 const routeLayerStyle = (mode: TravelMode): LayerProps => ({
   id: 'route',
@@ -407,10 +404,78 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   // only keep destination selector (optional)
   const [destIndex, setDestIndex] = useState(0)
 
+  //capture travel mode
+  const [travelMode, setTravelMode] = useState<TravelMode>('Driving')
+  //capture direction
+  const [routeGeoJSON, setRouteGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null)
+
+  const [loadingRoute, setLoadingRoute] = useState(false)
+
+  const [previewed, setPreviewed] = useState(false)
+  //Raw text for user to find a specific location
+  const [searchQuery, setSearchQuery] = useState('')
+  //Place suggestions
+  const [suggestions, setSuggestions] = useState<{ label: string; lat: number; lng: number }[]>([])
+  //The actual destination the user sets.
+  const [selectedDest, setSelectedDest] = useState<{ label: String; lat: number; lng: number} | null >(null)
+
+  //Show suggestion bar
+  const [showSuggestions, setShowSuggestions] = useState(false)
+
+  //Loading
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const [durations, setDurations] = useState<{ Driving: number | null; Walking: number | null}>({
+    Driving: null,
+    Walking: null,
+  })
+
   const accomLat = accommodation.latitude
   const accomLng = accommodation.longitude 
 
-  const selectedDest = DESTINATIONS[destIndex]
+  const handleSearch = (val: string) => {
+    setSearchQuery(val)
+
+    setSelectedDest(null)
+
+    setRouteGeoJSON(null)
+    setDurations({ Driving: null, Walking: null })
+
+    if (searchTimeout.current) clearTimeout(searchTimeout.current)
+
+    //Debounce - 
+    searchTimeout.current = setTimeout(async () => {
+      setLoadingSuggestions(true)
+      try {
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(val)}.json?access_token=${MAPBOX_TOKEN}&autocomplete=true&limit=5&proximity=121.2436,14.1654`
+
+        const res = await fetch(url)
+        const data = await res.json()
+
+        const results = (data.features ?? []).map((f: any) => ({
+          label: f.place_name,
+          lng: f.center[0],
+          lat: f.center[1],
+        }))
+
+        setSuggestions(results)
+        setShowSuggestions(true)
+      } catch {
+        setSuggestions([])
+      } finally {
+        setLoadingSuggestions(false)
+      }
+    }, 350)
+  }
+
+  const selectSuggestion = (s: {label: string; lat: number; lng: number}) => {
+    setSelectedDest(s)  
+    setSearchQuery(s.label) 
+    setSuggestions([]) 
+    setShowSuggestions(false) 
+  }
+
 
   return (
     <div
@@ -467,7 +532,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
         </Marker>
 
         {/* Destination*/}
-        <Marker longitude={selectedDest.lng} latitude={selectedDest.lat} anchor="bottom">
+        <Marker longitude={accomLng} latitude={accomLat} anchor="bottom">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div
               style={{
