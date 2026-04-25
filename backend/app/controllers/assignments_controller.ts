@@ -6,6 +6,7 @@ import Accommodation from '#models/accommodation'
 import Application from '#models/application'
 import LogService from '#services/log_service'
 import { DateTime } from 'luxon'
+import { inject } from '@adonisjs/core'
 
 @inject()
 export default class AssignmentsController {
