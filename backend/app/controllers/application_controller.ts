@@ -6,11 +6,9 @@ import Student from '#models/student'
 import LogService from '#services/log_service'
 import { inject } from '@adonisjs/core'
 import ApplicationService from '#services/application_service'
-
+import { withPrimaryImageUrl } from '#services/image_service';
 @inject()
 export default class ApplicationsController {
-
-  constructor(protected applicationService: ApplicationService) {}
   
   // ─── 1. STUDENT: SUBMIT APPLICATION ───
   async store({ auth, request, response, serialize }: HttpContext) {    
@@ -44,16 +42,73 @@ export default class ApplicationsController {
   }
 
   // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
-  // — STUDENT: VIEW MY APPLICATIONS with estimated monthly rent —
-  async index({ auth, response, serialize }: HttpContext) {
+  async index({ auth, response }: HttpContext) {
     const user = auth.user;
-    if (!user) return response.unauthorized({ message: 'Unauthorized' });
+
+    if (!user) {
+      return response.unauthorized({ message: 'Unauthorized' });
+    }
 
     const student = await Student.findByOrFail('userId', user.id);
 
-    const data = await this.applicationService.getFormattedApplications(student.studentNumber)
+    // 1. Fetch all applications and preload all required nested relationships on 'accommodation'
+    const applications = await Application.query()
+      .where('studentNumber', student.studentNumber)
+      .preload('reviewer')
+      .preload('accommodation', (accommodationQuery) => {
+        // Preload rooms and their tags for rent calculation
+        accommodationQuery.preload('rooms', (roomQuery) => {
+          roomQuery.preload('tags');
+        });
+        // Preload images and their files for the signed URL
+        accommodationQuery.preload('images', (imageQuery) => {
+          imageQuery.preload('file');
+        });
+      })
+      .orderBy('applicationDate', 'desc');
 
-    return response.ok({ data })
+    // 2. Process applications to compute rent, attach signed URLs, and serialize
+    const data = await Promise.all(
+      applications.map(async (app) => {
+        // --- A. Compute Estimated Rent ---
+        const accommodationRooms = app.accommodation?.rooms ?? [];
+        const preferredTags: string[] = (app as any).preferredTags ?? [];
+
+        const matchingRooms = accommodationRooms.filter((room) => {
+          if (room.roomType !== app.applicationRoomType) return false;
+          if (room.roomStayType !== app.applicationStayType) return false;
+
+          if (preferredTags.length > 0) {
+            const roomTagNames = room.tags?.map((t) => t.tagDetail) ?? [];
+            if (!preferredTags.every((tag) => roomTagNames.includes(tag))) return false;
+          }
+          return true;
+        });
+
+        const estimatedRent = matchingRooms.length > 0
+          ? Math.min(...matchingRooms.map((r) => r.roomRent))
+          : null;
+
+        // --- B. Serialize Model to Plain JSON Object ---
+        const serializedApp = app.serialize() as any;
+
+        // --- C. Attach Custom Properties ---
+        serializedApp.estimatedMonthlyRent = estimatedRent;
+
+        if (app.accommodation) {
+          // Resolve B2 signed URL and attach it to the serialized accommodation object
+          serializedApp.accommodation = await withPrimaryImageUrl(app.accommodation);
+        }
+
+        return serializedApp;
+      })
+    );
+
+    // Optional: Log to verify the output before returning
+    console.log('Merged serialized apps:', data.map(a => ({ id: a.id, estimatedMonthlyRent: a.estimatedMonthlyRent })));
+
+    // Return the fully populated and serialized array
+    return data;
   }
 
   // ─── 3. MANAGER/LANDLORD: VIEW INCOMING ───
@@ -99,7 +154,7 @@ export default class ApplicationsController {
     }
 
     const applicationObject = await Application.query()
-      .where('id', params.id)
+      .where('applicationId', params.id)
       .preload('accommodation')
       .firstOrFail()
 
@@ -123,10 +178,6 @@ export default class ApplicationsController {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
       }
-
-      // stamp who reviewed it and when, regardless of approve/reject
-      applicationObject.reviewedAt = DateTime.now()
-      applicationObject.reviewedBy = user.id
 
       await applicationObject.save()
       await LogService.record(user.id, 'application', applicationObject.id, action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED')
@@ -156,8 +207,6 @@ export default class ApplicationsController {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
       }
-
-      // stamp who reviewed it and when, regardless of approve/reject
       applicationObject.reviewedAt = DateTime.now()
       applicationObject.reviewedBy = user.id
 

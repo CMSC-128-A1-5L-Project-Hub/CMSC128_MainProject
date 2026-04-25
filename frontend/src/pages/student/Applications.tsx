@@ -19,6 +19,7 @@ interface Accommodation {
   accommodationName: string;
   accommodationLocation: string;
   accommodationType: string;
+  primaryImageUrl?: string;
 }
 
 interface Application {
@@ -30,6 +31,12 @@ interface Application {
   applicationStatus: ApplicationStatus;
   durationOfStayDays: number;
   applicationDate: string;
+  reviewedAt?: string | null;     
+  reviewedBy?: number | null;     
+  reviewer?: {                    
+    fname: string;
+    lname: string;
+  } | null;
   estimatedMonthlyRent?: number | null;
   rejectionReason?: string | null; 
   accommodation: Accommodation;
@@ -190,10 +197,18 @@ export default function ApplicationsPage() {
                         )}
                       </div>
 
-                      {/* 4. Reviewed On (Placeholder) */}
+                      {/* 4. Reviewed On */}
                       <div className="col-span-2">
-                        <p className="text-sm text-gray-400">—</p>
-                        <p className="text-[11px] text-gray-400">Not yet reviewed</p>
+                        {app.applicationStatus === "pending" || app.applicationStatus === "cancelled" ? (
+                          <>
+                            <p className="text-sm text-gray-400">—</p>
+                            <p className="text-[11px] text-gray-400">Not yet reviewed</p>
+                          </>
+                        ) : (
+                          <p className="text-sm font-medium text-gray-800">
+                            {app.reviewedAt ? formatDate(app.reviewedAt) : "—"}
+                          </p>
+                        )}
                       </div>
 
                       {/* 5. Status */}
