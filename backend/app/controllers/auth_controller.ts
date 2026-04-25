@@ -4,6 +4,7 @@ import ProvisioningService from '#services/provisioning_service'
 import NotificationService from '#services/notification_service'
 import LogService from '#services/log_service'
 import User from '#models/user'
+import { signFileUrl } from '#services/image_service'
 
 @inject()
 export default class AuthController {
@@ -65,7 +66,7 @@ export default class AuthController {
       .firstOrFail()
 
     const serialized = user.serialize()
-    serialized.profilePictureUrl = user.profilePicture?.filePath ?? null
+    serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
 
     return serialize(serialized)
   }
@@ -113,7 +114,7 @@ export default class AuthController {
     await user.load('profilePicture')
 
     const serialized = user.serialize()
-    serialized.profilePictureUrl = user.profilePicture?.filePath ?? null
+    serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
 
     return serialize(serialized)
   }

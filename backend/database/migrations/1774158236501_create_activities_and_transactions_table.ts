@@ -32,6 +32,11 @@ export default class extends BaseSchema {
       table.enum('application_stay_type', ['transient', 'non_transient']).notNullable()
       table.enum('application_status', ['pending', 'approved', 'rejected', 'cancelled', 'waitlisted', 'under_review']).notNullable()
       table.integer('duration_of_stay_days').notNullable()
+      table.text('rejection_reason').nullable()
+      table.timestamp('reviewed_at', { useTz: true }).nullable()
+      table.integer('reviewed_by').unsigned().nullable().references('id').inTable('users').onDelete('SET NULL')
+      table.timestamp('slot_confirmed_at', { useTz: true }).nullable()
+      table.timestamp('slot_confirm_deadline', { useTz: true }).nullable()
     })
 
     this.schema.createTable('assignments', (table) => {

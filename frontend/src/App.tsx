@@ -31,6 +31,8 @@ import PendingVerification from "./pages/shared/PendingVerification"
 import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
 import Waitlist from "./pages/manager/Waitlist"
 import MoveinMoveout from "./pages/manager/MoveinMoveout"
+import ApplicationsScreen from "./pages/manager/ApplicationsPage"
+import ManagerProfile from "./pages/manager/Profile"
 
 function FullLandingPage() {
   return (
@@ -62,7 +64,6 @@ function App() {
         <Route path="/auth/signup/form" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
         <Route path="/auth/signup/:role" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
         <Route path="/pending-verification" element={<ProtectedRoute><PendingVerification/></ProtectedRoute>}/>
-        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
         {/* ── Student routes ── */}
         <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
@@ -79,16 +80,17 @@ function App() {
         <Route path="/browse" element={<BrowsePage />} />
 
         <Route path="/student/dashboard" element={<StudentDashboard/>}/>
+        <Route path="/student/applications" element={<ProtectedRoute><StudentApplicationsPage /></ProtectedRoute>} />
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
         <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
         <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
         <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
-        <Route path="/manager/applications" element={<ProtectedRoute><ManagerApplicationsPage /></ProtectedRoute>}/>
         <Route path="/manager/movein-moveout" element={<ProtectedRoute><MoveinMoveout /></ProtectedRoute>}/>
         <Route path="/browse" element={<BrowsePage />} />
-
+        <Route path="/manager/application" element={<ProtectedRoute><ManagerApplicationsPage /></ProtectedRoute>}/>
+        <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
 
         {/* ── Landlord routes ── */}
         <Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />

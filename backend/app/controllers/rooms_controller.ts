@@ -44,10 +44,15 @@ export default class RoomsController {
       })
     } catch (error) {
 
-      if (error.message === 'CAPACITY_TOO_LOW') {
-        return response.badRequest({ message: 'Capacity cannot be lower than current occupancy.' })
+      if (error instanceof Error) {
+        if (error.message === 'CAPACITY_TOO_LOW') {
+          return response.badRequest({
+            message: 'Capacity cannot be lower than current occupancy.'
+          })
+        }
       }
-      throw error // Let Adonis handle 404s and validation errors
+
+      throw error // let Adonis handle others
     }
   }
 
@@ -59,9 +64,14 @@ export default class RoomsController {
       return serialize({ message: 'Room deleted successfully.' })
     } catch (error) {
 
-      if (error.message === 'ROOM_OCCUPIED') {
-        return response.badRequest({ message: 'Cannot delete a room that currently has tenants.' })
+      if (error instanceof Error) {
+        if (error.message === 'ROOM_OCCUPIED') {
+          return response.badRequest({
+            message: 'Cannot delete a room that currently has tenants.'
+          })
+        }
       }
+
       throw error
     }
   }

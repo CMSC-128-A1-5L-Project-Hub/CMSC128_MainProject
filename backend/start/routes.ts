@@ -67,6 +67,7 @@ router
         router.post('/applications', [controllers.Application, 'store'])
         router.get('/applications/my-applications', [controllers.Application, 'index'])
         router.patch('/applications/:id', [controllers.Application, 'cancel'])
+        router.post('/applications/:id/confirm', [controllers.Application, 'confirmSlot'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
         router.get('/student/profile', [controllers.StudentProfiles, 'show'])
@@ -75,6 +76,7 @@ router
         router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
         router.get('/my-bookmarks', [controllers.Bookmark, 'index'])
         router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
+        router.get('/recommended-accommodations', [controllers.Accommodation, 'recommended'])
 
         // Fees & Payments
         router.get('/my-fees', [controllers.Fees, 'index'])
@@ -170,6 +172,14 @@ router
         router.patch('/admin/accommodations/:id/verify', [controllers.AdminAccommodations, 'verify'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
+
+      /// ====================================================================
+      // ─── MANAGER ───
+      // ====================================================================
+
+      router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
+      router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
+      router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
   })
   .use(middleware.auth())
 
