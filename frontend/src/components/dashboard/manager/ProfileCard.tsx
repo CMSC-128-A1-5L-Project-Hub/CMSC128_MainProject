@@ -4,10 +4,7 @@ import default_pfp from "../../../assets/defaults/female-pfp.png"
 
 import { useState, useRef, useEffect } from "react"
 import ReportModal from "../../ReportModal"
-import NotificationPanel, {
-    MOCK_NOTIFICATIONS,
-    type Notification,
-} from "../../NotificationPanel"
+import NotificationPanel from "../../NotificationPanel"
 
 
 type ProfileCardProps = {
@@ -41,15 +38,10 @@ export default function ProfileCard({
     //Report state
     const [reportOpen, setReportOpen] = useState(false)
 
-    //Notif state
-    const [notifOpen, setNotifOpen]         = useState(false)
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
-    const notifWrapperRef                   = useRef<HTMLDivElement>(null)
-
-    const unreadCount = notifications.filter((n) => !n.read).length
-    const markAllRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-    const markOneRead = (id: number) =>
-        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+    // Notification panel state
+    const [notifOpen, setNotifOpen] = useState(false)
+    const notifWrapperRef = useRef<HTMLDivElement>(null)
+    const [unreadCount, setUnreadCount] = useState(0)   // from panel callback
 
     return (
         <>
@@ -107,12 +99,9 @@ export default function ProfileCard({
 
                                 <NotificationPanel
                                     open={notifOpen}
-                                    notifications={notifications}
-                                    unreadCount={unreadCount}
-                                    onMarkAllRead={markAllRead}
-                                    onMarkOneRead={markOneRead}
                                     onClose={() => setNotifOpen(false)}
                                     wrapperRef={notifWrapperRef}
+                                    onUnreadCountChange={setUnreadCount}
                                 />
                             </div>
                         </div>

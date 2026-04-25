@@ -82,6 +82,7 @@ router
         router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
         router.get('/my-bookmarks', [controllers.Bookmark, 'index'])
         router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
+        router.get('/recommended-accommodations', [controllers.Accommodation, 'recommended'])
 
         // Fees & Payments
         router.get('/my-fees', [controllers.Fees, 'index'])
@@ -196,6 +197,14 @@ router
         router.patch('/admin/accommodations/:id/verify', [controllers.AdminAccommodations, 'verify'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
+
+      /// ====================================================================
+      // ─── MANAGER ───
+      // ====================================================================
+
+      router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
+      router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
+      router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
   })
   .use(middleware.auth())
 

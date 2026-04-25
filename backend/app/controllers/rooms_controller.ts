@@ -48,6 +48,7 @@ export default class RoomsController {
       if (error.message === 'ROOM_OCCUPIED') {
         return response.badRequest({ message: 'Cannot delete a room that has tenants.' })
       }
+
       throw error
     }
   }
