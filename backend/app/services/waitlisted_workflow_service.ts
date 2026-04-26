@@ -1,7 +1,6 @@
 import Application from "#models/application";
 import Room from "#models/room";
-import app from "@adonisjs/core/services/app";
-import NotificationService from "./notification_service";
+import NotificationService from "./notification_service.ts";
 import { inject } from '@adonisjs/core'
 
 @inject()
@@ -15,14 +14,14 @@ export default class WaitlistWorkflowService {
     // 2. Sets status to 'waitlisted' (no room available)
     async processApproval(applicationId: number){
         const application = await Application.query()
-            .where('application_id', applicationId)
+            .where('id', applicationId)
             .preload('student', (q) => q.preload('user'))
             .preload('accommodation')
             .firstOrFail()
 
         // Check if there's an available room mathcing the student's preferred room type
         const availableRoom = await Room.query()
-            .where('accomomodation_id', application.accommodationId)
+            .where('accommodation_id', application.accommodationId)
             .where('room_type', application.applicationRoomType)
             .where('room_stay_type', application.applicationStayType)
             .where('room_availability', 'available')
@@ -60,7 +59,7 @@ export default class WaitlistWorkflowService {
     // Cancels the application and promotes the next waitlisted student
     async processSlotExpiry(applicationId: number){
         const application = await Application.query()
-            .where('application_id', applicationId)
+            .where('id', applicationId)
             .preload('student', (q) => q.preload('user'))
             .preload('accommodation')
             .firstOrFail()
@@ -87,7 +86,7 @@ export default class WaitlistWorkflowService {
 
     async processWaitlistCancellation(applicationId: number){
         const application = await Application.query()
-            .where('application_id', applicationId)
+            .where('id', applicationId)
             .preload('student', (q) => q.preload('user'))
             .preload('accommodation')
             .firstOrFail()

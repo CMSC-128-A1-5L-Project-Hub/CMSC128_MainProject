@@ -21,13 +21,16 @@ import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import BillingDashboard from "./pages/student/BillingDashboard"
 import LandlordDashboard from "./pages/landlord/Dashboard"
 import NotificationsPage from "./pages/shared/Notifications"
-import ApplicationsPage from "./pages/student/Applications"
+import StudentApplicationsPage from "./pages/student/Applications"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
 import FullRoomView from "./pages/student/FullRoomView"
 import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
+import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
+import Waitlist from "./pages/manager/Waitlist"
+import MoveinMoveout from "./pages/manager/MoveinMoveout"
 import ApplicationsScreen from "./pages/manager/ApplicationsPage"
 import ManagerProfile from "./pages/manager/Profile"
 
@@ -67,14 +70,16 @@ function App() {
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
-        <Route path="/student/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
+        <Route path="/student/applications" element={<ProtectedRoute><StudentApplicationsPage /></ProtectedRoute>} />
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
         <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
         <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
-        <Route path="/manager/application" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>}/>
+        <Route path="/manager/movein-moveout" element={<ProtectedRoute><MoveinMoveout /></ProtectedRoute>}/>
+        <Route path="/manager/applications" element={<ProtectedRoute><ManagerApplicationsPage /></ProtectedRoute>}/>
         <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
+        <Route path="/manager/waitlist" element={<ProtectedRoute><Waitlist /></ProtectedRoute>} />
 
         {/* ── Landlord routes ── */}
         <Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />

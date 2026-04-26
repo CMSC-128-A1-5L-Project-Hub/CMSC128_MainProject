@@ -4,6 +4,7 @@ import ProvisioningService from '#services/provisioning_service'
 import NotificationService from '#services/notification_service'
 import LogService from '#services/log_service'
 import User from '#models/user'
+import { signFileUrl } from '#services/image_service'
 
 @inject()
 export default class AuthController {
@@ -57,15 +58,30 @@ export default class AuthController {
 
   // ─── GET /me ──────────────────────────────────────────────────────────────
   async me({ auth, serialize }: HttpContext) {
-    const user = await User.query()
-      .where('id', auth.user!.id)
+    const userId = auth.user!.id
+    const role = auth.user!.role
+
+    const query = User.query()
+      .where('id', userId)
       .preload('student')
       .preload('phoneNumbers')
       .preload('profilePicture')
-      .firstOrFail()
+
+    // Conditionally preload Manager and Accommodations if the role matches
+    if (role === 'manager') {
+      query.preload('manager', (managerQuery) => {
+        managerQuery.preload('accommodations')
+      })
+    }
+
+    const user = await query.firstOrFail()
 
     const serialized = user.serialize()
-    serialized.profilePictureUrl = user.profilePicture?.filePath ?? null
+
+    // Add the signed URL for the profile picture
+    if (user.profilePicture) {
+      serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
+    }
 
     return serialize(serialized)
   }
@@ -113,7 +129,7 @@ export default class AuthController {
     await user.load('profilePicture')
 
     const serialized = user.serialize()
-    serialized.profilePictureUrl = user.profilePicture?.filePath ?? null
+    serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
 
     return serialize(serialized)
   }
