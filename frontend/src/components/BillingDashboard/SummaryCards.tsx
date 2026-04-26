@@ -14,6 +14,5 @@ export default function SummaryCards({label, value, color, sub} : SummaryCardsPr
                 >₱{value.toLocaleString()}</p>
             <p className="text-[#9A7080] text-[13.5px]">{sub}</p>
         </div>
-
     )
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Application } from "../../pages/student/ApplicationStatus";
 import StylizedStatus from "../BillingDashboard/StylizedStatus";
 import Modal from "../Modal";
+import ApprovalProgress from "./ApprovalProgress";
 
 interface ApplicationModalProps {
     application: Application;
@@ -29,7 +30,7 @@ export default function ApplicationModal({ application, onClose, onSubmit }: App
                 <div className='flex flex-row p-0 justify-between'>
                     <div className='flex flex-col w-52'>
                         <p className="text-[14px] font-bold">{application.accommodation.accommodationName}</p>
-                        <p className="text-[11px] text-[#9A7080]">
+                        <p className="text-[11px] text-[#9A7080] capitalize">
                             {application.applicationRoomType} • {application.accommodation.accommodationLocation}
                         </p>
                         <p className="text-[11px] text-[#9A7080]">
@@ -44,7 +45,9 @@ export default function ApplicationModal({ application, onClose, onSubmit }: App
                         <p className='text-[#9A7080] text-[12px] -mt-1'>{application.durationOfStayDays} days</p>
                     </div>
                 </div>
-
+                <ApprovalProgress
+                    app = {application}>    
+                </ApprovalProgress>
                 <p className='uppercase pt-3 pb-1 font-bold text-[12px] text-[#9A7080]'>application information</p>
                 <div className='w-full grid grid-cols-2 lg:grid-cols-3 gap-y-2'>
                     <div className='flex flex-col'>
