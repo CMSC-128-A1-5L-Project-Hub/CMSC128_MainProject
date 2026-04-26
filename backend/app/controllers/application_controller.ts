@@ -297,7 +297,7 @@ export default class ApplicationsController {
   }
 
   // MANAGER: VIEW Waitlisted -- TESTER
-  async viewAllWaitlisted({ auth, response, serialize }: HttpContext) {
+  async viewAllWaitlisted({ auth, response }: HttpContext) {
     const user = auth.user!
 
     if (user.role !== 'manager') {
@@ -334,7 +334,7 @@ export default class ApplicationsController {
   }
   
   // MANAGER: VIEW Waitlisted
-  async viewWaitlisted({ auth, response, serialize }: HttpContext) {
+  async viewWaitlisted({ auth, response }: HttpContext) {
     const user = auth.user!
 
     if (user.role !== 'manager') {
