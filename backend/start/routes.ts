@@ -8,13 +8,7 @@ import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 import { ROLES } from '../app/constants/roles.ts'
 import { throttle } from '#start/limiter'
-import AutoSwagger from 'adonis-autoswagger'
-import swagger from '#config/swagger'
-const InviteManagerController = () => import('#controllers/invite_manager_controller')
 import { uploadThrottle } from '#start/limiter'
-import AccommodationController from '#controllers/accommodation_controller'
-import ApplicationsController from '#controllers/application_controller'
-const TransientBookingsController = () => import('#controllers/transient_booking_controller')
 
 router.get('/', () => {
   return { status: 'USAT API is running - Sprint 03 Launch' }
@@ -32,9 +26,7 @@ router.group(() => {
   // Map Viewer Data
   router.get('/accommodations', [controllers.Accommodation, 'index'])
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
-
-  // [SPRINT 03] Reviews (Publicly visible)
-  // router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
+  router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
 })
 
 /*
@@ -88,9 +80,9 @@ router
         router.get('/my-payments', [controllers.Payments, 'getStudentPaymentHistory'])
 
         // Transient bookings (student)
-        router.post('/transient-bookings', [TransientBookingsController, 'store'])
-        router.post('/transient-bookings/:id/proof', [TransientBookingsController, 'uploadProof'])
-        router.get('/transient-bookings', [TransientBookingsController, 'myBookings'])
+        router.post('/transient-bookings', [controllers.TransientBooking, 'store'])
+        router.post('/transient-bookings/:id/proof', [controllers.TransientBooking, 'uploadProof'])
+        router.get('/transient-bookings', [controllers.TransientBooking, 'myBookings'])
     }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
@@ -115,10 +107,10 @@ router
         router.get('/landlord/accommodations/:id/freeze-status', [controllers.ManagerHandover, 'status'])
 
         // Invite Manager
-        router.post('/landlord/accommodations/:id/invite-manager', [InviteManagerController, 'invite'])
+        router.post('/landlord/accommodations/:id/invite-manager', [controllers.InviteManager, 'invite'])
 
         // Transient booking verification (landlord)
-        router.patch('/transient-bookings/:id/verify', [TransientBookingsController, 'verify'])
+        router.patch('/transient-bookings/:id/verify', [controllers.TransientBooking, 'verify'])
       })
       .use(middleware.role([ROLES.LANDLORD]))
 
@@ -165,7 +157,7 @@ router
 
         // Document Zip Export (Backblaze)
         router.get('/accommodations/:id/export-documents', [
-          AccommodationController,
+          controllers.Accommodation,
           'exportDocuments',
         ])
       })
@@ -205,15 +197,3 @@ router
       router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
   })
   .use(middleware.auth())
-
-/*
-|--------------------------------------------------------------------------
-| DEVELOPMENT & TEST ROUTES
-|--------------------------------------------------------------------------
-*/
-router.get('/swagger', async () => {
-  return AutoSwagger.docs(router.toJSON(), swagger)
-})
-router.get('/docs', async () => {
-  return AutoSwagger.ui('/swagger', swagger)
-})
