@@ -2,27 +2,10 @@ import { useState, useMemo } from "react";
 import { api } from "../../api/axios";
 import { useQuery } from "@tanstack/react-query";
 import Sidebar from "../../components/Sidebar";
+import toast from 'react-hot-toast';
 
 import ApplicationsTable from "../../components/applications/ApplicationsTable";
 import ApplicationModals from "../../components/applications/ApplicationModals";
-
-interface ManagerProfile {
-  fullName: string;
-  shortName: string;
-  email: string;
-  phoneNumber: string;
-  status: string;
-  dormitory: string;
-}
-
-const managerProfile: ManagerProfile = {
-  fullName: "Dal Cadsawan",
-  shortName: "Dal",
-  email: "ddcadsawan@up.edu.ph",
-  phoneNumber: "+63 912 345 6789",
-  status: "Active",
-  dormitory: "Narra Residences",
-};
 
 const CLR = {
   dark: "#3D0718",
@@ -43,7 +26,7 @@ const CLR = {
   ],
 } as const;
 
-type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected";
+type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected" | "under_review";
 
 interface User {
   id: number;
@@ -235,6 +218,7 @@ const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> 
   waitlisted: { color: "#7c3aed", bg: "#ede9fe", dot: "#7c3aed" },
   cancelled: { color: "#AA2661", bg: "#ffe4e6", dot: "#AA2661" },
   rejected: { color: "#9E2040", bg: "#ffe4e6", dot: "#9E2040" },
+  under_review: { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" }
 };
 
 const IconMenu = () => (
@@ -321,12 +305,13 @@ export default function ApplicationsPage() {
     queryKey: ["me"],
     queryFn: async () => {
       const res = await api.get("/me");
+      console.log(res.data)
       return res.data.data;
     },
   });
 
   //used mock data for buttons -- paki change na lang 
-  const USE_MOCK = true;
+  const USE_MOCK = false;
 
   const {
     data: apiData = [],
@@ -336,7 +321,7 @@ export default function ApplicationsPage() {
   } = useQuery({
     queryKey: ["list"],
     queryFn: async () => {
-      const res = await api.get("/applications/applicants");
+      const res = await api.get("/applications/view-applicants");
       return res.data;
     },
     enabled: !USE_MOCK,
@@ -379,11 +364,22 @@ export default function ApplicationsPage() {
     return appStatuses[app.id] ?? app.applicationStatus;
   };
 
-  const handleAccept = (appId: number) => {
-    setAppStatuses((prev) => ({
-      ...prev,
-      [appId]: "approved",
-    }));
+  const handleAccept = async (appId: number) => {
+      try {
+        await api.patch(`/applications/${appId}/review`, {
+          action: 'approve',
+          rejection_reason: null
+        });
+        
+        // Refresh your list data
+        refetch(); 
+        // Close your modal
+        setSelectedApp(null);
+        toast.success("Application approved!");
+      } catch (error) {
+        console.error("Failed to approve:", error);
+        toast.error("An error occurred while approving.");
+      }
   };
 
   const handleStartReject = (app: ApplicationResponse) => {
@@ -391,20 +387,33 @@ export default function ApplicationsPage() {
     setSelectedApp(null);
   };
 
-  const handleConfirmReject = (remark: string) => {
-    if (!rejectingApp) return;
+  const handleConfirmReject = async (remark: string) => {
+      if (!rejectingApp) return;
 
-    setAppStatuses((prev) => ({
-      ...prev,
-      [rejectingApp.id]: "rejected",
-    }));
+      // Optional: Keep your local state updates if you need immediate UI feedback
+      setAppStatuses((prev) => ({
+        ...prev,
+        [rejectingApp.id]: "rejected",
+      }));
 
-    setRejectionRemarks((prev) => ({
-      ...prev,
-      [rejectingApp.id]: remark,
-    }));
+      setRejectionRemarks((prev) => ({
+        ...prev,
+        [rejectingApp.id]: remark,
+      }));
 
-    setRejectingApp(null);
+      try {
+          await api.patch(`/applications/${rejectingApp.id}/review`, {
+            action: 'reject', 
+            rejection_reason: remark 
+          });
+          
+          refetch(); 
+          setRejectingApp(null);
+          toast.success("Application rejected.");
+        } catch (error) {
+          console.error("Failed to reject:", error);
+          toast.error("An error occurred while rejecting.");
+        }
   };
 
   const handleSearch = (value: string) => {
@@ -453,11 +462,25 @@ export default function ApplicationsPage() {
       light_bg: "#FDF0F3",
       value: counts.rejected || 0,
     },
+    {
+      label: "Under Review",
+      color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)",
+      text: "#1A7A4A",
+      light_bg: "#F0F7F3",
+      value: counts.under_review || 0,
+    },
   ];
 
   return (
     <div className="flex min-h-screen bg-[#F6F2F4]">
-      <Sidebar role="manager" profile={managerProfile} />
+      <Sidebar 
+        role="manager" 
+        profile={{fullName: `${user?.fname} ${user?.lname}`,
+              shortName: `${user?.fname}`,
+              email: `${user?.email}`,
+              status: `${user?.manager?.managerStatus}`
+        }} 
+      />
       <DrawerNav
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
@@ -495,7 +518,7 @@ export default function ApplicationsPage() {
         </div>
 
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
             {stats.map((s) => {
               const pct = total ? Math.round((s.value / total) * 100) : 0;
 

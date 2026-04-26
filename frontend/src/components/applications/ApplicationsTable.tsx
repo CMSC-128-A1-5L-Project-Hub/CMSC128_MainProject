@@ -1,4 +1,5 @@
 import React from "react";
+import { DateTime } from 'luxon';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -14,13 +15,13 @@ function formatDate(dateString: string) {
 }
 
 function formatTime(dateString: string) {
-  const date = new Date(dateString);
+  if (!dateString) return "N/A";
 
-  return new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  }).format(date);
+  const dt = DateTime.fromISO(dateString).setZone('utc', { keepLocalTime: true });
+
+  if (!dt.isValid) return "Invalid Time";
+
+  return dt.toFormat('h:mm a');
 }
 
 //GET HOW MANY DAYS AGO

@@ -136,7 +136,7 @@ export default function MoveinMoveout() {
         } = useQuery({
             queryKey: ["list"],
             queryFn: async () => {
-            const res = await api.get("/view-assignments");
+            const res = await api.get("/view-all-assignments");
             return res.data;
             },
         });
@@ -284,7 +284,6 @@ export default function MoveinMoveout() {
                         {/* 3. SUCCESS STATE */}
                         {!isLoadingList && !isErrorList && (
                             paginated.length > 0 ? paginated.map((record, i) => {
-                                // Calculate once per row to keep code clean
                                 const diffMoveIn = diffFromNow(record.moveIn);
                                 const diffMoveOut = diffFromNow(record.expectedMoveOut);
                                 const isMoveIn = diffMoveIn <= 0;

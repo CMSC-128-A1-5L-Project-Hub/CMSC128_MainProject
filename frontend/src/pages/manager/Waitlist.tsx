@@ -16,186 +16,137 @@ import {
     IoDocumentTextSharp,
     IoIdCardSharp
 } from "react-icons/io5"
+import { api } from "../../api/axios"
+import { useQuery } from "@tanstack/react-query"
+import { DateTime } from "luxon"
 
-interface ManagerProfile {
-    fullName: string
-    shortName: string
-    email: string
-    phoneNumber: string
-    status: string
-    dormitory: string
-}
-type Student = {
-    fullName: string
-    shortName: string
-    course: string
-    campus: string
-    email: string
-    phone: string
-    studentNo: string
-    college: string
-    yearLevel: string
-    status: string
-}
+type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected";
 
-type Accomodation = {
-    building: string
+interface User {
+  id: number;
+  accountStatus: string | null;
+  email: string;
+  facebookAccount: string | null;
+  fname: string;
+  mname: string | null;
+  lname: string;
+  suffix: string | null;
+  role: string;
+  otpCode: string | null;
+  otpExpiresAt: string | null;
+  pfpFileId: number | null;
 }
 
-type Application = {
-    student: Student
-    accommodation: Accomodation
-    roomType: "single" | "double" | "shared"
-    stayType: "transient" | "non-transient"
-    rejectionReason?: string | null
-    applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review'
-    durationOfStayDays: number
-    applicationDate: string 
-    timeSubmitted:string
+interface Student {
+  studentNumber: string;
+  userId: number;
+  phone: number;
+  college: string;
+  degreeProgram: string;
+  gender: string;
+  yearLevel: string | null;
+  emergencyContactName: string | null;
+  emergencyContactNumber: string | null;
+  enrollmentProofFileId: number;
+  form5Renewal: boolean | null;
+  user: User;
 }
 
-const managerProfile: ManagerProfile = {
-    fullName: "Dal Cadsawan",
-    shortName: "Dal",
-    email: "ddcadsawan@up.edu.ph",
-    phoneNumber: "+63 912 345 6789",
-    status: "Active",
-    dormitory: "Narra Residences"
+interface Accommodation {
+  id: number;
+  landlordId: number;
+  managerId: number | null;
+  accommodationName: string;
+  accommodationType: string;
+  accommodationLocation: string;
+  latitude: string | null;
+  longitude: string | null;
+  accommodationCapacity: number;
+  status: string | null;
+  tenantRestriction: string;
+  businessPermitId: number;
+  primaryImageIndex: number | null;
+  applicationStartDate: string | null;
+  applicationEndDate: string | null;
+  walkingDistance: number | null;
+  bikingDistance: number | null;
+  drivingDistance: number | null;
+  invitedManagerEmail: string | null;
 }
 
-const waitlistRecords: Application[] = [
-    {
-        student: {
-            fullName: "Sofia Lim",
-            shortName: "Sofia",
-            course: "BS Information Technology",
-            campus: "UPLB",
-            email: "sofia.lim@student.edu.ph",
-            phone: "09178881234",
-            studentNo: "2022-10001",
-            college: "CCS",
-            yearLevel: "2nd Year",
-            status: "Active"
-        },
-        accommodation: { building: "Building 3" },
-        roomType: "single",
-        stayType: "transient",
-        applicationStatus: "waitlisted",
-        durationOfStayDays: 14,
-        applicationDate: "Mar 20, 2026",
-        timeSubmitted: "09:15 AM"
-    },
-    {
-        student: {
-            fullName: "Miguel Torres",
-            shortName: "Miguel",
-            course: "BS Civil Engineering",
-            campus: "UPLB",
-            email: "miguel.torres@student.edu.ph",
-            phone: "09179992345",
-            studentNo: "2021-11223",
-            college: "CEAT",
-            yearLevel: "3rd Year",
-            status: "Active"
-        },
-        accommodation: { building: "Building 1" },
-        roomType: "double",
-        stayType: "non-transient",
-        applicationStatus: "waitlisted",
-        durationOfStayDays: 90,
-        applicationDate: "Mar 21, 2026",
-        timeSubmitted: "11:40 AM"
-    },
-    {
-        student: {
-            fullName: "Jasmine Reyes",
-            shortName: "Jasmine",
-            course: "BS Psychology",
-            campus: "UPLB",
-            email: "jasmine.reyes@student.edu.ph",
-            phone: "09171239876",
-            studentNo: "2023-14567",
-            college: "CAS",
-            yearLevel: "1st Year",
-            status: "Active"
-        },
-        accommodation: { building: "Building 2" },
-        roomType: "shared",
-        stayType: "transient",
-        applicationStatus: "waitlisted",
-        durationOfStayDays: 7,
-        applicationDate: "Mar 21, 2026",
-        timeSubmitted: "02:05 PM"
-    },
-    {
-        student: {
-            fullName: "Daniel Cruz",
-            shortName: "Daniel",
-            course: "BS Agriculture",
-            campus: "UPLB",
-            email: "daniel.cruz@student.edu.ph",
-            phone: "09173334455",
-            studentNo: "2020-16789",
-            college: "CAFS",
-            yearLevel: "4th Year",
-            status: "Active"
-        },
-        accommodation: { building: "Building 4" },
-        roomType: "single",
-        stayType: "non-transient",
-        applicationStatus: "waitlisted",
-        durationOfStayDays: 120,
-        applicationDate: "Mar 22, 2026",
-        timeSubmitted: "08:50 AM"
-    },
-    {
-        student: {
-            fullName: "Andrea Castillo",
-            shortName: "Andrea",
-            course: "BS Development Communication",
-            campus: "UPLB",
-            email: "andrea.castillo@student.edu.ph",
-            phone: "09175556677",
-            studentNo: "2022-18890",
-            college: "CDC",
-            yearLevel: "2nd Year",
-            status: "Active"
-        },
-        accommodation: { building: "Building 5" },
-        roomType: "double",
-        stayType: "transient",
-        applicationStatus: "waitlisted",
-        durationOfStayDays: 30,
-        applicationDate: "Mar 23, 2026",
-        timeSubmitted: "04:30 PM"
-    },
-    {
-        student: {
-            fullName: "Kevin Mendoza",
-            shortName: "Kevin",
-            course: "BS Forestry",
-            campus: "UPLB",
-            email: "kevin.mendoza@student.edu.ph",
-            phone: "09178889900",
-            studentNo: "2019-19901",
-            college: "CFNR",
-            yearLevel: "5th Year",
-            status: "Active"
-        },
-        accommodation: { building: "Building 6" },
-        roomType: "shared",
-        stayType: "non-transient",
-        applicationStatus: "waitlisted",
-        durationOfStayDays: 180,
-        applicationDate: "Mar 24, 2026",
-        timeSubmitted: "10:10 AM"
-    }
-]
+export interface Room {
+  id: number
+  accommodationId: number
+  roomNumber: string
+  roomType: string
+  roomStayType: string
+  roomCapacity: number
+  roomCurrentOccupancy: number
+  roomBuilding: string
+  roomRent: string
+  tenantRestriction: string
+  roomAvailability: string
+  accommodation: Accommodation
+}
+
+export interface WaitlistedResponse {
+  // --- Original Application Fields ---
+  id: number;
+  accommodationId: number;
+  studentNumber: string;
+  applicationDate: string; // The submission date you wanted
+  applicationRoomType: string;
+  applicationStayType: string;
+  applicationStatus: "waitlisted";
+  durationOfStayDays: number;
+  
+  // --- Relations ---
+  accommodation: Accommodation;
+  student: Student;
+
+  // --- The Cross-Referenced Assignment ---
+  assignment: {
+    id: number;
+    roomId: number;
+    confirmedDate: string;
+    moveIn: string;
+    expectedMoveOut: string;
+    room: Room; // This contains the room number, building, etc.
+  }; 
+}
+
 const HISTORY_PER_PAGE = 5
 const SORT_OPTS = ["Room Type", "Room No.", "Date", "Action"]
 
-const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: Application[], className?: string }) => {
-    const [selectedRecord, setSelectedRecord] = useState<Application | null>(null)
+export default function Waitlist() {
+
+    const {
+        data: user,
+        isLoading: isLoadingUser,
+        isError: isErrorUser,
+    } = useQuery({
+        queryKey: ["me"],
+        queryFn: async () => {
+        const res = await api.get("/me");
+        return res.data.data;
+        },
+    });
+
+    const {
+        data: waitlistRecords = [],
+        isLoading: isLoadingList,
+        isError: isErrorList,
+        refetch,
+    } = useQuery({
+        queryKey: ["list"],
+        queryFn: async () => {
+        const res = await api.get("/applications/view-all-waitlisted");
+        return res.data;
+        },
+    });
+
+    const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: WaitlistedResponse[], className?: string }) => {
+    const [selectedRecord, setSelectedRecord] = useState<WaitlistedResponse | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
     const [sortBy, setSortBy] = useState("Date")
     const [sortOpen, setSortOpen] = useState(false)
@@ -205,17 +156,18 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
     const filtered = useMemo(() => {
         const q = search.toLowerCase()
         return records.filter(r =>
-            r.student.fullName.toLowerCase().includes(q) ||
-            r.accommodation.building.toLowerCase().includes(q) ||
-            r.roomType.toLowerCase().includes(q)
+            r.student.user.fname.toLowerCase().includes(q) ||
+            r.student.user.lname.toLowerCase().includes(q) ||
+            r.assignment.room.roomBuilding.toLowerCase().includes(q) ||
+            r.assignment.room.roomType.toLowerCase().includes(q)
         )
     }, [records, search])
 
     //SORT
     const sorted = useMemo(() => {
         return [...filtered].sort((a, b) => {
-            if (sortBy === "Room Type") return a.roomType.localeCompare(b.roomType)
-            if (sortBy === "accommodation.building") return a.accommodation.building.localeCompare(b.accommodation.building)
+            if (sortBy === "Room Type") return a.assignment.room.roomType.localeCompare(b.assignment.room.roomType)
+            if (sortBy === "accommodation.building") return a.assignment.room.roomBuilding.localeCompare(b.assignment.room.roomBuilding)
             if (sortBy === "Date") return new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime()
             return 0
         })
@@ -257,7 +209,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                       <div className="flex justify-between items-start">
                           <div>
                               <h1 className="text-2xl font-bold text-[#1A0008]">
-                                  {selectedRecord.student.fullName}
+                                  {selectedRecord.student.user.fname} {selectedRecord.student.user.lname}
                               </h1>
                               <p className="text-sm text-[#C8B0B8] mt-1">
                                   Date Applied: {selectedRecord.applicationDate}
@@ -283,7 +235,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                                   <div className="col-span-2">
                                       <p className="text-[10px] uppercase text-[#9A7080] font-semibold">Email</p>
                                       <p className="text-sm text-[#1A0008]">
-                                          {selectedRecord.student.email}
+                                          {selectedRecord.student.user.email}
                                       </p>
                                   </div>
 
@@ -304,7 +256,7 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                                   <div className="col-span-2">
                                       <p className="text-[10px] uppercase text-[#9A7080] font-semibold">Course</p>
                                       <p className="text-sm text-[#1A0008]">
-                                          {selectedRecord.student.course}
+                                          {selectedRecord.student.college}
                                       </p>
                                   </div>
                               </div>
@@ -355,16 +307,16 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
                                     <div className="col-span-1">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Stay</p>
                                         <p className="text-[#1A0008] text-sm capitalize">
-                                            {selectedRecord.stayType === "non-transient" ? "Non-Transient" : "Transient"}
+                                            {selectedRecord.applicationStayType === "non-transient" ? "Non-Transient" : "Transient"}
                                         </p>
                                     </div>
                                     <div className="col-span-1">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Building</p>
-                                        <p className="text-[#1A0008] text-sm">{selectedRecord.accommodation.building}</p>
+                                        <p className="text-[#1A0008] text-sm">{selectedRecord.assignment?.room?.roomBuilding || 'N/A'}</p>
                                     </div>
                                     <div className="col-span-1">
                                         <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</p>
-                                        <p className="text-[#1A0008] text-sm capitalize">{selectedRecord.roomType}</p>
+                                        <p className="text-[#1A0008] text-sm capitalize">{selectedRecord.assignment?.room?.roomType || 'TBA'}</p>
                                     </div>
                                 </div>
                           </div>
@@ -502,29 +454,79 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
 
                     {/* ROWS */}
                     <div className="flex flex-col divide-y divide-[#F5ECF0]">
-                        {paginated.length > 0 ? paginated.map((record, i) => (
-                            <div key={i} className="grid grid-cols-12 lg:grid-cols-12 items-center py-3">
-                                {/* STUDENT */}
-                                <div className="col-span-2 flex items-center gap-2">
-                                    <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                        {getInitials(record.student.fullName)}
+                        {/* LOADING STATE */}
+                        {isLoadingList ? (
+                            // Render 5 skeleton rows
+                            Array.from({ length: 5 }).map((_, i) => (
+                                <div key={`skeleton-${i}`} className="grid grid-cols-12 items-center py-3 animate-pulse">
+                                    <div className="col-span-2 flex items-center gap-2">
+                                        <div className="w-9 h-9 rounded-xl bg-gray-200" />
+                                        <div className="h-4 w-20 bg-gray-200 rounded" />
                                     </div>
-                                    <p className="font-bold text-[12px] ml-1 lg:ml-0 lg:text-sm text-[#1A0008]">{record.student.fullName}</p>
+                                    <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
+                                    <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
+                                    <div className="col-span-2 h-4 w-20 bg-gray-100 rounded mx-auto" />
+                                    <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
+                                    <div className="col-span-2 h-8 w-16 bg-gray-200 rounded mx-auto" />
                                 </div>
-                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">{record.applicationDate}</p>
-                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">{record.timeSubmitted}</p>
-                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">{record.accommodation.building}</p>
-                                 <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">{record.roomType}</p>
-
-                                <div className="col-span-2 flex justify-center">
-                                    <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
-                                        View
-                                    </Button>
-                                </div>
+                            ))
+                        ) : isErrorList ? (
+                            /* ERROR STATE */
+                            <div className="py-10 text-center">
+                                <p className="text-sm text-red-500 mb-2">Failed to load applications.</p>
+                                <Button size="sm" onClick={() => refetch()}>
+                                    Retry
+                                </Button>
                             </div>
-                        )) : (
-                            <p className="text-sm text-[#9A7080] py-6 text-center">No records found.</p>
+                        ) : paginated.length > 0 ? (
+                            /* DATA STATE */
+                            paginated.map((record, i) => (
+                                <div key={record.id || i} className="grid grid-cols-12 items-center py-3 hover:bg-[#FFF9FA] transition-colors">
+                                    
+                                    {/* STUDENT INFO */}
+                                    <div className="col-span-2 flex items-center gap-2">
+                                        <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                                            {getInitials(record.student.user.fname)}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
+                                                {record.student.user.fname} {record.student.user.lname}
+                                            </p>
+                                            <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* DATE SUBMITTED */}
+                                    <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                                        {new Date(record.applicationDate).toLocaleDateString()}
+                                    </p>
+
+                                    <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
+                                        {DateTime.fromISO(record.applicationDate).setZone('utc', { keepLocalTime: true }).toFormat('h:mm a')}
+                                    </p>
+
+                                    <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                                        {record.assignment?.room?.roomBuilding || "N/A"}
+                                    </p>
+
+                                    <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
+                                        {record.assignment?.room?.roomType || record.applicationRoomType}
+                                    </p>
+
+                                    {/* ACTION */}
+                                    <div className="col-span-2 flex justify-center">
+                                        <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
+                                            View
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            /* EMPTY STATE */
+                            <div className="flex flex-col items-center py-12">
+                                <p className="text-sm text-[#9A7080]">No waitlisted applications found.</p>
+                            </div>
                         )}
                     </div>
 
@@ -562,10 +564,13 @@ const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: A
     )
 }
 
-export default function Waitlist() {
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
-            <Sidebar role="manager" profile={managerProfile}/>
+            <Sidebar role="manager" profile={{fullName: `${user?.fname} ${user?.lname}`,
+              shortName: `${user?.fname}`,
+              email: `${user?.email}`,
+              status: `${user?.manager?.managerStatus}`
+        }} />
 
             <div className="flex-1 flex flex-col p-5 overflow-y-auto">
                 <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
@@ -579,7 +584,7 @@ export default function Waitlist() {
                 <main className="flex-1 flex flex-col gap-4">
                     <HeroBanner 
                         greeting="Good Day"
-                        name={managerProfile.fullName}
+                        name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
                         title="Check your waitlisted applicants"
                         subtitle="We make it easy for you to track the accommodation  applications you manage. "
                         type="mini"

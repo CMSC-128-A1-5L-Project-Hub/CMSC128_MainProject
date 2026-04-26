@@ -182,7 +182,7 @@ export default class ApplicationsController {
     }
 
     const applicationObject = await Application.query()
-      .where('applicationId', params.id)
+      .where('id', params.id)
       .preload('accommodation')
       .firstOrFail()
 
@@ -295,5 +295,82 @@ export default class ApplicationsController {
 
     await LogService.record(user.id, 'application', app.id, 'STUDENT_CONFIRMED_SLOT')
     return serialize(app)
+  }
+
+  // MANAGER: VIEW Waitlisted -- TESTER
+  async viewAllWaitlisted({ auth, response, serialize }: HttpContext) {
+    const user = auth.user!
+
+    if (user.role !== 'manager') {
+      return response.forbidden({ message: 'Access denied' })
+    }
+
+    // 1. Fetch waitlisted applications
+    const applications = await Application.query()
+      .where('applicationStatus', 'waitlisted')
+      // Preload student and user info
+      .preload('student', (s) => s.preload('user'))
+      // Preload accommodation info
+      .preload('accommodation')
+      .orderBy('applicationDate', 'asc')
+
+    // 2. Map through applications and manually attach the assignment info
+    // This is often cleaner than a complex join when you need specific nested preloads
+    const results = await Promise.all(
+      applications.map(async (app) => {
+        const assignment = await Assignment.query()
+          .where('studentNumber', app.studentNumber)
+          .whereHas('room', (r) => r.where('accommodationId', app.accommodationId))
+          .preload('room')
+          .first()
+
+        return {
+          ...app.toJSON(),
+          assignment: assignment ? assignment.toJSON() : null,
+        }
+      })
+    )
+
+    return results
+  }
+  
+  // MANAGER: VIEW Waitlisted
+  async viewWaitlisted({ auth, response, serialize }: HttpContext) {
+    const user = auth.user!
+
+    if (user.role !== 'manager') {
+      return response.forbidden({ message: 'Access denied' })
+    }
+
+    // 1. Fetch waitlisted applications
+    const applications = await Application.query()
+      .where('applicationStatus', 'waitlisted')
+      .whereHas('accommodation', (q) => {
+        q.where('managerId', user.id)
+      })
+      // Preload student and user info
+      .preload('student', (s) => s.preload('user'))
+      // Preload accommodation info
+      .preload('accommodation')
+      .orderBy('applicationDate', 'asc')
+
+    // 2. Map through applications and manually attach the assignment info
+    // This is often cleaner than a complex join when you need specific nested preloads
+    const results = await Promise.all(
+      applications.map(async (app) => {
+        const assignment = await Assignment.query()
+          .where('studentNumber', app.studentNumber)
+          .whereHas('room', (r) => r.where('accommodationId', app.accommodationId))
+          .preload('room')
+          .first()
+
+        return {
+          ...app.toJSON(),
+          assignment: assignment ? assignment.toJSON() : null,
+        }
+      })
+    )
+
+    return results
   }
 }
