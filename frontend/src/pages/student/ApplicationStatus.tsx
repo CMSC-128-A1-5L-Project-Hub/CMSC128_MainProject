@@ -2,7 +2,6 @@ import { useState, useMemo} from 'react'
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import Pagination from '../../components/ApplicationStatus/Pagination';
 import Sidebar from '../../components/Sidebar';
-import sampleDorm from '../../assets/images/sample_dorm.jpg';
 import ApplicationTable from '../../components/ApplicationStatus/ApplicationTable';
 import HeroBanner from '../../components/dashboard/HeroBanner';
 import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
