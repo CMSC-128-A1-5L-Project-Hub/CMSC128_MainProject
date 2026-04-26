@@ -30,7 +30,6 @@ import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ApplicationsScreen from "./pages/manager/ApplicationsPage"
 import ApplicationTestPage from "./pages/ApplicationTestPage"
-
 function FullLandingPage() {
   return (
     <>

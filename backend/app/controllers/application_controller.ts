@@ -9,7 +9,6 @@ import drive from '@adonisjs/drive/services/main'
 import WaitlistWorkflowService from '#services/waitlisted_workflow_service'
 import Room from '#models/room'
 import db from '@adonisjs/lucid/services/db'
-import { DateTime } from 'luxon'
 import Accommodation from '#models/accommodation'
 
 @inject()
@@ -125,7 +124,7 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
     const user = auth.user
     if (!user) return response.unauthorized({ message: 'Unauthorized' })
 
-    const student = await Student.findByOrFail('userId', user.id);
+    const student = await Student.findByOrFail('userId', user.id)
 
     // Fetch all applications, with accommodation and all rooms (with tags)
     const applications = await Application.query()
@@ -267,8 +266,6 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
         await LogService.record(user.id, 'application', applicationObject.id, 'LANDLORD_REJECTED')
         return serialize(applicationObject)
       }
-      applicationObject.reviewedAt = DateTime.now()
-      applicationObject.reviewedBy = user.id
 
       // Use the injected waitlistService
       const updatedApp = await this.waitlistService.processApproval(applicationObject.id)

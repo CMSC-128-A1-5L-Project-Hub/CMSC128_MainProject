@@ -82,7 +82,6 @@ router
         router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
         router.get('/my-bookmarks', [controllers.Bookmark, 'index'])
         router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
-        router.get('/recommended-accommodations', [controllers.Accommodation, 'recommended'])
 
         // Fees & Payments
         router.get('/my-fees', [controllers.Fees, 'index'])
@@ -152,7 +151,6 @@ router
         router.post('/accommodations/:accommodationId/rooms', [RoomsController, 'store'])
         router.put('/rooms/:id', [RoomsController, 'update'])
         router.delete('/rooms/:id', [RoomsController, 'destroy'])
-        router.post('/rooms/:id/report-issue', [RoomsController, 'reportIssue'])
 
         // Room Assignments & Move-outs
         router.post('/assignments', [AssignmentsController, 'store'])
@@ -198,14 +196,6 @@ router
         router.patch('/admin/accommodations/:id/verify', [controllers.AdminAccommodations, 'verify'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
-
-      /// ====================================================================
-      // ─── MANAGER ───
-      // ====================================================================
-
-      router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
-      router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
-      router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
   })
   .use(middleware.auth())
 
