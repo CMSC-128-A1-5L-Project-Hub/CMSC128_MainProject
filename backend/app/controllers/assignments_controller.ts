@@ -7,7 +7,6 @@ import Application from '#models/application'
 import LogService from '#services/log_service'
 import { DateTime } from 'luxon'
 
-@inject()
 export default class AssignmentsController {
 
   // ─── MANAGER: ASSIGN A ROOM (application must be 'approved') ───

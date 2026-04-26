@@ -1,7 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { api } from "../../api/axios"
+import { useState, useMemo } from "react"
 
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
@@ -407,7 +404,7 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
     )
 }
 
-const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord[], className?: string }) => {
+const OccupancyHistory = ({ records = historyRecords, className }: { records?: HistoryRecord[], className?: string }) => {
     const [currentPage, setCurrentPage] = useState(1)
     const [sortBy, setSortBy] = useState("Room Type")
     const [sortOpen, setSortOpen] = useState(false)
@@ -592,106 +589,6 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
 }
 
 export default function OccupancyRecords() {
-    const navigate = useNavigate()
-    const queryClient = useQueryClient()
-
-    const {
-        data: user,
-        isLoading: isUserLoading,
-        isError,
-    } = useQuery({
-        queryKey: ["me"],
-        queryFn: async () => {
-        const res = await api.get("/me")
-        return res.data.data ?? res.data
-        },
-    })
-
-    const {
-        data: managerProfileRaw,
-        isLoading: isProfileLoading,
-        isError: isProfileError,
-    } = useQuery({
-        queryKey: ["manager-profile"],
-        queryFn: async () => {
-        const res = await api.get("/manager/profile")
-        console.log("MANAGER PROFILE:", res.data)
-        return res.data.data ?? res.data
-        },
-        enabled: !!user && user.role === "manager",
-    })
-
-    const {
-        data: roomsRaw,
-        isLoading: isRoomsLoading,
-        isError: isRoomsError,
-    } = useQuery({
-        queryKey: ["manager-occupancy-rooms"],
-        queryFn: async () => {
-        const res = await api.get("/manager/occupancy-records")
-        console.log("OCCUPANCY ROOMS:", res.data)
-        return res.data.data ?? res.data
-        },
-        enabled: !!user && user.role === "manager",
-    })
-
-    const refreshOccupancyMutation = useMutation({
-        mutationFn: async () => {
-        const res = await api.get("/manager/occupancy/rooms")
-        return res.data.data ?? res.data
-        },
-        onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["manager-occupancy-rooms"] })
-        },
-    })
-
-    useEffect(() => {
-        if (isError) {
-        navigate("/auth/signin")
-        }
-    }, [isError, navigate])
-
-    useEffect(() => {
-        if (user && user.role !== "manager") {
-        navigate("/auth/signin")
-        }
-    }, [user, navigate])
-
-    if (isUserLoading || isProfileLoading || isRoomsLoading) {
-        return (
-        <div className="flex items-center justify-center h-screen">
-            <p>Loading...</p>
-        </div>
-        )
-    }
-
-    if (!user || user.role !== "manager") {
-        return null
-    }
-
-    if (isProfileError || isRoomsError) {
-        return (
-        <div className="flex items-center justify-center h-screen">
-            <p className="text-[#9E2040]">Failed to load occupancy records.</p>
-        </div>
-        )
-    }
-
-    const managerProfile = {
-        fullName: managerProfileRaw?.fullName ?? "Manager",
-        shortName: managerProfileRaw?.fullName?.split(" ")[0] ?? "Manager",
-        email: managerProfileRaw?.email ?? managerProfileRaw?.upMail ?? "N/A",
-        phoneNumber: managerProfileRaw?.phoneNumber ?? managerProfileRaw?.phone ?? "N/A",
-        status: managerProfileRaw?.status ?? "Active",
-        dormitory: managerProfileRaw?.dormitory ?? managerProfileRaw?.currentDorm ?? "No assigned dorm yet",
-    }
-
-    const rooms = Array.isArray(roomsRaw)
-        ? roomsRaw
-        : Array.isArray(roomsRaw?.data)
-        ? roomsRaw.data
-        : []
-
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
             <Sidebar role="manager" profile={managerProfile}/>
@@ -716,16 +613,16 @@ export default function OccupancyRecords() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <RoomOccupancyDetails
-                            rooms={rooms}
+                            rooms={Rooms}
                             className="col-span-1 lg:col-span-2"
                         />
                         <OccupancyRooms 
-                            rooms={rooms}
+                            rooms={Rooms}
                             className="col-span-1"
                         />
                     </div>
                     <OccupancyHistory 
-                        records={[]}
+                        records={historyRecords}
                     />
                 </main>
             </div>
