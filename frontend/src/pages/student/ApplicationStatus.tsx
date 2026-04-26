@@ -6,6 +6,8 @@ import Modal from '../../components/Modal';
 import sampleDorm from '../../assets/images/sample_dorm.jpg';
 import ApplicationTable from '../../components/ApplicationStatus/ApplicationTable';
 import HeroBanner from '../../components/dashboard/HeroBanner';
+import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
+import SearchBar from '../../components/SearchBar';
 
 interface HeroContent {
     greeting: string
@@ -108,15 +110,6 @@ export default function ApplicationStatus() {
         cancelled:    { bg: '#888888', dot: '#888888', text: '#888888' },
     }
 
-    const rowStyles: Record<string, { bg: string; text: string }> = {
-        approved:     { bg: '#1A7A4A', text: '#000000' },
-        pending:      { bg: '#FFFFFF', text: '#000000' },
-        under_review: { bg: '#6B3AB7', text: '#000000' },
-        rejected:     { bg: '#6B0F2B', text: '#9A7080' },
-        waitlisted:   { bg: '#EFF4FF', text: '#000000' },
-        cancelled:    { bg: '#F0F0F0', text: '#888888' },
-    }
-
     const [sortBy, setSortBy] = useState("Date applied (Asc.)");
     const [searchQuery, setSearchQuery] = useState("");
     const [searchOpen, setSearchOpen] = useState(false);
@@ -197,33 +190,10 @@ export default function ApplicationStatus() {
                     />
                 </div>
 
-                <div className="bg-white p-4 mx-4 mt-2 mb-4 rounded-xl shrink-0">             
-                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                        {stats.map((stat, i) => (
-                            <div key={stat.label} className={i===0 ? "col-span-2 lg:col-span-1" : "col-span-1"}>
-                                <span className="block uppercase font-bold text-[11px] lg:text-[12px]" style={{ color: stat.text }}>
-                                    {stat.label}
-                                </span>
-                                <div className="flex flex-grow items-center gap-3 mt-1">
-                                    <div className="flex-1 rounded-xl h-5 lg:h-7" style={{ backgroundColor: stat.bg }}>
-                                        <div
-                                            className="lg:h-7 h-5 rounded-xl flex items-center justify-left pl-2"
-                                            style={{
-                                                width: `${applications.length === 0 ? 0 : (stat.count / trueTotal) * 100}%`,
-                                                background: `linear-gradient(to right, ${stat.from}, ${stat.to})`
-                                            }}
-                                        >
-                                            <span className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)] text-white text-[11px] lg:text-[12px] font-bold">{stat.count}/{trueTotal}</span>
-                                        </div>
-                                    </div>
-                                    <span className="text-[12px] lg:text-[13px] font-bold" style={{ color: stat.text }}>
-                                        {applications.length === 0 ? 0 : Math.round((stat.count / trueTotal) * 100)}%
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                <StatsBanner
+                    stats = {stats}
+                    total = {trueTotal}>
+                </StatsBanner>
 
                 <div className="bg-white mx-4 my-0 rounded-xl mb-4 p-4 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
                     <div className='flex justify-between items-center pb-2 lg:pb-4'>
@@ -249,26 +219,11 @@ export default function ApplicationStatus() {
 
                             <div className="flex items-center gap-2 lg:gap-3">
                             {/* Desktop: expanding search bar */}
-                            <div className="hidden lg:flex items-center gap-2 ">
-                                <div className={`px-1 flex items-center border-2 lg:border-3 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 h-12 rounded-[8.8px] overflow-hidden transition-all duration-300 ${searchOpen ? 'w-44' : 'w-12'}`}>
-                                    <button 
-                                    onClick={() => { setSearchOpen(!searchOpen); if (!searchOpen) inputRef.current?.focus(); }}
-                                        className="p-1 shrink-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="36" fill="#FAF4F6" viewBox="0 0 24 24">
-                                            <path stroke="#9A7080" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z"/>
-                                        </svg>
-                                    </button>
-                                        <input  
-                                            type="text"
-                                            placeholder="Search..."
-                                            ref={inputRef}
-                                            value={searchQuery}
-                                            onBlur={() => { setSearchOpen(false); setSearchQuery(""); }}
-                                            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                                            className={`bg-[#FAF4F6] text-[12px] lg:text-[13px] px-1 outline-none transition-all duration-300 ${searchOpen ? 'w-full opacity-100' : 'w-0 opacity-0'} w-full`}
-                                        />
-                                </div>
-                            </div>
+                            <SearchBar
+                                value={searchQuery}
+                                onChange={setSearchQuery}
+                                onPageReset={() => setCurrentPage(1)}>
+                            </SearchBar>
 
                             {/* Mobile: icon that opens modal */}
                             <button className="lg:hidden border-2 p-1 px-2 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px] overflow-hidden" onClick={() => setSearchOpen(true)}>

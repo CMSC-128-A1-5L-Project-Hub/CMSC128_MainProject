@@ -34,7 +34,7 @@ export default function ApplicationTable({applications, onView}: ApplicationTabl
                     { label: 'remarks',      width: 'w-44' },
                     { label: 'action',      width: 'w-36' },
                 ].map(col => (
-                    <th key = {col.label} className={`uppercase p-2 text-left whitespace-nowrap border-y-2 border-[#6B0F2B]/5`}>
+                    <th key = {col.label} className={`uppercase p-2 text-left    whitespace-nowrap border-y-2 border-[#6B0F2B]/5`}>
                         {col.label}
                     </th>
                 ))}
@@ -47,7 +47,7 @@ export default function ApplicationTable({applications, onView}: ApplicationTabl
                         color: (rowStyles[app.status]?.text ?? '#888'),
                     }}>
                         <td className='px-2 py-2 flex flex-row items-center'>
-                            <div className="mr-1 flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070]">
+                            <div className="mx-1 flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070]">
                                 <p className=" text-white items-center justify-center font-bold text-sm">{app.dormitory[0]}</p>
                             </div>
                             <div className='flex flex-col ml-1 justify-center'>
