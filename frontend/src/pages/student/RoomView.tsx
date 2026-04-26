@@ -376,7 +376,7 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
   );
 }
 
-type TravelMode = 'Driving' | 'Walking'
+type TravelMode = 'driving' | 'walking'
 
 const routeLayerStyle = (mode: TravelMode): LayerProps => ({
   id: 'route',
@@ -405,7 +405,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   const [destIndex, setDestIndex] = useState(0)
 
   //capture travel mode
-  const [travelMode, setTravelMode] = useState<TravelMode>('Driving')
+  const [travelMode, setTravelMode] = useState<TravelMode>('driving')
   //capture direction
   const [routeGeoJSON, setRouteGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null)
 
@@ -427,21 +427,21 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const [durations, setDurations] = useState<{ Driving: number | null; Walking: number | null}>({
-    Driving: null,
-    Walking: null,
+  const [durations, setDurations] = useState<{ driving: number | null; walking: number | null}>({
+    driving: null,
+    walking: null,
   })
 
   const accomLat = accommodation.latitude
-  const accomLang = accommodation.longitude 
+  const accomLng = accommodation.longitude 
 
   const handleSearch = (val: string) => {
     setSearchQuery(val)
 
     setSelectedDest(null)
-
+    setPreviewed(false)
     setRouteGeoJSON(null)
-    setDurations({ Driving: null, Walking: null })
+    setDurations({ driving: null, walking: null })
 
     if (searchTimeout.current) clearTimeout(searchTimeout.current)
 
@@ -483,23 +483,23 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
     setPreviewed(true) 
 
     try {
-      const origin = `${accomLang},${accomLat}`
+      const origin = `${accomLng},${accomLat}`
       const destination = `${destLang},${destLat}`
 
       const [driveRes, walkRes] = await Promise.all([
-        fetch(`https://api.mapbox.com/directions/v5/mapbox/Driving/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),
-        fetch(`https://api.mapbox.com/directions/v5/mapbox/Walking/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),        
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),        
       ])
 
       const [driveData, walkData] = await Promise.all([driveRes.json(), walkRes.json()])
 
       const newDurationData = {
-        Driving: driveData.routes?.[0] ? Math.round(driveData.routes[0].duration / 60) : null,
-        Walking: walkData.routes?.[0] ? Math.round(walkData.routes[0].duration / 60) : null,
+        driving: driveData.routes?.[0] ? Math.round(driveData.routes[0].duration / 60) : null,
+        walking: walkData.routes?.[0] ? Math.round(walkData.routes[0].duration / 60) : null,
       }
       setDurations(newDurationData)
 
-      const activeData = travelMode === `Driving` ? driveData : walkData
+      const activeData = travelMode === `driving` ? driveData : walkData
 
       //actual path corrdinates
       if (activeData.routes?.[0]) {
@@ -520,13 +520,13 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   }
 
   const switchMode = async (mode: TravelMode) => {
-
+    setTravelMode(mode)
     if (!previewed || !selectedDest) return
 
     setLoadingRoute(true)
 
     try{
-      const origin = `${accomLang},${accomLat}`
+      const origin = `${accomLng},${accomLat}`
       const destination = `${selectedDest.lng},${selectedDest.lat}`
 
       const res = await fetch(
@@ -556,7 +556,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
       >
         <Map
           initialViewState={{
-            longitude: accomLang,
+            longitude: accomLng,
             latitude: accomLat,
             zoom: 15,
             pitch: 40,
@@ -577,7 +577,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
           )}
 
           {/*Accomdation pin */}
-          <Marker longitude={accomLang} latitude={accomLat} anchor="bottom">
+          <Marker longitude={accomLng} latitude={accomLat} anchor="bottom">
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div
                 style={{
@@ -759,51 +759,63 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
           </div>
 
           {/* Mode bars*/}
-          {(durations.Driving !== null || durations.Walking !== null) && (
+          {(durations.driving !== null || durations.walking !== null) && (
             <div style={{ padding: '2px 0 0', display: 'flex', flexDirection: 'column', gap: 6 }}>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  stroke={travelMode === 'Driving' ? CLR.mid : '#9CA3AF'} strokeWidth="2">
+                  stroke={travelMode === 'driving' ? CLR.mid : '#9CA3AF'} strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 17H3a2 2 0 01-2-2v-4l2-5h14l2 5v4a2 2 0 01-2 2h-2M7 17a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4z" />
                 </svg>
 
 
-                <button onClick={() => switchMode('Driving')} style={{
+                <button onClick={() => switchMode('driving')} style={{
                   background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                   fontSize: 13,
-                  fontWeight: travelMode === 'Driving' ? 700 : 400, 
-                  color: travelMode === 'Driving' ? CLR.mid : '#9CA3AF', 
+                  fontWeight: travelMode === 'driving' ? 700 : 400, 
+                  color: travelMode === 'driving' ? CLR.mid : '#9CA3AF', 
                 }}>
-                  {durations.Driving !== null ? `${durations.Driving} min` : '—'}
+                  {durations.driving !== null ? `${durations.driving} min` : '—'}
                 </button>
 
                 <span style={{ flex: 1 }} /> 
 
-                <button onClick={() => switchMode('Walking')} style={{
+                <button onClick={() => switchMode('walking')} style={{
                   background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                   fontSize: 13,
-                  fontWeight: travelMode === 'Walking' ? 700 : 400,
-                  color: travelMode === 'Walking' ? CLR.mid : '#9CA3AF',
+                  fontWeight: travelMode === 'walking' ? 700 : 400,
+                  color: travelMode === 'walking' ? CLR.mid : '#9CA3AF',
                 }}>
-                  {durations.Walking !== null ? `${durations.Walking} min` : '—'}
+                  {durations.walking !== null ? `${durations.walking} min` : '—'}
                 </button>
 
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  stroke={travelMode === 'Walking' ? CLR.mid : '#9CA3AF'} strokeWidth="2">
+                  stroke={travelMode === 'walking' ? CLR.mid : '#9CA3AF'} strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 4a1 1 0 100 2 1 1 0 000-2zM6 20l3-8 2 3 2-1 3 6M5 12l2-3 3 1 2-4" />
                 </svg>
               </div>
 
-              <div style={{ height: 4, background: '#E5E7EB', borderRadius: 999, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+                <div style={{ flex: 1, height: 4, background: '#E5E7EB', borderRadius: 999, overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    borderRadius: 999,
+                    width: travelMode === 'driving' ? '100%' : '0%',
+                    background: `linear-gradient(90deg, ${CLR.dark}, ${CLR.mid})`,
+                    transition: 'width 0.3s ease',
+                  }} />
+                </div>
 
-                <div style={{
-                  height: '100%', borderRadius: 999,
-                  width: `100%`,
-                  background: `linear-gradient(90deg, ${CLR.dark}, ${CLR.mid})`,
-                  transition: 'width 0.4s ease',
-                }} />
-              </div>
+                <div style={{ flex: 1, height: 4, background: '#E5E7EB', borderRadius: 999, overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    borderRadius: 999,
+                    width: travelMode === 'walking' ? '100%' : '0%',
+                    background: `linear-gradient(90deg, ${CLR.dark}, ${CLR.mid})`,
+                    transition: 'width 0.3s ease',
+                  }} />
+                </div>
+              </div>              
             </div>
           )}
 
