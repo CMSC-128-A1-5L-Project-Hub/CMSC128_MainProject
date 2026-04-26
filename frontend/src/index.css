@@ -38,69 +38,57 @@ button {
   transition: border-color 0.25s;
 }
 
-.hide-scrollbar::-webkit-scrollbar {
-  display: none; /* Chrome, Safari */
+/* this is for the browse page */
+.no-bg-popup.mapboxgl-popup .mapboxgl-popup-content {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
+.no-bg-popup .mapboxgl-popup-close-button:hover {
+  background-color: transparent !important;
+  color: red !important;
+}
+
+.no-bg-popup .mapboxgl-popup-close-button {
+  right: 3px !important;
+  font-size: 9px !important;
+}
+
+/* Map page styles */
 .hide-scrollbar {
-  -ms-overflow-style: none;  /* IE, old Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-/* In your global CSS file */
 .mapboxgl-popup-content {
   padding: 0 !important;
-  border-radius: 16px !important; /* Matches rounded-2xl */
+  border-radius: 16px !important;
 }
 
-.mapboxgl-popup-close-button {
-  color: white !important; /* Makes the 'X' visible against the image */
-  font-size: 16px;
-  right: 5px;
-  top: 5px;
+.mapboxgl-popup-tip {
+  display: none;
 }
 
-/* Style for the overlapping range inputs */
 .range-input {
   position: absolute;
   width: 100%;
-  pointer-events: none; /* Let clicks pass through the container */
+  pointer-events: none;
   appearance: none;
   background: none;
   z-index: 20;
-  outline: none;
 }
 
-/* Style the handles (Thumbs) */
 .range-input::-webkit-slider-thumb {
-  pointer-events: auto; /* Make the handle clickable again */
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: white;
-  border: 2px solid #710A2B; /* Maroon border */
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.1s ease;
-}
-
-.range-input::-webkit-slider-thumb:active {
-  transform: scale(1.2);
-  background: #710A2B;
-}
-
-/* Firefox Support */
-.range-input::-moz-range-thumb {
   pointer-events: auto;
+  appearance: none;
   width: 20px;
   height: 20px;
   border-radius: 50%;
   background: white;
   border: 2px solid #710A2B;
   cursor: pointer;
-}
-
-.mapboxgl-popup-tip {
-  display: none;
 }

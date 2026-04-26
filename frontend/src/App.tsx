@@ -82,7 +82,7 @@ function App() {
         <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
 
         {/* ── Landlord routes ── */}
-        <Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
+        <Route path="/landlord/dashboard/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/manage/accommodation" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
         <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
 

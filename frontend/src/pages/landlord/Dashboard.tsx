@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { X } from "lucide-react";
 
 import HeroBanner from "../../components/dashboard/HeroBanner";
@@ -109,6 +109,7 @@ export default function Dashboard() {
   const [editingDocs, setEditingDocs] = useState(false);
   const [docToDelete, setDocToDelete] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
   const user = useUserStore((s) => s.user);
 
@@ -119,8 +120,8 @@ export default function Dashboard() {
     queryFn: () => api.get("/landlord/accommodations").then((r) => r.data.data ?? []),
   });
 
-  const accommodation = accommodations[0] ?? null;
-  const accommodationId = accommodation?.id;
+  const accommodationId = id ? Number(id) : undefined;
+  const accommodation = accommodations.find((a) => a.id === accommodationId) ?? null;
 
   const { data: revenue } = useQuery<RevenueData>({
     queryKey: ["landlord-revenue"],
