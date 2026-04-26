@@ -43,6 +43,8 @@ export default function BrowsePage() {
 
     const [searching, setSearching] = useState("");
 
+    const [isBelowSm, setIsBelowSm] = useState(false);
+
     const [name, setName] = useState("");
     const navigate = useNavigate()
 
@@ -130,6 +132,7 @@ export default function BrowsePage() {
         rating: string;
         minPrice: number;
         maxPrice: number;
+        invisible?: boolean;
     }
 
     useEffect(() => {
@@ -178,17 +181,15 @@ export default function BrowsePage() {
                 }
             })
 
-            bookmarks.forEach((element: {studentNumber: string}) => {
-                if (element.studentNumber === studentNo)
-                {
+            bookmarks.forEach((element: { studentNumber: string }) => {
+                if (element.studentNumber === studentNo) {
                     bookmarked = true
                 }
             })
 
-            if (searching === "" || searching === accommodationName.toLowerCase())
-            {
+            if (searching === "" || searching === accommodationName.toLowerCase()) {
                 temp[tempCounter].push({ name: accommodationName, subtitle: accommodationLocation, meta: accommodationType, price: 3200, minPrice: minimum, maxPrice: maximum, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: rating })
-            }       
+            }
 
             if (!bookmarked && onlyBookmarked) {
                 continue
@@ -229,20 +230,34 @@ export default function BrowsePage() {
                 maxPrice: maximum,
                 minPrice: minimum
             })
-            
+
         }
         let final: { [key: number]: Dorm[] } = {}
-        for (const key in temp)
-        {
+        // console.log(temp)
+        for (const key in temp) {
             const value = temp[key]
-            if (value.length >= 1)
-            {
+            // console.log("tf", value, key)
+            if (value.length >= 1) {
+                // console.log("normal", value, key)
+                if (value.length < 4 && !isBelowSm) {
+                    for (let i = value.length; i < 4; i++) {
+                        value.push({ name: "", subtitle: "", meta: "", price: 0, minPrice: 0, maxPrice: 0, priceUnit: '/ month', 'featured chips': [""], rating: "", invisible: true })
+                    }
+                }
                 final[key] = value
             }
         }
+
+        // if (Object.keys(final).length === 0) {
+        //     final[0] = [];
+        //     const value = final[0];
+        //     for (let i = 0; i < 4; i++) {
+        //         value.push({ name: "", subtitle: "", meta: "", price: 0, minPrice: 0, maxPrice: 0, priceUnit: '/ month', 'featured chips': [""], rating: "", invisible: true })
+        //     }
+        // }
         setDorms(final)
         setMapAccommodations(tempAccommodations)
-    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching]);
+    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, isBelowSm]);
 
 
     const [pageNumber, setPageNumber] = useState(0);
@@ -284,8 +299,6 @@ export default function BrowsePage() {
     const centeredAccommodation = centerId
         ? mapAccommodations.find((a) => a.accommodationId === Number(centerId)) ?? null
         : null
-
-    const [isBelowSm, setIsBelowSm] = useState(false);
 
     useEffect(() => {
         const media = window.matchMedia("(max-width: 639px)");
@@ -335,107 +348,120 @@ export default function BrowsePage() {
 
                             {/* dorm cards and buttons */}
                             <div className="flex w-full justify-center items-center p-4 gap-2">
-                                <div className="flex justify-center items-center relative z-50">
-                                    <button onClick={() => {
-                                        let counter = pageNumber
-                                        if (counter == 0) {
-                                            counter = Object.keys(dorms).length - 1
-                                        } else {
-                                            counter--
-                                        }
+                                {Object.keys(dorms).length > 0 && (
+                                    <div className="flex justify-center items-center relative z-50">
+                                        <button
+                                            onClick={() => {
+                                                let counter = pageNumber;
+                                                if (counter == 0) {
+                                                    counter = Object.keys(dorms).length - 1;
+                                                } else {
+                                                    counter--;
+                                                }
 
-                                        if (counter % 2 == 0 && counter != Object.keys(dorms).length - 1) {
-                                            let temp = [...pageLimits]
-                                            if (temp[0] - 2 >= 0) {
-                                                temp[0] -= 2
-                                                temp[1] -= 2
-                                                setPageLimits(temp)
-                                            }
-                                        } else if (counter % 2 == 0 && counter == Object.keys(dorms).length - 1) {
-                                            let max = Object.keys(dorms).length
-                                            max = max % 2 == 0 ? max : max + 1
-                                            let temp = [max - 2, max]
-                                            setPageLimits(temp)
-                                        }
+                                                if (counter % 2 == 0 && counter != Object.keys(dorms).length - 1) {
+                                                    let temp = [...pageLimits];
+                                                    if (temp[0] - 2 >= 0) {
+                                                        temp[0] -= 2;
+                                                        temp[1] -= 2;
+                                                        setPageLimits(temp);
+                                                    }
+                                                } else if (counter % 2 == 0 && counter == Object.keys(dorms).length - 1) {
+                                                    let max = Object.keys(dorms).length;
+                                                    max = max % 2 == 0 ? max : max + 1;
+                                                    let temp = [max - 2, max];
+                                                    setPageLimits(temp);
+                                                }
 
-                                        setPageNumber(counter)
-                                    }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
-                                        <span className="text-white text-3xl">{'<'}</span>
-                                    </button>
-                                </div>
+                                                setPageNumber(counter);
+                                            }}
+                                            className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg"
+                                        >
+                                            <span className="text-white text-3xl">{'<'}</span>
+                                        </button>
+                                    </div>
+                                )}
 
                                 <div className="flex">
-                                    <div
-                                        className="flex"
-                                        style={{
-                                            transform: `translateX(-${100 * pageNumber}%)`,
-                                            transition: 'transform 500ms ease-in-out',
-                                        }}
-                                    >
+                                    <div className="flex" style={{ transform: `translateX(-${100 * pageNumber}%)`, transition: 'transform 500ms ease-in-out', }}>
 
-                                        {Object.keys(dorms).map((key, index) => {
-                                            console.log(isBelowSm)
-                                            if (pageNumber == index) {
-                                                return <div className={`w-full shrink-0 flex items-center transition-opacity duration-500 ${"opacity-500"
-                                                    }`}>
-                                                    <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
-                                                        {dorms[Number(key)].map((value) => (
-                                                            <div className="w-full flex items-center justify-center">
-                                                                <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
-                                                            </div>
-                                                        ))}
+                                        {Object.keys(dorms).length === 0 ? (
+                                            <div className="w-full flex items-center justify-center">
+                                                <div className="flex justify-center w-full max-w-[100%] h-[600px]">
+                                                    <div className="col-span-2 flex items-center justify-center py-10 text-gray-500 text-lg">
+                                                        No searches found
                                                     </div>
                                                 </div>
-                                            } else {
-                                                return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-0"
-                                                    }`}>
-                                                    <div className="grid grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
-                                                        {dorms[Number(key)].map((value) => (
-                                                            <div className="w-full flex items-center justify-center">
-                                                                <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            }
+                                            </div>
+                                        ) : (
 
-                                        })}
+                                            Object.keys(dorms).map((key, index) => {
+                                                const hasOnePage = Object.keys(dorms[Number(key)]).length === 1;
+                                                console.log(hasOnePage, Object.keys(dorms[Number(key)]).length, key)
+                                                if (pageNumber == index) {
+                                                    return (
+                                                        <div className="w-full shrink-0 flex items-center transition-opacity duration-500 opacity-100">
+                                                            <div className={`grid ${hasOnePage ? "grid-cols-1" : "grid-cols-2"} gap-6 w-full mx-auto justify-items-center`}>
+                                                                {dorms[Number(key)].map((value) => {
+                                                                    return <div className="w-full flex items-center justify-center">
+                                                                        <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
+                                                                    </div>
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                } else {
+                                                    return (
+                                                        <div className="w-full shrink-0 transition-opacity duration-500 opacity-0">
+                                                            <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
+                                                                {dorms[Number(key)].map((value) => {
+                                                                    return <div className="w-full flex items-center justify-center">
+                                                                        <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
+                                                                    </div>
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                            })
+                                        )}
                                     </div>
 
                                 </div>
 
-                                <div className="flex justify-center items-center relative z-50">
-                                    <button onClick={() => {
+                                {Object.keys(dorms).length > 0 &&
+                                    (<div className="flex justify-center items-center relative z-50">
+                                        <button onClick={() => {
 
-                                        let counter = pageNumber
-                                        if (counter == Object.keys(dorms).length - 1) {
-                                            counter = 0
-                                        } else {
-                                            counter++
-                                        }
+                                            let counter = pageNumber
+                                            if (counter == Object.keys(dorms).length - 1) {
+                                                counter = 0
+                                            } else {
+                                                counter++
+                                            }
 
-                                        console.log(counter)
-                                        if (counter % 2 == 0 && counter != 0) {
-                                            let temp = [...pageLimits]
-                                            let max = Object.keys(dorms).length
-                                            max = max % 2 == 0 ? max : max + 1
+                                            console.log(counter)
+                                            if (counter % 2 == 0 && counter != 0) {
+                                                let temp = [...pageLimits]
+                                                let max = Object.keys(dorms).length
+                                                max = max % 2 == 0 ? max : max + 1
 
 
-                                            if (temp[1] + 2 <= max) {
-                                                temp[0] += 2
-                                                temp[1] += 2
+                                                if (temp[1] + 2 <= max) {
+                                                    temp[0] += 2
+                                                    temp[1] += 2
+                                                    setPageLimits(temp)
+                                                }
+                                            } else if (counter % 2 == 0 && counter == 0) {
+                                                let temp = [0, 2]
                                                 setPageLimits(temp)
                                             }
-                                        } else if (counter % 2 == 0 && counter == 0) {
-                                            let temp = [0, 2]
-                                            setPageLimits(temp)
-                                        }
 
-                                        setPageNumber(counter)
-                                    }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
-                                        <span className="text-white text-3xl">{'>'}</span>
-                                    </button>
-                                </div>
+                                            setPageNumber(counter)
+                                        }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
+                                            <span className="text-white text-3xl">{'>'}</span>
+                                        </button>
+                                    </div>)}
                             </div>
 
                             <div className="flex justify-end items-center w-[70%] gap-2">
@@ -539,7 +565,7 @@ function SearchBar() {
             <button onClick={() => {
                 const input = document.getElementById("search-bar") as HTMLInputElement
                 setSearching((input.value.trim()).toLowerCase())
-            }}className="flex items-center space-x-2 bg-gradient-to-r from-[#6B0F2B] to-[#8A1C3D] hover:from-[#7A162D] hover:to-[#A3264A] text-white px-5 py-2 rounded-full transition-colors duration-200">
+            }} className="flex items-center space-x-2 bg-gradient-to-r from-[#6B0F2B] to-[#8A1C3D] hover:from-[#7A162D] hover:to-[#A3264A] text-white px-5 py-2 rounded-full transition-colors duration-200">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -598,6 +624,10 @@ function Form() {
                             setFilters(originalFilters)
                             setStarRating(3)
                             setOnlyBookmarked(false)
+                            setDormType("All")
+                            setRoomType("All")
+                            setMinPrice(2500)
+                            setMaxPrice(7000)
                             const dorm_type = document.getElementById("dorm-type") as HTMLSelectElement | null;
                             const room_type = document.getElementById("room-type") as HTMLSelectElement | null;
 

@@ -16,6 +16,7 @@ export interface DormCardProps {
     rating?: string;
     verified?: boolean;
     isSmall?: boolean;
+    invisible?: boolean;
     onView?: () => void;
 }
 
@@ -34,12 +35,15 @@ export default function DormCard({
     rating,
     verified = false,
     isSmall,
+    invisible = false,
     onView,
 }: DormCardProps) {
 
     if (isSmall) {
         return <div
-        className="bg-white rounded-[12px] overflow-hidden flex flex-col"
+        className={`bg-white rounded-[12px] overflow-hidden flex flex-col ${
+          invisible ? "invisible" : ""
+        }`}
         style={{
           boxShadow: "0 10px 24px rgba(26,10,15,0.10), 0 2px 6px rgba(26,10,15,0.05)",
           width: 140,
@@ -158,7 +162,9 @@ export default function DormCard({
     }
     else {
         return <div
-            className="bg-white rounded-[18px] overflow-hidden flex flex-col"
+            className={`bg-white rounded-[18px] overflow-hidden flex flex-col ${
+              invisible ? "invisible" : ""
+            }`}
             style={{
                 boxShadow: "0 24px 64px rgba(26,10,15,0.14), 0 4px 16px rgba(26,10,15,0.08)",
                 width: 220,
