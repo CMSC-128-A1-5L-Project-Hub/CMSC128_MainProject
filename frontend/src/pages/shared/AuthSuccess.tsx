@@ -25,10 +25,11 @@ export default function AuthSuccess() {
                 console.log(user)
                 if (user.role === 'unassigned') navigate('/auth/role');
                 else if (user.account_status === 'pending') navigate('/pending-verification');
-                else if (user.role === 'student') navigate('/dashboard/student');
-                else if (user.role === 'manager') navigate('/dashboard/manager');
-                else if (user.role === 'super_admin') navigate ('/dashboard/super_admin');
-                else navigate('/login'); // Fallback jic
+                else if (user.role === 'student') navigate('/student/dashboard');
+                else if (user.role === 'manager') navigate('/manager/dashboard');
+                else if (user.role === 'landlord') navigate('/landlord/manage/accommodation');
+                else if (user.role === 'super_admin') navigate('/admin/dashboard');
+                else navigate('/auth/signin');
             } catch (error) {
                 console.error("Failed to fetch user profile:", error);
                 navigate('/login');
