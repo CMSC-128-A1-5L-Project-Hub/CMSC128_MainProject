@@ -19,6 +19,26 @@ export default class AssignmentsController {
     protected waitlistService: WaitlistWorkflowService
   ) {}
 
+  // ─── MANAGER: ALL ASSIGNMENTS FOR DASHBOARD ───
+  async managerIndex({ auth, serialize }: HttpContext) {
+    const user = auth.user!
+    const accommodations = await Accommodation.query().where('managerId', user.id)
+    const accIds = accommodations.map(a => a.id)
+    if (accIds.length === 0) return serialize([])
+
+    const rooms = await Room.query().whereIn('accommodationId', accIds)
+    const roomIds = rooms.map(r => r.id)
+
+    const assignments = await Assignment.query()
+      .whereIn('roomId', roomIds)
+      .preload('room', (q) => q.preload('accommodation'))
+      .preload('student', (q) => q.preload('user'))
+      .orderBy('moveIn', 'asc')
+
+    return serialize(assignments)
+  }
+
+
   // ─── 1. MANAGER/LANDLORD: ASSIGN ROOM (Slot Confirmed → Assigned) ───
   // POST /assignments
   async store({ auth, request, response, serialize }: HttpContext) {

@@ -58,29 +58,29 @@ export default class AuthController {
 
   // ─── GET /me ──────────────────────────────────────────────────────────────
   async me({ auth, serialize }: HttpContext) {
-    const userId = auth.user!.id
-    const role = auth.user!.role
-
-    const query = User.query()
-      .where('id', userId)
-      .preload('student')
+    const user = await User.query()
+      .where('id', auth.user!.id)
       .preload('phoneNumbers')
       .preload('profilePicture')
+      .firstOrFail()
 
-    // Conditionally preload Manager and Accommodations if the role matches
-    if (role === 'manager') {
-      query.preload('manager', (managerQuery) => {
-        managerQuery.preload('accommodations')
-      })
+    // Role-specific preloads
+    if (user.role === 'student') {
+      await user.load('student')
+    } else if (user.role === 'manager') {
+      await user.load('manager', (q) => q.preload('accommodations'))
+    } else if (user.role === 'landlord') {
+      await user.load('landlord')
     }
 
-    const user = await query.firstOrFail()
-
     const serialized = user.serialize()
+    serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
 
-    // Add the signed URL for the profile picture
-    if (user.profilePicture) {
-      serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
+    // Attach dormitory name for managers
+    if (user.role === 'manager' && user.manager && user.manager.accommodations.length > 0) {
+      serialized.dormitory = user.manager.accommodations[0].accommodationName
+    } else {
+      serialized.dormitory = null
     }
 
     return serialize(serialized)

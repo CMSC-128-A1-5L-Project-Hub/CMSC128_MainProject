@@ -446,6 +446,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
       .where('landlord_id', landlordId)
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
+      .preload('manager', (q) => q.preload('user', (q2) => q2.preload('phoneNumbers')))
 
     // attach a signed primaryImageUrl to each accommodation
     const data = await Promise.all(accommodations.map(withPrimaryImageUrl))

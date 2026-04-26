@@ -5,16 +5,77 @@ import Assignment from '#models/assignment'
 import Student from '#models/student'
 import LogService from '#services/log_service'
 import { inject } from '@adonisjs/core'
-import { withPrimaryImageUrl } from '#services/image_service';
+import { withPrimaryImageUrl } from '#services/image_service'
+import WaitlistWorkflowService from '#services/waitlisted_workflow_service'
+import Room from '#models/room'
+import db from '@adonisjs/lucid/services/db'
+import drive from '@adonisjs/drive/services/main'
+
 @inject()
 export default class ApplicationsController {
-  
+  constructor(protected waitlistService: WaitlistWorkflowService) {}
+
+  // ─── STUDENT: CONFIRM ASSIGNMENT (accept or reject room assignment) ───
+  async confirmAssignment({ auth, params, request, response }: HttpContext) {
+    const user = auth.user!
+    const student = await Student.findByOrFail('userId', user.id)
+
+    const assignment = await Assignment.findOrFail(params.id)
+    if (assignment.studentNumber !== student.studentNumber) {
+      return response.forbidden({ message: 'This assignment does not belong to you' })
+    }
+    if ((assignment as any).confirmationStatus !== 'pending_confirmation') {
+      return response.badRequest({ message: 'Assignment is not pending confirmation' })
+    }
+
+    const { action } = request.body()
+    const room = await Room.findOrFail(assignment.roomId)
+
+    const application = await Application.query()
+      .where('studentNumber', student.studentNumber)
+      .where('accommodationId', room.accommodationId)
+      .where('applicationStatus', 'approved')
+      .first()
+
+    if (!application) {
+      return response.badRequest({ message: 'No approved application found for this accommodation' })
+    }
+
+    const trx = await db.transaction()
+    try {
+      if (action === 'accept') {
+        ;(assignment as any).confirmationStatus = 'active'
+        await assignment.useTransaction(trx).save()
+        application.applicationStatus = 'confirmed'
+        await application.useTransaction(trx).save()
+        await trx.commit()
+        return response.ok({ message: 'Assignment confirmed successfully' })
+      } else if (action === 'reject') {
+        room.roomCurrentOccupancy -= 1
+        if (room.roomCurrentOccupancy < room.roomCapacity) room.roomAvailability = 'available'
+        await room.useTransaction(trx).save()
+        ;(assignment as any).confirmationStatus = 'rejected'
+        await assignment.useTransaction(trx).save()
+        application.applicationStatus = 'cancelled'
+        await application.useTransaction(trx).save()
+        await trx.commit()
+        await this.waitlistService.processMoveOut(room.accommodationId, room)
+        return response.ok({ message: 'Slot released and waitlist updated' })
+      }
+      return response.badRequest({ message: 'action must be "accept" or "reject"' })
+    } catch (error) {
+      await trx.rollback()
+      throw error
+    }
+  }
+
+
   // ─── 1. STUDENT: SUBMIT APPLICATION ───
   async store({ auth, request, response, serialize }: HttpContext) {    
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id) // Get student_number
     
-    const { accommodationId, applicationRoomType, applicationStayType, durationOfStayDays } = request.all()
+    const { accommodationId, applicationRoomType, applicationStayType, durationOfStayDays, preferredTags } = request.all()
 
     // Conflict Prevention: Does the student already have an active stay?
     const activeStay = await Assignment.query()
@@ -34,6 +95,7 @@ export default class ApplicationsController {
       applicationStayType,
       durationOfStayDays,
       applicationStatus: 'pending',
+      preferredTags: preferredTags ?? null,
     })
 
     await LogService.record(user.id, 'application', newApp.id, 'STUDENT_SUBMITTED')
@@ -228,8 +290,8 @@ export default class ApplicationsController {
 
         applicationObject.applicationStatus = 'approved'
         applicationObject.rejectionReason = null
-        // Slot opens now: student has 7 days to confirm or it auto-expires
         applicationObject.slotConfirmDeadline = DateTime.now().plus({ days: 7 })
+        ;(applicationObject as any).approvedAt = DateTime.now()
       } else {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
@@ -296,8 +358,71 @@ export default class ApplicationsController {
     return serialize(app)
   }
 
+  // ─── MANAGER: APPROVED APPLICATIONS READY FOR ROOM ASSIGNMENT ───
+  async approvedForAssignment({ auth, serialize }: HttpContext) {
+    const user = auth.user!
+    const applications = await Application.query()
+      .whereHas('accommodation', (q) => q.where('managerId', user.id))
+      .where('applicationStatus', 'approved')
+      .preload('accommodation')
+      .preload('student', (q) => q.preload('user'))
+      .orderBy('applicationDate', 'asc')
+    return serialize(applications)
+  }
+
+  // ─── STUDENT: CONFIRM / DECLINE APPROVED SLOT ───
+  async confirm({ auth, params, request, response, serialize }: HttpContext) {
+    const user = auth.user!
+    const student = await Student.findByOrFail('userId', user.id)
+    const application = await Application.query()
+      .where('id', params.id)
+      .where('studentNumber', student.studentNumber)
+      .whereIn('applicationStatus', ['approved', 'waitlisted'])
+      .preload('accommodation')
+      .firstOrFail()
+
+    const { action } = request.body()
+
+    if (action === 'accept') {
+      application.applicationStatus = 'confirmed'
+      await application.save()
+      await LogService.record(user.id, 'application', application.id, 'STUDENT_CONFIRMED')
+      return serialize({ message: 'Slot confirmed successfully.', application })
+    }
+
+    if (action === 'decline') {
+      await this.waitlistService.processWaitlistCancellation(application.id)
+      await LogService.record(user.id, 'application', application.id, 'STUDENT_DECLINED')
+      return serialize({ message: 'Slot declined.' })
+    }
+
+    return response.badRequest({ message: 'action must be "accept" or "decline"' })
+  }
+
+  // ─── MANAGER/LANDLORD: VIEW STUDENT ENROLLMENT PROOF ───
+  async viewEnrollmentProof({ params, response }: HttpContext) {
+    const application = await Application.query()
+      .where('id', params.id)
+      .preload('student', (q) => q.preload('enrollmentProof'))
+      .firstOrFail()
+
+    const filePath = application.student?.enrollmentProof?.filePath
+    if (!filePath) return response.notFound({ message: 'Enrollment proof not available' })
+
+    let key: string
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      const url = new URL(filePath)
+      key = decodeURIComponent(url.pathname.substring(1))
+    } else {
+      key = filePath.replace(/^\//, '')
+    }
+
+    const signedUrl = await drive.use('s3').getSignedUrl(key, { expiresIn: '5 minutes' })
+    return { url: signedUrl }
+  }
+
   // MANAGER: VIEW Waitlisted -- TESTER
-  async viewAllWaitlisted({ auth, response, serialize }: HttpContext) {
+  async viewAllWaitlisted({ auth, response}: HttpContext) {
     const user = auth.user!
 
     if (user.role !== 'manager') {
@@ -334,7 +459,7 @@ export default class ApplicationsController {
   }
   
   // MANAGER: VIEW Waitlisted
-  async viewWaitlisted({ auth, response, serialize }: HttpContext) {
+  async viewWaitlisted({ auth, response}: HttpContext) {
     const user = auth.user!
 
     if (user.role !== 'manager') {

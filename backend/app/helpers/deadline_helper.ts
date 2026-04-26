@@ -1,20 +1,35 @@
 import { DateTime } from 'luxon'
 import Application from '#models/application'
 import LogService from '#services/log_service'
-import { serialize } from 'v8'
+import WaitlistWorkflowService from '#services/waitlisted_workflow_service'
+import appService from '@adonisjs/core/services/app'
 
-export async function checkApplicationDeadline(app: Application, pendingWindowDays = 7) {
+export async function checkApplicationDeadline(
+  application: Application,
+  pendingWindowDays = 7,
+  confirmedWindowDays = 3
+) {
   const now = DateTime.now()
-  const appDate = app.applicationDate
 
-  const diffInDays = now.diff(appDate, 'days').days
-
-  if (diffInDays > pendingWindowDays && app.applicationStatus === 'pending') {
-    app.applicationStatus = 'cancelled'
-    await app.save()
-    
-    await LogService.record(null, 'application', app.id, 'STUDENT_CANCELLED')
+  // 1. Expire old pending applications
+  if (application.applicationStatus === 'pending') {
+    const diffDays = now.diff(application.applicationDate, 'days').days
+    if (diffDays > pendingWindowDays) {
+      application.applicationStatus = 'cancelled'
+      await application.save()
+      await LogService.record(null, 'application', application.id, 'AUTO_CANCELLED_PENDING')
+      return
+    }
   }
 
-  return serialize(app)
+  // 2. Expire approved (unconfirmed) applications after the confirmation window
+  if (application.applicationStatus === 'approved') {
+    const referenceDate = application.approvedAt ?? application.applicationDate
+    const daysSinceApproval = now.diff(referenceDate, 'days').days
+
+    if (daysSinceApproval > confirmedWindowDays) {
+      const wlService = await appService.container.make(WaitlistWorkflowService)
+      await wlService.processSlotExpiry(application.id)
+    }
+  }
 }

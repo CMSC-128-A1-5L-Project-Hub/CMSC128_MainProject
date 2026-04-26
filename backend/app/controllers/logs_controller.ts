@@ -1,24 +1,59 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import LogService from '#services/log_service'
+import Log from '#models/log'
+import Accommodation from '#models/accommodation'
+import Room from '#models/room'
+import Application from '#models/application'
+import db from '@adonisjs/lucid/services/db'
 
 @inject()
 export default class LogsController {
-  
-  // constructor(protected logService: LogService) {}
 
-  /**
-   * GET /logs
-   * Super admin: retrieve all audit logs with optional filters.
-   */
   async index({ request, serialize }: HttpContext) {
-    // 1. Grab any filters from the URL (e.g. ?actor_id=5)
     const filters = request.qs()
-
-    // 2. Get data from service
     const logs = await LogService.getFilteredLogs(filters)
+    return serialize(logs)
+  }
 
-    // 3. Serve it to the frontend
+  // ─── MANAGER: RECENT ACTIVITY FOR DASHBOARD ───
+  async managerLogs({ auth, serialize }: HttpContext) {
+    const user = auth.user!
+
+    const accommodations = await Accommodation.query().where('managerId', user.id)
+    const accIds = accommodations.map(a => a.id)
+    if (accIds.length === 0) return serialize([])
+
+    const rooms = await Room.query().whereIn('accommodationId', accIds)
+    const roomIds = rooms.map(r => r.id)
+
+    const applications = await Application.query().whereIn('accommodationId', accIds)
+    const appIds = applications.map(a => a.id)
+
+    const assignments = await db.from('assignments').whereIn('room_id', roomIds).select('id')
+    const assignmentIds = assignments.map(a => a.id)
+
+    const entityIds = {
+      accommodation: accIds,
+      room: roomIds,
+      application: appIds,
+      assignment: assignmentIds,
+    }
+
+    const logs = await Log.query()
+      .where((query) => {
+        for (const [type, ids] of Object.entries(entityIds)) {
+          if (ids.length > 0) {
+            query.orWhere((q) => {
+              q.where('entityType', type as any).whereIn('entityId', ids)
+            })
+          }
+        }
+      })
+      .preload('actor')
+      .orderBy('logTimestamp', 'desc')
+      .limit(10)
+
     return serialize(logs)
   }
 }
