@@ -180,7 +180,7 @@ export default function BillingDashboard(){
                     />
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mx-4 mt-4 my-2">
-                    <div className="flex items-center flex-row justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-6 col-span-2 lg:col-span-1 rounded-xl shrink-0">
+                    <div className="flex items-center flex-row justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-6 col-span-2 lg:col-span-1 rounded-2xl shrink-0">
                         <div>
                             <p className="uppercase font-bold text-white text-opacity-55 text-[12px] lg:text-[13px]">pay now</p>
                             <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">₱{earliestBill.amount.toLocaleString()}</h1>
@@ -217,7 +217,7 @@ export default function BillingDashboard(){
                     ))}
                 </div>
 
-                <div className="flex-1 min-h-0 flex flex-col bg-white mx-4 mt-2 mb-4 rounded-xl p-6">
+                <div className="flex-1 min-h-0 flex flex-col bg-white mx-4 mt-2 mb-4 rounded-2xl p-6">
                     <div className='flex flex-row justify-between'>
                         <div className=''>
                             <p className='font-bold'>Billing History</p>

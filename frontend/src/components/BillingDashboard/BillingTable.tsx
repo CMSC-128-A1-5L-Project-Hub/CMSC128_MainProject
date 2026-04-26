@@ -22,7 +22,7 @@ export default function BillingTable({ bills, onPay }: BillingTableProps){
 
     return (
         <table className= "table-fixed w-full border-separate border-spacing-0">
-            <thead className='sticky top-0 rounded-t-lg bg-white border-y-2 z-10 border-[#6B0F2B]/5'>
+            <thead className='sticky z-20 top-0 rounded-t-lg bg-white border-y-2 border-[#6B0F2B]/5'>
                 <tr className="text-[#9A7080] text-[12px] lg:text-xs tracking-widest font-bold">
                 {[
                     { label: 'bill name',   width: 'w-40' },
@@ -81,8 +81,8 @@ export default function BillingTable({ bills, onPay }: BillingTableProps){
                                         {bill.status === "paid" ? "View" : "Pay Now"}
                                 </Button>
                                 <button 
-                                    className="text-white p-1 font-semibold text-[12px] lg:text-[15px] lg:border-1 items-center justify-center bg-white border-[#6B0F2B]/40 rounded-[8.8px] flex flex-row">
-                                        <img src={downloadIcon} alt="cash" className="w-6 h-6 p-0 center-self opacity-50" />    
+                                    className="transition-transform duration-150 hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-900 text-white p-1 font-semibold text-[12px] lg:text-[15px] lg:border-1 items-center justify-center bg-white border-[#6B0F2B]/40 rounded-[8.8px] flex flex-row">
+                                        <img src={downloadIcon} alt="cash" className="w-6 h-6 p-0 z-0 center-self opacity-50" />    
                                 </button>
                             </div>
                             

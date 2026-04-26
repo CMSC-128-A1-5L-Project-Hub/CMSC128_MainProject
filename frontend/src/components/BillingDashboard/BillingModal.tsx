@@ -70,7 +70,7 @@ export default function BillingModal({bill, onClose, onSubmit}: BillingModalProp
                             <div>
                                 <p className="uppercase font-bold text-[#9A7080] text-opacity-55 text-[12px]">due date</p>
                                 <h1 className="font-bold text-[18px] text-black">{bill.endPeriod.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</h1>
-                                <p className="text-[#9A7080] font-semibold text-opacity-55 text-[12px]">{bill.semester}</p>
+                                <p className="text-[#9A7080] font-semibold text-opacity-55 text-[12px]"></p>
                             </div>
                             <StylizedStatus status={bill.status} />
                         </div>
