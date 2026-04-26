@@ -26,8 +26,7 @@ export default function BillingTable({ bills, onPay }: BillingTableProps){
                 <tr className="text-[#9A7080] text-[12px] lg:text-xs tracking-widest font-bold">
                 {[
                     { label: 'bill name',   width: 'w-40' },
-                    { label: 'period',      width: 'w-44' },
-                    { label: 'date issued', width: 'w-32' },
+                    { label: 'due date',      width: 'w-44' },
                     { label: 'amount',      width: 'w-32' },
                     { label: 'status',      width: 'w-32' },
                     { label: 'action',      width: 'w-36' },
@@ -47,19 +46,18 @@ export default function BillingTable({ bills, onPay }: BillingTableProps){
                         <td className='px-2 py-2 flex flex-row'>
                             <img className="w-9 h-9 p-0 rounded-xl" src={pdfIcon} alt="" />
                             <div className='flex flex-col ml-1 justify-center'>
-                                <span className="block flex-row text-[13px] lg:text-sm font-semibold">
+                                <span className="block flex-row text-[13px] lg:text-sm capitalize font-semibold">
                                     Billing Statement
                                 </span>
-                                <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">{bill.dateIssued.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}</span>
+                                <span className="block text-[#9A7080] -mt-1 flex-row text-[13px] lg:text-[12px] capitalize">
+                                    {bill.category}
+                                </span>
                             </div>
                         </td>
                         <td className='px-2 py-2'>
                             <span className="block text-[12px] lg:text-[13px]">
-                                {format(bill.startPeriod)} -  
-                                {format(bill.endPeriod)}</span>
-                        </td>
-                        <td className='px-2 py-2'>
-                            <span className='block text-[12px] lg:text-[13px]'>{format(bill.dateIssued)}</span>
+                                {format(bill.due_date)}
+                            </span>
                         </td>
                         <td className='px-2 py-2'>
                             <span className='block text-[12px] lg:text-[13px]'>₱{bill.amount.toLocaleString()}</span>

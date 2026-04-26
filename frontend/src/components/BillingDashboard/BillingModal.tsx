@@ -53,7 +53,9 @@ export default function BillingModal({bill, onClose, onSubmit}: BillingModalProp
                             <div>
                                 <p className="uppercase font-bold text-white text-opacity-75 text-[12px]">Billing Statement</p>
                                 <h1 className="font-bold text-[18px] text-white">₱{bill.amount.toLocaleString()}</h1>
-                                <p className="text-white font-semibold text-opacity-55 text-[12px]">{bill.dateIssued.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year:'numeric'})}</p>
+                                <p className="text-white font-semibold capitalize text-opacity-55 text-[12px]">
+                                    {bill.category}
+                                </p>
                             </div>
                             <button 
                             className="flex self-center transition-transform duration-150 hover:-translate-y-px hover:scale-105 active:scale-95 focus-visible:ring-red-900 flex-row text-[13px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25">
@@ -66,10 +68,15 @@ export default function BillingModal({bill, onClose, onSubmit}: BillingModalProp
                                 </svg>  
                             </button>
                         </div>
-                        <div className="flex w-full flex-row justify-between border-2 border-opacity-10 border-[#6B0F2B] bg-[#FAF4F6] p-4 mt-4 rounded-xl shrink-0">
+                        <div className="flex w-full flex-row justify-between items-center border-2 border-opacity-10 border-[#6B0F2B] bg-[#FAF4F6] p-4 mt-4 rounded-xl shrink-0">
                             <div>
                                 <p className="uppercase font-bold text-[#9A7080] text-opacity-55 text-[12px]">due date</p>
-                                <h1 className="font-bold text-[18px] text-black">{bill.endPeriod.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</h1>
+                                <h1 className="font-bold text-[18px] text-black">
+                                    {bill.due_date.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
+                                </h1>
+                                <p className="text-[#9A7080] font-semibold mt-1 text-[12px]">
+                                    Balance: ₱{bill.balance.toLocaleString()}
+                                </p>
                                 <p className="text-[#9A7080] font-semibold text-opacity-55 text-[12px]"></p>
                             </div>
                             <StylizedStatus status={bill.status} />

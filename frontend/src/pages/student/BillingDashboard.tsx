@@ -16,12 +16,14 @@ interface HeroContent {
 }
 
 export interface Bill {
-  startPeriod: Date;
-  endPeriod: Date;
-  dateIssued: Date;
+  id: number;
+  landlord_id: number;
+  student_number: string;
+  due_date: Date;
+  category: 'rent' | 'utilities' | 'miscellaneous';
   amount: number;
-  status: 'paid' | 'unpaid';
-  semester: String;
+  balance: number;
+  status: 'paid' | 'unpaid' | 'overdue' | 'partial';
 }
 
 export default function BillingDashboard(){
@@ -42,60 +44,47 @@ export default function BillingDashboard(){
     }
     
     const bills: Bill[] = [
-        { semester: "2nd", startPeriod: new Date(2026, 0, 1), endPeriod: new Date(2026, 0, 31), dateIssued: new Date(2026, 1, 1), amount: 2800, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 0, 1), endPeriod: new Date(2026, 0, 31), dateIssued: new Date(2026, 1, 1), amount: 750, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 0, 1), endPeriod: new Date(2026, 0, 31), dateIssued: new Date(2026, 1, 2), amount: 1500, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 0, 1), endPeriod: new Date(2026, 0, 31), dateIssued: new Date(2026, 0, 1), amount: 12000, status: "paid" },
+        { id: 1,  landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 0, 31), category: "rent",          amount: 12000, balance: 0,     status: "paid" },
+        { id: 2,  landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 0, 31), category: "utilities",     amount: 2800,  balance: 0,     status: "paid" },
+        { id: 3,  landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 0, 31), category: "miscellaneous", amount: 750,   balance: 0,     status: "paid" },
 
-        { semester: "2nd", startPeriod: new Date(2026, 1, 1), endPeriod: new Date(2026, 1, 28), dateIssued: new Date(2026, 2, 1), amount: 3000, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 1, 1), endPeriod: new Date(2026, 1, 28), dateIssued: new Date(2026, 2, 1), amount: 820, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 1, 1), endPeriod: new Date(2026, 1, 28), dateIssued: new Date(2026, 2, 2), amount: 1500, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 1, 1), endPeriod: new Date(2026, 1, 28), dateIssued: new Date(2026, 1, 1), amount: 12000, status: "paid" },
+        { id: 4,  landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 1, 28), category: "rent",          amount: 12000, balance: 0,     status: "paid" },
+        { id: 5,  landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 1, 28), category: "utilities",     amount: 3000,  balance: 0,     status: "paid" },
+        { id: 6,  landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 1, 28), category: "miscellaneous", amount: 820,   balance: 0,     status: "paid" },
 
-        { semester: "2nd", startPeriod: new Date(2026, 2, 1), endPeriod: new Date(2026, 2, 31), dateIssued: new Date(2026, 3, 1), amount: 3200, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 2, 1), endPeriod: new Date(2026, 2, 31), dateIssued: new Date(2026, 3, 1), amount: 900, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 2, 1), endPeriod: new Date(2026, 2, 31), dateIssued: new Date(2026, 3, 2), amount: 1500, status: "unpaid" },
-        { semester: "2nd", startPeriod: new Date(2026, 2, 1), endPeriod: new Date(2026, 2, 31), dateIssued: new Date(2026, 2, 1), amount: 12000, status: "paid" },
+        { id: 7,  landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 2, 31), category: "rent",          amount: 12000, balance: 0,     status: "paid" },
+        { id: 8,  landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 2, 31), category: "utilities",     amount: 3200,  balance: 0,     status: "paid" },
+        { id: 9,  landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 2, 31), category: "miscellaneous", amount: 900,   balance: 0,     status: "paid" },
 
-        { semester: "2nd", startPeriod: new Date(2026, 3, 1), endPeriod: new Date(2026, 3, 30), dateIssued: new Date(2026, 4, 1), amount: 2900, status: "unpaid" },
-        { semester: "2nd", startPeriod: new Date(2026, 3, 1), endPeriod: new Date(2026, 3, 30), dateIssued: new Date(2026, 4, 1), amount: 880, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 3, 1), endPeriod: new Date(2026, 3, 30), dateIssued: new Date(2026, 4, 2), amount: 1500, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 3, 1), endPeriod: new Date(2026, 3, 30), dateIssued: new Date(2026, 3, 1), amount: 12000, status: "paid" },
+        { id: 10, landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 3, 30), category: "rent",          amount: 12000, balance: 0,     status: "paid" },
+        { id: 11, landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 3, 30), category: "utilities",     amount: 2900,  balance: 2900,  status: "unpaid" },
+        { id: 12, landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 3, 30), category: "miscellaneous", amount: 880,   balance: 0,     status: "paid" },
 
-        { semester: "2nd", startPeriod: new Date(2026, 4, 1), endPeriod: new Date(2026, 4, 31), dateIssued: new Date(2026, 5, 1), amount: 3100, status: "unpaid" },
-        { semester: "2nd", startPeriod: new Date(2026, 4, 1), endPeriod: new Date(2026, 4, 31), dateIssued: new Date(2026, 5, 1), amount: 870, status: "unpaid" },
-        { semester: "2nd", startPeriod: new Date(2026, 4, 1), endPeriod: new Date(2026, 4, 31), dateIssued: new Date(2026, 5, 2), amount: 1500, status: "paid" },
-        { semester: "2nd", startPeriod: new Date(2026, 4, 1), endPeriod: new Date(2026, 4, 31), dateIssued: new Date(2026, 4, 1), amount: 12000, status: "unpaid" },
-
-        { semester: "2nd", startPeriod: new Date(2026, 4, 1), endPeriod: new Date(2026, 4, 31), dateIssued: new Date(2026, 4, 5), amount: 500, status: "paid" },
-
-        { semester: "1st", startPeriod: new Date(2026, 5, 1), endPeriod: new Date(2026, 5, 30), dateIssued: new Date(2026, 6, 1), amount: 3300, status: "unpaid" },
-        { semester: "1st", startPeriod: new Date(2026, 5, 1), endPeriod: new Date(2026, 5, 30), dateIssued: new Date(2026, 6, 1), amount: 910, status: "paid" },
-        { semester: "1st", startPeriod: new Date(2026, 5, 1), endPeriod: new Date(2026, 5, 30), dateIssued: new Date(2026, 6, 2), amount: 1500, status: "paid" },
-        { semester: "1st", startPeriod: new Date(2026, 5, 1), endPeriod: new Date(2026, 5, 30), dateIssued: new Date(2026, 5, 1), amount: 12000, status: "paid" }
-    ];
+        { id: 13, landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 4, 31), category: "rent",          amount: 12000, balance: 12000, status: "unpaid" },
+        { id: 14, landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 4, 31), category: "utilities",     amount: 3100,  balance: 3100,  status: "unpaid" },
+        { id: 15, landlord_id: 1, student_number: "2022-00001", due_date: new Date(2026, 4, 31), category: "miscellaneous", amount: 870,   balance: 435,   status: "partial" },
+        ];
 
     const earliestBill = [...bills]
-        .filter(b => b.status === 'unpaid')
-        .sort((a,b) => a.dateIssued.getTime() - b.dateIssued.getTime())[0] ?? null;
+        .filter(b => b.status === 'unpaid' || b.status === 'partial' || b.status === 'overdue')
+        .sort((a, b) => a.due_date.getTime() - b.due_date.getTime())[0] ?? null;
     
-    
-    const AYBills = bills.filter(a => a.dateIssued >= semesterStart && a.dateIssued <= semesterEnd);
+    const AYBills = bills.filter(a => a.due_date >= semesterStart && a.due_date <= semesterEnd);
     const AYBillSum = AYBills.reduce((acc, curr) => acc + curr.amount, 0);
     const AYPaidSum = AYBills.reduce((acc, curr) => curr.status === "paid" ? acc + curr.amount : acc, 0);
     
     const summaryCards = [
         {
             label: "outstanding",
-            value: earliestBill.amount,
+            value: earliestBill?.balance ?? 0,         // balance remaining, not full amount
             color: "#9E2040",
-            sub: earliestBill.endPeriod.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+            sub: earliestBill?.due_date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) ?? "-"
         },
         {
             label: "next due",
-            value: earliestBill.amount,
+            value: earliestBill?.amount ?? 0,
             color: "#000000",
-            sub: earliestBill.endPeriod.getMonth() < 6 ? "1st Semester" : "2nd Semester"
+            sub: earliestBill?.due_date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) ?? "-"
         },
         {
             label: "total billed",
@@ -126,33 +115,27 @@ export default function BillingDashboard(){
         return [...bills]
             .filter(a => !q || [
                 String(a.amount),
-                format(a.dateIssued), 
-                format(a.endPeriod), 
-                format(a.startPeriod), 
-                a.status]
-                .some(field => field.toLowerCase().includes(q))
-            )
+                String(a.balance),
+                a.category,
+                a.status,
+                format(a.due_date),
+            ].some(field => field.toLowerCase().includes(q)))
             .sort((a, b) => {
-                const parseDate = (str: string | Date) => str === '-' ? 0 : new Date(str).getTime();
-
-                if (sortBy === "Date issued (Asc.)")  return parseDate(a.dateIssued) - parseDate(b.dateIssued);
-                if (sortBy === "Date issued (Desc.)") return parseDate(b.dateIssued) - parseDate(a.dateIssued);
-                if (sortBy === "Period (Asc.)")  return parseDate(a.endPeriod) - parseDate(b.endPeriod);
-                if (sortBy === "Period (Desc.)") return parseDate(b.endPeriod) - parseDate(a.endPeriod);
-                if (sortBy === "Amount (Asc.)") return a.amount - b.amount;
+                if (sortBy === "Date issued (Asc.)")  return a.due_date.getTime() - b.due_date.getTime();
+                if (sortBy === "Date issued (Desc.)") return b.due_date.getTime() - a.due_date.getTime();
+                if (sortBy === "Amount (Asc.)")  return a.amount - b.amount;
                 if (sortBy === "Amount (Desc.)") return b.amount - a.amount;
 
-                if (a.status !== b.status) return b.status.localeCompare(a.status);
-                return a.dateIssued.getTime() - b.dateIssued.getTime();
-
-            });
+                const order = { overdue: 0, unpaid: 1, partial: 2, paid: 3 };
+                if (a.status !== b.status) return order[a.status] - order[b.status];
+                return a.due_date.getTime() - b.due_date.getTime();
+                })
         }, [sortBy, searchQuery]);
 
     const totalApps = sortedBills.length;
     const [ROWS_PER_PAGE, setRows] = useState(5);
     const [currentPage, setCurrentPage] = useState(1);
     const totalPages = Math.ceil(sortedBills.length / ROWS_PER_PAGE);
-    const inputRef = useRef<HTMLInputElement>(null);
     const paginated = sortedBills.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE);
 
     return (
@@ -183,8 +166,12 @@ export default function BillingDashboard(){
                     <div className="flex items-center flex-row justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-6 col-span-2 lg:col-span-1 rounded-2xl shrink-0">
                         <div>
                             <p className="uppercase font-bold text-white text-opacity-55 text-[12px] lg:text-[13px]">pay now</p>
-                            <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">₱{earliestBill.amount.toLocaleString()}</h1>
-                            <p className="text-white font-semibold text-opacity-55 text-[12.5px] lg:text-[13.5px]">{earliestBill.dateIssued.toLocaleDateString('en-US', {month: 'long', year:'numeric'})}</p>
+                            <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">
+                                 ₱{earliestBill?.amount.toLocaleString()}
+                            </h1>
+                            <p className="text-white font-semibold text-opacity-55 text-[12.5px] lg:text-[13.5px]">
+                                {earliestBill?.due_date.toLocaleDateString('en-US', {month: 'long', year:'numeric'})}
+                            </p>
                         </div>
                         <button 
                             onClick={() => {setPayOpen(true); setSelectedBill(earliestBill); }}

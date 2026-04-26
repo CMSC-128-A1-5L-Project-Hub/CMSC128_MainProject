@@ -1,10 +1,12 @@
 const statusStyles: Record<string, { bg: string; dot: string; text: string }> = {
-  paid:   { bg: '#1A7A4A', dot: '#1A7A4A', text: '#1A7A4A' },
-  unpaid: { bg: '#6B0F2B', dot: '#9E2040', text: '#9E2040' },
+  paid:    { bg: '#1A7A4A', dot: '#1A7A4A', text: '#1A7A4A' },
+  unpaid:  { bg: '#6B0F2B', dot: '#9E2040', text: '#9E2040' },
+  overdue: { bg: '#7A3A1A', dot: '#C05020', text: '#C05020' },
+  partial: { bg: '#7A6A1A', dot: '#B09020', text: '#9A7A10' },
 };
 
 interface StylizedStatusProps {
-    status: 'paid' | 'unpaid';
+    status: 'paid' | 'unpaid' | 'overdue' | 'partial';
 }
 
 export default function StylizedStatus({status}:StylizedStatusProps){
