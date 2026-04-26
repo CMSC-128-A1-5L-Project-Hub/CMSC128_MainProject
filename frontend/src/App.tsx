@@ -30,6 +30,7 @@ import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ApplicationsScreen from "./pages/manager/ApplicationsPage"
 import ApplicationTestPage from "./pages/ApplicationTestPage"
+import Applications from "./pages/landlord/Applications"
 
 function FullLandingPage() {
   return (
@@ -92,6 +93,7 @@ function App() {
         <Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/manage/accommodation" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
         <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
+        <Route path="/landlord/application" element={<Applications />} />
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
