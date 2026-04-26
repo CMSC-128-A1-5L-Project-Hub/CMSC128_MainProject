@@ -424,7 +424,7 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
                       borderColor: CLR.subtext,
                       background: 'transparent',
                     }}
-                    title="Click to add back"
+                    title="Click to add back amenity of choice."
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={CLR.mid} strokeWidth="2.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
