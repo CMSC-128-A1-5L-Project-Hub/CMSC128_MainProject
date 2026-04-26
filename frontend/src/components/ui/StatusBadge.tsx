@@ -13,7 +13,7 @@ const statusConfig: Record<Status, { label: string; dotColor: string; bg: string
   approved:     { label: "Approved",     dotColor: "#2E7D32", bg: "#EDF7EE", text: "#2E7D32" },
   rejected:     { label: "Rejected",     dotColor: "#C62828", bg: "#FDECEA", text: "#C62828" },
   cancelled:    { label: "Cancelled",    dotColor: "#757575", bg: "#F5F5F5", text: "#757575" },
-  waitlisted:   { label: "Waitlisted",   dotColor: "#E65100", bg: "#FFF3E0", text: "#E65100" },
+  waitlisted:   { label: "Waitlisted",   dotColor: "#6B3AB7", bg: "#F4F0FA", text: "#6B3AB7" },
   under_review: { label: "Under Review", dotColor: "#1565C0", bg: "#E8F0FE", text: "#1565C0" },
   confirmed:    { label: "Confirmed",    dotColor: "#2E7D32", bg: "#E8F5E9", text: "#2E7D32" },
   pending_confirmation: { label: "Pending Confirmation", dotColor: "#F59E0B", bg: "#FFF7ED", text: "#B45309" },
