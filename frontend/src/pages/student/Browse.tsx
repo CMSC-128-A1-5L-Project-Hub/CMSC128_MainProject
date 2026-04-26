@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import DormCard from "../../components/DormCardBrowse";
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
-import { Star } from "lucide-react";
+import { BookMarked, Star } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
 import { api } from "../../api/axios"
 import { useQuery } from "@tanstack/react-query";
@@ -60,12 +60,10 @@ function Form() {
     if (!context) {
         throw new Error("FilterContext must be used within a Provider");
     }
-    const { dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating } = context
+    const { dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked } = context
 
     const [newFilter, setNewFilter] = useState("")
     const [modal, setModal] = useState(false);
-    const [toggled, setToggled] = useState(false);
-
 
     const originalFilters = {
         "WiFi": false,
@@ -87,7 +85,7 @@ function Form() {
                         onClick={() => {
                             setFilters(originalFilters)
                             setStarRating(3)
-                            setToggled(false)
+                            setOnlyBookmarked(false)
                             const dorm_type = document.getElementById("dorm-type") as HTMLSelectElement | null;
                             const room_type = document.getElementById("room-type") as HTMLSelectElement | null;
 
@@ -143,7 +141,7 @@ function Form() {
 
 
 
-                                <button className={`toggle-btn ${toggled ? 'toggled' : ''}`} onClick={() => setToggled(!toggled)}>
+                                <button className={`toggle-btn ${onlyBookmarked ? 'toggled' : ''}`} onClick={() => setOnlyBookmarked(!onlyBookmarked)}>
                                     <div className="thumb"></div>
                                 </button>
 
@@ -498,6 +496,8 @@ type FilterContextType = {
     setRoomType: (value: string) => void;
     starRating: number;
     setStarRating: (value: number) => void;
+    onlyBookmarked: boolean;
+    setOnlyBookmarked: (value: boolean) => void;
 };
 
 export const filterContext = createContext<FilterContextType | undefined>(undefined);
@@ -511,6 +511,8 @@ export default function BrowsePage() {
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
     const [starRating, setStarRating] = useState(3);
+    const [studentNo, setStudentNo] = useState("");
+    const [onlyBookmarked, setOnlyBookmarked] = useState(false);
     const navigate = useNavigate()
 
     const {
@@ -544,8 +546,7 @@ export default function BrowsePage() {
         queryKey: ["me"],
         queryFn: async () => {
             const res = await api.get("/me");
-            console.log("hello")
-            console.log(res.data.data)
+            setStudentNo(res.data.data.student.studentNumber)
             return res.data.data;
         },
     });
@@ -609,12 +610,14 @@ export default function BrowsePage() {
                 tempCounter++;
                 temp[tempCounter] = []
             }
-            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance, rooms, reviews } = accommodations[i]
+            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance, rooms, reviews, bookmarks } = accommodations[i]
             let minimum = -1;
             let maximum = -1;
 
             const roomTypes = new Set();
             let rating = "6";
+
+            let bookmarked = false
 
             rooms.forEach((element: { roomRent: Number; roomType: String }) => {
                 roomTypes.add(element.roomType)
@@ -643,8 +646,18 @@ export default function BrowsePage() {
                 }
             })
 
+            bookmarks.forEach((element: {studentNumber: string}) => {
+                if (element.studentNumber === studentNo)
+                {
+                    bookmarked = true
+                }
+            })
 
             temp[tempCounter].push({ name: accommodationName, subtitle: accommodationLocation, meta: accommodationType, price: 3200, minPrice: minimum, maxPrice: maximum, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: rating })
+
+            if (!bookmarked && onlyBookmarked) {
+                continue
+            }
 
             if (Number(rating) < starRating) {
                 continue
@@ -685,7 +698,7 @@ export default function BrowsePage() {
         }
         setDorms(temp)
         setMapAccommodations(tempAccommodations)
-    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating]);
+    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked]);
 
 
     const [pageNumber, setPageNumber] = useState(0);
@@ -742,7 +755,7 @@ export default function BrowsePage() {
     }, []);
 
     return <>
-        <filterContext.Provider value={{ dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating }}>
+        <filterContext.Provider value={{ dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked }}>
             <div className="flex w-full min-h-screen bg-[#F5EEF0]">
                 <div className="relative z-[9999]">
                     <Sidebar role="student" />

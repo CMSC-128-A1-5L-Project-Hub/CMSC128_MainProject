@@ -7,6 +7,7 @@ export class AccommodationService {
       .where('status', 'verified')
       .preload('images')
       .preload('rooms')
+      .preload('bookmarks')
       .preload('reviews') // dinagdag ko to for student browse page
 
 

@@ -37,7 +37,6 @@ export default class AccommodationController {
       .preload('tags')
       .preload('manager', (q) => q.preload('user'))
       .preload('rooms')
-      .preload('reviews')
       .first()
 
     if (!accommodation) {
