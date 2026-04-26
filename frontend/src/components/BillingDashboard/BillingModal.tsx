@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import type {Bill} from '../../pages/student/BillingDashboard';
 import Button from '../Button';

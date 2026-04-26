@@ -28,13 +28,13 @@ export default function ApplicationTable({applications, onView}: ApplicationTabl
             <thead className='sticky z-20 top-0 rounded-t-lg bg-white border-y-2 border-[#6B0F2B]/5'>
                 <tr className="text-[#9A7080] text-[12px] lg:text-xs tracking-widest font-bold">
                 {[
-                    { label: 'dormitory',   width: 'w-40' },
-                    { label: 'date applied',      width: 'w-32' },
-                    { label: 'status',      width: 'w-32' },
-                    { label: 'remarks',      width: 'w-44' },
-                    { label: 'action',      width: 'w-36' },
+                    { label: 'dormitory'},
+                    { label: 'date applied'},
+                    { label: 'status'},
+                    { label: 'remarks'},
+                    { label: 'action'},
                 ].map(col => (
-                    <th key = {col.label} className={`uppercase p-2 text-left    whitespace-nowrap border-y-2 border-[#6B0F2B]/5`}>
+                    <th key = {col.label} className={`uppercase p-2 text-left whitespace-nowrap border-y-2 border-[#6B0F2B]/5`}>
                         {col.label}
                     </th>
                 ))}

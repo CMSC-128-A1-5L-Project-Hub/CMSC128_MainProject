@@ -82,6 +82,13 @@ export default function SearchBar({value, onChange, onPageReset} : SearchBarProp
             </div>
             </div>
         )}
+
+            {/* Mobile: icon that opens modal */}
+            <button className="lg:hidden border-2 p-1 px-2 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px] overflow-hidden" onClick={() => setSearchOpen(true)}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="32" fill="none" viewBox="0 0 24 24">
+                    <path stroke="#9A7080" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z"/>
+                </svg>
+            </button>
         </div>
     )
 }
