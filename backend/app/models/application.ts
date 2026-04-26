@@ -1,3 +1,4 @@
+// app/models/application.ts
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
@@ -30,22 +31,23 @@ export default class Application extends BaseModel {
   declare rejectionReason: string | null
 
   @column()
-  declare applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review'
+  declare applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review' | 'confirmed'
 
   @column()
   declare durationOfStayDays: number
+
+  // ─── NEW COLUMNS ────────────────────────────────────────────────
+  @column()
+  declare preferredTags: string[] | null   // holds the student's preferred tag list
+
+  @column.dateTime()
+  declare approvedAt: DateTime | null      // set when the application becomes 'approved'
 
   @column.dateTime()
   declare reviewedAt: DateTime | null
 
   @column()
   declare reviewedBy: number | null
-
-  @column.dateTime()
-  declare slotConfirmedAt: DateTime | null
-
-  @column.dateTime()
-  declare slotConfirmDeadline: DateTime | null
 
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>

@@ -537,7 +537,7 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
                                 <p className="hidden lg:block col-span-2 text-center text-sm text-[#1A0008]">Building {record.roomBuilding}</p>
                                 <p className="hidden lg:block col-span-2 text-center text-sm text-[#1A0008] capitalize">{record.roomType}</p>
                                 <div className="col-span-2 flex justify-center">
-                                    <span className={`inline-flex items-center justify-center gap-1 text-[10px] lg:text-xs px-2 py-1 min-w-[70px] lg:min-w-[110px] rounded-full font-bold
+                                    <span className={`inline-flex items-center justify-center gap-1 text-[10px] lg:text-xs px-2 py-1 rounded-full font-bold
                                         ${record.action === "Move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
                                     `}>
                                         <span className={`w-2 h-2 rounded-full 
