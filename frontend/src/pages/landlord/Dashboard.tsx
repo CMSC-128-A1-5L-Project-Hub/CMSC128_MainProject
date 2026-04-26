@@ -1,3 +1,8 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
+
 import HeroBanner from "../../components/dashboard/HeroBanner";
 import StatCard from "../../components/dashboard/landlord/rooms/dashboard/StatCard";
 import SectionCard from "../../components/dashboard/landlord/rooms/dashboard/SectionCard";
@@ -10,41 +15,72 @@ import ReportsPanel from "../../components/dashboard/landlord/rooms/dashboard/Re
 import ApplicationPeriod from "../../components/dashboard/landlord/rooms/dashboard/Calendar";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
 
-interface LandlordProfile {
-    fullName: string
-    shortName: string
-    email: string
-    phoneNumber: string
-    status: string
-    dormitory: string
+import { api } from "../../api/axios";
+import { useUserStore } from "../../stores/useUserStore";
+import { queryClient } from "../../lib/queryClient";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Accommodation {
+  id: number
+  accommodationName: string
+  status: string
+  applicationStartDate: string | null
+  applicationEndDate: string | null
+  manager: {
+    userId: number
+    managerStatus: string
+    user: {
+      fname: string
+      lname: string
+      email: string
+      phoneNumbers: { contactNumber: string; isPrimary: boolean }[]
+    }
+  } | null
 }
 
-interface HeroContent {
-    greeting: string
-    title: string
-    subtitle: string
+interface Application {
+  id: number
+  applicationRoomType: string
+  applicationStayType: string
+  applicationStatus: string
+  applicationDate: string
+  student: {
+    studentNumber: string
+    user: { fname: string; lname: string }
+  }
 }
 
-const heroContent: HeroContent = {
-    greeting: "Good Day",
-    title: "Efficiently manage applicants & housing accommodation",
-    subtitle: "You have 2 pending applications and 3 new notifications"
+interface Room {
+  id: number
+  roomNumber: string
+  roomType: string
+  roomCapacity: number
+  roomCurrentOccupancy: number
+  roomAvailability: string
 }
 
-const landlordProfile: LandlordProfile = {
-    fullName: "Dal Cadsawan",
-    shortName: "Dal",
-    email: "ddcadsawan@up.edu.ph",
-    phoneNumber: "+63 912 345 6789",
-    status: "Active",
-    dormitory: "Narra Residences"
+interface RevenueData {
+  projectedMonthlyRevenue: number
 }
 
-function FilterTabs({ active, setActive }: any) {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good Morning";
+  if (h < 18) return "Good Afternoon";
+  return "Good Evening";
+}
+
+function fmt(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-PH", {
+    month: "short", day: "numeric", year: "numeric",
+  });
+}
+
+function FilterTabs({ active, setActive }: { active: string; setActive: (t: string) => void }) {
   const tabs = ["Overview", "Fees", "Rooms"];
   return (
     <div className="bg-white p-1 rounded-xl inline-flex gap-1">
@@ -53,9 +89,7 @@ function FilterTabs({ active, setActive }: any) {
           key={tab}
           onClick={() => setActive(tab)}
           className={`px-4 py-1.5 text-sm rounded-lg transition ${
-            active === tab
-              ? "bg-[#6B0F2B] text-white shadow"
-              : "text-gray-500 hover:text-black"
+            active === tab ? "bg-[#6B0F2B] text-white shadow" : "text-gray-500 hover:text-black"
           }`}
         >
           {tab}
@@ -64,6 +98,8 @@ function FilterTabs({ active, setActive }: any) {
     </div>
   );
 }
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("Overview");
@@ -74,10 +110,83 @@ export default function Dashboard() {
   const [docToDelete, setDocToDelete] = useState<number | null>(null);
   const navigate = useNavigate();
 
+  const user = useUserStore((s) => s.user);
+
+  // ── Queries ─────────────────────────────────────────────────────────────────
+
+  const { data: accommodations = [] } = useQuery<Accommodation[]>({
+    queryKey: ["landlord-accommodations"],
+    queryFn: () => api.get("/landlord/accommodations").then((r) => r.data.data ?? []),
+  });
+
+  const accommodation = accommodations[0] ?? null;
+  const accommodationId = accommodation?.id;
+
+  const { data: revenue } = useQuery<RevenueData>({
+    queryKey: ["landlord-revenue"],
+    queryFn: () => api.get("/reports/revenue").then((r) => r.data.data ?? r.data),
+  });
+
+  const { data: applications = [], isLoading: appsLoading } = useQuery<Application[]>({
+    queryKey: ["landlord-applications"],
+    queryFn: () => api.get("/applications/incoming").then((r) => r.data.data ?? r.data),
+  });
+
+  const { data: rooms = [], isLoading: roomsLoading } = useQuery<Room[]>({
+    queryKey: ["landlord-rooms", accommodationId],
+    queryFn: () => api.get(`/accommodations/${accommodationId}/rooms`).then((r) => r.data.data ?? r.data),
+    enabled: !!accommodationId,
+  });
+
+  const { data: delinquent = [], isLoading: feesLoading } = useQuery({
+    queryKey: ["landlord-delinquency"],
+    queryFn: () => api.get("/reports/delinquency").then((r) => r.data.data ?? r.data),
+  });
+
+  // ── Mutations ────────────────────────────────────────────────────────────────
+
+  const saveAppPeriod = useMutation({
+    mutationFn: ({ start, end }: { start: string; end: string }) =>
+      api.put(`/landlord/accommodations/${accommodationId}`, {
+        application_start_date: start,
+        application_end_date: end,
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] }),
+  });
+
+  // ── Derived values ──────────────────────────────────────────────────────────
+
+  const totalCapacity = rooms.reduce((s, r) => s + r.roomCapacity, 0);
+  const totalOccupied = rooms.reduce((s, r) => s + r.roomCurrentOccupancy, 0);
+  const occupancyPct = totalCapacity > 0 ? Math.round((totalOccupied / totalCapacity) * 100) : 0;
+
+  const projectedRevenue = revenue?.projectedMonthlyRevenue ?? 0;
+
+  const underReviewApps = applications.filter((a) => a.applicationStatus === "under_review");
+
+  // Manager card props
+  const manager = accommodation?.manager;
+  const managerStatus = !manager ? "none"
+    : manager.managerStatus === "active" ? "assigned" : "pending";
+  const primaryPhone = manager?.user?.phoneNumbers?.find((p) => p.isPrimary)?.contactNumber ?? "";
+
+  // ── Right panel (shared between mobile and desktop) ─────────────────────────
+
   const RightPanel = () => (
     <div className="flex flex-col gap-4">
-      <ProfileCard />
-      <ApplicationPeriod />
+      <ProfileCard
+        status={managerStatus}
+        name={manager ? `${manager.user.fname} ${manager.user.lname}` : undefined}
+        role="Dorm Manager"
+        phone={primaryPhone}
+        email={manager?.user?.email}
+      />
+      <ApplicationPeriod
+        initialStart={accommodation?.applicationStartDate}
+        initialEnd={accommodation?.applicationEndDate}
+        onSave={(start, end) => saveAppPeriod.mutate({ start, end })}
+        isSaving={saveAppPeriod.isPending}
+      />
       <ActivityLogs />
       <ReportsPanel />
     </div>
@@ -99,23 +208,24 @@ export default function Dashboard() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => navigate("/manage/landlord/accommodation")}
+                onClick={() => navigate("/landlord/manage/accommodation")}
               >
                 ← Back
               </Button>
-            <div
-              className="hidden lg:inline w-2 h-8 rounded-xl mt-1"
-              style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)" }}
-            />
-            <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">Dashboard</h1>
+              <span className="text-gray-300">|</span>
+              <h2 className="font-semibold text-lg">Dashboard</h2>
             </div>
 
             {/* HERO */}
-            <HeroBanner 
-              greeting={heroContent.greeting}
-              title={heroContent.title}
-              subtitle={heroContent.subtitle}
-              name={landlordProfile.fullName}
+            <HeroBanner
+              greeting={greeting()}
+              title="Efficiently manage applicants & housing accommodation"
+              subtitle={
+                underReviewApps.length > 0
+                  ? `You have ${underReviewApps.length} application${underReviewApps.length !== 1 ? "s" : ""} awaiting your review`
+                  : "Everything is up to date"
+              }
+              name={user ? `${user.fname} ${user.lname}` : ""}
               type="full"
             />
 
@@ -131,36 +241,51 @@ export default function Dashboard() {
             {activeTab === "Overview" && (
               <>
                 <div className="grid grid-cols-3 gap-4">
-                  <StatCard title="REVENUE" value="₱120,000" subtitle="↑ on track" />
-                  <StatCard title="COLLECTED" value="₱80,000" subtitle="67%" />
-                  <StatCard title="PENDING" value="₱40,000" subtitle="33%" negative />
+                  <StatCard
+                    title="PROJECTED REVENUE"
+                    value={`₱${projectedRevenue.toLocaleString("en-PH")}`}
+                    subtitle="Monthly (active tenants)"
+                  />
+                  <StatCard
+                    title="OCCUPIED"
+                    value={`${totalOccupied}`}
+                    subtitle={`${occupancyPct}% of capacity`}
+                  />
+                  <StatCard
+                    title="VACANT"
+                    value={`${Math.max(totalCapacity - totalOccupied, 0)}`}
+                    subtitle={`${100 - occupancyPct}% available`}
+                    negative={totalCapacity - totalOccupied === 0}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+                  {/* OCCUPANCY */}
                   <SectionCard title="Occupancy Rate">
                     <div className="flex items-center gap-4">
                       <div className="shrink-0">
-                        <CircleProgress value={83} />
+                        <CircleProgress value={occupancyPct} />
                       </div>
                       <div className="flex flex-col gap-2 flex-1">
                         <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(140,21,53,0.06)" }}>
                           <div>
                             <p className="text-[10px] text-[#8C1535]/60 uppercase tracking-wider">Occupied</p>
-                            <p className="text-lg font-bold text-[#8C1535]">100</p>
+                            <p className="text-lg font-bold text-[#8C1535]">{totalOccupied}</p>
                           </div>
                           <div className="w-2 h-2 rounded-full bg-[#8C1535]" />
                         </div>
                         <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(0,0,0,0.03)" }}>
                           <div>
                             <p className="text-[10px] text-gray-400 uppercase tracking-wider">Vacant</p>
-                            <p className="text-lg font-bold text-gray-400">30</p>
+                            <p className="text-lg font-bold text-gray-400">{Math.max(totalCapacity - totalOccupied, 0)}</p>
                           </div>
                           <div className="w-2 h-2 rounded-full bg-gray-300" />
                         </div>
                         <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(140,21,53,0.03)" }}>
                           <div>
                             <p className="text-[10px] text-gray-400 uppercase tracking-wider">Total Rooms</p>
-                            <p className="text-lg font-bold text-gray-600">130</p>
+                            <p className="text-lg font-bold text-gray-600">{totalCapacity}</p>
                           </div>
                           <div className="w-2 h-2 rounded-full bg-gray-200" />
                         </div>
@@ -168,6 +293,7 @@ export default function Dashboard() {
                     </div>
                   </SectionCard>
 
+                  {/* FORM 5 RENEWAL — static, no backend endpoint yet */}
                   <SectionCard title="Form 5 Renewal">
                     <div className="flex items-center gap-4">
                       <div className="shrink-0">
@@ -177,21 +303,21 @@ export default function Dashboard() {
                         <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(140,21,53,0.06)" }}>
                           <div>
                             <p className="text-[10px] text-[#8C1535]/60 uppercase tracking-wider">Renewed</p>
-                            <p className="text-lg font-bold text-[#8C1535]">18</p>
+                            <p className="text-lg font-bold text-[#8C1535]">—</p>
                           </div>
                           <div className="w-2 h-2 rounded-full bg-[#8C1535]" />
                         </div>
                         <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(202,138,4,0.06)" }}>
                           <div>
                             <p className="text-[10px] text-yellow-600/70 uppercase tracking-wider">Pending</p>
-                            <p className="text-lg font-bold text-yellow-600">18</p>
+                            <p className="text-lg font-bold text-yellow-600">—</p>
                           </div>
                           <div className="w-2 h-2 rounded-full bg-yellow-500" />
                         </div>
                         <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(0,0,0,0.03)" }}>
                           <div>
                             <p className="text-[10px] text-gray-400 uppercase tracking-wider">Not Enrolled</p>
-                            <p className="text-lg font-bold text-gray-400">2</p>
+                            <p className="text-lg font-bold text-gray-400">—</p>
                           </div>
                           <div className="w-2 h-2 rounded-full bg-gray-300" />
                         </div>
@@ -199,6 +325,7 @@ export default function Dashboard() {
                     </div>
                   </SectionCard>
 
+                  {/* DOCUMENT REQUIREMENTS */}
                   <SectionCard
                     title="Document Requirements"
                     action={editingDocs ? "Done" : "Edit →"}
@@ -222,7 +349,6 @@ export default function Dashboard() {
                                 <button
                                   onClick={() => setDocToDelete(i)}
                                   className="w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition shrink-0"
-                                  style={{ lineHeight: 0, border: "none", padding: 0 }}
                                 >
                                   <X size={8} strokeWidth={3} color="white" />
                                 </button>
@@ -236,15 +362,17 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </SectionCard>
+
                 </div>
               </>
             )}
 
             {/* FEES */}
             {activeTab === "Fees" && (
-              <>
-                <PaymentList />
-              </>
+              <PaymentList
+                delinquent={delinquent}
+                isLoading={feesLoading}
+              />
             )}
 
             {/* ROOMS */}
@@ -262,26 +390,39 @@ export default function Dashboard() {
                           <span className="flex-[3] text-[#9A7080] font-bold">Applied</span>
                           <span className="flex-[2] text-center text-[#9A7080] font-bold">Action</span>
                         </div>
-                        {[
-                          { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 12, 2026" },
-                          { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 14, 2026" },
-                          { name: "Ana Marie Reyes", type: "Non-transient", date: "Mar 15, 2026" },
-                        ].map((item, i) => (
-                          <div key={i} className="flex items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0">
-                            <div className="flex-[5] flex items-center gap-3 min-w-0">
-                              <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
-                              <p className="font-medium whitespace-nowrap text-[clamp(11px,0.9vw,15px)]">{item.name}</p>
+
+                        {appsLoading ? (
+                          <p className="text-xs text-gray-400 py-4 text-center">Loading…</p>
+                        ) : underReviewApps.length === 0 ? (
+                          <p className="text-xs text-gray-400 py-4 text-center italic">No applications under review</p>
+                        ) : (
+                          underReviewApps.map((app) => (
+                            <div key={app.id} className="flex items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0">
+                              <div className="flex-[5] flex items-center gap-3 min-w-0">
+                                <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
+                                <p className="font-medium whitespace-nowrap text-[clamp(11px,0.9vw,15px)]">
+                                  {app.student.user.fname} {app.student.user.lname}
+                                </p>
+                              </div>
+                              <div className="flex-[3]">
+                                <p className="text-sm text-gray-500 capitalize">{app.applicationStayType.replace("_", "-")}</p>
+                              </div>
+                              <div className="flex-[3]">
+                                <p className="text-sm text-gray-500">{fmt(app.applicationDate)}</p>
+                              </div>
+                              <div className="flex-[2] flex justify-center">
+                                <Button variant="reddishPink" size="sm" className="!rounded-xl">
+                                  Review
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex-[3] flex"><p className="text-sm text-gray-500">{item.type}</p></div>
-                            <div className="flex-[3] flex"><p className="text-sm text-gray-500">{item.date}</p></div>
-                            <div className="flex-[2] flex justify-center"><Button variant="reddishPink" size="sm" className="!rounded-xl">Review</Button></div>
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
                     </div>
                   </SectionCard>
 
-                  {/* WAITLISTED */}
+                  {/* WAITLISTED — manager domain, shown as empty for landlord */}
                   <SectionCard title="Waitlisted" action="View all →">
                     <div className="overflow-x-auto">
                       <div className="min-w-[500px] xl:min-w-0">
@@ -290,23 +431,13 @@ export default function Dashboard() {
                           <span className="flex-[3] text-[#9A7080] font-bold">Preferred Type</span>
                           <span className="flex-[3] text-center text-[#9A7080] font-bold">Since</span>
                         </div>
-                        {[
-                          { name: "Ana Marie Reyes", type: "Solo", date: "Mar 12, 2026" },
-                          { name: "Ana Marie Reyes", type: "Solo", date: "Mar 14, 2026" },
-                          { name: "Ana Marie Reyes", type: "Double", date: "Mar 15, 2026" },
-                        ].map((item, i) => (
-                          <div key={i} className="flex items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0">
-                            <div className="flex-[5] flex items-center gap-3 min-w-0">
-                              <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
-                              <p className="font-medium whitespace-nowrap text-[clamp(11px,0.9vw,15px)]">{item.name}</p>
-                            </div>
-                            <div className="flex-[3] flex"><p className="text-sm text-gray-500">{item.type}</p></div>
-                            <div className="flex-[3] flex justify-center"><p className="text-sm text-gray-500">{item.date}</p></div>
-                          </div>
-                        ))}
+                        <p className="text-xs text-gray-400 py-4 text-center italic">
+                          Waitlist is managed by your assigned manager
+                        </p>
                       </div>
                     </div>
                   </SectionCard>
+
                 </div>
 
                 {/* ROOMS */}
@@ -316,43 +447,52 @@ export default function Dashboard() {
                       <span className="flex-1 text-[#9A7080] font-bold">Room Number</span>
                       <span className="flex-1 text-center text-[#9A7080] font-bold">Type</span>
                       <span className="flex-1 text-center text-[#9A7080] font-bold">Occupancy</span>
+                      <span className="flex-1 text-center text-[#9A7080] font-bold">Status</span>
                     </div>
-                    {[
-                      { room: "Room 101", type: "Single", occ: "1/1" },
-                      { room: "Room 102", type: "Double", occ: "1/2" },
-                      { room: "Room 103", type: "Shared", occ: "4/4" },
-                    ].map((r, i) => (
-                      <div key={i} className="flex items-center py-3 border-b border-gray-50 last:border-0">
-                        <div className="flex-1 flex items-center gap-3">
-                          <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
-                          <p className="font-medium text-sm">{r.room}</p>
+
+                    {roomsLoading ? (
+                      <p className="text-xs text-gray-400 py-4 text-center">Loading…</p>
+                    ) : rooms.length === 0 ? (
+                      <p className="text-xs text-gray-400 py-4 text-center italic">No rooms added yet</p>
+                    ) : (
+                      rooms.map((r) => (
+                        <div key={r.id} className="flex items-center py-3 border-b border-gray-50 last:border-0">
+                          <div className="flex-1 flex items-center gap-3">
+                            <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
+                            <p className="font-medium text-sm">Room {r.roomNumber}</p>
+                          </div>
+                          <div className="flex-1 flex justify-center">
+                            <p className="text-sm text-gray-500 capitalize">{r.roomType}</p>
+                          </div>
+                          <div className="flex-1 flex justify-center">
+                            <p className="text-sm text-gray-500">{r.roomCurrentOccupancy}/{r.roomCapacity}</p>
+                          </div>
+                          <div className="flex-1 flex justify-center">
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                              r.roomAvailability === "available" ? "bg-green-100 text-green-700"
+                              : r.roomAvailability === "occupied" ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                            }`}>
+                              {r.roomAvailability}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500">{r.type}</p></div>
-                        <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500">{r.occ}</p></div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </SectionCard>
+
               </div>
             )}
+
           </div>
         </main>
 
-        {/* RIGHT PANEL*/}
-        <aside className="hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
-        <ProfileCard
-            status="assigned"
-            fullName={landlordProfile.fullName}
-            role="Manager"
-            phoneNumber={landlordProfile.phoneNumber} 
-            email={landlordProfile.email}
-            dormitory={landlordProfile.dormitory}
-            onNotification={() => console.log("Notification clicked")}
-        />
-        <ApplicationPeriod />
-        <ActivityLogs />
-        <ReportsPanel />
+        {/* RIGHT PANEL — desktop */}
+        <aside className="hidden lg:flex w-[340px] shrink-0 border-l bg-white/60 backdrop-blur p-4 flex-col gap-4 overflow-y-auto">
+          <RightPanel />
         </aside>
+
       </div>
 
       {/* ADD DOCUMENT MODAL */}
@@ -410,7 +550,7 @@ export default function Dashboard() {
         </div>
       </Modal>
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* DELETE DOCUMENT MODAL */}
       <Modal
         open={docToDelete !== null}
         onClose={() => setDocToDelete(null)}
@@ -418,7 +558,9 @@ export default function Dashboard() {
         eyebrow="Document Requirements"
         footer={
           <div className="flex gap-2 ml-auto">
-            <Button variant="secondary" size="md" onClick={() => setDocToDelete(null)}>Cancel</Button>
+            <Button variant="secondary" size="md" onClick={() => setDocToDelete(null)}>
+              Cancel
+            </Button>
             <Button
               variant="primary"
               size="md"
@@ -440,6 +582,6 @@ export default function Dashboard() {
           from the document requirements? This may affect existing tenants.
         </p>
       </Modal>
-    </div>
+ </div>
   );
 }

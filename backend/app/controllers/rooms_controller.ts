@@ -8,14 +8,14 @@ export default class RoomsController {
 
   // ─── MANAGER: VIEW ALL ROOMS IN A DORM ───
   async index({ params, serialize }: HttpContext) {
-    const rooms = await this.roomService.getRoomsByAccommodation(params.id)
-    return serialize(rooms)
+    const rooms = await this.roomService.getRoomsByAccommodation(params.accommodationId)
+    return serialize(rooms.map((r) => r.serialize()))
   }
 
   // ─── RETRIEVE: BY ID ───
   async show({ params, serialize }: HttpContext) {
     const room = await this.roomService.getRoomById(params.id)
-    return serialize(room)
+    return serialize(room.serialize())
   }
 
   // ─── MANAGER: ADD A NEW ROOM ───
@@ -26,9 +26,9 @@ export default class RoomsController {
 
     const room = await this.roomService.createRoom(landlordId, params.id, payload)
 
-    return serialize({ 
-      message: 'Room added successfully.', 
-      data: room 
+    return serialize({
+      message: 'Room added successfully.',
+      data: room.serialize()
     })
   }
 
@@ -40,7 +40,7 @@ export default class RoomsController {
 
       return serialize({
         message: 'Room updated successfully.',
-        data: updatedRoom
+        data: updatedRoom.serialize()
       })
     } catch (error) {
 
