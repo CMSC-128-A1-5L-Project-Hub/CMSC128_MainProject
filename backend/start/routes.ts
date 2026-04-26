@@ -14,6 +14,7 @@ const InviteManagerController = () => import('#controllers/invite_manager_contro
 import { uploadThrottle } from '#start/limiter'
 import AccommodationController from '#controllers/accommodation_controller'
 import ApplicationsController from '#controllers/application_controller'
+const TransientBookingsController = () => import('#controllers/transient_booking_controller')
 
 router.get('/', () => {
   return { status: 'USAT API is running - Sprint 03 Launch' }
@@ -69,6 +70,8 @@ router
         router.get('/applications/my-applications', [controllers.Application, 'index'])
         router.patch('/applications/:id', [controllers.Application, 'cancel'])
         router.post('/applications/:id/confirm', [controllers.Application, 'confirmSlot'])
+        router.post('/applications/:id/confirm-slot', [controllers.Application, 'confirm'])
+        router.post('/assignments/:id/confirm', [controllers.Application, 'confirmAssignment'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
         router.get('/student/profile', [controllers.StudentProfiles, 'show'])
@@ -83,6 +86,11 @@ router
         router.get('/my-fees', [controllers.Fees, 'index'])
         router.post('/payments/:feeId/pay', [controllers.Payments, 'uploadProof'])
         router.get('/my-payments', [controllers.Payments, 'getStudentPaymentHistory'])
+
+        // Transient bookings (student)
+        router.post('/transient-bookings', [TransientBookingsController, 'store'])
+        router.post('/transient-bookings/:id/proof', [TransientBookingsController, 'uploadProof'])
+        router.get('/transient-bookings', [TransientBookingsController, 'myBookings'])
     }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
@@ -107,7 +115,11 @@ router
         router.get('/landlord/accommodations/:id/freeze-status', [controllers.ManagerHandover, 'status'])
 
         // Invite Manager
-        router.post('/landlord/accommodations/:id/invite-manager', [InviteManagerController, 'invite'])      })
+        router.post('/landlord/accommodations/:id/invite-manager', [InviteManagerController, 'invite'])
+
+        // Transient booking verification (landlord)
+        router.patch('/transient-bookings/:id/verify', [TransientBookingsController, 'verify'])
+      })
       .use(middleware.role([ROLES.LANDLORD]))
 
     // ====================================================================
@@ -122,12 +134,20 @@ router
         router.get('/applications/view-waitlisted', [controllers.Application, 'viewWaitlisted'])
         router.get('/applications/view-all-waitlisted', [controllers.Application, 'viewAllWaitlisted'])
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
+        router.get('/applications/:id/enrollment-proof', [controllers.Application, 'viewEnrollmentProof'])
+        router.get('/manager/applications/approved', [controllers.Application, 'approvedForAssignment'])
+
+        // Manager dashboard
+        router.get('/manager/assignments', [controllers.Assignments, 'managerIndex'])
+        router.get('/manager/rooms', [controllers.Rooms, 'managerRooms'])
+        router.get('/manager/logs', [controllers.Logs, 'managerLogs'])
 
         // Room Management
         router.get('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'index'])
         router.post('/accommodations/:accommodationId/rooms', [controllers.Rooms, 'store'])
         router.put('/rooms/:id', [controllers.Rooms, 'update'])
         router.delete('/rooms/:id', [controllers.Rooms, 'destroy'])
+        router.post('/rooms/:id/report-issue', [controllers.Rooms, 'reportIssue'])
 
         // Room Assignments & Move-outs
         router.get('/view-all-assignments', [controllers.Assignments, 'viewAllAssignments'])

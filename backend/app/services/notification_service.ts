@@ -272,12 +272,88 @@ export default class NotificationService {
       `You have been invited to manage ${accommodationName} on UBLE`,
       `
         <p>Hello,</p>
-        <p>${landlordName} has invited you to become the manager of 
+        <p>${landlordName} has invited you to become the manager of
           <strong>${accommodationName}</strong> on UBLE Housing.</p>
         <p>To accept this invitation, please register using this email address:</p>
         <p><a href='http://localhost:5173/register'>Click here to register</a></p>
-        <p>Once your account is set up, you will automatically be assigned 
+        <p>Once your account is set up, you will automatically be assigned
           to ${accommodationName}.</p>
+        <br/>
+        <p>UBLE Housing</p>
+      `
+    )
+  }
+
+  // ─── Approval with Tag Matching Email ────────────────────────────────────
+  async sendApprovalWithTags(
+    studentUser: User,
+    accommodationName: string,
+    matchedTags: string[],
+    unmatchedTags: string[]
+  ) {
+    const matchedList = matchedTags.length > 0
+      ? `<ul>${matchedTags.map(t => `<li>${t}</li>`).join('')}</ul>`
+      : '<p>None</p>'
+    const unmatchedList = unmatchedTags.length > 0
+      ? `<ul>${unmatchedTags.map(t => `<li>${t}</li>`).join('')}</ul>`
+      : '<p>None</p>'
+
+    await this.send(
+      studentUser.email,
+      `Your application to ${accommodationName} has been approved`,
+      `
+        <p>Hello ${studentUser.fname},</p>
+        <p>Your application to <strong>${accommodationName}</strong> has been approved.</p>
+        <p><strong>Matched amenities:</strong> ${matchedList}</p>
+        <p><strong>Unmatched amenities:</strong> ${unmatchedList}</p>
+        <p>Please log in to UBLE to confirm your slot.</p>
+        <br/>
+        <p>UBLE Housing</p>
+      `
+    )
+  }
+
+  // ─── Transient Payment Pending Notification ───────────────────────────────
+  async sendTransientPaymentPending(
+    landlordUser: User,
+    roomNumber: string,
+    studentNumber: string,
+    checkIn: string,
+    checkOut: string
+  ) {
+    await this.send(
+      landlordUser.email,
+      'New transient booking payment pending',
+      `
+        <p>Hello ${landlordUser.fname},</p>
+        <p>A student (${studentNumber}) has booked room ${roomNumber} for ${checkIn} to ${checkOut}.</p>
+        <p>The payment proof is ready for verification. Please review and confirm or reject the booking.</p>
+        <p>UBLE Housing</p>
+      `
+    )
+  }
+
+  // ─── Room Issue Report Email ──────────────────────────────────────────────
+  async sendRoomIssueReportEmail(
+    landlordUser: User,
+    roomNumber: string,
+    building: string,
+    managerFirstName: string,
+    managerLastName: string,
+    issueDetails: string
+  ) {
+    await this.send(
+      landlordUser.email,
+      `Room issue reported for Room ${roomNumber}`,
+      `
+        <p>Hello ${landlordUser.fname},</p>
+        <p>The dormitory manager <strong>${managerFirstName} ${managerLastName}</strong> has reported an issue with the following room:</p>
+        <ul>
+          <li>Building: ${building}</li>
+          <li>Room: ${roomNumber}</li>
+          <li>Issue: ${issueDetails}</li>
+        </ul>
+        <p>Please review and take necessary action.</p>
         <br/>
         <p>UBLE Housing</p>
       `

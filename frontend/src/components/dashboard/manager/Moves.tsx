@@ -170,7 +170,7 @@ export default function Moves({ data, className = "" }: { data: Move[], classNam
                                                     style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                                                     {getInitials(move.studentName)}
                                                 </div>
-                                                <p className="text-black text-sm pl-2">{move.studentName}</p>
+                                                <p className="text-black text-sm pl-2 truncate min-w-0">{move.studentName}</p>
                                             </div>
                                             <div className="flex flex-col">
                                                 <p className="text-[#1A0008] text-sm">{move.room}</p>

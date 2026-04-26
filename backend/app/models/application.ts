@@ -30,10 +30,16 @@ export default class Application extends BaseModel {
   declare rejectionReason: string | null
 
   @column()
-  declare applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review'
+  declare applicationStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review' | 'confirmed'
 
   @column()
   declare durationOfStayDays: number
+
+  @column()
+  declare preferredTags: string[] | null
+
+  @column.dateTime()
+  declare approvedAt: DateTime | null
 
   @column.dateTime()
   declare reviewedAt: DateTime | null
