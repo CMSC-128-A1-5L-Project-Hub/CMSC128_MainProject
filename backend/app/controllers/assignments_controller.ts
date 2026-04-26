@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 import { DateTime } from 'luxon'
 import { inject } from '@adonisjs/core'
 import Application from '#models/application'
@@ -9,6 +10,7 @@ import LogService from '#services/log_service'
 import NotificationService from '#services/notification_service'
 import WaitlistWorkflowService from '#services/waitlisted_workflow_service'
 import { withPrimaryImageUrl } from '#services/image_service'
+import Accommodation from '#models/accommodation'
 
 @inject()
 export default class AssignmentsController {
@@ -194,6 +196,49 @@ export default class AssignmentsController {
     return response.ok(data)
   }
 
+  // ─── MANAGER: VIEW ASSIGNMENTS //TESTER ───
+  async viewAllAssignments({ auth, response, serialize }: HttpContext) {
+    const user = auth.user!
+
+    if (user.role !== 'manager') {
+      return response.forbidden({ message: 'access denied' })
+    }
+
+    const assignments = await Assignment.query()
+      .preload('room', (roomQuery: ModelQueryBuilderContract<typeof Room>) => {
+        roomQuery.preload('accommodation')
+      })
+      .preload('student', (studentQuery: ModelQueryBuilderContract<typeof Student>) => {
+        studentQuery.preload('user')
+      })
+
+    return serialize(assignments)
+  }
+
+  // ─── MANAGER: VIEW ASSIGNMENTS ───
+  async viewAssignments({ auth, response, serialize }: HttpContext) {
+    const user = auth.user!
+
+    if (user.role !== 'manager') {
+      return response.forbidden({ message: 'access denied' })
+    }
+
+    const assignments = await Assignment.query()
+      .whereHas('room', (roomQuery: ModelQueryBuilderContract<typeof Room>) => {
+        roomQuery.whereHas('accommodation', (accommodationQuery: ModelQueryBuilderContract<typeof Accommodation>) => {
+          accommodationQuery.where('managerId', user.id)
+        })
+      })
+      .preload('room', (roomQuery: ModelQueryBuilderContract<typeof Room>) => {
+        roomQuery.preload('accommodation')
+      })
+      .preload('student', (studentQuery: ModelQueryBuilderContract<typeof Student>) => {
+        studentQuery.preload('user')
+      })
+
+    return serialize(assignments)
+  }
+  
   // ─── helper: shape an Assignment into the frontend's AccommodationHistoryItem ───
   private async shapeStayResponse(assignment: Assignment): Promise<any> {
     const room = assignment.room

@@ -13,6 +13,7 @@ import swagger from '#config/swagger'
 const InviteManagerController = () => import('#controllers/invite_manager_controller')
 import { uploadThrottle } from '#start/limiter'
 import AccommodationController from '#controllers/accommodation_controller'
+import ApplicationsController from '#controllers/application_controller'
 
 router.get('/', () => {
   return { status: 'USAT API is running - Sprint 03 Launch' }
@@ -116,6 +117,10 @@ router
       .group(() => {
         // Application Review
         router.get('/applications/incoming', [controllers.Application, 'incoming'])
+        router.get('/applications/view-applicants', [controllers.Application, 'viewApplicants'])
+        router.get('/applications/view-all-applicants', [controllers.Application, 'viewApplications'])
+        router.get('/applications/view-waitlisted', [controllers.Application, 'viewWaitlisted'])
+        router.get('/applications/view-all-waitlisted', [controllers.Application, 'viewAllWaitlisted'])
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
 
         // Room Management
@@ -125,6 +130,8 @@ router
         router.delete('/rooms/:id', [controllers.Rooms, 'destroy'])
 
         // Room Assignments & Move-outs
+        router.get('/view-all-assignments', [controllers.Assignments, 'viewAllAssignments'])
+        router.get('/view-assignments', [controllers.Assignments, 'viewAssignments'])
         router.post('/assignments', [controllers.Assignments, 'store'])
         router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
 
