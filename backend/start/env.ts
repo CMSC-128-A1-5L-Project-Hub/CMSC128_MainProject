@@ -32,17 +32,21 @@ export default await Env.create(new URL('../', import.meta.url), {
   */
   GOOGLE_CLIENT_ID: Env.schema.string(),
   GOOGLE_CLIENT_SECRET: Env.schema.string(),
+  GOOGLE_CALLBACK_URL: Env.schema.string(),
 
   /*
   |----------------------------------------------------------
   | Variables for configuring database connection
   |----------------------------------------------------------
   */
+  DB_CONNECTION: Env.schema.string(),
   DB_HOST: Env.schema.string({ format: 'host' }),
   DB_PORT: Env.schema.number(),
   DB_USER: Env.schema.string(),
-  DB_PASSWORD: Env.schema.string.optional(),
+  DB_PASSWORD: Env.schema.string(),
   DB_DATABASE: Env.schema.string(),
+  
+  
 
   /*
   |----------------------------------------------------------
@@ -50,9 +54,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   DRIVE_DISK: Env.schema.enum(['s3'] as const),
-  AWS_ACCESS_KEY_ID: Env.schema.string(),
-  AWS_SECRET_ACCESS_KEY: Env.schema.string(),
-  AWS_REGION: Env.schema.string(),
+  ACCESS_KEY_ID: Env.schema.string(),
+  SECRET_ACCESS_KEY: Env.schema.string(),
+  REGION: Env.schema.string(),
   S3_BUCKET: Env.schema.string(),
   S3_ENDPOINT: Env.schema.string(),
 

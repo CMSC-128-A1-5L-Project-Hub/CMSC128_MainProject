@@ -1,9 +1,9 @@
-// app/models/application.ts
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Accommodation from '#models/accommodation'
 import Student from '#models/student'
+import User from '#models/user'
 
 export default class Application extends BaseModel {
   static table = 'applications'
@@ -35,16 +35,30 @@ export default class Application extends BaseModel {
   @column()
   declare durationOfStayDays: number
 
-  // ─── NEW COLUMNS ────────────────────────────────────────────────
   @column()
-  declare preferredTags: string[] | null   // holds the student's preferred tag list
+  declare preferredTags: string[] | null
 
   @column.dateTime()
-  declare approvedAt: DateTime | null      // set when the application becomes 'approved'
+  declare approvedAt: DateTime | null
+
+  @column.dateTime()
+  declare reviewedAt: DateTime | null
+
+  @column()
+  declare reviewedBy: number | null
+
+  @column.dateTime()
+  declare slotConfirmedAt: DateTime | null
+
+  @column.dateTime()
+  declare slotConfirmDeadline: DateTime | null
 
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 
   @belongsTo(() => Student, { foreignKey: 'studentNumber', localKey: 'studentNumber' })
   declare student: BelongsTo<typeof Student>
+
+  @belongsTo(() => User, { foreignKey: 'reviewedBy' })
+  declare reviewer: BelongsTo<typeof User>
 }

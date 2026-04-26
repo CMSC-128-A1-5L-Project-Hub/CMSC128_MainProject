@@ -50,6 +50,7 @@ export default class extends BaseSeeder {
       { file_name: 'business_permit_4.pdf', file_path: '/uploads/documents/business_permit_4.pdf', file_type: 'document' },
       { file_name: 'business_permit_5.pdf', file_path: '/uploads/documents/business_permit_5.pdf', file_type: 'document' },
       { file_name: 'business_permit_6.pdf', file_path: '/uploads/documents/business_permit_6.pdf', file_type: 'document' },
+      { file_name: 'business_permit_uble.pdf', file_path: '/uploads/documents/business_permit_uble.pdf', file_type: 'document' },
       // Accommodation Images
       { file_name: 'accom1_img1.jpg', file_path: '/uploads/images/accom1_img1.jpg', file_type: 'image' },
       { file_name: 'accom1_img2.jpg', file_path: '/uploads/images/accom1_img2.jpg', file_type: 'image' },
@@ -125,7 +126,7 @@ export default class extends BaseSeeder {
         facebook_account: 'facebook.com/john.santos',
         role: 'unassigned'
       },
-      { 
+      {
         pfp_file_id: getFile('pfp_8.jpg'),
         fname: 'Carla',
         mname: null,
@@ -134,7 +135,20 @@ export default class extends BaseSeeder {
         email: 'pending.landlord1@gmail.com',
         facebook_account: 'facebook.com/carla.navarro',
         role: 'unassigned'
-      }
+      },
+
+      // ── UBLE test account ──────────────────────────────────────────────────
+      // NOTE: uble.ics.uplb@gmail.com is already created by admin_seeder — only add the manager here.
+      {
+        pfp_file_id: getFile('pfp_2.jpg'),
+        fname: 'Rosa',
+        mname: null,
+        lname: 'Dela Cruz',
+        suffix: null,
+        email: 'manager.uble.test@gmail.com',
+        facebook_account: null,
+        role: 'manager',
+      },
     ])
 
     // --- DYNAMIC FETCH: USERS ---
@@ -167,7 +181,9 @@ export default class extends BaseSeeder {
       { user_id: getUser('jdaguilar@up.edu.ph'), contact_number: '09682345761', is_primary: false },
       { user_id: getUser('slmanuel@up.edu.ph'), contact_number: '09916543287', is_primary: false },
       { user_id: getUser('ampineda@up.edu.ph'), contact_number: '09185673429', is_primary: false },
-      { user_id: getUser('vepadilla@gmail.com'), contact_number: '09793456128', is_primary: false }
+      { user_id: getUser('vepadilla@gmail.com'), contact_number: '09793456128', is_primary: false },
+      // UBLE manager phone
+      { user_id: getUser('manager.uble.test@gmail.com'), contact_number: '09191234567', is_primary: true },
     ])
 
     // =========================================================================
@@ -183,7 +199,8 @@ export default class extends BaseSeeder {
       {
         user_id: getUser('pending.landlord1@gmail.com'),
         tin: '678-901-234-555'
-      }
+      },
+      // NOTE: UBLE landlord record already created by admin_seeder — skip here.
     ])
 
     await db.table('managers').multiInsert([
@@ -192,7 +209,9 @@ export default class extends BaseSeeder {
       { user_id: getUser('mabautista@gmail.com'), manager_status: 'active' },
       { user_id: getUser('ampineda@up.edu.ph'), manager_status: 'inactive' },
       { user_id: getUser('vepadilla@gmail.com'), manager_status: 'active' },
-      { user_id: getUser('aralvarez@gmail.com'), manager_status: 'active' }
+      { user_id: getUser('aralvarez@gmail.com'), manager_status: 'active' },
+      // UBLE manager
+      { user_id: getUser('manager.uble.test@gmail.com'), manager_status: 'active' },
     ])
 
     await db.table('students').multiInsert([
@@ -259,7 +278,9 @@ export default class extends BaseSeeder {
       { landlord_id: getUser('pagarcia@up.edu.ph'), manager_id: getUser('mabautista@gmail.com'), business_permit_id: getFile('business_permit_3.pdf'), accommodation_name: "Men's Dorm", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'partner_housing', accommodation_capacity: 150, tenant_restriction: 'male-only', status: 'verified', application_start_date: '2026-03-20', application_end_date: '2026-04-30', latitude: 14.1638, longitude: 121.2410, walking_distance: 3, biking_distance: 2, driving_distance: 2 },
       { landlord_id: getUser('raortega@gmail.com'), manager_id: getUser('ampineda@up.edu.ph'), business_permit_id: getFile('business_permit_4.pdf'), accommodation_name: "ATI", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'partner_housing', accommodation_capacity: 120, tenant_restriction: 'male-only', status: 'verified', application_start_date: '2026-04-05', application_end_date: '2026-05-25', latitude: 14.1643, longitude: 121.2405, walking_distance: 4, biking_distance: 2, driving_distance: 2 },
       { landlord_id: getUser('larkinsanchez@gmail.com'), manager_id: getUser('vepadilla@gmail.com'), business_permit_id: getFile('business_permit_5.pdf'), accommodation_name: "Scholar's Dorm", accommodation_location: 'UPLB, Los Baños, Laguna', accommodation_type: 'on-campus', accommodation_capacity: 50, tenant_restriction: 'female-only', status: 'verified', application_start_date: '2026-03-25', application_end_date: '2026-05-10', latitude: 14.1655, longitude: 121.2395, walking_distance: 5, biking_distance: 2, driving_distance: 2 },
-      { landlord_id: getUser('ntramos@gmail.com'), manager_id: getUser('aralvarez@gmail.com'), business_permit_id: getFile('business_permit_6.pdf'), accommodation_name: "One Sapphire Place", accommodation_location: 'Sapphire St., Brgy. Batong Malake, Los Baños, Laguna', accommodation_type: 'off-campus', accommodation_capacity: 50, tenant_restriction: 'coed', status: 'verified', application_start_date: '2026-03-25', application_end_date: '2026-05-10', latitude: 14.1672, longitude: 121.2435, walking_distance: 12, biking_distance: 6, driving_distance: 4 }
+      { landlord_id: getUser('ntramos@gmail.com'), manager_id: getUser('aralvarez@gmail.com'), business_permit_id: getFile('business_permit_6.pdf'), accommodation_name: "One Sapphire Place", accommodation_location: 'Sapphire St., Brgy. Batong Malake, Los Baños, Laguna', accommodation_type: 'off-campus', accommodation_capacity: 50, tenant_restriction: 'coed', status: 'verified', application_start_date: '2026-03-25', application_end_date: '2026-05-10', latitude: 14.1672, longitude: 121.2435, walking_distance: 12, biking_distance: 6, driving_distance: 4 },
+      // UBLE Residences (uble.ics.uplb@gmail.com test account)
+      { landlord_id: getUser('uble.ics.uplb@gmail.com'), manager_id: getUser('manager.uble.test@gmail.com'), business_permit_id: getFile('business_permit_uble.pdf'), accommodation_name: 'UBLE Residences', accommodation_location: 'University of the Philippines Los Baños, Laguna', accommodation_type: 'on-campus', accommodation_capacity: 20, tenant_restriction: 'coed', status: 'verified', application_start_date: '2026-04-01', application_end_date: '2026-05-15', latitude: 14.1651, longitude: 121.2402, walking_distance: 5, biking_distance: 2, driving_distance: 2 },
     ])
 
     // --- DYNAMIC FETCH: ACCOMMODATIONS ---
@@ -331,7 +352,12 @@ export default class extends BaseSeeder {
       { accommodation_id: getAccom('One Silangan'), room_number: '203', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building B', room_rent: 6200.00, tenant_restriction: 'coed', room_availability: 'available' },
       
       { accommodation_id: getAccom("One Sapphire Place"), room_number: '601', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' },
-{ accommodation_id: getAccom("One Sapphire Place"), room_number: '602', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3200.00, tenant_restriction: 'coed', room_availability: 'available' }
+      { accommodation_id: getAccom("One Sapphire Place"), room_number: '602', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3200.00, tenant_restriction: 'coed', room_availability: 'available' },
+      // UBLE Residences rooms (capacity 8, occupied 3)
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '701', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'occupied' },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '702', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'occupied' },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '703', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '704', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3500.00, tenant_restriction: 'coed', room_availability: 'available' },
     ])
 
     const allRooms = await db.from('rooms').select('id', 'room_number', 'accommodation_id')
@@ -394,6 +420,20 @@ export default class extends BaseSeeder {
       { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Air-conditioned' },
       { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has study desk' },
       { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has wardrobe' },
+      // UBLE Residences — 701 (single)
+      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Has study desk' },
+      // UBLE Residences — 702 (single)
+      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Has wardrobe' },
+      // UBLE Residences — 703 (double)
+      { room_id: getRoom('703', 'UBLE Residences'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('703', 'UBLE Residences'), tag_detail: 'Has study desk' },
+      // UBLE Residences — 704 (shared)
+      { room_id: getRoom('704', 'UBLE Residences'), tag_detail: 'Has study area' },
+      { room_id: getRoom('704', 'UBLE Residences'), tag_detail: 'Has locker' },
     ])
 
     // =========================================================================
@@ -401,11 +441,11 @@ export default class extends BaseSeeder {
     // =========================================================================
     await db.table('applications').multiInsert([
       // --- CLARENCE TEST APPLICATIONS ---
-      { accommodation_id: getAccom('One Silangan'), student_number: '2024-000002', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
-      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 10 },
-      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 180 },
-      { accommodation_id: getAccom("ATI"), student_number: '2024-000002', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 30 },
-      
+      { accommodation_id: getAccom('One Silangan'), student_number: '2024-000002', application_room_type: 'double', application_stay_type: 'transient', application_status: 'approved', duration_of_stay_days: 365, application_date: '2026-02-01 10:00:00', reviewed_at: '2026-02-05 14:30:00', reviewed_by: getUser('slmanuel@up.edu.ph') },
+      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'transient', application_status: 'rejected', rejection_reason: 'Incomplete requirements – missing proof of enrollment', duration_of_stay_days: 10, application_date: '2026-02-10 11:00:00', reviewed_at: '2026-02-12 09:15:00', reviewed_by: getUser('aralvarez@gmail.com') },
+      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 180, application_date: '2026-02-15 09:30:00', reviewed_at: '2026-02-18 16:00:00', reviewed_by: getUser('vepadilla@gmail.com') },
+      { accommodation_id: getAccom("ATI"), student_number: '2024-000002', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'under_review', duration_of_stay_days: 30, application_date: '2026-02-20 14:00:00', reviewed_at: null, reviewed_by: null },
+
       { accommodation_id: getAccom('White House'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 150 },
       { accommodation_id: getAccom('White House'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 180 },
       { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
@@ -429,7 +469,10 @@ export default class extends BaseSeeder {
       { student_number: '2023-123457', room_id: getRoom('202', 'One Silangan'), confirmed_date: '2026-02-10', move_in: '2026-02-15', expected_move_out: '2027-02-15', actual_move_out: '2027-02-15', grace_period_days: 5 },
       { student_number: '2023-123459', room_id: getRoom('101', 'White House'), confirmed_date: '2026-01-05', move_in: '2026-01-10', expected_move_out: '2027-01-10', actual_move_out: null, grace_period_days: 5 },
       { student_number: '2023-123461', room_id: getRoom('102', 'White House'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2026-08-05', actual_move_out: null, grace_period_days: 5 },
-      { student_number: '2023-123462', room_id: getRoom('301', "Men's Dorm"), confirmed_date: '2026-03-08', move_in: '2026-03-10', expected_move_out: '2026-06-10', actual_move_out: null, grace_period_days: 5 }
+      { student_number: '2023-123462', room_id: getRoom('301', "Men's Dorm"), confirmed_date: '2026-03-08', move_in: '2026-03-10', expected_move_out: '2026-06-10', actual_move_out: null, grace_period_days: 5 },
+      // UBLE Residences assignments
+      { student_number: '2023-123458', room_id: getRoom('701', 'UBLE Residences'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2027-03-05', actual_move_out: null, grace_period_days: 5 },
+      { student_number: '2023-123460', room_id: getRoom('702', 'UBLE Residences'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2027-03-05', actual_move_out: null, grace_period_days: 5 },
     ])
 
     await db.table('bookmarks').multiInsert([
@@ -454,7 +497,10 @@ export default class extends BaseSeeder {
       { landlord_id: getUser('cmnavarro@gmail.com'), student_number: '2023-123457', due_date: '2026-04-30', fee_category: 'utilities', fee_amount: 1200.00, fee_balance: 0.00, fee_status: 'paid' },
       { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023-123459', due_date: '2026-04-30', fee_category: 'rent', fee_amount: 5000.00, fee_balance: 0.00, fee_status: 'paid' },
       { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023-123461', due_date: '2026-04-30', fee_category: 'miscellaneous', fee_amount: 800.00, fee_balance: 400.00, fee_status: 'partial' },
-      { landlord_id: getUser('raortega@gmail.com'), student_number: '2023-123462', due_date: '2026-03-31', fee_category: 'rent', fee_amount: 800.00, fee_balance: 800.00, fee_status: 'overdue' }
+      { landlord_id: getUser('raortega@gmail.com'), student_number: '2023-123462', due_date: '2026-03-31', fee_category: 'rent', fee_amount: 800.00, fee_balance: 800.00, fee_status: 'overdue' },
+      // UBLE fees
+      { landlord_id: getUser('uble.ics.uplb@gmail.com'), student_number: '2023-123458', due_date: '2026-03-01', fee_category: 'rent', fee_amount: 5500.00, fee_balance: 5500.00, fee_status: 'overdue' },
+      { landlord_id: getUser('uble.ics.uplb@gmail.com'), student_number: '2023-123460', due_date: '2026-03-01', fee_category: 'rent', fee_amount: 5500.00, fee_balance: 0.00, fee_status: 'paid' },
     ])
 
     const allFees = await db.from('fees').select('id', 'student_number', 'fee_category')

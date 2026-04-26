@@ -8,7 +8,7 @@ import db from '@adonisjs/lucid/services/db'
 import { uploadImage, deleteImage } from '#services/b2_services'
 import { AccommodationService } from '#services/accommodation_service'
 import Landlord from '#models/landlord'
-import drive from '@adonisjs/drive/services/main'
+import { withPrimaryImageUrl } from '#services/image_service'
 import ZipExportService from '#services/zip_export_service'
 import type { ZipEntry } from '#services/zip_export_service'
 
@@ -446,25 +446,10 @@ async store({ request, auth, response, serialize }: HttpContext) {
       .where('landlord_id', landlordId)
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
+      .preload('manager', (q) => q.preload('user', (q2) => q2.preload('phoneNumbers')))
 
-    const data = await Promise.all(
-      accommodations.map(async (a) => {
-        const serialized = a.serialize()
-        const primaryImage = a.images[a.primaryImageIndex]
-        if (primaryImage?.file?.filePath) {
-          const filePath = primaryImage.file.filePath
-          const key = decodeURIComponent(
-            filePath.startsWith('https://')
-              ? new URL(filePath).pathname.replace(/^\/[^/]+\//, '')
-              : filePath
-          )
-          serialized.primaryImageUrl = await drive.use('s3').getSignedUrl(key, {
-            expiresIn: '5 hours'
-          })
-        }
-        return serialized
-      })
-    )
+    // attach a signed primaryImageUrl to each accommodation
+    const data = await Promise.all(accommodations.map(withPrimaryImageUrl))
 
     return serialize({
       message: 'Accommodations retrieved successfully',

@@ -1,10 +1,10 @@
-// app/controllers/auth_controller.ts
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import ProvisioningService from '#services/provisioning_service'
 import NotificationService from '#services/notification_service'
 import LogService from '#services/log_service'
 import User from '#models/user'
+import { signFileUrl } from '#services/image_service'
 
 @inject()
 export default class AuthController {
@@ -20,37 +20,41 @@ export default class AuthController {
   }
 
   // STEP 2: Handle response from Google
-  async callback({ ally, auth, response, session }: HttpContext) {
-    const google = ally.use('google')
-    if (google.accessDenied()) return 'Access was denied'
-    if (google.stateMisMatch()) return 'Request expired. Retry again'
-    if (google.hasError()) return google.getError()
+ async callback({ ally, auth, response, session }: HttpContext) {
+  const google = ally.use('google')
 
-    const googleUser = await google.user()
+  if (google.accessDenied()) return 'Access was denied'
+  if (google.stateMisMatch()) return 'Request expired. Retry again'
+  if (google.hasError()) return google.getError()
 
-    const user = await this.provisioningService.provision({
-      email: googleUser.email,
-      fname: googleUser.original.given_name,
-      lname: googleUser.original.family_name,
-    })
+  const googleUser = await google.user()
 
-    await auth.use('web').login(user)
-    session.put('role', user.role)
-    await LogService.logAuthActivity(user, 'logged_in')
+  const user = await this.provisioningService.provision({
+    email: googleUser.email,
+    fname: googleUser.original.given_name,
+    lname: googleUser.original.family_name,
+  })
 
-    switch (user.role) {
-      case 'landlord':
-        return response.redirect('http://localhost:5173/landlord/dashboard')
-      case 'student':
-        return response.redirect('http://localhost:5173/student/dashboard')
-      case 'manager':
-        return response.redirect('http://localhost:5173/manager/dashboard')
-      case 'super_admin':
-        return response.redirect('http://localhost:5173/admin/dashboard')
-      default:
-        return response.redirect('http://localhost:5173/auth/role')
-    }
+  await auth.use('web').login(user)
+
+  // Set role in session so RoleMiddleware can read it
+  session.put('role', user.role)
+
+  await LogService.logAuthActivity(user, 'logged_in')
+
+  switch (user.role) {
+    case 'landlord':
+      return response.redirect('http://localhost:5173/landlord/dashboard')
+    case 'student':
+      return response.redirect('http://localhost:5173/student/dashboard')
+    case 'manager':
+      return response.redirect('http://localhost:5173/manager/dashboard')
+    case 'super_admin':
+      return response.redirect('http://localhost:5173/admin/dashboard')
+    default:
+      return response.redirect('http://localhost:5173/auth/role')
   }
+}
 
   // ─── GET /me ──────────────────────────────────────────────────────────────
   async me({ auth, serialize }: HttpContext) {
@@ -60,7 +64,7 @@ export default class AuthController {
       .preload('profilePicture')
       .firstOrFail()
 
-    // Role‑specific preloads
+    // Role-specific preloads
     if (user.role === 'student') {
       await user.load('student')
     } else if (user.role === 'manager') {
@@ -70,7 +74,7 @@ export default class AuthController {
     }
 
     const serialized = user.serialize()
-    serialized.profilePictureUrl = user.profilePicture?.filePath ?? null
+    serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
 
     // Attach dormitory name for managers
     if (user.role === 'manager' && user.manager && user.manager.accommodations.length > 0) {
@@ -92,15 +96,21 @@ export default class AuthController {
       .firstOrFail()
 
     const data = request.only([
-      'facebookAccount', 'college', 'degreeProgram',
-      'gender', 'emergencyContactName', 'emergencyContactNumber',
+      'facebookAccount',
+      'college',
+      'degreeProgram',
+      'gender',
+      'emergencyContactName',
+      'emergencyContactNumber',
     ])
 
+    // Update user-level field
     if (data.facebookAccount !== undefined) {
       user.facebookAccount = data.facebookAccount || null
       await user.save()
     }
 
+    // Update student-level fields (only if user is a student)
     const student = user.student
     if (student) {
       if (data.college !== undefined) student.college = data.college
@@ -113,12 +123,14 @@ export default class AuthController {
       await student.save()
     }
 
+    // Reload and return updated profile
     await user.load('student')
     await user.load('phoneNumbers')
     await user.load('profilePicture')
 
     const serialized = user.serialize()
-    serialized.profilePictureUrl = user.profilePicture?.filePath ?? null
+    serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
+
     return serialize(serialized)
   }
 }
