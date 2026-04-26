@@ -38,54 +38,69 @@ button {
   transition: border-color 0.25s;
 }
 
-.toggle-btn {
-  background-color: #e8d0d8;
-  border-radius: 99px;
-  width: 50px;
-  height: 28px;
-  transition: background-color 0.1s ease, border-color 0.2s ease;
-  cursor: pointer;
-  position: relative;
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
 }
 
-.toggle-btn .thumb {
-  height: 20px;
-  width: 20px;
-  background-color: #fff;
-  border-radius: 99px;
-  transform: translateX(0);
-  transition: left 0.15s ease;
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE, old Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* In your global CSS file */
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 16px !important; /* Matches rounded-2xl */
+}
+
+.mapboxgl-popup-close-button {
+  color: white !important; /* Makes the 'X' visible against the image */
+  font-size: 16px;
+  right: 5px;
+  top: 5px;
+}
+
+/* Style for the overlapping range inputs */
+.range-input {
   position: absolute;
-  left: 3px;
-  top: 50%;
-  transform: translateY(-50%);
+  width: 100%;
+  pointer-events: none; /* Let clicks pass through the container */
+  appearance: none;
+  background: none;
+  z-index: 20;
+  outline: none;
 }
 
-.toggle-btn.toggled {
-  background-color: #6B0F2B
+/* Style the handles (Thumbs) */
+.range-input::-webkit-slider-thumb {
+  pointer-events: auto; /* Make the handle clickable again */
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #710A2B; /* Maroon border */
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.1s ease;
 }
 
-.toggle-btn:hover {
-  border-color: #6B0F2B;
+.range-input::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+  background: #710A2B;
 }
 
-.toggle-btn.toggled .thumb {
-  left: calc(50px - 25px);
+/* Firefox Support */
+.range-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #710A2B;
+  cursor: pointer;
 }
 
-/* this is for the browse page */
-.no-bg-popup.mapboxgl-popup .mapboxgl-popup-content {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-}
-
-.no-bg-popup .mapboxgl-popup-close-button:hover {
-  background-color: transparent !important;
-  color: red !important;
-}
-
-.no-bg-popup .mapboxgl-popup-close-button {
-  right: 3px !important;
-  font-size: 9px !important;
+.mapboxgl-popup-tip {
+  display: none;
 }
