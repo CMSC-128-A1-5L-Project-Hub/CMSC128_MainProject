@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // ── Design tokens ─────────────────────────
 const CLR = {
-  dark:   "#3D0718", 
+  dark:   "#3D0718",
   mid:    "#6B0F2B",
   accent: "#8C1535",
   gold:   "#C9973A",

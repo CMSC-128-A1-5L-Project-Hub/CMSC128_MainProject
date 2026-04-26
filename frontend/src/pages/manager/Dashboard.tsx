@@ -11,7 +11,10 @@ import ActivityLogs from '../../components/dashboard/landlord/rooms/dashboard/Ac
 import AvailableRooms from '../../components/dashboard/manager/AvailableRooms'
 import OccupiedRooms from '../../components/dashboard/manager/OccupiedRooms'
 import ReportModal from '../../components/ReportModal'
-import NotificationPanel from '../../components/NotificationPanel'   // default import
+import NotificationPanel, {
+  MOCK_NOTIFICATIONS,
+  type Notification,
+} from '../../components/NotificationPanel'
 import notif_icon from '../../assets/icons/notif_icon.svg'
 import report_icon from '../../assets/icons/report.svg'
 
@@ -36,11 +39,18 @@ export default function Dashboard() {
   const { data: logs = [] } = useLogs()
   const refreshDashboard = useRefreshDashboard()
 
-  // Local UI state
   const [reportOpen, setReportOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
-  const [unreadCount, setUnreadCount] = useState(0)            // managed by NotificationPanel callback
+  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
   const notifWrapperRef = useRef<HTMLDivElement>(null)
+
+  const unreadCount = notifications.filter((n) => !n.read).length
+  const markAllRead = () =>
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  const markOneRead = (id: number) =>
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    )
 
   if (profileLoading) {
     return (
@@ -177,9 +187,12 @@ export default function Dashboard() {
                 </button>
                 <NotificationPanel
                   open={notifOpen}
+                  notifications={notifications}
+                  unreadCount={unreadCount}
+                  onMarkAllRead={markAllRead}
+                  onMarkOneRead={markOneRead}
                   onClose={() => setNotifOpen(false)}
                   wrapperRef={notifWrapperRef}
-                  onUnreadCountChange={setUnreadCount}
                 />
               </div>
             </div>
