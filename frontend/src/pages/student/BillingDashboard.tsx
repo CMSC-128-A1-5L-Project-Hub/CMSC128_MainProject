@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo} from 'react'
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import Pagination from '../../components/ApplicationStatus/Pagination';
 import Sidebar from '../../components/Sidebar';

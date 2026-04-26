@@ -4,13 +4,44 @@ import Pagination from '../../components/ApplicationStatus/Pagination';
 import Sidebar from '../../components/Sidebar';
 import Modal from '../../components/Modal';
 import sampleDorm from '../../assets/images/sample_dorm.jpg';
+import ApplicationTable from '../../components/ApplicationStatus/ApplicationTable';
+import HeroBanner from '../../components/dashboard/HeroBanner';
 
-function timeAgo(dateStr: string) {
-    if (dateStr === '-') return '';
-    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
+interface HeroContent {
+    greeting: string
+    name: string
+    title: string
+    subtitle: string
+}
+
+export interface Application {
+  id: number;
+  accommodation_id: number;
+  student_number: string;
+  application_date: Date;
+  room_type: 'single' | 'double' | 'shared';
+  stay_type: 'transient' | 'non_transient';
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'waitlisted' | 'under_review';
+  duration_of_stay_days: number;
+  rejection_reason: string | null;
+
+  // from JOIN with accommodations — kept for display
+  dormitory: string;
+  location: string;
+  address: string;
+  rent: number;
+  image: string;
+}
+
+function timeAgo(date: Date) {
+    const diff = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
     if (diff === 0) return 'today';
     if (diff === 1) return 'yesterday';
     return `${diff} days ago`;
+}
+
+function randomDateObj(start: Date, end: Date): Date {
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
 const dormitories = [
@@ -22,48 +53,34 @@ const dormitories = [
         { name: 'Malvar Residence Hall', location: 'Partnered House' },
     ];
 
-    const types = ['Studio', 'Apartment', 'Shared', 'Boarding'];
     const rents = [2000, 3000, 4000, 5000, 6000, 7000]
-    const statuses = ['approved', 'pending', 'under review', 'waitlisted', 'rejected'] as const;
-    const tagPool = ['WiFi', 'Aircon', 'Laundry', 'Parking', 'Security', 'Water included'];
-    const reviewers = ['Manager Ana Lyn', 'Manager Ben Cruz', 'Manager Clara Reyes', '-'];
+    const statuses = ['approved', 'pending', 'under_review', 'waitlisted', 'rejected'] as const;
 
     function randomFrom<T>(arr: readonly T[]): T {
         return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function randomDate(start: Date, end: Date) {
-        const d = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    }
-
-    function randomTags() {
-        return tagPool.filter(() => Math.random() > 0.5).slice(0, 3);
-    }
-
-    const applications = Array.from({ length: 48 }, (_, i) => {
+    const applications: Application[] = Array.from({ length: 48 }, (_, i) => {
         const dorm = dormitories[i % dormitories.length];
         const status = randomFrom(statuses);
-        const reviewed = status !== 'pending' && status !== 'waitlisted';
 
         return {
-            dormitory: dorm.name,
-            type: randomFrom(types),
-            location: dorm.location,
-            rent: randomFrom(rents),
-            dateApplied: randomDate(new Date(2026, 1, 1), new Date(2026, 2, 18)),
-            reviewedOn: reviewed ? randomDate(new Date(2026, 2, 1), new Date(2026, 2, 20)) : '-',
-            reviewedBy: reviewed ? randomFrom(reviewers) : 'Not yet reviewed',
+            id: i + 1,
+            accommodation_id: (i % 6) + 1,
+            student_number: "2022-00001",
+            application_date: randomDateObj(new Date(2026, 1, 1), new Date(2026, 2, 18)),
+            room_type: randomFrom(['single', 'double', 'shared'] as const),
+            stay_type: randomFrom(['transient', 'non_transient'] as const),
             status,
-            remarks: status === 'approved' ? 'Good' : status === 'waitlisted' ? 'Incomplete docs' : '-',
-            image: sampleDorm,
+            duration_of_stay_days: Math.floor(30 + Math.random() * 150),
+            rejection_reason: status === 'rejected' ? 'Incomplete documents submitted.' : null,
+
+            // from accommodations JOIN
+            dormitory: dorm.name,
+            location: dorm.location,
             address: `L${i+1} B${i+2} Sample St., Bgy. Batong Malake, Los Baños`,
-            stars: parseFloat((3.5 + Math.random() * 1.5).toFixed(1)),
-            reviews: Math.floor(20 + Math.random() * 150),
-            id: Math.floor(20 + Math.random() * 150),
-            tags: randomTags(),
-            lastUpdated: randomDate(new Date(2026, 2, 10), new Date(2026, 2, 25)),
-            assignedRoom: status === 'approved' ? String(100 + Math.floor(Math.random() * 200)) : '-',
+            rent: randomFrom(rents),
+            image: sampleDorm,
         };
     });
 
@@ -71,25 +88,33 @@ export default function ApplicationStatus() {
     const semesterStart = new Date("2026-01-19");
     const semesterEnd = new Date("2026-04-29");
     const semCount = 2;
+    const heroContent: HeroContent = {
+        name: "Ana Reyes",
+        greeting: "Good Day",
+        title: "Manage your billing and payments",
+        subtitle: "Stay on top of your balances, track transactions, and view your payment history with ease",
+    }
     
     const currentAY = semCount === 2
         ? `AY ${semesterEnd.getFullYear() - 1}-${semesterEnd.getFullYear()}`
         : `AY ${semesterEnd.getFullYear()}-${semesterEnd.getFullYear() + 1}`;
     
-    const statusStyles: Record<string, { bg: string; dot: string ; text: string}> = {
-        approved:      { bg: '#1A7A4A', dot: '#1A7A4A' , text: '#1A7A4A'},
-        pending:       { bg: '#C9973A', dot: '#C9973A' , text: '#C9973A'},
-        'under review':{ bg: '#6B3AB7', dot: '#6B3AB7' , text: '#6B3AB7'},
-        rejected:      { bg: '#6B0F2B', dot: '#9E2040' , text: '#9E2040'},
-        waitlisted:    { bg: '#3A6AB7', dot: '#3A6AB7' , text: '#3A6AB7'},
+    const statusStyles: Record<string, { bg: string; dot: string; text: string }> = {
+        approved:     { bg: '#1A7A4A', dot: '#1A7A4A', text: '#1A7A4A' },
+        pending:      { bg: '#C9973A', dot: '#C9973A', text: '#C9973A' },
+        under_review: { bg: '#6B3AB7', dot: '#6B3AB7', text: '#6B3AB7' },
+        rejected:     { bg: '#6B0F2B', dot: '#9E2040', text: '#9E2040' },
+        waitlisted:   { bg: '#3A6AB7', dot: '#3A6AB7', text: '#3A6AB7' },
+        cancelled:    { bg: '#888888', dot: '#888888', text: '#888888' },
     }
 
-    const rowStyles: Record<string, { bg: string; text: string}> = {
-        approved:      { bg: '#1A7A4A', text: '#000000'},
-        pending:       { bg: '#FFFFFF', text: '#000000'},
-        'under review':{ bg: '#6B3AB7', text: '#000000'},
-        rejected:      { bg: '#6B0F2B', text: '#9A7080'},
-        waitlisted:    { bg: '#EFF4FF', text: '#000000'},
+    const rowStyles: Record<string, { bg: string; text: string }> = {
+        approved:     { bg: '#1A7A4A', text: '#000000' },
+        pending:      { bg: '#FFFFFF', text: '#000000' },
+        under_review: { bg: '#6B3AB7', text: '#000000' },
+        rejected:     { bg: '#6B0F2B', text: '#9A7080' },
+        waitlisted:   { bg: '#EFF4FF', text: '#000000' },
+        cancelled:    { bg: '#F0F0F0', text: '#888888' },
     }
 
     const [sortBy, setSortBy] = useState("Date applied (Asc.)");
@@ -105,16 +130,19 @@ export default function ApplicationStatus() {
     const sortedApplications = useMemo(() => {
         const q = searchQuery.toLowerCase();
         return [...applications]
-            .filter(a => !q || [a.dormitory, a.type, a.location, a.status, a.remarks, a.reviewedBy]
-                .some(field => field.toLowerCase().includes(q))
-            )
+            .filter(a => !q || [
+                a.dormitory,
+                a.location,
+                a.room_type,
+                a.stay_type,
+                a.status,
+                a.rejection_reason ?? '',
+            ].some(field => field.toLowerCase().includes(q)))
             .sort((a, b) => {
                 const parseDate = (str: string) => str === '-' ? 0 : new Date(str).getTime();
 
-                if (sortBy === "Date applied (Asc.)")  return parseDate(a.dateApplied) - parseDate(b.dateApplied);
-                if (sortBy === "Date applied (Desc.)") return parseDate(b.dateApplied) - parseDate(a.dateApplied);
-                if (sortBy === "Reviewed on (Asc.)")   return parseDate(a.reviewedOn)  - parseDate(b.reviewedOn);
-                if (sortBy === "Reviewed on (Desc.)")  return parseDate(b.reviewedOn)  - parseDate(a.reviewedOn);
+                if (sortBy === "Date applied (Asc.)")  return a.application_date.getTime() - b.application_date.getTime();
+                if (sortBy === "Date applied (Desc.)") return b.application_date.getTime() - a.application_date.getTime();
                 if (sortBy === "Status") return a.status.localeCompare(b.status);
                 return 0;
 
@@ -122,17 +150,18 @@ export default function ApplicationStatus() {
         }, [sortBy, searchQuery]);
 
     const counts = {
-        approved: applications.filter(a => a.status === 'approved').length,
-        rejected: applications.filter(a => a.status === 'rejected').length,
-        pending: applications.filter(a => a.status === 'pending').length,
-        waitlisted: applications.filter(a => a.status === 'waitlisted').length,
-        underReview: applications.filter(a => a.status === 'under review').length,
-    }     
+        approved:    applications.filter(a => a.status === 'approved').length,
+        rejected:    applications.filter(a => a.status === 'rejected').length,
+        pending:     applications.filter(a => a.status === 'pending').length,
+        waitlisted:  applications.filter(a => a.status === 'waitlisted').length,
+        under_review: applications.filter(a => a.status === 'under_review').length,
+        cancelled:   applications.filter(a => a.status === 'cancelled').length,
+    }    
 
     const stats = [
         { label: 'approved', count: counts.approved, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
         { label: 'pending', count: counts.pending, from: '#C9973A', to: '#E8C37A', bg: '#FDF6EC', text: '#C9973A' },
-        { label: 'under review', count: counts.underReview, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
+        { label: 'under review', count: counts.under_review, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
         { label: 'rejected', count: counts.rejected, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
         { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#e4f0f5', text: '#3A6AB7' },
     ]
@@ -158,10 +187,14 @@ export default function ApplicationStatus() {
                     <h1 className='font-serif font-bold italic text-[32px] lg:text-[33px] text-[#6B0F2B] pl-16 lg:p-0'>Application Dashboard</h1>
                 </div>
                 
-                <div className="bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-4 mx-4 mt-6 mb-2 rounded-xl shrink-0">
-                    <p className="uppercase text-[#C9973A] text-[12px] lg:text-[13px]">Good day, Ana Reyes</p>
-                    <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">Check your application status</h1>
-                    <p className="text-white text-opacity-55 text-[12.5px] lg:text-[13.5px]">We make it easy for you to track the accommodations you've applied for</p>
+                <div className='pt-7 px-4'>
+                    <HeroBanner
+                        greeting={heroContent.greeting}
+                        name={heroContent.name}
+                        title={heroContent.title}
+                        subtitle={heroContent.subtitle}
+                        type="mini"
+                    />
                 </div>
 
                 <div className="bg-white p-4 mx-4 mt-2 mb-4 rounded-xl shrink-0">             
@@ -205,8 +238,6 @@ export default function ApplicationStatus() {
                                 items={[
                                     { label: "Date applied (Asc.)", href: "" },
                                     { label: "Date applied (Desc.)", href: "" },
-                                    { label: "Reviewed on (Asc.)", href: "" },
-                                    { label: "Reviewed on (Desc.)", href: "" },
                                     { label: "Status", href: "" },
                                 ]}
                                 direction="down"
@@ -251,69 +282,11 @@ export default function ApplicationStatus() {
                     </div>
 
                     <div className="overflow-auto flex-1 min-h-0 mt-1 rounded-t-lg">
-                        {applications.length === 0 && (
-                            <div className="w-full h-full flex items-center justify-center">
-                                <p className="uppercase text-[14px] text-[#9A7080] font-bold">
-                                    No applications found
-                                </p>
-                            </div>
-                        )}
-                        <table className= {` ${applications.length === 0 ? "hidden" : "table-fixed w-full border-separate border-spacing-0"} `}>
-                            <thead className={`${applications.length === 0 ? "hidden" : 'sticky top-0 bg-[#F7F3F3] border-separate border-spacing-0'}`}>
-                                <tr className="text-[#9A7080] text-[12px] lg:text-[14px] 6B0F2B">
-                                    <th className='uppercase p-2 text-left whitespace-nowrap w-40 border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>dormitory</th>
-                                    <th className='uppercase p-2 text-left whitespace-nowrap w-32 border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>date applied</th>
-                                    <th className='uppercase p-2 text-left whitespace-nowrap w-32 border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>reviewed on</th>
-                                    <th className='uppercase p-2 text-left whitespace-nowrap w-32 border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>status</th>
-                                    <th className='uppercase p-2 text-left whitespace-nowrap w-32 border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>remarks</th>
-                                    <th className='uppercase p-2 text-left whitespace-nowrap w-24 border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {paginated.map((app, index) => (
-                                    <tr key={index}
-                                    style = {{ backgroundColor: (rowStyles[app.status]?.bg ?? '#888')  + '0D',
-                                        color: (rowStyles[app.status]?.text ?? '#888'),
-                                    }}>
-                                        <td className='px-2 py-2 border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>
-                                            <span className="block text-[13px] lg:text-[15px] font-semibold">{app.dormitory}</span>
-                                            <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">{app.type} • {app.location}</span>
-                                        </td>
-                                        <td className='px-2 py-2 whitespace-nowrap border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>
-                                            <span className="block text-[12px] lg:text-[14px]">{app.dateApplied}</span>
-                                            <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">{timeAgo(app.dateApplied)}</span>
-                                        </td>
-                                        <td className='px-2 py-2 whitespace-nowrap border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>
-                                            <span className='block text-[12px] lg:text-[14px]'>{app.reviewedOn}</span>
-                                            <span className='block text-[10px] lg:text-[12px] text-[#9A7080]'>{app.reviewedBy}</span>
-                                        </td>
-                                        <td className='text-[11px] capitalize border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4 font-bold'>
-                                            <div className='bg-opacity-10 p-2 w-fit rounded-[50px] flex flex-row'
-                                                style = {{ backgroundColor: (statusStyles[app.status]?.bg ?? '#F0F0F0')  + '1A' }}
-                                            >
-                                                <div className='p-1 w-1.5 h-1.5 ml-1 mr-1.5 mt-1 lg:mt-1 rounded-[100px]'
-                                                    style = {{ backgroundColor: statusStyles[app.status]?.dot ?? '#888' }}
-                                                />
-                                                <p className='mr-1'
-                                                style = {{ color: statusStyles[app.status]?.text ?? '#888',
-                                                    fontWeight: 'bold',
-                                                }}>{app.status}</p>
-                                            </div>
-                                        </td>
-                                        <td className='px-2 py-2 text-[12px] lg:text-[14px] truncate w-full border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>{app.remarks}</td>
-                                        <td className='px-2 py-2 text-[12px] lg:text-[14px] border-[#6B0F2B] border-opacity-5 border-b-2 lg:border-b-4'>
-                                            <button 
-                                                className="text-[#6B0F2B] font-semibold text-[12px] lg:text-[15px] border-2 lg:border-3 py-1 px-4 lg:py-1.5 lg:px-5 bg-[#F5ECF0] border-[#6B0F2B] border-opacity-5 rounded-[8.8px]"
-                                                onClick={() => { setSelectedApp(app); setViewOpen(true); }}>
-                                                View
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        <ApplicationTable
+                            applications = {paginated}
+                            onView={(app) => {setSelectedApp(app); setViewOpen(true);}}>
+                        </ApplicationTable>
                     </div>
-
 
                     <div className='flex flex-nowrap justify-between'>
                         <div className='flex justify-start items-center gap-2'>
@@ -370,13 +343,7 @@ export default function ApplicationStatus() {
                                         <div className='flex flex-col w-52'>
                                             <p className="text-[14px] font-bold">{selectedApp.dormitory}</p>
                                             <p className='text-[11px] pr-2'>{selectedApp.address}</p>
-                                            <p className="text-[11px] text-[#9A7080]">{selectedApp.type} • {selectedApp.location}</p>
-                                            <p className='text-[11px] text-[#9A7080]'>{selectedApp.stars} ({selectedApp.reviews} reviews)</p>
-                                            <div className='flex gap-1 mt-1'>
-                                                {selectedApp.tags.map((tag, i) => (
-                                                    <div key={i} className="rounded-[20px] text-[10px] inline-block bg-[#F5ECF0] p-1 px-2 text-[#6B0F2B]">{tag}</div>
-                                                ))}
-                                            </div>
+                                            <p className="text-[11px] text-[#9A7080]">{selectedApp.room_type} • {selectedApp.location}</p>
                                         </div>
                                         <div className='flex flex-col center-self'>
                                             <p className='text-[#9A7080] uppercase font-bold text-[12px]'>monthly rate</p>
@@ -393,7 +360,9 @@ export default function ApplicationStatus() {
                                                 </svg>
                                             </div>
                                             <p className='text-[#1A7A4A] text-[11px] font-bold'>Submitted</p>
-                                            <p className='text-[#9A7080] text-[9px] -mt-1'>{selectedApp.dateApplied}</p>
+                                            <p className='text-[#9A7080] text-[9px] -mt-1'>
+                                                {selectedApp.application_date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </p>
                                         </div>
 
                                         {/* Step 2: shows actual status, turns green when approved/waitlisted */}
@@ -406,9 +375,9 @@ export default function ApplicationStatus() {
                                             </div>
                                             <p className='text-[11px] capitalize font-bold'
                                                 style={{ color: isFinal ? '#1A7A4A' : statusStyles[selectedApp.status]?.text ?? '#ccc' }}>
-                                                {selectedApp.status}
+                                                {selectedApp.status.replace('_', ' ')}
                                             </p>
-                                            <p className='text-[#9A7080] text-[9px] -mt-1'>{selectedApp.reviewedOn}</p>
+                                            <p className='text-[#9A7080] text-[9px] -mt-1'>-</p>
                                         </div>
 
                                         {/* Step 3: only active when approved or waitlisted */}
@@ -424,7 +393,7 @@ export default function ApplicationStatus() {
                                                 {isApproved ? 'Approved' : isWaitlisted ? 'Waitlisted' : 'Pending'}
                                             </p>
                                             <p className='text-[#9A7080] text-[9px] -mt-1'>
-                                                {isFinal ? selectedApp.reviewedOn : '-'}
+                                                -
                                             </p>
                                         </div>
                                     </div>
@@ -438,14 +407,6 @@ export default function ApplicationStatus() {
                                             <p className='uppercase font-bold text-[11px] text-[#6B4050]'>semester</p>
                                             {/* mali ata logic ng pagcompute nito */} 
                                             <p className='font-bold truncate text-[11px]'>Semester {semCount}, {currentAY}</p>
-                                        </div>
-                                        <div className='flex flex-col'>
-                                            <p className='uppercase font-bold text-[11px] text-[#6B4050]'>reviewed by</p>
-                                            <p className='font-bold truncate text-[11px]'>{selectedApp.reviewedBy}</p>
-                                        </div>
-                                        <div className='flex flex-col'>
-                                            <p className='uppercase font-bold text-[11px] text-[#6B4050]'>assigned room</p>
-                                            <p className='font-bold truncate text-[11px]'>{selectedApp.assignedRoom}</p>
                                         </div>
                                         <div className='flex flex-col'>
                                             <p className='uppercase font-bold text-[11px] text-[#6B4050]'>current status</p>
@@ -463,16 +424,14 @@ export default function ApplicationStatus() {
                                         </div>
                                         <div className='flex flex-col'>
                                             <p className='uppercase font-bold text-[11px] text-[#6B4050]'>date applied</p>
-                                            <p className='font-bold text-[11px]'>{selectedApp.dateApplied}</p>
-                                            <p className='text-[#9A7080] text-[9px]'>{timeAgo(selectedApp.dateApplied)}</p>
-                                        </div>
-                                        <div className='flex flex-col'>
-                                            <p className='uppercase font-bold text-[11px] text-[#6B4050]'>last updated</p>
-                                            <p className='font-bold text-[11px]'>{selectedApp.lastUpdated}</p>
-                                        </div>      
+                                            <p className='font-bold text-[11px]'>
+                                                {selectedApp.application_date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </p>
+                                            <p className='text-[#9A7080] text-[9px]'>{timeAgo(selectedApp.application_date)}</p>
+                                        </div>    
                                     </div>
                                     <p className='uppercase pt-3 pb-1 font-bold text-[12px] text-[#9A7080]'>landlord remarks</p>
-                                    <div className='w-full h-30 text-[11px] border-2 border-[#6B0F2B] border-opacity-5 rounded-xl p-2 text-[#9A7080] bg-[#FAF4F6]'>{selectedApp.remarks === "-" ? "No remarks by admin" : selectedApp.remarks}</div>
+                                    <div className='w-full h-30 text-[11px] border-2 border-[#6B0F2B] border-opacity-5 rounded-xl p-2 text-[#9A7080] bg-[#FAF4F6]'>{selectedApp.rejection_reason ?? "No remarks by admin"}</div>
                                     
                                     <div className='flex flex-row gap-1 justify-end mt-2'>
                                         <p className='hidden text-[9px] border-2 border-[#6B0F2B] border-opacity-5 rounded-xl p-2 text-[#9A7080] bg-[#FAF4F6]'>By typing “CANCEL”, you are sure to cancel your application to this accommodation</p>
