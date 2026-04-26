@@ -12,8 +12,9 @@ interface GradientPillSelectProps<T extends string> {
   options: Option<T>[];
   value: T;
   onChange: (value: T) => void;
-  width?: string;      
-  textSize?: string;    
+  width?: string;
+  labelSize?: string;      
+  optionSize?: string;    
 }
 
 const IconChevron = ({ open }: { open: boolean }) => (
@@ -40,8 +41,9 @@ export default function GradientPillSelect<T extends string>({
   options,
   value,
   onChange,
-  width = "w-44",  
-  textSize = "text-[15px]",
+  width = "w-44",
+  labelSize =  "text-[18px]",   
+  optionSize = "text-[15px]",
 }: GradientPillSelectProps<T>) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,7 +62,7 @@ export default function GradientPillSelect<T extends string>({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <p className={`${textSize} font-bold tracking-widest text-[#9A7080]`}>
+      <p className={`${labelSize} font-bold tracking-widest text-[#9A7080]`}>
         {label}
       </p>
 
@@ -77,7 +79,7 @@ export default function GradientPillSelect<T extends string>({
         >
           <button
             onClick={() => setOpen((o) => !o)}
-            className={`relative flex items-center justify-between gap-3 w-full px-4 py-[7px] bg-white ${textSize} font-semibold transition-all duration-150`}
+            className={`relative flex items-center justify-between gap-3 w-full px-4 py-[7px] bg-white ${optionSize} font-semibold transition-all duration-150`}
             style={{
               borderRadius: open ? "12px 12px 0 0" : "999px",
               color: "#3D0718",
@@ -116,7 +118,7 @@ export default function GradientPillSelect<T extends string>({
                         onChange(opt.value);
                         setOpen(false);
                       }}
-                      className={`flex items-center justify-between w-full px-4 py-[9px] ${textSize} font-semibold text-left transition-colors`}
+                      className={`flex items-center justify-between w-full px-4 py-[9px] ${optionSize} font-semibold text-left transition-colors`}
                       style={{
                         background: isSelected
                           ? "linear-gradient(90deg, #3D0718, #6B0F2B)"

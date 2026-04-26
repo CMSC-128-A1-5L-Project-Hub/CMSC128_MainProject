@@ -19,7 +19,7 @@ type StatCardProps = {
     strokeWidth?: number
 }
 
-export default function StatCard({
+export default function DonutStatCard({
     id = "donut",
     title,
     value,
@@ -39,7 +39,7 @@ export default function StatCard({
     const percentage = Math.round((value / total) * 100)
 
     return (
-        <Card className="flex flex-col lg:flex-row items-center gap-4 bg-white rounded-2xl px-5 py-3 lg:py-4">
+        <Card className="flex flex-col xl:flex-row items-center gap-4 bg-white rounded-2xl px-5 py-3 lg:py-4">
             <DonutChart
                 id={id}
                 percentage={percentage}
@@ -50,10 +50,10 @@ export default function StatCard({
                 pctSize={pctSize}
             />
             <div className="flex flex-col gap-0.5">
-                <p className={`${titleClassName} font-semibold text-center lg:text-left`}>
+                <p className={`${titleClassName} font-semibold text-center xl:text-left`}>
                     {title}
                 </p>
-                <p className={`hidden lg:block font-${valueWeight} text-[${valueColor}] text-${valueSize}`}>
+                <p className={`hidden xl:block font-${valueWeight} text-[${valueColor}] text-${valueSize}`}>
                     {value}
                 </p>
                 {subtitle && (

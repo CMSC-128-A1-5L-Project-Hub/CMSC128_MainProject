@@ -29,7 +29,11 @@ import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ApplicationsScreen from "./pages/manager/ApplicationsPage"
+<<<<<<< HEAD
 import RoomView from "./pages/student/RoomView"
+=======
+import ApplicationTestPage from "./pages/ApplicationTestPage"
+>>>>>>> dae0019251d052fb8ad5536bb7e71c110457f358
 
 function FullLandingPage() {
   return (
@@ -60,27 +64,34 @@ function App() {
         <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
         <Route path="/landlord/manage/accommodation" element={<ManageAccommodationDashboard />} />
         <Route path="/landlord/rooms" element={<RoomsPage />} />
-        <Route path="/manager/dashboard" element={<ManagerDashboard/>}/>
         <Route path="/manager/occupancy-records" element={<OccupancyRecords />}/>
         <Route path="/manager/room-assignment" element={<RoomAssignment />}/>
-        <Route path="/manager/application" element={<ApplicationsPage />}/>
+        <Route path="/student/dashboard" element={<StudentDashboard />} />
+        <Route path="/student/profile" element={<ProfilePage />} />
+        <Route path="/student/applicationstatus" element={<ApplicationStatus />} />
+        <Route path="/student/billingdashboard" element={<BillingDashboard />} />
+        <Route path="/applications" element={<ApplicationsPage />} />
+        <Route path="student/application" element={<ApplicationTestPage />} />
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
         <Route path="/auth/signup/form" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
         <Route path="/auth/signup/:role" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
         <Route path="/pending-verification" element={<ProtectedRoute><PendingVerification/></ProtectedRoute>}/>
-        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
         {/* ── Student routes ── */}
         <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
+<<<<<<< HEAD
         
         {/*<Route path="/student/roomview" element={<ProtectedRoute><RoomView/></ProtectedRoute>}/>*/}
         <Route path="/student/roomview" element={<RoomView />} />
         <Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
+=======
+        <Route path="/student/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
+>>>>>>> dae0019251d052fb8ad5536bb7e71c110457f358
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>

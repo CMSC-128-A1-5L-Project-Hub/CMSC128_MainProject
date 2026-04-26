@@ -333,6 +333,22 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
   const stayTypes = [...new Set(accommodation.rooms.map((r) => r.room_stay_type))];
   const arrangements = [...new Set(accommodation.rooms.map((r) => r.room_type))];
 
+  //Display all amenities
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([...AMENITIES])
+  //Removed amenities
+  const removedAmenities = AMENITIES.filter((a) => !selectedAmenities.includes(a))
+
+  const removeAmenity = (amenity: string) => {
+    setSelectedAmenities((prev) => prev.filter((a) => a !== amenity))
+  }
+
+  const addAmenity = (amenity: string) => {
+    setSelectedAmenities((prev) =>
+      AMENITIES.filter((a) => prev.includes(a) || a === amenity)
+    )
+  }
+
+
   return (
     <div className="space-y-5 mt-14">
       <div className="grid grid-cols-3 gap-5 items-start mt-16">
@@ -341,7 +357,8 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
           value={selectedTenantRestriction} 
           onChange={setselectedTenantRestriction}
           width = "w-44"
-          textSize = "text-[15px]"
+          labelSize="text-[18px]"
+          optionSize = "text-[15px]"
           options={tenantRestriction.map((st) => ({ value: st, label: st.charAt(0).toUpperCase() + st.slice(1) }))} 
         />
 
@@ -350,7 +367,8 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
           value={selectedStayType} 
           onChange={setSelectedStayType}
           width = "w-44"
-          textSize = "text-[15px]"
+          labelSize="text-[18px]"
+          optionSize = "text-[15px]"
           options={stayTypes.map((st) => ({ value: st, label: st === "non_transient" ? "Non-Transient" : "Transient" }))} />
 
         <GradientPillSelect 
@@ -358,19 +376,66 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
           value={selectedArrangement} 
           onChange={setSelectedArrangement}
           width = "w-44"
-          textSize = "text-[15px]"
+          labelSize="text-[18px]"
+          optionSize = "text-[15px]"
           options={arrangements.map((a) => ({ value: a, label: a.charAt(0).toUpperCase() + a.slice(1) }))} />
       </div>
 
       <div className="w-full h-[2px] bg-gray-200 mt-5"></div>
 
       <div className="mt-12">
-        <p className="text-[18px] font-bold font-sans  tracking-widest text-[#9A7080] mb-1.5">Others</p>
-        <div className="flex flex-wrap gap-2">
-          {AMENITIES.map((a) => (
-            <span key={a} className="text-white font-sans text-[16px] font-medium px-4 py-1.5 rounded-full" style={{ background: CLR.mid }}>{a}</span>
-          ))}
-        </div>
+        <p className="text-[18px] font-bold font-sans  tracking-widest text-[#9A7080] mb-5">Amenities</p>
+          <div className="flex flex-wrap gap-2 min-h-[36px]">
+            {selectedAmenities.length > 0 ? (
+              selectedAmenities.map((a) => (
+                <button
+                  key={a}
+                  onClick={() => removeAmenity(a)}
+                  className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full transition-opacity hover:opacity-80"
+                  style={{ background: CLR.mid }}
+                  title="Click to remove"
+                >
+                  {a}
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              ))
+            ) : (
+              <p className="text-[12px] text-[#8C1535] italic">No amenities selected</p>
+            )}
+          </div>
+          
+          {removedAmenities.length > 0 && (
+            <div className="mt-4">
+              <div className="flex-1 h-px bg-gray-200">
+
+              </div>
+              <p className="text-[12px] text-[#8C1535] italic mt-5">Click to add back</p>
+
+              <div className="flex flex-wrap gap-2 mt-5">
+                {removedAmenities.map((a) => (
+                  <button
+                    key={a}
+                    onClick={() => addAmenity(a)}
+                    className="flex items-center gap-1.5 font-sans text-[15px] font-medium px-4 py-1.5 rounded-full border-2 border-dashed transition-colors hover:border-solid"
+                    style={{
+                      color: CLR.mid,
+                      borderColor: CLR.subtext,
+                      background: 'transparent',
+                    }}
+                    title="Click to add back"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={CLR.mid} strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    {a}
+                  </button>
+                ))}
+              </div>
+            </div>
+        )}
+
       </div>
     </div>
   );
@@ -626,38 +691,9 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
           )}
         </Map>
 
-      <button
-        onClick={() => setCardCollapsed(c => !c)} 
-        style={{
-          position: 'absolute',
-          top: 16,
-          left: cardCollapsed ? 16 : 308,
-          zIndex: 20, 
-          width: 32, height: 32,
-          background: CLR.mid,
-          border: 'none',
-          borderRadius: '50%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-          transition: 'left 0.25s ease', 
-        }}
-        title={cardCollapsed ? 'Show directions' : 'Hide directions'} 
-      >
-        {cardCollapsed ? (
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2">
-            <polygon points="3 11 22 2 13 21 11 13 3 11" fill="white" /> 
-          </svg>
-        ) : (
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" /> 
-          </svg>
-        )}
-      </button>
-
-            {!cardCollapsed && (
+      {!cardCollapsed && (
         <div style={{
-          position: 'absolute', top: 16, left: 16, 
+          position: 'absolute', top: 35, left: 16, 
           background: 'white', borderRadius: 20,
           padding: '16px 18px 18px',
           boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
