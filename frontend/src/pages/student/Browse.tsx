@@ -8,9 +8,517 @@ import { api } from "../../api/axios"
 import { useQuery } from "@tanstack/react-query";
 import { number } from "framer-motion";
 
+type FilterContextType = {
+    dormType: string;
+    setDormType: (value: string) => void;
+    minPrice: number;
+    setMinPrice: (value: number) => void;
+    maxPrice: number;
+    setMaxPrice: (value: number) => void;
+    roomType: string;
+    setRoomType: (value: string) => void;
+    starRating: number;
+    setStarRating: (value: number) => void;
+    onlyBookmarked: boolean;
+    setOnlyBookmarked: (value: boolean) => void;
+    searching: string;
+    setSearching: (value: string) => void;
+};
 
+export const filterContext = createContext<FilterContextType | undefined>(undefined);
+
+export default function BrowsePage() {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [activeFilter, setActiveFilter] = useState("All");
+    const [profileLoading, setProfileLoading] = useState(true);
+
+    // these are for filtering
+    const [onlyBookmarked, setOnlyBookmarked] = useState(false);
+    const [minPrice, setMinPrice] = useState(2500);
+    const [maxPrice, setMaxPrice] = useState(7000);
+    const [dormType, setDormType] = useState("All")
+    const [roomType, setRoomType] = useState("All")
+    const [starRating, setStarRating] = useState(3);
+    const [studentNo, setStudentNo] = useState("");
+
+    const [searching, setSearching] = useState("");
+
+    const [name, setName] = useState("");
+    const navigate = useNavigate()
+
+    const {
+        data: accommodations = [],
+        isLoading: accommodationsLoading,
+        isError: accommodationsError,
+    } = useQuery({
+        queryKey: ["accommodations", searchTerm, activeFilter],
+        queryFn: async () => {
+            const params: Record<string, any> = {};
+
+            if (searchTerm.trim()) {
+                params.search = searchTerm.trim();
+            }
+
+            if (activeFilter !== "All") {
+                if (activeFilter === "On-Campus") params.dormType = "On-Campus";
+                else if (activeFilter === "Off-Campus") params.dormType = "Off-Campus";
+                else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner";
+            }
+
+            const res = await api.get("/accommodations", { params });
+            console.log("ACCOMMODATIONS RAW RESPONSE:", res.data);
+            console.log("ACCOMMODATIONS ARRAY:", res.data?.data?.data);
+
+            return Array.isArray(res.data?.data?.data) ? res.data.data.data : [];
+        },
+    });
+
+    const { data: user, isLoading: isUserLoading, isError } = useQuery({
+        queryKey: ["me"],
+        queryFn: async () => {
+            const res = await api.get("/me");
+            setStudentNo(res.data.data.student.studentNumber)
+            setName(`${res.data.data.fname} ${res.data.data.lname}`)
+            return res.data.data;
+        },
+    });
+
+    const safeAccommodations = Array.isArray(accommodations) ? accommodations : [];
+
+
+    useEffect(() => {
+        if (isError) {
+            navigate("/auth/signin");
+        }
+    }, [isError, navigate]);
+
+    useEffect(() => {
+        if (user && user.role !== "student") {
+            navigate("/auth/signin");
+        }
+    }, [user, navigate]);
+
+
+    // if (profileLoading) {
+    //     return (
+    //         <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
+    //             <p className="text-gray-600">Loading profile...</p>
+    //         </div>
+    //     );
+    // }
+
+    // if (isUserLoading) {
+    //     return (
+    //         <div className="flex items-center justify-center h-screen">
+    //             <p>Loading...</p>
+    //         </div>
+    //     );
+    // }
+
+    const [dorms, setDorms] = useState<{ [key: number]: Dorm[] }>(
+        {});
+
+    const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([]);
+
+    type Dorm = {
+        name: string;
+        subtitle: string;
+        meta: string;
+        price: number;
+        priceUnit: string;
+        'featured chips': string[];
+        rating: string;
+        minPrice: number;
+        maxPrice: number;
+    }
+
+    useEffect(() => {
+        const tempAccommodations: AccommodationPin[] = [];
+        let temp: { [key: number]: Dorm[] } = {}
+        let tempCounter = 0
+        temp[tempCounter] = []
+        for (let i = 0; i < accommodations.length; i++) {
+            if (i != 0 && i % 4 == 0) {
+                tempCounter++;
+                temp[tempCounter] = []
+            }
+            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance, rooms, reviews, bookmarks } = accommodations[i]
+            let minimum = -1;
+            let maximum = -1;
+
+            const roomTypes = new Set();
+            let rating = "6";
+
+            let bookmarked = false
+
+            rooms.forEach((element: { roomRent: Number; roomType: String }) => {
+                roomTypes.add(element.roomType)
+                let rent = Number(element.roomRent)
+                if (minimum == -1) {
+                    minimum = rent
+                }
+
+                if (maximum == -1) {
+                    maximum = rent
+                }
+
+                if (Number(rent) < Number(minimum)) {
+                    minimum = rent
+                }
+
+                if (Number(rent) > Number(maximum)) {
+                    maximum = rent
+                }
+            });
+
+            reviews.forEach((element: { rating: Number }) => {
+                if (Number(element.rating) < Number(rating)) {
+                    let temp = Number(element.rating);
+                    rating = temp.toFixed(1)
+                }
+            })
+
+            bookmarks.forEach((element: {studentNumber: string}) => {
+                if (element.studentNumber === studentNo)
+                {
+                    bookmarked = true
+                }
+            })
+
+            if (searching === "" || searching === accommodationName.toLowerCase())
+            {
+                temp[tempCounter].push({ name: accommodationName, subtitle: accommodationLocation, meta: accommodationType, price: 3200, minPrice: minimum, maxPrice: maximum, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: rating })
+            }       
+
+            if (!bookmarked && onlyBookmarked) {
+                continue
+            }
+
+            if (Number(rating) < starRating) {
+                continue
+            }
+
+            if (minimum < minPrice || maximum > maxPrice) {
+                continue
+            }
+
+            if (dormType !== "All" && accommodationType !== dormType) {
+                continue
+            }
+
+            if (roomType !== "All" && !(roomTypes.has(roomType))) {
+                continue
+            }
+
+            tempAccommodations.push({
+                accommodationId: id,
+                accommodationName,
+                accommodationLocation,
+                accommodationType,
+                accommodationCapacity,
+                tenantRestriction,
+                latitude,
+                longitude,
+                minRent: minimum,
+                maxRent: maximum,
+                walkingDistance,
+                drivingDistance,
+                bikingDistance,
+                rating,
+                price: 500,
+                maxPrice: maximum,
+                minPrice: minimum
+            })
+            
+        }
+        let final: { [key: number]: Dorm[] } = {}
+        for (const key in temp)
+        {
+            const value = temp[key]
+            if (value.length >= 1)
+            {
+                final[key] = value
+            }
+        }
+        setDorms(final)
+        setMapAccommodations(tempAccommodations)
+    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching]);
+
+
+    const [pageNumber, setPageNumber] = useState(0);
+    const [pageLimits, setPageLimits] = useState([0, 2])
+
+    // everything under here is for map
+    const [searchParams, setSearchParams] = useSearchParams()
+
+    // ─── Read filters from URL query params ──────────────────────────────────
+    // This way filters set on the cards/browse page carry over to the map
+    const search = searchParams.get('search') ?? ''
+    const type = searchParams.get('type') ?? 'all'
+    const restriction = searchParams.get('restriction') ?? 'all'
+    const minRent = Number(searchParams.get('min_rent') ?? 0)
+    const maxRent = Number(searchParams.get('max_rent') ?? 10000)
+    const maxWalk = Number(searchParams.get('max_walk') ?? 60)
+    const minCapacity = Number(searchParams.get('min_capacity') ?? 0)
+    const stayType = searchParams.get('stay_type') ?? 'all'
+
+    // ─── Apply filters ────────────────────────────────────────────────────────
+    // const filtered = useMemo(() => {
+    //     return mapAccommodations.filter((acc) => {
+    //         console.log("hello", acc)
+    //         const matchSearch =
+    //             acc.accommodationName.toLowerCase().includes(search.toLowerCase()) ||
+    //             acc.accommodationLocation.toLowerCase().includes(search.toLowerCase())
+    //         const matchType = type === 'all' || acc.accommodationType === type
+    //         const matchRestriction = restriction === 'all' || acc.tenantRestriction === restriction
+    //         const matchRent = acc.minRent >= minRent && acc.maxRent <= maxRent
+    //         const matchWalk = acc.walkingDistance <= maxWalk
+    //         const matchCapacity = acc.accommodationCapacity >= minCapacity
+    //         const matchStayType = stayType === 'all' || acc.stayType === stayType || acc.stayType === 'both'
+    //         return true
+    //     })
+    // }, [search, type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType])
+
+
+    const centerId = searchParams.get('center')
+    const centeredAccommodation = centerId
+        ? mapAccommodations.find((a) => a.accommodationId === Number(centerId)) ?? null
+        : null
+
+    const [isBelowSm, setIsBelowSm] = useState(false);
+
+    useEffect(() => {
+        const media = window.matchMedia("(max-width: 639px)");
+
+        const handleChange = (e: MediaQueryListEvent) => setIsBelowSm(e.matches);
+
+        setIsBelowSm(media.matches);
+        media.addEventListener("change", handleChange);
+
+        return () => media.removeEventListener("change", handleChange);
+    }, []);
+
+    return <>
+        <filterContext.Provider value={{ dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked, searching, setSearching }}>
+            <div className="flex w-full min-h-screen bg-[#F5EEF0]">
+                <div className="relative z-[9999]">
+                    <Sidebar role="student" />
+                </div>
+                <div className="flex flex-col items-start w-full min-h-screen">
+
+                    <div className="w-full px-2 py-4 flex items-center justify-start gap-2">
+                        <div className="w-2 h-10 bg-[#7A0F23] rounded-full"></div>
+                        <h1 className="text-3xl md:text-4xl font-serif italic font-bold text-[#7A0F23]">
+                            Browse Rooms
+                        </h1>
+                    </div>
+
+                    <div className="flex flex-col w-full p-2 items-center">
+                        <div className="flex flex-col w-full h-full justify-center items-start p-2 rounded-lg bg-gradient-to-r from-[#4A0E1C] via-[#7A162D] to-[#4A0E1C] shadow-lg">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400/80">
+                                Good Day, {name}
+                            </span>
+                            <h2 className="font-semibold tracking-tight text-white">
+                                Check out new accommodations
+                            </h2>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap justify-center items-start w-full gap-2 md:gap-0">
+
+                        {/* first half */}
+                        <div className="flex flex-col justify-center items-center w-full gap-2 md:w-1/2 shrink-0">
+                            {/* search bar */}
+                            <div className="flex w-full justify-center items-center px-4 sm:px-6 lg:px-12">
+                                <SearchBar></SearchBar>
+                            </div>
+
+                            {/* dorm cards and buttons */}
+                            <div className="flex w-full justify-center items-center p-4 gap-2">
+                                <div className="flex justify-center items-center relative z-50">
+                                    <button onClick={() => {
+                                        let counter = pageNumber
+                                        if (counter == 0) {
+                                            counter = Object.keys(dorms).length - 1
+                                        } else {
+                                            counter--
+                                        }
+
+                                        if (counter % 2 == 0 && counter != Object.keys(dorms).length - 1) {
+                                            let temp = [...pageLimits]
+                                            if (temp[0] - 2 >= 0) {
+                                                temp[0] -= 2
+                                                temp[1] -= 2
+                                                setPageLimits(temp)
+                                            }
+                                        } else if (counter % 2 == 0 && counter == Object.keys(dorms).length - 1) {
+                                            let max = Object.keys(dorms).length
+                                            max = max % 2 == 0 ? max : max + 1
+                                            let temp = [max - 2, max]
+                                            setPageLimits(temp)
+                                        }
+
+                                        setPageNumber(counter)
+                                    }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
+                                        <span className="text-white text-3xl">{'<'}</span>
+                                    </button>
+                                </div>
+
+                                <div className="flex">
+                                    <div
+                                        className="flex"
+                                        style={{
+                                            transform: `translateX(-${100 * pageNumber}%)`,
+                                            transition: 'transform 500ms ease-in-out',
+                                        }}
+                                    >
+
+                                        {Object.keys(dorms).map((key, index) => {
+                                            console.log(isBelowSm)
+                                            if (pageNumber == index) {
+                                                return <div className={`w-full shrink-0 flex items-center transition-opacity duration-500 ${"opacity-500"
+                                                    }`}>
+                                                    <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
+                                                        {dorms[Number(key)].map((value) => (
+                                                            <div className="w-full flex items-center justify-center">
+                                                                <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            } else {
+                                                return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-0"
+                                                    }`}>
+                                                    <div className="grid grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
+                                                        {dorms[Number(key)].map((value) => (
+                                                            <div className="w-full flex items-center justify-center">
+                                                                <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            }
+
+                                        })}
+                                    </div>
+
+                                </div>
+
+                                <div className="flex justify-center items-center relative z-50">
+                                    <button onClick={() => {
+
+                                        let counter = pageNumber
+                                        if (counter == Object.keys(dorms).length - 1) {
+                                            counter = 0
+                                        } else {
+                                            counter++
+                                        }
+
+                                        console.log(counter)
+                                        if (counter % 2 == 0 && counter != 0) {
+                                            let temp = [...pageLimits]
+                                            let max = Object.keys(dorms).length
+                                            max = max % 2 == 0 ? max : max + 1
+
+
+                                            if (temp[1] + 2 <= max) {
+                                                temp[0] += 2
+                                                temp[1] += 2
+                                                setPageLimits(temp)
+                                            }
+                                        } else if (counter % 2 == 0 && counter == 0) {
+                                            let temp = [0, 2]
+                                            setPageLimits(temp)
+                                        }
+
+                                        setPageNumber(counter)
+                                    }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
+                                        <span className="text-white text-3xl">{'>'}</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end items-center w-[70%] gap-2">
+                                {pageLimits[0] != 0 &&
+                                    <button onClick={() => {
+                                        let temp = [...pageLimits]
+                                        if (temp[0] - 2 >= 0) {
+                                            temp[0] -= 2
+                                            temp[1] -= 2
+                                            setPageLimits(temp)
+                                            setPageNumber(temp[1] - 1)
+                                        }
+                                    }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
+                                        {'<'}
+                                    </button>
+                                }
+                                {
+                                    Object.keys(dorms).map((value, index) => {
+                                        let start = pageLimits[0]
+                                        let end = pageLimits[1]
+                                        let current = parseInt(value) + 1
+                                        if (current >= start && current <= end) {
+                                            return <button onClick={() => {
+                                                setPageNumber(current - 1)
+                                            }} className={`flex w-[10%] items-center justify-center rounded-xl ${pageNumber == index ? '' : 'border border-[#E8D4E2]'} ${pageNumber == index ? 'bg-[#7A162D]' : 'bg-white'} text-lg font-semibold ${pageNumber == index ? 'text-white' : 'text-[#654050]'} shadow-md hover:bg-[#7A162D] hover:text-white`}>
+                                                {current}
+                                            </button>
+                                        }
+                                    })
+                                }
+                                {
+                                    pageLimits[1] < Object.keys(dorms).length &&
+                                    <button onClick={() => {
+                                        let temp = [...pageLimits]
+                                        let max = Object.keys(dorms).length
+                                        max = max % 2 == 0 ? max : max + 1
+
+                                        if (temp[1] + 2 <= max) {
+                                            temp[0] += 2
+                                            temp[1] += 2
+                                            setPageLimits(temp)
+                                            setPageNumber(temp[0] - 1)
+                                        }
+                                    }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
+                                        {'>'}
+                                    </button>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        {/* second half */}
+                        <div className="flex justify-center items-start w-full h-[70%] md:w-1/2 md:h-full shrink-0 relative z-50 bg-[radial-gradient(circle_at_center,#F5EEF0)]">
+                            <div className="flex flex-col justify-center items-center bg-white rounded-lg p-4 shadow-md w-[90%] h-full gap-2">
+
+                                <AccommodationMap
+                                    accommodations={mapAccommodations}
+                                    centeredAccommodation={centeredAccommodation}
+                                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+                                />
+
+
+                                <div className="flex justify-center items-center w-[90%] gap-3">
+                                    <Form></Form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div >
+            </div>
+        </filterContext.Provider>
+    </>
+}
 
 function SearchBar() {
+    const context = useContext(filterContext);
+    if (!context) {
+        throw new Error("FilterContext must be used within a Provider");
+    }
+    const { setSearching } = context
+
     return <div className="w-full max-w-5xl mx-auto">
         <div className="flex items-center bg-white rounded-lg shadow-md px-4 py-2 border border-gray-200">
             <div className="flex items-center flex-1 space-x-2">
@@ -21,13 +529,17 @@ function SearchBar() {
                 </svg>
 
                 <input
+                    id="search-bar"
                     type="text"
                     placeholder="Search dormitory name"
                     className="w-full outline-none text-gray-700 placeholder-[#C8B0B8]"
                 />
             </div>
 
-            <button className="flex items-center space-x-2 bg-gradient-to-r from-[#6B0F2B] to-[#8A1C3D] hover:from-[#7A162D] hover:to-[#A3264A] text-white px-5 py-2 rounded-full transition-colors duration-200">
+            <button onClick={() => {
+                const input = document.getElementById("search-bar") as HTMLInputElement
+                setSearching((input.value.trim()).toLowerCase())
+            }}className="flex items-center space-x-2 bg-gradient-to-r from-[#6B0F2B] to-[#8A1C3D] hover:from-[#7A162D] hover:to-[#A3264A] text-white px-5 py-2 rounded-full transition-colors duration-200">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -483,487 +995,4 @@ function DualRangeSlider({
             }} />
         </div>
     );
-}
-
-type FilterContextType = {
-    dormType: string;
-    setDormType: (value: string) => void;
-    minPrice: number;
-    setMinPrice: (value: number) => void;
-    maxPrice: number;
-    setMaxPrice: (value: number) => void;
-    roomType: string;
-    setRoomType: (value: string) => void;
-    starRating: number;
-    setStarRating: (value: number) => void;
-    onlyBookmarked: boolean;
-    setOnlyBookmarked: (value: boolean) => void;
-};
-
-export const filterContext = createContext<FilterContextType | undefined>(undefined);
-
-export default function BrowsePage() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [activeFilter, setActiveFilter] = useState("All");
-    const [profileLoading, setProfileLoading] = useState(true);
-    const [minPrice, setMinPrice] = useState(2500);
-    const [maxPrice, setMaxPrice] = useState(7000);
-    const [dormType, setDormType] = useState("All")
-    const [roomType, setRoomType] = useState("All")
-    const [starRating, setStarRating] = useState(3);
-    const [studentNo, setStudentNo] = useState("");
-    const [onlyBookmarked, setOnlyBookmarked] = useState(false);
-    const navigate = useNavigate()
-
-    const {
-        data: accommodations = [],
-        isLoading: accommodationsLoading,
-        isError: accommodationsError,
-    } = useQuery({
-        queryKey: ["accommodations", searchTerm, activeFilter],
-        queryFn: async () => {
-            const params: Record<string, any> = {};
-
-            if (searchTerm.trim()) {
-                params.search = searchTerm.trim();
-            }
-
-            if (activeFilter !== "All") {
-                if (activeFilter === "On-Campus") params.dormType = "On-Campus";
-                else if (activeFilter === "Off-Campus") params.dormType = "Off-Campus";
-                else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner";
-            }
-
-            const res = await api.get("/accommodations", { params });
-            console.log("ACCOMMODATIONS RAW RESPONSE:", res.data);
-            console.log("ACCOMMODATIONS ARRAY:", res.data?.data?.data);
-
-            return Array.isArray(res.data?.data?.data) ? res.data.data.data : [];
-        },
-    });
-
-    const { data: user, isLoading: isUserLoading, isError } = useQuery({
-        queryKey: ["me"],
-        queryFn: async () => {
-            const res = await api.get("/me");
-            setStudentNo(res.data.data.student.studentNumber)
-            return res.data.data;
-        },
-    });
-
-    const safeAccommodations = Array.isArray(accommodations) ? accommodations : [];
-
-
-    useEffect(() => {
-        if (isError) {
-            navigate("/auth/signin");
-        }
-    }, [isError, navigate]);
-
-    useEffect(() => {
-        if (user && user.role !== "student") {
-            navigate("/auth/signin");
-        }
-    }, [user, navigate]);
-
-
-    // if (profileLoading) {
-    //     return (
-    //         <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
-    //             <p className="text-gray-600">Loading profile...</p>
-    //         </div>
-    //     );
-    // }
-
-    // if (isUserLoading) {
-    //     return (
-    //         <div className="flex items-center justify-center h-screen">
-    //             <p>Loading...</p>
-    //         </div>
-    //     );
-    // }
-
-    const [dorms, setDorms] = useState<{ [key: number]: Dorm[] }>(
-        {});
-
-    const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([]);
-
-    type Dorm = {
-        name: string;
-        subtitle: string;
-        meta: string;
-        price: number;
-        priceUnit: string;
-        'featured chips': string[];
-        rating: string;
-        minPrice: number;
-        maxPrice: number;
-    }
-
-    useEffect(() => {
-        const tempAccommodations: AccommodationPin[] = [];
-        let temp: { [key: number]: Dorm[] } = {}
-        let tempCounter = 0
-        temp[tempCounter] = []
-        for (let i = 0; i < accommodations.length; i++) {
-            if (i != 0 && i % 4 == 0) {
-                tempCounter++;
-                temp[tempCounter] = []
-            }
-            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance, rooms, reviews, bookmarks } = accommodations[i]
-            let minimum = -1;
-            let maximum = -1;
-
-            const roomTypes = new Set();
-            let rating = "6";
-
-            let bookmarked = false
-
-            rooms.forEach((element: { roomRent: Number; roomType: String }) => {
-                roomTypes.add(element.roomType)
-                let rent = Number(element.roomRent)
-                if (minimum == -1) {
-                    minimum = rent
-                }
-
-                if (maximum == -1) {
-                    maximum = rent
-                }
-
-                if (Number(rent) < Number(minimum)) {
-                    minimum = rent
-                }
-
-                if (Number(rent) > Number(maximum)) {
-                    maximum = rent
-                }
-            });
-
-            reviews.forEach((element: { rating: Number }) => {
-                if (Number(element.rating) < Number(rating)) {
-                    let temp = Number(element.rating);
-                    rating = temp.toFixed(1)
-                }
-            })
-
-            bookmarks.forEach((element: {studentNumber: string}) => {
-                if (element.studentNumber === studentNo)
-                {
-                    bookmarked = true
-                }
-            })
-
-            temp[tempCounter].push({ name: accommodationName, subtitle: accommodationLocation, meta: accommodationType, price: 3200, minPrice: minimum, maxPrice: maximum, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: rating })
-
-            if (!bookmarked && onlyBookmarked) {
-                continue
-            }
-
-            if (Number(rating) < starRating) {
-                continue
-            }
-
-            if (minimum < minPrice || maximum > maxPrice) {
-                continue
-            }
-
-            if (dormType !== "All" && accommodationType !== dormType) {
-                continue
-            }
-
-            if (roomType !== "All" && !(roomTypes.has(roomType))) {
-                continue
-            }
-
-            tempAccommodations.push({
-                accommodationId: id,
-                accommodationName,
-                accommodationLocation,
-                accommodationType,
-                accommodationCapacity,
-                tenantRestriction,
-                latitude,
-                longitude,
-                minRent: minimum,
-                maxRent: maximum,
-                walkingDistance,
-                drivingDistance,
-                bikingDistance,
-                rating,
-                price: 500,
-                maxPrice: maximum,
-                minPrice: minimum
-            })
-            
-        }
-        setDorms(temp)
-        setMapAccommodations(tempAccommodations)
-    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked]);
-
-
-    const [pageNumber, setPageNumber] = useState(0);
-    const [pageLimits, setPageLimits] = useState([0, 2])
-
-    // everything under here is for map
-    const [searchParams, setSearchParams] = useSearchParams()
-
-    // ─── Read filters from URL query params ──────────────────────────────────
-    // This way filters set on the cards/browse page carry over to the map
-    const search = searchParams.get('search') ?? ''
-    const type = searchParams.get('type') ?? 'all'
-    const restriction = searchParams.get('restriction') ?? 'all'
-    const minRent = Number(searchParams.get('min_rent') ?? 0)
-    const maxRent = Number(searchParams.get('max_rent') ?? 10000)
-    const maxWalk = Number(searchParams.get('max_walk') ?? 60)
-    const minCapacity = Number(searchParams.get('min_capacity') ?? 0)
-    const stayType = searchParams.get('stay_type') ?? 'all'
-
-    // ─── Apply filters ────────────────────────────────────────────────────────
-    // const filtered = useMemo(() => {
-    //     return mapAccommodations.filter((acc) => {
-    //         console.log("hello", acc)
-    //         const matchSearch =
-    //             acc.accommodationName.toLowerCase().includes(search.toLowerCase()) ||
-    //             acc.accommodationLocation.toLowerCase().includes(search.toLowerCase())
-    //         const matchType = type === 'all' || acc.accommodationType === type
-    //         const matchRestriction = restriction === 'all' || acc.tenantRestriction === restriction
-    //         const matchRent = acc.minRent >= minRent && acc.maxRent <= maxRent
-    //         const matchWalk = acc.walkingDistance <= maxWalk
-    //         const matchCapacity = acc.accommodationCapacity >= minCapacity
-    //         const matchStayType = stayType === 'all' || acc.stayType === stayType || acc.stayType === 'both'
-    //         return true
-    //     })
-    // }, [search, type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType])
-
-
-    const centerId = searchParams.get('center')
-    const centeredAccommodation = centerId
-        ? mapAccommodations.find((a) => a.accommodationId === Number(centerId)) ?? null
-        : null
-
-    const [isBelowSm, setIsBelowSm] = useState(false);
-
-    useEffect(() => {
-        const media = window.matchMedia("(max-width: 639px)");
-
-        const handleChange = (e: MediaQueryListEvent) => setIsBelowSm(e.matches);
-
-        setIsBelowSm(media.matches);
-        media.addEventListener("change", handleChange);
-
-        return () => media.removeEventListener("change", handleChange);
-    }, []);
-
-    return <>
-        <filterContext.Provider value={{ dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked }}>
-            <div className="flex w-full min-h-screen bg-[#F5EEF0]">
-                <div className="relative z-[9999]">
-                    <Sidebar role="student" />
-                </div>
-                <div className="flex flex-col items-start w-full min-h-screen">
-
-                    <div className="w-full px-2 py-4 flex items-center justify-start gap-2">
-                        <div className="w-2 h-10 bg-[#7A0F23] rounded-full"></div>
-                        <h1 className="text-3xl md:text-4xl font-serif italic font-bold text-[#7A0F23]">
-                            Browse Rooms
-                        </h1>
-                    </div>
-
-                    <div className="flex flex-col w-full p-2 items-center">
-                        <div className="flex flex-col w-full h-full justify-center items-start p-2 rounded-lg bg-gradient-to-r from-[#4A0E1C] via-[#7A162D] to-[#4A0E1C] shadow-lg">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400/80">
-                                Good Day, User
-                            </span>
-                            <h2 className="font-semibold tracking-tight text-white">
-                                Check out new accommodations
-                            </h2>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap justify-center items-start w-full gap-2 md:gap-0">
-
-                        {/* first half */}
-                        <div className="flex flex-col justify-center items-center w-full gap-2 md:w-1/2 shrink-0">
-                            {/* search bar */}
-                            <div className="flex w-full justify-center items-center px-4 sm:px-6 lg:px-12">
-                                <SearchBar></SearchBar>
-                            </div>
-
-                            {/* dorm cards and buttons */}
-                            <div className="flex w-full justify-center items-center p-4 gap-2">
-                                <div className="flex justify-center items-center relative z-50">
-                                    <button onClick={() => {
-                                        let counter = pageNumber
-                                        if (counter == 0) {
-                                            counter = Object.keys(dorms).length - 1
-                                        } else {
-                                            counter--
-                                        }
-
-                                        if (counter % 2 == 0 && counter != Object.keys(dorms).length - 1) {
-                                            let temp = [...pageLimits]
-                                            if (temp[0] - 2 >= 0) {
-                                                temp[0] -= 2
-                                                temp[1] -= 2
-                                                setPageLimits(temp)
-                                            }
-                                        } else if (counter % 2 == 0 && counter == Object.keys(dorms).length - 1) {
-                                            let max = Object.keys(dorms).length
-                                            max = max % 2 == 0 ? max : max + 1
-                                            let temp = [max - 2, max]
-                                            setPageLimits(temp)
-                                        }
-
-                                        setPageNumber(counter)
-                                    }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
-                                        <span className="text-white text-3xl">{'<'}</span>
-                                    </button>
-                                </div>
-
-                                <div className="flex">
-                                    <div
-                                        className="flex"
-                                        style={{
-                                            transform: `translateX(-${100 * pageNumber}%)`,
-                                            transition: 'transform 500ms ease-in-out',
-                                        }}
-                                    >
-
-                                        {Object.keys(dorms).map((key, index) => {
-                                            console.log(isBelowSm)
-                                            if (pageNumber == index) {
-                                                return <div className={`w-full shrink-0 flex items-center transition-opacity duration-500 ${"opacity-500"
-                                                    }`}>
-                                                    <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
-                                                        {dorms[Number(key)].map((value) => (
-                                                            <div className="w-full flex items-center justify-center">
-                                                                <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            } else {
-                                                return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-0"
-                                                    }`}>
-                                                    <div className="grid grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
-                                                        {dorms[Number(key)].map((value) => (
-                                                            <div className="w-full flex items-center justify-center">
-                                                                <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            }
-
-                                        })}
-                                    </div>
-
-                                </div>
-
-                                <div className="flex justify-center items-center relative z-50">
-                                    <button onClick={() => {
-
-                                        let counter = pageNumber
-                                        if (counter == Object.keys(dorms).length - 1) {
-                                            counter = 0
-                                        } else {
-                                            counter++
-                                        }
-
-                                        console.log(counter)
-                                        if (counter % 2 == 0 && counter != 0) {
-                                            let temp = [...pageLimits]
-                                            let max = Object.keys(dorms).length
-                                            max = max % 2 == 0 ? max : max + 1
-
-
-                                            if (temp[1] + 2 <= max) {
-                                                temp[0] += 2
-                                                temp[1] += 2
-                                                setPageLimits(temp)
-                                            }
-                                        } else if (counter % 2 == 0 && counter == 0) {
-                                            let temp = [0, 2]
-                                            setPageLimits(temp)
-                                        }
-
-                                        setPageNumber(counter)
-                                    }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
-                                        <span className="text-white text-3xl">{'>'}</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end items-center w-[70%] gap-2">
-                                {pageLimits[0] != 0 &&
-                                    <button onClick={() => {
-                                        let temp = [...pageLimits]
-                                        if (temp[0] - 2 >= 0) {
-                                            temp[0] -= 2
-                                            temp[1] -= 2
-                                            setPageLimits(temp)
-                                            setPageNumber(temp[1] - 1)
-                                        }
-                                    }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
-                                        {'<'}
-                                    </button>
-                                }
-                                {
-                                    Object.keys(dorms).map((value, index) => {
-                                        let start = pageLimits[0]
-                                        let end = pageLimits[1]
-                                        let current = parseInt(value) + 1
-                                        if (current >= start && current <= end) {
-                                            return <button onClick={() => {
-                                                setPageNumber(current - 1)
-                                            }} className={`flex w-[10%] items-center justify-center rounded-xl ${pageNumber == index ? '' : 'border border-[#E8D4E2]'} ${pageNumber == index ? 'bg-[#7A162D]' : 'bg-white'} text-lg font-semibold ${pageNumber == index ? 'text-white' : 'text-[#654050]'} shadow-md hover:bg-[#7A162D] hover:text-white`}>
-                                                {current}
-                                            </button>
-                                        }
-                                    })
-                                }
-                                {
-                                    pageLimits[1] < Object.keys(dorms).length &&
-                                    <button onClick={() => {
-                                        let temp = [...pageLimits]
-                                        let max = Object.keys(dorms).length
-                                        max = max % 2 == 0 ? max : max + 1
-
-                                        if (temp[1] + 2 <= max) {
-                                            temp[0] += 2
-                                            temp[1] += 2
-                                            setPageLimits(temp)
-                                            setPageNumber(temp[0] - 1)
-                                        }
-                                    }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
-                                        {'>'}
-                                    </button>
-                                }
-
-                            </div>
-
-                        </div>
-
-                        {/* second half */}
-                        <div className="flex justify-center items-start w-full h-[70%] md:w-1/2 md:h-full shrink-0 relative z-50 bg-[radial-gradient(circle_at_center,#F5EEF0)]">
-                            <div className="flex flex-col justify-center items-center bg-white rounded-lg p-4 shadow-md w-[90%] h-full gap-2">
-
-                                <AccommodationMap
-                                    accommodations={mapAccommodations}
-                                    centeredAccommodation={centeredAccommodation}
-                                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
-                                />
-
-
-                                <div className="flex justify-center items-center w-[90%] gap-3">
-                                    <Form></Form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div >
-            </div>
-        </filterContext.Provider>
-    </>
 }

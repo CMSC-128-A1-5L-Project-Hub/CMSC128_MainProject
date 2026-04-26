@@ -44,6 +44,7 @@ export default function DormCard({
           boxShadow: "0 10px 24px rgba(26,10,15,0.10), 0 2px 6px rgba(26,10,15,0.05)",
           width: 140,
           minWidth: 140,
+          height: 200
         }}
       >
         {/* Image */}
