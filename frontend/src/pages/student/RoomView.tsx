@@ -411,6 +411,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
   const [loadingRoute, setLoadingRoute] = useState(false)
 
+  const [cardCollapsed, setCardCollapsed] = useState(false)
   const [previewed, setPreviewed] = useState(false)
   //Raw text for user to find a specific location
   const [searchQuery, setSearchQuery] = useState('')
@@ -486,8 +487,8 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
       const destination = `${destLang},${destLat}`
 
       const [driveRes, walkRes] = await Promise.all([
-        fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),
-        fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),        
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/Driving/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/Walking/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),        
       ])
 
       const [driveData, walkData] = await Promise.all([driveRes.json(), walkRes.json()])
@@ -518,93 +519,338 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
     }
   }
 
+  const switchMode = async (mode: TravelMode) => {
+
+    if (!previewed || !selectedDest) return
+
+    setLoadingRoute(true)
+
+    try{
+      const origin = `${accomLang},${accomLat}`
+      const destination = `${selectedDest.lng},${selectedDest.lat}`
+
+      const res = await fetch(
+        `https://api.mapbox.com/directions/v5/mapbox/${mode}/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`
+      )
+      const data = await res.json()
+
+      if (data.routes?.[0]) {
+        setRouteGeoJSON({
+          type: 'FeatureCollection',
+          features: [{ type: 'Feature', geometry: data.routes[0].geometry, properties: {} }],
+        })
+      }
+    } catch (err) {console.error(err)}
+    finally { setLoadingRoute(false) }
+  }
 
   return (
-    <div
-      className="mt-4"
-      style={{
-        height: 460,
-        position: 'relative',
-        borderRadius: 16,
-        overflow: 'hidden'
-      }}
-    >
-      <Map
-        initialViewState={{
-          longitude: accomLang,
-          latitude: accomLat,
-          zoom: 15,
-          pitch: 40,
-          bearing: 0
+      <div
+        className="mt-4"
+        style={{
+          height: 460,
+          position: 'relative',
+          borderRadius: 16,
+          overflow: 'hidden'
         }}
-        style={{ width: '100%', height: '100%' }}
-        mapStyle="mapbox://styles/mapbox/standard"
-        mapboxAccessToken={MAPBOX_TOKEN}
       >
-        <NavigationControl position="top-right" />
+        <Map
+          initialViewState={{
+            longitude: accomLang,
+            latitude: accomLat,
+            zoom: 15,
+            pitch: 40,
+            bearing: 0
+          }}
+          style={{ width: '100%', height: '100%' }}
+          mapStyle="mapbox://styles/mapbox/standard"
+          mapboxAccessToken={MAPBOX_TOKEN}
+        >
+          <NavigationControl position="top-right" />
 
-        {/*Dorm r */}
-        <Marker longitude={accomLang} latitude={accomLat} anchor="bottom">
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div
+          {/* Route line */}
+
+          {routeGeoJSON && (
+            <Source id="route" type="geojson" data={routeGeoJSON}>
+              <Layer {...routeLayerStyle(travelMode)}/>
+            </Source>
+          )}
+
+          {/*Accomdation pin */}
+          <Marker longitude={accomLang} latitude={accomLat} anchor="bottom">
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div
+                style={{
+                  background: CLR.mid,
+                  borderRadius: '50%',
+                  width: 36,
+                  height: 36,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 18,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                }}
+              >
+                🏠
+              </div>
+              <div
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderLeft: '6px solid transparent',
+                  borderRight: '6px solid transparent',
+                  borderTop: `8px solid ${CLR.mid}`,
+                }}
+              />
+            </div>
+          </Marker>
+
+          {/* Destination*/}
+          {previewed && selectedDest && (
+            <Marker longitude={selectedDest.lng} latitude={selectedDest.lat} anchor="bottom">
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{
+                  background: CLR.mid, borderRadius: '50%', width: 36, height: 36,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: '2px solid white', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                }}>📍</div>
+                <div style={{
+                  width: 0, height: 0,
+                  borderLeft: '6px solid transparent',
+                  borderRight: '6px solid transparent',
+                  borderTop: `8px solid ${CLR.mid}`,
+                }} />
+              </div>
+            </Marker>
+          )}
+        </Map>
+
+      <button
+        onClick={() => setCardCollapsed(c => !c)} 
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: cardCollapsed ? 16 : 308,
+          zIndex: 20, 
+          width: 32, height: 32,
+          background: CLR.mid,
+          border: 'none',
+          borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+          transition: 'left 0.25s ease', 
+        }}
+        title={cardCollapsed ? 'Show directions' : 'Hide directions'} 
+      >
+        {cardCollapsed ? (
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2">
+            <polygon points="3 11 22 2 13 21 11 13 3 11" fill="white" /> 
+          </svg>
+        ) : (
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" /> 
+          </svg>
+        )}
+      </button>
+
+            {!cardCollapsed && (
+        <div style={{
+          position: 'absolute', top: 16, left: 16, 
+          background: 'white', borderRadius: 20,
+          padding: '16px 18px 18px',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+          width: 280, zIndex: 10,
+          display: 'flex', flexDirection: 'column', gap: 10,
+        }}>
+
+          <div style={{
+            position: 'absolute', top: -18, left: 16, 
+            background: CLR.dark, borderRadius: '50%',
+            width: 40, height: 40,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
+            {/* House icon */}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={CLR.mid} strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12L12 3l9 9M4 10v10a1 1 0 001 1h5v-6h4v6h5a1 1 0 001-1V10" />
+            </svg>
+            <div style={{
+              flex: 1, border: `1.5px solid ${CLR.mid}`, borderRadius: 999,
+              padding: '7px 16px', fontSize: 13, fontWeight: 600,
+              color: '#1a1a1a', background: '#fafafa',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', // truncate long names
+            }}>
+              {accommodation.accommodation_name}
+            </div>
+          </div>
+
+          {/* */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* Location pin icon */}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={CLR.mid} strokeWidth="2" style={{ flexShrink: 0 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
+            </svg>
+
+            {/* Input wrapper */}
+            <div style={{ flex: 1, position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search any destination..."
+                value={searchQuery}    
+                onChange={e => handleSearch(e.target.value)} 
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)} 
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  border: `1.5px solid ${CLR.mid}`, borderRadius: 999,
+                  padding: '7px 16px', fontSize: 13, fontWeight: 500,
+                  color: '#1a1a1a', background: 'white', outline: 'none',
+                }}
+              />
+
+              {/* Loading*/}
+              {loadingSuggestions && (
+                <div style={{
+                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                  width: 14, height: 14,
+                  border: `2px solid ${CLR.mid}`,
+                  borderTopColor: 'transparent', 
+                  borderRadius: '50%',
+                  animation: 'spin 0.7s linear infinite', 
+                }} />
+              )}
+
+              {/*Suggestion dropdown*/}
+              {showSuggestions && suggestions.length > 0 && (
+                <div style={{
+                  position: 'absolute', top: '110%', left: 0, right: 0, 
+                  background: 'white', borderRadius: 12,
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                  zIndex: 30, 
+                  overflow: 'hidden', 
+                }}>
+                  {suggestions.map((s, i) => (
+                    <div
+                      key={i}
+                      onMouseDown={() => selectSuggestion(s)}
+                      style={{
+                        padding: '9px 14px', fontSize: 12, cursor: 'pointer',
+                        color: '#1a1a1a', lineHeight: 1.4,
+                        borderBottom: i < suggestions.length - 1 ? '1px solid #f3f4f6' : 'none',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#fdf2f5')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'white')}
+                    >
+                      {s.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Mode bars*/}
+          {(durations.Driving !== null || durations.Walking !== null) && (
+            <div style={{ padding: '2px 0 0', display: 'flex', flexDirection: 'column', gap: 6 }}>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke={travelMode === 'Driving' ? CLR.mid : '#9CA3AF'} strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 17H3a2 2 0 01-2-2v-4l2-5h14l2 5v4a2 2 0 01-2 2h-2M7 17a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4z" />
+                </svg>
+
+
+                <button onClick={() => switchMode('Driving')} style={{
+                  background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: travelMode === 'Driving' ? 700 : 400, 
+                  color: travelMode === 'Driving' ? CLR.mid : '#9CA3AF', 
+                }}>
+                  {durations.Driving !== null ? `${durations.Driving} min` : '—'}
+                </button>
+
+                <span style={{ flex: 1 }} /> 
+
+                <button onClick={() => switchMode('Walking')} style={{
+                  background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: travelMode === 'Walking' ? 700 : 400,
+                  color: travelMode === 'Walking' ? CLR.mid : '#9CA3AF',
+                }}>
+                  {durations.Walking !== null ? `${durations.Walking} min` : '—'}
+                </button>
+
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke={travelMode === 'Walking' ? CLR.mid : '#9CA3AF'} strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 4a1 1 0 100 2 1 1 0 000-2zM6 20l3-8 2 3 2-1 3 6M5 12l2-3 3 1 2-4" />
+                </svg>
+              </div>
+
+              <div style={{ height: 4, background: '#E5E7EB', borderRadius: 999, overflow: 'hidden' }}>
+
+                <div style={{
+                  height: '100%', borderRadius: 999,
+                  width: `100%`,
+                  background: `linear-gradient(90deg, ${CLR.dark}, ${CLR.mid})`,
+                  transition: 'width 0.4s ease',
+                }} />
+              </div>
+            </div>
+          )}
+
+          {/* Preview button*/}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 2 }}>
+            <button
+              onClick={() => selectedDest && fetchModes(selectedDest.lng, selectedDest.lat)}
+              disabled={!selectedDest || loadingRoute}
               style={{
-                background: CLR.mid,
-                borderRadius: '50%',
-                width: 36,
-                height: 36,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 18,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                background: !selectedDest
+                  ? '#E5E7EB'
+                  : loadingRoute
+                    ? CLR.mid + 'aa' 
+                    : `linear-gradient(135deg, ${CLR.dark}, ${CLR.mid})`,
+                color: !selectedDest ? '#9CA3AF' : 'white',
+                border: 'none', borderRadius: 999,
+                padding: '9px 0', fontSize: 13, fontWeight: 700,
+                cursor: !selectedDest || loadingRoute ? 'default' : 'pointer',
+                transition: 'all 0.2s',
               }}
             >
-              🏠
-            </div>
-            <div
-              style={{
-                width: 0,
-                height: 0,
-                borderLeft: '6px solid transparent',
-                borderRight: '6px solid transparent',
-                borderTop: `8px solid ${CLR.mid}`,
-              }}
-            />
-          </div>
-        </Marker>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke={!selectedDest ? '#9CA3AF' : 'white'} strokeWidth="2.2">
+                <circle cx="12" cy="12" r="3" />
+                <path strokeLinecap="round" d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+              </svg>
+              {loadingRoute ? 'Loading...' : 'Preview'}
+            </button>
 
-        {/* Destination*/}
-        <Marker longitude={accomLang} latitude={accomLat} anchor="bottom">
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div
-              style={{
-                background: CLR.mid,
-                borderRadius: '50%',
-                width: 36,
-                height: 36,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '2px solid white',
-                fontSize: 18,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-              }}
-            >
-              📍
-            </div>
-            <div
-              style={{
-                width: 0,
-                height: 0,
-                borderLeft: '6px solid transparent',
-                borderRight: '6px solid transparent',
-                borderTop: `8px solid ${CLR.mid}`,
-              }}
-            />
+            {previewed && durations[travelMode] !== null && (
+              <div style={{ textAlign: 'center', minWidth: 40 }}>
+                <span style={{ fontSize: 28, fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}>
+                  {durations[travelMode]}
+                </span>
+                <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 500 }}>min</div>
+              </div>
+            )}
           </div>
-        </Marker>
-      </Map>
-    </div>
+        </div>
+      )}
+
+
+
+
+      </div>
+    
   )
 }
 
