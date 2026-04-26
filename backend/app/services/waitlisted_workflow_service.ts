@@ -1,7 +1,6 @@
 import Application from "#models/application";
 import Room from "#models/room";
-import app from "@adonisjs/core/services/app";
-import NotificationService from "./notification_service";
+import NotificationService from "./notification_service.ts";
 import { inject } from '@adonisjs/core'
 
 @inject()

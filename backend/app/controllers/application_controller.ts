@@ -5,7 +5,6 @@ import Assignment from '#models/assignment'
 import Student from '#models/student'
 import LogService from '#services/log_service'
 import { inject } from '@adonisjs/core'
-import ApplicationService from '#services/application_service'
 import { withPrimaryImageUrl } from '#services/image_service';
 @inject()
 export default class ApplicationsController {

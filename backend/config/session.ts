@@ -47,8 +47,9 @@ const sessionConfig = defineConfig({
 
     /**
      * Cross-site policy for cookie sending.
+     * Changed sameSite to non if app is in production
      */
-    sameSite: 'lax',
+    sameSite: app.inProduction ? 'none' : 'lax',
   },
 
   /**

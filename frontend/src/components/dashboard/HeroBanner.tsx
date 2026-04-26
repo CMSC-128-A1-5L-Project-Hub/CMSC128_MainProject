@@ -1,5 +1,3 @@
-import House from "../../../assets/icons/house_icon.svg"
-
 type HeroProps = {
     greeting: string
     name: string

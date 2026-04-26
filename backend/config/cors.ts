@@ -18,7 +18,12 @@ const corsConfig = defineConfig({
    * In production, keep an explicit allowlist (empty by default, so no
    * cross-origin browser access is allowed until configured).
    */
-  origin: app.inDev ? true : ['http://localhost:5173'],
+  origin: app.inDev 
+  ? true 
+  : [
+      'http://localhost:5173',
+      'https://up-uble.vercel.app',
+    ],
 
   /**
    * HTTP methods accepted for cross-origin requests.

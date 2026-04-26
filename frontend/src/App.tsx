@@ -70,25 +70,13 @@ function App() {
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
-        <Route path="/applications" element={<ProtectedRoute><StudentApplicationsPage /></ProtectedRoute>} />
-        <Route path="/auth/signup/form" element={<SignUpForm/>}/>
-        <Route path="/auth/success" element={<AuthSuccess />} />
-
-        <Route path="/pending-verification" element={<PendingVerification />} />
-        <Route path="/" element={<FullLandingPage />} /> 
-        <Route path="/map" element={<InteractiveMap />} />
-        <Route path="/browse" element={<BrowsePage />} />
-
-        <Route path="/student/dashboard" element={<StudentDashboard/>}/>
         <Route path="/student/applications" element={<ProtectedRoute><StudentApplicationsPage /></ProtectedRoute>} />
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
         <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
         <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
-        <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
         <Route path="/manager/movein-moveout" element={<ProtectedRoute><MoveinMoveout /></ProtectedRoute>}/>
-        <Route path="/browse" element={<BrowsePage />} />
         <Route path="/manager/applications" element={<ProtectedRoute><ManagerApplicationsPage /></ProtectedRoute>}/>
         <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
         <Route path="/manager/waitlist" element={<ProtectedRoute><Waitlist /></ProtectedRoute>} />
