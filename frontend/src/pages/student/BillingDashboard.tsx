@@ -244,6 +244,7 @@ export default function BillingDashboard(){
                             onPay={(bill) => {setSelectedBill(bill); setPayOpen(true); }}>
                         </BillingTable>
                     </div>
+                    <hr className=" border-[#6B0F2B]/5 border-t-2"/> 
 
                     <div className='flex flex-nowrap justify-between'>
                         <div className='flex justify-start items-center gap-2'>

@@ -89,5 +89,6 @@ export default function BillingTable({ bills, onPay }: BillingTableProps){
                 ))}
             </tbody>
         </table>
+        
     )
 }
