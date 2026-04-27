@@ -175,7 +175,7 @@ const AssignModalContent = ({
                   size="sm"
                   onClick={async () => {
                     const payload = {
-                      studentNumber: assignment.student.student.studentNo,
+                      applicationId: assignment.student.id,
                       roomId: room.id,
                       moveIn: assignment.moveIn || new Date().toISOString().split('T')[0],
                       expectedMoveOut:
@@ -293,30 +293,42 @@ const ViewModalContent = ({ assignment }: { assignment: AssignmentItem }) => {
 export default function RoomAssignment() {
   const navigate = useNavigate()
 
-  // All hooks are called unconditionally at the top
+  // Data from TanStack Query hooks
   const { data: profile, isLoading } = useProfile()
   const { data: approvedApps = [] } = useApprovedApps()
   const { data: assignments = [] } = useAssignments()
   const { data: rooms = [] } = useRooms()
   const refreshDashboard = useRefreshDashboard()
 
+  // UI state
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedAssignment, setSelectedAssignment] = useState<AssignmentItem | null>(null)
   const [sortBy, setSortBy] = useState("Status")
   const [sortOpen, setSortOpen] = useState(false)
   const [search, setSearch] = useState("")
 
-  // Derived data – even when loading, these run safely with empty arrays
+  // Loading
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p>Loading…</p>
+      </div>
+    )
+  }
+
+  // Transform approved apps and merge with assignments
   const transformedApproved = approvedApps.map(transformApp)
   const allAssignments: AssignmentItem[] = transformedApproved.map((app) =>
     mergeAppWithAssignment(app, assignments)
   )
 
+  // Derived stats
   const totalAssigned = allAssignments.filter(a => a.status === 'assigned').length
   const totalUnassigned = allAssignments.filter(a => a.status === 'not assigned').length
   const totalRooms = rooms.length
   const occupiedRooms = rooms.filter(r => r.roomAvailability === 'occupied').length
 
+  // Filtering
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
     return allAssignments.filter(a =>
@@ -328,6 +340,7 @@ export default function RoomAssignment() {
     )
   }, [search, allAssignments])
 
+  // Sorting
   const sortedAssignments = useMemo(() => {
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
@@ -365,15 +378,6 @@ export default function RoomAssignment() {
 
   const fullName = profile ? `${profile.fname} ${profile.lname}` : ''
 
-  // Early return only after all hooks are called
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Loading…</p>
-      </div>
-    )
-  }
-
   return (
     <>
       {/* Modal for assign / view */}
@@ -381,7 +385,8 @@ export default function RoomAssignment() {
         open={!!selectedAssignment}
         onClose={() => setSelectedAssignment(null)}
         title={selectedAssignment?.status === "not assigned" ? "Room Assignment" : "View Room Assignment"}
-        maxWidth={700} maxHeight={600}
+        maxWidth={700}
+        maxHeight={600}
       >
         {selectedAssignment?.status === "not assigned" ? (
           <AssignModalContent
@@ -395,6 +400,7 @@ export default function RoomAssignment() {
         ) : null}
       </Modal>
 
+      {/* Layout */}
       <div className="flex h-screen bg-[#F5EEF0] font-sans">
         <Sidebar role="manager" profile={profile as any} />
         <div className="flex-1 flex flex-col px-8 py-5 overflow-y-auto">

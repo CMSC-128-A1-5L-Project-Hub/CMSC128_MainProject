@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 
 // ─── Raw API types ──────────────────────────────────────────────────
-
 export type RawProfile = {
   fname: string
   lname: string
@@ -97,7 +96,6 @@ export type RawLog = {
 }
 
 // ─── Transformed types ──────────────────────────────────────────────
-
 export type TransformedStudent = {
   fullName: string
   shortName: string
@@ -124,6 +122,7 @@ export type TransformedApp = Omit<RawApplication, 'student' | 'accommodation'> &
 }
 
 export type AssignmentItem = {
+  applicationId: number          
   student: TransformedApp
   roomNumber: string
   roomBuilding: string
@@ -136,7 +135,6 @@ export type AssignmentItem = {
 }
 
 // ─── Store ──────────────────────────────────────────────────────────
-
 interface DashboardState {
   profile: RawProfile | null
   incomingApps: RawApplication[]

@@ -19,6 +19,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { create } from "zustand";
 import { api } from "../../api/axios";
 import Sidebar from "../../components/Sidebar";
+import { useEffect } from "react";
 
 const CLR = {
   dark:   "#3D0718",
@@ -187,6 +188,25 @@ function AccomHistoryModal({
   onClose: () => void;
   studentName: string;
 }) {
+  // close modal on esc key: added effect
+useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+// for prevent bg scroll
+useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   const totalSpent = history.reduce((sum, h) => {
     const months = Math.max(
       1,

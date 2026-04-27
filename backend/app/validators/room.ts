@@ -9,7 +9,7 @@ export const createRoomValidator = vine.compile(
     room_building: vine.string(),
     room_rent: vine.number().min(0),
     tenant_restriction: vine.enum(['coed', 'non-coed']),
-    tags: vine.array(vine.string().minLength(1)).optional(), 
+    tags: vine.array(vine.string().minLength(1)).optional(),
   })
 )
 
@@ -19,8 +19,6 @@ export const updateRoomValidator = vine.compile(
     room_capacity: vine.number().min(1).optional(),
     room_type: vine.enum(['single', 'double', 'shared']).optional(),
     room_availability: vine.enum(['available', 'occupied', 'maintenance']).optional(),
-    tags: vine.array(vine.string().minLength(1)).optional(),  
+    tags: vine.array(vine.string().minLength(1)).optional(),
   })
 )
-
-// The landlord can now send an array of tag strings (like ["air-conditioned"]) when creating or updating a room.

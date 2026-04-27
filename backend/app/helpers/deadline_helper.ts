@@ -1,12 +1,11 @@
-// app/helpers/deadline_helper.ts
 import { DateTime } from 'luxon'
-import Application from '#models/application'           // the model (used as type)
+import Application from '#models/application'
 import LogService from '#services/log_service'
 import WaitlistWorkflowService from '#services/waitlisted_workflow_service'
-import appService from '@adonisjs/core/services/app'   // renamed to avoid conflict
+import appService from '@adonisjs/core/services/app'
 
 export async function checkApplicationDeadline(
-  application: Application,          // rename parameter to avoid shadowing (optional but clearer)
+  application: Application,
   pendingWindowDays = 7,
   confirmedWindowDays = 3
 ) {
@@ -29,7 +28,6 @@ export async function checkApplicationDeadline(
     const daysSinceApproval = now.diff(referenceDate, 'days').days
 
     if (daysSinceApproval > confirmedWindowDays) {
-      // Use appService (the AdonisJS container) to create the service
       const wlService = await appService.container.make(WaitlistWorkflowService)
       await wlService.processSlotExpiry(application.id)
     }

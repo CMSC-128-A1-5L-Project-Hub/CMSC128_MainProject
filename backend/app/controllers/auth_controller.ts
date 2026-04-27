@@ -15,6 +15,41 @@ export default class AuthController {
     protected logService: LogService
   ) {}
 
+  async devLogin({ auth, request, response, session }: HttpContext) {
+    // Only allowed in development
+    if (process.env.NODE_ENV === 'production') {
+      return response.status(403).send('Not allowed in production')
+    }
+
+    const role = request.input('role', 'student') // Default to student
+
+    // Find a user with this role, or just pick the first one available
+    const user = await User.query().where('role', role).first()
+
+    if (!user) {
+      return response.status(404).send(`No user found with role: ${role}. Please seed your DB.`)
+    }
+
+    // Manually log the user in
+    await auth.use('web').login(user)
+    
+    // Set the session role (matching your callback logic)
+    session.put('role', user.role)
+
+    // Log the activity
+    await LogService.logAuthActivity(user, 'logged_in')
+
+    // Redirect to the appropriate dashboard
+    const dashboardMap: Record<string, string> = {
+      landlord: 'http://localhost:5173/landlord/dashboard',
+      student: 'http://localhost:5173/student/dashboard',
+      manager: 'http://localhost:5173/manager/dashboard',
+      super_admin: 'http://localhost:5173/admin/dashboard',
+    }
+
+    return response.redirect(dashboardMap[role] || 'http://localhost:5173/auth/role')
+  }
+
   // STEP 1: Redirect user to Google login screen
   async redirect({ ally }: HttpContext) {
     return ally.use('google').redirect()
@@ -28,7 +63,6 @@ export default class AuthController {
     if (google.hasError()) return google.getError()
 
     const googleUser = await google.user()
-
     const user = await this.provisioningService.provision({
       email: googleUser.email,
       fname: googleUser.original.given_name,
@@ -36,7 +70,10 @@ export default class AuthController {
     })
 
     await auth.use('web').login(user)
+
+    // Set role in session so RoleMiddleware can read it
     session.put('role', user.role)
+
     await LogService.logAuthActivity(user, 'logged_in')
 
     switch (user.role) {
@@ -61,7 +98,7 @@ export default class AuthController {
       .preload('profilePicture')
       .firstOrFail()
 
-    // Role‑specific preloads
+    // Role-specific preloads
     if (user.role === 'student') {
       await user.load('student')
     } else if (user.role === 'manager') {
@@ -97,11 +134,13 @@ export default class AuthController {
       'gender', 'emergencyContactName', 'emergencyContactNumber',
     ])
 
+    // Update user-level field
     if (data.facebookAccount !== undefined) {
       user.facebookAccount = data.facebookAccount || null
       await user.save()
     }
 
+    // Update student-level fields (only if user is a student)
     const student = user.student
     if (student) {
       if (data.college !== undefined) student.college = data.college
@@ -114,12 +153,13 @@ export default class AuthController {
       await student.save()
     }
 
+    // Reload and return updated profile
     await user.load('student')
     await user.load('phoneNumbers')
     await user.load('profilePicture')
 
     const serialized = user.serialize()
-    serialized.profilePictureUrl = user.profilePicture?.filePath ?? null
+    serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
     return serialize(serialized)
   }
 }

@@ -17,7 +17,7 @@ const ROLES = [
       { icon: "clipboard", title: "Apply & Track",          sub: "Submit applications and monitor status" },
     ],
     cta: "Get Started →",
-    image: "../src/assets/images/forStudents.png",
+    image: "/images/forStudents.png",
     bg: "linear-gradient(155deg, #8C1A38 0%, #6B1228 42%, #4A0D1E 100%)",
   },
   {
@@ -32,7 +32,7 @@ const ROLES = [
       { icon: "chart",     title: "Occupancy Dashboard",  sub: "See live stats on rooms and tenants" },
     ],
     cta: "Manage Dorm →",
-    image: "../src/assets/images/forManagers.png",
+    image: "/images/forManagers.png",
     bg: "linear-gradient(155deg, #9E2040 0%, #7A1530 42%, #521020 100%)",
   },
   {
@@ -47,7 +47,7 @@ const ROLES = [
       { icon: "shield",    title: "Policy Enforcement",  sub: "Flag and manage non-compliant listings" },
     ],
     cta: "Admin Portal →",
-    image: "../src/assets/images/forAdmins.png",
+    image: "/images/forAdmins.png",
     bg: "linear-gradient(155deg, #B02245 0%, #8C1A38 42%, #5E1225 100%)",
   },
 ];

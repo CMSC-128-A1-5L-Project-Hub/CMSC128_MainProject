@@ -7,11 +7,10 @@ import report_icon from "../../../../../assets/icons/report.svg"; // Import repo
 
 // Layout components
 import ReportModal from "../../../../ReportModal"; // Import ReportModal
-// import NotificationPanel, {
-//     MOCK_NOTIFICATIONS,
-//     type Notification,
-// } from "../../../../../components/NotificationPanel"
-import NotificationPanel from "../../../../../components/NotificationPanel"
+import NotificationPanel, {
+    MOCK_NOTIFICATIONS,
+    type Notification,
+} from "../../../../../components/NotificationPanel"
 
 type ManagerStatus = "assigned" | "pending" | "none" | string;
 
@@ -37,20 +36,19 @@ export default function ProfileCard({
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [replacementEmail, setReplacementEmail] = useState("");
-  const [unreadCount, setUnreadCount] = useState(0)
   
   // NEW: State for Report Modal
   const [reportOpen, setReportOpen] = useState(false);
 
   // Notification state logic
   const [notifOpen, setNotifOpen] = useState(false);
-  // const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
   const notifWrapperRef = useRef<HTMLDivElement>(null);
 
-  // const unreadCount = notifications.filter((n) => !n.read).length;
-  // const markAllRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  // const markOneRead = (id: number) =>
-  //   setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const markAllRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const markOneRead = (id: number) =>
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
 
   const CLR = {
     dark: "#3D0718",
@@ -191,7 +189,7 @@ export default function ProfileCard({
                   )}
                 </button>
 
-                {/* <NotificationPanel
+                <NotificationPanel
                   open={notifOpen}
                   notifications={notifications}
                   unreadCount={unreadCount}
@@ -199,12 +197,7 @@ export default function ProfileCard({
                   onMarkOneRead={markOneRead}
                   onClose={() => setNotifOpen(false)}
                   wrapperRef={notifWrapperRef}
-                /> */}
-                <NotificationPanel
-                open={notifOpen}
-                onClose={() => setNotifOpen(false)}
-                wrapperRef={notifWrapperRef}
-              />
+                />
               </div>
             </div>
           </div>

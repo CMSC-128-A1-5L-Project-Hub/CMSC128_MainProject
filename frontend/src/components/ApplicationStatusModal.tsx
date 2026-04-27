@@ -1,33 +1,29 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Modal from "./Modal";
-
-export type ApplicationStatus = "pending" | "under_review" | "approved" | "rejected" | "waitlisted" | "cancelled";
+import type { ApplicationStatus } from "../pages/student/ApplicationStatus";
 
 export interface Application {
-  id: number;
-  accommodationId: number;
-  studentNumber: string;
-  applicationRoomType: string;
-  applicationStayType: string;
-  applicationStatus: ApplicationStatus;
-  durationOfStayDays: number;
-  applicationDate: string;
-  reviewedAt?: string | null;     
-  reviewedBy?: number | null;     
-  reviewer?: {                    
-    fname: string;
-    lname: string;
-  } | null;
-  estimatedMonthlyRent?: number | null;
-  rejectionReason?: string | null; 
-  accommodation: {
     id: number;
-    accommodationName: string;
-    accommodationLocation: string;
-    accommodationType: string;
-    primaryImageUrl?: string;
-  };
+    accommodationId: number;
+    studentNumber: string;
+    applicationRoomType: string;
+    applicationStayType: string;
+    applicationStatus: ApplicationStatus;
+    durationOfStayDays: number;
+    applicationDate: string;
+    rejectionReason: string | null;
+    reviewedAt?: string | null;
+    reviewedBy?: number | null;
+    approvedAt?: string | null;
+    slotConfirmDeadline?: string | null;
+    slotConfirmedAt?: string | null;
+    accommodation: {
+        id: number;
+        accommodationName: string;
+        accommodationLocation: string;
+        accommodationType: string;
+    };
 }
 
 interface ApplicationStatusModalProps {
@@ -44,7 +40,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const { data: accomData, isLoading } = useQuery({
     queryKey: ["accommodation", application?.accommodationId],
     queryFn: async () => {
-      const res = await fetch(`http://localhost:3333/accommodations/${application?.accommodationId}`);
+      const res = await fetch(`/api/accommodations/${application?.accommodationId}`);
       if (!res.ok) throw new Error("Failed to fetch accommodation details");
       const json = await res.json();
       return json.data;
@@ -56,9 +52,9 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const cancelMutation = useMutation({
     mutationFn: async () => {
       if (!application) throw new Error("No application selected");
-      const res = await fetch(`http://localhost:3333/applications/${application.id}`, {
+      const res = await fetch(`/api/applications/${application.id}`, {
         method: "PATCH",
-        credentials: "include",
+        credentials: "include", // Ensures cookies/tokens are sent
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "cancelled" }),
       });
@@ -84,18 +80,16 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
     (r: any) => r.roomType.toLowerCase() === application.applicationRoomType.toLowerCase()
   );
 
-  console.log('accomData keys:', Object.keys(accomData || {}));
-    console.log('rooms array:', accomData?.rooms);
-    console.log('room types:', accomData?.rooms?.map(r => r.roomType));
-    console.log('application room type:', application.applicationRoomType);
-
   const formattedRate =
-  application.estimatedMonthlyRent !== null && application.estimatedMonthlyRent !== undefined
-    ? new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(application.estimatedMonthlyRent)
+  appliedRoom?.roomRent !== null &&
+  appliedRoom?.roomRent !== undefined
+    ? new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP",
+      }).format(Number(appliedRoom.roomRent))
     : "—";
-  
-  console.log(application.accommodation)
-  const imageUrl = application.accommodation?.primaryImageUrl;
+
+  const imageUrl = accomData?.images?.[0]?.file?.filePath;
 
   // Modal footer with confirmation input and buttons
   const modalFooter = (
@@ -193,7 +187,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Starts at</p>
+            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Monthly Rate</p>
             {isLoading ? (
               <div className="h-6 w-20 bg-gray-200 rounded animate-pulse ml-auto"></div>
             ) : (
@@ -219,12 +213,12 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
           </div>
           <div className="flex flex-col items-center bg-white px-2">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm ${
-              application.applicationStatus === "under_review" || application.applicationStatus === "approved"
+              application.applicationStatus === "under_review" || application.applicationStatus === "approved" || application.applicationStatus === "confirmed"
                 ? "bg-green-600 text-white font-bold"
                 : "bg-white border-2 border-gray-200 text-transparent"
             }`}>✓</div>
             <p className={`font-bold text-[11px] mt-2 ${
-              application.applicationStatus === "under_review" || application.applicationStatus === "approved"
+              application.applicationStatus === "under_review" || application.applicationStatus === "approved" || application.applicationStatus === "confirmed"
                 ? "text-green-700"
                 : "text-gray-400"
             }`}>Under Review</p>
@@ -240,8 +234,8 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
               <p className="font-bold text-gray-900">{application.id}</p>
             </div>
             <div>
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Semester</p>
-              <p className="font-bold text-gray-900">Semester 2, AY 2025-26</p>
+              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Stay Duration</p>
+              <p className="font-bold text-gray-900">{application.durationOfStayDays} Days</p>
             </div>
             <div>
               <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Current Status</p>
@@ -259,32 +253,37 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
             <div>
               <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Reviewed By</p>
               <p className="font-bold text-gray-900">
-                {application.reviewer ? `${application.reviewer.fname} ${application.reviewer.lname}` : "—"}
+                {accomData?.manager?.user?.fname 
+                  ? `${accomData.manager.user.fname} ${accomData.manager.user.lname}` 
+                  : "—"}
               </p>
             </div>
             <div>
               <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Reviewed On</p>
               <p className="font-bold text-gray-900">
                 {application.reviewedAt 
-                  ? new Date(application.reviewedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) 
+                  ? new Date(application.reviewedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                   : "—"}
               </p>
             </div>
             <div className="col-span-3">
               <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Assigned Room</p>
-              <p className="font-bold text-gray-900">NONE</p>
+              {/* Assignment info is handled in the Assignment model natively, so typically "Pending" while an app is being processed */}
+              <p className="font-bold text-gray-900">
+                {application.applicationStatus === "confirmed" ? "Check My Stays Tab" : "Pending Assignment"}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Landlord Remarks */}
+        {/* Remarks */}
         <div>
-          <p className="text-[10px] text-gray-400 uppercase font-bold mb-2">Landlord Remarks</p>
+          <p className="text-[10px] text-gray-400 uppercase font-bold mb-2">Remarks</p>
           <div className="bg-[#FCFAFA] border border-gray-100 rounded-xl p-3">
-            {application.applicationStatus === 'rejected' && application.rejectionReason ? (
-              <p className="text-sm text-red-600">{application.rejectionReason}</p>
+            {application.rejectionReason ? (
+                <p className="text-sm text-gray-800">{application.rejectionReason}</p>
             ) : (
-              <p className="text-sm text-gray-400 italic">No remarks by admin</p>
+                <p className="text-sm text-gray-400 italic">No remark provided.</p>
             )}
           </div>
         </div>
