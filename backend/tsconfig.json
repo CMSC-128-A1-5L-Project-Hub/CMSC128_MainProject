@@ -1,11 +1,10 @@
 {
-  "extends": "@adonisjs/tsconfig/tsconfig.app.json",
+  "extends": "./node_modules/@adonisjs/tsconfig/tsconfig.app.json",
   "compilerOptions": {
     "rootDir": "./",
     "outDir": "./build",
-    "moduleResolution": "bundler",
-    "module": "ESNext",
-    "target": "ESNext"
+    "noEmit": false
   },
-  "include": ["**/*"] // ni add ko to
+  "include": ["**/*"],
+  "exclude": ["node_modules", "build"]
 }

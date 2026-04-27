@@ -9,9 +9,9 @@ export default class ReportService {
     const totalsRow = await db
       .from('accommodations')
       .innerJoin('rooms', 'rooms.accommodation_id', 'accommodations.id')
-      .where('accommodations.manager_id', user.id)
-      .sum('rooms.capacity as total_capacity')
-      .sum('rooms.current_occupancy as currently_occupied')
+      .where('accommodations.landlord_id', user.id)
+      .sum('rooms.room_capacity as total_capacity')
+      .sum('rooms.room_current_occupancy as currently_occupied')
       .first()
 
     const genderRows = await db
@@ -19,8 +19,7 @@ export default class ReportService {
       .innerJoin('rooms', 'rooms.id', 'assignments.room_id')
       .innerJoin('accommodations', 'accommodations.id', 'rooms.accommodation_id')
       .innerJoin('students', 'students.student_number', 'assignments.student_number')
-      .where('accommodations.manager_id', user.id)
-      .where('assignments.status', 'accepted')
+      .where('accommodations.landlord_id', user.id)
       .whereNull('assignments.actual_move_out')
       .select('students.gender')
       .count('* as count')
@@ -52,13 +51,13 @@ export default class ReportService {
     const rows = await db
       .from('applications')
       .innerJoin('accommodations', 'accommodations.id', 'applications.accommodation_id')
-      .where('accommodations.manager_id', user.id)
+      .where('accommodations.landlord_id', user.id)
       .select(
         db.raw("DATE_FORMAT(applications.application_date, '%Y-%m') as month"),
-        'applications.status'
+        'applications.application_status as status'
       )
       .count('* as count')
-      .groupByRaw("DATE_FORMAT(applications.application_date, '%Y-%m'), applications.status")
+      .groupByRaw("DATE_FORMAT(applications.application_date, '%Y-%m'), applications.application_status")
       .orderBy('month', 'asc')
 
     const grouped = rows.reduce((acc: Record<string, any>, row: any) => {
@@ -91,22 +90,21 @@ export default class ReportService {
       .innerJoin('rooms', 'rooms.id', 'assignments.room_id')
       .innerJoin('accommodations', 'accommodations.id', 'rooms.accommodation_id')
       .where('accommodations.landlord_id', user.id)
-      .where('assignments.status', 'accepted')
       .whereNull('assignments.actual_move_out')
       .select(
         'accommodations.id as accommodation_id',
-        'accommodations.name as accommodation_name',
+        'accommodations.accommodation_name as accommodation_name',
         'rooms.id as room_id',
         'rooms.room_number',
-        'rooms.rent'
+        'rooms.room_rent as rent'
       )
       .count('assignments.id as assigned_students')
       .groupBy(
         'accommodations.id',
-        'accommodations.name',
+        'accommodations.accommodation_name',
         'rooms.id',
         'rooms.room_number',
-        'rooms.rent'
+        'rooms.room_rent'
       )
 
     const roomBreakdown = rows.map((row: any) => {
@@ -143,16 +141,16 @@ export default class ReportService {
       .innerJoin('students', 'students.student_number', 'fees.student_number')
       .innerJoin('users', 'users.id', 'students.user_id')
       .where('fees.landlord_id', user.id)
-      .whereIn('fees.status', ['unpaid', 'partial', 'overdue'])
+      .whereIn('fees.fee_status', ['unpaid', 'partial', 'overdue'])
       .whereRaw('fees.due_date < DATE_SUB(CURDATE(), INTERVAL 5 DAY)')
       .select(
         'fees.id',
         'fees.student_number',
         'fees.due_date',
-        'fees.category',
-        'fees.amount',
-        'fees.balance',
-        'fees.status',
+        'fees.fee_category as category',
+        'fees.fee_amount as amount',
+        'fees.fee_balance as balance',
+        'fees.fee_status as status',
         'students.gender',
         'users.fname',
         'users.mname',

@@ -158,10 +158,10 @@ export default function RoomsPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F9F6F7] font-sans">
+    <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
       <Sidebar role="landlordDashboard" />
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+        <div className="flex-1 overflow-y-auto px-8 sm:px-6 lg:px-8 py-5 space-y-5">
           {/* Header */}
           <div className="pl-16 lg:pl-0 flex items-center gap-3 mb-2">
             <div
@@ -171,12 +171,14 @@ export default function RoomsPage() {
             <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">Manage Rooms</h1>
           </div>
 
+          
+
           <HeroBanner
             greeting="Good Day"
             name="Landlord"
             title="Check out your accommodation rooms"
             subtitle="Manage, update, and organize your available spaces."
-            type="full"
+            type="mini"
           />
 
           {/* Action bar */}

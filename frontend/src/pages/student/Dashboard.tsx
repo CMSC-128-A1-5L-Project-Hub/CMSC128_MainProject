@@ -1,6 +1,57 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
+import { api } from "../../api/axios"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+
+// Helpers
+const capitalize = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+const formatStayType = (type: string) =>
+  capitalize(type.replace("_", "-"));
+
+const formatRestriction = (value: string) => {
+  if (!value) return "";
+  if (value === "female-only") return "Female Only";
+  if (value === "male-only") return "Male Only";
+  if (value === "coed") return "Coed";
+  return value;
+};
+
+const formatAccommodationType = (value: string) => {
+  if (!value) return "";
+  if (value === "on-campus") return "On-campus";
+  if (value === "off-campus") return "Off-campus";
+  if (value === "partner_housing") return "UPLB Partner";
+  return value;
+};
+
+const formatRating = (value: number | string | null | undefined) =>
+  Number(value ?? 0).toFixed(1);
+
+const emptyBilling: BillingOverview = {
+  residenceHall: "-",
+  dueDay: "-",
+  dueMonth: "-",
+  summaryTitle: "No Billing Yet",
+  paidOn: "-",
+  amountPaid: 0,
+  nextDue: "-",
+  monthlyRent: 0,
+  remainingAmount: 0,
+  totalPaid: 0,
+  totalDue: 0,
+  progressPercent: 0,
+};
 import HeroBanner from "../../components/dashboard/HeroBanner";
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 
@@ -69,6 +120,8 @@ interface HeroContent {
   greeting: string;
   title: string;
   subtitle: string;
+  pendingApplications: number;
+  newNotificationsToday: number;
 }
 
 interface BillingOverview {
@@ -104,6 +157,8 @@ const heroContent: HeroContent = {
   greeting: "Good Day",
   title: "Check your applications & explore new accommodations.",
   subtitle: "You have 2 pending applications and 3 new notifications today.",
+  pendingApplications: 2,
+  newNotificationsToday: 3,
 };
 
 const applications: Application[] = [
@@ -572,117 +627,92 @@ interface DesktopProfilePanelProps {
 }
 
 const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePanelProps) => (
-  <aside className="hidden lg:flex h-screen w-[390px] xl:w-[420px] flex-shrink-0 flex-col bg-[#F6F2F4]">
-    <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
-      {/* Top Gradient */}
+  <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4]">
+    {/* Top Gradient  */}
+    <div
+      className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-[...]"
+      style={{ background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)` }}
+    > 
       <div
-        className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-[0_10px_24px_rgba(61,7,24,0.18)]"
+        className="absolute top-0 left-0 w-full h-[79px] px] pointer-events-none"
         style={{
-          background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)`,
+          background: "linear-gradient(90deg, #7A0C23 0%, #A61C3C 100%)"
         }}
-      >
-        <div
-          className="absolute top-0 left-0 w-full h-[79px] pointer-events-none"
-          style={{
-            background: "linear-gradient(90deg, #7A0C23 0%, #A61C3C 100%)",
-          }}
-        />
+      />
+    <div className="relative z-10">
+    {/* Profile Title and Notif Button */}
+      <div className="flex items-center justify-between mb-6">
+        <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
 
-        <div className="relative z-10">
-          {/* Profile Title and Notif Button */}
-          <div className="flex items-center justify-between mb-6">
-            <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">
-              My Profile
-            </span>
+       <button
+          className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
+          style={{ background: "rgba(255,255,255,0.08)" }}
+        >
+          <img
+            src={notif_icon}
+            alt="Notifications"
+            className="w-full h-full object-contain scale-[2.5]"
+          />
 
-            <button
-              className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
-              style={{ background: "rgba(255,255,255,0.08)" }}
-            >
-              <img
-                src={notif_icon}
-                alt="Notifications"
-                className="w-full h-full object-contain scale-[2.5]"
-              />
-
-              <span
-                className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
-                style={{ background: CLR.gold }}
-              />
-            </button>
+          <span
+            className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
+            style={{ background: CLR.gold }}
+          />
+        </button>
+      </div>
+      {/* Profile Content */}
+      <div className="flex items-center gap-4">
+        <div className="relative flex-shrink-0">
+          <div
+            className="w-[78px] h-[78px] rounded-full bg-white flex items-center justify-center border-[4px] overflow-hidden shadow-md"
+            style={{ borderColor: CLR.gold }}
+          >
+            <img
+              src={default_profile}
+              alt="Default profile"
+              className="w-full h-full object-cover"
+            />
           </div>
 
-          {/* Profile Content */}
-          <div className="flex items-center gap-4">
-            <div className="relative flex-shrink-0">
-              <div
-                className="w-[78px] h-[78px] rounded-full bg-white flex items-center justify-center border-[4px] overflow-hidden shadow-md"
-                style={{ borderColor: CLR.gold }}
-              >
-                <img
-                  src={default_profile}
-                  alt="Default profile"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
-                <svg
-                  className="w-3 h-3 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={3}
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </div>
-
-            <div className="min-w-0">
-              <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
-              <p
-                className="text-[15px] font-bold leading-tight mt-1"
-                style={{ color: CLR.goldLt }}
-              >
-                {profile.course} · {profile.campus}
-              </p>
-              <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
-              <p className="text-white/70 text-sm">{profile.phone}</p>
-            </div>
+          <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
           </div>
+        </div>
 
-          <div className="mt-6 grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-4">
-            {[
-              { label: "Student No.", value: profile.studentNo },
-              { label: "College", value: profile.college },
-              { label: "Year Level", value: profile.yearLevel },
-              { label: "Status", value: profile.status, green: true },
-            ].map((item) => (
-              <div key={item.label}>
-                <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">
-                  {item.label}
-                </p>
-
-                {"green" in item && item.green ? (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
-                    {item.value}
-                  </span>
-                ) : (
-                  <p className="text-white text-[14px] font-bold leading-tight whitespace-nowrap">
-                    {item.value}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
+        <div className="min-w-0">
+          <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
+          <p className="text-[15px] font-bold leading-tight mt-1" style={{ color: CLR.goldLt }}>
+            {profile.course.toLocaleUpperCase()} · {profile.campus}
+          </p>
+          <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
+          <p className="text-white/70 text-sm">{profile.phone}</p>
         </div>
       </div>
 
-      {/* Billing Card */}
-      <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
-        <BillingSection overview={billing} statements={statements} />
+      <div className="mt-6 grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-4">        {[
+          { label: "Student No.", value: profile.studentNo },
+          { label: "College", value: profile.college.toUpperCase() },
+          { label: "Year Level", value: profile.yearLevel },
+          { label: "Status", value: profile.status.charAt(0).toUpperCase() + profile.status.slice(1).toLowerCase(), green: true },
+        ].map((item) => (
+          <div key={item.label}>
+            <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
+            {"green" in item && item.green ? (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
+                {item.value}
+              </span>
+            ) : (
+              <p className="text-white text-[14px] font-bold leading-tight whitespace-nowrap"> {item.value} </p>
+            )}
+          </div>
+        ))}
       </div>
+    </div>
+    </div>
+    <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
+      <BillingSection overview={billing} statements={statements} />
     </div>
   </aside>
 );
@@ -691,6 +721,33 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
 export default function Dashboard() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("All");
+
+  
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(true);
+  const [recommendedDorms, setRecommendedDorms] = useState<any[]>([]);
+  const [recommendedLoading, setRecommendedLoading] = useState(true);
+  const [billingOverviewData, setBillingOverviewData] = useState<BillingOverview | null>(null);
+  const [billingStatementsData, setBillingStatementsData] = useState<BillingStatement[]>([]);
+  const [billingLoading, setBillingLoading] = useState(true);
+
+    
+  const {data: user,
+    isLoading: isUserLoading,
+    isError,
+    } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+        const res = await api.get("/me");
+        return res.data.data;
+    },
+    });
+
   const recommendedScrollRef = useRef<HTMLDivElement | null>(null);
   const scrollRecommendedRight = () => {
     recommendedScrollRef.current?.scrollBy({
@@ -698,34 +755,311 @@ export default function Dashboard() {
       behavior: "smooth",
     });
   };
+  // Profile and authentication -------------------
+  useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const res = await api.get("/student/profile");
+      const data = res.data.data ?? res.data;
+
+      setProfile({
+        fullName: data.fullName ?? "",
+        shortName: data.shortName ?? "",
+        course: data.course ?? "",
+        campus: data.campus ?? "",
+        email: data.email ?? "",
+        phone: data.phone ?? "",
+        studentNo: data.studentNo ?? "",
+        college: data.college ?? "",
+        yearLevel: data.yearLevel ?? "",
+        status: data.status ?? "",
+      });
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  fetchProfile();
+}, []);
+
+useEffect(() => {
+    if (isError) {
+        navigate("/auth/signin");
+    }
+    }, [isError, navigate]);
+
+
+    useEffect(() => {
+    if (user && user.role !== "student") {
+        navigate("/auth/signin");
+    }
+    }, [user, navigate]);
+
+// -------------------------------------------------------
+
+// Notification details fetch---------------------------------
+  useEffect(() => {
+    const fetchNotifications = async () => {
+        try {
+        const res = await api.get("/notifications");
+        console.log("notifications:", res.data);
+
+
+        const data = res.data.data ?? res.data;
+
+
+        // unread count (optional)
+        const unreadCount = data.filter(
+            (n: any) => n.readStatus?.toLowerCase() === "unread"
+        ).length;
+
+
+        setUnreadNotificationsCount(unreadCount);
+
+
+        // today's notifications
+        const today = new Date().toISOString().split("T")[0];
+
+
+        const todayCount = data.filter((n: any) => {
+            const notifDate = new Date(n.notificationTimestamp)
+            .toISOString()
+            .split("T")[0];
+
+
+            return notifDate === today;
+        }).length;
+
+
+        setNotificationsTodayCount(todayCount);
+
+
+        } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+        }
+    };
+
+
+    fetchNotifications();
+    }, []);
+// -------------------------------------------------------
+
+// Applications fetch---------------------------------
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const res = await api.get("/applications/my-applications");
+        const data = res.data.data ?? res.data;
+
+        setApplications(data);
+
+        const pendingCount = data.filter((app: any) =>
+          String(app.applicationStatus ?? "").toLowerCase() === "pending"
+        ).length;
+
+        setPendingApplicationsCount(pendingCount);
+
+        console.log("APPLICATIONS:", data);
+        console.log("PENDING COUNT:", pendingCount);
+      } catch (error) {
+        console.error("Failed to fetch applications:", error);
+      } finally {
+        setApplicationsLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, []);
+
+// -----------------------------------
+
+// Recommended dorms fetch---------------------------------
+useEffect(() => {
+  const fetchRecommendedDorms = async () => {
+    try {
+      const res = await api.get('/recommended-accommodations')
+      const data = res.data.data ?? res.data ?? []
+      console.log("RECOMMENDED DORMS:", data);
+      setRecommendedDorms(data)
+    } catch (error) {
+      console.error('Failed to fetch recommended dorms:', error)
+    } finally {
+      setRecommendedLoading(false); 
+    }
+  }
+
+  fetchRecommendedDorms()
+}, [])
+// ---------------------------------
+
+// Billing info fetch---------------------------------
+useEffect(() => {
+  const fetchBilling = async () => {
+    try {
+      const res = await api.get("/my-fees");
+      const fees = res.data.data ?? res.data ?? [];
+
+      console.log("BILLING:", fees);
+
+      if (!Array.isArray(fees) || fees.length === 0) {
+        setBillingOverviewData(null);
+        setBillingStatementsData([]);
+        return;
+      }
+
+      const sortedFees = [...fees].sort(
+        (a, b) =>
+          new Date(b.due_date).getTime() - new Date(a.due_date).getTime()
+      );
+
+      const latestFee = sortedFees[0];
+
+      const totalDue = sortedFees.reduce(
+        (sum, fee) => sum + Number(fee.fee_amount ?? 0),
+        0
+      );
+
+      const remainingAmount = sortedFees.reduce(
+        (sum, fee) => sum + Number(fee.fee_balance ?? 0),
+        0
+      );
+
+      const totalPaid = totalDue - remainingAmount;
+
+      const progressPercent =
+        totalDue > 0 ? Math.round((totalPaid / totalDue) * 100) : 0;
+
+      const dueDate = new Date(latestFee.due_date);
+
+      const overview: BillingOverview = {
+        residenceHall:
+          latestFee.accommodation_name ?? "Unknown Residence Hall",
+        dueDay: dueDate.getDate().toString(),
+        dueMonth: dueDate.toLocaleString("en-US", { month: "short" }),
+        summaryTitle:
+          remainingAmount === 0
+            ? "All Fees Paid"
+            : totalPaid > 0
+            ? "Partially Paid"
+            : "Payment Due",
+        paidOn: totalPaid > 0 ? "Recorded" : "-",
+        amountPaid: totalPaid,
+        nextDue: dueDate.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }),
+        monthlyRent: Number(latestFee.fee_amount ?? 0),
+        remainingAmount,
+        totalPaid,
+        totalDue,
+        progressPercent,
+      };
+
+      const capitalize = (str?: string) =>
+        str ? str.charAt(0).toUpperCase() + str.slice(1) : "Fee";
+
+      const statements: BillingStatement[] = fees.map((f: any) => ({
+        label: `${capitalize(f.fee_category)} - ${new Date(
+          f.due_date
+        ).toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })}`,
+        status: f.fee_status === "paid" ? "Paid" : "Unpaid",
+      }));
+
+      setBillingOverviewData(overview);
+      setBillingStatementsData(statements);
+    } catch (error) {
+      console.error("Failed to fetch billing:", error);
+      setBillingOverviewData(null);
+      setBillingStatementsData([]);
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
+  fetchBilling();
+}, []);
+// ---------------------------------
+
+if (profileLoading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
+      <p className="text-gray-600">Loading profile...</p>
+    </div>
+  );
+}
+
+if (!profile) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
+      <p className="text-gray-600">Profile not found.</p>
+    </div>
+  );
+}
+
+if (isUserLoading) {
+    return (
+        <div className="flex items-center justify-center h-screen">
+        <p>Loading...</p>
+        </div>
+    );
+    }
+
+
+    if (!user || user.role !== "student") {
+    return null;
+    }
+
+// ------------------------------------------------------
+
+
 
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
       {/* Reusable Sidebar */}
-      <Sidebar role="student" profile={studentProfile} />
+      <Sidebar role="student" profile={profile} />
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5">
-        <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
+        <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-5 pb-3 lg:pt-7 lg:pb-2 sticky top-0 z-30 bg-[#F6F2F4]">
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-2">
+              <div className="w-1 h-6 rounded-full" style={{ background: CLR.mid }} />
+            </div>
+            <h1 className="font-serif italic text-2xl lg:text-4xl font-bold text-gray-900">Dashboard</h1>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5 space-y-4 lg:space-y-5">
           <div
-            className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
-            style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)" }}
-          />
-          <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">
-            Dashboard
-          </h1>
-        </div>
-        <div className="space-y-4 lg:space-y-5">
-          <HeroBanner
-            greeting={heroContent.greeting}
-            title={heroContent.title}
-            subtitle={heroContent.subtitle}
-            name={studentProfile.fullName}
-            type="full"
-          />
+            className="relative rounded-2xl overflow-hidden flex items-center min-h-[140px] sm:min-h-[176px]"
+            style={{ background: `linear-gradient(135deg, ${CLR.dark} 0%, ${CLR.accent} 60%, ${CLR.mid} 100%)` }}
+          >
+            <div className="relative z-10 px-5 sm:px-8 py-6">
+              <p className="text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1" style={{ color: CLR.goldLt }}>
+                {heroContent.greeting}, {profile.shortName}
+              </p>
+              <h2 className="text-white font-bold text-lg sm:text-2xl leading-snug mb-1.5 max-w-xs sm:max-w-sm">
+                {heroContent.title}
+              </h2>
+              <p className="text-white/60 text-xs sm:text-sm">
+                You have {pendingApplicationsCount} pending application{pendingApplicationsCount !== 1 && "s"} and {notificationsTodayCount} new notification{notificationsTodayCount !== 1 && "s"} today.              
+              </p>
+            </div>
+
+            <div className="absolute right-0 bottom-0 h-full flex items-end pointer-events-none">
+              <img src={house_icon} alt="" className="w-[130px] h-[130px]" />
+            </div>
+          </div>
+
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-3">
               <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
@@ -749,19 +1083,25 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {applications.map((app) => (
+                  {applications.map((app:any) => (
                     <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center gap-2.5">
                           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" style={{ background: CLR.mid }} />
-                          <span className="font-medium text-gray-800 whitespace-nowrap">{app.dorm}</span>
+                          <span className="font-medium text-gray-800 whitespace-nowrap">{app.accommodation?.accommodationName}</span>
                         </div>
                       </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{app.type}</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{app.applied}</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{app.location}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{formatStayType(app.applicationStayType)}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{formatDate(app.applicationDate)}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{capitalize(app.accommodation?.accommodationType)}</td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
-                        <StatusBadge status={app.status} />
+                         <StatusBadge status={
+                          app.applicationStatus === "approved"
+                            ? "Approved"
+                            : app.applicationStatus === "pending"
+                            ? "Pending"
+                            : "In Review"
+                        } />
                       </td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <button className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -792,23 +1132,28 @@ export default function Dashboard() {
                   ref={recommendedScrollRef}
                   className="flex gap-4 flex-1 min-w-0 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth"
                 >
-                  {recommended.map((dorm) => (
-                    <button
-                      key={dorm.id}
-                      type="button"
-                      className="min-w-[280px] max-w-[280px] text-left flex-shrink-0 rounded-[24px] border border-[#EFE5E8] bg-white shadow-[0_8px_18px_rgba(61,7,24,0.06)] overflow-hidden transition hover:-translate-y-0.5 snap-start"
-                    >
+                  {recommendedLoading ? (
+                    <div className="px-2 text-sm text-gray-500">Loading recommended dorms...</div>
+                  ) : recommendedDorms.length === 0 ? (
+                    <div className="px-2 text-sm text-gray-500">No recommended dorms found.</div>
+                  ) : (
+                    recommendedDorms.map((dorm: any) => (
+                      <button
+                        key={dorm.id}
+                        type="button"
+                        className="min-w-[280px] max-w-[280px] text-left flex-shrink-0 rounded-[24px] border border-[#EFE5E8] bg-white shadow-[0_8px_18px_rgba(61,7,24,0.06)] overflow-hidden transition hover:-translate-y-0.5 snap-start"
+                      >
                       <div className="px-4 pt-4 pb-4">
                         <div className="relative h-[132px] rounded-[18px] overflow-hidden">
                           <img
-                            src={dorm.img}
-                            alt={dorm.name}
+                            src={dorm.primaryImageUrl ?? dorm.imageUrl ?? dorm.img}
+                            alt={dorm.accommodation_name ?? dorm.accommodationName}
                             className="absolute inset-0 w-full h-full object-cover"
                           />
 
                           <div className="absolute top-3 left-3 bg-white rounded-full px-3 py-1.5 shadow-sm">
                             <span className="text-[9px] font-bold" style={{ color: CLR.gold }}>
-                              {dorm.rating} ★★★★★
+                              {formatRating(dorm.average_rating ?? dorm.averageRating)} ★★★★★
                             </span>
                           </div>
                         </div>
@@ -821,53 +1166,63 @@ export default function Dashboard() {
                               color: "#3D0718",
                             }}
                           >
-                            {dorm.tag}
+                             {formatRestriction(dorm.tenant_restriction ?? dorm.tenantRestriction)}
                           </span>
                         </div>
 
                         <h4 className="mt-3 text-[15px] font-bold leading-tight" style={{ color: CLR.dark }}>
-                          {dorm.name}
+                          {dorm.accommodation_name ?? dorm.accommodationName}
                         </h4>
 
-                        <p className="mt-1.5 text-[12px] leading-tight text-[#8C6A75]">
-                          {dorm.tag === "Dormitory" ? "Shared" : "Studio"} · {dorm.size} · {dorm.location}
+                        <p className="mt-1.5 text-[1  2px] leading-tight text-[#8C6A75]">
+                          {formatAccommodationType(dorm.accommodation_type ?? dorm.accommodationType)} ·{" "}
+                          {dorm.accommodation_location ?? dorm.accommodationLocation}
                         </p>
 
-                        <p className="mt-2 text-[15px] font-bold leading-none" style={{ color: CLR.gold }}>
-                          ₱{dorm.price.toLocaleString()}
-                          <span className="ml-1 font-normal text-[13px] text-[#8C6A75]">/ month</span>
-                        </p>
+                        {dorm.lowestRent != null && (
+                          <p className="mt-2 text-[15px] font-bold leading-none" style={{ color: CLR.gold }}>
+                            ₱{Number(dorm.lowestRent).toLocaleString()}
+                            <span className="ml-1 font-normal text-[13px] text-[#8C6A75]">/ month</span>
+                          </p>
+                        )}
 
                         <div className="mt-4 h-px bg-[#F1E5EA]" />
 
                         <div className="mt-3 flex items-center justify-between">
                           <div className="flex items-center gap-1">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <svg
-                                key={i}
-                                className={`w-4 h-4 ${i < dorm.rating ? "text-amber-400" : "text-gray-300"}`}
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                            ))}
+                            {Array.from({ length: 5 }).map((_, i) => {
+                              const rating = Math.round(Number(dorm.average_rating ?? dorm.averageRating ?? 0));
+                              return (
+                                <svg
+                                  key={i}
+                                  className={`w-4 h-4 ${i < rating ? "text-amber-400" : "text-gray-300"}`}
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                              );
+                            })}
                           </div>
 
-                          <span className="text-[11px] text-[#9E7A86]">1 month ago</span>
+                          <span className="text-[11px] text-[#9E7A86]">
+                            Top rated
+                          </span>
                         </div>
 
-                        <p
-                          className="mt-3 text-[12px] italic leading-[1.35] text-[#4B2431]"
-                          style={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 4,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden",
-                          }}
-                        >
-                          {dorm.review}
-                        </p>
+                        {dorm.sampleReview && (
+                          <p
+                            className="mt-3 text-[12px] italic leading-[1.35] text-[#4B2431]"
+                            style={{
+                              display: "-webkit-box",
+                              WebkitLineClamp: 4,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {dorm.sampleReview}
+                          </p>
+                        )}
 
                         <div className="mt-4 flex justify-center gap-1.5">
                           {[0, 1, 2, 3, 4].map((dot) => (
@@ -882,18 +1237,19 @@ export default function Dashboard() {
                         <div className="mt-3 h-px bg-[#F1E5EA]" />
                       </div>
                     </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={scrollRecommendedRight}
-                  className="hidden md:flex w-14 h-14 rounded-full text-white items-center justify-center shadow-[0_10px_24px_rgba(61,7,24,0.18)] flex-shrink-0"
-                  style={{ background: `linear-gradient(135deg, ${CLR.accent} 0%, ${CLR.mid} 100%)` }}
-                >
-                  <IconArrowNext className="w-5 h-5" />
-                </button>
+                  ))
+                )}
               </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={scrollRecommendedRight}
+                className="hidden md:flex w-14 h-14 rounded-full text-white items-center justify-center shadow-[0_10px_24px_rgba(61,7,24,0.18)] flex-shrink-0"
+                style={{ background: `linear-gradient(135deg, ${CLR.accent} 0%, ${CLR.mid} 100%)` }}
+              >
+                <IconArrowNext className="w-5 h-5" />
+              </button>
             </div>
 
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
@@ -951,13 +1307,29 @@ export default function Dashboard() {
             </div>
             </div>
           <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
-            <BillingSection overview={billingOverview} statements={billingStatements} />
+            {billingLoading ? (
+              <div className="bg-white rounded-2xl p-4">
+                <p className="text-sm text-gray-500">Loading billing...</p>
+              </div>
+            ) : billingOverviewData ? (
+              <BillingSection
+                overview={billingOverviewData ?? emptyBilling}
+                statements={billingStatementsData}
+              />
+            ) : (
+              <div className="bg-white rounded-2xl p-4">
+                <p className="text-sm text-gray-500">No billing data found.</p>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-      </main>
+      </main> 
 
-      <DesktopProfilePanel profile={studentProfile} billing={billingOverview} statements={billingStatements} />
+      <DesktopProfilePanel
+        profile={profile}
+        billing={billingOverviewData ?? emptyBilling}
+        statements={billingStatementsData}
+      />
     </div>
   );
 }

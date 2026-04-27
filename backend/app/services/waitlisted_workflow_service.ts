@@ -1,162 +1,182 @@
-import Application from "#models/application";
-import Room from "#models/room";
-import app from "@adonisjs/core/services/app";
-import NotificationService from "./notification_service";
+import Application from "#models/application"
+import Room from "#models/room"
+import NotificationService from "#services/notification_service"
 import { inject } from '@adonisjs/core'
+import { DateTime } from 'luxon'
 
 @inject()
-
 export default class WaitlistWorkflowService {
-    constructor(protected notificationService: NotificationService){}
+  constructor(protected notificationService: NotificationService) {}
 
-    // Call when HA approves an application
-    // Check room availability and either:
-    // 1. Sets status to 'approved' (room available)
-    // 2. Sets status to 'waitlisted' (no room available)
-    async processApproval(applicationId: number){
-        const application = await Application.query()
-            .where('application_id', applicationId)
-            .preload('student', (q) => q.preload('user'))
-            .preload('accommodation')
-            .firstOrFail()
+  // ─── Called when landlord approves an application ───
+  async processApproval(applicationId: number) {
+    const application = await Application.query()
+      .where('id', applicationId)
+      .preload('student', (q) => q.preload('user'))
+      .preload('accommodation')
+      .firstOrFail()
 
-        // Check if there's an available room mathcing the student's preferred room type
-        const availableRoom = await Room.query()
-            .where('accomomodation_id', application.accommodationId)
-            .where('room_type', application.applicationRoomType)
-            .where('room_stay_type', application.applicationStayType)
-            .where('room_availability', 'available')
-            .first()
-        
-        if(availableRoom) {
-            // If room available, accept.
-            application.applicationStatus = 'approved'
-            await application.save()
+    const matchingRooms = await Room.query()
+      .where('accommodation_id', application.accommodationId)
+      .where('room_type', application.applicationRoomType)
+      .where('room_stay_type', application.applicationStayType)
+      .where('room_availability', 'available')
+      .preload('tags')
+      .select('*')
 
-            await this.notificationService.sendApplicationStatusEmail(
-                application.student.user,
-                'approved',
-                application.accommodation.accommodationName
-            )
-        } else {
-            // If no room available, waitlisted
-            const waitlistPosition = await this.getNextWaitlistPosition(application.accommodationId)
+    // Apply tenant restriction (gender)
+    const accRestriction = application.accommodation.tenantRestriction
+    const studentGender = application.student.gender
+    const eligibleRooms = matchingRooms.filter(room => {
+      if (room.tenantRestriction === 'non-coed') {
+        if (accRestriction === 'male-only' && studentGender !== 'Male') return false
+        if (accRestriction === 'female-only' && studentGender !== 'Female') return false
+      }
+      return true
+    })
 
-            application.applicationStatus = 'waitlisted'
-            await application.save()
+    if (eligibleRooms.length > 0) {
+      application.applicationStatus = 'approved'
+      application.approvedAt = DateTime.now()
+      await application.save()
 
-            // Notify Student of waitlist placement and postion
-            await this.notificationService.sendWaitlistEmail(
-                application.student.user,
-                application.accommodation.accommodationName,
-                waitlistPosition
-            )
-        }
+      const roomTags = eligibleRooms[0].tags.map(t => t.tagDetail)
+      const preferredTags = application.preferredTags ?? []
+      const matchedTags = preferredTags.filter(t => roomTags.includes(t))
+      const unmatchedTags = preferredTags.filter(t => !roomTags.includes(t))
 
-        return application
-    }
-
-    // Call when a slot confirmation deadline expires
-    // Cancels the application and promotes the next waitlisted student
-    async processSlotExpiry(applicationId: number){
-        const application = await Application.query()
-            .where('application_id', applicationId)
-            .preload('student', (q) => q.preload('user'))
-            .preload('accommodation')
-            .firstOrFail()
-
-        // Cancel the expired application
-        application.applicationStatus = 'cancelled'
+      await this.notificationService.sendApprovalWithTags(
+        application.student.user,
+        application.accommodation.accommodationName,
+        matchedTags,
+        unmatchedTags
+      )
+    } else {
+      if (application.applicationStayType === 'transient') {
+        application.applicationStatus = 'rejected'
+        application.rejectionReason = 'No available rooms for your preferred stay type/dates.'
         await application.save()
-
-        // Notify student that slot was forfeited
-        await this.notificationService.sendSlotExpiredEmail(
-            application.student.user,
-            application.accommodation.accommodationName
-        )
-
-        // Promote next waitlisted student
-        await this.promoteNextWaitlisted(application.accommodationId)
-    }
-
-    // Call when move-out event is recorded
-    // Promoted the next waitlisted student when a room becomes available
-    async processMoveOut(accommodationId: number){
-        await this.promoteNextWaitlisted(accommodationId)
-    }
-
-    async processWaitlistCancellation(applicationId: number){
-        const application = await Application.query()
-            .where('application_id', applicationId)
-            .preload('student', (q) => q.preload('user'))
-            .preload('accommodation')
-            .firstOrFail()
-        
-        if (application.applicationStatus !== 'waitlisted'){
-            throw new Error('Application is not waitlisted.')
-        }
-
-        application.applicationStatus = 'cancelled'
+      } else {
+        const waitlistPosition = await this.getNextWaitlistPosition(application.accommodationId)
+        application.applicationStatus = 'waitlisted'
         await application.save()
-
-        // Notify student of cancellation confirmation
-        await this.notificationService.sendCancellationEmail(
-            application.student.user,
-            application.accommodation.accommodationName
+        await this.notificationService.sendWaitlistEmail(
+          application.student.user,
+          application.accommodation.accommodationName,
+          waitlistPosition
         )
+      }
     }
 
-    // Promotes the next 'waitlisted' studen to 'approved'
-    private async promoteNextWaitlisted(accommodationId: number){
-        //Get the earliest waitlisted application (by application_date)
-        const nextWaitlisted = await Application.query()
-            .where('accommodation_id', accommodationId)
-            .where('application_status', 'waitlisted')
-            .orderBy('application_date', 'asc')
-            .preload('student', (q) => q.preload('user'))
-            .preload('accommodation')
-            .first()
+    return application
+  }
 
-        if(!nextWaitlisted){
-            // No one on the waitlist; wala na gagawin hehe
-            return
+  // ─── Called when a slot confirmation deadline expires ───
+  async processSlotExpiry(applicationId: number) {
+    const application = await Application.query()
+      .where('id', applicationId)
+      .preload('student', (q) => q.preload('user'))
+      .preload('accommodation')
+      .firstOrFail()
+
+    application.applicationStatus = 'cancelled'
+    await application.save()
+    await this.notificationService.sendSlotExpiredEmail(
+      application.student.user,
+      application.accommodation.accommodationName
+    )
+    await this.promoteNextWaitlisted(application.accommodationId)
+  }
+
+  // ─── Called when a room becomes free after move-out ───
+  async processMoveOut(accommodationId: number, room?: Room) {
+    await this.promoteNextWaitlisted(accommodationId, room)
+  }
+
+  // ─── Called when a waitlisted student cancels their application ───
+  async processWaitlistCancellation(applicationId: number) {
+    const application = await Application.query()
+      .where('id', applicationId)
+      .preload('student', (q) => q.preload('user'))
+      .preload('accommodation')
+      .firstOrFail()
+
+    if (application.applicationStatus !== 'waitlisted') {
+      throw new Error('Application is not waitlisted.')
+    }
+    application.applicationStatus = 'cancelled'
+    await application.save()
+    await this.notificationService.sendCancellationEmail(
+      application.student.user,
+      application.accommodation.accommodationName
+    )
+  }
+
+  // ─── Promote next waitlisted applicant ───
+  // When a room is supplied, candidates are filtered by matching stay/room type
+  // and ranked by tag overlap with the freed room's tags (highest match wins;
+  // application date breaks ties — older first). Without a room, falls back to FIFO.
+  private async promoteNextWaitlisted(accommodationId: number, room?: Room) {
+    let query = Application.query()
+      .where('accommodation_id', accommodationId)
+      .where('application_status', 'waitlisted')
+      .orderBy('application_date', 'asc')
+      .preload('student', (q) => q.preload('user'))
+      .preload('accommodation')
+
+    if (room) {
+      query = query
+        .where('application_stay_type', room.roomStayType)
+        .where('application_room_type', room.roomType)
+    }
+
+    const candidates = await query
+    if (candidates.length === 0) return
+
+    if (room && candidates.length > 1) {
+      const roomTags = room.tags?.map(t => t.tagDetail) ?? []
+      const scored = candidates.map(candidate => {
+        let preferredTags: string[] = []
+        if (Array.isArray(candidate.preferredTags)) {
+          preferredTags = candidate.preferredTags
+        } else if (typeof candidate.preferredTags === 'string') {
+          try {
+            const parsed = JSON.parse(candidate.preferredTags)
+            preferredTags = Array.isArray(parsed) ? parsed : []
+          } catch {
+            preferredTags = []
+          }
         }
-
-        // Promote to approved
-        nextWaitlisted.applicationStatus = 'approved'
-        await nextWaitlisted.save()
-
-        // Notify studen with slot confirmation instructions
-        await this.notificationService.sendApplicationStatusEmail(
-            nextWaitlisted.student.user,
-            'approved',
-            nextWaitlisted.accommodation.accommodationName
-        )
+        const matchCount = preferredTags.filter(tag => roomTags.includes(tag)).length
+        return { candidate, matchCount }
+      })
+      scored.sort((a, b) => {
+        if (a.matchCount !== b.matchCount) return b.matchCount - a.matchCount
+        return a.candidate.applicationDate.valueOf() - b.candidate.applicationDate.valueOf()
+      })
+      const best = scored[0].candidate
+      best.applicationStatus = 'approved'
+      best.approvedAt = DateTime.now()
+      await best.save()
+      await this.notificationService.sendApplicationStatusEmail(
+        best.student.user, 'approved', best.accommodation.accommodationName
+      )
+    } else {
+      const next = candidates[0]
+      next.applicationStatus = 'approved'
+      next.approvedAt = DateTime.now()
+      await next.save()
+      await this.notificationService.sendApplicationStatusEmail(
+        next.student.user, 'approved', next.accommodation.accommodationName
+      )
     }
+  }
 
-    // Get the next waitlist position for a new waitlisted student
-    private async getNextWaitlistPosition(accommodationId: number){
-        const waitlistCount = await Application.query()
-            .where('accommodation_id', accommodationId)
-            .where('application_status', 'waitlisted')
-            .count('* as total')
-
-        // Count + 1 means you give the new position to that student
-        return Number(waitlistCount[0].$extras.total) + 1
-    }
-
-    // Get current waitlist position for a specific student
-    async getWaitlistPosition(applicationId: number): Promise<number> {
-        const application = await Application.findOrFail(applicationId)
-
-        // Count how many waitlisted application were submitted before this one
-        const position = await Application.query()
-            .where('accommodation_id', application.accommodationId)
-            .where('application_status', 'waitlisted')
-            .where('application_date', '<', application.applicationDate.toJSDate())
-            .count('* as total')
-
-    return Number(position[0].$extras.total)
-    }
-    
+  private async getNextWaitlistPosition(accommodationId: number) {
+    const waitlistCount = await Application.query()
+      .where('accommodation_id', accommodationId)
+      .where('application_status', 'waitlisted')
+      .count('* as total')
+    return Number(waitlistCount[0].$extras.total) + 1
+  }
 }

@@ -11,8 +11,9 @@ interface ModalProps {
   eyebrow?: string;
   /** Max width of the modal card in px (default 560) */
   maxWidth?: number | string;
+  /* Max height (optional) default 560 (same as width) */
+  maxHeight?: number | string;
   /** Optional footer slot — rendered below the body */
-  maxHeight?: number;
   footer?: React.ReactNode;
 }
 
@@ -69,7 +70,7 @@ export function Modal({
           style={{
             width: "100%",
             maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
-            maxHeight: "70vh",
+            maxHeight: typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight, //added this
             overflowY: "auto",
             display:"flex",
             flexDirection: "column",

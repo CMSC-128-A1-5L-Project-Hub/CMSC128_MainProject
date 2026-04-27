@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 import NotFound from "./pages/shared/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
 import SignIn from "./pages/shared/SignIn"
@@ -24,13 +24,15 @@ import NotificationsPage from "./pages/shared/Notifications"
 import StudentApplicationsPage from "./pages/student/Applications"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
+import FullRoomView from "./pages/student/FullRoomView"
 import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
 import Waitlist from "./pages/manager/Waitlist"
 import MoveinMoveout from "./pages/manager/MoveinMoveout"
-
+import ManagerProfile from "./pages/manager/Profile"
+import ApplicationTestPage from "./pages/ApplicationTestPage"
 function FullLandingPage() {
   return (
     <>
@@ -47,41 +49,40 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ── Public routes ── */}
+        {/* ── Public routes (guest-accessible) ── */}
         <Route path="/" element={<FullLandingPage />} />
-        {/* Get rid of this once theres no more references to /landingpage in the pages */}
-        <Route path="/landingpage" element={<Navigate to="/" replace />} /> 
         <Route path="/auth/signin" element={<SignIn/>}/>
         <Route path="/auth/signup" element={<SignUp/>}/>
-        <Route path="/auth/signup/form" element={<SignUpForm/>}/>
-        <Route path="/auth/success" element={<AuthSuccess />} />
-
-        <Route path="/pending-verification" element={<PendingVerification />} />
-        <Route path="/" element={<FullLandingPage />} /> 
+        <Route path="/auth/success" element={<AuthSuccess/>}/>
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/browse" element={<BrowsePage />} />
+        <Route path="/accommodations/:id" element={<FullRoomView />} />
 
-        <Route path="/student/dashboard" element={<StudentDashboard/>}/>
-        
-        <Route path="/manager/dashboard/" element={<ManagerDashboard/>}/>
-        <Route path="/manager/occupancy-records" element={<OccupancyRecords />}/>
-        <Route path="/manager/room-assignment" element={<RoomAssignment />}/>
-        <Route path="/manager/applications" element={<ManagerApplicationsPage />} />
-        <Route path="/manager/waitlist" element={<Waitlist />} />
-        <Route path="/manager/movein-moveout" element={<MoveinMoveout />} />
+        {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
+        <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
+        <Route path="/auth/signup/form" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
+        <Route path="/auth/signup/:role" element={<ProtectedRoute><SignUpForm/></ProtectedRoute>}/>
+        <Route path="/pending-verification" element={<ProtectedRoute><PendingVerification/></ProtectedRoute>}/>
+        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage/></ProtectedRoute>}/>
+
+        {/* ── Student routes ── */}
+        <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
+        <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
+        <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
+        <Route path="/student/applications" element={<ProtectedRoute><StudentApplicationsPage /></ProtectedRoute>} />
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
         <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
         <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
-        <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
-        <Route path="/manager/applications" element={<ProtectedRoute><ManagerApplicationsPage /></ProtectedRoute>}/>
         <Route path="/manager/movein-moveout" element={<ProtectedRoute><MoveinMoveout /></ProtectedRoute>}/>
-        <Route path="/browse" element={<BrowsePage />} />
-
+        <Route path="/manager/application" element={<ProtectedRoute><ManagerApplicationsPage /></ProtectedRoute>}/>
+        <Route path="/manager/waitlist" element={<ProtectedRoute><Waitlist /></ProtectedRoute>} />
+        <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
 
         {/* ── Landlord routes ── */}
-        <Route path="/landlord/dashboard" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
+        <Route path="/landlord/dashboard/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/manage/accommodation" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
         <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
 

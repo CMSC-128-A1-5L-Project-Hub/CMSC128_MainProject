@@ -1,25 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Modal from "./Modal";
-
-export type ApplicationStatus = "pending" | "under_review" | "approved" | "rejected" | "waitlisted" | "cancelled";
-
-export interface Application {
-  id: number;
-  accommodationId: number;
-  studentNumber: string;
-  applicationRoomType: string;
-  applicationStayType: string;
-  applicationStatus: ApplicationStatus;
-  durationOfStayDays: number;
-  applicationDate: string;
-  accommodation: {
-    id: number;
-    accommodationName: string;
-    accommodationLocation: string;
-    accommodationType: string;
-  };
-}
+import type { Application, ApplicationStatus } from "../pages/student/ApplicationStatus";
 
 interface ApplicationStatusModalProps {
   open: boolean;

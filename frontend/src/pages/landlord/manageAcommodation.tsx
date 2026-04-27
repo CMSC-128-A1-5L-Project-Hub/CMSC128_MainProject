@@ -12,15 +12,12 @@ import defaultAccommodationImage from '../../assets/defaults/accommodation.png'
 
 // ─── Accommodation Card ───────────────────────────────────────────────────────
 const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) => {
+  const navigate = useNavigate()
   const status = accommodation.status
-  const isUnderReview = status !== 'verified' // ← show overlay for anything not verified
+  const isUnderReview = status !== 'verified'
 
-  // Get primary image using primaryImageIndex
-const primaryImage = accommodation.primaryImageUrl
-  ?? defaultAccommodationImage
+  const primaryImage = accommodation.primaryImageUrl ?? defaultAccommodationImage
 
-    console.log('primaryImage URL:', primaryImage)
-    console.log('images:', accommodation.images)
   return (
     <div className="relative rounded-2xl shadow-md bg-white overflow-hidden group">
       <img
@@ -34,7 +31,7 @@ const primaryImage = accommodation.primaryImageUrl
         <Button
           className={`mt-4 w-full ${isUnderReview ? "opacity-50 cursor-not-allowed" : ""}`}
           disabled={isUnderReview}
-          onClick={() => !isUnderReview && console.log("Manage clicked", accommodation.id)}
+          onClick={() => navigate(`/landlord/dashboard/${accommodation.id}`)}
         >
           Manage →
         </Button>
