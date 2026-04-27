@@ -175,7 +175,7 @@ const AssignModalContent = ({
                   size="sm"
                   onClick={async () => {
                     const payload = {
-                      studentNumber: assignment.student.student.studentNo,
+                      applicationId: assignment.student.id,
                       roomId: room.id,
                       moveIn: assignment.moveIn || new Date().toISOString().split('T')[0],
                       expectedMoveOut:

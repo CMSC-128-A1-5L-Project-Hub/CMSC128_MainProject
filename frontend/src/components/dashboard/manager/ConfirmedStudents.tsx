@@ -132,7 +132,7 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                       </div>
                       <Button variant="reddishPink" size="sm" disabled={room.roomCurrentOccupancy >= room.roomCapacity} onClick={async () => {
                         const payload = {
-                          studentNumber: modalAssignment.student.student.studentNo,
+                          applicationId: modalAssignment.student.id,  
                           roomId: room.id,
                           moveIn: modalAssignment.moveIn || new Date().toISOString().split('T')[0],
                           expectedMoveOut: modalAssignment.expectedMoveOut ||
@@ -146,9 +146,14 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                           } else {
                             alert(res.data?.message || 'Assignment failed')
                           }
-                        } catch (e) {
-                          console.error(e)
-                          alert('Network error')
+                        } catch (err: any) {
+                        console.error(err)
+                        const msg =
+                            err?.response?.data?.message ??
+                            err?.response?.data?.error ??
+                            err.message ??
+                            'Network error'
+                        alert(msg)
                         }
                       }} className="w-full sm:w-auto">Assign Room</Button>
                     </div>

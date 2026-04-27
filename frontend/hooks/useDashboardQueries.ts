@@ -195,6 +195,7 @@ export function mergeAppWithAssignment(
   if (activeAssign) {
     const confirmationStatus = activeAssign.confirmationStatus ?? 'pending_confirmation'
     return {
+      applicationId: app.id,                                                       
       student: app,
       roomNumber: activeAssign.room.roomNumber,
       roomBuilding: activeAssign.room.roomBuilding,
@@ -207,6 +208,7 @@ export function mergeAppWithAssignment(
     }
   }
   return {
+    applicationId: app.id,                                                           
     student: app,
     roomNumber: '',
     roomBuilding: '',
