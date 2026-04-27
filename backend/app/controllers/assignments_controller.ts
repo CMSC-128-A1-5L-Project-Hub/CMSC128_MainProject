@@ -1,4 +1,3 @@
-// app/controllers/assignments_controller.ts
 import type { HttpContext } from '@adonisjs/core/http'
 import Assignment from '#models/assignment'
 import Room from '#models/room'
@@ -6,12 +5,9 @@ import Accommodation from '#models/accommodation'
 import Application from '#models/application'
 import LogService from '#services/log_service'
 import { DateTime } from 'luxon'
-import { inject } from '@adonisjs/core'
 
-@inject()
 export default class AssignmentsController {
 
-  // ─── MANAGER: ASSIGN A ROOM (application must be 'approved') ───
   async store({ auth, request, response, serialize }: HttpContext) {
     const user = auth.user!
     const { studentNumber, roomId, moveIn, expectedMoveOut } = request.body()
@@ -31,7 +27,6 @@ export default class AssignmentsController {
       return response.badRequest({ message: 'Room is already full' })
     }
 
-    // Check the student has an APPROVED application (not 'confirmed')
     const application = await Application.query()
       .where('studentNumber', studentNumber)
       .where('accommodationId', room.accommodationId)
@@ -48,7 +43,6 @@ export default class AssignmentsController {
       return response.badRequest({ message: 'Stay type does not match application' })
     }
 
-    // Prevent assignment if the student already has a pending or active assignment
     const existing = await Assignment.query()
       .where('studentNumber', studentNumber)
       .whereNull('actualMoveOut')
@@ -69,7 +63,6 @@ export default class AssignmentsController {
       confirmationStatus: 'pending_confirmation',
     })
 
-    // Update room occupancy
     room.roomCurrentOccupancy += 1
     if (room.roomCurrentOccupancy === room.roomCapacity) {
       room.roomAvailability = 'occupied'
@@ -77,36 +70,29 @@ export default class AssignmentsController {
     await room.save()
 
     await LogService.record(user.id, 'assignment', assignment.id,
-      'MANAGER_ASSIGNED_ROOM',
-      `Student ${studentNumber} assigned to room ${room.roomNumber} (pending confirmation)`)
+      'MANAGER_ASSIGNED_ROOM', `Student ${studentNumber} assigned to room ${room.roomNumber} (pending confirmation)`)
 
     return serialize(assignment)
   }
 
-  // ─── MOVE OUT (to be implemented) ───
   async moveOut(ctx: HttpContext) {
-    // TODO: set actualMoveOut, decrement occupancy, promote waitlist
+    // placeholder
   }
 
-  // ─── VIEW ASSIGNMENTS BY ROOM ───
   async index(ctx: HttpContext) {
-    // TODO: retrieve assignments for a specific room
+    // placeholder
   }
 
-  // ─── STUDENT: CURRENT STAY ───
   async currentStay(ctx: HttpContext) {
-    // TODO: fetch assignment where studentNumber matches auth user AND actual_move_out is NULL
+    // placeholder
   }
 
-  // ─── STUDENT: PAST STAYS ───
   async stayHistory(ctx: HttpContext) {
-    // TODO: fetch assignments where studentNumber matches auth user AND actual_move_out is NOT NULL
+    // placeholder
   }
 
-  // ─── MANAGER: ALL ASSIGNMENTS FOR DASHBOARD ───
   async managerIndex({ auth, serialize }: HttpContext) {
     const user = auth.user!
-
     const accommodations = await Accommodation.query()
       .where('managerId', user.id)
     const accIds = accommodations.map(a => a.id)

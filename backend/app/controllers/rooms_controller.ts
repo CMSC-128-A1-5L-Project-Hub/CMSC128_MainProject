@@ -1,4 +1,3 @@
-// app/controllers/rooms_controller.ts
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import RoomService from '#services/room_service'
@@ -12,22 +11,19 @@ import NotificationService from '#services/notification_service'
 export default class RoomsController {
   constructor(
     protected roomService: RoomService,
-    protected notificationService: NotificationService  
+    protected notificationService: NotificationService
   ) {}
 
-  // ─── FETCH ALL ROOMS IN ACCOMMODATION ───
   async index({ params, serialize }: HttpContext) {
     const rooms = await this.roomService.getRoomsByAccommodation(params.id)
     return serialize(rooms)
   }
 
-  // ─── FETCH SINGLE ROOM ───
   async show({ params, serialize }: HttpContext) {
     const room = await this.roomService.getRoomById(params.id)
     return serialize(room)
   }
 
-  // ─── CREATE ROOM ───
   async store({ params, request, auth, serialize }: HttpContext) {
     const landlordId = auth.user!.id
     const payload = await createRoomValidator.validate(request.all())
@@ -35,7 +31,6 @@ export default class RoomsController {
     return serialize({ message: 'Room added successfully.', data: room })
   }
 
-  // ─── UPDATE ROOM ───
   async update({ params, request, response, serialize }: HttpContext) {
     try {
       const payload = await updateRoomValidator.validate(request.all())
@@ -50,7 +45,6 @@ export default class RoomsController {
     }
   }
 
-  // ─── DELETE ROOM ───
   async destroy({ params, response, serialize }: HttpContext) {
     try {
       await this.roomService.deleteRoom(params.id)
@@ -60,12 +54,10 @@ export default class RoomsController {
       if (error.message === 'ROOM_OCCUPIED') {
         return response.badRequest({ message: 'Cannot delete a room that has tenants.' })
       }
-
       throw error
     }
   }
 
-  // ─── COUNT AVAILABLE ROOMS ───
   async countAvailableRooms({ response }: HttpContext) {
     const availableRooms = await Room.query()
       .where('roomAvailability', 'available')
@@ -73,7 +65,6 @@ export default class RoomsController {
     return response.ok({ status: 200, data: { total: Number(availableRooms[0].$extras.total) } })
   }
 
-  // ─── MANAGER: ALL ROOMS UNDER MY ACCOMMODATIONS ───
   async managerRooms({ auth, serialize }: HttpContext) {
     const user = auth.user!
     const accommodations = await Accommodation.query().where('managerId', user.id)
@@ -88,7 +79,6 @@ export default class RoomsController {
     return serialize(rooms)
   }
 
-  // ─── MANAGER: REPORT A ROOM ISSUE ───
   async reportIssue({ auth, params, request, response }: HttpContext) {
     const user = auth.user!
     const room = await Room.findOrFail(params.id)
@@ -98,7 +88,6 @@ export default class RoomsController {
       return response.badRequest({ message: 'Issue details are required' })
     }
 
-    // Log the issue
     await LogService.record(
       user.id,
       'room',
@@ -107,7 +96,6 @@ export default class RoomsController {
       `Manager reported issue for room ${room.roomNumber} (building ${room.roomBuilding}): ${issueDetails}`
     )
 
-    // Load the accommodation and its landlord (with user) to get the landlord's email
     await room.load('accommodation', (q) =>
       q.preload('landlord', (l) => l.preload('user'))
     )

@@ -5,7 +5,6 @@ import ProvisioningService from '#services/provisioning_service'
 import NotificationService from '#services/notification_service'
 import LogService from '#services/log_service'
 import User from '#models/user'
-import { signFileUrl } from '#services/image_service'
 
 @inject()
 export default class AuthController {
@@ -15,12 +14,10 @@ export default class AuthController {
     protected logService: LogService
   ) {}
 
-  // STEP 1: Redirect user to Google login screen
   async redirect({ ally }: HttpContext) {
     return ally.use('google').redirect()
   }
 
-  // STEP 2: Handle response from Google
   async callback({ ally, auth, response, session }: HttpContext) {
     const google = ally.use('google')
     if (google.accessDenied()) return 'Access was denied'
@@ -28,7 +25,6 @@ export default class AuthController {
     if (google.hasError()) return google.getError()
 
     const googleUser = await google.user()
-
     const user = await this.provisioningService.provision({
       email: googleUser.email,
       fname: googleUser.original.given_name,
@@ -53,7 +49,6 @@ export default class AuthController {
     }
   }
 
-  // ─── GET /me ──────────────────────────────────────────────────────────────
   async me({ auth, serialize }: HttpContext) {
     const user = await User.query()
       .where('id', auth.user!.id)
@@ -61,7 +56,6 @@ export default class AuthController {
       .preload('profilePicture')
       .firstOrFail()
 
-    // Role‑specific preloads
     if (user.role === 'student') {
       await user.load('student')
     } else if (user.role === 'manager') {
@@ -71,9 +65,8 @@ export default class AuthController {
     }
 
     const serialized = user.serialize()
-    serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
+    serialized.profilePictureUrl = user.profilePicture?.filePath ?? null
 
-    // Attach dormitory name for managers
     if (user.role === 'manager' && user.manager && user.manager.accommodations.length > 0) {
       serialized.dormitory = user.manager.accommodations[0].accommodationName
     } else {
@@ -83,7 +76,6 @@ export default class AuthController {
     return serialize(serialized)
   }
 
-  // ─── PUT /me ──────────────────────────────────────────────────────────────
   async updateMe({ auth, request, serialize }: HttpContext) {
     const user = await User.query()
       .where('id', auth.user!.id)

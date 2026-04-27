@@ -11,7 +11,6 @@ import { throttle, uploadThrottle } from '#start/limiter'
 import AutoSwagger from 'adonis-autoswagger'
 import swagger from '#config/swagger'
 
-// Explicit imports for controllers with new methods
 const InviteManagerController = () => import('#controllers/invite_manager_controller')
 import AccommodationController from '#controllers/accommodation_controller'
 import ApplicationController from '#controllers/application_controller'
@@ -33,9 +32,8 @@ router.group(() => {
   router.get('/auth/google/redirect', [controllers.Auth, 'redirect'])
   router.get('/auth/google/callback', [controllers.Auth, 'callback'])
 
-  // Map Viewer Data
-  router.get('/accommodations', [controllers.Accommodation, 'index'])
-  router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
+  router.get('/accommodations', [AccommodationController, 'index'])
+  router.get('/accommodations/:id', [AccommodationController, 'show'])
 })
 
 /*
@@ -76,13 +74,13 @@ router
 
         // Confirm / decline approved slot
         router.post('/applications/:id/confirm', [ApplicationController, 'confirm'])
+        // Confirm assignment (student)
         router.post('/assignments/:id/confirm', [ApplicationController, 'confirmAssignment'])
 
         // Bookmarks & Reviews
         router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
         router.get('/my-bookmarks', [controllers.Bookmark, 'index'])
         router.post('/accommodations/:id/reviews', [controllers.Reviews, 'store'])
-        router.get('/recommended-accommodations', [controllers.Accommodation, 'recommended'])
 
         // Fees & Payments
         router.get('/my-fees', [controllers.Fees, 'index'])
@@ -100,26 +98,21 @@ router
     // ====================================================================
     router
       .group(() => {
-        // Reporting & Analytics
         router.get('/reports/revenue', [controllers.Reports, 'revenue'])
         router.get('/reports/delinquency', [controllers.Reports, 'delinquency'])
 
-        // Accommodation Management
         router.get('/landlord/accommodations', [AccommodationController, 'landlordIndex'])
         router.post('/landlord/accommodations', [AccommodationController, 'store']).use(middleware.auth()).use(uploadThrottle)
         router.put('/landlord/accommodations/:id', [AccommodationController, 'update'])
         router.post('/landlord/accommodations/:id/images', [AccommodationController, 'uploadImages'])
         router.delete('/landlord/accommodations/:id/images/:imageId', [AccommodationController, 'deleteImage'])
 
-        // Manager Handover
         router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])
         router.post('/landlord/accommodations/:id/unfreeze', [controllers.ManagerHandover, 'unfreeze'])
         router.get('/landlord/accommodations/:id/freeze-status', [controllers.ManagerHandover, 'status'])
 
-        // Invite Manager
         router.post('/landlord/accommodations/:id/invite-manager', [InviteManagerController, 'invite'])
 
-        // Transient booking verification (landlord)
         router.patch('/transient-bookings/:id/verify', [TransientBookingsController, 'verify'])
       })
       .use(middleware.role([ROLES.LANDLORD]))
@@ -129,48 +122,31 @@ router
     // ====================================================================
     router
       .group(() => {
-        // Application Review
         router.get('/applications/incoming', [ApplicationController, 'incoming'])
         router.patch('/applications/:id/review', [ApplicationController, 'updateStatus'])
-        // *** NEW – view enrollment proof ***
         router.get('/applications/:id/enrollment-proof', [ApplicationController, 'viewEnrollmentProof'])
 
-        // Manager dashboard – confirmed applications for assignment
         router.get('/manager/applications/approved', [ApplicationController, 'approvedForAssignment'])
-
-        // Manager dashboard – assignments list
         router.get('/manager/assignments', [AssignmentsController, 'managerIndex'])
-
-        // Manager dashboard – all rooms for managed accommodations
         router.get('/manager/rooms', [RoomsController, 'managerRooms'])
-
-        // Manager dashboard – recent activity logs
         router.get('/manager/logs', [LogsController, 'managerLogs'])
 
-        // Room Management
         router.get('/accommodations/:accommodationId/rooms', [RoomsController, 'index'])
         router.post('/accommodations/:accommodationId/rooms', [RoomsController, 'store'])
         router.put('/rooms/:id', [RoomsController, 'update'])
         router.delete('/rooms/:id', [RoomsController, 'destroy'])
         router.post('/rooms/:id/report-issue', [RoomsController, 'reportIssue'])
 
-        // Room Assignments & Move-outs
         router.post('/assignments', [AssignmentsController, 'store'])
         router.patch('/assignments/:id/move-out', [AssignmentsController, 'moveOut'])
 
-        // Payment Verification
         router.get('/payments/pending', [controllers.Payments, 'pending'])
         router.patch('/payments/:id/verify', [controllers.Payments, 'verify'])
 
-        // Reports
         router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
         router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
 
-        // Document Zip Export (Backblaze)
-        router.get('/accommodations/:id/export-documents', [
-          AccommodationController,
-          'exportDocuments',
-        ])
+        router.get('/accommodations/:id/export-documents', [AccommodationController, 'exportDocuments'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.LANDLORD]))
 
@@ -179,41 +155,24 @@ router
     // ====================================================================
     router
       .group(() => {
-        // User Verifications
         router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
         router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
 
-        // System Settings (Academic Year & Semester Updates)
         router.get('/admin/settings', [controllers.AdminSettings, 'index'])
         router.put('/admin/settings', [controllers.AdminSettings, 'update'])
 
-        // System Logs
-        router.get('/admin/logs', [controllers.Logs, 'index'])
+        router.get('/admin/logs', [LogsController, 'index'])
 
         router.get('/admin/users/count', [controllers.AdminSettings, 'countUsers'])
         router.get('/admin/rooms/available/count', [RoomsController, 'countAvailableRooms'])
 
-        // Accommodation Verifications
         router.get('/admin/accommodations/pending', [controllers.AdminAccommodations, 'index'])
         router.patch('/admin/accommodations/:id/verify', [controllers.AdminAccommodations, 'verify'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
-
-      /// ====================================================================
-      // ─── MANAGER ───
-      // ====================================================================
-
-      router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
-      router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
-      router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
   })
   .use(middleware.auth())
 
-/*
-|--------------------------------------------------------------------------
-| DEVELOPMENT & TEST ROUTES
-|--------------------------------------------------------------------------
-*/
 router.get('/swagger', async () => {
   return AutoSwagger.docs(router.toJSON(), swagger)
 })

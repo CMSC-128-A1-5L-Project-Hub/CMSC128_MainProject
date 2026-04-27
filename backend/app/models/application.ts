@@ -36,18 +36,23 @@ export default class Application extends BaseModel {
   @column()
   declare durationOfStayDays: number
 
-  // ─── NEW COLUMNS ────────────────────────────────────────────────
   @column()
-  declare preferredTags: string[] | null   // holds the student's preferred tag list
-
-  @column.dateTime()
-  declare approvedAt: DateTime | null      // set when the application becomes 'approved'
+  declare preferredTags: string[] | null
 
   @column.dateTime()
   declare reviewedAt: DateTime | null
 
   @column()
   declare reviewedBy: number | null
+
+  @column.dateTime()
+  declare approvedAt: DateTime | null
+
+  @column.dateTime()
+  declare slotConfirmDeadline: DateTime | null
+
+  @column.dateTime()
+  declare slotConfirmedAt: DateTime | null
 
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>

@@ -1,10 +1,9 @@
-// app/services/room_service.ts
 import Room from '#models/room'
 import Accommodation from '#models/accommodation'
 import RoomTag from '#models/room_tag'
 
 export default class RoomService {
-  
+
   async getRoomsByAccommodation(accommodationId: number) {
     await Accommodation.findOrFail(accommodationId)
     return await Room.query().where('accommodationId', accommodationId)
@@ -33,7 +32,6 @@ export default class RoomService {
       roomAvailability: 'available',
     })
 
-    // Create tags if provided
     if (payload.tags && Array.isArray(payload.tags)) {
       await Promise.all(
         payload.tags.map((tag: string) =>
@@ -52,15 +50,11 @@ export default class RoomService {
       throw new Error('CAPACITY_TOO_LOW')
     }
 
-    // Extract tags from the payload before merging
     const { tags, ...roomData } = payload
     room.merge(roomData)
 
-    // If tags are provided, replace all existing tags with the new list
     if (tags !== undefined) {
-      // Delete old tags
       await RoomTag.query().where('roomId', room.id).delete()
-      // Create new ones
       if (Array.isArray(tags) && tags.length > 0) {
         await Promise.all(
           tags.map((tag: string) =>
@@ -70,12 +64,10 @@ export default class RoomService {
       }
     }
 
-    // Update availability status based on capacity vs occupancy
     if (room.roomCapacity === room.roomCurrentOccupancy) {
       room.roomAvailability = 'occupied'
     }
     await room.save()
-
     return room
   }
 
