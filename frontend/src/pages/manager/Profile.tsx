@@ -11,10 +11,14 @@ import Pencil from "../../assets/icons/edit.svg";
 import BadgeCheck from "../../assets/icons/verify.svg";
 import FileUp from "../../assets/icons/upload.svg";
 import Save from "../../assets/icons/save.svg";
+import Malefp from "../../assets/icons/male_pfp.svg";
+import Femalefp from "../../assets/icons/female_pfp.svg";
 
 interface ProfileData {
   fullName: string;
   email: string;
+  upMail: string;
+  gender: string;
   facebook: string;
   phone: string;
   employer: string;
@@ -64,6 +68,7 @@ export default function Profile() {
         facebook: profile.facebook,
         phone: profile.phone,
         altPhone: profile.altPhone,
+        upMail: profile.upMail,
       });
 
       setEditing(false);
@@ -80,16 +85,18 @@ export default function Profile() {
         const data = res.data.data ?? res.data;
 
         setProfile({
-        fullName: data.fullName ?? "NONE",
-        email: data.email ?? "NONE",
-        facebook: data.facebook ?? "NONE",
-        phone: data.phone ?? "NONE",
-        employer: data.employer ?? "NONE",
-        altPhone: data.altPhone ?? "NONE",
-        verifiedSince: data.verifiedSince ?? "NONE",
-        currentDorm: data.currentDorm ?? "No assigned dorm yet",
-        dormMeta: formatAccommodationType(data.dormMeta ?? ""),
-      });
+          fullName: data.fullName ?? "NONE",
+          email: data.email ?? "NONE",
+          upMail: data.upMail ?? data.email ?? "NONE",
+          facebook: data.facebook ?? "NONE",
+          phone: data.phone ?? "NONE",
+          employer: data.employer ?? "NONE",
+          altPhone: data.altPhone ?? "NONE",
+          verifiedSince: data.verifiedSince ?? "NONE",
+          currentDorm: data.currentDorm ?? "No assigned dorm yet",
+          dormMeta: formatAccommodationType(data.dormMeta ?? ""),
+          gender: data.gender ?? user?.gender ?? "male",
+        });
       } catch (error) {
         console.error("Failed to fetch profile:", error);
       } finally {
@@ -141,7 +148,7 @@ export default function Profile() {
     return null;
   }
 
-  return (
+return (
     <div className="min-h-screen bg-[#FAF6F2] text-[#2A1F1A] lg:flex">
       <Sidebar role="manager" />
 
@@ -150,44 +157,53 @@ export default function Profile() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 pl-12 lg:pl-0">
               <span className="h-6 w-1 rounded-full bg-[#3D0718]" />
-              <h1 className="font-serif text-3xl italic text-[#3D0718] md:text-4xl font-bold">
+              <h1 className="font-serif text-3xl italic font-bold text-[#3D0718] md:text-4xl">
                 Profile
               </h1>
             </div>
 
             <button
               aria-label="Notifications"
-            //   className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3D0718]"
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#8A5060] p-2"
             >
-              <Bell className="h-10 w-10 text-[#3D0718]" />
+              <Bell className="h-6 w-6 text-white" />
             </button>
           </div>
         </header>
 
         <main className="px-3 py-4 md:px-6 lg:px-8 lg:py-6">
-          <section className="overflow-hidden rounded-[28px] border border-[#EADFD3] bg-white shadow-sm">
+          <section className="min-h-[calc(100vh-120px)] overflow-hidden rounded-[28px] border border-[#EADFD3] bg-white shadow-sm">
             <div className="p-4 md:p-6 lg:p-8">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+               
                 {/* LEFT COLUMN */}
-                <div className="w-full lg:w-[280px] lg:shrink-0">
+                <div className="w-full lg:w-[280px] lg:shrink-0 lg:border-r lg:border-[#EADFD3] lg:pr-8">
+                 
                   {/* Mobile top arrangement */}
-                  <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-4 md:grid-cols-[170px_minmax(0,1fr)] lg:block">
-                    <div className="relative h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px]">
+                  <div className="grid grid-cols-[135px_minmax(0,1fr)] items-start gap-4 md:grid-cols-[170px_minmax(0,1fr)] lg:block">
+                  
+                    {/* Added:  Profile photo */}
+                    <div className="relative h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[300px]"> 
                       <button
+                        type="button"
                         aria-label="Change photo"
-                        // className="absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-[#EADFD3] bg-white"
+                        className="absolute left-3 top-3 z-50 flex h-10 w-10 items-center justify-center rounded-xl border border-[#EADFD3] bg-[#F8EFF2] shadow-md"
                       >
-                        <img src={Camera} alt="" className="h-7 w-7" />
+                        <img src={Camera} alt="" className="h-5 w-5" />
                       </button>
 
-                      <div className="flex h-full items-end justify-center">
-                        <div className="h-[110px] w-[70px] rounded-t-full bg-[#7A2948] md:h-[150px] md:w-[90px] lg:h-[210px] lg:w-[140px]" />
+                      <div className="flex h-full items-center justify-center">
+                        <img
+                          src={profile.gender === "female" ? Femalefp : Malefp}
+                          alt="Profile"
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                     </div>
 
                     {/* Mobile-only right of photo */}
-                    <div className="min-w-0 lg:hidden">
-                      <p className="mb-1 text-[10px] font-semibold tracking-wider text-[#A88993] md:text-xs">
+                    <div className="min-w-0 self-start pt-1 lg:hidden">
+                      <p className="mb-1 text-[10px] font-semibold tracking-wider text-[#A88993]">
                         FULL NAME
                       </p>
 
@@ -195,7 +211,7 @@ export default function Profile() {
                         value={profile.fullName}
                         onChange={(e) => update("fullName", e.target.value)}
                         readOnly={!editing}
-                        className="w-full bg-transparent text-3xl font-bold leading-none text-[#2A1F1A] outline-none read-only:cursor-default md:text-[2rem]"
+                        className="w-full bg-transparent text-xl font-bold leading-tight text-[#2A1F1A] outline-none read-only:cursor-default md:text-2xl"
                       />
 
                       <div className="mt-3 flex flex-col items-start gap-3">
@@ -205,11 +221,12 @@ export default function Profile() {
                             alt=""
                             className="h-4 w-4 shrink-0"
                           />
+
                           <div className="leading-tight">
-                            <p className="text-xs font-semibold">
+                            <p className="text-[11px] font-semibold">
                               Verified Dormitory Manager
                             </p>
-                            <p className="text-xs opacity-80">
+                            <p className="text-[10px] opacity-80">
                               Since {profile.verifiedSince}
                             </p>
                           </div>
@@ -217,7 +234,7 @@ export default function Profile() {
 
                         <button
                           onClick={editing ? saveProfile : () => setEditing(true)}
-                          className="inline-flex items-center gap-2 rounded-xl border border-[#D9BBC4] px-4 py-2 text-sm font-semibold text-[#A04E66]"
+                          className="inline-flex items-center gap-2 rounded-xl border border-[#D9BBC4] px-4 py-2 text-xs font-semibold text-[#A04E66]"
                         >
                           <img
                             src={editing ? Save : Pencil}
@@ -230,6 +247,7 @@ export default function Profile() {
                     </div>
                   </div>
 
+                  {/* Upload buttons */}
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <button className="flex min-h-[76px] items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E6CAD3] px-3 py-3 text-left">
                       <img src={Camera} alt="" className="h-5 w-5 shrink-0" />
@@ -237,7 +255,9 @@ export default function Profile() {
                         <p className="text-[11px] font-bold tracking-wider text-[#A04E66]">
                           PHOTO
                         </p>
-                        <p className="text-[10px] text-[#C3AAB3]">JPG/PNG • 5MB</p>
+                        <p className="text-[10px] text-[#C3AAB3]">
+                          JPG/PNG • 5MB
+                        </p>
                       </div>
                     </button>
 
@@ -254,13 +274,18 @@ export default function Profile() {
                     </button>
                   </div>
 
-                  <div className="mt-4 hidden rounded-full bg-[#E6F4EA] px-6 py-3 text-[#1F7A3A] lg:inline-flex">
-                    <div className="flex items-center gap-3">
-                      <img src={BadgeCheck} alt="" className="h-4 w-4 shrink-0" />
-                     
+                  {/* Desktop-only verified badge */}
+                  <div className="mt-4 hidden rounded-full bg-[#E6F4EA] px-8 py-2 text-[#1F7A3A] lg:inline-flex">
+                    <div className="flex items-center justify-start gap-3">
+                      <img
+                        src={BadgeCheck}
+                        alt=""
+                        className="h-4 w-4 shrink-0"
+                      />
+
                       <div className="flex flex-col leading-tight text-center">
-                        <p className="text-base lg:text-sm font-semibold">
-                            Verified Dormitory Manager
+                        <p className="text-xs font-semibold">
+                          Verify Dormitory Manager
                         </p>
                         <span className="text-xs opacity-80">
                           Since {profile.verifiedSince}
@@ -282,12 +307,12 @@ export default function Profile() {
                         value={profile.fullName}
                         onChange={(e) => update("fullName", e.target.value)}
                         readOnly={!editing}
-                        className="w-full bg-transparent text-[3rem] font-bold leading-none text-[#2A1F1A] outline-none read-only:cursor-default"
+                        className="w-full bg-transparent text-2xl font-bold leading-none text-[#2A1F1A] outline-none read-only:cursor-default"
                       />
                     </div>
 
                     <button
-                      onClick={() => setEditing((prev) => !prev)}
+                      onClick={editing ? saveProfile : () => setEditing(true)}
                       className="inline-flex items-center gap-2 rounded-xl border border-[#A04E66] px-5 py-3 text-sm font-semibold text-[#A04E66]"
                     >
                       <img
@@ -299,12 +324,12 @@ export default function Profile() {
                     </button>
                   </div>
 
-                  <div className="mt-5 hidden grid-cols-1 gap-x-10 gap-y-5 md:grid-cols-2 lg:mt-6 lg:grid">
+                  <div className="mt-5 hidden grid-cols-1 gap-x-10 gap-y-8 md:grid-cols-2 lg:mt-6 lg:grid">
                     <Field
                       label="UP MAIL"
-                      value={profile.email}
+                      value={profile.upMail}
                       editing={editing}
-                      onChange={(v) => update("email", v)}
+                      onChange={(v) => update("upMail", v)}
                     />
                     <Field
                       label="FACEBOOK LINK"
@@ -325,22 +350,23 @@ export default function Profile() {
                       onChange={(v) => update("altPhone", v)}
                     />
                   </div>
-
-                  <div className="mt-6 hidden border-t border-[#EADFD3] pt-6 lg:grid">
+                  <div className="mt-28 hidden border-t border-[#EADFD3] pt-6 lg:grid">
                     <p className="mb-3 text-sm font-semibold tracking-wide text-[#A88993]">
                       CURRENT DORM HANDLED
                     </p>
 
                     <div className="flex items-center gap-3 rounded-2xl border border-[#EADFD3] bg-[#F8EFF2] px-4 py-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8C1535] text-sm font-bold text-white">
-                        {profile.currentDorm?.charAt(0) || "D"}
+                        K
                       </div>
 
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-[#2A1F1A]">
                           {profile.currentDorm}
                         </p>
-                        <p className="text-xs text-[#A88993]">{profile.dormMeta}</p>
+                        <p className="text-xs text-[#A88993]">
+                          {profile.dormMeta}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -351,10 +377,10 @@ export default function Profile() {
               <div className="mt-6 lg:hidden">
                 <div className="grid grid-cols-1 gap-x-8 gap-y-5 border-t border-[#F0E3E8] pt-5 md:grid-cols-2">
                   <Field
-                    label="EMAIL"
-                    value={profile.email}
+                    label="UP MAIL"
+                    value={profile.upMail}
                     editing={editing}
-                    onChange={(v) => update("email", v)}
+                    onChange={(v) => update("upMail", v)}
                   />
                   <Field
                     label="FACEBOOK LINK"
@@ -383,14 +409,16 @@ export default function Profile() {
 
                   <div className="flex items-center gap-3 rounded-2xl border border-[#EADFD3] bg-[#F8EFF2] px-4 py-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8C1535] text-sm font-bold text-white">
-                      {profile.currentDorm?.charAt(0) || "D"}
+                      K
                     </div>
 
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-[#2A1F1A]">
                         {profile.currentDorm}
                       </p>
-                      <p className="text-xs text-[#A88993]">{profile.dormMeta}</p>
+                      <p className="text-xs text-[#A88993]">
+                        {profile.dormMeta}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -402,6 +430,7 @@ export default function Profile() {
     </div>
   );
 }
+
 
 interface FieldProps {
   label: string;
