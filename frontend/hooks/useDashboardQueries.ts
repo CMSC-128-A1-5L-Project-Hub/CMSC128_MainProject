@@ -11,8 +11,7 @@ import type {
   AssignmentItem,
 } from '../src/stores/useDashboardStore'
 
-// ─── Fetchers ─────────────────────────────────────────────────────
-
+// ─── Fetchers ────────────────────────────────────────────────────
 const fetchProfile = async (): Promise<RawProfile> => {
   const { data } = await api.get('/me')
   return data.data ?? data
@@ -43,8 +42,7 @@ const fetchLogs = async (): Promise<RawLog[]> => {
   return data.data ?? data
 }
 
-// ─── Query keys ───────────────────────────────────────────────────
-
+// ─── Query keys ──────────────────────────────────────────────────
 export const dashboardKeys = {
   all: ['dashboard'] as const,
   profile: () => [...dashboardKeys.all, 'profile'] as const,
@@ -55,8 +53,7 @@ export const dashboardKeys = {
   logs: () => [...dashboardKeys.all, 'logs'] as const,
 }
 
-// ─── Hooks ────────────────────────────────────────────────────────
-
+// ─── Hooks ───────────────────────────────────────────────────────
 export function useProfile() {
   const setProfile = useDashboardStore((s) => s.setProfile)
   return useQuery({
@@ -130,15 +127,12 @@ export function useLogs() {
   })
 }
 
-// ─── Invalidation helper ─────────────────────────────────────────
-
 export function useRefreshDashboard() {
   const queryClient = useQueryClient()
   return () => queryClient.refetchQueries({ queryKey: dashboardKeys.all })
 }
 
-// ─── Shared transformations ───────────────────────────────────────
-
+// ─── Shared transformations ──────────────────────────────────────
 export function formatDate(isoString: string) {
   return new Date(isoString).toLocaleDateString('en-US', {
     year: 'numeric',
