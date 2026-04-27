@@ -177,9 +177,9 @@ export default function Dashboard() {
     <div className="flex flex-col gap-4">
       <ProfileCard
         status={managerStatus}
-        name={manager ? `${manager.user.fname} ${manager.user.lname}` : undefined}
+        fullName={manager ? `${manager.user.fname} ${manager.user.lname}` : undefined}
         role="Dorm Manager"
-        phone={primaryPhone}
+        phoneNumber={primaryPhone}
         email={manager?.user?.email}
       />
       <ApplicationPeriod

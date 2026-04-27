@@ -4,21 +4,27 @@ import RoomTag from '#models/room_tag'
 
 export default class RoomService {
 
+  // ─── FETCH ALL ROOMS IN ACCOMMODATION ───
   async getRoomsByAccommodation(accommodationId: number) {
+    // Check if accommodation exists first
     await Accommodation.findOrFail(accommodationId)
     return await Room.query().where('accommodationId', accommodationId)
   }
 
+  // ─── FETCH SINGLE ROOM ───
   async getRoomById(roomId: number) {
     return await Room.query().where('id', roomId).preload('accommodation').firstOrFail()
   }
 
+  // ─── CREATE NEW ROOM ───
   async createRoom(landlordId: number, accommodationId: number, payload: any) {
+    // 1. Verify the accommodation exists AND belongs to this specific landlord
     const accommodation = await Accommodation.query()
       .where('id', accommodationId)
       .where('landlordId', landlordId)
-      .firstOrFail()
+      .firstOrFail() // Automatically throws 404 if they don't own it
 
+    // 2. Create the room
     const room = await Room.create({
       accommodationId: accommodation.id,
       roomNumber: payload.room_number,
@@ -32,6 +38,7 @@ export default class RoomService {
       roomAvailability: 'available',
     })
 
+    // Create tags if provided
     if (payload.tags && Array.isArray(payload.tags)) {
       await Promise.all(
         payload.tags.map((tag: string) =>
@@ -43,6 +50,7 @@ export default class RoomService {
     return room
   }
 
+  // ─── UPDATE ROOM ───
   async updateRoom(id: number, payload: any) {
     const room = await Room.findOrFail(id)
 
@@ -50,9 +58,11 @@ export default class RoomService {
       throw new Error('CAPACITY_TOO_LOW')
     }
 
+    // Extract tags before merging room data
     const { tags, ...roomData } = payload
     room.merge(roomData)
 
+    // Replace all existing tags with new list if tags are provided
     if (tags !== undefined) {
       await RoomTag.query().where('roomId', room.id).delete()
       if (Array.isArray(tags) && tags.length > 0) {
@@ -71,8 +81,10 @@ export default class RoomService {
     return room
   }
 
+  // ─── DELETE ROOM ───
   async deleteRoom(id: number) {
     const room = await Room.findOrFail(id)
+    // Guard: Prevent deleting a room with students in it
     if (room.roomCurrentOccupancy > 0) {
       throw new Error('ROOM_OCCUPIED')
     }

@@ -122,6 +122,7 @@ export type TransformedApp = Omit<RawApplication, 'student' | 'accommodation'> &
 }
 
 export type AssignmentItem = {
+  applicationId: number          
   student: TransformedApp
   roomNumber: string
   roomBuilding: string

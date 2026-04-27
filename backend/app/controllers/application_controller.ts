@@ -1,15 +1,16 @@
+// app/controllers/application_controller.ts
 import type { HttpContext } from '@adonisjs/core/http'
+import { inject } from '@adonisjs/core'
 import { DateTime } from 'luxon'
 import Application from '#models/application'
 import Assignment from '#models/assignment'
 import Student from '#models/student'
 import LogService from '#services/log_service'
-import { inject } from '@adonisjs/core'
-import { withPrimaryImageUrl } from '#services/image_service'
+import drive from '@adonisjs/drive/services/main'
 import WaitlistWorkflowService from '#services/waitlisted_workflow_service'
 import Room from '#models/room'
 import db from '@adonisjs/lucid/services/db'
-import drive from '@adonisjs/drive/services/main'
+import { withPrimaryImageUrl } from '#services/image_service'
 
 @inject()
 export default class ApplicationsController {
@@ -20,15 +21,18 @@ export default class ApplicationsController {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
 
+    // 1. Verify the assignment belongs to this student and is pending confirmation
     const assignment = await Assignment.findOrFail(params.id)
     if (assignment.studentNumber !== student.studentNumber) {
       return response.forbidden({ message: 'This assignment does not belong to you' })
     }
-    if ((assignment as any).confirmationStatus !== 'pending_confirmation') {
+    if (assignment.confirmationStatus !== 'pending_confirmation') {
       return response.badRequest({ message: 'Assignment is not pending confirmation' })
     }
 
-    const { action } = request.body()
+    const { action } = request.body()   // 'accept' or 'reject'
+
+    // 2. Load the room and find the related approved application
     const room = await Room.findOrFail(assignment.roomId)
 
     const application = await Application.query()
@@ -42,40 +46,57 @@ export default class ApplicationsController {
     }
 
     const trx = await db.transaction()
+
     try {
       if (action === 'accept') {
-        ;(assignment as any).confirmationStatus = 'active'
+        assignment.confirmationStatus = 'active'
         await assignment.useTransaction(trx).save()
+
         application.applicationStatus = 'confirmed'
         await application.useTransaction(trx).save()
+
         await trx.commit()
         return response.ok({ message: 'Assignment confirmed successfully' })
+
       } else if (action === 'reject') {
+        // Free the room
         room.roomCurrentOccupancy -= 1
-        if (room.roomCurrentOccupancy < room.roomCapacity) room.roomAvailability = 'available'
+        if (room.roomCurrentOccupancy < room.roomCapacity) {
+          room.roomAvailability = 'available'
+        }
         await room.useTransaction(trx).save()
-        ;(assignment as any).confirmationStatus = 'rejected'
+
+        // Mark assignment as rejected
+        assignment.confirmationStatus = 'rejected'
         await assignment.useTransaction(trx).save()
+
+        // Cancel the application
         application.applicationStatus = 'cancelled'
         await application.useTransaction(trx).save()
+
         await trx.commit()
+
+        // 3. Automatically promote the next waitlisted student
         await this.waitlistService.processMoveOut(room.accommodationId, room)
+
         return response.ok({ message: 'Slot released and waitlist updated' })
       }
+
       return response.badRequest({ message: 'action must be "accept" or "reject"' })
+
     } catch (error) {
       await trx.rollback()
       throw error
     }
   }
 
-
-  // ─── 1. STUDENT: SUBMIT APPLICATION ───
-  async store({ auth, request, response, serialize }: HttpContext) {    
+  // ─── STUDENT: SUBMIT APPLICATION ─────────────────────────────
+  async store({ auth, request, response, serialize }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id) // Get student_number
-    
-    const { accommodationId, applicationRoomType, applicationStayType, durationOfStayDays, preferredTags } = request.all()
+
+    const { accommodationId, applicationRoomType, applicationStayType,
+            durationOfStayDays, preferredTags } = request.all()
 
     // Conflict Prevention: Does the student already have an active stay?
     const activeStay = await Assignment.query()
@@ -87,6 +108,10 @@ export default class ApplicationsController {
       return response.conflict({ message: 'You already have an active housing assignment.' })
     }
 
+    // Transient applications skip the manager step and land in the landlord's queue
+    // for downpayment verification. Non-transient follow the normal pending → manager flow.
+    const initialStatus = applicationStayType === 'transient' ? 'under_review' : 'pending'
+
     // Create the application
     const newApp = await Application.create({
       accommodationId,
@@ -94,7 +119,7 @@ export default class ApplicationsController {
       applicationRoomType,
       applicationStayType,
       durationOfStayDays,
-      applicationStatus: 'pending',
+      applicationStatus: initialStatus,
       preferredTags: preferredTags ?? null,
     })
 
@@ -102,91 +127,80 @@ export default class ApplicationsController {
     return serialize(newApp)
   }
 
-  // ─── 2. STUDENT: VIEW MY APPLICATIONS ───
+  // ─── STUDENT: VIEW MY APPLICATIONS (with estimated rent + images) ─
   async index({ auth, response }: HttpContext) {
-    const user = auth.user;
-
-    if (!user) {
-      return response.unauthorized({ message: 'Unauthorized' });
-    }
-
-    const student = await Student.findByOrFail('userId', user.id);
+    const user = auth.user
+    if (!user) return response.unauthorized({ message: 'Unauthorized' })
+    const student = await Student.findByOrFail('userId', user.id)
 
     // 1. Fetch all applications and preload all required nested relationships on 'accommodation'
     const applications = await Application.query()
       .where('studentNumber', student.studentNumber)
-      .preload('reviewer')
       .preload('accommodation', (accommodationQuery) => {
         // Preload rooms and their tags for rent calculation
         accommodationQuery.preload('rooms', (roomQuery) => {
-          roomQuery.preload('tags');
-        });
+          roomQuery.preload('tags')
+        })
         // Preload images and their files for the signed URL
         accommodationQuery.preload('images', (imageQuery) => {
-          imageQuery.preload('file');
-        });
+          imageQuery.preload('file')
+        })
       })
-      .orderBy('applicationDate', 'desc');
+      .orderBy('applicationDate', 'desc')
 
     // 2. Process applications to compute rent, attach signed URLs, and serialize
     const data = await Promise.all(
       applications.map(async (app) => {
         // --- A. Compute Estimated Rent ---
-        const accommodationRooms = app.accommodation?.rooms ?? [];
-        const preferredTags: string[] = (app as any).preferredTags ?? [];
+        const accommodationRooms = app.accommodation?.rooms ?? []
+        const preferredTags: string[] = (app as any).preferredTags ?? []
 
-        const matchingRooms = accommodationRooms.filter((room) => {
-          if (room.roomType !== app.applicationRoomType) return false;
-          if (room.roomStayType !== app.applicationStayType) return false;
-
+        const matchingRooms = accommodationRooms.filter(room => {
+          if (room.roomType !== app.applicationRoomType) return false
+          if (room.roomStayType !== app.applicationStayType) return false
           if (preferredTags.length > 0) {
-            const roomTagNames = room.tags?.map((t) => t.tagDetail) ?? [];
-            if (!preferredTags.every((tag) => roomTagNames.includes(tag))) return false;
+            const roomTagNames = room.tags?.map(t => t.tagDetail) ?? []
+            if (!preferredTags.every(tag => roomTagNames.includes(tag))) return false
           }
-          return true;
-        });
+          return true
+        })
 
         const estimatedRent = matchingRooms.length > 0
-          ? Math.min(...matchingRooms.map((r) => r.roomRent))
-          : null;
+          ? Math.min(...matchingRooms.map(r => r.roomRent))
+          : null
 
         // --- B. Serialize Model to Plain JSON Object ---
-        const serializedApp = app.serialize() as any;
+        const serializedApp = app.serialize() as any
 
         // --- C. Attach Custom Properties ---
-        serializedApp.estimatedMonthlyRent = estimatedRent;
+        serializedApp.estimatedMonthlyRent = estimatedRent
 
         if (app.accommodation) {
           // Resolve B2 signed URL and attach it to the serialized accommodation object
-          serializedApp.accommodation = await withPrimaryImageUrl(app.accommodation);
+          serializedApp.accommodation = await withPrimaryImageUrl(app.accommodation)
         }
 
-        return serializedApp;
+        return serializedApp
       })
-    );
-
-    // Optional: Log to verify the output before returning
-    console.log('Merged serialized apps:', data.map(a => ({ id: a.id, estimatedMonthlyRent: a.estimatedMonthlyRent })));
+    )
 
     // Return the fully populated and serialized array
-    return data;
+    return data
   }
 
-  // ─── 3. MANAGER/LANDLORD: VIEW INCOMING ───
+  // ─── MANAGER/LANDLORD: VIEW INCOMING ────────────────────────
   async incoming({ auth, response, serialize }: HttpContext) {
     const user = auth.user!
-
     if (user.role === 'manager') {
       const applications = await Application.query()
         .whereHas('accommodation', (q) => q.where('managerId', user.id))
         .whereIn('applicationStatus', ['pending', 'waitlisted'])
+        .where('applicationStayType', 'non_transient')
         .preload('accommodation')
-        .preload('student', (q) => q.preload('user'))
+        .preload('student', (q) => q.preload('user', (u) => u.preload('phoneNumbers')))
         .orderBy('applicationDate', 'asc')
-
       return serialize(applications)
     }
-
     if (user.role === 'landlord') {
       const applications = await Application.query()
         .whereHas('accommodation', (q) => q.where('landlordId', user.id))
@@ -194,46 +208,15 @@ export default class ApplicationsController {
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
         .orderBy('applicationDate', 'asc')
-
       return serialize(applications)
     }
-
     return response.forbidden({ message: 'access denied' })
   }
 
-  // ─── 3. MANAGER: VIEW APPLICATIONS //TESTER ───
-  async viewApplications({ serialize }: HttpContext) {
-
-    const applications = await Application.query()
-        .preload('accommodation')
-        .preload('student', (q) => q.preload('user'))
-        .orderBy('applicationDate', 'asc')
-
-    return serialize(applications)
-  }
-
-  // ─── 3. MANAGER: VIEW APPLICANTS ───
-  async viewApplicants({ auth, response, serialize }: HttpContext) {
-    const user = auth.user!
-
-    if (user.role === 'manager') {
-      const applications = await Application.query()
-        .whereHas('accommodation', (q) => q.where('managerId', user.id))
-        .preload('accommodation')
-        .preload('student', (q) => q.preload('user'))
-        .orderBy('applicationDate', 'asc')
-
-      return serialize(applications)
-    }
-
-    return response.forbidden({ message: 'access denied' })
-  }
-
-  // ─── 4. MANAGER/LANDLORD: APPROVE OR REJECT ───
+  // ─── MANAGER/LANDLORD: APPROVE OR REJECT ─────────────────────
   async updateStatus({ auth, request, params, response, serialize }: HttpContext) {
     const user = auth.user!
     const { action, rejection_reason } = request.body()
-    
 
     if (!action || !['approve', 'reject'].includes(action)) {
       return response.badRequest({ message: 'action must be approve or reject' })
@@ -245,20 +228,25 @@ export default class ApplicationsController {
     const applicationObject = await Application.query()
       .where('id', params.id)
       .preload('accommodation')
+      .preload('student', (q) => q.preload('user'))
       .firstOrFail()
 
     if (applicationObject.accommodation.isFrozen) {
       return response.badRequest({
         status: 400,
         error: 'Bad Request',
-        message: 'This accommodation is currently frozen. Applications cannot be processed during a manager handover.',
+        message: 'This accommodation is currently frozen. Applications cannot be processed.',
       })
     }
 
-    // Level 1: Manager verification
+    // Manager approval
     if (user.role === 'manager') {
-      if (applicationObject.accommodation.managerId !== user.id) return response.forbidden()
-      if (applicationObject.applicationStatus !== 'pending') return response.badRequest()
+      if (applicationObject.accommodation.managerId !== user.id) {
+        return response.forbidden({ message: 'You do not manage this accommodation.' })
+      }
+      if (applicationObject.applicationStatus !== 'pending') {
+        return response.badRequest({ message: 'Application is not pending.' })
+      }
 
       if (action === 'approve') {
         applicationObject.applicationStatus = 'under_review'
@@ -267,51 +255,76 @@ export default class ApplicationsController {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
       }
-
       await applicationObject.save()
-      await LogService.record(user.id, 'application', applicationObject.id, action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED')
+
+      const detail = action === 'approve'
+        ? `Manager approved application #${applicationObject.id} for ${applicationObject.student.user.fname} ${applicationObject.student.user.lname}`
+        : `Manager rejected application #${applicationObject.id} – ${rejection_reason}`
+
+      await LogService.record(user.id, 'application', applicationObject.id,
+        action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED',
+        detail)
+
       return serialize(applicationObject)
     }
 
-    // Level 2: Landlord verification
+    // Landlord approval
     if (user.role === 'landlord') {
-      if (applicationObject.accommodation.landlordId !== user.id) return response.forbidden()
-      if (applicationObject.applicationStatus !== 'under_review') return response.badRequest()
+      if (applicationObject.accommodation.landlordId !== user.id) {
+        return response.forbidden({ message: 'You do not manage this accommodation.' })
+      }
+      if (applicationObject.applicationStatus !== 'under_review') {
+        return response.badRequest({ message: 'Application is not under review.' })
+      }
 
-      if (action === 'approve') {
-        const activeAssignment = await Assignment.query()
-          .where('studentNumber', applicationObject.studentNumber)
-          .whereNull('actualMoveOut')
-          .first()
-
-        if (activeAssignment) {
-          return response.conflict({ message: 'student already has an active stay, cannot approve' })
-        }
-
-        applicationObject.applicationStatus = 'approved'
-        applicationObject.rejectionReason = null
-        applicationObject.slotConfirmDeadline = DateTime.now().plus({ days: 7 })
-        ;(applicationObject as any).approvedAt = DateTime.now()
-      } else {
+      if (action === 'reject') {
         applicationObject.applicationStatus = 'rejected'
         applicationObject.rejectionReason = rejection_reason
+        await applicationObject.save()
+        await LogService.record(user.id, 'application', applicationObject.id, 'LANDLORD_REJECTED')
+        return serialize(applicationObject)
       }
-      applicationObject.reviewedAt = DateTime.now()
-      applicationObject.reviewedBy = user.id
 
-      await applicationObject.save()
-      await LogService.record(user.id, 'application', applicationObject.id, action === 'approve' ? 'LANDLORD_APPROVED' : 'LANDLORD_REJECTED')
-      return serialize(applicationObject)
+      // Conflict prevention: a student may have only one active stay
+      const activeAssignment = await Assignment.query()
+        .where('studentNumber', applicationObject.studentNumber)
+        .whereNull('actualMoveOut')
+        .first()
+      if (activeAssignment) {
+        return response.conflict({ message: 'student already has an active stay, cannot approve' })
+      }
+
+      // Approve → use waitlist service, set reviewer info
+      applicationObject.reviewedBy = user.id
+      applicationObject.reviewedAt = DateTime.now()
+
+      const updatedApp = await this.waitlistService.processApproval(applicationObject.id)
+
+      if (updatedApp.applicationStatus === 'approved') {
+        updatedApp.slotConfirmDeadline = DateTime.now().plus({ days: 7 })
+        await updatedApp.save()
+      }
+
+      const detail = action === 'approve'
+        ? `Landlord approved application #${applicationObject.id} for ${applicationObject.student.user.fname} ${applicationObject.student.user.lname}`
+        : `Landlord rejected application #${applicationObject.id} – ${rejection_reason}`
+
+      await LogService.record(user.id, 'application', applicationObject.id,
+        updatedApp.applicationStatus === 'waitlisted' ? 'LANDLORD_WAITLISTED' :
+        updatedApp.applicationStatus === 'rejected' ? 'LANDLORD_REJECTED' :
+        'LANDLORD_APPROVED',
+        detail)
+
+      return serialize(updatedApp)
     }
 
     return response.forbidden()
   }
 
-  // ─── 5. STUDENT: CANCEL APPLICATION ───
+  // ─── STUDENT: CANCEL APPLICATION ──────────────────────────────
   async cancel({ auth, params, response, serialize }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
-
     const app = await Application.query()
       .where('id', params.id)
       .where('studentNumber', student.studentNumber)
@@ -320,15 +333,55 @@ export default class ApplicationsController {
     if (app.applicationStatus !== 'pending') {
       return response.badRequest({ message: 'Can only cancel pending applications' })
     }
-
     app.applicationStatus = 'cancelled'
     await app.save()
-
     await LogService.record(user.id, 'application', app.id, 'STUDENT_CANCELLED')
     return serialize(app)
   }
 
-  // ─── 6. STUDENT: CONFIRM SLOT ───
+  // ─── MANAGER: GET APPROVED APPLICATIONS FOR DASHBOARD ─────────
+  async approvedForAssignment({ auth, serialize }: HttpContext) {
+    const user = auth.user!
+    const applications = await Application.query()
+      .whereHas('accommodation', (q) => q.where('managerId', user.id))
+      .where('applicationStatus', 'approved')
+      .preload('accommodation')
+      .preload('student', (q) => q.preload('user', (u) => u.preload('phoneNumbers')))
+      .orderBy('applicationDate', 'asc')
+    return serialize(applications)
+  }
+
+  // ─── STUDENT: CONFIRM / DECLINE APPROVED SLOT ────────────────
+  async confirm({ auth, params, request, response, serialize }: HttpContext) {
+    const user = auth.user!
+    const student = await Student.findByOrFail('userId', user.id)
+    const application = await Application.query()
+      .where('id', params.id)
+      .where('studentNumber', student.studentNumber)
+      .whereIn('applicationStatus', ['approved', 'waitlisted'])
+      .preload('accommodation')
+      .firstOrFail()
+
+    const { action } = request.body()   // 'accept' or 'decline'
+
+    if (action === 'accept') {
+      application.applicationStatus = 'confirmed'
+      application.slotConfirmedAt = DateTime.now()
+      await application.save()
+      await LogService.record(user.id, 'application', application.id, 'STUDENT_CONFIRMED')
+      return serialize({ message: 'Slot confirmed successfully.', application })
+    }
+
+    if (action === 'decline') {
+      await this.waitlistService.processWaitlistCancellation(application.id)
+      await LogService.record(user.id, 'application', application.id, 'STUDENT_DECLINED')
+      return serialize({ message: 'Slot declined.' })
+    }
+
+    return response.badRequest({ message: 'action must be "accept" or "decline"' })
+  }
+
+  // ─── STUDENT: CONFIRM SLOT ───────────────────────────────────
   // After landlord approval, the student has until slotConfirmDeadline to claim
   // the slot. Confirmation stamps slotConfirmedAt; un-claimed slots are later
   // auto-cancelled by the scheduler so the next waitlisted applicant can be promoted.
@@ -358,48 +411,7 @@ export default class ApplicationsController {
     return serialize(app)
   }
 
-  // ─── MANAGER: APPROVED APPLICATIONS READY FOR ROOM ASSIGNMENT ───
-  async approvedForAssignment({ auth, serialize }: HttpContext) {
-    const user = auth.user!
-    const applications = await Application.query()
-      .whereHas('accommodation', (q) => q.where('managerId', user.id))
-      .where('applicationStatus', 'approved')
-      .preload('accommodation')
-      .preload('student', (q) => q.preload('user'))
-      .orderBy('applicationDate', 'asc')
-    return serialize(applications)
-  }
-
-  // ─── STUDENT: CONFIRM / DECLINE APPROVED SLOT ───
-  async confirm({ auth, params, request, response, serialize }: HttpContext) {
-    const user = auth.user!
-    const student = await Student.findByOrFail('userId', user.id)
-    const application = await Application.query()
-      .where('id', params.id)
-      .where('studentNumber', student.studentNumber)
-      .whereIn('applicationStatus', ['approved', 'waitlisted'])
-      .preload('accommodation')
-      .firstOrFail()
-
-    const { action } = request.body()
-
-    if (action === 'accept') {
-      application.applicationStatus = 'confirmed'
-      await application.save()
-      await LogService.record(user.id, 'application', application.id, 'STUDENT_CONFIRMED')
-      return serialize({ message: 'Slot confirmed successfully.', application })
-    }
-
-    if (action === 'decline') {
-      await this.waitlistService.processWaitlistCancellation(application.id)
-      await LogService.record(user.id, 'application', application.id, 'STUDENT_DECLINED')
-      return serialize({ message: 'Slot declined.' })
-    }
-
-    return response.badRequest({ message: 'action must be "accept" or "decline"' })
-  }
-
-  // ─── MANAGER/LANDLORD: VIEW STUDENT ENROLLMENT PROOF ───
+  // ─── VIEW ENROLLMENT PROOF ───────────────────────────────────
   async viewEnrollmentProof({ params, response }: HttpContext) {
     const application = await Application.query()
       .where('id', params.id)
@@ -407,7 +419,9 @@ export default class ApplicationsController {
       .firstOrFail()
 
     const filePath = application.student?.enrollmentProof?.filePath
-    if (!filePath) return response.notFound({ message: 'Enrollment proof not available' })
+    if (!filePath) {
+      return response.notFound({ message: 'Enrollment proof not available' })
+    }
 
     let key: string
     if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
@@ -421,25 +435,47 @@ export default class ApplicationsController {
     return { url: signedUrl }
   }
 
-  // MANAGER: VIEW Waitlisted -- TESTER
-  async viewAllWaitlisted({ auth, response}: HttpContext) {
+  // ─── MANAGER: VIEW APPLICATIONS (TESTER) ─────────────────────
+  async viewApplications({ serialize }: HttpContext) {
+    const applications = await Application.query()
+      .preload('accommodation')
+      .preload('student', (q) => q.preload('user'))
+      .orderBy('applicationDate', 'asc')
+
+    return serialize(applications)
+  }
+
+  // ─── MANAGER: VIEW APPLICANTS ────────────────────────────────
+  async viewApplicants({ auth, response, serialize }: HttpContext) {
+    const user = auth.user!
+
+    if (user.role === 'manager') {
+      const applications = await Application.query()
+        .whereHas('accommodation', (q) => q.where('managerId', user.id))
+        .preload('accommodation')
+        .preload('student', (q) => q.preload('user'))
+        .orderBy('applicationDate', 'asc')
+
+      return serialize(applications)
+    }
+
+    return response.forbidden({ message: 'access denied' })
+  }
+
+  // ─── MANAGER: VIEW ALL WAITLISTED (TESTER) ───────────────────
+  async viewAllWaitlisted({ auth, response }: HttpContext) {
     const user = auth.user!
 
     if (user.role !== 'manager') {
       return response.forbidden({ message: 'Access denied' })
     }
 
-    // 1. Fetch waitlisted applications
     const applications = await Application.query()
       .where('applicationStatus', 'waitlisted')
-      // Preload student and user info
       .preload('student', (s) => s.preload('user'))
-      // Preload accommodation info
       .preload('accommodation')
       .orderBy('applicationDate', 'asc')
 
-    // 2. Map through applications and manually attach the assignment info
-    // This is often cleaner than a complex join when you need specific nested preloads
     const results = await Promise.all(
       applications.map(async (app) => {
         const assignment = await Assignment.query()
@@ -457,29 +493,24 @@ export default class ApplicationsController {
 
     return results
   }
-  
-  // MANAGER: VIEW Waitlisted
-  async viewWaitlisted({ auth, response}: HttpContext) {
+
+  // ─── MANAGER: VIEW WAITLISTED FOR MY ACCOMMODATIONS ──────────
+  async viewWaitlisted({ auth, response }: HttpContext) {
     const user = auth.user!
 
     if (user.role !== 'manager') {
       return response.forbidden({ message: 'Access denied' })
     }
 
-    // 1. Fetch waitlisted applications
     const applications = await Application.query()
       .where('applicationStatus', 'waitlisted')
       .whereHas('accommodation', (q) => {
         q.where('managerId', user.id)
       })
-      // Preload student and user info
       .preload('student', (s) => s.preload('user'))
-      // Preload accommodation info
       .preload('accommodation')
       .orderBy('applicationDate', 'asc')
 
-    // 2. Map through applications and manually attach the assignment info
-    // This is often cleaner than a complex join when you need specific nested preloads
     const results = await Promise.all(
       applications.map(async (app) => {
         const assignment = await Assignment.query()

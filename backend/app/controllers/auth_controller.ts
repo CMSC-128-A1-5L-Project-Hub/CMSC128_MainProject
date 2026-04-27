@@ -5,6 +5,7 @@ import ProvisioningService from '#services/provisioning_service'
 import NotificationService from '#services/notification_service'
 import LogService from '#services/log_service'
 import User from '#models/user'
+import { signFileUrl } from '#services/image_service'
 
 @inject()
 export default class AuthController {
@@ -14,10 +15,12 @@ export default class AuthController {
     protected logService: LogService
   ) {}
 
+  // STEP 1: Redirect user to Google login screen
   async redirect({ ally }: HttpContext) {
     return ally.use('google').redirect()
   }
 
+  // STEP 2: Handle response from Google
   async callback({ ally, auth, response, session }: HttpContext) {
     const google = ally.use('google')
     if (google.accessDenied()) return 'Access was denied'
@@ -32,7 +35,10 @@ export default class AuthController {
     })
 
     await auth.use('web').login(user)
+
+    // Set role in session so RoleMiddleware can read it
     session.put('role', user.role)
+
     await LogService.logAuthActivity(user, 'logged_in')
 
     switch (user.role) {
@@ -49,6 +55,7 @@ export default class AuthController {
     }
   }
 
+  // ─── GET /me ──────────────────────────────────────────────────────────────
   async me({ auth, serialize }: HttpContext) {
     const user = await User.query()
       .where('id', auth.user!.id)
@@ -56,6 +63,7 @@ export default class AuthController {
       .preload('profilePicture')
       .firstOrFail()
 
+    // Role-specific preloads
     if (user.role === 'student') {
       await user.load('student')
     } else if (user.role === 'manager') {
@@ -65,8 +73,9 @@ export default class AuthController {
     }
 
     const serialized = user.serialize()
-    serialized.profilePictureUrl = user.profilePicture?.filePath ?? null
+    serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
 
+    // Attach dormitory name for managers
     if (user.role === 'manager' && user.manager && user.manager.accommodations.length > 0) {
       serialized.dormitory = user.manager.accommodations[0].accommodationName
     } else {
@@ -76,6 +85,7 @@ export default class AuthController {
     return serialize(serialized)
   }
 
+  // ─── PUT /me ──────────────────────────────────────────────────────────────
   async updateMe({ auth, request, serialize }: HttpContext) {
     const user = await User.query()
       .where('id', auth.user!.id)
@@ -89,11 +99,13 @@ export default class AuthController {
       'gender', 'emergencyContactName', 'emergencyContactNumber',
     ])
 
+    // Update user-level field
     if (data.facebookAccount !== undefined) {
       user.facebookAccount = data.facebookAccount || null
       await user.save()
     }
 
+    // Update student-level fields (only if user is a student)
     const student = user.student
     if (student) {
       if (data.college !== undefined) student.college = data.college
@@ -106,12 +118,13 @@ export default class AuthController {
       await student.save()
     }
 
+    // Reload and return updated profile
     await user.load('student')
     await user.load('phoneNumbers')
     await user.load('profilePicture')
 
     const serialized = user.serialize()
-    serialized.profilePictureUrl = user.profilePicture?.filePath ?? null
+    serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
     return serialize(serialized)
   }
 }
