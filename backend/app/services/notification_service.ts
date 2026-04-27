@@ -11,7 +11,6 @@ export default class NotificationService {
     try {
       await mail.send((message) => {
         message
-          .from('uble.ics.uplb@gmail.com', 'UBLE Housing') // Iniba ko from noreply@usat.com to @uble.ics.uplb.com
           .to(to)
           .subject(subject)
           .html(html)
