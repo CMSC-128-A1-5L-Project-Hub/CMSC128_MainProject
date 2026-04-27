@@ -44,131 +44,91 @@ export default class AssignmentsController {
   // Manager: subject to the existing-assignment conflict guard.
   // Landlord: may override an existing assignment by transactionally releasing the
   //   prior room (decrement occupancy, cancel old assignment) before creating the new one.
-  async store({ auth, request, response, serialize }: HttpContext) {
-    const user = auth.user!
-    const { applicationId, roomId, moveIn, expectedMoveOut, gracePeriodDays } = request.body()
+async store({ auth, request, response, serialize }: HttpContext) {
+  const user = auth.user!
+  const { applicationId, roomId, moveIn, expectedMoveOut, gracePeriodDays } = request.body()
 
-    if (!applicationId || !roomId || !moveIn || !expectedMoveOut) {
-      return response.badRequest({
-        message: 'applicationId, roomId, moveIn, and expectedMoveOut are required',
-      })
-    }
-
-    // Load the application + accommodation + student so we can authorize, gate, and notify
-    const application = await Application.query()
-      .where('id', applicationId)
-      .preload('accommodation')
-      .preload('student', (q) => q.preload('user'))
-      .firstOrFail()
-
-    const accommodation = application.accommodation
-
-    // Authorize: caller must own (landlord) or manage the accommodation
-    if (user.role === 'manager' && accommodation.managerId !== user.id) {
-      return response.forbidden({ message: 'You do not manage this accommodation' })
-    }
-    if (user.role === 'landlord' && accommodation.landlordId !== user.id) {
-      return response.forbidden({ message: 'You do not own this accommodation' })
-    }
-    if (user.role !== 'manager' && user.role !== 'landlord') {
-      return response.forbidden({ message: 'Only managers or landlords may assign rooms' })
-    }
-
-    // State gate: must be Approved AND Slot Confirmed
-    if (application.applicationStatus !== 'approved') {
-      return response.badRequest({ message: 'Application is not approved' })
-    }
-    if (!application.slotConfirmedAt) {
-      return response.badRequest({ message: 'Student has not confirmed their slot' })
-    }
-
-    // Conflict prevention: student cannot have another active assignment
-    // Landlords are allowed to override — handled below in the swap path.
-    const existingAssignment = await Assignment.query()
-      .where('studentNumber', application.studentNumber)
-      .whereNull('actualMoveOut')
-      .whereNotIn('confirmationStatus', ['rejected', 'cancelled'])
-      .first()
-    if (existingAssignment && user.role === 'manager') {
-      return response.conflict({ message: 'Student already has a pending or active assignment' })
-    }
-
-    // Load the target room and validate it
-    const room = await Room.findOrFail(roomId)
-
-    if (room.accommodationId !== accommodation.id) {
-      return response.badRequest({ message: 'Room does not belong to this accommodation' })
-    }
-    if (
-      room.roomType !== application.applicationRoomType ||
-      room.roomStayType !== application.applicationStayType
-    ) {
-      return response.badRequest({ message: 'Room type does not match application' })
-    }
-    if (room.roomCurrentOccupancy >= room.roomCapacity) {
-      return response.conflict({ message: 'Room is full' })
-    }
-
-    // Create the assignment (and, for landlord override, swap out of the prior assignment atomically)
-    const trx = await db.transaction()
-    let assignment: Assignment
-    try {
-      // Landlord override: release the student from the prior assignment
-      if (existingAssignment && user.role === 'landlord') {
-        const oldRoom = await Room.findOrFail(existingAssignment.roomId, { client: trx })
-        oldRoom.roomCurrentOccupancy = Math.max(0, oldRoom.roomCurrentOccupancy - 1)
-        if (oldRoom.roomAvailability === 'occupied' && oldRoom.roomCurrentOccupancy < oldRoom.roomCapacity) {
-          oldRoom.roomAvailability = 'available'
-        }
-        await oldRoom.useTransaction(trx).save()
-
-        existingAssignment.confirmationStatus = 'cancelled'
-        existingAssignment.actualMoveOut = DateTime.now()
-        await existingAssignment.useTransaction(trx).save()
-      }
-
-      assignment = new Assignment()
-      assignment.fill({
-        studentNumber: application.studentNumber,
-        roomId: room.id,
-        confirmedDate: DateTime.now(),
-        moveIn: DateTime.fromISO(moveIn),
-        expectedMoveOut: DateTime.fromISO(expectedMoveOut),
-        gracePeriodDays: gracePeriodDays ?? 5,
-        confirmationStatus: 'pending_confirmation',
-      })
-      await assignment.useTransaction(trx).save()
-
-      // Bump room occupancy; flip availability if room is now full
-      room.roomCurrentOccupancy += 1
-      if (room.roomCurrentOccupancy >= room.roomCapacity) {
-        room.roomAvailability = 'occupied'
-      }
-      await room.useTransaction(trx).save()
-
-      await trx.commit()
-    } catch (error) {
-      await trx.rollback()
-      throw error
-    }
-
-    // Notify the student
-    await this.notificationService.sendRoomAssignmentEmail(
-      application.student.user,
-      accommodation.accommodationName,
-      room.roomNumber,
-      room.roomBuilding,
-      assignment.moveIn.toISODate() ?? ''
-    )
-
-    const action = existingAssignment && user.role === 'landlord'
-      ? 'LANDLORD_REASSIGNED_ROOM'
-      : user.role === 'landlord'
-        ? 'LANDLORD_ASSIGNED_ROOM'
-        : 'MANAGER_ASSIGNED_ROOM'
-    await LogService.record(user.id, 'assignment', assignment.id, action)
-    return serialize(assignment)
+  if (!applicationId || !roomId || !moveIn || !expectedMoveOut) {
+    return response.badRequest({
+      message: 'applicationId, roomId, moveIn, and expectedMoveOut are required',
+    })
   }
+
+  // Load application with accommodation and student
+  const application = await Application.query()
+    .where('id', applicationId)
+    .preload('accommodation')
+    .preload('student', (q) => q.preload('user'))
+    .firstOrFail()
+
+  const accommodation = application.accommodation
+
+  // Authorize: manager must manage this accommodation
+  if (user.role !== 'manager' || accommodation.managerId !== user.id) {
+    return response.forbidden({ message: 'You do not manage this accommodation' })
+  }
+
+  // State gate: application must be approved (not yet confirmed by student)
+  if (application.applicationStatus !== 'approved') {
+    return response.badRequest({ message: 'Application is not approved' })
+  }
+
+  // Prevent double assignment for this student (active/pending)
+  const existingAssignment = await Assignment.query()
+    .where('studentNumber', application.studentNumber)
+    .whereNull('actualMoveOut')
+    .whereNotIn('confirmationStatus', ['rejected', 'cancelled'])
+    .first()
+  if (existingAssignment) {
+    return response.conflict({ message: 'Student already has a pending or active assignment' })
+  }
+
+  // Load the target room
+  const room = await Room.findOrFail(roomId)
+
+  if (room.accommodationId !== accommodation.id) {
+    return response.badRequest({ message: 'Room does not belong to this accommodation' })
+  }
+  if (
+    room.roomType !== application.applicationRoomType ||
+    room.roomStayType !== application.applicationStayType
+  ) {
+    return response.badRequest({ message: 'Room type does not match application' })
+  }
+  if (room.roomCurrentOccupancy >= room.roomCapacity) {
+    return response.conflict({ message: 'Room is full' })
+  }
+
+  // Create the assignment – status is pending until student confirms
+  const assignment = await Assignment.create({
+    studentNumber: application.studentNumber,
+    roomId: room.id,
+    confirmedDate: DateTime.now(),
+    moveIn: DateTime.fromISO(moveIn),
+    expectedMoveOut: DateTime.fromISO(expectedMoveOut),
+    gracePeriodDays: gracePeriodDays ?? 5,
+    confirmationStatus: 'pending_confirmation',
+  })
+
+  // Update room occupancy
+  room.roomCurrentOccupancy += 1
+  if (room.roomCurrentOccupancy >= room.roomCapacity) {
+    room.roomAvailability = 'occupied'
+  }
+  await room.save()
+
+  // Notify the student
+  await this.notificationService.sendRoomAssignmentEmail(
+    application.student.user,
+    accommodation.accommodationName,
+    room.roomNumber,
+    room.roomBuilding,
+    assignment.moveIn.toISODate() ?? ''
+  )
+
+  await LogService.record(user.id, 'assignment', assignment.id, 'MANAGER_ASSIGNED_ROOM')
+  return serialize(assignment)
+}
 
   // ─── 2. MANAGER/LANDLORD: RECORD MOVE-OUT (triggers waitlist promotion) ───
   // PATCH /assignments/:id/move-out
