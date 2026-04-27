@@ -15,6 +15,41 @@ export default class AuthController {
     protected logService: LogService
   ) {}
 
+  async devLogin({ auth, request, response, session }: HttpContext) {
+    // Only allowed in development
+    if (process.env.NODE_ENV === 'production') {
+      return response.status(403).send('Not allowed in production')
+    }
+
+    const role = request.input('role', 'student') // Default to student
+
+    // Find a user with this role, or just pick the first one available
+    const user = await User.query().where('role', role).first()
+
+    if (!user) {
+      return response.status(404).send(`No user found with role: ${role}. Please seed your DB.`)
+    }
+
+    // Manually log the user in
+    await auth.use('web').login(user)
+    
+    // Set the session role (matching your callback logic)
+    session.put('role', user.role)
+
+    // Log the activity
+    await LogService.logAuthActivity(user, 'logged_in')
+
+    // Redirect to the appropriate dashboard
+    const dashboardMap: Record<string, string> = {
+      landlord: 'http://localhost:5173/landlord/dashboard',
+      student: 'http://localhost:5173/student/dashboard',
+      manager: 'http://localhost:5173/manager/dashboard',
+      super_admin: 'http://localhost:5173/admin/dashboard',
+    }
+
+    return response.redirect(dashboardMap[role] || 'http://localhost:5173/auth/role')
+  }
+
   // STEP 1: Redirect user to Google login screen
   async redirect({ ally }: HttpContext) {
     return ally.use('google').redirect()
