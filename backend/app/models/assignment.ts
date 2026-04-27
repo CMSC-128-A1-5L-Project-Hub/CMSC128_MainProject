@@ -18,7 +18,7 @@ export default class Assignment extends BaseModel {
 
   @column.date()
   declare confirmedDate: DateTime
-  
+
   @column()
   declare confirmationStatus: 'pending_confirmation' | 'active' | 'rejected' | 'cancelled'
 

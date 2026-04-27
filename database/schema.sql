@@ -100,7 +100,6 @@ CREATE TABLE IF NOT EXISTS accommodations(
     name VARCHAR(50) NOT NULL,
     location VARCHAR(150) NOT NULL,
     type ENUM('on-campus', 'off-campus', 'partner_housing') NOT NULL,
-    type ENUM('verified', 'pending', 'rejected') NOT NULL,
     capacity INT NOT NULL,
     tenant_restriction ENUM('male-only', 'female-only', 'coed') NOT NULL,
     application_start_date DATE NOT NULL,

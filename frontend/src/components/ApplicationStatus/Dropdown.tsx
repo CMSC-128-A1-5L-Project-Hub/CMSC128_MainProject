@@ -39,7 +39,7 @@ export default function Dropdown({ title, items, onSelect, direction = "down", w
       </button>
 
       {open && (
-        <div className={`absolute mt-1 bg-white w-fit border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-10 ${
+        <div className={`absolute mt-1 bg-white w-fit border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-30 ${
           direction === "up" ? "bottom-full mb-1" : "top-full mt-1" }`}>
           <ul className="p-2 text-sm">
             {items.map((item) => (

@@ -184,11 +184,7 @@ export function mergeAppWithAssignment(
   assignments: RawAssignment[]
 ): AssignmentItem {
   const activeAssign = assignments.find(
-    (a) =>
-      a.studentNumber === app.student.studentNo &&
-      !a.actualMoveOut &&
-      a.confirmationStatus !== 'rejected' &&
-      a.confirmationStatus !== 'cancelled'
+    (a) => a.studentNumber === app.student.studentNo && !a.actualMoveOut
   )
   if (activeAssign) {
     const confirmationStatus = activeAssign.confirmationStatus ?? 'pending_confirmation'

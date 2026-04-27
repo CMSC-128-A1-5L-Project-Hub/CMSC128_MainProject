@@ -39,6 +39,17 @@ export default class AdminSeeder extends BaseSeeder {
       }
     )
 
+    await User.firstOrCreate(
+      { email: 'jpomamos1@up.edu.ph' },
+      {
+        fname: 'System',
+        lname: 'Administrator',
+        email: 'jpomamos1@up.edu.ph',
+        role: 'super_admin',
+        // pfpFileId is nullable, so we can leave it out
+      }
+    )
+
     const ubleLandlordUser = await User.firstOrCreate(
       { email: 'uble.ics.uplb@gmail.com' },
       {

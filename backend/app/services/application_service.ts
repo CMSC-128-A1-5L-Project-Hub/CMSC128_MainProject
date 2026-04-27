@@ -1,5 +1,5 @@
 import Application from '#models/application'
-import { withPrimaryImageUrl } from './image_service'
+import { withPrimaryImageUrl } from './image_service.ts'
 
 export default class ApplicationService {
   

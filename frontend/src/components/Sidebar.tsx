@@ -1,6 +1,6 @@
-// Sidebar.tsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+
 
 // SVG icon imports
 import DashboardIcon   from "../assets/icons/dashboard.svg?react";
@@ -13,6 +13,7 @@ import { MdOutlineMeetingRoom } from "react-icons/md";
 import { BsUiChecks } from "react-icons/bs";
 import { PiCashRegister } from "react-icons/pi";
 
+
 const CLR = {
   dark:   "#3D0718",
   mid:    "#6B0F2B",
@@ -22,8 +23,10 @@ const CLR = {
   goldDk: "#a07825",
 } as const;
 
+
 const GRADIENT_MOBILE = "linear-gradient(160deg, #2A0410 0%, #3D0718 40%, #6B0F2B 75%, #9E2040 100%)";
 const GRADIENT_DESKTOP = "linear-gradient(180deg, #2A0410 0%, #3D0718 40%, #6B0F2B 75%, #9E2040 100%)";
+
 
 interface SidebarProps {
   role: "student" | "landlord" | "manager" | "landlordDashboard";
@@ -40,6 +43,7 @@ interface SidebarProps {
   };
 }
 
+
 const MobileDrawer = ({
   open, onClose, role, profile, topItems, bottomItems, active, onNavigate
 }: {
@@ -49,13 +53,16 @@ const MobileDrawer = ({
 }) => {
   const [activeItem, setActiveItem] = useState(active);
 
+
   const handleNavigation = (id: string, path: string) => {
     setActiveItem(id);
     onNavigate(id, path);
     onClose();
   };
 
+
   const defaultProfile = { fullName: "User Name", shortName: "User", email: "user@up.edu.ph", ...profile };
+
 
   return (
     <>
@@ -72,6 +79,7 @@ const MobileDrawer = ({
           </div>
           <button onClick={onClose} className="text-white/60 hover:text-white text-2xl">✕</button>
         </div>
+
 
         <div className="px-5 pb-6 border-b border-white/10">
           <div className="flex items-center gap-3 mb-4">
@@ -113,6 +121,7 @@ const MobileDrawer = ({
           </div>
         </div>
 
+
         <nav className="flex-1 px-3 py-4 space-y-1">
           {topItems.map((item) => (
             <button
@@ -128,6 +137,7 @@ const MobileDrawer = ({
               {item.label}
             </button>
           ))}
+
 
           <div className="pt-4 mt-4 border-t border-white/10">
             {bottomItems.map((item) => (
@@ -151,6 +161,7 @@ const MobileDrawer = ({
   );
 };
 
+
 const DesktopSidebar = ({
   topItems, bottomItems, active, onNavigate, role
 }: {
@@ -173,6 +184,7 @@ const DesktopSidebar = ({
         </span>
       </div>
 
+
       {/* Primary nav icons */}
       <nav className="flex flex-col items-center gap-1 flex-1">
         {topItems.map((item) => {
@@ -191,6 +203,7 @@ const DesktopSidebar = ({
                 </span>
               </button>
 
+
               {/* Tooltip */}
               <div
                 className="
@@ -199,8 +212,10 @@ const DesktopSidebar = ({
                   group-hover:opacity-100 group-hover:translate-x-0
                   transition-all duration-200 ease-out
 
+
                   text-[11px] font-semibold tracking-wide
                   px-3 py-1.5 rounded-lg whitespace-nowrap z-500
+
 
                   backdrop-blur-md
                 "
@@ -211,6 +226,7 @@ const DesktopSidebar = ({
                 }}
               >
                 {item.label}
+
 
                 {/* Arrow */}
                 <span
@@ -229,6 +245,7 @@ const DesktopSidebar = ({
         })}
       </nav>
 
+
       {/* Bottom utility icons */}
       <div className="flex flex-col items-center gap-1 mt-auto">
         {bottomItems.map((item) => (
@@ -242,6 +259,7 @@ const DesktopSidebar = ({
               </span>
             </button>
 
+
             {/* Tooltip */}
             <div
               className="
@@ -250,8 +268,10 @@ const DesktopSidebar = ({
                 group-hover:opacity-100 group-hover:translate-x-0
                 transition-all duration-200 ease-out
 
+
                 text-[11px] font-semibold tracking-wide
                 px-3 py-1.5 rounded-lg whitespace-nowrap z-500
+
 
                 backdrop-blur-md
               "
@@ -262,6 +282,7 @@ const DesktopSidebar = ({
               }}
             >
               {item.label}
+
 
               {/* Arrow */}
               <span
@@ -282,13 +303,16 @@ const DesktopSidebar = ({
   );
 };
 
+
 export default function Sidebar({ role, profile }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
+
   const [active, setActive] = useState("dashboard");
   useEffect(() => {
     const path = location.pathname;
+
 
     if (role === "student") {
       if (path.includes("/dashboard")) setActive("dashboard");
@@ -300,6 +324,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
       return;
     }
 
+
     if (role === "manager") {
       if (path.includes("/manager/dashboard")) setActive("dashboard");
       else if (path.includes("/occupancy-records")) setActive("reports");
@@ -309,6 +334,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
       else setActive("dashboard");
       return;
     }
+
 
     if (role === "landlordDashboard") {
       if (path.includes("/landlord/dashboard")) setActive("dashboard");
@@ -320,10 +346,13 @@ export default function Sidebar({ role, profile }: SidebarProps) {
       return;
     }
 
+
     setActive("dashboard");
   }, [location.pathname, role]);
 
+
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
 
   const getTopItems = () => {
     switch (role) {
@@ -348,22 +377,28 @@ export default function Sidebar({ role, profile }: SidebarProps) {
       case "manager":
         return [
           { id: "dashboard",  icon: <DashboardIcon   className="w-5 h-5" />, path: "/manager/dashboard", label: "Dashboard" },
-          { id: "reports",    icon: <DocumentIcon      className="w-[21px] h-[21px]" />, path: "/manager/occupancy-records", label: "Occupancy Records" },
+          { id: "applications",    icon: <DocumentIcon    className="w-[21px] h-[21px]" />, path: "/manager/applications", label: "Applications" },
+          { id: "reports",    icon: <DocumentIcon    className="w-[21px] h-[21px]" />, path: "/manager/occupancy-records", label: "Occupancy Records" },
           { id: "users",      icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/manager/room-assignment", label: "Room Assignment" },
-          { id: "properties", icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/manager/properties", label: "Properties" },
+          { id: "waitlist",   icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/manager/waitlist", label: "Waitlist" },
+          { id: "movein-moveout", icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/manager/movein-moveout", label: "Move in and Move out" },
+
         ];
       default:
         return [];
     }
   };
 
+
   const getBottomItems = () => [
     { id: "account", icon: <ProfileIcon className="w-[22px] h-[22px]" />, path: `/${role}/profile`, label: "Account" },
     { id: "logout",  icon: <LogoutIcon  className="w-[23px] h-[23px]" />, path: "/logout",          label: "Logout" },
   ];
 
+
   const topItems    = getTopItems();
   const bottomItems = getBottomItems();
+
 
   const handleNavigation = (id: string, path: string) => {
     setActive(id);
@@ -374,6 +409,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
       navigate(path);
     }
   };
+
 
   return (
     <>
@@ -386,6 +422,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         </svg>
       </button>
 
+
       <MobileDrawer
         open={mobileDrawerOpen}
         onClose={() => setMobileDrawerOpen(false)}
@@ -396,6 +433,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         active={active}
         onNavigate={handleNavigation}
       />
+
 
       <DesktopSidebar
         topItems={topItems}
