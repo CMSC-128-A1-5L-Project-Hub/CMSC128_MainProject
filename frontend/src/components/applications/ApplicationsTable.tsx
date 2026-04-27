@@ -70,13 +70,16 @@ const FilterSelect = ({
   onChange,
   compact,
   onToggle, 
+  sortOpen,
+  setSortOpen,
 }: {
   value: "latest" | "earliest";
   onChange: (v: string) => void;
   compact?: boolean;
   onToggle?: () => void;
+  sortOpen: boolean;
+  setSortOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const [sortOpen, setSortOpen] = React.useState(false);
   const selected = SORT_OPTS.find((o) => o.value === value)?.label;
 
   return (
@@ -90,7 +93,9 @@ const FilterSelect = ({
             setSortOpen((o) => !o);
           }
         }}
-        className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 text-sm bg-white hover:bg-[#F5ECF0] transition w-fit"
+          className={`flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition ${
+            compact ? "w-10 justify-center" : "w-[140px]"
+          }`}
       >
         {compact ? (
           <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,9 +217,23 @@ export default function ApplicationsTable({
 }) {
 
 const [mode, setMode] = React.useState<"both" | "search" | "sort">("both");
+const [sortOpen, setSortOpen] = React.useState(false);
 const searchInputRef = React.useRef<HTMLInputElement>(null);
 
+const [isMobile, setIsMobile] = React.useState(false);
+
+React.useEffect(() => {
+  const checkScreen = () => setIsMobile(window.innerWidth < 640);
+
+  checkScreen();
+  window.addEventListener("resize", checkScreen);
+
+  return () => window.removeEventListener("resize", checkScreen);
+}, []);
+
+
 const handleOpenSearch = () => {
+  setSortOpen(false)
   setMode("search");
   setTimeout(() => searchInputRef.current?.focus(), 50);
 };
@@ -234,7 +253,6 @@ const handleCloseSearch = () => {
     const pages: number[] = [];
 
     if (totalPages <= 3) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
       return pages;
     }
 
@@ -262,23 +280,25 @@ const handleCloseSearch = () => {
             onSortChange(v);
             setMode("both"); //minimizes search after choosing sort
           }}
-          compact={mode === "search"}
+          compact={isMobile && mode === "search"}
           onToggle={() => {
+            setSortOpen(false);
             setMode("both"); //minimizes search when sort is clicked
-          }}
+            }}
+          sortOpen={sortOpen}
+          setSortOpen={setSortOpen}
+          
         />
       {/* SEARCH ICON */}
-      {mode !== "search" && (
-        <button
-          onClick={handleOpenSearch}
-          className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 text-sm bg-white hover:bg-[#F5ECF0] transition sm:hidden"
-          aria-label="Open search"
-        >
-          <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-      )}
+      <button
+      onClick={handleOpenSearch}
+      className={`${mode === "search" ? "hidden" : "flex"} sm:hidden items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition`}
+      aria-label="Open search"
+      >
+      <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      </button>
 
       {/* SEARCH INPUT */}
       <div className={`relative ${mode === "search" ? "flex" : "hidden"} sm:flex w-full sm:w-[120px]`}>
@@ -293,6 +313,10 @@ const handleCloseSearch = () => {
           type="text"
           placeholder="Search..."
           value={search}
+          onFocus={() => {
+            setSortOpen(false);
+            setMode("search");
+          }}
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-full min-w-0 h-10 border border-[#E8D5DC] rounded-xl pl-8 pr-7 text-sm bg-white text-[#3D0718] placeholder:text-[#C7A7B3] focus:outline-none focus:bg-[#F5ECF0] transition-all duration-200"
         />
@@ -313,7 +337,7 @@ const handleCloseSearch = () => {
 
       <div className="w-full overflow-x-auto pb-2">
       
-        <table className="min-w-[760px] w-full text-sm">
+       <table className="min-w-[900px] w-full text-sm table-fixed">
           <thead>
             <tr
               className="text-left text-xs uppercase tracking-wide bg-gray-50"
