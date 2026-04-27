@@ -16,7 +16,6 @@ export default class LogsController {
     return serialize(logs)
   }
 
-  // ─── MANAGER: RECENT ACTIVITY FOR DASHBOARD ───
   async managerLogs({ auth, serialize }: HttpContext) {
     const user = auth.user!
 
