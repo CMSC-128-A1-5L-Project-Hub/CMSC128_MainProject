@@ -86,6 +86,15 @@ export default class AdminSeeder extends BaseSeeder {
       }
     )
 
+    const placeholderFile3 = await FileMetadata.firstOrCreate(
+      { fileName: 'enroll_placeholder_lschan.pdf' },
+      {
+        fileName: 'enroll_placeholder_lschan.pdf',
+        filePath: '/uploads/documents/enroll_placeholder_lschan.pdf',
+        fileType: 'document',
+      }
+    )
+
     const joshuaUser = await User.firstOrCreate(
       { email: 'carlsjohsua@gmail.com' },
       {
@@ -127,6 +136,28 @@ export default class AdminSeeder extends BaseSeeder {
         college: 'CAS',
         degreeProgram: 'BS Computer Science',
         gender: 'Male',
+      }
+    )
+
+    const lieslUser = await User.firstOrCreate(
+      { email: 'lschan1@up.edu.ph' },
+      {
+        fname: 'Liesl',
+        lname: 'Chan',
+        email: 'lschan1@up.edu.ph',
+        role: 'student',
+      }
+    )
+
+    await Student.firstOrCreate(
+      { userId: lieslUser.id },
+      {
+        studentNumber: '2024-000003',
+        userId: lieslUser.id,
+        enrollmentProofFileId: placeholderFile3.id,
+        college: 'CAS',
+        degreeProgram: 'BS Computer Science',
+        gender: 'Female',
       }
     )
   }
