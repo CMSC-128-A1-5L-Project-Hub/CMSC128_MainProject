@@ -1,3 +1,4 @@
+// app/controllers/assignments_controller.ts
 import type { HttpContext } from '@adonisjs/core/http'
 import { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 import { DateTime } from 'luxon'
@@ -38,9 +39,7 @@ export default class AssignmentsController {
     return serialize(assignments)
   }
 
-
-  // ─── 1. MANAGER/LANDLORD: ASSIGN ROOM (Slot Confirmed → Assigned) ───
-  // POST /assignments
+  // ─── MANAGER: ASSIGN ROOM (BEFORE STUDENT CONFIRMS) ───
   async store({ auth, request, response, serialize }: HttpContext) {
     const user = auth.user!
     const { applicationId, roomId, moveIn, expectedMoveOut, gracePeriodDays } = request.body()
@@ -51,7 +50,7 @@ export default class AssignmentsController {
       })
     }
 
-    // Load the application + accommodation + student so we can authorize, gate, and notify
+    // Load application with accommodation and student
     const application = await Application.query()
       .where('id', applicationId)
       .preload('accommodation')
@@ -60,32 +59,27 @@ export default class AssignmentsController {
 
     const accommodation = application.accommodation
 
-    // Authorize: caller must own (landlord) or manage the accommodation
-    if (user.role === 'manager' && accommodation.managerId !== user.id) {
+    // Authorize: manager must manage this accommodation
+    if (user.role !== 'manager' || accommodation.managerId !== user.id) {
       return response.forbidden({ message: 'You do not manage this accommodation' })
     }
-    if (user.role === 'landlord' && accommodation.landlordId !== user.id) {
-      return response.forbidden({ message: 'You do not own this accommodation' })
-    }
 
-    // State machine gate: must be Approved AND Slot Confirmed
+    // State gate: application must be approved (not yet confirmed by student)
     if (application.applicationStatus !== 'approved') {
       return response.badRequest({ message: 'Application is not approved' })
     }
-    if (!application.slotConfirmedAt) {
-      return response.badRequest({ message: 'Student has not confirmed their slot' })
-    }
 
-    // Conflict prevention: student cannot have another active assignment
-    const activeAssignment = await Assignment.query()
+    // Prevent double assignment for this student (active/pending)
+    const existingAssignment = await Assignment.query()
       .where('studentNumber', application.studentNumber)
       .whereNull('actualMoveOut')
+      .whereNotIn('confirmationStatus', ['rejected', 'cancelled'])
       .first()
-    if (activeAssignment) {
-      return response.conflict({ message: 'Student already has an active assignment' })
+    if (existingAssignment) {
+      return response.conflict({ message: 'Student already has a pending or active assignment' })
     }
 
-    // Load the target room and validate it
+    // Load the target room
     const room = await Room.findOrFail(roomId)
 
     if (room.accommodationId !== accommodation.id) {
@@ -101,7 +95,7 @@ export default class AssignmentsController {
       return response.conflict({ message: 'Room is full' })
     }
 
-    // Create the assignment
+    // Create the assignment – status is pending until student confirms
     const assignment = await Assignment.create({
       studentNumber: application.studentNumber,
       roomId: room.id,
@@ -109,9 +103,10 @@ export default class AssignmentsController {
       moveIn: DateTime.fromISO(moveIn),
       expectedMoveOut: DateTime.fromISO(expectedMoveOut),
       gracePeriodDays: gracePeriodDays ?? 5,
+      confirmationStatus: 'pending_confirmation',
     })
 
-    // Bump room occupancy; flip availability if room is now full
+    // Update room occupancy
     room.roomCurrentOccupancy += 1
     if (room.roomCurrentOccupancy >= room.roomCapacity) {
       room.roomAvailability = 'occupied'
@@ -131,8 +126,7 @@ export default class AssignmentsController {
     return serialize(assignment)
   }
 
-  // ─── 2. MANAGER/LANDLORD: RECORD MOVE-OUT (triggers waitlist promotion) ───
-  // PATCH /assignments/:id/move-out
+  // ─── MANAGER: RECORD MOVE‑OUT (triggers waitlist promotion) ───
   async moveOut({ auth, params, request, response, serialize }: HttpContext) {
     const user = auth.user!
     const { actualMoveOut } = request.body()
@@ -145,7 +139,7 @@ export default class AssignmentsController {
     const room = assignment.room
     const accommodation = room.accommodation
 
-    // Authorize: caller must own or manage the accommodation
+    // Authorize
     if (user.role === 'manager' && accommodation.managerId !== user.id) {
       return response.forbidden({ message: 'You do not manage this accommodation' })
     }
@@ -157,26 +151,24 @@ export default class AssignmentsController {
       return response.badRequest({ message: 'Already moved out' })
     }
 
-    // Stamp move-out (caller-supplied date or today)
     assignment.actualMoveOut = actualMoveOut ? DateTime.fromISO(actualMoveOut) : DateTime.now()
     await assignment.save()
 
-    // Free up room: decrement occupancy (clamp at 0), flip 'occupied' → 'available'
+    // Free up room
     room.roomCurrentOccupancy = Math.max(0, room.roomCurrentOccupancy - 1)
     if (room.roomAvailability === 'occupied') {
       room.roomAvailability = 'available'
     }
     await room.save()
 
-    // Promote next waitlisted applicant for this accommodation
-    await this.waitlistService.processMoveOut(accommodation.id)
+    // Promote next waitlisted student
+    await this.waitlistService.processMoveOut(accommodation.id, room)
 
     await LogService.record(user.id, 'assignment', assignment.id, 'MOVED_OUT')
     return serialize(assignment)
   }
 
-  // ─── 3. STUDENT: VIEW CURRENT STAY ───
-  // GET /my-stay/current
+  // ─── STUDENT: VIEW CURRENT STAY ───
   async currentStay({ auth, response }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
@@ -196,8 +188,7 @@ export default class AssignmentsController {
     return response.ok(await this.shapeStayResponse(assignment))
   }
 
-  // ─── 4. STUDENT: VIEW PAST STAYS ───
-  // GET /my-stay/history
+  // ─── STUDENT: VIEW PAST STAYS ───
   async stayHistory({ auth, response }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
@@ -216,13 +207,10 @@ export default class AssignmentsController {
     return response.ok(data)
   }
 
-  // ─── MANAGER: VIEW ASSIGNMENTS //TESTER ───
+  // ─── MANAGER: VIEW ALL ASSIGNMENTS (TESTER) ───
   async viewAllAssignments({ auth, response, serialize }: HttpContext) {
     const user = auth.user!
-
-    if (user.role !== 'manager') {
-      return response.forbidden({ message: 'access denied' })
-    }
+    if (user.role !== 'manager') return response.forbidden({ message: 'access denied' })
 
     const assignments = await Assignment.query()
       .preload('room', (roomQuery: ModelQueryBuilderContract<typeof Room>) => {
@@ -235,13 +223,10 @@ export default class AssignmentsController {
     return serialize(assignments)
   }
 
-  // ─── MANAGER: VIEW ASSIGNMENTS ───
+  // ─── MANAGER: VIEW ASSIGNMENTS FOR MY ACCOMMODATIONS ───
   async viewAssignments({ auth, response, serialize }: HttpContext) {
     const user = auth.user!
-
-    if (user.role !== 'manager') {
-      return response.forbidden({ message: 'access denied' })
-    }
+    if (user.role !== 'manager') return response.forbidden({ message: 'access denied' })
 
     const assignments = await Assignment.query()
       .whereHas('room', (roomQuery: ModelQueryBuilderContract<typeof Room>) => {
@@ -258,8 +243,8 @@ export default class AssignmentsController {
 
     return serialize(assignments)
   }
-  
-  // ─── helper: shape an Assignment into the frontend's AccommodationHistoryItem ───
+
+  // ─── SHAPER ───
   private async shapeStayResponse(assignment: Assignment): Promise<any> {
     const room = assignment.room
     const accommodation = room.accommodation
@@ -281,7 +266,7 @@ export default class AssignmentsController {
           primaryImageUrl: accommodationWithImage.primaryImageUrl,
         },
       },
-      review: null, // TODO: preload Review when the relation is wired in
+      review: null,
     }
   }
 }

@@ -1,3 +1,4 @@
+// app/models/application.ts
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
@@ -39,19 +40,19 @@ export default class Application extends BaseModel {
   declare preferredTags: string[] | null
 
   @column.dateTime()
-  declare approvedAt: DateTime | null
-
-  @column.dateTime()
   declare reviewedAt: DateTime | null
 
   @column()
   declare reviewedBy: number | null
 
   @column.dateTime()
-  declare slotConfirmedAt: DateTime | null
+  declare approvedAt: DateTime | null
 
   @column.dateTime()
   declare slotConfirmDeadline: DateTime | null
+
+  @column.dateTime()
+  declare slotConfirmedAt: DateTime | null
 
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>

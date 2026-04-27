@@ -63,7 +63,6 @@ router
         router.patch('/applications/:id', [controllers.Application, 'cancel'])
         router.post('/applications/:id/confirm', [controllers.Application, 'confirmSlot'])
         router.post('/applications/:id/confirm-slot', [controllers.Application, 'confirm'])
-        router.post('/assignments/:id/confirm', [controllers.Application, 'confirmAssignment'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
         router.get('/student/profile', [controllers.StudentProfiles, 'show'])
@@ -146,6 +145,7 @@ router
         router.get('/view-assignments', [controllers.Assignments, 'viewAssignments'])
         router.post('/assignments', [controllers.Assignments, 'store'])
         router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
+        router.post('/assignments/:id/confirm', [controllers.Application, 'confirmAssignment'])
 
         // Payment Verification
         router.get('/payments/pending', [controllers.Payments, 'pending'])
