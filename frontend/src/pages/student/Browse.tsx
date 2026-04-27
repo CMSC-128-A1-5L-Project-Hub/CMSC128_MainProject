@@ -45,6 +45,8 @@ export default function BrowsePage() {
 
     const [isBelowSm, setIsBelowSm] = useState(false);
 
+    const [searchExact, setSearchExact] = useState(false);
+
     const [name, setName] = useState("");
     const navigate = useNavigate()
 
@@ -188,6 +190,12 @@ export default function BrowsePage() {
             })
 
             if (searching === "" || searching === accommodationName.toLowerCase()) {
+                if (searching === accommodationName.toLowerCase()) {
+                    setSearchExact(true)
+                    setPageNumber(0)
+                } else {
+                    setSearchExact(false)
+                }
                 temp[tempCounter].push({ name: accommodationName, subtitle: accommodationLocation, meta: accommodationType, price: 3200, minPrice: minimum, maxPrice: maximum, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: rating })
             }
 
@@ -233,17 +241,15 @@ export default function BrowsePage() {
 
         }
         let final: { [key: number]: Dorm[] } = {}
-        // console.log(temp)
+
         for (const key in temp) {
             const value = temp[key]
-            // console.log("tf", value, key)
             if (value.length >= 1) {
-                // console.log("normal", value, key)
-                if (value.length < 4 && !isBelowSm) {
-                    for (let i = value.length; i < 4; i++) {
-                        value.push({ name: "", subtitle: "", meta: "", price: 0, minPrice: 0, maxPrice: 0, priceUnit: '/ month', 'featured chips': [""], rating: "", invisible: true })
-                    }
-                }
+                // if (value.length < 4 && !isBelowSm) {
+                //     for (let i = value.length; i < 4; i++) {
+                //         value.push({ name: "", subtitle: "", meta: "", price: 0, minPrice: 0, maxPrice: 0, priceUnit: '/ month', 'featured chips': [""], rating: "", invisible: true })
+                //     }
+                // }
                 final[key] = value
             }
         }
@@ -348,7 +354,7 @@ export default function BrowsePage() {
 
                             {/* dorm cards and buttons */}
                             <div className="flex w-full justify-center items-center p-4 gap-2">
-                                {Object.keys(dorms).length > 0 && (
+                                {Object.keys(dorms).length > 0 && !searchExact && (
                                     <div className="flex justify-center items-center relative z-50">
                                         <button
                                             onClick={() => {
@@ -383,21 +389,52 @@ export default function BrowsePage() {
                                 )}
 
                                 <div className="flex">
-                                    <div className="flex" style={{ transform: `translateX(-${100 * pageNumber}%)`, transition: 'transform 500ms ease-in-out', }}>
+                                    {<div className="flex" style={{ transform: `translateX(-${100 * pageNumber}%)`, transition: 'transform 500ms ease-in-out', }}>
 
                                         {Object.keys(dorms).length === 0 ? (
                                             <div className="w-full flex items-center justify-center">
-                                                <div className="flex justify-center w-full max-w-[100%] h-[600px]">
+                                                <div className="flex justify-center w-full max-w-[100%] h-[300px] md:h-[600px]">
                                                     <div className="col-span-2 flex items-center justify-center py-10 text-gray-500 text-lg">
                                                         No searches found
                                                     </div>
                                                 </div>
                                             </div>
                                         ) : (
-
                                             Object.keys(dorms).map((key, index) => {
                                                 const hasOnePage = Object.keys(dorms[Number(key)]).length === 1;
-                                                console.log(hasOnePage, Object.keys(dorms[Number(key)]).length, key)
+
+                                                if (hasOnePage && pageNumber == index) {
+                                                    return (
+                                                        <div className="w-full shrink-0 flex items-center transition-opacity duration-500 opacity-100">
+                                                            <div className="flex justify-center w-full max-w-[100%] h-[300px] md:h-[600px]">
+                                                                <div className="flex items-center justify-center">
+                                                                    {dorms[Number(key)].map((value) => {
+                                                                        return <div className="w-full flex items-center justify-center">
+                                                                            <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
+                                                                        </div>
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                else if (hasOnePage && pageNumber != index) {
+                                                    return (
+                                                        <div className="w-full shrink-0 flex items-center transition-opacity duration-500 opacity-0">
+                                                            <div className="flex justify-center w-full max-w-[100%] h-[300px] md:h-[600px]">
+                                                                <div className="flex items-center justify-center">
+                                                                    {dorms[Number(key)].map((value) => {
+                                                                        return <div className="w-full flex items-center justify-center">
+                                                                            <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
+                                                                        </div>
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+
+
                                                 if (pageNumber == index) {
                                                     return (
                                                         <div className="w-full shrink-0 flex items-center transition-opacity duration-500 opacity-100">
@@ -412,9 +449,10 @@ export default function BrowsePage() {
                                                     );
                                                 } else {
                                                     return (
-                                                        <div className="w-full shrink-0 transition-opacity duration-500 opacity-0">
+                                                        <div className="w-full shrink-0 flex items-center transition-opacity duration-500 opacity-0">
                                                             <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
                                                                 {dorms[Number(key)].map((value) => {
+                                                                    console.log(dorms[Number(key)].length)
                                                                     return <div className="w-full flex items-center justify-center">
                                                                         <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
                                                                     </div>
@@ -425,11 +463,11 @@ export default function BrowsePage() {
                                                 }
                                             })
                                         )}
-                                    </div>
+                                    </div>}
 
                                 </div>
 
-                                {Object.keys(dorms).length > 0 &&
+                                {Object.keys(dorms).length > 0 && !searchExact &&
                                     (<div className="flex justify-center items-center relative z-50">
                                         <button onClick={() => {
 
@@ -440,7 +478,7 @@ export default function BrowsePage() {
                                                 counter++
                                             }
 
-                                            console.log(counter)
+
                                             if (counter % 2 == 0 && counter != 0) {
                                                 let temp = [...pageLimits]
                                                 let max = Object.keys(dorms).length

@@ -65,7 +65,7 @@ function App() {
         <Route path="/studentDashboard" element={<StudentDashboard/>}/>
         <Route path="/landingpage" element={<Navigate to="/" replace />} />
         <Route path="/map" element={<InteractiveMap />} />
-        <Route path="/browse" element={<BrowsePage />} />
+        <Route path="/student/browse" element={<BrowsePage />} />
 
         {/* ── Logged-in only (any role) ── */}
         <Route path="/auth/success" element={<AuthSuccess/>}/>
