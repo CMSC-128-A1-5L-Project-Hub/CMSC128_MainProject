@@ -16,11 +16,12 @@ import { withPrimaryImageUrl } from '#services/image_service'
 export default class ApplicationsController {
   constructor(protected waitlistService: WaitlistWorkflowService) {}
 
-  // ─── ASSIGNMENT CONFIRMATION (accept/reject) ─────────────────
-async confirmAssignment({ auth, params, request, response }: HttpContext) {
+  // ─── STUDENT: CONFIRM ASSIGNMENT (accept or reject room assignment) ───
+  async confirmAssignment({ auth, params, request, response }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
 
+    // 1. Verify the assignment belongs to this student and is pending confirmation
     const assignment = await Assignment.findOrFail(params.id)
     if (assignment.studentNumber !== student.studentNumber) {
       return response.forbidden({ message: 'This assignment does not belong to you' })
@@ -30,6 +31,8 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
     }
 
     const { action } = request.body()   // 'accept' or 'reject'
+
+    // 2. Load the room and find the related approved application
     const room = await Room.findOrFail(assignment.roomId)
 
     const application = await Application.query()
@@ -73,7 +76,7 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
 
         await trx.commit()
 
-        // Promote next waitlisted student
+        // 3. Automatically promote the next waitlisted student
         await this.waitlistService.processMoveOut(room.accommodationId, room)
 
         return response.ok({ message: 'Slot released and waitlist updated' })
@@ -90,11 +93,12 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
   // ─── STUDENT: SUBMIT APPLICATION ─────────────────────────────
   async store({ auth, request, response, serialize }: HttpContext) {
     const user = auth.user!
-    const student = await Student.findByOrFail('userId', user.id)
+    const student = await Student.findByOrFail('userId', user.id) // Get student_number
 
     const { accommodationId, applicationRoomType, applicationStayType,
             durationOfStayDays, preferredTags } = request.all()
 
+    // Conflict Prevention: Does the student already have an active stay?
     const activeStay = await Assignment.query()
       .where('studentNumber', student.studentNumber)
       .whereNull('actualMoveOut')
@@ -104,13 +108,18 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
       return response.conflict({ message: 'You already have an active housing assignment.' })
     }
 
+    // Transient applications skip the manager step and land in the landlord's queue
+    // for downpayment verification. Non-transient follow the normal pending → manager flow.
+    const initialStatus = applicationStayType === 'transient' ? 'under_review' : 'pending'
+
+    // Create the application
     const newApp = await Application.create({
       accommodationId,
       studentNumber: student.studentNumber,
       applicationRoomType,
       applicationStayType,
       durationOfStayDays,
-      applicationStatus: 'pending',
+      applicationStatus: initialStatus,
       preferredTags: preferredTags ?? null,
     })
 
@@ -124,20 +133,25 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
     if (!user) return response.unauthorized({ message: 'Unauthorized' })
     const student = await Student.findByOrFail('userId', user.id)
 
+    // 1. Fetch all applications and preload all required nested relationships on 'accommodation'
     const applications = await Application.query()
       .where('studentNumber', student.studentNumber)
       .preload('accommodation', (accommodationQuery) => {
+        // Preload rooms and their tags for rent calculation
         accommodationQuery.preload('rooms', (roomQuery) => {
           roomQuery.preload('tags')
         })
+        // Preload images and their files for the signed URL
         accommodationQuery.preload('images', (imageQuery) => {
           imageQuery.preload('file')
         })
       })
       .orderBy('applicationDate', 'desc')
 
+    // 2. Process applications to compute rent, attach signed URLs, and serialize
     const data = await Promise.all(
       applications.map(async (app) => {
+        // --- A. Compute Estimated Rent ---
         const accommodationRooms = app.accommodation?.rooms ?? []
         const preferredTags: string[] = (app as any).preferredTags ?? []
 
@@ -155,10 +169,14 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
           ? Math.min(...matchingRooms.map(r => r.roomRent))
           : null
 
+        // --- B. Serialize Model to Plain JSON Object ---
         const serializedApp = app.serialize() as any
+
+        // --- C. Attach Custom Properties ---
         serializedApp.estimatedMonthlyRent = estimatedRent
 
         if (app.accommodation) {
+          // Resolve B2 signed URL and attach it to the serialized accommodation object
           serializedApp.accommodation = await withPrimaryImageUrl(app.accommodation)
         }
 
@@ -166,6 +184,7 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
       })
     )
 
+    // Return the fully populated and serialized array
     return data
   }
 
@@ -266,6 +285,15 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
         return serialize(applicationObject)
       }
 
+      // Conflict prevention: a student may have only one active stay
+      const activeAssignment = await Assignment.query()
+        .where('studentNumber', applicationObject.studentNumber)
+        .whereNull('actualMoveOut')
+        .first()
+      if (activeAssignment) {
+        return response.conflict({ message: 'student already has an active stay, cannot approve' })
+      }
+
       // Approve → use waitlist service, set reviewer info
       applicationObject.reviewedBy = user.id
       applicationObject.reviewedAt = DateTime.now()
@@ -353,7 +381,10 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
     return response.badRequest({ message: 'action must be "accept" or "decline"' })
   }
 
-  // ─── STUDENT: CONFIRM SLOT (MAIN BRANCH) ─────────────────────
+  // ─── STUDENT: CONFIRM SLOT ───────────────────────────────────
+  // After landlord approval, the student has until slotConfirmDeadline to claim
+  // the slot. Confirmation stamps slotConfirmedAt; un-claimed slots are later
+  // auto-cancelled by the scheduler so the next waitlisted applicant can be promoted.
   async confirmSlot({ auth, params, response, serialize }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
@@ -402,5 +433,99 @@ async confirmAssignment({ auth, params, request, response }: HttpContext) {
 
     const signedUrl = await drive.use('s3').getSignedUrl(key, { expiresIn: '5 minutes' })
     return { url: signedUrl }
+  }
+
+  // ─── MANAGER: VIEW APPLICATIONS (TESTER) ─────────────────────
+  async viewApplications({ serialize }: HttpContext) {
+    const applications = await Application.query()
+      .preload('accommodation')
+      .preload('student', (q) => q.preload('user'))
+      .orderBy('applicationDate', 'asc')
+
+    return serialize(applications)
+  }
+
+  // ─── MANAGER: VIEW APPLICANTS ────────────────────────────────
+  async viewApplicants({ auth, response, serialize }: HttpContext) {
+    const user = auth.user!
+
+    if (user.role === 'manager') {
+      const applications = await Application.query()
+        .whereHas('accommodation', (q) => q.where('managerId', user.id))
+        .preload('accommodation')
+        .preload('student', (q) => q.preload('user'))
+        .orderBy('applicationDate', 'asc')
+
+      return serialize(applications)
+    }
+
+    return response.forbidden({ message: 'access denied' })
+  }
+
+  // ─── MANAGER: VIEW ALL WAITLISTED (TESTER) ───────────────────
+  async viewAllWaitlisted({ auth, response }: HttpContext) {
+    const user = auth.user!
+
+    if (user.role !== 'manager') {
+      return response.forbidden({ message: 'Access denied' })
+    }
+
+    const applications = await Application.query()
+      .where('applicationStatus', 'waitlisted')
+      .preload('student', (s) => s.preload('user'))
+      .preload('accommodation')
+      .orderBy('applicationDate', 'asc')
+
+    const results = await Promise.all(
+      applications.map(async (app) => {
+        const assignment = await Assignment.query()
+          .where('studentNumber', app.studentNumber)
+          .whereHas('room', (r) => r.where('accommodationId', app.accommodationId))
+          .preload('room')
+          .first()
+
+        return {
+          ...app.toJSON(),
+          assignment: assignment ? assignment.toJSON() : null,
+        }
+      })
+    )
+
+    return results
+  }
+
+  // ─── MANAGER: VIEW WAITLISTED FOR MY ACCOMMODATIONS ──────────
+  async viewWaitlisted({ auth, response }: HttpContext) {
+    const user = auth.user!
+
+    if (user.role !== 'manager') {
+      return response.forbidden({ message: 'Access denied' })
+    }
+
+    const applications = await Application.query()
+      .where('applicationStatus', 'waitlisted')
+      .whereHas('accommodation', (q) => {
+        q.where('managerId', user.id)
+      })
+      .preload('student', (s) => s.preload('user'))
+      .preload('accommodation')
+      .orderBy('applicationDate', 'asc')
+
+    const results = await Promise.all(
+      applications.map(async (app) => {
+        const assignment = await Assignment.query()
+          .where('studentNumber', app.studentNumber)
+          .whereHas('room', (r) => r.where('accommodationId', app.accommodationId))
+          .preload('room')
+          .first()
+
+        return {
+          ...app.toJSON(),
+          assignment: assignment ? assignment.toJSON() : null,
+        }
+      })
+    )
+
+    return results
   }
 }

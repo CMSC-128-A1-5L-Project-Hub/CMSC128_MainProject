@@ -8,6 +8,7 @@ import { DateTime } from 'luxon'
 export default class WaitlistWorkflowService {
   constructor(protected notificationService: NotificationService) {}
 
+  // ─── Called when landlord approves an application ───
   async processApproval(applicationId: number) {
     const application = await Application.query()
       .where('id', applicationId)
@@ -23,6 +24,7 @@ export default class WaitlistWorkflowService {
       .preload('tags')
       .select('*')
 
+    // Apply tenant restriction (gender)
     const accRestriction = application.accommodation.tenantRestriction
     const studentGender = application.student.gender
     const eligibleRooms = matchingRooms.filter(room => {
@@ -69,6 +71,7 @@ export default class WaitlistWorkflowService {
     return application
   }
 
+  // ─── Called when a slot confirmation deadline expires ───
   async processSlotExpiry(applicationId: number) {
     const application = await Application.query()
       .where('id', applicationId)
@@ -85,10 +88,12 @@ export default class WaitlistWorkflowService {
     await this.promoteNextWaitlisted(application.accommodationId)
   }
 
+  // ─── Called when a room becomes free after move-out ───
   async processMoveOut(accommodationId: number, room?: Room) {
     await this.promoteNextWaitlisted(accommodationId, room)
   }
 
+  // ─── Called when a waitlisted student cancels their application ───
   async processWaitlistCancellation(applicationId: number) {
     const application = await Application.query()
       .where('id', applicationId)
@@ -107,6 +112,10 @@ export default class WaitlistWorkflowService {
     )
   }
 
+  // ─── Promote next waitlisted applicant ───
+  // When a room is supplied, candidates are filtered by matching stay/room type
+  // and ranked by tag overlap with the freed room's tags (highest match wins;
+  // application date breaks ties — older first). Without a room, falls back to FIFO.
   private async promoteNextWaitlisted(accommodationId: number, room?: Room) {
     let query = Application.query()
       .where('accommodation_id', accommodationId)
@@ -127,9 +136,17 @@ export default class WaitlistWorkflowService {
     if (room && candidates.length > 1) {
       const roomTags = room.tags?.map(t => t.tagDetail) ?? []
       const scored = candidates.map(candidate => {
-        const preferredTags: string[] = Array.isArray(candidate.preferredTags)
-          ? candidate.preferredTags
-          : (typeof candidate.preferredTags === 'string' ? JSON.parse(candidate.preferredTags) : [])
+        let preferredTags: string[] = []
+        if (Array.isArray(candidate.preferredTags)) {
+          preferredTags = candidate.preferredTags
+        } else if (typeof candidate.preferredTags === 'string') {
+          try {
+            const parsed = JSON.parse(candidate.preferredTags)
+            preferredTags = Array.isArray(parsed) ? parsed : []
+          } catch {
+            preferredTags = []
+          }
+        }
         const matchCount = preferredTags.filter(tag => roomTags.includes(tag)).length
         return { candidate, matchCount }
       })

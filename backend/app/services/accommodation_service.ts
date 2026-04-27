@@ -7,6 +7,7 @@ export class AccommodationService {
       .preload('images')
       .preload('tags')
       .preload('rooms', (roomQuery) => {
+        // Apply hard filters to rooms (type, stay type, price range)
         if (filters.roomType) {
           roomQuery.where('roomType', filters.roomType)
         }
@@ -19,9 +20,10 @@ export class AccommodationService {
         if (filters.maxPrice) {
           roomQuery.where('roomRent', '<=', filters.maxPrice)
         }
-        // tags are NOT applied here – soft matching later
+        // tags are NOT applied here — handled softly in application code
       })
 
+    // Hard requirement: accommodation must have at least one room matching type/stay/price
     if (filters.roomType || filters.stayType || filters.minPrice || filters.maxPrice) {
       query = query.whereHas('rooms', (roomQuery) => {
         if (filters.roomType) roomQuery.where('roomType', filters.roomType)
@@ -31,6 +33,7 @@ export class AccommodationService {
       })
     }
 
+    // Accommodation-level filters
     if (filters.dormType) {
       query = query.where('accommodationType', filters.dormType)
     }
@@ -40,6 +43,7 @@ export class AccommodationService {
 
     const accommodations = await query
 
+    // Soft tag matching — compute startingPrice and a full-match flag
     const requestedTags: string[] =
       filters.tags && Array.isArray(filters.tags) && filters.tags.length > 0
         ? filters.tags
