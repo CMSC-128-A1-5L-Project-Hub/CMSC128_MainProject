@@ -4,6 +4,8 @@ import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
 import GradientPillSelect from "../../components/DropDownGradient.tsx";
 
+//
+
 
 //MapBox Imports
 import Map, { Marker, NavigationControl, Source, Layer } from 'react-map-gl'
