@@ -651,7 +651,12 @@ export default function Waitlist() {
             {/* FOOTER */}
             <div className="flex items-center justify-between px-4 py-3 border-t border-[#F5ECF0]">
                 <p className="text-xs text-[#9A7080]">
-                    Showing {sorted.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + HISTORY_PER_PAGE, sorted.length)} of {sorted.length} records
+                {filtered.length === 0
+                    ? "No results"
+                    : `Showing ${startIndex + 1}–${Math.min(
+                        startIndex + HISTORY_PER_PAGE,
+                        filtered.length
+                    )} of ${filtered.length}`}
                 </p>
                 <div className="flex items-center justify-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (

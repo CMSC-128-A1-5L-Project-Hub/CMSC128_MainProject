@@ -200,65 +200,63 @@ export default function MoveinMoveout() {
                         </button>
                     ))}
                 </div>
+                
 
-                <Card>
+               <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
                     {/*HEADER (TITLE + SERACG */}
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start justify-between p-4 border-b">
                         <div className="flex flex-col gap-1">
-                            <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">
-                                Move in &amp; Move out History
+                            <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight whitespace-nowrap">
+                            Move in &amp; Move out
+                            <br />
+                            History
                             </h2>
                             <p className="text-xs text-gray-400">
                                 {filtered.length} total move {filter === "all" ? "outs" : filter === "move-out" ? "outs" : "ins"}
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 bg-white">
-                            <svg className="w-4 h-4 text-[#9A7080] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-                            </svg>
+                        <div className="relative w-[130px] sm:w-[180px]">
+                            <svg
+                                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A36F82]"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={2.5}
+                                viewBox="0 0 24 24"
+                                >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                                </svg>
                             <input
                                 type="text"
-                                placeholder="Search applications..."
+                                placeholder="Search..."
                                 value={search}
                                 onChange={handleSearch}
-                                className="text-sm outline-none bg-transparent text-[#1A0008] placeholder-[#C4A4B0] w-44"
+                                className="w-full min-w-0 h-10 bg-white border border-[#E8D5DC] rounded-xl pl-8 pr-7 text-sm text-[#3D0718] placeholder:text-[#C7A7B3] focus:outline-none focus:bg-[#F5ECF0] transition-all duration-200"
                             />
                         </div>
                     </div>
 
                     {/* TABLE HEADER */}
-                    <div className="flex border-b border-[#F5ECF0] uppercase pb-1 mb-1">
-                        <p className="basis-[26%] text-[#9A7080] text-xs font-bold p-1">Students</p>
-                        <p className="basis-[20%] text-[#9A7080] text-xs font-bold p-1 flex items-center gap-1">
-                            Room
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </p>
-                        <p className="basis-[22%] text-[#9A7080] text-xs font-bold p-1 flex items-center gap-1">
-                            Room Type
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </p>
-                        <p className="basis-[20%] text-[#9A7080] text-xs font-bold p-1 flex items-center gap-1">
-                            Date
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </p>
-                        <p className="basis-[10%] text-[#9A7080] text-xs font-bold p-1 flex items-center gap-1">
-                            Type
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </p>
+                        <div className="w-full overflow-x-auto">
+                            <div className="min-w-[900px]">
+
+                                {/* TABLE HEADER */}
+                                <div className="grid grid-cols-12 bg-gray-50 border-b border-[#F5ECF0] uppercase">
+                                <p className="col-span-3 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Students</p>
+                                <p className="col-span-2 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Room</p>
+                                <p className="col-span-3 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Room Type</p>
+                                <p className="col-span-3 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Date</p>
+                                <p className="col-span-1 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Type</p>
+                                </div>
                     </div>
 
                     {/* ROWS */}
                     <div className="flex flex-col divide-y divide-[#F5ECF0]">
-                        {/* 1. LOADING STATE */}
+                        {/* LOADING STATE */}
                         {isLoadingList && (
                             <div className="py-10 text-center">
                                 <div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-[#9E2040] rounded-full" role="status">
@@ -268,7 +266,7 @@ export default function MoveinMoveout() {
                             </div>
                         )}
 
-                        {/* 2. ERROR STATE */}
+                        {/* ERROR STATE */}
                         {isErrorList && (
                             <div className="py-10 text-center">
                                 <p className="text-sm text-red-600 font-medium">Failed to load data.</p>
@@ -281,7 +279,7 @@ export default function MoveinMoveout() {
                             </div>
                         )}
 
-                        {/* 3. SUCCESS STATE */}
+                        {/* SUCCESS STATE */}
                         {!isLoadingList && !isErrorList && (
                             paginated.length > 0 ? paginated.map((record, i) => {
                                 const diffMoveIn = diffFromNow(record.moveIn);
@@ -291,11 +289,11 @@ export default function MoveinMoveout() {
                                 return (
                                     <div
                                         key={i}
-                                        className={`flex items-center py-3 rounded-lg px-1 transition
+                                        className={`grid grid-cols-12 items-center transition
                                             ${isMoveIn ? "" : "bg-[#FDF4F7]"}`}
                                     >
                                         {/* STUDENT */}
-                                        <div className="basis-[26%] flex items-center gap-3">
+                                        <div className="col-span-3 px-4 py-3 flex items-center gap-3">
                                             <div
                                                 className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
                                                 style={avatarStyle(isMoveIn ? 'move-in' : 'move-out')}
@@ -308,13 +306,13 @@ export default function MoveinMoveout() {
                                         </div>
 
                                         {/* ROOM */}
-                                        <div className="basis-[20%] flex flex-col">
+                                        <div className="col-span-2 px-4 py-3 flex flex-col">
                                             <span className="text-sm text-[#1A0008]">{record.room.roomNumber}</span>
                                             <span className="text-xs text-[#9A7080]">{record.room.roomBuilding}</span>
                                         </div>
 
                                         {/* ROOM TYPE */}
-                                        <div className="basis-[22%] flex flex-col">
+                                        <div className="col-span-3 px-4 py-3 flex flex-col">
                                             <span className="text-sm text-[#1A0008] capitalize">
                                                 {record.room.roomStayType.replace('_', ' ')}
                                             </span>
@@ -322,7 +320,7 @@ export default function MoveinMoveout() {
                                         </div>
 
                                         {/* DATE */}
-                                        <div className="basis-[20%] flex flex-col">
+                                        <div className="col-span-2 px-4 py-3 flex flex-col">
                                             <span className="text-sm text-[#1A0008]">
                                                 {isMoveIn ? record.moveIn.toLocaleString() : record.expectedMoveOut.toLocaleString()}
                                             </span>
@@ -336,7 +334,7 @@ export default function MoveinMoveout() {
                                         </div>
 
                                         {/* MOVE TYPE */}
-                                        <div className="basis-[10%]">
+                                        <div className="col-span-1 px-4 py-3">
                                             <span className={`text-sm font-medium capitalize ${isMoveIn ? "text-[#1A0008]" : "text-[#9E2040]"}`}>
                                                 {isMoveIn ? "Move-in" : "Move-out"}
                                             </span>
@@ -348,11 +346,17 @@ export default function MoveinMoveout() {
                             )
                         )}
                     </div>
+                    
 
                     {/* FOOTER */}
-                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#F5ECF0]">
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-[#F5ECF0]">
                         <p className="text-xs text-[#9A7080]">
-                            Showing {filtered.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + RECORDS_PER_PAGE, filtered.length)} of {filtered.length} applications
+                        {filtered.length === 0
+                            ? "No results"
+                            : `Showing ${startIndex + 1}–${Math.min(
+                                startIndex + RECORDS_PER_PAGE,
+                                filtered.length
+                            )} of ${filtered.length}`}
                         </p>
                         <div className="flex items-center gap-1">
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -378,8 +382,9 @@ export default function MoveinMoveout() {
                             )}
                         </div>
                     </div>
-                </Card>
+                 </div>
             </div>
+         </div>
         )
     }
 
