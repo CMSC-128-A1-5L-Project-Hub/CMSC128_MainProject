@@ -2,6 +2,7 @@ import { useState } from "react";
 
 interface PhotoCarouselProps {
     photos: string[];
+    hidden?: boolean;
 }
 
 const LeftArrowIcon = () => (
@@ -12,11 +13,11 @@ const RightArrowIcon = () => (
     <svg fill="#ffffff" height="200px" width="200px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512.005 512.005" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M388.418,240.923L153.751,6.256c-8.341-8.341-21.824-8.341-30.165,0s-8.341,21.824,0,30.165L343.17,256.005 L123.586,475.589c-8.341,8.341-8.341,21.824,0,30.165c4.16,4.16,9.621,6.251,15.083,6.251c5.461,0,10.923-2.091,15.083-6.251 l234.667-234.667C396.759,262.747,396.759,249.264,388.418,240.923z"></path> </g> </g> </g></svg>
 );
 
-export default function PhotoCarousel({photos} : PhotoCarouselProps) {
+export default function PhotoCarousel({photos, hidden} : PhotoCarouselProps) {
 const [currentPhoto, setCurrentPhoto] = useState(0);
 
     return (
-        <div className="relative w-full mb-3 h-40 overflow-hidden rounded-xl border-0 bg-gray-100">
+        <div className={`${hidden ? "hidden" : ""} relative w-full h-40 overflow-hidden rounded-xl border-0 bg-gray-100`}>
             {photos.length === 0 ? (
                 <div className="w-full h-full flex items-center justify-center text-[#9A7080] text-[12px]">
                     No photos available

@@ -9,23 +9,30 @@ const statusStyles: Record<string, { bg: string; dot: string; text: string }> = 
     rejected:     { bg: '#6B0F2B', dot: '#9E2040', text: '#9E2040' },
     waitlisted:   { bg: '#3A6AB7', dot: '#3A6AB7', text: '#3A6AB7' },
     cancelled:    { bg: '#888888', dot: '#888888', text: '#888888' },
+    confirmed:    { bg: '#1A7A4A', dot: '#1A7A4A', text: '#1A7A4A' },
 };
 
 interface StylizedStatusProps {
-    status: 'paid' | 'unpaid' | 'overdue' | 'partial' | 'approved' | 'pending' | 'under_review' | 'rejected' | 'waitlisted' | 'cancelled';
+    status: "pending" | "under_review" | "approved" | "rejected" | "waitlisted" | "cancelled" | "confirmed" | 'paid' | 'unpaid' | 'overdue' | 'partial' ;
+    size?: "sm" | "md"
 }
 
-export default function StylizedStatus({status}:StylizedStatusProps){
+const sizeStyles: Record<string, { dot: string; text: string }> = {
+    sm: {dot: "w-1.5 h-1.5", text: "text-[11px]"},
+    md: {dot: "w-2 h-2", text: "text-[12px]"},
+}
+
+export default function StylizedStatus({status, size = "md"}:StylizedStatusProps){
     const style = statusStyles[status];
     return (
         <div className='bg-opacity-10 p-2 w-fit h-fit capitalize rounded-[50px] flex flex-row items-center justify-center'
             style = {{ backgroundColor: (style?.bg ?? '#F0F0F0')  + '1A' }}
         >
-            <div className='w-2 h-2 mx-1 rounded-[100px]'
+            <div className={`${sizeStyles[size].dot} mx-1 rounded-[100px]`}
                 style = {{ backgroundColor: style?.dot ?? '#888' }}
             />
             <p 
-            className='text-[12px]'
+            className={`${sizeStyles[size].text}`}
             style = {{ color: style?.text ?? '#888',
                 fontWeight: 'bold',
             }}>{status.replace('_', ' ')}</p>

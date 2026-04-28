@@ -2,6 +2,13 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Modal from "./Modal";
 import type { ApplicationStatus } from "../pages/student/ApplicationStatus";
+import StylizedStatus from "./BillingDashboard/StylizedStatus";
+import ApprovalProgress from "./ApplicationStatus/ApprovalProgress";
+import PhotoCarousel from "./ApplicationStatus/PhotoCarousel";
+import Photo1 from "../assets/images/forManager.png";
+import Photo2 from "../assets/images/phone.png";
+import Photo3 from "../assets/images/sample_dorm.jpg";
+import RightArrow from "../assets/icons/right-arrow.svg";
 
 export interface Application {
     id: number;
@@ -35,6 +42,8 @@ interface ApplicationStatusModalProps {
 export default function ApplicationStatusModal({ open, onClose, application }: ApplicationStatusModalProps) {
   const queryClient = useQueryClient();
   const [cancelConfirmation, setCancelConfirmation] = useState("");
+  const [carouselOpen, setCarouselOpen] = useState(false);
+  const accommodationPhotos = [Photo1, Photo2, Photo3];
 
   // Fetch accommodation details
   const { data: accomData, isLoading } = useQuery({
@@ -95,7 +104,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const modalFooter = (
     <div className="flex flex-col gap-3 w-full">
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] text-gray-400 font-semibold">
+        <label className="text-[12px] text-gray-400 font-semibold">
           Type <span className="font-mono font-bold">"CANCEL"</span> to confirm cancellation
         </label>
         <input
@@ -112,15 +121,15 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
         </span>
         <div className="flex gap-2">
           <button
-            className="bg-[#8C1535] text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-[#6B0F2B] transition-colors"
+            className="bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] border-0 hover:-translate-y-px hover:scale-105 active:scale-95 cursor-pointer text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-[#6B0F2B] transition-all"
             onClick={() => console.log("Accept clicked")}
           >
             Accept
           </button>
           <button
-            className={`px-6 py-2 rounded-full font-bold text-sm transition-colors ${
+            className={`px-6 py-2 rounded-full font-bold text-sm  ${
               cancelConfirmation === "CANCEL" && !cancelMutation.isPending
-                ? "bg-gray-600 text-white hover:bg-gray-700 cursor-pointer"
+                ? " bg-gradient-to-br from-[#F3C9D9] to-[#3D2E2E] border-0 hover:-translate-y-px hover:scale-105 active:scale-95 text-white cursor-pointer transition-all"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
             onClick={() => cancelConfirmation === "CANCEL" && cancelMutation.mutate()}
@@ -135,141 +144,98 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
 
   return (
     <Modal open={open} onClose={onClose} title="APPLICATION STATUS" footer={modalFooter} maxWidth={600}>
-      <div className="space-y-8 font-sans">
-        {/* Header: Dorm Info & Rate */}
-        <div className="flex justify-between items-start">
-          <div className="flex gap-4">
-            {imageUrl ? (
-            <img
-                src={imageUrl}
-                alt="Dorm"
-                className="w-24 h-16 object-cover rounded-xl flex-shrink-0 border border-gray-100"
-            />
-            ) : (
-            <div className="w-24 h-16 rounded-xl flex-shrink-0 bg-gradient-to-br from-[#F8F1F3] to-[#EFE7EA] border border-[#E8DADF] flex flex-col items-center justify-center shadow-sm">
-                <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5 text-[#8C1535] mb-1 opacity-70"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-                >
-                <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 20h18M5 20V8l7-4 7 4v12M9 20v-5h6v5"
-                />
-                </svg>
-                <span className="text-[9px] font-semibold tracking-wide text-[#8C1535] opacity-75 uppercase">
-                No Image
-                </span>
+      <div className="font-sans">
+        <PhotoCarousel 
+          hidden={!carouselOpen}
+          photos={accommodationPhotos}/>
+        <div className={`${carouselOpen ? "mt-4" : "mt-0"} flex flex-row w-full gap-3`}>
+            <button 
+            onClick={()=> setCarouselOpen(!(carouselOpen))}
+            className={`${carouselOpen ? "w-10" : "w-1/5 opacity-100"} transition-all p-0 overflow-hidden relative min-w-0 self-stretch bg-gradient-to-br from-[#3D0718] to-[#8C1535]`}>
+              <span className={`${carouselOpen ? "hidden" : ""} absolute top-8 left-4 w-1/2 h-[6px] bg-white/30 rounded-full`}></span>
+              <span className={`${carouselOpen ? "hidden" : ""} absolute top-4 left-4 w-1/3 h-[6px] bg-white/20 rounded-full`}></span>
+              <img src={RightArrow} className={`${carouselOpen ? "" : "hidden"} "w-10 h-10 opacity-50"`} alt="" />
+            </button>
+            <div className="flex flex-col flex-1 min-w-0">
+                <h3 className="font-bold text-lg text-gray-900 leading-tight">
+                    {application.accommodation?.accommodationName || "Unknown Dormitory"}
+                </h3>
+                <p className="text-xs text-[#9A7080] mt-0.5 capitalize">
+                    {application.accommodation?.accommodationType?.replace("_", "-") || "Unknown"} • {application.applicationRoomType} • {application.accommodation?.accommodationLocation}
+                </p>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                    {isLoading ? (
+                        <span className="bg-gray-100 text-[#9A7080] text-[10px] px-1 py-0.5 rounded-full font-bold">Loading tags...</span>
+                    ) : (
+                        accomData?.tags?.map((tag: any) => (
+                            <span key={tag.id} className="bg-[#FDF2F4] text-[#8C1535] text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                {tag.tagDetail}
+                            </span>
+                        ))
+                    )}
+                </div>
             </div>
-            )}
-            <div>
-              <h3 className="font-bold text-lg text-gray-900 leading-tight">
-                {application.accommodation?.accommodationName || "Unknown Dormitory"}
-              </h3>
-              <p className="text-xs text-gray-500 mt-1 capitalize">
-                {application.accommodation?.accommodationType?.replace("_", "-") || "Unknown"} • {application.applicationRoomType}
-              </p>
-              <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="flex flex-col flex-shrink-0 items-end">
+                <p className="text-[#9A7080] uppercase font-bold text-[12px] mb-1">Monthly Rate</p>
                 {isLoading ? (
-                  <span className="bg-gray-100 text-gray-400 text-[10px] px-2 py-0.5 rounded-full font-bold">Loading tags...</span>
+                    <div className="h-6 w-20 bg-gray-200 rounded animate-pulse"></div>
                 ) : (
-                  accomData?.tags?.map((tag: any) => (
-                    <span key={tag.id} className="bg-[#FDF2F4] text-[#8C1535] text-[10px] px-2 py-0.5 rounded-full font-bold">
-                      {tag.tagDetail}
-                    </span>
-                  ))
+                    <p className="font-bold text-2xl text-[#C9973A] leading-none">{formattedRate}</p>
                 )}
-              </div>
+                <p className="text-[11px] text-[#9A7080] mt-1">per month</p>
             </div>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Monthly Rate</p>
-            {isLoading ? (
-              <div className="h-6 w-20 bg-gray-200 rounded animate-pulse ml-auto"></div>
-            ) : (
-              <p className="font-bold text-2xl text-[#C9973A] leading-none">{formattedRate}</p>
-            )}
-            <p className="text-[10px] text-gray-400 mt-1">per month</p>
-          </div>
         </div>
 
         {/* Timeline Status */}
-        <div className="flex items-center justify-between relative px-4">
-          <div className="absolute top-4 left-8 right-8 h-0.5 bg-gray-200 -z-10"></div>
-          <div className="flex flex-col items-center bg-white px-2">
-            <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">✓</div>
-            <p className="font-bold text-[11px] mt-2 text-green-700">Submitted</p>
-            <p className="text-[10px] text-gray-400">
-              {new Date(application.applicationDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-            </p>
-          </div>
-          <div className="flex flex-col items-center bg-white px-2">
-            <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">✓</div>
-            <p className="font-bold text-[11px] mt-2 text-green-700">Pending</p>
-          </div>
-          <div className="flex flex-col items-center bg-white px-2">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm ${
-              application.applicationStatus === "under_review" || application.applicationStatus === "approved" || application.applicationStatus === "confirmed"
-                ? "bg-green-600 text-white font-bold"
-                : "bg-white border-2 border-gray-200 text-transparent"
-            }`}>✓</div>
-            <p className={`font-bold text-[11px] mt-2 ${
-              application.applicationStatus === "under_review" || application.applicationStatus === "approved" || application.applicationStatus === "confirmed"
-                ? "text-green-700"
-                : "text-gray-400"
-            }`}>Under Review</p>
-          </div>
+        <div className="my-2 mt-4">
+          <ApprovalProgress
+            app= {application}
+            />
         </div>
 
         {/* Application Information Grid */}
-        <div>
-          <h4 className="text-[10px] font-bold text-[#6B0F2B] uppercase tracking-wider mb-4">Application Information</h4>
+        <div className="mb-2">
+          <h4 className="uppercase pt-3 font-bold text-[12px] text-[#6B4050]">Application Information</h4>
           <div className="grid grid-cols-3 gap-y-6 gap-x-4 text-sm">
-            <div>
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Application ID</p>
-              <p className="font-bold text-gray-900">{application.id}</p>
+            <div className='flex flex-col'>
+              <p className='uppercase font-bold text-[11px] text-[#6B4050]'>application id</p>
+              <p className='font-bold truncate text-[13px] -mt-1'>{application.id}</p>
+            </div>
+            <div className='flex flex-col'>
+              <p className="uppercase font-bold text-[11px] text-[#6B4050]">Stay Duration</p>
+              <p className="font-bold text-[13px] -mt-1">{application.durationOfStayDays} Days</p>
             </div>
             <div>
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Stay Duration</p>
-              <p className="font-bold text-gray-900">{application.durationOfStayDays} Days</p>
+              <p className="uppercase font-bold text-[11px] text-[#6B4050]">Current Status</p>
+              <StylizedStatus
+                  status = {application.applicationStatus.replace("_", " ") as ApplicationStatus} />
             </div>
             <div>
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Current Status</p>
-              <span className="inline-flex bg-green-50 text-green-700 px-2 py-0.5 rounded font-bold text-[11px] capitalize">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5 my-auto"></span>
-                {application.applicationStatus.replace("_", " ")}
-              </span>
-            </div>
-            <div>
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Date Applied</p>
-              <p className="font-bold text-gray-900">
+              <p className="uppercase font-bold text-[11px] text-[#6B4050]">Date Applied</p>
+              <p className="font-bold text-[13px] -mt-1">
                 {new Date(application.applicationDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               </p>
             </div>
             <div>
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Reviewed By</p>
-              <p className="font-bold text-gray-900">
+              <p className="uppercase font-bold text-[11px] text-[#6B4050]">Reviewed By</p>
+              <p className="font-bold text-[13px] -mt-1">
                 {accomData?.manager?.user?.fname 
                   ? `${accomData.manager.user.fname} ${accomData.manager.user.lname}` 
                   : "—"}
               </p>
             </div>
             <div>
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Reviewed On</p>
-              <p className="font-bold text-gray-900">
+              <p className="uppercase font-bold text-[11px] text-[#6B4050]">Reviewed On</p>
+              <p className="font-bold text-[13px] -mt-1">
                 {application.reviewedAt 
                   ? new Date(application.reviewedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                   : "—"}
               </p>
             </div>
-            <div className="col-span-3">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Assigned Room</p>
+            <div className="col-span-3 mt-6">
+              <p className="uppercase font-bold text-[11px] text-[#6B4050]">Assigned Room</p>
               {/* Assignment info is handled in the Assignment model natively, so typically "Pending" while an app is being processed */}
-              <p className="font-bold text-gray-900">
+              <p className="font-bold text-[13px] -mt-1">
                 {application.applicationStatus === "confirmed" ? "Check My Stays Tab" : "Pending Assignment"}
               </p>
             </div>
@@ -278,8 +244,8 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
 
         {/* Remarks */}
         <div>
-          <p className="text-[10px] text-gray-400 uppercase font-bold mb-2">Remarks</p>
-          <div className="bg-[#FCFAFA] border border-gray-100 rounded-xl p-3">
+          <p className="uppercase pb-1 pt-3 font-bold text-[12px] text-[#6B4050]">Landlord Remarks</p>
+          <div className="w-full h-30 text-[11px] border-2 border-[#6B0F2B] border-opacity-5 rounded-xl p-2 text-[#9A7080] bg-[#FAF4F6]">
             {application.rejectionReason ? (
                 <p className="text-sm text-gray-800">{application.rejectionReason}</p>
             ) : (
