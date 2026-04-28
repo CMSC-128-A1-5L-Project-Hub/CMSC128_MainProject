@@ -17,7 +17,7 @@ interface BillingModalProps {
 export default function BillingModal({bill, onClose, onSubmit}: BillingModalProps){
     const [paymentMethod, setPaymentMethod] = useState("");
     const [confirmText, setConfirmText] = useState("");
-    const [cashAmount, setCashAmount] = useState<number>();
+    const [cashAmount, setCashAmount] = useState("");
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [infoOpen, setInfoOpen] = useState(false);
     
@@ -99,8 +99,11 @@ export default function BillingModal({bill, onClose, onSubmit}: BillingModalProp
                         <p className={`uppercase font-bold text-[#6B4050] text-[13px] mt-2`}>amount paid</p>
                         <input 
                             value = {cashAmount}
-                            onChange={(e) => setCashAmount(Number(e.target.value))}
-                            className={`text-[14px] mt-2 p-4 placeholder-[#C8B0B8] text-[#6B4050] w-full h-12 border-2 border-[#C8B0B8] rounded-xl`} 
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (!isNaN(Number(val))) setCashAmount(val);
+                            }}
+                            className={`transition-transform duration-150 active:scale-95 hover:-translate-y-0.5 focus:outline-none focus:border-[#6B0F2B] text-[14px] mt-2 p-4 placeholder-[#C8B0B8] text-[#6B4050] w-full h-12 border-2 border-[#C8B0B8] rounded-xl`} 
                             type="text" 
                             inputMode="numeric"
                             pattern="[0-9]*"

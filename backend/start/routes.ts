@@ -197,3 +197,11 @@ router
       router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
   })
   .use(middleware.auth())
+
+
+// ====================================================================
+// DEV ROUTES
+// ====================================================================
+if (process.env.NODE_ENV === 'development') {
+  router.get('/dev/login', [controllers.Auth, 'devLogin'])
+}
