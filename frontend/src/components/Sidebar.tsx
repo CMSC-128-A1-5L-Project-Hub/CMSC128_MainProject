@@ -337,7 +337,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
 
 
     if (role === "landlordDashboard") {
-      if (path.includes("/landlord/dashboard")) setActive("dashboard");
+      if (path.includes("/landlord/accommodations")) setActive("dashboard");
       else if (path.includes("/room")) setActive("room");
       else if (path.includes("/application")) setActive("application");
       else if (path.includes("/fees")) setActive("fees");
@@ -358,19 +358,19 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     switch (role) {
       case "student":
         return [
-          { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" />,          path: "/student/dashboard",     label: "Dashboard" },
-          { id: "search",       icon: <SearchIcon      className="w-[21px] h-[21px]" />, path: "/browse",        label: "Browse Rooms" },
+          { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" />,           path: "/student/dashboard",          label: "Dashboard" },
+          { id: "search",       icon: <SearchIcon      className="w-[21px] h-[21px]" />, path: "/browse",                     label: "Browse Rooms" },
           { id: "applications", icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/student/applicationstatus",  label: "Applications" },
-          { id: "documents",    icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/documents",     label: "Documents" },
+          { id: "documents",    icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/student/billingdashboard",   label: "Billing Statements" },
         ];
       case "landlord":
         return [
-          { id: "dashboard", icon: <DashboardIcon className="w-5 h-5" />, path: "/landlord/manage/accommodation", label: "Dashboard" },
+          { id: "dashboard", icon: <DashboardIcon className="w-5 h-5" />, path: "/landlord/dashboard", label: "Dashboard" },
         ];
       case "landlordDashboard":
         return [
           { id: "dashboard",   icon: <DashboardIcon        className="w-5 h-5" />,   path: "/landlord/dashboard", label: "Dashboard" },
-          { id: "room",        icon: <MdOutlineMeetingRoom className="w-6 h-6" />,   path: "/landlord/rooms",                    label: "Rooms" },
+          { id: "room",        icon: <MdOutlineMeetingRoom className="w-6 h-6" />,   path: "/landlord/rooms",     label: "Rooms" },
           { id: "application", icon: <BsUiChecks           className="w-5 h-5" />,   path: "",                    label: "Applications & Waitlisted" },
           { id: "fees",        icon: <PiCashRegister       className="w-6 h-6" />,   path: "",                    label: "Fees" },
         ];

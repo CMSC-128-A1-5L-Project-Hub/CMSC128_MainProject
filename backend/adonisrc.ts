@@ -29,6 +29,7 @@ export default defineConfig({
     () => import('@adonisjs/lucid/commands'),
     () => import('@adonisjs/session/commands'),
     () => import('@adonisjs/mail/commands'),
+    () => import('adonisjs-scheduler/commands')
   ],
 
   /*
@@ -54,10 +55,13 @@ export default defineConfig({
     () => import('@adonisjs/lucid/database_provider'),
     () => import('@adonisjs/cors/cors_provider'),
     () => import('@adonisjs/auth/auth_provider'),
-    () => import('#providers/api_provider'),
     () => import('@adonisjs/ally/ally_provider'),
     () => import('@adonisjs/mail/mail_provider'),
-    () => import('@adonisjs/limiter/limiter_provider')
+    () => import('@adonisjs/limiter/limiter_provider'),
+    {
+      file: () => import('adonisjs-scheduler/scheduler_provider'),
+      environment: ['console'],
+    }
   ],
 
   /*
@@ -73,6 +77,10 @@ export default defineConfig({
     () => import('#start/kernel'),
     () => import('#start/validator'),
     () => import('#start/limiter'),
+    {
+      file: () => import('#start/scheduler'),
+      environment: ['console'],
+    }
   ],
 
   /*

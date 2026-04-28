@@ -18,10 +18,7 @@ export default class NotificationsController {
             .where('userId', user.id)
             .orderBy('notificationTimestamp', 'desc')
 
-            return response.ok({
-            message: 'Notifications retrieved successfully',
-            data: notifications,
-            })
+            return response.ok(notifications)
         } catch (error: any) {
             console.error('Error fetching notifications:', error.message)
 
@@ -68,10 +65,7 @@ export default class NotificationsController {
             // save changes to database
             await notification.save()
 
-            return response.ok({
-            message: 'Notification updated successfully',
-            data: notification,
-            })
+            return response.ok(notification)
         } catch (error: any) {
             console.error('Error fetching notifications:', error.message)
 

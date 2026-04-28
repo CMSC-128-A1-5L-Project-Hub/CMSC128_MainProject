@@ -18,13 +18,10 @@ export default class BookmarkController {
             q.preload('rooms')
         })
 
-    return response.ok({
-        status: 200,
-        data: bookmark.map((b) => ({
+    return response.ok(bookmark.map((b) => ({
         bookmarkId: b.id,
         accommodation: b.accommodation.serialize(),
-        })),
-    })
+    })))
     }
 
     // Student: toggle bookmark (add if not bookmarked, remove if already bookmarked)

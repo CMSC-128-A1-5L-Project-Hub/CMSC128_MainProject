@@ -721,16 +721,20 @@ export default function Dashboard() {
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
 
-  const {data: user,
+  const {
+    data: user,
     isLoading: isUserLoading,
-    isError,
-    } = useQuery({
-    queryKey: ["me"],
+    isError, // removed the redundant isError: isError
+  } = useQuery({
+    queryKey: ["me"], // if this has a different queryKey, keep yours
     queryFn: async () => {
+      try {
         const res = await api.get("/me");
-        return res.data.data;
+        return res.data;
     },
-    });
+    // prevents React Query from retrying a failed auth check multiple times
+    retry: false, 
+  });
 
 
     useEffect(() => {
@@ -740,7 +744,7 @@ export default function Dashboard() {
         console.log("GET /profile:", res.data);
 
 
-        setProfile(res.data.data ?? res.data);
+        setProfile(res.data);
         } catch (error) {
         console.error("Failed to fetch student profile:", error);
         } finally {
@@ -774,7 +778,7 @@ export default function Dashboard() {
         console.log("applications:", res.data);
 
 
-        const data = res.data.data ?? res.data;
+        const data = res.data;
 
 
         // count pending
@@ -801,7 +805,7 @@ export default function Dashboard() {
         console.log("notifications:", res.data);
 
 
-        const data = res.data.data ?? res.data;
+        const data = res.data;
 
 
         // unread count (optional)

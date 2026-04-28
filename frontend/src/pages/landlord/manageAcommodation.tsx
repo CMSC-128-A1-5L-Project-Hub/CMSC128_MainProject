@@ -31,7 +31,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
         <Button
           className={`mt-4 w-full ${isUnderReview ? "opacity-50 cursor-not-allowed" : ""}`}
           disabled={isUnderReview}
-          onClick={() => navigate(`/landlord/dashboard/${accommodation.id}`)}
+          onClick={() => navigate(`/landlord/accommodations/${accommodation.id}`)}
         >
           Manage →
         </Button>
@@ -326,7 +326,7 @@ const ManageAccommodationDashboard: React.FC = () => {
     queryKey: ['me'],
     queryFn: async () => {
       const res = await api.get('/me')
-      return res.data.data
+      return res.data
     }
   })
 
@@ -335,7 +335,7 @@ const ManageAccommodationDashboard: React.FC = () => {
     queryKey: ['landlord-accommodations'],
     queryFn: async () => {
       const res = await api.get('/landlord/accommodations')
-      return res.data.data.data ?? []
+      return res.data ?? []
     },
     staleTime: 0
   })

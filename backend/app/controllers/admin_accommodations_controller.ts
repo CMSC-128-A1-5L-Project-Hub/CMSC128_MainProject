@@ -7,15 +7,15 @@ import NotificationService from '#services/notification_service'
 export default class AdminAccommodationsController {
   constructor(protected notificationService: NotificationService) {}
 
-  async index({ serialize }: HttpContext) {
+  async index({ response }: HttpContext) {
     const accommodations = await Accommodation.query()
       .where('status', 'pending')
       .preload('landlord', (q) => q.preload('user'))
 
-    return serialize(accommodations)
+    return response.ok(accommodations)
   }
 
-  async verify({ params, request, serialize }: HttpContext) {
+  async verify({ params, request, response }: HttpContext) {
     const { status } = request.all()
     const accommodation = await Accommodation.findOrFail(params.id)
     accommodation.status = status
@@ -32,6 +32,6 @@ export default class AdminAccommodationsController {
       }
     }
 
-    return serialize(accommodation)
+    return response.ok(accommodation)
   }
 }

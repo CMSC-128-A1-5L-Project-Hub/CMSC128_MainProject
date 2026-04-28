@@ -19,7 +19,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { create } from "zustand";
 import { api } from "../../api/axios";
 import Sidebar from "../../components/Sidebar";
-import { useEffect } from "react";
+import { useUserStore } from '../../stores/useUserStore'
 
 const CLR = {
   dark:   "#3D0718",
@@ -30,7 +30,7 @@ const CLR = {
   goldDk: "#a07825",
 } as const;
 
-// Types and interfaces for API data and component state
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface UserProfile {
   id: number;
@@ -73,15 +73,14 @@ interface AccommodationHistoryItem {
 }
 
 interface ProfileEditFields {
-  college: string;
-  degreeProgram: string;
-  facebookAccount: string;
-  emergencyContactNumber: string;
-  emergencyContactName: string;
-  gender: string;
+  primaryPhone: string        
+  secondaryPhone: string      
+  facebookAccount: string
+  emergencyContactNumber: string
+  emergencyContactName: string
 }
 
-// Zustand store for edit-form state 
+// ─── Zustand store for edit-form state ───────────────────────────────────────
 
 interface ProfileEditStore {
   isEditing: boolean;
@@ -97,12 +96,11 @@ const useProfileStore = create<ProfileEditStore>((set) => ({
   isEditing: false,
   showHistory: false,
   form: {
-    college: "",
-    degreeProgram: "",
-    facebookAccount: "",
-    emergencyContactNumber: "",
-    emergencyContactName: "",
-    gender: "",
+    primaryPhone: '',
+    secondaryPhone: '',
+    facebookAccount: '',
+    emergencyContactNumber: '',
+    emergencyContactName: '',
   },
   setIsEditing: (v) => set({ isEditing: v }),
   setShowHistory: (v) => set({ showHistory: v }),
@@ -110,7 +108,7 @@ const useProfileStore = create<ProfileEditStore>((set) => ({
   patchForm: (patch) => set((s) => ({ form: { ...s.form, ...patch } })),
 }));
 
-// API helpers 
+// ─── API helpers ─────────────────────────────────────────────────────────────
 
 async function fetchMe(): Promise<UserProfile> {
   const res = await api.get("/me");
@@ -119,10 +117,15 @@ async function fetchMe(): Promise<UserProfile> {
 
 async function fetchHistory(): Promise<AccommodationHistoryItem[]> {
   try {
-    const res = await api.get("/my-stay/history");
-    return Array.isArray(res.data) ? res.data : [];
+    const [historyRes, currentRes] = await Promise.all([
+      api.get('/my-stay/history'),
+      api.get('/my-stay/current'),
+    ])
+    const past = Array.isArray(historyRes.data) ? historyRes.data : []
+    const current = currentRes.data ? [currentRes.data] : []
+    return [...current, ...past]  // current first so find() picks it up
   } catch {
-    return [];
+    return []
   }
 }
 
@@ -131,7 +134,7 @@ async function updateMe(form: ProfileEditFields): Promise<UserProfile> {
   return res.data;
 }
 
-// Utility functions 
+// ─── Utility functions ────────────────────────────────────────────────────────
 
 function fullName(p: UserProfile) {
   return [p.fname, p.mname, p.lname].filter(Boolean).join(" ");
@@ -167,7 +170,7 @@ function formatCurrency(n: number) {
   return `₱${n.toLocaleString("en-PH")}`;
 }
 
-// Sub-components 
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -188,25 +191,6 @@ function AccomHistoryModal({
   onClose: () => void;
   studentName: string;
 }) {
-  // close modal on esc key: added effect
-useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-// for prevent bg scroll
-useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
-
   const totalSpent = history.reduce((sum, h) => {
     const months = Math.max(
       1,
@@ -459,15 +443,7 @@ useEffect(() => {
   );
 }
 
-// Shared style objects 
-const labelStyle: React.CSSProperties = {
-        fontSize: 10,
-        color: "#999",
-        textTransform: "uppercase",
-        letterSpacing: "0.5px",
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
-        marginBottom: 2,
-      };
+// ─── Shared styles (module-level so components don't recreate them) ───────────
 
 const fieldStyle: React.CSSProperties = {
   fontSize: 14,
@@ -475,7 +451,14 @@ const fieldStyle: React.CSSProperties = {
   fontWeight: 500,
   fontFamily: "'Plus Jakarta Sans', sans-serif",
 };
-
+const labelStyle: React.CSSProperties = {
+  fontSize: 10,
+  color: "#999",
+  textTransform: "uppercase",
+  letterSpacing: "0.5px",
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  marginBottom: 2,
+};
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "6px 10px",
@@ -489,50 +472,55 @@ const inputStyle: React.CSSProperties = {
 };
 
 function Field({ label, value }: { label: string; value: string }) {
-    return (
-      <div>
-        <div style={labelStyle}>{label}</div>
-        <div style={fieldStyle}>{value || "—"}</div>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <div style={labelStyle}>{label}</div>
+      <div style={fieldStyle}>{value || "—"}</div>
+    </div>
+  );
+}
 
 function EditableField({
-    label,
-    field,
-    readOnly = false,
-  }: {
-    label: string;
-    field: keyof ProfileEditFields | null;
-    readOnly?: boolean;
-  }) {
-    const { isEditing, form, patchForm } = useProfileStore();
-
-    if (!isEditing || readOnly || !field) {
-      return <Field label={label} value={field ? form[field] : ""} />;
-    }
-    return (
-      <div>
-        <div style={labelStyle}>{label}</div>
-        <input
-          style={inputStyle}
-          value={form[field]}
-          onChange={(e) => patchForm({ [field]: e.target.value })}
-        />
-      </div>
-    );
+  label,
+  field,
+  value,
+  isEditing,
+  readOnly = false,
+  onChange,
+}: {
+  label: string;
+  field: keyof ProfileEditFields | null;
+  value: string;
+  isEditing: boolean;
+  readOnly?: boolean;
+  onChange?: (val: string) => void;
+}) {
+  if (!isEditing || readOnly || !field) {
+    return <Field label={label} value={value} />;
   }
+  return (
+    <div>
+      <div style={labelStyle}>{label}</div>
+      <input
+        style={inputStyle}
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+      />
+    </div>
+  );
+}
 
-// Main Component 
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const { isEditing, showHistory, form, setIsEditing, setShowHistory, setForm } =
+  const { isEditing, showHistory, form, setIsEditing, setShowHistory, setForm, patchForm } =
     useProfileStore();
+  const { setUser } = useUserStore()
 
-  // Queries 
+  // ── Queries ────────────────────────────────────────────────────────────────
 
   const {
     data: profile,
@@ -541,21 +529,6 @@ export default function ProfilePage() {
   } = useQuery<UserProfile>({
     queryKey: ["me"],
     queryFn: fetchMe,
-    // Seed the edit form whenever fresh profile data arrives, but only when
-    // the user is not actively editing so we don't clobber unsaved changes.
-    select: (data) => {
-      if (!useProfileStore.getState().isEditing) {
-        useProfileStore.getState().setForm({
-          college: data.student?.college ?? "",
-          degreeProgram: data.student?.degreeProgram ?? "",
-          facebookAccount: data.facebookAccount ?? "",
-          emergencyContactNumber: data.student?.emergencyContactNumber ?? "",
-          emergencyContactName: data.student?.emergencyContactName ?? "",
-          gender: data.student?.gender ?? "",
-        });
-      }
-      return data;
-    },
   });
 
   const { data: history = [] } = useQuery<AccommodationHistoryItem[]>({
@@ -563,22 +536,21 @@ export default function ProfilePage() {
     queryFn: fetchHistory,
   });
 
-  // Mutation 
+  // ── Mutation ───────────────────────────────────────────────────────────────
 
   const saveMutation = useMutation({
     mutationFn: updateMe,
-    onSuccess: (updated) => {
-      // Push fresh data straight into the cache so the UI reflects changes
-      qc.setQueryData<UserProfile>(["me"], updated);
-      setIsEditing(false);
+    onSuccess: (updatedProfile) => {
+      qc.invalidateQueries({ queryKey: ['me'] })
+      setUser(updatedProfile)   // ← add this line
+      setIsEditing(false)
     },
-    onError: (err: unknown) => {
-      const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message ?? "Failed to save profile.");
-    }
-  });
+    onError: (err: any) => {
+      alert(err?.response?.data?.message ?? 'Failed to save profile.')
+    },
+  })
 
-  // Derived values 
+  // ── Derived values ─────────────────────────────────────────────────────────
 
   const currentDorm = history.find((h) => !h.actualMoveOut) ?? null;
 
@@ -596,7 +568,9 @@ export default function ProfilePage() {
     : undefined;
 
 
-  // Loading / error states 
+
+
+  // ── Loading / error states ─────────────────────────────────────────────────
 
   if (profileLoading) {
     return (
@@ -653,7 +627,7 @@ export default function ProfilePage() {
     );
   }
 
-  // Render 
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div
@@ -827,20 +801,7 @@ export default function ProfilePage() {
               {isEditing ? (
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
-                    onClick={() => {
-                      // Reset form to current profile data
-                      if (profile) {
-                        setForm({
-                          college: profile.student?.college ?? "",
-                          degreeProgram: profile.student?.degreeProgram ?? "",
-                          facebookAccount: profile.facebookAccount ?? "",
-                          emergencyContactNumber: profile.student?.emergencyContactNumber ?? "",
-                          emergencyContactName: profile.student?.emergencyContactName ?? "",
-                          gender: profile.student?.gender ?? "",
-                        });
-                      }
-                      setIsEditing(false);
-                    }}
+                    onClick={() => setIsEditing(false)}
                     style={{
                       padding: "8px 18px",
                       background: "#fff",
@@ -874,7 +835,16 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <button
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => {
+                    setForm({
+                      primaryPhone: primaryPhone(profile),
+                      secondaryPhone: secondaryPhone(profile),
+                      facebookAccount: profile.facebookAccount ?? '',
+                      emergencyContactNumber: profile.student?.emergencyContactNumber ?? '',
+                      emergencyContactName: profile.student?.emergencyContactName ?? '',
+                    });
+                    setIsEditing(true);
+                  }}
                   style={{
                     padding: "8px 22px",
                     background: "#fff",
@@ -893,21 +863,31 @@ export default function ProfilePage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 32px" }}>
               <Field label="UP Mail" value={profile.email} />
-              <EditableField label="College" field="college" />
+              <Field label="College" value={profile.student?.college ?? ''} />
 
-              <Field label="Primary Phone Number" value={primaryPhone(profile)} />
-              <EditableField label="Degree Program" field="degreeProgram" />
+              <EditableField label="Primary Phone Number" field="primaryPhone"
+                value={isEditing ? form.primaryPhone : primaryPhone(profile)}
+                isEditing={isEditing} onChange={(v) => patchForm({ primaryPhone: v })} />
+              <Field label="Degree Program" value={profile.student?.degreeProgram ?? ''} />
 
-              <Field label="2nd Phone Number" value={secondaryPhone(profile)} />
-              <Field label="Student Number" value={profile.student?.studentNumber ?? "—"} />
+              <EditableField label="2nd Phone Number" field="secondaryPhone"
+                value={isEditing ? form.secondaryPhone : secondaryPhone(profile)}
+                isEditing={isEditing} onChange={(v) => patchForm({ secondaryPhone: v })} />
+              <Field label="Student Number" value={profile.student?.studentNumber ?? '—'} />
 
-              <EditableField label="Facebook Link" field="facebookAccount" />
+              <EditableField label="Facebook Link" field="facebookAccount"
+                value={isEditing ? form.facebookAccount : (profile.facebookAccount ?? '')}
+                isEditing={isEditing} onChange={(v) => patchForm({ facebookAccount: v })} />
               <Field label="Year Level" value={yearLevel(profile.student)} />
 
-              <EditableField label="Emergency Contact Number" field="emergencyContactNumber" />
-              <EditableField label="Gender" field="gender" />
+              <EditableField label="Emergency Contact Number" field="emergencyContactNumber"
+                value={isEditing ? form.emergencyContactNumber : (profile.student?.emergencyContactNumber ?? '')}
+                isEditing={isEditing} onChange={(v) => patchForm({ emergencyContactNumber: v })} />
+              <Field label="Gender" value={profile.student?.gender ?? '—'} />
 
-              <EditableField label="Emergency Contact Name" field="emergencyContactName" />
+              <EditableField label="Emergency Contact Name" field="emergencyContactName"
+                value={isEditing ? form.emergencyContactName : (profile.student?.emergencyContactName ?? '')}
+                isEditing={isEditing} onChange={(v) => patchForm({ emergencyContactName: v })} />
             </div>
 
             {/* current dorm + history button */}

@@ -51,8 +51,13 @@ export default class RoomService {
   }
 
   // ─── UPDATE ROOM ───
-  async updateRoom(id: number, payload: any) {
-    const room = await Room.findOrFail(id)
+  async updateRoom(id: number, payload: any, userId: number) {
+    const room = await Room.query()
+      .where('id', id)
+      .whereHas('accommodation', (q) => {
+        q.where('landlord_id', userId).orWhere('manager_id', userId)
+      })
+      .firstOrFail()
 
     if (payload.room_capacity !== undefined && payload.room_capacity < room.roomCurrentOccupancy) {
       throw new Error('CAPACITY_TOO_LOW')
@@ -82,8 +87,13 @@ export default class RoomService {
   }
 
   // ─── DELETE ROOM ───
-  async deleteRoom(id: number) {
-    const room = await Room.findOrFail(id)
+  async deleteRoom(id: number, userId: number) {
+    const room = await Room.query()
+      .where('id', id)
+      .whereHas('accommodation', (q) => {
+        q.where('landlord_id', userId).orWhere('manager_id', userId)
+      })
+      .firstOrFail()
     // Guard: Prevent deleting a room with students in it
     if (room.roomCurrentOccupancy > 0) {
       throw new Error('ROOM_OCCUPIED')

@@ -61,8 +61,8 @@ router
         router.post('/applications', [controllers.Application, 'store'])
         router.get('/applications/my-applications', [controllers.Application, 'index'])
         router.patch('/applications/:id', [controllers.Application, 'cancel'])
-        router.post('/applications/:id/confirm', [controllers.Application, 'confirmSlot'])
-        router.post('/applications/:id/confirm-slot', [controllers.Application, 'confirm'])
+        router.post('/applications/:id/confirm', [controllers.Application, 'confirm'])
+        router.post('/applications/:id/confirm-slot', [controllers.Application, 'confirmSlot'])
         router.post('/assignments/:id/confirm', [controllers.Application, 'confirmAssignment'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
@@ -100,6 +100,9 @@ router
         router.put('/landlord/accommodations/:id', [controllers.Accommodation, 'update'])
         router.post('/landlord/accommodations/:id/images', [controllers.Accommodation, 'uploadImages'])
         router.delete('/landlord/accommodations/:id/images/:imageId', [controllers.Accommodation, 'deleteImage'])
+
+        // ─── FEES (CREATED BY LANDLORD) ───
+        router.post('/fees', [controllers.Fees, 'store'])
 
         // Manager Handover
         router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])

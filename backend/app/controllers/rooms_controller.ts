@@ -15,31 +15,36 @@ export default class RoomsController {
   ) {}
 
   // ─── MANAGER: VIEW ALL ROOMS IN A DORM ───
-  async index({ params, serialize }: HttpContext) {
+  async index({ params, auth, response }: HttpContext) {
+    const userId = auth.user!.id
+    await Accommodation.query()
+      .where('id', params.accommodationId)
+      .where((q) => q.where('landlord_id', userId).orWhere('manager_id', userId))
+      .firstOrFail()
     const rooms = await this.roomService.getRoomsByAccommodation(params.accommodationId)
-    return serialize(rooms)
+    return response.ok(rooms)
   }
 
   // ─── RETRIEVE: BY ID ───
-  async show({ params, serialize }: HttpContext) {
+  async show({ params, response }: HttpContext) {
     const room = await this.roomService.getRoomById(params.id)
-    return serialize(room)
+    return response.ok(room)
   }
 
   // ─── MANAGER: ADD A NEW ROOM ───
-  async store({ params, request, auth, serialize }: HttpContext) {
+  async store({ params, request, auth, response }: HttpContext) {
     const landlordId = auth.user!.id
     const payload = await createRoomValidator.validate(request.all())
     const room = await this.roomService.createRoom(landlordId, params.accommodationId, payload)
-    return serialize({ message: 'Room added successfully.', data: room })
+    return response.ok(room)
   }
 
   // ─── MANAGER: UPDATE ROOM DETAILS ───
-  async update({ params, request, response, serialize }: HttpContext) {
+  async update({ params, request, auth, response }: HttpContext) {
     try {
       const payload = await updateRoomValidator.validate(request.all())
-      const updatedRoom = await this.roomService.updateRoom(params.id, payload)
-      return serialize({ message: 'Room updated successfully.', data: updatedRoom })
+      const updatedRoom = await this.roomService.updateRoom(params.id, payload, auth.user!.id)
+      return response.ok(updatedRoom)
     } catch (err) {
       const error = err as Error
       if (error.message === 'CAPACITY_TOO_LOW') {
@@ -50,10 +55,10 @@ export default class RoomsController {
   }
 
   // ─── MANAGER: DELETE A ROOM ───
-  async destroy({ params, response, serialize }: HttpContext) {
+  async destroy({ params, auth, response }: HttpContext) {
     try {
-      await this.roomService.deleteRoom(params.id)
-      return serialize({ message: 'Room deleted successfully.' })
+      await this.roomService.deleteRoom(params.id, auth.user!.id)
+      return response.ok({ message: 'Room deleted successfully.' })
     } catch (err) {
       const error = err as Error
       if (error.message === 'ROOM_OCCUPIED') {
@@ -67,21 +72,21 @@ export default class RoomsController {
     const availableRooms = await Room.query()
       .where('roomAvailability', 'available')
       .count('* as total')
-    return response.ok({ status: 200, data: { total: Number(availableRooms[0].$extras.total) } })
+    return response.ok({ total: Number(availableRooms[0].$extras.total) })
   }
 
-  async managerRooms({ auth, serialize }: HttpContext) {
+  async managerRooms({ auth, response }: HttpContext) {
     const user = auth.user!
     const accommodations = await Accommodation.query().where('managerId', user.id)
     const accIds = accommodations.map(a => a.id)
-    if (accIds.length === 0) return serialize([])
+    if (accIds.length === 0) return response.ok([])
 
     const rooms = await Room.query()
       .whereIn('accommodationId', accIds)
       .preload('accommodation')
       .preload('tags')
 
-    return serialize(rooms)
+    return response.ok(rooms)
   }
 
   async reportIssue({ auth, params, request, response }: HttpContext) {

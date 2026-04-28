@@ -22,15 +22,17 @@ const AdminDashboard = () => {
   const {
     data: user,
     isLoading: isUserLoading,
-    isError: isError,
+    isError,
   } = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
       const res = await api.get("/me")
       console.log("GET /me:", res.data)
-      return res.data.data
+      return res.data
     },
-  })
+    // don't retry the "me" endpoint endlessly if it fails
+    retry: false, 
+  });
 
   // Pending users
   const {
@@ -42,7 +44,7 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const res = await api.get("/admin/users/pending")
       console.log("pending users:", res.data)
-      return res.data.data ?? res.data
+      return res.data
     },
   })
 
@@ -56,7 +58,7 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const res = await api.get("/admin/settings")
       console.log("settings:", res.data)
-      return res.data.data
+      return res.data
     },
   })
 
@@ -69,7 +71,7 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const res = await api.get("/admin/users/count")
       console.log("total users:", res.data)
-      return res.data.data
+      return res.data
     },
   })
 
@@ -81,7 +83,7 @@ const AdminDashboard = () => {
     queryKey: ["admin-available-rooms"],
     queryFn: async () => {
       const res = await api.get("/admin/rooms/available/count")
-      return res.data.data
+      return res.data
     },
   })
 
@@ -94,7 +96,7 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const res = await api.get("/admin/logs")
       console.log("logs:", res.data)
-      return res.data.data ?? res.data
+      return res.data
     },
   })
 
@@ -116,7 +118,7 @@ const AdminDashboard = () => {
       }
 
       const res = await api.get("/admin/logs", { params })
-      return res.data.data ?? res.data
+      return res.data
     },
   })
 
@@ -147,14 +149,12 @@ const AdminDashboard = () => {
     queryKey: ["admin-pending-accommodations"],
     queryFn: async () => {
       const res = await api.get("/admin/accommodations/pending")
-      return res.data.data ?? res.data
+      return res.data
     },
   })
 
   const pendingAccommodations = Array.isArray(pendingAccommodationsRaw)
     ? pendingAccommodationsRaw
-    : Array.isArray(pendingAccommodationsRaw?.data)
-    ? pendingAccommodationsRaw.data
     : []
 
   const [verifyingAccommodationId, setVerifyingAccommodationId] = useState<number | null>(null)
