@@ -1,4 +1,4 @@
-import type { Application } from "../../pages/student/ApplicationStatus";
+import type { Application } from '../../components/ApplicationStatusModal';
 
 interface ApprovalProgressProps {
     app: Application;
@@ -33,6 +33,7 @@ export default function ApprovalProgress({ app }: ApprovalProgressProps) {
     const isWaitlisted  = s === 'waitlisted';
     const isApproved    = s === 'approved';
     const isRejected    = s === 'rejected';
+    const isConfirmed   = s === 'confirmed';
 
     const step1Color = isCancelled || isRejected
         ? 'bg-[#9E2040]'
@@ -42,7 +43,7 @@ export default function ApprovalProgress({ app }: ApprovalProgressProps) {
 
     const step2Color = isCancelled || isRejected
         ? 'bg-[#9E2040]'
-        : isUnderReview || isWaitlisted || isApproved
+        : isUnderReview || isWaitlisted || isApproved || isConfirmed
         ? 'bg-[#1A7A4A]'
         : 'bg-transparent border-2 border-[#C8B0B8]';
 
@@ -53,13 +54,13 @@ export default function ApprovalProgress({ app }: ApprovalProgressProps) {
         : 'bg-transparent border-2 border-[#C8B0B8]';
 
     const step1Icon = isCancelled || isRejected ? <XIcon /> : isPending ? <EllipsisIcon /> : <CheckIcon />;
-    const step2Icon = isCancelled || isRejected ? <XIcon /> : isUnderReview || isWaitlisted || isApproved ? <CheckIcon /> : null;
-    const step3Icon = isApproved || isWaitlisted ? <CheckIcon /> : null;
+    const step2Icon = isCancelled || isRejected ? <XIcon /> : isUnderReview || isWaitlisted || isApproved || isConfirmed ? <CheckIcon /> : null;
+    const step3Icon = isApproved || isConfirmed || isWaitlisted ? <CheckIcon /> : null;
 
     const stepHexColors = [
         isCancelled || isRejected ? '#9E2040' : isPending ? '#FFD83C' : '#1A7A4A',
-        isCancelled || isRejected ? '#9E2040' : isUnderReview || isWaitlisted || isApproved ? '#1A7A4A' : '#C8B0B8',
-        isApproved ? '#1A7A4A' : isWaitlisted ? '#3A6AB7' : '#C8B0B8',
+        isCancelled || isRejected ? '#9E2040' : isUnderReview || isWaitlisted || isApproved || isConfirmed ? '#1A7A4A' : '#C8B0B8',
+        isApproved || isConfirmed? '#1A7A4A' : isWaitlisted ? '#3A6AB7' : '#C8B0B8',
     ];
 
     const applicationDate = new Date(app.applicationDate).toLocaleDateString('en-US', {
@@ -80,7 +81,7 @@ export default function ApprovalProgress({ app }: ApprovalProgressProps) {
             sub: 'Manager Approval',
         },
         {
-            label: isApproved ? 'Approved' : isWaitlisted ? 'Waitlisted' : 'Decision',
+            label: isConfirmed ? 'Confirmed' : isApproved ? 'Approved' : isWaitlisted ? 'Waitlisted' : 'Decision',
             color: step3Color,
             icon: step3Icon,
             sub: 'Landlord Approval',
@@ -89,7 +90,7 @@ export default function ApprovalProgress({ app }: ApprovalProgressProps) {
 
     return (
         <div className="flex flex-col w-full">
-            <ol className="flex items-center w-full mt-3">
+            <ol className="flex items-center w-full">
                 {steps.map((step, i) => (
                     <li key={i} className="flex w-full relative items-center">
                         <div className="flex flex-col items-center w-full z-10">

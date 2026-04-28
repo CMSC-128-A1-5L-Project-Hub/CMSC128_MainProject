@@ -70,7 +70,7 @@ function App() {
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
-        <Route path="/student/applications" element={<ProtectedRoute><StudentApplicationsPage /></ProtectedRoute>} />
+        {/* <Route path="/student/applications" element={<ProtectedRoute><StudentApplicationsPage /></ProtectedRoute>} /> */}
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
