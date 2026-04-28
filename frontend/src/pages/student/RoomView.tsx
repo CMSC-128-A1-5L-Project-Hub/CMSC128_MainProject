@@ -30,7 +30,7 @@ const CLR = {
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333";
 function assetUrl(filePath: string) { return `${BASE_URL}${filePath}`; }
 
-const GRID_COLS = "grid-cols-[1.75fr_1fr]";
+const GRID_COLS = "grid grid-cols-1 lg:grid-cols-[1.75fr_1fr] gap-3";
 
 interface FileMetadata {
   id: number;
@@ -304,6 +304,248 @@ const StarRating = ({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
   );
 };
 
+type DateVal = { year: number; month: number; day: number } | null;
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+const MIN_YEAR = new Date().getFullYear();
+const MAX_YEAR = MIN_YEAR + 5;
+
+const toJS = (v: DateVal) => (v ? new Date(v.year, v.month, v.day) : null);
+const same = (a: DateVal, b: DateVal) =>
+  !!a && !!b && a.year === b.year && a.month === b.month && a.day === b.day;
+function getDaysInMonth(y: number, m: number) { return new Date(y, m + 1, 0).getDate(); }
+function getFirstDay(y: number, m: number)    { return new Date(y, m, 1).getDay(); }
+
+function MiniCalendar({ start, end, onStartChange, onEndChange, selecting, setSelecting }: any) {
+  const today   = new Date();
+  const [viewYear,  setViewYear]  = useState(start?.year  ?? today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(start?.month ?? today.getMonth());
+  const [hovering,  setHovering]  = useState<DateVal>(null);
+
+  const monthOptions = MONTHS_FULL.map((m, i) => ({
+    value: String(i) as string,
+    label: m,
+    disabled: viewYear === MIN_YEAR && i < today.getMonth(),
+  })).filter(o => !o.disabled).map(({ value, label }) => ({ value, label }));
+
+  const yearOptions = Array.from({ length: MAX_YEAR - MIN_YEAR + 1 }, (_, i) => MIN_YEAR + i)
+    .map(y => ({ value: String(y), label: String(y) }));
+
+  const handleClick = (day: number) => {
+    const clicked     = { year: viewYear, month: viewMonth, day };
+    const clickedDate = new Date(viewYear, viewMonth, day);
+    if (selecting === "start") {
+      onStartChange(clicked); onEndChange(null); setSelecting("end");
+    } else {
+      const s = toJS(start);
+      if (s && clickedDate < s) { onStartChange(clicked); onEndChange(null); }
+      else                      { onEndChange(clicked); setSelecting("start"); }
+    }
+  };
+
+  const effectiveEnd = end ?? (selecting === "end" && hovering ? hovering : null);
+  const daysInMonth  = getDaysInMonth(viewYear, viewMonth);
+  const firstDay     = getFirstDay(viewYear, viewMonth);
+  const cells        = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+
+  return (
+    <div >
+      {/* Header*/}
+      <div className="flex items-baseline gap-2 mb-4">
+        <GradientPillSelect
+          label=""
+          options={monthOptions}
+          value={String(viewMonth)}
+          onChange={(v) => setViewMonth(Number(v))}
+          width="w-full sm:w-44"
+          labelSize="text-[0px]"
+          optionSize="text-[13px]"
+        />
+        <GradientPillSelect
+          label=""
+          options={yearOptions}
+          value={String(viewYear)}
+          onChange={(v) => setViewYear(Number(v))}
+          width="w-full sm:w-42"
+          labelSize="text-[0px]"
+          optionSize="text-[13px]"
+        />
+      </div>
+
+      {/* Day headers */}
+      <div className="grid grid-cols-7 mb-1">
+        {DAYS.map((d) => (
+          <div key={d} className="text-center text-[10px] font-bold text-gray-300">{d}</div>
+        ))}
+      </div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-7 gap-y-1">
+        {cells.map((day, i) => {
+          if (!day) return <div key={i} className="h-8" />;
+          const date    = { year: viewYear, month: viewMonth, day };
+          const isStart = same(start, date);
+          const isEnd   = same(effectiveEnd, date);
+          const inRange = start && effectiveEnd && (() => {
+            const t = new Date(viewYear, viewMonth, day).getTime();
+            const s = toJS(start)!.getTime();
+            const e = toJS(effectiveEnd)!.getTime();
+            return t > Math.min(s, e) && t < Math.max(s, e);
+          })();
+          const isPast = new Date(viewYear, viewMonth, day) < new Date(MIN_YEAR, today.getMonth(), today.getDate());
+          const disabled = isPast || (selecting === "end" && start && new Date(viewYear, viewMonth, day) < toJS(start)!);
+
+          return (
+            <div key={i} className="relative flex items-center justify-center h-8"
+              onMouseEnter={() => !disabled && setHovering(date)}
+              onMouseLeave={() => setHovering(null)}>
+              {inRange && <div className="absolute inset-y-1 left-0 right-0 bg-[#6B0F2B]/10" />}
+              {isStart && effectiveEnd && !same(start, effectiveEnd) && <div className="absolute inset-y-1 left-1/2 right-0 bg-[#6B0F2B]/10" />}
+              {isEnd   && start       && !same(start, effectiveEnd) && <div className="absolute inset-y-1 left-0 right-1/2 bg-[#6B0F2B]/10" />}
+              <button disabled={!!disabled} onClick={() => handleClick(day)}
+                className={[
+                  "relative z-10 w-7 h-7 flex items-center justify-center text-xs font-semibold rounded-full transition",
+                  isStart || isEnd ? "bg-[#6B0F2B] text-white"
+                    : inRange     ? "text-[#6B0F2B]"
+                    : disabled    ? "text-gray-200 cursor-not-allowed"
+                    : "text-gray-600 hover:bg-[#6B0F2B]/10 hover:text-[#6B0F2B]",
+                ].join(" ")}>
+                {day}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ApplicationPeriod() {
+  const [savedStart, setSavedStart] = useState<DateVal>(null);
+  const [savedEnd,   setSavedEnd]   = useState<DateVal>(null);
+  const [draftStart, setDraftStart] = useState<DateVal>(null);
+  const [draftEnd,   setDraftEnd]   = useState<DateVal>(null);
+  const [editing,    setEditing]    = useState(true);
+  const [selecting,  setSelecting]  = useState<"start" | "end">("start");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (!ref.current?.contains(e.target as Node)) {
+        if (savedStart && savedEnd) setEditing(false);
+      }
+    }
+    if (editing) document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [editing, savedStart, savedEnd]);
+
+  const openEdit = () => {
+    setDraftStart(savedStart); setDraftEnd(savedEnd);
+    setSelecting("start"); setEditing(true);
+  };
+
+  const handleSave = () => {
+    if (!draftStart || !draftEnd) return;
+    setSavedStart(draftStart); setSavedEnd(draftEnd); setEditing(false);
+  };
+
+  const isSet     = !!savedStart && !!savedEnd;
+  const canSave   = !!draftStart && !!draftEnd;
+  const totalDays = isSet
+    ? Math.round((toJS(savedEnd)!.getTime() - toJS(savedStart)!.getTime()) / 86400000) + 1
+    : null;
+
+  return (
+    <div ref={ref} className="relative w-full">
+      {/* ── Saved State ── */}
+      {isSet && !editing && (
+        <div className="bg-[#6B0F2B] rounded-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 pt-3 pb-2">
+            <div className="flex items-center gap-2">
+              <svg className="w-3 h-3 text-white/60" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest"></span>
+            </div>
+            <button onClick={openEdit} className="group flex items-center gap-1 text-[10px] font-bold text-white/70 hover:text-white transition">
+              <svg className="w-3 h-3 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              Edit
+            </button>
+          </div>
+          <div className="flex items-stretch gap-0 px-4 pb-3">
+            <div className="flex-1 bg-white/10 rounded-xl px-3 py-2">
+              <p className="text-[9px] font-bold text-white/50 uppercase tracking-wider mb-0.5">Start</p>
+              <p className="text-[13px] font-bold text-white leading-tight">{MONTHS_SHORT[savedStart!.month]} {savedStart!.day}</p>
+              <p className="text-[10px] text-white/50">{savedStart!.year}</p>
+            </div>
+            <div className="flex items-center justify-center px-2">
+              <svg className="w-3.5 h-3.5 text-white/40" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+            <div className="flex-1 bg-white/10 rounded-xl px-3 py-2">
+              <p className="text-[9px] font-bold text-white/50 uppercase tracking-wider mb-0.5">End</p>
+              <p className="text-[13px] font-bold text-white leading-tight">{MONTHS_SHORT[savedEnd!.month]} {savedEnd!.day}</p>
+              <p className="text-[10px] text-white/50">{savedEnd!.year}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Picker ── */}
+      {editing && (
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-xl p-4 space-y-3">
+          {/* Date pills */}
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              { label: "Start Date", val: draftStart, key: "start" as const },
+              { label: "End Date",   val: draftEnd,   key: "end"   as const },
+            ]).map(({ label, val, key }) => (
+              <button key={key} onClick={() => setSelecting(key)}
+                className={["p-2 rounded-xl text-left transition border-2",
+                  selecting === key ? "border-[#6B0F2B] bg-[#6B0F2B]/5" : "border-transparent bg-gray-50 hover:bg-gray-100",
+                ].join(" ")}>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">{label}</p>
+                <p className={["text-[11px] font-bold", val ? "text-[#6B0F2B]" : "text-gray-300"].join(" ")}>
+                  {val ? `${MONTHS_SHORT[val.month]} ${val.day}, ${val.year}` : "Select…"}
+                </p>
+              </button>
+            ))}
+          </div>
+          <MiniCalendar
+            start={draftStart} end={draftEnd}
+            onStartChange={setDraftStart} onEndChange={setDraftEnd}
+            selecting={selecting} setSelecting={setSelecting}
+          />
+          {/* Actions */}
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => setEditing(false)}
+              disabled={!isSet}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-[12px] font-semibold text-gray-600 hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Cancel
+            </button>
+            <button onClick={handleSave} disabled={!canSave}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold text-white transition disabled:opacity-40"
+              style={{ background: "linear-gradient(135deg, #3D0718, #6B0F2B)" }}>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              Save Period
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -351,12 +593,12 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
 
   return (
     <div className="space-y-5 mt-14">
-      <div className="grid grid-cols-3 gap-5 items-start mt-16">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start mt-16">
         <GradientPillSelect 
           label="Tenant Preference" 
           value={selectedTenantRestriction} 
           onChange={setselectedTenantRestriction}
-          width = "w-44"
+          width = "w-full sm:w-44"
           labelSize="text-[18px]"
           optionSize = "text-[15px]"
           options={tenantRestriction.map((st) => ({ value: st, label: st.charAt(0).toUpperCase() + st.slice(1) }))} 
@@ -366,7 +608,7 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
           label="Stay Type" 
           value={selectedStayType} 
           onChange={setSelectedStayType}
-          width = "w-44"
+          width = "w-full sm:w-44"
           labelSize="text-[18px]"
           optionSize = "text-[15px]"
           options={stayTypes.map((st) => ({ value: st, label: st === "non_transient" ? "Non-Transient" : "Transient" }))} />
@@ -375,7 +617,7 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
           label="Arrangement" 
           value={selectedArrangement} 
           onChange={setSelectedArrangement}
-          width = "w-44"
+          width = "w-full sm:w-44"
           labelSize="text-[18px]"
           optionSize = "text-[15px]"
           options={arrangements.map((a) => ({ value: a, label: a.charAt(0).toUpperCase() + a.slice(1) }))} />
@@ -453,16 +695,6 @@ const routeLayerStyle = (mode: TravelMode): LayerProps => ({
     'line-opacity': 0.85,
   },
 })
-
-// Common UPLB landmarks the user can route to
-const DESTINATIONS = [
-  { label: "UPLB Main Gate", lat: 14.1675, lng: 121.2433 },
-  { label: "Comtech Building (ICS Area)", lat: 14.1662, lng: 121.2489 },
-  { label: "UPLB Main Library", lat: 14.1656, lng: 121.2389 },
-  { label: "College of Engineering (CEAT)", lat: 14.1641, lng: 121.2471 },
-  { label: "UPLB Market (Shopping Center)", lat: 14.1681, lng: 121.2402 },
-  { label: "Baker Hall", lat: 14.1621, lng: 121.2416 }
-]
 
 function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
@@ -936,7 +1168,7 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
         })}
       </div>
       {/*Two columns for the summary and review details*/}
-      <div  className="grid grid-cols-[1fr_1.8fr] gap-4 items-start">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.8fr] gap-4 items-start">
         
         {/*Summary*/}
         <div className="flex flex-col items-center gap-2">
@@ -1061,7 +1293,7 @@ function RequirementsTab() {
         </p>
       </div>
       {/*https://tailwindcss.com/docs/table-layout*/}
-      <div className="w-full overflow-x-auto rounded-mdborder border-[#F0E8EC] mt-5">
+      <div className="w-full overflow-x-auto rounded-md border border-[#F0E8EC] mt-5">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[#F7EFF2]">
@@ -1204,7 +1436,7 @@ export default function RoomView() {
           </div>
 
           {/* Thumbnail stack — col 2 */}
-          <div className="grid grid-rows-2 gap-3" style={{ height: 300 }}>
+          <div className="hidden lg:grid grid-rows-2 gap-3" style={{ height: 300 }}>
             {/* Top-right */}
             <div className="overflow-hidden rounded-2xl cursor-pointer" onClick={() => setCurrent(1)}>
               <img src={displayPhotos[1]} alt="Thumb 2" className="w-full h-full object-cover" />
@@ -1227,6 +1459,7 @@ export default function RoomView() {
           </div>
 
           {/* Conent row */}
+          
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mt-3">
             <div className="flex items-center gap-0 flex-wrap mb-2">
               <StarRating rating={accommodation.avgrating} size="md" />
@@ -1234,14 +1467,23 @@ export default function RoomView() {
                 {accommodation.avgrating.toFixed(1)} ({accommodation.reviews.length})
               </span>
               <div className="ml-auto flex items-center gap-1">
-                <button onClick={() => setIsFavorited((f) => !f)} className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2">
-                  <IconHeart filled={isFavorited} /> Favorite
+                <button onClick={() => setIsFavorited((f) => !f)} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
+                  <IconHeart filled={isFavorited} />
+                    <span className="hidden md:inline text-sm font-semibold">
+                      Favorite
+                    </span>
                 </button>
                 <button className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2">
-                  <IconShare /> Share
+                  <IconShare /> 
+                    <span className="hidden md:inline text-sm font-semibold">
+                      Share
+                    </span>
                 </button>
                 <button className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2" >
-                  <IconReport /> Report
+                  <IconReport />
+                    <span className="hidden md:inline text-sm font-semibold">
+                      Report
+                    </span>
                 </button>
               </div>
             </div>
@@ -1250,27 +1492,27 @@ export default function RoomView() {
           <p className="text-[18px] text-[#9A7080]">Studio · 22 m² · {accommodation.accommodation_type.replace(/_/g, " ")}</p>
           
           {/* Tabs*/ }
-        <div className="flex justify-start bg-gray-100 rounded-lg px-2 mb-5 mt-6">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setselectedTab(t.key)}
-              className={`flex-1 flex flex-col items-start px-4 py-2.5 text-[18px] font-semibold transition-colors whitespace-nowrap ${
-                selectedTab === t.key ? "text-[#6B0F2B]" : "text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              <span className="relative">
-                {t.label}
-                {selectedTab === t.key && (
-                  <span
-                    className="absolute -bottom-3 left-0 w-full h-[5px] rounded-full"
-                    style={{ background: "linear-gradient(90deg, #9A7080, #6B0F2B)" }}
-                  />
-                )}
-              </span>
-            </button>
-          ))}
-        </div>
+          <div className="flex overflow-x-auto bg-gray-100 rounded-lg px-2 mb-5 mt-6 scrollbar-none">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setselectedTab(t.key)}
+                className={`flex-shrink-0 flex flex-col items-start px-4 py-2.5 text-[15px] sm:text-[18px] font-semibold transition-colors whitespace-nowrap ${
+                  selectedTab === t.key ? "text-[#6B0F2B]" : "text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                <span className="relative">
+                  {t.label}
+                  {selectedTab === t.key && (
+                    <span
+                      className="absolute -bottom-3 left-0 w-full h-[5px] rounded-full"
+                      style={{ background: "linear-gradient(90deg, #9A7080, #6B0F2B)" }}
+                    />
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
 
         {selectedTab === "Features" && (
           <FeaturesTab
@@ -1319,16 +1561,9 @@ export default function RoomView() {
 
                 {/* Dates */}
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Duration of Stay:</p>
-                <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="mb-4">
                   <div className="mt-2">
-                    <p className="text-[13px] text-[#6B0F2B] mb-1">Target Move-In</p>
-                    <input type="date" value={moveIn} onChange={(e) => setMoveIn(e.target.value)}
-                      className="w-full border border-[#6B0F2B] rounded-xl px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition" />
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-[13px] text-[#6B0F2B] mb-1">Target Move-Out</p>
-                    <input type="date" value={moveOut} onChange={(e) => setMoveOut(e.target.value)}
-                      className="w-full border  border-[#6B0F2B] rounded-xl px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition" />
+                    <ApplicationPeriod />
                   </div>
                 </div>
 
