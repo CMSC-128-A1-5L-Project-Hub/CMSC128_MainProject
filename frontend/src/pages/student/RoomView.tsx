@@ -1140,11 +1140,17 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: number }) {
   const [sortBy, setSortBy] = useState<"recent" | "star" | "date">("recent");
 
+  const sortedReviews = [...reviews].sort((a, b) => {
+    if (sortBy === "star") return b.rating - a.rating;
+    if (sortBy === "date") return new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime();
+    return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+  });
+
   return (
     <div className="space-y-4 font-sans">
-      {/*Filter */}
+      {/* Filter */}
       <div className="flex items-center gap-2 flex-wrap justify-end">
-
+        <p className="text-[12px] text-[#6B0F2B] italic">Sort by: </p>
         {(["Recent", "Star ★", "Date Posted"] as const).map((label, i) => {
           const key = (["recent", "star", "date"] as const)[i];
           return (
@@ -1159,34 +1165,28 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
               }}
             >
               {label}
-              {i > 0 && (
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              )}
-
             </button>
           );
         })}
       </div>
-      {/*Two columns for the summary and review details*/}
+
+      {/* Two columns */}
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.8fr] gap-4 items-start">
-        
-        {/*Summary*/}
+
+        {/* Summary */}
         <div className="flex flex-col items-center gap-2">
-          {/* Pink card with just number + stars */}
+          {/* Pink card */}
           <div className="rounded-2xl bg-[#F7EFF2] border border-[#EFE3E8] p-5 w-full flex flex-col items-center gap-1">
             <p className="text-[37px] font-bold" style={{ color: CLR.mid }}>
               {avgRating.toFixed(1)}
             </p>
             <StarRating rating={avgRating} size="md" />
             <p className="text-normal text-[15px] text-[#3D0718]">{reviews.length} Ratings</p>
+          </div>{/* ← closed here, not earlier */}
 
-        </div>
-
-        {/*Summary*/}
-        <div className="w-full mt-1 space-y-1.5">
-          {[5, 4, 3, 2, 1].map((star) => {
+          {/* Bar breakdown */}
+          <div className="w-full mt-1 space-y-1.5">
+            {[5, 4, 3, 2, 1].map((star) => {
               const count = reviews.filter((r) => Math.round(r.rating) === star).length;
               const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
               return (
@@ -1195,44 +1195,32 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-2 rounded-full"
-                      style={{
-                        width: `${pct}%`,
-                        background: "linear-gradient(90deg, #3D0718, #C9748A)",
-                      }}
+                      style={{ width: `${pct}%`, background: "linear-gradient(90deg, #3D0718, #C9748A)" }}
                     />
                   </div>
                   <span className="text-[14px] font-thin text-[#3D0718] w-5 text-right">{count}</span>
                 </div>
               );
-          })}
-
-
-
+            })}
+          </div>
         </div>
-          
+        {/* End of summary */}
 
-
-
-
-        </div>
-        {/*End of summary*/}
-        
-
-        {/*Review details*/}
+        {/* Review details */}
         <div className="space-y-3 font-sans">
-          {reviews.map((review) => (
+          {sortedReviews.map((review) => ( // ← sortedReviews, not reviews
             <div key={review.id} className="bg-[#F7EFF2] border border-[#EFE3E8] p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                    style={{ background: "#D1C4C9" }}                
+                    style={{ background: "#D1C4C9" }}
                   >
                     {review.student?.user?.fname?.[0] ?? "?"}
                   </div>
                   <div>
                     <p className="text-[15px] font-bold text-gray-800">
-                      {review.student?.user 
+                      {review.student?.user
                         ? `${review.student.user.fname} ${review.student.user.lname}`
                         : "Anonymous"}
                     </p>
@@ -1250,29 +1238,21 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <span className="text-[15px] font-bold" style={{ color: CLR.gold }}>
                     {review.rating}
-
                   </span>
                   <StarRating rating={review.rating} size="md" />
                 </div>
-
-
-
               </div>
-
-                {review.content && (
-                  <p className="text-[10px] text-gray-600">{review.content}</p>
-                )}
-
+              {review.content && (
+                <p className="text-[10px] text-gray-600">{review.content}</p>
+              )}
             </div>
           ))}
-
-
         </div>
-        {/*End of Review details*/}
+        {/* End of review details */}
 
       </div>
     </div>
-  )
+  );
 }
 
 function RequirementsTab() {
@@ -1494,12 +1474,12 @@ export default function RoomView() {
           <p className="text-[18px] text-[#9A7080]">Studio · 22 m² · {accommodation.accommodation_type.replace(/_/g, " ")}</p>
           
           {/* Tabs*/ }
-          <div className="flex overflow-x-auto bg-gray-100 rounded-lg px-2 mb-5 mt-6 scrollbar-none">
+          <div className="flex overflow-x-auto sm:justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-none">
             {tabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setselectedTab(t.key)}
-                className={`flex-shrink-0 flex flex-col items-start px-4 py-2.5 text-[15px] sm:text-[18px] font-semibold transition-colors whitespace-nowrap ${
+                className={`flex-shrink-0 sm:flex-1 flex flex-col items-center px-4 py-2.5 text-[15px] sm:text-[18px] font-semibold transition-colors whitespace-nowrap ${
                   selectedTab === t.key ? "text-[#6B0F2B]" : "text-gray-400 hover:text-gray-600"
                 }`}
               >
