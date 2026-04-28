@@ -9,7 +9,7 @@ import BillingTable from '../../components/BillingDashboard/BillingTable';
 import SummaryCards from '../../components/BillingDashboard/SummaryCards';
 import SearchBar from '../../components/SearchBar';
 import { useFees } from '../../../hooks/useBillingQueries';
-import { useProfile } from '../../../hooks/useDashboardQueries';
+import { useMyProfile } from '../../../hooks/useStudentQueries';
 
 // ── Types ──────────────────────────────────────────────────────
 export interface Bill {
@@ -28,7 +28,7 @@ export interface Bill {
 // ── Component ──────────────────────────────────────────────────
 export default function BillingDashboard() {
   const { data: bills = [], isLoading: billsLoading, isError, error } = useFees();
-  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: profile, isLoading: profileLoading } = useMyProfile();
 
   const safeBills: Bill[] = Array.isArray(bills) ? bills : [];
 

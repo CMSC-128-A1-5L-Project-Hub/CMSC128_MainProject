@@ -1,10 +1,15 @@
-import { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
-import { api } from "../../api/axios"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import defaultAccommodation from "@/assets/defaults/accommodation.png"
+import {
+  useMyProfile,
+  useStudentProfile,
+  useMyApplications,
+  useNotifications,
+  useRecommendedDorms,
+} from "../../../hooks/useStudentQueries";
+import { useFees } from "../../../hooks/useBillingQueries";
 
 // Helpers
 const capitalize = (str: string) =>
@@ -723,302 +728,85 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("All");
 
-  
-  const [profile, setProfile] = useState<StudentProfile | null>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
-  const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
-  const [applications, setApplications] = useState<any[]>([]);
-  const [applicationsLoading, setApplicationsLoading] = useState(true);
-  const [recommendedDorms, setRecommendedDorms] = useState<any[]>([]);
-  const [recommendedLoading, setRecommendedLoading] = useState(true);
-  const [billingOverviewData, setBillingOverviewData] = useState<BillingOverview | null>(null);
-  const [billingStatementsData, setBillingStatementsData] = useState<BillingStatement[]>([]);
-  const [billingLoading, setBillingLoading] = useState(true);
-
-    
-  const {
-    data: user,
-    isLoading: isUserLoading,
-    // no need for isError anymore
-  } = useQuery({
-    queryKey: ["me"],
-    queryFn: async () => {
-        const res = await api.get("/me");
-        return res.data;
-    },
-    retry: false,
-  });
+  const { data: user, isLoading: isUserLoading } = useMyProfile();
+  const { data: profile, isLoading: profileLoading } = useStudentProfile();
+  const { data: applicationsRaw = [] } = useMyApplications();
+  const { data: notificationsRaw = [] } = useNotifications();
+  const { data: recommendedDorms = [], isLoading: recommendedLoading } = useRecommendedDorms();
+  const { data: feesRaw = [], isLoading: billingLoading } = useFees();
 
   const recommendedScrollRef = useRef<HTMLDivElement | null>(null);
   const scrollRecommendedRight = () => {
-    recommendedScrollRef.current?.scrollBy({
-      left: 320,
-      behavior: "smooth",
-    });
+    recommendedScrollRef.current?.scrollBy({ left: 320, behavior: "smooth" });
   };
-  // Profile and authentication -------------------
+
   useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const res = await api.get("/student/profile");
-      const data = res.data;
-
-      setProfile({
-        fullName: data.fullName ?? "",
-        shortName: data.shortName ?? "",
-        course: data.course ?? "",
-        campus: data.campus ?? "",
-        email: data.email ?? "",
-        phone: data.phone ?? "",
-        studentNo: data.studentNo ?? "",
-        college: data.college ?? "",
-        yearLevel: data.yearLevel ?? "",
-        status: data.status ?? "",
-      });
-    } catch (error) {
-      console.error("Failed to fetch profile:", error);
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
-  fetchProfile();
-}, []);
-
-useEffect(() => {
-    // redirect if they are NOT logged in, if query finished, but user is null
-    if (!isUserLoading && !user) {
-      navigate("/auth/signin");
-    }
+    if (!isUserLoading && !user) navigate("/auth/signin");
   }, [isUserLoading, user, navigate]);
 
-
-    useEffect(() => {
-    if (user && user.role !== "student") {
-        navigate("/auth/signin");
-    }
-    }, [user, navigate]);
-
-// -------------------------------------------------------
-
-// Notification details fetch---------------------------------
   useEffect(() => {
-    const fetchNotifications = async () => {
-        try {
-        const res = await api.get("/notifications");
-        console.log("notifications:", res.data);
+    if (user && user.role !== "student") navigate("/auth/signin");
+  }, [user, navigate]);
 
+  const pendingApplicationsCount = useMemo(
+    () => applicationsRaw.filter((a: any) => String(a.applicationStatus ?? "").toLowerCase() === "pending").length,
+    [applicationsRaw]
+  );
 
-        const data = res.data;
+  const notificationsTodayCount = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    return notificationsRaw.filter((n: any) => {
+      const d = new Date(n.notificationTimestamp).toISOString().split("T")[0];
+      return d === today;
+    }).length;
+  }, [notificationsRaw]);
 
+  const { billingOverviewData, billingStatementsData } = useMemo(() => {
+    const fees: any[] = Array.isArray(feesRaw) ? feesRaw : [];
+    if (fees.length === 0) return { billingOverviewData: null, billingStatementsData: [] as BillingStatement[] };
 
-        // unread count (optional)
-        const unreadCount = data.filter(
-            (n: any) => n.readStatus?.toLowerCase() === "unread"
-        ).length;
+    const sortedFees = [...fees].sort((a, b) => new Date(b.due_date).getTime() - new Date(a.due_date).getTime());
+    const latestFee = sortedFees[0];
+    const totalDue = sortedFees.reduce((s, f) => s + Number(f.fee_amount ?? 0), 0);
+    const remainingAmount = sortedFees.reduce((s, f) => s + Number(f.fee_balance ?? 0), 0);
+    const totalPaid = totalDue - remainingAmount;
+    const progressPercent = totalDue > 0 ? Math.round((totalPaid / totalDue) * 100) : 0;
+    const dueDate = new Date(latestFee.due_date);
+    const cap = (str?: string) => str ? str.charAt(0).toUpperCase() + str.slice(1) : "Fee";
 
-
-        setUnreadNotificationsCount(unreadCount);
-
-
-        // today's notifications
-        const today = new Date().toISOString().split("T")[0];
-
-
-        const todayCount = data.filter((n: any) => {
-            const notifDate = new Date(n.notificationTimestamp)
-            .toISOString()
-            .split("T")[0];
-
-
-            return notifDate === today;
-        }).length;
-
-
-        setNotificationsTodayCount(todayCount);
-
-
-        } catch (error) {
-        console.error("Failed to fetch notifications:", error);
-        }
-    };
-
-
-    fetchNotifications();
-    }, []);
-// -------------------------------------------------------
-
-// Applications fetch---------------------------------
-  useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const res = await api.get("/applications/my-applications");
-        const data = res.data;
-
-        setApplications(data);
-
-        const pendingCount = data.filter((app: any) =>
-          String(app.applicationStatus ?? "").toLowerCase() === "pending"
-        ).length;
-
-        setPendingApplicationsCount(pendingCount);
-
-        console.log("APPLICATIONS:", data);
-        console.log("PENDING COUNT:", pendingCount);
-      } catch (error) {
-        console.error("Failed to fetch applications:", error);
-      } finally {
-        setApplicationsLoading(false);
-      }
-    };
-
-    fetchApplications();
-  }, []);
-
-// -----------------------------------
-
-// Recommended dorms fetch---------------------------------
-useEffect(() => {
-  const fetchRecommendedDorms = async () => {
-    try {
-      const res = await api.get('/recommended-accommodations')
-      const data = res.data ?? []
-      console.log("RECOMMENDED DORMS:", data);
-      setRecommendedDorms(data)
-    } catch (error) {
-      console.error('Failed to fetch recommended dorms:', error)
-    } finally {
-      setRecommendedLoading(false); 
-    }
-  }
-
-  fetchRecommendedDorms()
-}, [])
-// ---------------------------------
-
-// Billing info fetch---------------------------------
-useEffect(() => {
-  const fetchBilling = async () => {
-    try {
-      const res = await api.get("/my-fees");
-      const fees = res.data ?? [];
-
-      console.log("BILLING:", fees);
-
-      if (!Array.isArray(fees) || fees.length === 0) {
-        setBillingOverviewData(null);
-        setBillingStatementsData([]);
-        return;
-      }
-
-      const sortedFees = [...fees].sort(
-        (a, b) =>
-          new Date(b.due_date).getTime() - new Date(a.due_date).getTime()
-      );
-
-      const latestFee = sortedFees[0];
-
-      const totalDue = sortedFees.reduce(
-        (sum, fee) => sum + Number(fee.fee_amount ?? 0),
-        0
-      );
-
-      const remainingAmount = sortedFees.reduce(
-        (sum, fee) => sum + Number(fee.fee_balance ?? 0),
-        0
-      );
-
-      const totalPaid = totalDue - remainingAmount;
-
-      const progressPercent =
-        totalDue > 0 ? Math.round((totalPaid / totalDue) * 100) : 0;
-
-      const dueDate = new Date(latestFee.due_date);
-
-      const overview: BillingOverview = {
-        residenceHall:
-          latestFee.accommodation_name ?? "Unknown Residence Hall",
+    return {
+      billingOverviewData: {
+        residenceHall: latestFee.accommodation_name ?? "Unknown Residence Hall",
         dueDay: dueDate.getDate().toString(),
         dueMonth: dueDate.toLocaleString("en-US", { month: "short" }),
-        summaryTitle:
-          remainingAmount === 0
-            ? "All Fees Paid"
-            : totalPaid > 0
-            ? "Partially Paid"
-            : "Payment Due",
+        summaryTitle: remainingAmount === 0 ? "All Fees Paid" : totalPaid > 0 ? "Partially Paid" : "Payment Due",
         paidOn: totalPaid > 0 ? "Recorded" : "-",
         amountPaid: totalPaid,
-        nextDue: dueDate.toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }),
+        nextDue: dueDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
         monthlyRent: Number(latestFee.fee_amount ?? 0),
         remainingAmount,
         totalPaid,
         totalDue,
         progressPercent,
-      };
-
-      const capitalize = (str?: string) =>
-        str ? str.charAt(0).toUpperCase() + str.slice(1) : "Fee";
-
-      const statements: BillingStatement[] = fees.map((f: any) => ({
-        label: `${capitalize(f.fee_category)} - ${new Date(
-          f.due_date
-        ).toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        })}`,
+      } as BillingOverview,
+      billingStatementsData: fees.map((f: any) => ({
+        label: `${cap(f.fee_category)} - ${new Date(f.due_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`,
         status: f.fee_status === "paid" ? "Paid" : "Unpaid",
-      }));
+      })) as BillingStatement[],
+    };
+  }, [feesRaw]);
 
-      setBillingOverviewData(overview);
-      setBillingStatementsData(statements);
-    } catch (error) {
-      console.error("Failed to fetch billing:", error);
-      setBillingOverviewData(null);
-      setBillingStatementsData([]);
-    } finally {
-      setBillingLoading(false);
-    }
-  };
-
-  fetchBilling();
-}, []);
-// ---------------------------------
-
-if (profileLoading) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
-      <p className="text-gray-600">Loading profile...</p>
-    </div>
-  );
-}
-
-if (!profile) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
-      <p className="text-gray-600">Profile not found.</p>
-    </div>
-  );
-}
-
-if (isUserLoading) {
+  if (profileLoading || isUserLoading) {
     return (
-        <div className="flex items-center justify-center h-screen">
-        <p>Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
+        <p className="text-gray-600">Loading...</p>
+      </div>
     );
-    }
+  }
 
-
-    if (!user || user.role !== "student") {
+  if (!profile || !user || user.role !== "student") {
     return null;
-    }
+  }
 
 // ------------------------------------------------------
 
@@ -1087,7 +875,7 @@ if (isUserLoading) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {applications.map((app:any) => (
+                  {applicationsRaw.map((app:any) => (
                     <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center gap-2.5">

@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from "@tanstack/react-query";
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import Pagination from '../../components/ApplicationStatus/Pagination';
 import Sidebar from '../../components/Sidebar';
@@ -8,44 +7,20 @@ import HeroBanner from '../../components/dashboard/HeroBanner';
 import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
 import SearchBar from '../../components/SearchBar';
 import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
+import { useMyApplications, useMyProfile } from '../../../hooks/useStudentQueries';
 
 // define the status type locally
 export type ApplicationStatus = "pending" | "under_review" | "approved" | "rejected" | "waitlisted" | "cancelled" | "confirmed";
 
-interface HeroContent {
-    greeting: string;
-    name: string;
-    title: string;
-    subtitle: string;
-}
-
-// Fetch from the API
-const fetchApplications = async (): Promise<Application[]> => {
-    const res = await fetch("/api/applications/my-applications");
-    if (!res.ok) throw new Error("Failed to fetch applications");
-    const body = await res.json();
-    return body.data ?? body;
-};
-
 // Main component
 export default function ApplicationStatusPage() {
-    const heroContent: HeroContent = {
-        name: "Ana Reyes",
-        greeting: "Good Day",
-        title: "Check your application status",
-        subtitle: "We make it easy for you to track the accommodations you've applied for",
-    };
-
     const [sortBy, setSortBy] = useState("Date applied (Asc.)");
     const [searchQuery, setSearchQuery] = useState("");
     const [viewOpen, setViewOpen] = useState(false);
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
-    // Data fetching - using the real API
-    const { data: applications = [], isLoading, isError } = useQuery({
-        queryKey: ["applications"],
-        queryFn: fetchApplications,
-    });
+    const { data: applications = [], isLoading, isError } = useMyApplications();
+    const { data: user } = useMyProfile();
     
     const sortedApplications = useMemo(() => {
         const q = searchQuery.toLowerCase();
@@ -115,10 +90,10 @@ export default function ApplicationStatusPage() {
 
                 <div className='pt-6 px-4'>
                     <HeroBanner
-                        greeting={heroContent.greeting}
-                        name={heroContent.name}
-                        title={heroContent.title}
-                        subtitle={heroContent.subtitle}
+                        greeting="Good Day"
+                        name={user ? `${user.fname} ${user.lname}` : ''}
+                        title="Check your application status"
+                        subtitle="We make it easy for you to track the accommodations you've applied for"
                         type="mini"
                     />
                 </div>

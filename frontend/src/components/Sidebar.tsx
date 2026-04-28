@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { api } from "../api/axios";
 
@@ -310,46 +310,34 @@ export default function Sidebar({ role, profile }: SidebarProps) {
   const location = useLocation();
 
 
-  const [active, setActive] = useState("dashboard");
-  useEffect(() => {
-    const path = location.pathname;
-
-
+  const path = location.pathname;
+  const active = (() => {
     if (role === "student") {
-      if (path.includes("/dashboard")) setActive("dashboard");
-      else if (path.includes("/browse")) setActive("search");
-      else if (path.includes("/applications")) setActive("applications");
-      else if (path.includes("/documents")) setActive("documents");
-      else if (path.includes("/profile")) setActive("account");
-      else setActive("dashboard");
-      return;
+      if (path.includes("/billingdashboard"))  return "documents";
+      if (path.includes("/applicationstatus")) return "applications";
+      if (path.includes("/browse"))            return "search";
+      if (path.includes("/profile"))           return "account";
+      if (path.includes("/dashboard"))         return "dashboard";
+      return "dashboard";
     }
-
-
     if (role === "manager") {
-      if (path.includes("/manager/dashboard")) setActive("dashboard");
-      else if (path.includes("/occupancy-records")) setActive("reports");
-      else if (path.includes("/room-assignment")) setActive("users");
-      else if (path.includes("/properties")) setActive("properties");
-      else if (path.includes("/profile")) setActive("account");
-      else setActive("dashboard");
-      return;
+      if (path.includes("/occupancy-records")) return "reports";
+      if (path.includes("/room-assignment"))   return "users";
+      if (path.includes("/waitlist"))          return "waitlist";
+      if (path.includes("/movein-moveout"))    return "movein-moveout";
+      if (path.includes("/applications"))      return "applications";
+      if (path.includes("/profile"))           return "account";
+      return "dashboard";
     }
-
-
     if (role === "landlordDashboard") {
-      if (path.includes("/landlord/accommodations")) setActive("dashboard");
-      else if (path.includes("/room")) setActive("room");
-      else if (path.includes("/application")) setActive("application");
-      else if (path.includes("/fees")) setActive("fees");
-      else if (path.includes("/profile")) setActive("account");
-      else setActive("dashboard");
-      return;
+      if (path.includes("/room"))              return "room";
+      if (path.includes("/application"))       return "application";
+      if (path.includes("/fees"))              return "fees";
+      if (path.includes("/profile"))           return "account";
+      return "dashboard";
     }
-
-
-    setActive("dashboard");
-  }, [location.pathname, role]);
+    return "dashboard";
+  })();
 
 
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -402,7 +390,6 @@ export default function Sidebar({ role, profile }: SidebarProps) {
 
 
   const handleNavigation = (id: string, path: string) => {
-    setActive(id);
     if (id === "logout") {
       api.post('/logout').finally(() => navigate("/"));
     } else {
