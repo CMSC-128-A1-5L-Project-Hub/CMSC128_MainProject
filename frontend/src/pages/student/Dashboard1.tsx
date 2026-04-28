@@ -721,16 +721,29 @@ export default function Dashboard() {
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
 
-  const {data: user,
+  const {
+    data: user,
     isLoading: isUserLoading,
-    isError,
-    } = useQuery({
-    queryKey: ["me"],
+    isError, // removed the redundant isError: isError
+  } = useQuery({
+    queryKey: ["me"], // if this has a different queryKey, keep yours
     queryFn: async () => {
+      try {
         const res = await api.get("/me");
-        return res.data.data;
+        console.log("GET /me:", res.data);
+        
+        // check for nested data, flat data, or fallback to null
+        return res.data?.data ?? res.data ?? null;
+        
+      } catch (error) {
+        // catch the 401 error and safely return null to break the redirect loop
+        console.warn("Auth check failed or user not logged in:", error);
+        return null; 
+      }
     },
-    });
+    // prevents React Query from retrying a failed auth check multiple times
+    retry: false, 
+  });
 
 
     useEffect(() => {

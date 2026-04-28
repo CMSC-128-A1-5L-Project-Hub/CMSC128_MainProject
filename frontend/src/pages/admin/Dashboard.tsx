@@ -22,15 +22,27 @@ const AdminDashboard = () => {
   const {
     data: user,
     isLoading: isUserLoading,
-    isError: isError,
+    isError,
   } = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
-      const res = await api.get("/me")
-      console.log("GET /me:", res.data)
-      return res.data.data
+      try {
+        const res = await api.get("/me");
+        
+        // fallback to res.data if res.data.data doesn't exist
+        // fallback to null if both are undefined
+        return res.data?.data ?? res.data ?? null;
+        
+      } catch (error) {
+        // if the API throws an error, catch it and return null. This tells React Query "we checked, and there is no user."
+        // this is to prevent the signin loop
+        console.warn("User not authenticated or API error:", error);
+        return null; 
+      }
     },
-  })
+    // don't retry the "me" endpoint endlessly if it fails
+    retry: false, 
+  });
 
   // Pending users
   const {
