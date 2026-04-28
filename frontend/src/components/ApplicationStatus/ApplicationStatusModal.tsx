@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Modal from "./Modal";
-import type { ApplicationStatus } from "../pages/student/ApplicationStatus";
-import StylizedStatus from "./BillingDashboard/StylizedStatus";
-import ApprovalProgress from "./ApplicationStatus/ApprovalProgress";
-import PhotoCarousel from "./ApplicationStatus/PhotoCarousel";
-import Photo1 from "../assets/images/forManager.png";
-import Photo2 from "../assets/images/phone.png";
-import Photo3 from "../assets/images/sample_dorm.jpg";
-import RightArrow from "../assets/icons/right-arrow.svg";
+import Modal from "../Modal";
+import type { ApplicationStatus } from "../../pages/student/ApplicationStatus";
+import StylizedStatus from "../BillingDashboard/StylizedStatus";
+import ApprovalProgress from "./ApprovalProgress";
+import PhotoCarousel from "./PhotoCarousel";
+import Photo1 from "../../assets/images/forManager.png";
+import Photo2 from "../../assets/images/phone.png";
+import Photo3 from "../../assets/images/sample_dorm.jpg";
+import RightArrow from "../../assets/icons/right-arrow.svg";
 
 export interface Application {
     id: number;
@@ -251,7 +251,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
                 </div>
             </div>
             <div className="flex flex-col flex-shrink-0 items-end">
-                <p className="text-[#9A7080] uppercase font-bold text-[12px] mb-1">Monthly Rate</p>
+                <p className="text-[#9A7080] uppercase font-bold text-[12px] mb-1">Starts at</p>
                 {isLoading ? (
                     <div className="h-6 w-20 bg-gray-200 rounded animate-pulse"></div>
                 ) : (
@@ -324,9 +324,6 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
               </div>
             )}
 
-            <div className="col-span-3 mt-2">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Assigned Room</p>
-            </div>
             <div className="col-span-3 mt-6">
               <p className="uppercase font-bold text-[11px] text-[#6B4050]">Assigned Room</p>
               {/* Assignment info is handled in the Assignment model natively, so typically "Pending" while an app is being processed */}
