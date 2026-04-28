@@ -745,7 +745,6 @@ export default function Dashboard() {
   } = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
-      try {
         const res = await api.get("/me");
         return res.data;
     },
