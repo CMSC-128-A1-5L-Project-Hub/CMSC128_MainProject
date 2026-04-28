@@ -26,6 +26,11 @@ interface Application {
   assignedRoom?: string;
 }
 
+const ROOM_DATA = [
+  { id: "Room 210", building: "Building 2", type: "Shared", price: "₱3,200 / month", occupants: 2, capacity: 4 },
+  { id: "Room 221", building: "Building 2", type: "Shared", price: "₱3,200 / month", occupants: 4, capacity: 4 },
+];
+
 function FilterTabs({ active, setActive }: any) {
   const tabs = ["Application", "Waitlist"];
   return (
@@ -75,7 +80,7 @@ const StatusBadge = ({ status }: { status: Status }) => {
   const cfg = STATUS_CONFIG[status];
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2 md:px-3 py-1 rounded-full text-[0.7rem] md:text-xs font-semibold"
+      className="inline-flex items-center gap-1.5 px-2 md:px-3 py-1 rounded-full text-[0.7rem] md:text-xs font-semibold whitespace-nowrap"
       style={{ background: cfg.bg, color: cfg.color }}
     >
       <span className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />
@@ -99,13 +104,13 @@ const DaysAgo = ({ targetDate }: { targetDate: string }) => {
 };
 
 const FilterSelect = ({ label, value, onChange, options }: any) => (
-  <div className="flex flex-col gap-0.5 md:gap-1">
+  <div className="flex flex-col gap-0.5 md:gap-1 flex-1 md:flex-none">
     <label className="text-[0.5rem] md:text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</label>
     <div className="relative">
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="appearance-none border border-gray-200 rounded-lg md:rounded-xl w-28 md:w-auto px-2 py-1 md:px-3 md:py-2 pr-7 md:pr-8 text-[0.7rem] md:text-sm font-semibold focus:outline-none focus:border-[#6B0F2B] cursor-pointer bg-white"
+        className="appearance-none border border-gray-200 rounded-lg md:rounded-xl w-full md:w-auto px-2 py-1 md:px-3 md:py-2 pr-7 md:pr-8 text-[0.7rem] md:text-sm font-semibold focus:outline-none focus:border-[#6B0F2B] cursor-pointer bg-white"
         style={{ color: CLR.mid }}
       >
         {options.map((o: any) => (
@@ -226,9 +231,16 @@ export default function Applications() {
 
   const handleAccept = () => {
     if (!selectedApp) return;
+    const hasAvailableRoom = ROOM_DATA.some(room => room.occupants < room.capacity);
+
     setAppsData(prev => prev.map(app => app.id === selectedApp.id 
-        ? { ...app, status: "Waitlisted", reviewed: new Date().toLocaleDateString() } : app));
-    setViewModalOpen(false);
+        ? { 
+            ...app, 
+            status: hasAvailableRoom ? "Accepted" : "Waitlisted", 
+            reviewed: new Date().toLocaleDateString() 
+          } : app));
+    
+    if (!hasAvailableRoom) setViewModalOpen(false);
   };
 
   const handleSaveAssignment = () => {
@@ -256,37 +268,39 @@ export default function Applications() {
     return [safePage - 1, safePage, safePage + 1];
   };
 
+  const showRoomAssignment = selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted";
+
   return (
     <div className="flex h-screen bg-[#F5EEF0]">
       <Sidebar role="landlordDashboard" />
       <DrawerNav open={drawerOpen} onClose={() => setDrawerOpen(false)} activePage={activePage} setActivePage={setActivePage} />
 
-      <main className="flex-1 p-6 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-6 overflow-y-auto">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => setDrawerOpen(true)} className="lg:hidden p-1" aria-label="Open menu" style={{ color: CLR.mid }}>
             <IconMenu />
           </button>
           <div className="hidden lg:block w-1 h-6 rounded-full" style={{ background: CLR.mid }} />
-          <h1 className="font-serif italic text-[28px] lg:text-[34px] font-semibold text-gray-900 tracking-tight">Applications</h1>
+          <h1 className="font-serif italic text-[24px] lg:text-[34px] font-semibold text-gray-900 tracking-tight">Applications</h1>
         </div>
 
         <div className="rounded-2xl p-6 mb-6 text-white" style={{ background: `linear-gradient(135deg, ${CLR.dark}, ${CLR.accent})` }}>
-          <p className="text-xs uppercase tracking-widest opacity-70">Good Day, Dal Cadsawan</p>
-          <h2 className="text-2xl font-bold mt-1">Check your applicants for Narra Residences</h2>
-          <p className="text-sm opacity-70 mt-1">We make it easy for you to track the accommodation applications you manage.</p>
+          <p className="text-[10px] md:text-xs uppercase tracking-widest opacity-70">Good Day, Dal Cadsawan</p>
+          <h2 className="text-xl md:text-2xl font-bold mt-1">Check your applicants for Narra Residences</h2>
+          <p className="text-xs md:text-sm opacity-70 mt-1">We make it easy for you to track the accommodation applications you manage.</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {stats.map((s) => {
               const pct = total ? Math.round((s.value / total) * 100) : 0;
               return (
                 <div key={s.label}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: s.text }}>{s.label}</p>
                   <div className="flex items-center gap-3">
-                    <div className="relative flex items-center h-8 rounded-full overflow-hidden w-full max-w-[160px]" style={{ background: s.light_bg }}>
+                    <div className="relative flex items-center h-7 md:h-8 rounded-full overflow-hidden w-full" style={{ background: s.light_bg }}>
                       <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, minWidth: "20px", background: s.color }} />
-                      <span className="relative z-10 text-white text-[10px] font-bold px-3 whitespace-nowrap">{s.value} / {total}</span>
+                      <span className="relative z-10 text-white text-[9px] md:text-[10px] font-bold px-3 whitespace-nowrap">{s.value} / {total}</span>
                     </div>
                     <span className="text-xs font-semibold text-gray-400">{pct}%</span>
                   </div>
@@ -296,52 +310,73 @@ export default function Applications() {
           </div>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <FilterTabs active={activeTab} setActive={setActiveTab} />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
-          <div className="flex flex-wrap items-end gap-3 p-4 border-b">
+        <div className="bg-white rounded-3xl border shadow-sm mt-6 overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-end gap-4 p-4 md:p-6 border-b">
             <div className="shrink-0">
               <h2 className="text-sm md:text-lg font-semibold tracking-tight text-black">{activeTab} History</h2>
               <p className="text-[0.7rem] md:text-xs text-gray-400">{filtered.length} total applications</p>
             </div>
-            <div className="flex items-end gap-3 ml-auto min-w-0">
-              <FilterSelect label="Sort By" value={sortBy} onChange={(v: any) => setSortBy(v)} options={[{ value: "latest", label: "Latest First" }, { value: "earliest", label: "Earliest First" }]} />
-              <div className="flex flex-col gap-0.5 md:gap-1 min-w-0 w-full md:w-56">
+            <div className="flex items-end gap-3 md:ml-auto w-full md:w-auto">
+              <FilterSelect 
+                label="Sort By" 
+                value={sortBy} 
+                onChange={(v: any) => setSortBy(v)} 
+                options={[{ value: "latest", label: "Latest" }, { value: "earliest", label: "Earliest" }]} 
+              />
+              <div className="flex flex-col gap-0.5 md:gap-1 flex-1 min-w-0 md:w-56">
                 <label className="text-[0.5rem] md:text-[10px] font-bold uppercase tracking-widest text-gray-400">Search</label>
-                <input type="text" placeholder="Search applicant..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full border border-gray-200 rounded-lg md:rounded-xl px-2 py-1 md:px-3 md:py-2 text-[0.7rem] md:text-sm focus:outline-none focus:border-[#6B0F2B]" />
+                <input 
+                  type="text" 
+                  placeholder="Search name..." 
+                  value={search} 
+                  onChange={(e) => setSearch(e.target.value)} 
+                  className="w-full border border-gray-200 rounded-lg md:rounded-xl px-2 py-1 md:px-3 md:py-2 text-[0.7rem] md:text-sm focus:outline-none focus:border-[#6B0F2B]" 
+                />
               </div>
             </div>
           </div>
 
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm table-fixed">
-              <colgroup>
-                <col style={{ width: "30%" }} /><col style={{ width: "22%" }} /><col style={{ width: "22%" }} /><col style={{ width: "16%" }} /><col style={{ width: "10%" }} />
-              </colgroup>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide bg-gray-50" style={{ color: CLR.mid }}>
-                  <th className="px-6 py-3">Student</th><th className="px-4 py-3">Date Applied</th><th className="px-4 py-3">Reviewed on</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-center">Action</th>
+                <tr className="text-left text-[10px] md:text-xs uppercase tracking-wide bg-gray-50/50" style={{ color: CLR.mid }}>
+                  <th className="px-6 py-4 font-bold">Student</th>
+                  <th className="px-4 py-4 font-bold">Date Applied</th>
+                  <th className="px-4 py-4 font-bold">Reviewed on</th>
+                  <th className="px-4 py-4 font-bold">Status</th>
+                  <th className="px-4 py-4 font-bold text-center">Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100">
                 {paginated.length === 0 ? (
                   <tr><td colSpan={5} className="text-center py-16 text-gray-400">No applications found.</td></tr>
                 ) : (
                   paginated.map((app) => (
-                    <tr key={app.id} className="border-t hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3">
+                    <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm" style={{ background: CLR.avatars[app.id % CLR.avatars.length] }}>{app.student.charAt(0)}</div>
-                          <span className="font-medium truncate">{app.student}</span>
+                          <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs md:text-sm flex-shrink-0" style={{ background: CLR.avatars[app.id % CLR.avatars.length] }}>{app.student.charAt(0)}</div>
+                          <span className="font-semibold text-gray-900 truncate max-w-[120px] md:max-w-none">{app.student}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600"><p>{app.date}</p><p className="text-[10px] text-gray-400"><DaysAgo targetDate={app.date} /></p></td>
-                      <td className="px-4 py-3 text-gray-500">{app.reviewed}</td>
-                      <td className="px-4 py-3"><StatusBadge status={app.status} /></td>
-                      <td className="px-4 py-3 text-center">
-                        <button onClick={() => handleView(app)} className="text-sm px-4 py-1.5 rounded-xl font-medium" style={{ color: CLR.mid, background: "#F5ECF0", border: `1px solid ${CLR.mid}20` }}>View</button>
+                      <td className="px-4 py-4 text-gray-600">
+                        <p className="font-medium text-xs md:text-sm">{app.date}</p>
+                        <p className="text-[9px] md:text-[10px] text-gray-400 font-medium mt-0.5"><DaysAgo targetDate={app.date} /></p>
+                      </td>
+                      <td className="px-4 py-4 text-gray-500 text-xs md:text-sm font-medium">{app.reviewed}</td>
+                      <td className="px-4 py-4"><StatusBadge status={app.status} /></td>
+                      <td className="px-4 py-4 text-center">
+                        <button 
+                          onClick={() => handleView(app)} 
+                          className="text-[11px] md:text-sm px-3 md:px-4 py-1.5 rounded-lg md:rounded-xl font-bold transition-all" 
+                          style={{ color: CLR.mid, background: "#F5ECF0", border: `1px solid ${CLR.mid}15` }}
+                        >
+                          View
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -350,8 +385,10 @@ export default function Applications() {
             </table>
           </div>
 
-          <div className="flex items-center justify-between px-4 py-3 border-t">
-            <p className="text-xs text-gray-400">{filtered.length === 0 ? "No results" : `Showing ${startIndex + 1}–${Math.min(startIndex + ITEMS_PER_PAGE, filtered.length)} of ${filtered.length}`}</p>
+          <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50/30">
+            <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">
+              {filtered.length === 0 ? "No results" : `Showing ${startIndex + 1}–${Math.min(startIndex + ITEMS_PER_PAGE, filtered.length)} of ${filtered.length}`}
+            </p>
             <div className="flex items-center gap-1.5">
               {getVisiblePages().map((page) => (
                 <PageBtn key={page} active={safePage === page} onClick={() => setCurrentPage(page)}>{page}</PageBtn>
@@ -364,128 +401,132 @@ export default function Applications() {
           open={viewModalOpen}
           onClose={() => setViewModalOpen(false)}
           title={
-            selectedApp?.status === "Waitlisted" ? "Room Assignment" :
             selectedApp?.status === "Rejected" ? "Rejection Remarks" :
-            selectedApp?.status === "Accepted" ? "Room Assignment" : "Application"
+            selectedApp?.status === "Under Review" ? "Application" : "Room Assignment"
           }
           footer={
             <div className="w-full flex justify-end gap-3">
               {selectedApp?.status === "Under Review" ? (
                 <>
-                  <button onClick={handleReject} className="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-semibold text-sm">Reject</button>
-                  <button onClick={handleAccept} className="px-4 py-2 rounded-xl bg-green-100 text-white font-semibold text-sm shadow-md">Accept</button>
+                  <button onClick={handleReject} className="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-bold text-xs md:text-sm">Reject</button>
+                  <button onClick={handleAccept} className="px-4 py-2 rounded-xl bg-green-100 text-black font-bold text-xs md:text-sm shadow-lg shadow-[#6B0F2B]/20">
+                    Accept 
+                  </button>
                 </>
-              ) : selectedApp?.status === "Waitlisted" ? (
-                <button onClick={handleSaveAssignment} disabled={!selectedRoom} className={`px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-md ${selectedRoom ? 'bg-[#8C1535]' : 'bg-gray-300'}`}>Save</button>
+              ) : (selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted") ? (
+                <button 
+                  onClick={handleSaveAssignment} 
+                  disabled={!selectedRoom} 
+                  className={`px-6 py-2 rounded-xl text-white font-bold text-xs md:text-sm shadow-lg transition-all ${selectedRoom ? 'bg-[#8C1535] shadow-[#8C1535]/20' : 'bg-gray-300'}`}
+                >
+                  Save 
+                </button>
               ) : null}
             </div>
           }
         >
           {selectedApp && (
-            <div className="space-y-4">
-              <div className="bg-[#F7F3F5] rounded-2xl border border-[#6B0F2B]/10 p-5">
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+              <div className="bg-[#F7F3F5] rounded-2xl border border-[#6B0F2B]/10 p-4 md:p-5">
                 <div className="mb-4">
-                  <p className="text-[16px] font-semibold text-gray-900">{selectedApp.student}</p>
-                  <p className="text-[11px] text-gray-400">Date Applied: {selectedApp.date}</p>
+                  <p className="text-[16px] font-bold text-gray-900">{selectedApp.student}</p>
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Date Applied: {selectedApp.date}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-[13px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-[13px]">
                   <div className="space-y-1">
-                    <p className="text-[11px] text-gray-400 font-semibold">Applicant Details</p>
-                    <p className="font-medium">email@up.edu.ph</p>
-                    <p className="text-[11px] text-gray-500">3rd Year • BS Computer Science</p>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Applicant Details</p>
+                    <p className="font-bold text-gray-800">email@up.edu.ph</p>
+                    <p className="text-[11px] text-gray-500 font-medium">3rd Year • BS Computer Science</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[11px] text-gray-400 font-semibold">Occupancy Details</p>
-                    <p className="font-medium">Semester 2, AY 2025–2026</p>
-                    <p className="text-[11px] text-gray-500">January 2026 – May 2026</p>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Occupancy Details</p>
+                    <p className="font-bold text-gray-800">Semester 2, AY 2025–2026</p>
+                    <p className="text-[11px] text-gray-500 font-medium">January 2026 – May 2026</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[11px] text-gray-400 font-semibold">Room Preference</p>
-                    <p className="font-medium">Non-Transient</p>
-                    <p className="text-[11px] text-gray-500">Shared • Building 2</p>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Room Preference</p>
+                    <p className="font-bold text-gray-800">Non-Transient</p>
+                    <p className="text-[11px] text-gray-500 font-medium">Shared • Building 2</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[11px] text-gray-400 font-semibold">Uploaded Documents</p>
-                    <div className="flex gap-2 mt-1">
-                      <button className="text-[11px] px-3 py-1 rounded-full bg-[#F5ECF0] border border-[#6B0F2B]/20">FORM 5</button>
-                      <button className="text-[11px] px-3 py-1 rounded-full bg-[#F5ECF0] border border-[#6B0F2B]/20">VALID ID</button>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Uploaded Documents</p>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      <button className="text-[10px] font-bold px-3 py-1 rounded-full bg-white border border-[#6B0F2B]/10 text-[#6B0F2B] hover:bg-[#F5ECF0]">FORM 5</button>
+                      <button className="text-[10px] font-bold px-3 py-1 rounded-full bg-white border border-[#6B0F2B]/10 text-[#6B0F2B] hover:bg-[#F5ECF0]">VALID ID</button>
                     </div>
                   </div>
                 </div>
               </div>
 
               {(selectedApp.status === "Under Review" || selectedApp.status === "Rejected") && (
-                <textarea
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                  disabled={selectedApp.status === "Rejected"}
-                  placeholder="Enter reason for rejection..."
-                  className="w-full h-[70px] border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#6B0F2B] disabled:bg-gray-100 disabled:text-gray-500"
-                />
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Admin Remarks</label>
+                  <textarea
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                    disabled={selectedApp.status === "Rejected"}
+                    placeholder="Enter reason for rejection or special notes..."
+                    className="w-full h-[80px] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#6B0F2B] disabled:bg-gray-50 disabled:text-gray-500 resize-none"
+                  />
+                </div>
               )}
 
-              {selectedApp.status === "Waitlisted" && (
-  <div className="space-y-3">
-    <div className="border rounded-2xl p-6 bg-white">
-      <p className="text-[15px] font-bold mb-4 text-black">Assign Room</p>
-      <div className="space-y-4">
-        {[
-          { id: "Room 210", building: "Building 2", type: "Shared", price: "₱3,200 / month", occupants: "2/4" },
-          { id: "Room 221", building: "Building 2", type: "Shared", price: "₱3,200 / month", occupants: "2/4" }
-        ].map((room) => (
-          <div 
-            key={room.id} 
-            className="flex items-center border border-gray-100 rounded-[32px] p-6 shadow-sm bg-white"
-          >
-            {/* Left Section: Room Pill and Building */}
-            <div className="w-[35%] border-r border-[#6B0F2B]/20 pr-4">
-              <div 
-                className="inline-block px-8 py-2 rounded-full mb-2" 
-                style={{ background: `linear-gradient(to right, ${CLR.dark}, ${CLR.accent})` }}
-              >
-                <span className="text-white font-bold text-sm tracking-wider uppercase">
-                  {room.id}
-                </span>
-              </div>
-              <p className="text-lg font-bold text-gray-900 ml-2">{room.building}</p>
-            </div>
+              {showRoomAssignment && (
+                <div className="space-y-3 pt-2">
+                  <p className="text-[14px] font-bold text-black ml-1 uppercase tracking-tight">Available Room Assignments</p>
+                  <div className="space-y-3">
+                    {ROOM_DATA.map((room) => (
+                      <div 
+                        key={room.id} 
+                        className={`flex flex-col sm:flex-row sm:items-center border rounded-2xl p-4 md:p-5 transition-all ${
+                          selectedRoom === room.id ? "border-green-500 bg-green-50/30" : "border-gray-100 bg-white"
+                        }`}
+                      >
+                        <div className="sm:w-[35%] sm:border-r border-gray-100 pr-4 mb-3 sm:mb-0">
+                          <div 
+                            className="inline-block px-4 py-1 rounded-lg mb-2" 
+                            style={{ background: `linear-gradient(to right, ${CLR.dark}, ${CLR.accent})` }}
+                          >
+                            <span className="text-white font-bold text-[10px] tracking-wider uppercase">
+                              {room.id}
+                            </span>
+                          </div>
+                          <p className="text-base font-bold text-gray-900">{room.building}</p>
+                        </div>
 
-            {/* Middle Section: Details */}
-            <div className="flex-1 px-8 space-y-2">
-              <p className="text-[13px] text-gray-900">
-                <span className="font-medium">Type : </span>
-                <span className="font-bold">{room.type}</span>
-              </p>
-              <p className="text-[13px] text-gray-900">
-                <span className="font-medium">Price : </span>
-                <span className="font-bold">{room.price}</span>
-              </p>
-              <p className="text-[13px] text-gray-900">
-                <span className="font-medium">Occupants : </span>
-                <span className="font-bold">{room.occupants}</span>
-              </p>
-            </div>
+                        <div className="flex-1 sm:px-6 space-y-1 mb-4 sm:mb-0">
+                          <div className="flex justify-between text-[12px]">
+                            <span className="text-gray-400 font-bold uppercase text-[9px]">Type</span>
+                            <span className="font-bold text-gray-800">{room.type}</span>
+                          </div>
+                          <div className="flex justify-between text-[12px]">
+                            <span className="text-gray-400 font-bold uppercase text-[9px]">Price</span>
+                            <span className="font-bold text-gray-800">{room.price}</span>
+                          </div>
+                          <div className="flex justify-between text-[12px]">
+                            <span className="text-gray-400 font-bold uppercase text-[9px]">Occupancy</span>
+                            <span className="font-bold text-gray-800">{room.occupants}/{room.capacity}</span>
+                          </div>
+                        </div>
 
-            {/* Right Section: Button */}
-            <div className="flex justify-end pl-4">
-              <button
-                onClick={() => setSelectedRoom(room.id)}
-                className={`px-6 py-2 rounded-2xl text-[12px] font-bold transition-all border ${
-                  selectedRoom === room.id 
-                    ? "bg-green-600 text-white border-green-600 shadow-md" 
-                    : "bg-[#F5ECF0] text-[#6B0F2B] border-transparent hover:bg-[#ebdce3]"
-                }`}
-              >
-                {selectedRoom === room.id ? "Selected" : "Assign Room"}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
+                        <div className="sm:pl-4">
+                          <button
+                            onClick={() => setSelectedRoom(room.id)}
+                            className={`w-full sm:w-auto px-5 py-2 rounded-xl text-[11px] font-bold transition-all border ${
+                              selectedRoom === room.id 
+                                ? "bg-green-600 text-white border-green-600 shadow-md" 
+                                : "bg-white text-[#6B0F2B] border-[#6B0F2B]/10 hover:bg-[#F5ECF0]"
+                            }`}
+                          >
+                            {selectedRoom === room.id ? "Selected" : "Assign"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </Modal>
