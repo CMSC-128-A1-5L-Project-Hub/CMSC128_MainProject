@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { api } from "../api/axios";
 
 
 // SVG icon imports
@@ -403,8 +404,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
   const handleNavigation = (id: string, path: string) => {
     setActive(id);
     if (id === "logout") {
-      console.log("Logging out...");
-      navigate("/");
+      api.post('/logout').finally(() => navigate("/"));
     } else {
       navigate(path);
     }

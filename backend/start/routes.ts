@@ -39,6 +39,7 @@ router
     // ─── SUCCESSFUL LOGIN/SIGNUP ───
     router.get('/me', [controllers.Auth, 'me'])
     router.put('/me', [controllers.Auth, 'updateMe'])
+    router.post('/logout', [controllers.Auth, 'logout'])
 
     // ─── USER ONBOARDING ───
     router.get('/setup', [controllers.Setups, 'show'])
