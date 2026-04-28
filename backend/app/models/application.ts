@@ -52,7 +52,7 @@ export default class Application extends BaseModel {
   declare slotConfirmDeadline: DateTime | null
 
   @column.dateTime()
-  declare slotConfirmedAt: DateTime | null
+  declare slotConfirmedAt: DateTime | null 
 
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>

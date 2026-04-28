@@ -7,7 +7,7 @@ import ApplicationTable from '../../components/ApplicationStatus/ApplicationTabl
 import HeroBanner from '../../components/dashboard/HeroBanner';
 import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
 import SearchBar from '../../components/SearchBar';
-import ApplicationStatusModal from "../../components/ApplicationStatusModal";
+import ApplicationStatusModal from "../../components/ApplicationStatus/ApplicationStatusModal";
 
 interface HeroContent {
     greeting: string;
@@ -28,11 +28,13 @@ export interface Application {
     durationOfStayDays: number;
     applicationDate: string;
     rejectionReason: string | null;
+    estimatedMonthlyRent?: number | null;
     accommodation: {
         id: number;
         accommodationName: string;
         accommodationLocation: string;
         accommodationType: string;
+        primaryImageUrl?: string;
     };
 }
 

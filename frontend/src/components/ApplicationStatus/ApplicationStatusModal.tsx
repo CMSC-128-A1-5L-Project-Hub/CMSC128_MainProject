@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Modal from "./Modal";
-import type { ApplicationStatus } from "../pages/student/ApplicationStatus";
+import Modal from "../Modal";
+import type { ApplicationStatus } from "../../pages/student/ApplicationStatus";
 
 export interface Application {
     id: number;
@@ -18,11 +18,13 @@ export interface Application {
     approvedAt?: string | null;
     slotConfirmDeadline?: string | null;
     slotConfirmedAt?: string | null;
+    estimatedMonthlyRent?: number | null;
     accommodation: {
         id: number;
         accommodationName: string;
         accommodationLocation: string;
         accommodationType: string;
+        primaryImageUrl?: string;
     };
 }
 
@@ -52,25 +54,82 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const cancelMutation = useMutation({
     mutationFn: async () => {
       if (!application) throw new Error("No application selected");
-      const res = await fetch(`/api/applications/${application.id}`, {
-        method: "PATCH",
-        credentials: "include", // Ensures cookies/tokens are sent
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "cancelled" }),
-      });
-      if (!res.ok) throw new Error("Failed to cancel application");
-      return res.json();
+      
+      console.log(`[Cancel Flow] Attempting to cancel application ${application.id} (Status: ${application.applicationStatus})`);
+      
+      let res;
+
+      // If approved or waitlisted, we must "decline" the slot so the waitlist service runs
+      if (application.applicationStatus === "approved" || application.applicationStatus === "waitlisted") {
+        console.log(`[Cancel Flow] Status is ${application.applicationStatus}. Routing to POST /confirm with action: 'decline'`);
+        res = await fetch(`/api/applications/${application.id}/confirm`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "decline" }),
+        });
+      } 
+      // If pending or under review, we just do a standard cancellation
+      else {
+        console.log(`[Cancel Flow] Status is ${application.applicationStatus}. Routing to PATCH /cancel`);
+        res = await fetch(`/api/applications/${application.id}`, {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "cancelled" }),
+        });
+      }
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        console.error("[Cancel Flow] Backend rejected the request:", res.status, errData);
+        throw new Error(errData.message || "Failed to cancel application");
+      }
+
+      const data = await res.json();
+      console.log("[Cancel Flow] Success!", data);
+      return data;
     },
     onSuccess: () => {
-      // Invalidate applications list to refresh the table
       queryClient.invalidateQueries({ queryKey: ["applications"] });
-      onClose(); // close modal
-      // Reset confirmation text for next time
+      onClose(); 
       setCancelConfirmation("");
     },
-    onError: (error) => {
-      console.error("Cancel error:", error);
-      alert("Could not cancel application. Please try again.");
+    onError: (error: any) => {
+      console.error("Cancel error caught in UI:", error);
+      alert(error.message || "Could not cancel application. Please try again.");
+    },
+  });
+
+  // Mutation to accept the approved slot
+  const acceptMutation = useMutation({
+    mutationFn: async () => {
+      if (!application) throw new Error("No application selected");
+      
+      console.log(`[Accept Flow] Attempting to confirm slot for application ${application.id}`);
+
+      const res = await fetch(`/api/applications/${application.id}/confirm-slot`, {
+        method: "POST", 
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        console.error("[Accept Flow] Backend rejected the request:", res.status, errData);
+        throw new Error(errData.message || "Failed to confirm slot");
+      }
+
+      const data = await res.json();
+      console.log("[Accept Flow] Success!", data);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      onClose(); 
+      setCancelConfirmation("");
+    },
+    onError: (error: any) => {
+      console.error("Accept error caught in UI:", error);
+      alert(error.message || "Could not confirm slot. Please try again.");
     },
   });
 
@@ -81,15 +140,23 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   );
 
   const formattedRate =
-  appliedRoom?.roomRent !== null &&
-  appliedRoom?.roomRent !== undefined
-    ? new Intl.NumberFormat("en-PH", {
-        style: "currency",
-        currency: "PHP",
-      }).format(Number(appliedRoom.roomRent))
-    : "—";
+    application.estimatedMonthlyRent !== null && application.estimatedMonthlyRent !== undefined
+      ? new Intl.NumberFormat("en-PH", {
+          style: "currency",
+          currency: "PHP",
+        }).format(Number(application.estimatedMonthlyRent))
+      : "—";
 
-  const imageUrl = accomData?.images?.[0]?.file?.filePath;
+  const imageUrl = application.accommodation?.primaryImageUrl;
+
+  // Modal footer with confirmation input and buttons
+  const isApproved = application.applicationStatus === "approved";
+  const hasDeadlinePassed = application.slotConfirmDeadline 
+    ? new Date() > new Date(application.slotConfirmDeadline)
+    : false;
+
+  // We disable Accept if: not approved, deadline passed, or user is typing CANCEL
+  const canAccept = isApproved && !hasDeadlinePassed && cancelConfirmation !== "CANCEL";
 
   // Modal footer with confirmation input and buttons
   const modalFooter = (
@@ -111,16 +178,24 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
           By typing "CANCEL", you are sure to cancel your application to this accommodation
         </span>
         <div className="flex gap-2">
+          {/* ACCEPT BUTTON */}
           <button
-            className="bg-[#8C1535] text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-[#6B0F2B] transition-colors"
-            onClick={() => console.log("Accept clicked")}
+            className={`px-6 py-2 rounded-full font-bold text-sm transition-colors ${
+              canAccept && !acceptMutation.isPending
+                ? "bg-[#8C1535] text-white hover:bg-[#6B0F2B] cursor-pointer shadow-sm"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            }`}
+            onClick={() => canAccept && acceptMutation.mutate()}
+            disabled={!canAccept || acceptMutation.isPending}
           >
-            Accept
+            {acceptMutation.isPending ? "Accepting..." : "Accept"}
           </button>
+
+          {/* CANCEL BUTTON */}
           <button
             className={`px-6 py-2 rounded-full font-bold text-sm transition-colors ${
               cancelConfirmation === "CANCEL" && !cancelMutation.isPending
-                ? "bg-gray-600 text-white hover:bg-gray-700 cursor-pointer"
+                ? "bg-gray-600 text-white hover:bg-gray-700 cursor-pointer shadow-sm"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
             onClick={() => cancelConfirmation === "CANCEL" && cancelMutation.mutate()}
@@ -187,12 +262,8 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Monthly Rate</p>
-            {isLoading ? (
-              <div className="h-6 w-20 bg-gray-200 rounded animate-pulse ml-auto"></div>
-            ) : (
-              <p className="font-bold text-2xl text-[#C9973A] leading-none">{formattedRate}</p>
-            )}
+            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Starts At</p>
+            <p className="font-bold text-2xl text-[#C9973A] leading-none">{formattedRate}</p>
             <p className="text-[10px] text-gray-400 mt-1">per month</p>
           </div>
         </div>
@@ -265,6 +336,26 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
                   ? new Date(application.reviewedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                   : "—"}
               </p>
+            </div>
+
+            {/* render the deadline only if it exists */}
+            {application.slotConfirmDeadline && (
+              <div>
+                <p className="text-[10px] text-[#8C1535] uppercase font-bold mb-1">Confirm By</p>
+                <p className="font-bold text-[#8C1535]">
+                  {new Date(application.slotConfirmDeadline).toLocaleString("en-US", { 
+                    month: "short", 
+                    day: "numeric", 
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit"
+                  })}
+                </p>
+              </div>
+            )}
+
+            <div className="col-span-3 mt-2">
+              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Assigned Room</p>
             </div>
             <div className="col-span-3">
               <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Assigned Room</p>
