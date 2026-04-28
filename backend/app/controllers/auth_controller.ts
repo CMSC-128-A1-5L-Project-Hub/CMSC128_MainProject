@@ -6,7 +6,6 @@ import NotificationService from '#services/notification_service'
 import LogService from '#services/log_service'
 import User from '#models/user'
 import { signFileUrl } from '#services/image_service'
-import PhoneNumber from '#models/phone_number'
 
 @inject()
 export default class AuthController {
@@ -92,7 +91,7 @@ export default class AuthController {
   }
 
   // ─── GET /me ──────────────────────────────────────────────────────────────
-  async me({ auth, response }: HttpContext) {
+  async me({ auth, serialize }: HttpContext) {
     const user = await User.query()
       .where('id', auth.user!.id)
       .preload('phoneNumbers')
@@ -118,11 +117,11 @@ export default class AuthController {
       serialized.dormitory = null
     }
 
-    return response.ok(serialized)
+    return serialize(serialized)
   }
 
   // ─── PUT /me ──────────────────────────────────────────────────────────────
-  async updateMe({ auth, request, response }: HttpContext) {
+  async updateMe({ auth, request, serialize }: HttpContext) {
     const user = await User.query()
       .where('id', auth.user!.id)
       .preload('student')
@@ -131,22 +130,22 @@ export default class AuthController {
       .firstOrFail()
 
     const data = request.only([
-      'facebookAccount',
-      'emergencyContactName',
-      'emergencyContactNumber',
-      'primaryPhone',
-      'secondaryPhone',
+      'facebookAccount', 'college', 'degreeProgram',
+      'gender', 'emergencyContactName', 'emergencyContactNumber',
     ])
 
-    // Update facebook
+    // Update user-level field
     if (data.facebookAccount !== undefined) {
       user.facebookAccount = data.facebookAccount || null
       await user.save()
     }
 
-    // Update emergency contacts (student only)
+    // Update student-level fields (only if user is a student)
     const student = user.student
     if (student) {
+      if (data.college !== undefined) student.college = data.college
+      if (data.degreeProgram !== undefined) student.degreeProgram = data.degreeProgram
+      if (data.gender !== undefined) student.gender = data.gender
       if (data.emergencyContactName !== undefined)
         student.emergencyContactName = data.emergencyContactName || null
       if (data.emergencyContactNumber !== undefined)
@@ -154,35 +153,13 @@ export default class AuthController {
       await student.save()
     }
 
-    // Update primary phone
-    if (data.primaryPhone !== undefined) {
-      const primary = user.phoneNumbers.find((p) => p.isPrimary)
-      if (primary) {
-        primary.contactNumber = data.primaryPhone
-        await primary.save()
-      } else if (data.primaryPhone) {
-        await PhoneNumber.create({ userId: user.id, contactNumber: data.primaryPhone, isPrimary: true })
-      }
-    }
-
-    // Update secondary phone
-    if (data.secondaryPhone !== undefined) {
-      const secondary = user.phoneNumbers.find((p) => !p.isPrimary)
-      if (secondary) {
-        secondary.contactNumber = data.secondaryPhone
-        await secondary.save()
-      } else if (data.secondaryPhone) {
-        await PhoneNumber.create({ userId: user.id, contactNumber: data.secondaryPhone, isPrimary: false })
-      }
-    }
-
-    // Reload and return
+    // Reload and return updated profile
     await user.load('student')
     await user.load('phoneNumbers')
     await user.load('profilePicture')
 
     const serialized = user.serialize()
     serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
-    return response.ok(serialized)
+    return serialize(serialized)
   }
 }

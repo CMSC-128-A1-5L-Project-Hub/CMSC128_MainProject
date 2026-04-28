@@ -112,7 +112,7 @@ const useProfileStore = create<ProfileEditStore>((set) => ({
 
 async function fetchMe(): Promise<UserProfile> {
   const res = await api.get("/me");
-  return res.data;
+  return res.data.data;
 }
 
 async function fetchHistory(): Promise<AccommodationHistoryItem[]> {
@@ -131,7 +131,7 @@ async function fetchHistory(): Promise<AccommodationHistoryItem[]> {
 
 async function updateMe(form: ProfileEditFields): Promise<UserProfile> {
   const res = await api.put("/me", form);
-  return res.data;
+  return res.data.data;
 }
 
 // ─── Utility functions ────────────────────────────────────────────────────────
