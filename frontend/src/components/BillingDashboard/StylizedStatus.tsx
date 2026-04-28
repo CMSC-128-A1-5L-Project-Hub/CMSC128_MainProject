@@ -15,14 +15,16 @@ interface StylizedStatusProps {
     status: 'paid' | 'unpaid' | 'overdue' | 'partial' | 'approved' | 'pending' | 'under_review' | 'rejected' | 'waitlisted' | 'cancelled';
 }
 
-export default function StylizedStatus({status}:StylizedStatusProps){
-    const style = statusStyles[status];
+export default function StylizedStatus({ status }: StylizedStatusProps) {
+    const safeStatus = status ?? '';          
+    const style = statusStyles[safeStatus] ?? {};
+
     return (
         <div className='bg-opacity-10 p-2 w-fit h-fit capitalize rounded-[50px] flex flex-row items-center justify-center'
-            style={{ backgroundColor: (style?.bg ?? '#F0F0F0') + '1A' }}>
-            <div className='w-2 h-2 mx-1 rounded-[100px]' style={{ backgroundColor: style?.dot ?? '#888' }} />
-            <p className='text-[12px]' style={{ color: style?.text ?? '#888', fontWeight: 'bold' }}>
-                {status.replace('_', ' ')}
+            style={{ backgroundColor: (style.bg ?? '#F0F0F0') + '1A' }}>
+            <div className='w-2 h-2 mx-1 rounded-[100px]' style={{ backgroundColor: style.dot ?? '#888' }} />
+            <p className='text-[12px]' style={{ color: style.text ?? '#888', fontWeight: 'bold' }}>
+                {safeStatus.replace('_', ' ')}
             </p>
         </div>
     );

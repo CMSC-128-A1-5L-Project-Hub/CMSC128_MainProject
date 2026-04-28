@@ -12,7 +12,7 @@ import type { Bill } from '../../pages/student/BillingDashboard';
 interface BillingModalProps {
     bill: Bill;
     onClose: () => void;
-    onSubmit?: () => void;   // 🟢 optional – called after successful payment
+    onSubmit?: () => void;   // called after successful payment
 }
 
 export default function BillingModal({ bill, onClose, onSubmit }: BillingModalProps) {
