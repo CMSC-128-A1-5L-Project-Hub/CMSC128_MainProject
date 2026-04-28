@@ -294,14 +294,25 @@ export default class ApplicationsController {
         return response.conflict({ message: 'student already has an active stay, cannot approve' })
       }
 
-      // Approve → use waitlist service, set reviewer info
+      // approve then use waitlist service, set reviewer info
       applicationObject.reviewedBy = user.id
       applicationObject.reviewedAt = DateTime.now()
 
       const updatedApp = await this.waitlistService.processApproval(applicationObject.id)
 
       if (updatedApp.applicationStatus === 'approved') {
-        updatedApp.slotConfirmDeadline = DateTime.now().plus({ days: 7 })
+        const now = DateTime.now()
+        
+        // set the exact time it was approved
+        updatedApp.approvedAt = now
+        
+        // dynamically set deadline based on stay type
+        if (updatedApp.applicationStayType === 'transient') {
+          updatedApp.slotConfirmDeadline = now.plus({ hours: 3 })
+        } else {
+          updatedApp.slotConfirmDeadline = now.plus({ days: 7 })
+        }
+        
         await updatedApp.save()
       }
 
@@ -330,8 +341,8 @@ export default class ApplicationsController {
       .where('studentNumber', student.studentNumber)
       .firstOrFail()
 
-    if (app.applicationStatus !== 'pending') {
-      return response.badRequest({ message: 'Can only cancel pending applications' })
+    if (!['pending', 'waitlisted'].includes(app.applicationStatus)) {
+      return response.badRequest({ message: 'Can only cancel pending or waitlisted applications' })
     }
     app.applicationStatus = 'cancelled'
     await app.save()

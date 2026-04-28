@@ -721,16 +721,20 @@ export default function Dashboard() {
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
 
-  const {data: user,
+  const {
+    data: user,
     isLoading: isUserLoading,
-    isError,
-    } = useQuery({
-    queryKey: ["me"],
+    isError, // removed the redundant isError: isError
+  } = useQuery({
+    queryKey: ["me"], // if this has a different queryKey, keep yours
     queryFn: async () => {
+      try {
         const res = await api.get("/me");
         return res.data;
     },
-    });
+    // prevents React Query from retrying a failed auth check multiple times
+    retry: false, 
+  });
 
 
     useEffect(() => {

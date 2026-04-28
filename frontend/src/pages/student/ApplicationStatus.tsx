@@ -7,33 +7,16 @@ import ApplicationTable from '../../components/ApplicationStatus/ApplicationTabl
 import HeroBanner from '../../components/dashboard/HeroBanner';
 import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
 import SearchBar from '../../components/SearchBar';
-import ApplicationStatusModal from "../../components/ApplicationStatusModal";
+import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
+
+// define the status type locally
+export type ApplicationStatus = "pending" | "under_review" | "approved" | "rejected" | "waitlisted" | "cancelled" | "confirmed";
 
 interface HeroContent {
     greeting: string;
     name: string;
     title: string;
     subtitle: string;
-}
-
-export type ApplicationStatus = "pending" | "under_review" | "approved" | "rejected" | "waitlisted" | "cancelled" | "confirmed";
-
-export interface Application {
-    id: number;
-    accommodationId: number;
-    studentNumber: string;
-    applicationRoomType: string;
-    applicationStayType: string;
-    applicationStatus: ApplicationStatus;
-    durationOfStayDays: number;
-    applicationDate: string;
-    rejectionReason: string | null;
-    accommodation: {
-        id: number;
-        accommodationName: string;
-        accommodationLocation: string;
-        accommodationType: string;
-    };
 }
 
 // Fetch from the API
@@ -58,7 +41,7 @@ export default function ApplicationStatusPage() {
     const [viewOpen, setViewOpen] = useState(false);
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
-    // Data fetching
+    // Data fetching - using the real API
     const { data: applications = [], isLoading, isError } = useQuery({
         queryKey: ["applications"],
         queryFn: fetchApplications,
@@ -110,7 +93,7 @@ export default function ApplicationStatusPage() {
     // Pagination slice
     const paginated = sortedApplications.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE);
 
-    // Make it so long remarks will be cut at 50 chars
+    // Truncate long rejection reasons for table display
     const tableApplications = paginated.map(app => ({
         ...app,
         rejectionReason: app.rejectionReason && app.rejectionReason.length > 50 

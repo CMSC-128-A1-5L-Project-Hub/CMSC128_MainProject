@@ -1,8 +1,12 @@
 import { useState } from "react";
-import type { Application } from "../../pages/student/ApplicationStatus";
+import type { Application } from '../../components/ApplicationStatusModal';
 import StylizedStatus from "../BillingDashboard/StylizedStatus";
 import Modal from "../Modal";
 import ApprovalProgress from "./ApprovalProgress";
+import PhotoCarousel from "./PhotoCarousel";
+import Photo1 from "../../assets/images/forManager.png";
+import Photo2 from "../../assets/images/phone.png";
+import Photo3 from "../../assets/images/sample_dorm.jpg";
 
 interface ApplicationModalProps {
     application: Application;
@@ -21,46 +25,43 @@ export default function ApplicationModal({ application, onClose, onSubmit }: App
     const [cancelOpen, setCancelOpen] = useState(false);
     const [typed, setTyped] = useState("");
     const [confirmCancel, setConfirmCancel] = useState(false);
+    const applicationPhotos = [Photo1, Photo2, Photo3];
 
     const applicationDate = new Date(application.applicationDate);
 
     return (
         <Modal open={true} onClose={onClose} title="Application Status" maxWidth="clamp(360px, 50vw, 600px)">
-            <div className='flex flex-col'>
-                <div className='flex flex-row p-0 justify-between'>
+            <div className='flex flex-col p-2'>
+                <PhotoCarousel
+                    photos = {applicationPhotos}>
+                </PhotoCarousel>
+                <div className='flex flex-row p-0 px-2 justify-between'>
                     <div className='flex flex-col w-52'>
                         <p className="text-[14px] font-bold">{application.accommodation.accommodationName}</p>
-                        <p className="text-[11px] text-[#9A7080] capitalize">
+                        <p className="text-[11px] -mt-1s text-[#9A7080] capitalize">
                             {application.applicationRoomType} • {application.accommodation.accommodationLocation}
                         </p>
-                        <p className="text-[11px] text-[#9A7080]">
+                        <p className="text-[11px] -mt-1 text-[#9A7080]">
                             {application.accommodation.accommodationType}
                         </p>
                     </div>
                     <div className='flex flex-col center-self'>
-                        <p className='text-[#9A7080] uppercase font-bold text-[12px]'>stay type</p>
+                        <p className='text-[#9A7080] uppercase font-bold text-[12px]'>starts at</p>
                         <p className='font-bold text-[#C9973A] -mt-1 text-[14px] capitalize'>
                             {application.applicationStayType.replace('_', ' ')}
                         </p>
-                        <p className='text-[#9A7080] text-[12px] -mt-1'>{application.durationOfStayDays} days</p>
+                        <p className='text-[#9A7080] text-[12px] -mt-1'>per month</p>
                     </div>
                 </div>
                 <ApprovalProgress
                     app = {application}>    
                 </ApprovalProgress>
                 <p className='uppercase pt-3 pb-1 font-bold text-[12px] text-[#9A7080]'>application information</p>
+                
                 <div className='w-full grid grid-cols-2 lg:grid-cols-3 gap-y-2'>
                     <div className='flex flex-col'>
                         <p className='uppercase font-bold text-[11px] text-[#6B4050]'>application id</p>
                         <p className='font-bold truncate text-[11px]'>{application.id}</p>
-                    </div>
-                    <div className='flex flex-col'>
-                        <p className='uppercase font-bold text-[11px] text-[#6B4050]'>room type</p>
-                        <p className='font-bold truncate text-[11px] capitalize'>{application.applicationRoomType}</p>
-                    </div>
-                    <div className='flex flex-col'>
-                        <p className='uppercase font-bold text-[11px] text-[#6B4050]'>current status</p>
-                        <StylizedStatus status={application.applicationStatus} />
                     </div>
                     <div className='flex flex-col'>
                         <p className='uppercase font-bold text-[11px] text-[#6B4050]'>date applied</p>
@@ -70,13 +71,19 @@ export default function ApplicationModal({ application, onClose, onSubmit }: App
                         <p className='text-[#9A7080] text-[9px]'>{timeAgo(applicationDate)}</p>
                     </div>
                     <div className='flex flex-col'>
-                        <p className='uppercase font-bold text-[11px] text-[#6B4050]'>duration</p>
-                        <p className='font-bold truncate text-[11px]'>{application.durationOfStayDays} days</p>
+                        <p className='uppercase font-bold text-[11px] text-[#6B4050]'>current status</p>
+                        <StylizedStatus status={application.applicationStatus} />
                     </div>
                     <div className='flex flex-col'>
-                        <p className='uppercase font-bold text-[11px] text-[#6B4050]'>stay type</p>
-                        <p className='font-bold truncate text-[11px] capitalize'>
-                            {application.applicationStayType.replace('_', ' ')}
+                        <p className='uppercase font-bold text-[11px] text-[#6B4050]'>assigned room</p>
+                        <p className='font-bold text-[11px]'>
+                            {applicationDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                    </div>
+                    <div className='flex flex-col'>
+                        <p className='uppercase font-bold text-[11px] text-[#6B4050]'>reviewed by</p>
+                        <p className='font-bold text-[11px]'>
+                            {applicationDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
                     </div>
                 </div>

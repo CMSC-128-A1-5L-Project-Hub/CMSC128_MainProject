@@ -6,12 +6,15 @@ interface User {
     id: number;
     email: string;
     role: 'unassigned' | 'student' | 'manager' | 'landlord' | 'super_admin';
-    account_status: 'pending' | 'active' | 'suspended' | 'initial'
+    account_status: 'pending' | 'active' | 'suspended' | 'initial';
 }
 
-interface ApiResponse {
-    data: User;
-}
+const ROLE_ROUTES: Record<string, string> = {
+    student: '/student/dashboard',
+    manager: '/manager/dashboard',
+    landlord: '/landlord/dashboard',
+    super_admin: '/admin/dashboard',
+};
 
 export default function AuthSuccess() {
     const navigate = useNavigate();
@@ -19,27 +22,21 @@ export default function AuthSuccess() {
     useEffect(() => {
         const fetchUserAndRedirect = async () => {
             try {
-                const response = await api.get<ApiResponse>('/me');
-                console.log("Hello? This is the response data: ", response)
-                const user = response.data;
-                console.log(user)
-                if (user.role === 'unassigned') navigate('/auth/role');
-                else if (user.account_status === 'pending') navigate('/pending-verification');
-                else if (user.role === 'student') navigate('/student/dashboard');
-                else if (user.role === 'manager') navigate('/manager/dashboard');
-                else if (user.role === 'landlord') navigate('/landlord/manage/accommodations');
-                else if (user.role === 'super_admin') navigate('/admin/dashboard');
-                else navigate('/auth/signin');
-            } catch (error) {
-                console.error("Failed to fetch user profile:", error);
-                navigate('/login');
+                const user = (await api.get<User>('/me')).data;
+                let route: string;
+                if (user.role === 'unassigned') route = '/auth/role';
+                else if (user.account_status === 'pending') route = '/pending-verification';
+                else route = ROLE_ROUTES[user.role] ?? '/auth/signin';
+                navigate(route, { replace: true });
+            } catch {
+                navigate('/auth/signin', { replace: true });
             }
         };
 
         fetchUserAndRedirect();
     }, [navigate]);
 
-    return ( 
+    return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <p className="text-gray-500 font-medium animate-pulse">Authenticating...</p>
         </div>

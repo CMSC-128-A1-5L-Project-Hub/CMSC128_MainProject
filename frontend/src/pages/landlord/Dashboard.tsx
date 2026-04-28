@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { X } from "lucide-react";
@@ -115,13 +115,19 @@ export default function Dashboard() {
 
   // ── Queries ─────────────────────────────────────────────────────────────────
 
-  const { data: accommodations = [] } = useQuery<Accommodation[]>({
+  const { data: accommodations = [], isSuccess: accLoaded } = useQuery<Accommodation[]>({
     queryKey: ["landlord-accommodations"],
     queryFn: () => api.get("/landlord/accommodations").then((r) => r.data ?? []),
   });
 
   const accommodationId = id ? Number(id) : undefined;
   const accommodation = accommodations.find((a) => a.id === accommodationId) ?? null;
+
+  useEffect(() => {
+    if (accLoaded && !accommodation) {
+      navigate("/landlord/dashboard", { replace: true });
+    }
+  }, [accLoaded, accommodation, navigate]);
 
   const { data: revenue } = useQuery<RevenueData>({
     queryKey: ["landlord-revenue"],
@@ -209,7 +215,7 @@ export default function Dashboard() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => navigate("/landlord/manage/accommodations")}
+                onClick={() => navigate("/landlord/dashboard")}
               >
                 ← Back
               </Button>

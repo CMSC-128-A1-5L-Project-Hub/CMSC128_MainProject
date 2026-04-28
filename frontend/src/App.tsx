@@ -21,7 +21,7 @@ import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import BillingDashboard from "./pages/student/BillingDashboard"
 import LandlordDashboard from "./pages/landlord/Dashboard"
 import NotificationsPage from "./pages/shared/Notifications"
-// import StudentApplicationsPage from "./pages/student/Applications"
+import StudentApplicationsPage from "./pages/student/ApplicationStatus"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
 import FullRoomView from "./pages/student/FullRoomView"
@@ -81,8 +81,8 @@ function App() {
         <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
 
         {/* ── Landlord routes ── */}
-        <Route path="/landlord/dashboard/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
-        <Route path="/landlord/manage/accommodations" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
+        <Route path="/landlord/accommodations/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
+        <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
         <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
 
         {/* ── Admin routes ── */}
