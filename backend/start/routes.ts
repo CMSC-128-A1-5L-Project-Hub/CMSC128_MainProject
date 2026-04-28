@@ -101,6 +101,9 @@ router
         router.post('/landlord/accommodations/:id/images', [controllers.Accommodation, 'uploadImages'])
         router.delete('/landlord/accommodations/:id/images/:imageId', [controllers.Accommodation, 'deleteImage'])
 
+        // ─── FEES (CREATED BY LANDLORD) ───
+        router.post('/fees', [controllers.Fees, 'store'])
+
         // Manager Handover
         router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])
         router.post('/landlord/accommodations/:id/unfreeze', [controllers.ManagerHandover, 'unfreeze'])

@@ -32,6 +32,9 @@ export default class Fee extends BaseModel {
   @column()
   declare feeStatus: 'paid' | 'unpaid' | 'overdue' | 'partial'
 
+  @column()
+  declare allowInstallments: boolean
+
   @belongsTo(() => Landlord, { foreignKey: 'landlordId' })
   declare landlord: BelongsTo<typeof Landlord>
 
