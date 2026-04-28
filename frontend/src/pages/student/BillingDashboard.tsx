@@ -46,7 +46,7 @@ export default function BillingDashboard() {
     .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0] ?? null;
 
   const totalBilled = safeBills.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
-  const totalPaid = safeBills.reduce((acc, curr) => curr.status === "paid" ? acc + (Number(curr.amount) || 0) : acc, 0);
+  const totalPaid = safeBills.reduce((acc, curr) => acc + (Number(curr.amount) - Number(curr.balance)), 0);
 
   const summaryCards = [
     {
