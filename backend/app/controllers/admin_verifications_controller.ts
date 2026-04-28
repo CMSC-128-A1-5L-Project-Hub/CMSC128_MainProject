@@ -10,7 +10,7 @@ export default class AdminVerificationsController {
   constructor(protected notificationService: NotificationService) {}
 
   // Gets all users waiting for Admin approval
-  async index({ serialize }: HttpContext) {
+  async index({ response }: HttpContext) {
     // 1. Find all users who are still 'unassigned'
     const users = await User.query().where('role', 'unassigned')
 
@@ -31,23 +31,22 @@ export default class AdminVerificationsController {
       }
     }
 
-    // Returns { data: [ ...pendingUsers ] }
-    return serialize(pendingUsers) 
+    return response.ok(pendingUsers)
   }
 
   // Approves the user by changing their role
-  async verify({ request, params, serialize }: HttpContext) {
+  async verify({ request, params, response }: HttpContext) {
     const { roleToAssign } = request.all() // 'student' or 'landlord'
-    
+
     // Note: the route says :userId, so we use params.userId here
-    const user = await User.findOrFail(params.userId) 
-    
+    const user = await User.findOrFail(params.userId)
+
     user.role = roleToAssign
     user.accountStatus = 'active' // Automatically activate their account once verified
     await user.save()
 
     await this.notificationService.sendAccountApprovedEmail(user, roleToAssign)
 
-    return serialize(user)
+    return response.ok(user)
   }
 }

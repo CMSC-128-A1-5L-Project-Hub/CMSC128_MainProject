@@ -728,7 +728,7 @@ export default function Dashboard() {
     queryKey: ["me"],
     queryFn: async () => {
         const res = await api.get("/me");
-        return res.data.data;
+        return res.data;
     },
     });
 
@@ -740,7 +740,7 @@ export default function Dashboard() {
         console.log("GET /profile:", res.data);
 
 
-        setProfile(res.data.data ?? res.data);
+        setProfile(res.data);
         } catch (error) {
         console.error("Failed to fetch student profile:", error);
         } finally {
@@ -774,7 +774,7 @@ export default function Dashboard() {
         console.log("applications:", res.data);
 
 
-        const data = res.data.data ?? res.data;
+        const data = res.data;
 
 
         // count pending
@@ -801,7 +801,7 @@ export default function Dashboard() {
         console.log("notifications:", res.data);
 
 
-        const data = res.data.data ?? res.data;
+        const data = res.data;
 
 
         // unread count (optional)

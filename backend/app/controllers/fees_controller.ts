@@ -40,9 +40,7 @@ async index({ auth, response }: HttpContext) {
       'accommodations.accommodation_name'
     )
 
-  return response.ok({
-    data: studentFees,
-  })
+  return response.ok(studentFees)
 }
 
   // ─── MANAGER/LANDLORD: CREATE FEES ───

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import { api } from "../../api/axios"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import defaultAccommodation from "@/assets/defaults/accommodation.png"
 
 // Helpers
 const capitalize = (str: string) =>
@@ -744,7 +745,7 @@ export default function Dashboard() {
     queryKey: ["me"],
     queryFn: async () => {
         const res = await api.get("/me");
-        return res.data.data;
+        return res.data;
     },
     });
 
@@ -760,7 +761,7 @@ export default function Dashboard() {
   const fetchProfile = async () => {
     try {
       const res = await api.get("/student/profile");
-      const data = res.data.data ?? res.data;
+      const data = res.data;
 
       setProfile({
         fullName: data.fullName ?? "",
@@ -807,7 +808,7 @@ useEffect(() => {
         console.log("notifications:", res.data);
 
 
-        const data = res.data.data ?? res.data;
+        const data = res.data;
 
 
         // unread count (optional)
@@ -851,7 +852,7 @@ useEffect(() => {
     const fetchApplications = async () => {
       try {
         const res = await api.get("/applications/my-applications");
-        const data = res.data.data ?? res.data;
+        const data = res.data;
 
         setApplications(data);
 
@@ -880,7 +881,7 @@ useEffect(() => {
   const fetchRecommendedDorms = async () => {
     try {
       const res = await api.get('/recommended-accommodations')
-      const data = res.data.data ?? res.data ?? []
+      const data = res.data ?? []
       console.log("RECOMMENDED DORMS:", data);
       setRecommendedDorms(data)
     } catch (error) {
@@ -899,7 +900,7 @@ useEffect(() => {
   const fetchBilling = async () => {
     try {
       const res = await api.get("/my-fees");
-      const fees = res.data.data ?? res.data ?? [];
+      const fees = res.data ?? [];
 
       console.log("BILLING:", fees);
 
@@ -1146,7 +1147,8 @@ if (isUserLoading) {
                       <div className="px-4 pt-4 pb-4">
                         <div className="relative h-[132px] rounded-[18px] overflow-hidden">
                           <img
-                            src={dorm.primaryImageUrl ?? dorm.imageUrl ?? dorm.img}
+                            src={dorm.primaryImageUrl ?? defaultAccommodation}
+                            onError={(e) => { e.currentTarget.src = defaultAccommodation }}
                             alt={dorm.accommodation_name ?? dorm.accommodationName}
                             className="absolute inset-0 w-full h-full object-cover"
                           />

@@ -91,7 +91,7 @@ export default class ApplicationsController {
   }
 
   // ─── STUDENT: SUBMIT APPLICATION ─────────────────────────────
-  async store({ auth, request, response, serialize }: HttpContext) {
+  async store({ auth, request, response }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id) // Get student_number
 
@@ -124,7 +124,7 @@ export default class ApplicationsController {
     })
 
     await LogService.record(user.id, 'application', newApp.id, 'STUDENT_SUBMITTED')
-    return serialize(newApp)
+    return response.ok(newApp)
   }
 
   // ─── STUDENT: VIEW MY APPLICATIONS (with estimated rent + images) ─
@@ -189,7 +189,7 @@ export default class ApplicationsController {
   }
 
   // ─── MANAGER/LANDLORD: VIEW INCOMING ────────────────────────
-  async incoming({ auth, response, serialize }: HttpContext) {
+  async incoming({ auth, response }: HttpContext) {
     const user = auth.user!
     if (user.role === 'manager') {
       const applications = await Application.query()
@@ -199,7 +199,7 @@ export default class ApplicationsController {
         .preload('accommodation')
         .preload('student', (q) => q.preload('user', (u) => u.preload('phoneNumbers')))
         .orderBy('applicationDate', 'asc')
-      return serialize(applications)
+      return response.ok(applications)
     }
     if (user.role === 'landlord') {
       const applications = await Application.query()
@@ -208,13 +208,13 @@ export default class ApplicationsController {
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
         .orderBy('applicationDate', 'asc')
-      return serialize(applications)
+      return response.ok(applications)
     }
     return response.forbidden({ message: 'access denied' })
   }
 
   // ─── MANAGER/LANDLORD: APPROVE OR REJECT ─────────────────────
-  async updateStatus({ auth, request, params, response, serialize }: HttpContext) {
+  async updateStatus({ auth, request, params, response }: HttpContext) {
     const user = auth.user!
     const { action, rejection_reason } = request.body()
 
@@ -265,7 +265,7 @@ export default class ApplicationsController {
         action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED',
         detail)
 
-      return serialize(applicationObject)
+      return response.ok(applicationObject)
     }
 
     // Landlord approval
@@ -282,7 +282,7 @@ export default class ApplicationsController {
         applicationObject.rejectionReason = rejection_reason
         await applicationObject.save()
         await LogService.record(user.id, 'application', applicationObject.id, 'LANDLORD_REJECTED')
-        return serialize(applicationObject)
+        return response.ok(applicationObject)
       }
 
       // Conflict prevention: a student may have only one active stay
@@ -315,14 +315,14 @@ export default class ApplicationsController {
         'LANDLORD_APPROVED',
         detail)
 
-      return serialize(updatedApp)
+      return response.ok(updatedApp)
     }
 
     return response.forbidden()
   }
 
   // ─── STUDENT: CANCEL APPLICATION ──────────────────────────────
-  async cancel({ auth, params, response, serialize }: HttpContext) {
+  async cancel({ auth, params, response }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
     const app = await Application.query()
@@ -336,11 +336,11 @@ export default class ApplicationsController {
     app.applicationStatus = 'cancelled'
     await app.save()
     await LogService.record(user.id, 'application', app.id, 'STUDENT_CANCELLED')
-    return serialize(app)
+    return response.ok(app)
   }
 
   // ─── MANAGER: GET APPROVED APPLICATIONS FOR DASHBOARD ─────────
-  async approvedForAssignment({ auth, serialize }: HttpContext) {
+  async approvedForAssignment({ auth, response }: HttpContext) {
     const user = auth.user!
     const applications = await Application.query()
       .whereHas('accommodation', (q) => q.where('managerId', user.id))
@@ -348,11 +348,11 @@ export default class ApplicationsController {
       .preload('accommodation')
       .preload('student', (q) => q.preload('user', (u) => u.preload('phoneNumbers')))
       .orderBy('applicationDate', 'asc')
-    return serialize(applications)
+    return response.ok(applications)
   }
 
   // ─── STUDENT: CONFIRM / DECLINE APPROVED SLOT ────────────────
-  async confirm({ auth, params, request, response, serialize }: HttpContext) {
+  async confirm({ auth, params, request, response }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
     const application = await Application.query()
@@ -369,13 +369,13 @@ export default class ApplicationsController {
       application.slotConfirmedAt = DateTime.now()
       await application.save()
       await LogService.record(user.id, 'application', application.id, 'STUDENT_CONFIRMED')
-      return serialize({ message: 'Slot confirmed successfully.', application })
+      return response.ok({ message: 'Slot confirmed successfully.', application })
     }
 
     if (action === 'decline') {
       await this.waitlistService.processWaitlistCancellation(application.id)
       await LogService.record(user.id, 'application', application.id, 'STUDENT_DECLINED')
-      return serialize({ message: 'Slot declined.' })
+      return response.ok({ message: 'Slot declined.' })
     }
 
     return response.badRequest({ message: 'action must be "accept" or "decline"' })
@@ -385,7 +385,7 @@ export default class ApplicationsController {
   // After landlord approval, the student has until slotConfirmDeadline to claim
   // the slot. Confirmation stamps slotConfirmedAt; un-claimed slots are later
   // auto-cancelled by the scheduler so the next waitlisted applicant can be promoted.
-  async confirmSlot({ auth, params, response, serialize }: HttpContext) {
+  async confirmSlot({ auth, params, response }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
 
@@ -408,7 +408,7 @@ export default class ApplicationsController {
     await app.save()
 
     await LogService.record(user.id, 'application', app.id, 'STUDENT_CONFIRMED_SLOT')
-    return serialize(app)
+    return response.ok(app)
   }
 
   // ─── VIEW ENROLLMENT PROOF ───────────────────────────────────
@@ -436,17 +436,17 @@ export default class ApplicationsController {
   }
 
   // ─── MANAGER: VIEW APPLICATIONS (TESTER) ─────────────────────
-  async viewApplications({ serialize }: HttpContext) {
+  async viewApplications({ response }: HttpContext) {
     const applications = await Application.query()
       .preload('accommodation')
       .preload('student', (q) => q.preload('user'))
       .orderBy('applicationDate', 'asc')
 
-    return serialize(applications)
+    return response.ok(applications)
   }
 
   // ─── MANAGER: VIEW APPLICANTS ────────────────────────────────
-  async viewApplicants({ auth, response, serialize }: HttpContext) {
+  async viewApplicants({ auth, response }: HttpContext) {
     const user = auth.user!
 
     if (user.role === 'manager') {
@@ -456,7 +456,7 @@ export default class ApplicationsController {
         .preload('student', (q) => q.preload('user'))
         .orderBy('applicationDate', 'asc')
 
-      return serialize(applications)
+      return response.ok(applications)
     }
 
     return response.forbidden({ message: 'access denied' })

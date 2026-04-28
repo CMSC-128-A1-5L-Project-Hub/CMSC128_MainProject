@@ -21,7 +21,7 @@ export default function ProtectedRoute({ children }: Props) {
   useEffect(() => {
     api.get("/me")
       .then((res) => {
-        setUser(res.data.data)
+        setUser(res.data)
         setStatus("ok")
       })
       .catch(() => setStatus("unauth"))

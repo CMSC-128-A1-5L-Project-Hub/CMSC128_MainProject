@@ -10,18 +10,18 @@ import db from '@adonisjs/lucid/services/db'
 @inject()
 export default class LogsController {
 
-  async index({ request, serialize }: HttpContext) {
+  async index({ request, response }: HttpContext) {
     const filters = request.qs()
     const logs = await LogService.getFilteredLogs(filters)
-    return serialize(logs)
+    return response.ok(logs)
   }
 
-  async managerLogs({ auth, serialize }: HttpContext) {
+  async managerLogs({ auth, response }: HttpContext) {
     const user = auth.user!
 
     const accommodations = await Accommodation.query().where('managerId', user.id)
     const accIds = accommodations.map(a => a.id)
-    if (accIds.length === 0) return serialize([])
+    if (accIds.length === 0) return response.ok([])
 
     const rooms = await Room.query().whereIn('accommodationId', accIds)
     const roomIds = rooms.map(r => r.id)
@@ -53,6 +53,6 @@ export default class LogsController {
       .orderBy('logTimestamp', 'desc')
       .limit(10)
 
-    return serialize(logs)
+    return response.ok(logs)
   }
 }

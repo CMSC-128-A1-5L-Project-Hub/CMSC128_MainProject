@@ -22,11 +22,11 @@ export default class AssignmentsController {
   ) {}
 
   // ─── MANAGER: ALL ASSIGNMENTS FOR DASHBOARD ───
-  async managerIndex({ auth, serialize }: HttpContext) {
+  async managerIndex({ auth, response }: HttpContext) {
     const user = auth.user!
     const accommodations = await Accommodation.query().where('managerId', user.id)
     const accIds = accommodations.map(a => a.id)
-    if (accIds.length === 0) return serialize([])
+    if (accIds.length === 0) return response.ok([])
 
     const rooms = await Room.query().whereIn('accommodationId', accIds)
     const roomIds = rooms.map(r => r.id)
@@ -37,14 +37,14 @@ export default class AssignmentsController {
       .preload('student', (q) => q.preload('user'))
       .orderBy('moveIn', 'asc')
 
-    return serialize(assignments)
+    return response.ok(assignments)
   }
 
   // ─── MANAGER/LANDLORD: ASSIGN ROOM (Slot Confirmed → Assigned) ───
   // Manager: subject to the existing-assignment conflict guard.
   // Landlord: may override an existing assignment by transactionally releasing the
   //   prior room (decrement occupancy, cancel old assignment) before creating the new one.
-async store({ auth, request, response, serialize }: HttpContext) {
+async store({ auth, request, response }: HttpContext) {
   const user = auth.user!
   const { applicationId, roomId, moveIn, expectedMoveOut, gracePeriodDays } = request.body()
 
@@ -127,12 +127,12 @@ async store({ auth, request, response, serialize }: HttpContext) {
   )
 
   await LogService.record(user.id, 'assignment', assignment.id, 'MANAGER_ASSIGNED_ROOM')
-  return serialize(assignment)
+  return response.ok(assignment)
 }
 
   // ─── 2. MANAGER/LANDLORD: RECORD MOVE-OUT (triggers waitlist promotion) ───
   // PATCH /assignments/:id/move-out
-  async moveOut({ auth, params, request, response, serialize }: HttpContext) {
+  async moveOut({ auth, params, request, response }: HttpContext) {
     const user = auth.user!
     const { actualMoveOut } = request.body()
 
@@ -170,7 +170,7 @@ async store({ auth, request, response, serialize }: HttpContext) {
     await this.waitlistService.processMoveOut(accommodation.id, room)
 
     await LogService.record(user.id, 'assignment', assignment.id, 'MOVED_OUT')
-    return serialize(assignment)
+    return response.ok(assignment)
   }
 
   // ─── 3. STUDENT: VIEW CURRENT STAY ───
@@ -215,7 +215,7 @@ async store({ auth, request, response, serialize }: HttpContext) {
   }
 
   // ─── MANAGER: VIEW ALL ASSIGNMENTS (TESTER) ───
-  async viewAllAssignments({ auth, response, serialize }: HttpContext) {
+  async viewAllAssignments({ auth, response }: HttpContext) {
     const user = auth.user!
     if (user.role !== 'manager') return response.forbidden({ message: 'access denied' })
 
@@ -227,11 +227,11 @@ async store({ auth, request, response, serialize }: HttpContext) {
         studentQuery.preload('user')
       })
 
-    return serialize(assignments)
+    return response.ok(assignments)
   }
 
   // ─── MANAGER: VIEW ASSIGNMENTS FOR MY ACCOMMODATIONS ───
-  async viewAssignments({ auth, response, serialize }: HttpContext) {
+  async viewAssignments({ auth, response }: HttpContext) {
     const user = auth.user!
     if (user.role !== 'manager') return response.forbidden({ message: 'access denied' })
 
@@ -248,7 +248,7 @@ async store({ auth, request, response, serialize }: HttpContext) {
         studentQuery.preload('user')
       })
 
-    return serialize(assignments)
+    return response.ok(assignments)
   }
 
   // ─── helper: shape an Assignment into the frontend's AccommodationHistoryItem ───

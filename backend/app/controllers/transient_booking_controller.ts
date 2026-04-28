@@ -13,7 +13,7 @@ export default class TransientBookingsController {
   constructor(protected notificationService: NotificationService) {}
 
   // ─── STUDENT: Create a new transient booking ───
-  async store({ auth, request, response, serialize }: HttpContext) {
+  async store({ auth, request, response }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
     const { roomId, checkInDate, checkOutDate } = request.body()
@@ -38,11 +38,11 @@ export default class TransientBookingsController {
       status: 'pending_payment',
     })
 
-    return serialize(booking)
+    return response.ok(booking)
   }
 
   // ─── STUDENT: Upload payment proof ───
-  async uploadProof({ auth, params, request, response, serialize }: HttpContext) {
+  async uploadProof({ auth, params, request, response }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
 
@@ -83,11 +83,11 @@ export default class TransientBookingsController {
       )
     }
 
-    return serialize(booking)
+    return response.ok(booking)
   }
 
   // ─── LANDLORD: Verify / reject booking ───
-  async verify({ auth, params, request, response, serialize }: HttpContext) {
+  async verify({ auth, params, request, response }: HttpContext) {
     const user = auth.user!
     const { action } = request.body()   // 'approve' or 'reject'
 
@@ -106,11 +106,11 @@ export default class TransientBookingsController {
     booking.status = action === 'approve' ? 'confirmed' : 'rejected'
     await booking.save()
 
-    return serialize(booking)
+    return response.ok(booking)
   }
 
   // ─── STUDENT: View my transient bookings ───
-  async myBookings({ auth, serialize }: HttpContext) {
+  async myBookings({ auth, response }: HttpContext) {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id)
 
@@ -118,6 +118,6 @@ export default class TransientBookingsController {
       .where('student_number', student.studentNumber)
       .preload('room', (q) => q.preload('accommodation'))
       .orderBy('created_at', 'desc')
-    return serialize(bookings)
+    return response.ok(bookings)
   }
 }
