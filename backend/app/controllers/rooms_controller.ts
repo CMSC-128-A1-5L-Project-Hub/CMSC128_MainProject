@@ -15,7 +15,12 @@ export default class RoomsController {
   ) {}
 
   // ─── MANAGER: VIEW ALL ROOMS IN A DORM ───
-  async index({ params, response }: HttpContext) {
+  async index({ params, auth, response }: HttpContext) {
+    const userId = auth.user!.id
+    await Accommodation.query()
+      .where('id', params.accommodationId)
+      .where((q) => q.where('landlord_id', userId).orWhere('manager_id', userId))
+      .firstOrFail()
     const rooms = await this.roomService.getRoomsByAccommodation(params.accommodationId)
     return response.ok(rooms)
   }
@@ -35,10 +40,10 @@ export default class RoomsController {
   }
 
   // ─── MANAGER: UPDATE ROOM DETAILS ───
-  async update({ params, request, response }: HttpContext) {
+  async update({ params, request, auth, response }: HttpContext) {
     try {
       const payload = await updateRoomValidator.validate(request.all())
-      const updatedRoom = await this.roomService.updateRoom(params.id, payload)
+      const updatedRoom = await this.roomService.updateRoom(params.id, payload, auth.user!.id)
       return response.ok(updatedRoom)
     } catch (err) {
       const error = err as Error
@@ -50,9 +55,9 @@ export default class RoomsController {
   }
 
   // ─── MANAGER: DELETE A ROOM ───
-  async destroy({ params, response }: HttpContext) {
+  async destroy({ params, auth, response }: HttpContext) {
     try {
-      await this.roomService.deleteRoom(params.id)
+      await this.roomService.deleteRoom(params.id, auth.user!.id)
       return response.ok({ message: 'Room deleted successfully.' })
     } catch (err) {
       const error = err as Error
