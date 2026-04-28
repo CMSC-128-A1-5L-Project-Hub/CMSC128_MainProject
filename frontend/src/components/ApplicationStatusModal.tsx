@@ -154,7 +154,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
             className={`${carouselOpen ? "w-10" : "w-1/5 opacity-100"} transition-all p-0 overflow-hidden relative min-w-0 self-stretch bg-gradient-to-br from-[#3D0718] to-[#8C1535]`}>
               <span className={`${carouselOpen ? "hidden" : ""} absolute top-8 left-4 w-1/2 h-[6px] bg-white/30 rounded-full`}></span>
               <span className={`${carouselOpen ? "hidden" : ""} absolute top-4 left-4 w-1/3 h-[6px] bg-white/20 rounded-full`}></span>
-              <img src={RightArrow} className={`${carouselOpen ? "" : "hidden"} "w-10 h-10 opacity-50"`} alt="" />
+              <img src={RightArrow} className={`${carouselOpen ? "opacity-30" : "hidden"} "w-10 h-10"`} alt="" />
             </button>
             <div className="flex flex-col flex-1 min-w-0">
                 <h3 className="font-bold text-lg text-gray-900 leading-tight">

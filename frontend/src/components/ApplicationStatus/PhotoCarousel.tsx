@@ -17,7 +17,7 @@ export default function PhotoCarousel({photos, hidden} : PhotoCarouselProps) {
 const [currentPhoto, setCurrentPhoto] = useState(0);
 
     return (
-        <div className={`${hidden ? "hidden" : ""} relative w-full h-40 overflow-hidden rounded-xl border-0 bg-gray-100`}>
+        <div className={`${hidden ? "w-0 h-0" : "w-full h-40"} relative transition-all overflow-hidden rounded-xl border-0 bg-gray-100`}>
             {photos.length === 0 ? (
                 <div className="w-full h-full flex items-center justify-center text-[#9A7080] text-[12px]">
                     No photos available
@@ -33,12 +33,12 @@ const [currentPhoto, setCurrentPhoto] = useState(0);
                         <>
                             <button
                                 onClick={() => setCurrentPhoto(i => (i - 1 + photos.length) % photos.length)}
-                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-[#6B0F2B]/40 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                                className="absolute left-2 top-1/2 p-0 -translate-y-1/2 bg-[#6B0F2B]/40 text-white rounded-full w-8 h-8 flex items-center justify-center">
                                 <p className="-mt-1 font-bold">‹</p>
                             </button>
                             <button
                                 onClick={() => setCurrentPhoto(i => (i + 1) % photos.length)}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#6B0F2B]/40 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                                className="absolute right-2 top-1/2 p-0 -translate-y-1/2 bg-[#6B0F2B]/40 text-white rounded-full w-8 h-8 flex items-center justify-center">
                                 <p className="-mt-1 font-bold">›</p>
                             </button>
                             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
