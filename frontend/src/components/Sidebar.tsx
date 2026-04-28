@@ -337,7 +337,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
 
 
     if (role === "landlordDashboard") {
-      if (path.includes("/landlord/dashboard")) setActive("dashboard");
+      if (path.includes("/landlord/accommodations")) setActive("dashboard");
       else if (path.includes("/room")) setActive("room");
       else if (path.includes("/application")) setActive("application");
       else if (path.includes("/fees")) setActive("fees");
@@ -365,7 +365,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         ];
       case "landlord":
         return [
-          { id: "dashboard", icon: <DashboardIcon className="w-5 h-5" />, path: "/landlord/manage/accommodations", label: "Dashboard" },
+          { id: "dashboard", icon: <DashboardIcon className="w-5 h-5" />, path: "/landlord/dashboard", label: "Dashboard" },
         ];
       case "landlordDashboard":
         return [

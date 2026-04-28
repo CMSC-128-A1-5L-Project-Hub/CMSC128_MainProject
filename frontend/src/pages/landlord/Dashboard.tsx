@@ -209,7 +209,7 @@ export default function Dashboard() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => navigate("/landlord/manage/accommodations")}
+                onClick={() => navigate("/landlord/dashboard")}
               >
                 ← Back
               </Button>

@@ -31,7 +31,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
         <Button
           className={`mt-4 w-full ${isUnderReview ? "opacity-50 cursor-not-allowed" : ""}`}
           disabled={isUnderReview}
-          onClick={() => navigate(`/landlord/dashboard/${accommodation.id}`)}
+          onClick={() => navigate(`/landlord/accommodations/${accommodation.id}`)}
         >
           Manage →
         </Button>
