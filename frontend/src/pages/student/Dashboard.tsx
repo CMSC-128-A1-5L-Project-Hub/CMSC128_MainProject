@@ -738,16 +738,19 @@ export default function Dashboard() {
   const [billingLoading, setBillingLoading] = useState(true);
 
     
-  const {data: user,
+  const {
+    data: user,
     isLoading: isUserLoading,
-    isError,
-    } = useQuery({
+    // no need for isError anymore
+  } = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
+      try {
         const res = await api.get("/me");
         return res.data;
     },
-    });
+    retry: false,
+  });
 
   const recommendedScrollRef = useRef<HTMLDivElement | null>(null);
   const scrollRecommendedRight = () => {
@@ -786,10 +789,11 @@ export default function Dashboard() {
 }, []);
 
 useEffect(() => {
-    if (isError) {
-        navigate("/auth/signin");
+    // redirect if they are NOT logged in, if query finished, but user is null
+    if (!isUserLoading && !user) {
+      navigate("/auth/signin");
     }
-    }, [isError, navigate]);
+  }, [isUserLoading, user, navigate]);
 
 
     useEffect(() => {

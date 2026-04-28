@@ -22,7 +22,7 @@ const AdminDashboard = () => {
   const {
     data: user,
     isLoading: isUserLoading,
-    isError: isError,
+    isError,
   } = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
@@ -30,7 +30,9 @@ const AdminDashboard = () => {
       console.log("GET /me:", res.data)
       return res.data
     },
-  })
+    // don't retry the "me" endpoint endlessly if it fails
+    retry: false, 
+  });
 
   // Pending users
   const {
