@@ -32,7 +32,7 @@ import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
 import Waitlist from "./pages/manager/Waitlist"
 import MoveinMoveout from "./pages/manager/MoveinMoveout"
 import ManagerProfile from "./pages/manager/Profile"
-import ApplicationTestPage from "./pages/ApplicationTestPage"
+// import ApplicationTestPage from "./pages/ApplicationTestPage"
 function FullLandingPage() {
   return (
     <>
