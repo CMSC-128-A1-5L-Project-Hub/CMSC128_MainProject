@@ -38,7 +38,7 @@ export default class Student extends BaseModel {
   declare yearLevel: string | null
 
   @column()
-  declare form_5_renewal: boolean
+  declare form5Renewal: boolean
 
   @belongsTo(() => User, { foreignKey: 'userId' })
   declare user: BelongsTo<typeof User>

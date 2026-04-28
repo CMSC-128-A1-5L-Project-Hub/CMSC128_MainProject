@@ -30,7 +30,7 @@ export default class extends BaseSchema {
       table.timestamp('application_date', { useTz: true }).defaultTo(this.now())
       table.enum('application_room_type', ['single', 'double', 'shared']).notNullable()
       table.enum('application_stay_type', ['transient', 'non_transient']).notNullable()
-      table.enum('application_status', ['pending', 'approved', 'rejected', 'cancelled', 'waitlisted', 'under_review']).notNullable()
+      table.enum('application_status', ['pending', 'approved', 'rejected', 'cancelled', 'waitlisted', 'under_review', 'confirmed'])      
       table.integer('duration_of_stay_days').notNullable()
       table.text('rejection_reason').nullable()
       table.timestamp('reviewed_at', { useTz: true }).nullable()
