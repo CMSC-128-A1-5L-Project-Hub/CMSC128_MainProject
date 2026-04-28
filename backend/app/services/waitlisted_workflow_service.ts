@@ -101,8 +101,8 @@ export default class WaitlistWorkflowService {
       .preload('accommodation')
       .firstOrFail()
 
-    if (application.applicationStatus !== 'waitlisted') {
-      throw new Error('Application is not waitlisted.')
+    if (!['waitlisted', 'approved'].includes(application.applicationStatus)) {
+      throw new Error('Application is not waitlisted or approved')
     }
     application.applicationStatus = 'cancelled'
     await application.save()

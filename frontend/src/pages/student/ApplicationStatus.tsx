@@ -9,7 +9,7 @@ import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
 import SearchBar from '../../components/SearchBar';
 import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
 
-// Define the status type locally (the modal imports it from elsewhere, but we need it for stats)
+// define the status type locally
 export type ApplicationStatus = "pending" | "under_review" | "approved" | "rejected" | "waitlisted" | "cancelled" | "confirmed";
 
 interface HeroContent {
