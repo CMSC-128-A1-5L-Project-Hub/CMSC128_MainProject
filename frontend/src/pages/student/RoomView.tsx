@@ -119,92 +119,6 @@ interface Accommodation {
   longitude: number;
 }
 
-//Mock data for requirements
-
-const MOCK_REQUIREMENTS = [
-  { id: 1, name: "Parent's Consent Form", size: "256 KB", dateModified: "04/05/26 at 1:02PM" },
-  { id: 2, name: "Dormitory Agreement Form", size: "189 KB", dateModified: "04/05/26 at 1:02PM" },
-  { id: 3, name: "Medical Certificate Template", size: "98 KB", dateModified: "04/03/26 at 9:00AM" },
-  { id: 4, name: "Parent's Valid ID", size: "—", dateModified: "—" },
-  { id: 5, name: "Enrollment Form / COR", size: "—", dateModified: "—" },
-];
-
-//Inline icons
-const IconPlus = () => (
-  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-  </svg>
-);
-
-const IconBack = () => (
-  <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M4 10L3.29289 10.7071L2.58579 10L3.29289 9.29289L4 10ZM21 18C21 18.5523 20.5523 19 20 19C19.4477 19 19 18.5523 19 18L21 18ZM8.29289 15.7071L3.29289 10.7071L4.70711 9.29289L9.70711 14.2929L8.29289 15.7071ZM3.29289 9.29289L8.29289 4.29289L9.70711 5.70711L4.70711 10.7071L3.29289 9.29289ZM4 9L14 9L14 11L4 11L4 9ZM21 16L21 18L19 18L19 16L21 16ZM14 9C17.866 9 21 12.134 21 16L19 16C19 13.2386 16.7614 11 14 11L14 9Z" fill="#33363F"/>
-  </svg>
-)
-
-const IconHeart = ({ filled }: { filled: boolean }) => (
-  <svg width="24px" height="24px" fill={filled ? CLR.mid : "none"} stroke={CLR.mid} strokeWidth={2} viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-  </svg>
-);
-
-const IconShare = () => (
-  <svg width="24px" height="24px" fill={CLR.mid} stroke={CLR.mid}  strokeWidth={2} viewBox="0 0 24 24">
-    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-  </svg>
-);
-
-const IconReport = () => (
-  <svg width="24px" height="24px" fill={CLR.mid} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path fill-rule="evenodd" d="M16,2 C16.2652165,2 16.5195704,2.10535684 16.7071068,2.29289322 L21.7071068,7.29289322 C21.8946432,7.4804296 22,7.73478351 22,8 L22,15 C22,15.2339365 21.9179838,15.4604694 21.7682213,15.6401844 L16.7682213,21.6401844 C16.5782275,21.868177 16.2967798,22 16,22 L8,22 C7.73478351,22 7.4804296,21.8946432 7.29289322,21.7071068 L2.29289322,16.7071068 C2.10535684,16.5195704 2,16.2652165 2,16 L2,8 C2,7.73478351 2.10535684,7.4804296 2.29289322,7.29289322 L7.29289322,2.29289322 C7.4804296,2.10535684 7.73478351,2 8,2 L16,2 Z M15.5857864,4 L8.41421356,4 L4,8.41421356 L4,15.5857864 L8.41421356,20 L15.5316251,20 L20,14.6379501 L20,8.41421356 L15.5857864,4 Z M12,16 C12.5522847,16 13,16.4477153 13,17 C13,17.5522847 12.5522847,18 12,18 C11.4477153,18 11,17.5522847 11,17 C11,16.4477153 11.4477153,16 12,16 Z M12,6 C12.5522847,6 13,6.44771525 13,7 L13,13 C13,13.5522847 12.5522847,14 12,14 C11.4477153,14 11,13.5522847 11,13 L11,7 C11,6.44771525 11.4477153,6 12,6 Z"/>
-  </svg>
-)
-
-const IconBolt = () => (
-  <svg width="24px" fill={CLR.mid} height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.168 8H13l.806-4.835A1 1 0 0 0 12.819 2H7.667a1 1 0 0 0-.986.835l-1.667 10A1 1 0 0 0 6 14h4v8l8.01-12.459A1 1 0 0 0 17.168 8z"/></svg>
-)
-
-const IconDroplet = () => (
-  <svg width="24.2px" height="24.2px" viewBox="0 0 24.2 24.2" fill={CLR.mid} xmlns="http://www.w3.org/2000/svg"><g data-name="Layer 2"><g data-name="droplet"><rect x=".1" y=".1" width="24" height="24" transform="rotate(.48 11.987 11.887)" opacity="0"/><path d="M12 21.1a7.4 7.4 0 0 1-5.28-2.28 7.73 7.73 0 0 1 .1-10.77l4.64-4.65a.94.94 0 0 1 .71-.3 1 1 0 0 1 .71.31l4.56 4.72a7.73 7.73 0 0 1-.09 10.77A7.33 7.33 0 0 1 12 21.1z"/></g></g></svg>
-)
-
-const IconWifi = () => (
-<svg fill={CLR.mid}  width="24px" height="24px" viewBox="0 -5 34 34" xmlns="http://www.w3.org/2000/svg"><path d="m16.807 0c-.014 0-.029 0-.045 0-6.19 0-11.82 2.4-16.01 6.319l.013-.012-.765.713 3.862 3.826.72-.66c3.201-2.952 7.494-4.763 12.21-4.763s9.009 1.81 12.222 4.774l-.012-.011.72.66 3.862-3.826-.765-.713c-4.169-3.907-9.791-6.307-15.974-6.307-.014 0-.027 0-.041 0h.002z"/><path d="m27.405 12.03c-2.783-2.531-6.498-4.08-10.575-4.08-.002 0-.005 0-.007 0h-.667l-.007.015c-3.847.159-7.313 1.674-9.958 4.076l.013-.012-.787.713 3.893 3.855.72-.63c1.791-1.606 4.171-2.587 6.78-2.587s4.989.982 6.79 2.596l-.01-.008.72.63 3.893-3.854z"/><path d="m16.815 24 5.475-5.415-.87-.713c-1.188-.938-2.708-1.505-4.359-1.505-.089 0-.178.002-.266.005h.013c-.02 0-.043 0-.066 0-1.712 0-3.293.563-4.567 1.515l.02-.014-.862.713.795.787 3.96 3.915z"/></svg>
-)
-
-const IconPhone = () => (
-  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12 19.79 19.79 0 011.69 3.37 2 2 0 013.69 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 9a16 16 0 006 6l1.06-1.06a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
-  </svg>
-);
-
-const IconMail = () => (
-  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-    <polyline points="22,6 12,13 2,6" />
-  </svg>
-);
-
-const IconChevronDown = () => (
-  <svg className="w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-  </svg>
-);
-
-const IconVerified = () => (
-  <span
-    className="inline-flex items-center justify-center w-4 h-4 rounded-full"
-    style={{ background: "linear-gradient(135deg, #1A7A4A, #2D9A5F" }}
-  >
-    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-  </span>
-);
-
-type TabKey = "Features" | "Location" | "Reviews" | "Requirements";
-
 const MOCK_ACCOMMODATION: Accommodation = {
   id: 1,
   accommodation_name: "Narra Residence",
@@ -283,6 +197,94 @@ const AMENITIES = [
   "Gym",
   "Own bathroom",
 ];
+
+//Mock data for requirements
+
+const MOCK_REQUIREMENTS = [
+  { id: 1, name: "Parent's Consent Form", size: "256 KB", dateModified: "04/05/26 at 1:02PM" },
+  { id: 2, name: "Dormitory Agreement Form", size: "189 KB", dateModified: "04/05/26 at 1:02PM" },
+  { id: 3, name: "Medical Certificate Template", size: "98 KB", dateModified: "04/03/26 at 9:00AM" },
+  { id: 4, name: "Parent's Valid ID", size: "—", dateModified: "—" },
+  { id: 5, name: "Enrollment Form / COR", size: "—", dateModified: "—" },
+];
+
+
+//Inline icons
+const IconPlus = () => (
+  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+  </svg>
+);
+
+const IconBack = () => (
+  <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 10L3.29289 10.7071L2.58579 10L3.29289 9.29289L4 10ZM21 18C21 18.5523 20.5523 19 20 19C19.4477 19 19 18.5523 19 18L21 18ZM8.29289 15.7071L3.29289 10.7071L4.70711 9.29289L9.70711 14.2929L8.29289 15.7071ZM3.29289 9.29289L8.29289 4.29289L9.70711 5.70711L4.70711 10.7071L3.29289 9.29289ZM4 9L14 9L14 11L4 11L4 9ZM21 16L21 18L19 18L19 16L21 16ZM14 9C17.866 9 21 12.134 21 16L19 16C19 13.2386 16.7614 11 14 11L14 9Z" fill="#33363F"/>
+  </svg>
+)
+
+const IconHeart = ({ filled }: { filled: boolean }) => (
+  <svg width="24px" height="24px" fill={filled ? CLR.mid : "none"} stroke={CLR.mid} strokeWidth={2} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+  </svg>
+);
+
+const IconShare = () => (
+  <svg width="24px" height="24px" fill={CLR.mid} stroke={CLR.mid}  strokeWidth={2} viewBox="0 0 24 24">
+    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+  </svg>
+);
+
+const IconReport = () => (
+  <svg width="24px" height="24px" fill={CLR.mid} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path fill-rule="evenodd" d="M16,2 C16.2652165,2 16.5195704,2.10535684 16.7071068,2.29289322 L21.7071068,7.29289322 C21.8946432,7.4804296 22,7.73478351 22,8 L22,15 C22,15.2339365 21.9179838,15.4604694 21.7682213,15.6401844 L16.7682213,21.6401844 C16.5782275,21.868177 16.2967798,22 16,22 L8,22 C7.73478351,22 7.4804296,21.8946432 7.29289322,21.7071068 L2.29289322,16.7071068 C2.10535684,16.5195704 2,16.2652165 2,16 L2,8 C2,7.73478351 2.10535684,7.4804296 2.29289322,7.29289322 L7.29289322,2.29289322 C7.4804296,2.10535684 7.73478351,2 8,2 L16,2 Z M15.5857864,4 L8.41421356,4 L4,8.41421356 L4,15.5857864 L8.41421356,20 L15.5316251,20 L20,14.6379501 L20,8.41421356 L15.5857864,4 Z M12,16 C12.5522847,16 13,16.4477153 13,17 C13,17.5522847 12.5522847,18 12,18 C11.4477153,18 11,17.5522847 11,17 C11,16.4477153 11.4477153,16 12,16 Z M12,6 C12.5522847,6 13,6.44771525 13,7 L13,13 C13,13.5522847 12.5522847,14 12,14 C11.4477153,14 11,13.5522847 11,13 L11,7 C11,6.44771525 11.4477153,6 12,6 Z"/>
+  </svg>
+)
+
+const IconBolt = () => (
+  <svg width="24px" fill={CLR.mid} height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.168 8H13l.806-4.835A1 1 0 0 0 12.819 2H7.667a1 1 0 0 0-.986.835l-1.667 10A1 1 0 0 0 6 14h4v8l8.01-12.459A1 1 0 0 0 17.168 8z"/></svg>
+)
+
+const IconDroplet = () => (
+  <svg width="24.2px" height="24.2px" viewBox="0 0 24.2 24.2" fill={CLR.mid} xmlns="http://www.w3.org/2000/svg"><g data-name="Layer 2"><g data-name="droplet"><rect x=".1" y=".1" width="24" height="24" transform="rotate(.48 11.987 11.887)" opacity="0"/><path d="M12 21.1a7.4 7.4 0 0 1-5.28-2.28 7.73 7.73 0 0 1 .1-10.77l4.64-4.65a.94.94 0 0 1 .71-.3 1 1 0 0 1 .71.31l4.56 4.72a7.73 7.73 0 0 1-.09 10.77A7.33 7.33 0 0 1 12 21.1z"/></g></g></svg>
+)
+
+const IconWifi = () => (
+<svg fill={CLR.mid}  width="24px" height="24px" viewBox="0 -5 34 34" xmlns="http://www.w3.org/2000/svg"><path d="m16.807 0c-.014 0-.029 0-.045 0-6.19 0-11.82 2.4-16.01 6.319l.013-.012-.765.713 3.862 3.826.72-.66c3.201-2.952 7.494-4.763 12.21-4.763s9.009 1.81 12.222 4.774l-.012-.011.72.66 3.862-3.826-.765-.713c-4.169-3.907-9.791-6.307-15.974-6.307-.014 0-.027 0-.041 0h.002z"/><path d="m27.405 12.03c-2.783-2.531-6.498-4.08-10.575-4.08-.002 0-.005 0-.007 0h-.667l-.007.015c-3.847.159-7.313 1.674-9.958 4.076l.013-.012-.787.713 3.893 3.855.72-.63c1.791-1.606 4.171-2.587 6.78-2.587s4.989.982 6.79 2.596l-.01-.008.72.63 3.893-3.854z"/><path d="m16.815 24 5.475-5.415-.87-.713c-1.188-.938-2.708-1.505-4.359-1.505-.089 0-.178.002-.266.005h.013c-.02 0-.043 0-.066 0-1.712 0-3.293.563-4.567 1.515l.02-.014-.862.713.795.787 3.96 3.915z"/></svg>
+)
+
+const IconPhone = () => (
+  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12 19.79 19.79 0 011.69 3.37 2 2 0 013.69 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 9a16 16 0 006 6l1.06-1.06a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
+  </svg>
+);
+
+const IconMail = () => (
+  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
+  </svg>
+);
+
+const IconChevronDown = () => (
+  <svg className="w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+const IconVerified = () => (
+  <span
+    className="inline-flex items-center justify-center w-4 h-4 rounded-full"
+    style={{ background: "linear-gradient(135deg, #1A7A4A, #2D9A5F" }}
+  >
+    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  </span>
+);
+
+type TabKey = "Features" | "Location" | "Reviews" | "Requirements";
+
 
 const StarRating = ({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) => {
   const dim = size === "md" ? 20 : 14;
