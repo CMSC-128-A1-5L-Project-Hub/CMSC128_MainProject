@@ -1,6 +1,7 @@
 // app/controllers/auth_controller.ts
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
+import env from '#start/env'
 import ProvisioningService from '#services/provisioning_service'
 import NotificationService from '#services/notification_service'
 import LogService from '#services/log_service'
@@ -40,15 +41,7 @@ export default class AuthController {
     // Log the activity
     await LogService.logAuthActivity(user, 'logged_in')
 
-    // Redirect to the appropriate dashboard
-    const dashboardMap: Record<string, string> = {
-      landlord: 'http://localhost:5173/landlord/dashboard',
-      student: 'http://localhost:5173/student/dashboard',
-      manager: 'http://localhost:5173/manager/dashboard',
-      super_admin: 'http://localhost:5173/admin/dashboard',
-    }
-
-    return response.redirect(dashboardMap[role] || 'http://localhost:5173/auth/role')
+    return response.redirect(`${env.get('FRONTEND_URL')}/auth/success`)
   }
 
   // STEP 1: Redirect user to Google login screen
@@ -77,18 +70,7 @@ export default class AuthController {
 
     await LogService.logAuthActivity(user, 'logged_in')
 
-    switch (user.role) {
-      case 'landlord':
-        return response.redirect('http://localhost:5173/landlord/dashboard')
-      case 'student':
-        return response.redirect('http://localhost:5173/student/dashboard')
-      case 'manager':
-        return response.redirect('http://localhost:5173/manager/dashboard')
-      case 'super_admin':
-        return response.redirect('http://localhost:5173/admin/dashboard')
-      default:
-        return response.redirect('http://localhost:5173/auth/role')
-    }
+    return response.redirect(`${env.get('FRONTEND_URL')}/auth/success`)
   }
 
   // ─── GET /me ──────────────────────────────────────────────────────────────

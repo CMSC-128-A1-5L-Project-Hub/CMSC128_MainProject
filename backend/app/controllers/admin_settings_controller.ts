@@ -3,7 +3,6 @@ import SysVariables from '#models/sys_variable'
 import Student from '#models/student'
 import User from '#models/user'
 
-// This can be refactored to use a service class if we want to separate the business logic from the controller
 export default class AdminSettingsController {
   async index({ response }: HttpContext) {
     const settings = await SysVariables.query()
@@ -25,19 +24,16 @@ export default class AdminSettingsController {
     }
 
     return response.ok({
-      status: 200,
-      data: {
-        id: settings.id,
-        currentSemester: semesterMap[settings.currentSemester] ?? settings.currentSemester,
-        currentSy: settings.currentSy,
-        semStartDate: settings.semStartDate,
-        uplbLatitude: settings.uplbLatitude,
-        uplbLongitude: settings.uplbLongitude,
-      },
+      id: settings.id,
+      currentSemester: semesterMap[settings.currentSemester] ?? settings.currentSemester,
+      currentSy: settings.currentSy,
+      semStartDate: settings.semStartDate,
+      uplbLatitude: settings.uplbLatitude,
+      uplbLongitude: settings.uplbLongitude,
     })
   }
 
-  async update({ request, response, serialize }: HttpContext) {
+  async update({ request, response }: HttpContext) {
     const settings = await SysVariables.query()
       .orderBy('semStartDate', 'desc')
       .first()
@@ -63,18 +59,14 @@ export default class AdminSettingsController {
 
     await settings.save()
 
-    return serialize(settings.serialize())
+    return response.ok(settings.serialize())
   }
 
   async countUsers({ response }: HttpContext) {
-  const totalUsers = await User.query().count('* as total')
+    const totalUsers = await User.query().count('* as total')
 
-  return response.ok({
-    status: 200,
-    data: {
+    return response.ok({
       total: Number(totalUsers[0].$extras.total),
-    },
-  })
+    })
+  }
 }
-}
-

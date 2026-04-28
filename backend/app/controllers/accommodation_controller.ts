@@ -17,21 +17,18 @@ export default class AccommodationController {
 
   // ─── GET /accommodations ──────────────────────────────────────────────────
   // Public: list all accommodations with optional filters via query string
-  async index({ request, serialize }: HttpContext) {
+  async index({ request, response }: HttpContext) {
     // qs() automatically parses the tags[] array from the URL
-    const filters = request.qs() 
+    const filters = request.qs()
 
     const catalog = await this.accommodationService.getFilteredCatalog(filters)
-    
-    return serialize({
-      message: 'Catalog retrieved successfully',
-      data: catalog
-    })
-  } 
+
+    return response.ok(catalog)
+  }
 
   // ─── GET /accommodations/:id ──────────────────────────────────────────────
   // Public: single accommodation with full details
-  async show({ params, serialize, response }: HttpContext) {
+  async show({ params, response }: HttpContext) {
     const accommodation = await Accommodation.query()
       .where('id', params.id)
       .preload('images', (q) => q.preload('file'))
@@ -49,12 +46,12 @@ export default class AccommodationController {
       })
     }
 
-    return serialize(accommodation.serialize())
+    return response.ok(accommodation.serialize())
   }
 
   // ─── POST /landlord/accommodations ───────────────────────────────────────
   // Landlord: create a new accommodation
-async store({ request, auth, response, serialize }: HttpContext) {
+async store({ request, auth, response }: HttpContext) {
   const startTime = Date.now()
   console.log('=== STORE START ===')
   const landlordId = auth.user!.id
@@ -250,7 +247,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
     await trx.commit()
     console.log(`[${Date.now() - startTime}ms] === TOTAL TIME: ${Date.now() - startTime}ms ===`)
 
-    return serialize(accommodation.serialize())
+    return response.ok(accommodation.serialize())
   } catch (error) {
     await trx.rollback()
     const err = error as Error
@@ -265,7 +262,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
 
   // ─── PUT /landlord/accommodations/:id ────────────────────────────────────
   // Landlord: update accommodation details
-  async update({ params, request, auth, response, serialize }: HttpContext) {
+  async update({ params, request, auth, response }: HttpContext) {
     const landlordId = auth.user!.id
 
     const accommodation = await Accommodation.query()
@@ -322,12 +319,12 @@ async store({ request, auth, response, serialize }: HttpContext) {
 
     await accommodation.save()
 
-    return serialize(accommodation.serialize())
+    return response.ok(accommodation.serialize())
   }
 
   // ─── POST /landlord/accommodations/:id/images ────────────────────────────
   // Landlord: upload images to an existing accommodation
-  async uploadImages({ params, request, auth, response, serialize }: HttpContext) {
+  async uploadImages({ params, request, auth, response }: HttpContext) {
     const landlordId = auth.user!.id
 
     const accommodation = await Accommodation.query()
@@ -387,7 +384,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
 
       await trx.commit()
 
-      return serialize(uploaded)
+      return response.ok(uploaded)
 
     } catch (error) {
       await trx.rollback()
@@ -402,7 +399,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
 
   // ─── DELETE /landlord/accommodations/:id/images/:imageId ─────────────────
   // Landlord: delete a specific image
-  async deleteImage({ params, auth, response, serialize }: HttpContext) {
+  async deleteImage({ params, auth, response }: HttpContext) {
     const landlordId = auth.user!.id
 
     const image = await AccommodationImage.query()
@@ -428,7 +425,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
 
       await trx.commit()
 
-      return serialize({message: 'Image deleted successfully' })
+      return response.ok({ message: 'Image deleted successfully' })
     } catch (error) {
       await trx.rollback()
       console.error('Image delete error:', error)
@@ -439,7 +436,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
       })
     }
   }
-  async landlordIndex({ auth, serialize }: HttpContext) {
+  async landlordIndex({ auth, response }: HttpContext) {
     const landlordId = auth.user!.id
 
     const accommodations = await Accommodation.query()
@@ -451,10 +448,7 @@ async store({ request, auth, response, serialize }: HttpContext) {
     // attach a signed primaryImageUrl to each accommodation
     const data = await Promise.all(accommodations.map(withPrimaryImageUrl))
 
-    return serialize({
-      message: 'Accommodations retrieved successfully',
-      data,
-    })
+    return response.ok(data)
   }
 
   // ─── GET /api/v1/accommodations/:id/export-documents ─────────────────────
@@ -555,9 +549,6 @@ async store({ request, auth, response, serialize }: HttpContext) {
       .orderBy('average_rating', 'desc')
       .limit(5)
 
-    return response.ok({
-      message: 'Recommended accommodations retrieved successfully',
-      data: accommodations,
-    })
+    return response.ok(accommodations)
   }
 }

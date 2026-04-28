@@ -47,7 +47,7 @@ export default function Profile() {
     queryKey: ["me"],
     queryFn: async () => {
       const res = await api.get("/me");
-      return res.data.data ?? res.data;
+      return res.data;
     },
   });
 
@@ -77,7 +77,7 @@ export default function Profile() {
       try {
         const res = await api.get("/manager/profile");
         console.log("MANAGER PROFILE:", res.data);
-        const data = res.data.data ?? res.data;
+        const data = res.data;
 
         setProfile({
         fullName: data.fullName ?? "NONE",

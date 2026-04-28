@@ -365,7 +365,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         ];
       case "landlord":
         return [
-          { id: "dashboard", icon: <DashboardIcon className="w-5 h-5" />, path: "/landlord/manage/accommodation", label: "Dashboard" },
+          { id: "dashboard", icon: <DashboardIcon className="w-5 h-5" />, path: "/landlord/manage/accommodations", label: "Dashboard" },
         ];
       case "landlordDashboard":
         return [

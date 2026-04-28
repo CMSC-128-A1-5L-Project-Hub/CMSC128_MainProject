@@ -128,7 +128,7 @@ export default function Waitlist() {
         queryKey: ["me"],
         queryFn: async () => {
         const res = await api.get("/me");
-        return res.data.data;
+        return res.data;
         },
     });
 

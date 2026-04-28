@@ -117,7 +117,7 @@ export default function Dashboard() {
 
   const { data: accommodations = [] } = useQuery<Accommodation[]>({
     queryKey: ["landlord-accommodations"],
-    queryFn: () => api.get("/landlord/accommodations").then((r) => r.data.data ?? []),
+    queryFn: () => api.get("/landlord/accommodations").then((r) => r.data ?? []),
   });
 
   const accommodationId = id ? Number(id) : undefined;
@@ -125,23 +125,23 @@ export default function Dashboard() {
 
   const { data: revenue } = useQuery<RevenueData>({
     queryKey: ["landlord-revenue"],
-    queryFn: () => api.get("/reports/revenue").then((r) => r.data.data ?? r.data),
+    queryFn: () => api.get("/reports/revenue").then((r) => r.data),
   });
 
   const { data: applications = [], isLoading: appsLoading } = useQuery<Application[]>({
     queryKey: ["landlord-applications"],
-    queryFn: () => api.get("/applications/incoming").then((r) => r.data.data ?? r.data),
+    queryFn: () => api.get("/applications/incoming").then((r) => r.data),
   });
 
   const { data: rooms = [], isLoading: roomsLoading } = useQuery<Room[]>({
     queryKey: ["landlord-rooms", accommodationId],
-    queryFn: () => api.get(`/accommodations/${accommodationId}/rooms`).then((r) => r.data.data ?? r.data),
+    queryFn: () => api.get(`/accommodations/${accommodationId}/rooms`).then((r) => r.data),
     enabled: !!accommodationId,
   });
 
   const { data: delinquent = [], isLoading: feesLoading } = useQuery({
     queryKey: ["landlord-delinquency"],
-    queryFn: () => api.get("/reports/delinquency").then((r) => r.data.data ?? r.data),
+    queryFn: () => api.get("/reports/delinquency").then((r) => r.data),
   });
 
   // ── Mutations ────────────────────────────────────────────────────────────────
@@ -209,7 +209,7 @@ export default function Dashboard() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => navigate("/landlord/manage/accommodation")}
+                onClick={() => navigate("/landlord/manage/accommodations")}
               >
                 ← Back
               </Button>

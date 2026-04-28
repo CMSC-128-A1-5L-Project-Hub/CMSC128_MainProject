@@ -306,7 +306,7 @@ export default function ApplicationsPage() {
     queryFn: async () => {
       const res = await api.get("/me");
       console.log(res.data)
-      return res.data.data;
+      return res.data;
     },
   });
 

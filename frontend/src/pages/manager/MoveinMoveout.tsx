@@ -124,7 +124,7 @@ export default function MoveinMoveout() {
             queryKey: ["me"],
             queryFn: async () => {
             const res = await api.get("/me");
-            return res.data.data;
+            return res.data;
             },
         });
 

@@ -144,7 +144,7 @@ export default function SignUpForm() {
     const fetchUserData = async () => {
       try{
         const response = await api.get('/me')
-        const user = response.data.data
+        const user = response.data
 
         setFormData(prev => ({
           ...prev,

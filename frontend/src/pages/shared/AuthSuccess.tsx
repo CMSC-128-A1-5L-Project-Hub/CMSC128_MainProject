@@ -21,13 +21,13 @@ export default function AuthSuccess() {
             try {
                 const response = await api.get<ApiResponse>('/me');
                 console.log("Hello? This is the response data: ", response)
-                const user = response.data.data;
+                const user = response.data;
                 console.log(user)
                 if (user.role === 'unassigned') navigate('/auth/role');
                 else if (user.account_status === 'pending') navigate('/pending-verification');
                 else if (user.role === 'student') navigate('/student/dashboard');
                 else if (user.role === 'manager') navigate('/manager/dashboard');
-                else if (user.role === 'landlord') navigate('/landlord/manage/accommodation');
+                else if (user.role === 'landlord') navigate('/landlord/manage/accommodations');
                 else if (user.role === 'super_admin') navigate('/admin/dashboard');
                 else navigate('/auth/signin');
             } catch (error) {

@@ -730,16 +730,7 @@ export default function Dashboard() {
     queryFn: async () => {
       try {
         const res = await api.get("/me");
-        console.log("GET /me:", res.data);
-        
-        // check for nested data, flat data, or fallback to null
-        return res.data?.data ?? res.data ?? null;
-        
-      } catch (error) {
-        // catch the 401 error and safely return null to break the redirect loop
-        console.warn("Auth check failed or user not logged in:", error);
-        return null; 
-      }
+        return res.data;
     },
     // prevents React Query from retrying a failed auth check multiple times
     retry: false, 
@@ -753,7 +744,7 @@ export default function Dashboard() {
         console.log("GET /profile:", res.data);
 
 
-        setProfile(res.data.data ?? res.data);
+        setProfile(res.data);
         } catch (error) {
         console.error("Failed to fetch student profile:", error);
         } finally {
@@ -787,7 +778,7 @@ export default function Dashboard() {
         console.log("applications:", res.data);
 
 
-        const data = res.data.data ?? res.data;
+        const data = res.data;
 
 
         // count pending
@@ -814,7 +805,7 @@ export default function Dashboard() {
         console.log("notifications:", res.data);
 
 
-        const data = res.data.data ?? res.data;
+        const data = res.data;
 
 
         // unread count (optional)

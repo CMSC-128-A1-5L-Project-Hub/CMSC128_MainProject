@@ -32,7 +32,7 @@ import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
 import Waitlist from "./pages/manager/Waitlist"
 import MoveinMoveout from "./pages/manager/MoveinMoveout"
 import ManagerProfile from "./pages/manager/Profile"
-import ApplicationTestPage from "./pages/ApplicationTestPage"
+// import ApplicationTestPage from "./pages/ApplicationTestPage"
 function FullLandingPage() {
   return (
     <>
@@ -70,7 +70,6 @@ function App() {
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
-        {/* <Route path="/student/applications" element={<ProtectedRoute><StudentApplicationsPage /></ProtectedRoute>} /> */}
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
@@ -83,7 +82,7 @@ function App() {
 
         {/* ── Landlord routes ── */}
         <Route path="/landlord/dashboard/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
-        <Route path="/landlord/manage/accommodation" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
+        <Route path="/landlord/manage/accommodations" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
         <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
 
         {/* ── Admin routes ── */}
