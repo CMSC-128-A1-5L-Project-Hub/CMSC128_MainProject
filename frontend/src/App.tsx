@@ -87,7 +87,7 @@ function App() {
         <Route path="/landlord/dashboard/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/manage/accommodation" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
         <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
-        <Route path="/landlord/application" element={<Applications />} />
+        <Route path="/landlord/application" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
