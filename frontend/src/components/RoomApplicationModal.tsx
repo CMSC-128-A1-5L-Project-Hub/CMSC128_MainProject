@@ -21,9 +21,31 @@ interface ApplyModalProps {
     initialEnd: { year: number; month: number; day: number } | null;
     passedStayType?: string;
     passedArrangement?: string;
+    amenities: string[];
+    selectedAmenities: string[];
+    onToggleAmenity: (amenity: string) => void;
 }
 
-export default function RoomApplicationModal({ open, onClose, accommodation, initialStart, initialEnd, passedStayType, passedArrangement }: ApplyModalProps) {
+export default function RoomApplicationModal({
+    open,
+    onClose,
+    accommodation,
+    initialStart,
+    initialEnd,
+    passedStayType,
+    passedArrangement,
+    amenities,
+    selectedAmenities,
+    onToggleAmenity
+}: ApplyModalProps) {
+
+    const sortedAmenities = [...amenities].sort((a, b) => {
+        const aSelected = selectedAmenities.includes(a);
+        const bSelected = selectedAmenities.includes(b);
+        if (aSelected === bSelected) return 0;
+        return aSelected ? -1 : 1;
+    });
+
     const [step, setStep] = useState<"apply" | "verify">("apply");
 
     const stayTypes = [...new Set(accommodation?.rooms?.map((r: any) => r.room_stay_type) || [])];
@@ -164,12 +186,35 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
                                         <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per month</p>
                                     </div>
                                 </div>
+                                {/* UPDATED ALL-AMENITIES LIST */}
                                 <div className="flex flex-wrap gap-1.5 mt-4">
-                                    {accommodation?.tags?.map((tag: any) => (
-                                        <span key={tag.id} className="px-3 py-0.5 bg-[#6B0F2B] text-white text-[9px] rounded-full font-bold uppercase">
-                                            {tag.tag_detail}
-                                        </span>
-                                    ))}
+                                    {sortedAmenities.map((amenity) => {
+                                        const isSelected = selectedAmenities.includes(amenity);
+
+                                        return (
+                                            <button
+                                                key={amenity}
+                                                onClick={() => onToggleAmenity(amenity)}
+                                                className={`px-3 py-1 text-[9px] rounded-full font-bold uppercase transition-all flex items-center gap-1.5 ${isSelected
+                                                        ? "bg-[#6B0F2B] text-white border border-transparent shadow-sm"
+                                                        : "bg-transparent border-2 border-dashed border-[#D4B0BA] text-[#9A7080] opacity-70"
+                                                    }`}
+                                            >
+                                                {isSelected ? (
+                                                    <IoCheckmarkCircle size={12} />
+                                                ) : (
+                                                    <div className="w-2 h-2 rounded-full border border-[#D4B0BA]" />
+                                                )}
+                                                {amenity}
+                                                {isSelected && (
+                                                    <IoCloseOutline
+                                                        size={14}
+                                                        className="ml-1 hover:text-white/80"
+                                                    />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>

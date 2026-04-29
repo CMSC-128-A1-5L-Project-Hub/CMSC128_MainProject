@@ -597,7 +597,6 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
     )
   }
 
-
   return (
     <div className="space-y-5 mt-14">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start mt-16">
@@ -1353,6 +1352,15 @@ export default function RoomView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStart, setSelectedStart] = useState<any>(null);
   const [selectedEnd, setSelectedEnd] = useState<any>(null);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([...AMENITIES]);
+
+  const toggleAmenity = (amenity: string) => {
+    setSelectedAmenities((prev) =>
+      prev.includes(amenity)
+        ? prev.filter((a) => a !== amenity)
+        : [...prev, amenity]
+    );
+  };
 
   const [current, setCurrent] = useState(0);
   const [showAllPhotos, setShowAllPhotosModal] = useState(false);
@@ -1606,6 +1614,9 @@ export default function RoomView() {
                   initialEnd={selectedEnd}
                   passedStayType={selectedStayType}
                   passedArrangement={selectedArrangement}
+                  amenities={AMENITIES}
+                  selectedAmenities={selectedAmenities}
+                  onToggleAmenity={toggleAmenity}
                 />
 
               </div>
