@@ -57,13 +57,19 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
         const selectedFiles = Array.from(e.target.files || []);
         if (selectedFiles.length === 0) return;
 
-        const newFiles = selectedFiles.map(file => ({
-            name: file.name,
-            size: (file.size / 1024).toFixed(0) + "kb",
-            progress: 100,
-            status: "Completed"
-        }));
-        setUploadedFiles(prev => [...prev, ...newFiles]);
+        setUploadedFiles(prev => {
+            const availableSlots = 3 - prev.length;
+            if (availableSlots <= 0) return prev;
+
+            const filesToAdd = selectedFiles.slice(0, availableSlots).map(file => ({
+                name: file.name,
+                size: (file.size / 1024).toFixed(0) + "kb",
+                progress: 100,
+                status: "Completed"
+            }));
+
+            return [...prev, ...filesToAdd];
+        });
     };
 
     const removeFile = (index: number) => {
@@ -226,8 +232,19 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
                                 </div>
                             </Card>
 
-                            <div className="flex justify-end pt-4">
-                                <Button variant="primary" size="lg" className="rounded-full px-16 bg-[#8C1533]" onClick={() => setStep("verify")}>
+                            <div className="flex flex-col items-end gap-2 pt-4">
+                                {uploadedFiles.length < 3 && (
+                                    <p className="text-[10px] font-bold text-[#6B0F2B]">
+                                        Please upload all 3 required documents to proceed.
+                                    </p>
+                                )}
+                                <Button
+                                    variant="primary"
+                                    size="lg"
+                                    className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
+                                    onClick={() => setStep("verify")}
+                                    disabled={uploadedFiles.length < 3}
+                                >
                                     Submit
                                 </Button>
                             </div>
