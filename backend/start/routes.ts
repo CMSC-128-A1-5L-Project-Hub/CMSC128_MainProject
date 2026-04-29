@@ -115,6 +115,10 @@ router
 
         // Transient booking verification (landlord)
         router.patch('/transient-bookings/:id/verify', [controllers.TransientBooking, 'verify'])
+
+        // Profile
+        router.get('/landlord/profile', [controllers.LandlordProfiles, 'show'])
+        router.patch('/landlord/profile', [controllers.LandlordProfiles, 'update'])
       })
       .use(middleware.role([ROLES.LANDLORD]))
 
@@ -154,6 +158,7 @@ router
         // Payment Verification
         router.get('/payments/pending', [controllers.Payments, 'pending'])
         router.patch('/payments/:id/verify', [controllers.Payments, 'verify'])
+        router.get('/fees/overdue', [controllers.Fees, 'overdueForManager'])
 
         // Reports
         router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
