@@ -6,6 +6,9 @@ import { api } from "../../api/axios"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import defaultAccommodation from "@/assets/defaults/accommodation.png"
 
+import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
+
+
 // Helpers
 const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -53,8 +56,6 @@ const emptyBilling: BillingOverview = {
   totalDue: 0,
   progressPercent: 0,
 };
-import HeroBanner from "../../components/dashboard/HeroBanner";
-import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 
 // ── SVG / asset imports ────────────────────────────────────────────────────
 import house_icon from "../../assets/icons/house_icon.svg";
@@ -86,6 +87,7 @@ interface Application {
 }
 
 interface BillingStatement {
+  id: number;
   label: string;
   status: "Paid" | "Unpaid";
   onClick?: () => void;
@@ -141,19 +143,6 @@ interface BillingOverview {
 }
 
 // ── Mock Data ──────────────────────────────────────────────────────────────
-const studentProfile: StudentProfile = {
-  fullName: "Ana Marie Reyes",
-  shortName: "Ana Reyes",
-  course: "BS BIOLOGY",
-  campus: "UPLB",
-  email: "areyes@up.edu.ph",
-  phone: "+63 912 345 6789",
-  studentNo: "2023-12345",
-  college: "CAS",
-  yearLevel: "2nd Year",
-  status: "Active",
-};
-
 const heroContent: HeroContent = {
   greeting: "Good Day",
   title: "Check your applications & explore new accommodations.",
@@ -161,84 +150,6 @@ const heroContent: HeroContent = {
   pendingApplications: 2,
   newNotificationsToday: 3,
 };
-
-const applications: Application[] = [
-  {
-    id: 1,
-    dorm: "Kamia Residence",
-    type: "Non-transient",
-    applied: "Mar 12, 2026",
-    location: "On-campus",
-    status: "Approved",
-  },
-  {
-    id: 2,
-    dorm: "Molave Residence",
-    type: "Non-transient",
-    applied: "Mar 14, 2026",
-    location: "Off-campus",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    dorm: "Narra Residence",
-    type: "Non-transient",
-    applied: "Mar 15, 2026",
-    location: "Near Gate 1",
-    status: "In Review",
-  },
-];
-
-const recommended = [
-  {
-    id: 1,
-    name: "Kamia Residence",
-    tag: "Transient",
-    size: "22 m²",
-    location: "On-campus",
-    price: 3200,
-    rating: 4,
-    review:
-      "Rooms are clean and the dormitory manager is easy to talk to. I would recommend for anyone finding an affordable and safe dormitory in UPLB.",
-    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-  {
-    id: 2,
-    name: "Narra Residence",
-    tag: "Dormitory",
-    size: "30 m²",
-    location: "Off-campus",
-    price: 8500,
-    rating: 5,
-    review:
-      "The layout of the room is nice. There are so many amenities which caters to my needs as a student. It is also a close walk to the campus.",
-    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-  {
-    id: 3,
-    name: "Molave Dorm",
-    tag: "Dormitory",
-    size: "28 m²",
-    location: "On-campus",
-    price: 5000,
-    rating: 4,
-    review:
-      "Great location near the main gate. The rooms are spacious and well-ventilated. Staff are also very accommodating.",
-    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-  {
-    id: 4,
-    name: "Acacia Suites",
-    tag: "Transient",
-    size: "20 m²",
-    location: "Near Gate 1",
-    price: 4200,
-    rating: 3,
-    review:
-      "Affordable and decent stay. Best for short-term use. The place is clean but can get a bit noisy during peak hours.",
-    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-];
 
 const dashboardMapAccommodations: AccommodationPin[] = [
   {
@@ -311,26 +222,12 @@ const dashboardMapAccommodations: AccommodationPin[] = [
   },
 ];
 
-const billingOverview: BillingOverview = {
-  residenceHall: "Kamia Residence Hall",
-  dueDay: "20",
-  dueMonth: "Mar",
-  summaryTitle: "Rent Paid",
-  paidOn: "March 1, 2026",
-  amountPaid: 3200,
-  nextDue: "June 1, 2026",
-  monthlyRent: 3200,
-  remainingAmount: 0,
-  totalPaid: 3200,
-  totalDue: 3200,
-  progressPercent: 100,
-};
 
-const billingStatements: BillingStatement[] = [
-  { label: "March Billing Statement", status: "Paid" },
-  { label: "February Billing Statement", status: "Paid" },
-  { label: "January Billing Statement", status: "Unpaid" },
-];
+// const billingStatements: BillingStatement[] = [
+//   { label: "March Billing Statement", status: "Paid" },
+//   { label: "February Billing Statement", status: "Paid" },
+//   { label: "January Billing Statement", status: "Unpaid" },
+// ];
 
 // ── Inline Icons ───────────────────────────────────────────────────────────
 const IconChevronRight = ({ className = "w-3.5 h-3.5" }: { className?: string }) => (
@@ -576,7 +473,7 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
       <div className="max-h-[280px] overflow-y-auto pr-1 space-y-3">
         {statements.map((b, index) => (
           <button
-            key={b.label}
+            key={`${b.id}-${index}`}
             type="button"
             onClick={b.onClick}
             className={`w-full text-left flex items-center gap-3 p-4 rounded-2xl bg-[#F8F1F4] border border-[#EFE5E8] transition hover:bg-[#F4EAEE] hover:shadow-[0_6px_14px_rgba(61,7,24,0.10)] focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 ${
@@ -903,7 +800,7 @@ useEffect(() => {
   const fetchBilling = async () => {
     try {
       const res = await api.get("/my-fees");
-      const fees = res.data ?? [];
+      const fees = res.data.data ?? res.data ?? [];
 
       console.log("BILLING:", fees);
 
@@ -921,12 +818,12 @@ useEffect(() => {
       const latestFee = sortedFees[0];
 
       const totalDue = sortedFees.reduce(
-        (sum, fee) => sum + Number(fee.fee_amount ?? 0),
+        (sum, fee) => sum + Number(fee.amount ?? 0),
         0
       );
 
       const remainingAmount = sortedFees.reduce(
-        (sum, fee) => sum + Number(fee.fee_balance ?? 0),
+        (sum, fee) => sum + Number(fee.balance ?? 0),
         0
       );
 
@@ -955,7 +852,7 @@ useEffect(() => {
           day: "numeric",
           year: "numeric",
         }),
-        monthlyRent: Number(latestFee.fee_amount ?? 0),
+        monthlyRent: Number(latestFee.amount ?? 0),
         remainingAmount,
         totalPaid,
         totalDue,
@@ -966,14 +863,15 @@ useEffect(() => {
         str ? str.charAt(0).toUpperCase() + str.slice(1) : "Fee";
 
       const statements: BillingStatement[] = fees.map((f: any) => ({
-        label: `${capitalize(f.fee_category)} - ${new Date(
+        id: f.id,
+        label: `${capitalize(f.category)} - ${new Date(
           f.due_date
         ).toLocaleDateString("en-US", {
           month: "long",
           day: "numeric",
           year: "numeric",
         })}`,
-        status: f.fee_status === "paid" ? "Paid" : "Unpaid",
+        status: f.status === "paid" ? "Paid" : "Unpaid",
       }));
 
       setBillingOverviewData(overview);
