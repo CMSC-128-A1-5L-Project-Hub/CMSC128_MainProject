@@ -1604,6 +1604,8 @@ export default function RoomView() {
                   accommodation={accommodation}
                   initialStart={selectedStart}
                   initialEnd={selectedEnd}
+                  passedStayType={selectedStayType}
+                  passedArrangement={selectedArrangement}
                 />
 
               </div>

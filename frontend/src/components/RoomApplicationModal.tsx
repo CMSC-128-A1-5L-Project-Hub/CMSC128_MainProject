@@ -8,7 +8,8 @@ import {
     IoStar,
     IoCloudUploadOutline,
     IoDocumentTextOutline,
-    IoCloseOutline
+    IoCloseOutline,
+    IoCheckmarkCircle
 } from "react-icons/io5";
 import GradientPillSelect from "./DropDownGradient.tsx";
 
@@ -18,9 +19,11 @@ interface ApplyModalProps {
     accommodation: any;
     initialStart: { year: number; month: number; day: number } | null;
     initialEnd: { year: number; month: number; day: number } | null;
+    passedStayType?: string;
+    passedArrangement?: string;
 }
 
-export default function RoomApplicationModal({ open, onClose, accommodation, initialStart, initialEnd }: ApplyModalProps) {
+export default function RoomApplicationModal({ open, onClose, accommodation, initialStart, initialEnd, passedStayType, passedArrangement }: ApplyModalProps) {
     const [step, setStep] = useState<"apply" | "verify">("apply");
 
     const stayTypes = [...new Set(accommodation?.rooms?.map((r: any) => r.room_stay_type) || [])];
@@ -35,6 +38,12 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploadedFiles, setUploadedFiles] = useState<{ name: string; size: string; progress: number; status: string }[]>([]);
+
+    const paymentInputRef = useRef<HTMLInputElement>(null);
+    const [paymentFile, setPaymentFile] = useState<{ name: string; size: string; progress: number; status: string } | null>(null);
+
+    const isTransient = selectedStayType === "transient";
+    const requiredDocsCount = isTransient ? 2 : 3;
 
     useEffect(() => {
         if (open && initialStart) {
@@ -53,6 +62,13 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
         }
     }, [moveInDate, moveOutDate]);
 
+    useEffect(() => {
+        if (open) {
+            if (passedStayType) setSelectedStayType(passedStayType);
+            if (passedArrangement) setSelectedArrangement(passedArrangement);
+        }
+    }, [open, passedStayType, passedArrangement]);
+
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(e.target.files || []);
         if (selectedFiles.length === 0) return;
@@ -60,15 +76,25 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
         setUploadedFiles(prev => {
             const availableSlots = 3 - prev.length;
             if (availableSlots <= 0) return prev;
-
             const filesToAdd = selectedFiles.slice(0, availableSlots).map(file => ({
                 name: file.name,
                 size: (file.size / 1024).toFixed(0) + "kb",
                 progress: 100,
                 status: "Completed"
             }));
-
             return [...prev, ...filesToAdd];
+        });
+    };
+
+    const handlePaymentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setPaymentFile({
+            name: file.name,
+            size: (file.size / 1024).toFixed(0) + "kb",
+            progress: 100,
+            status: "Completed"
         });
     };
 
@@ -81,9 +107,16 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
     ) ?? accommodation?.rooms?.[0];
 
     const moveInFee = (selectedRoom?.room_rent || 0) * 3;
+    const reservationFee = 1500;
 
     const handleClose = () => {
         setStep("apply");
+        setMoveInDate("");
+        setMoveOutDate("");
+        setUploadedFiles([]);
+        setPaymentFile(null);
+        setSelectedStayType(stayTypes[0] || "");
+        setSelectedArrangement(arrangements[0] || "");
         setDeclaration(null);
         onClose();
     };
@@ -92,7 +125,11 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
         <Modal
             open={open}
             onClose={handleClose}
-            title={step === "apply" ? "APPLY FOR OCCUPANCY" : "VERIFY APPLICATION"}
+            title={
+                step === "apply"
+                    ? (isTransient ? "BOOK FOR TRANSIENT STAY" : "APPLY FOR OCCUPANCY")
+                    : (isTransient ? "VERIFY BOOKING" : "VERIFY APPLICATION")
+            }
             maxWidth={850}
             maxHeight="95vh"
         >
@@ -137,7 +174,7 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
                             </div>
                         </div>
 
-                        {/* Your Application Section - Fixed Overlap */}
+                        {/* Your Application Section */}
                         <div className="space-y-4">
                             <div className="flex flex-col gap-1">
                                 <h4 className="text-[12px] font-black text-[#6B0F2B] uppercase tracking-[0.15em]">Your Application</h4>
@@ -185,11 +222,14 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
 
                         <hr className="border-[#F5ECF0]" />
 
-                        {/* Documents Section - Fixed blank screen issue */}
+                        {/* Documents Section */}
                         <div className="space-y-4">
                             <h4 className="text-[12px] font-black text-[#6B0F2B] uppercase tracking-[0.15em]">Supporting Documents</h4>
                             <div className="flex gap-2">
-                                {["Parent's Consent Form", "Parent's Valid ID", "Dormitory Agreement"].map((doc) => (
+                                {(isTransient
+                                    ? ["Companion's Valid ID", "Dormitory Agreement Form"]
+                                    : ["Parent's Consent Form", "Parent's Valid ID", "Dormitory Agreement"]
+                                ).map((doc) => (
                                     <span key={doc} className="px-3 py-1 bg-[#FDF2F4] text-[#6B0F2B] text-[9px] font-bold rounded-full border border-[#F2D9DF]">{doc}</span>
                                 ))}
                             </div>
@@ -227,15 +267,19 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
                                 </div>
 
                                 <div className="flex-1 flex flex-col items-center justify-center lg:border-l border-[#F2D9DF] px-4">
-                                    <div className="text-5xl font-black text-[#3D0718] tracking-tighter">{uploadedFiles.length}<span className="text-[#D4B0BA] text-3xl">/3</span></div>
+                                    <div className="text-5xl font-black text-[#3D0718] tracking-tighter">
+                                        {uploadedFiles.length}<span className="text-[#D4B0BA] text-3xl">/{isTransient ? 2 : 3}</span>
+                                    </div>
                                     <p className="text-[9px] font-black text-[#C8B0B8] uppercase tracking-[0.2em] mt-1">Documents Uploaded</p>
                                 </div>
                             </Card>
 
                             <div className="flex flex-col items-end gap-2 pt-4">
-                                {uploadedFiles.length < 3 && (
+                                {(uploadedFiles.length < requiredDocsCount || !moveInDate || !moveOutDate) && (
                                     <p className="text-[10px] font-bold text-[#6B0F2B]">
-                                        Please upload all 3 required documents to proceed.
+                                        {!moveInDate || !moveOutDate
+                                            ? "Please select stay dates to proceed."
+                                            : `Please upload all ${requiredDocsCount} required documents to proceed.`}
                                     </p>
                                 )}
                                 <Button
@@ -243,7 +287,7 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
                                     size="lg"
                                     className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
                                     onClick={() => setStep("verify")}
-                                    disabled={uploadedFiles.length < 3}
+                                    disabled={uploadedFiles.length < requiredDocsCount || !moveInDate || !moveOutDate}
                                 >
                                     Submit
                                 </Button>
@@ -251,7 +295,7 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
                         </div>
                     </>
                 ) : (
-                    /* VERIFY STEP - Kept exactly as designed in previous iteration but ensured alignment */
+                    /* VERIFICATION STEP */
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div>
                             <h3 className="text-3xl font-black text-[#1A0008] tracking-tight">{accommodation?.accommodation_name}</h3>
@@ -262,6 +306,12 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
                             <div>
                                 <h4 className="text-[11px] font-black text-[#6B0F2B] uppercase tracking-widest mb-4">Stay Details</h4>
                                 <div className="space-y-4">
+                                    {isTransient && (
+                                        <div>
+                                            <p className="text-[9px] font-bold text-[#C8B0B8] uppercase tracking-widest">Application ID</p>
+                                            <p className="text-lg font-black text-[#1A0008]">1</p>
+                                        </div>
+                                    )}
                                     <div>
                                         <p className="text-[9px] font-bold text-[#C8B0B8] uppercase tracking-widest">Stay Type</p>
                                         <p className="text-lg font-black text-[#1A0008] capitalize">{(String(selectedStayType) || "").replace('_', ' ')}</p>
@@ -293,8 +343,8 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
                             <h4 className="text-[11px] font-black text-[#6B0F2B] uppercase tracking-widest mb-4">Payment Terms</h4>
                             <div className="flex gap-12">
                                 <div>
-                                    <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">Move-In Fee</p>
-                                    <p className="text-3xl font-black text-[#C9973A]">₱{moveInFee.toLocaleString()}</p>
+                                    <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">{isTransient ? "Reservation Fee" : "Move-In Fee"}</p>
+                                    <p className="text-3xl font-black text-[#C9973A]">₱{(isTransient ? reservationFee : moveInFee).toLocaleString()}</p>
                                     <p className="text-[10px] text-[#9A7080] font-bold">2 months advance, 1 month deposit</p>
                                 </div>
                                 <div>
@@ -305,11 +355,61 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
                             </div>
                         </div>
 
+                        {/* Functional Proof of Payment Section */}
+                        {isTransient && (
+                            <div className="space-y-4 pt-4 border-t border-[#F5ECF0]">
+                                <h4 className="text-[12px] font-black text-[#6B0F2B] uppercase tracking-widest">Proof of Payment</h4>
+                                <Card className="bg-[#FAF7F8] border-[#F2D9DF] p-6 flex flex-col lg:flex-row gap-6 rounded-3xl min-h-[140px]">
+                                    <input type="file" hidden ref={paymentInputRef} onChange={handlePaymentSelect} accept="image/*" />
+
+                                    <div
+                                        onClick={() => paymentInputRef.current?.click()}
+                                        className="flex-1 border-2 border-dashed border-[#D4B0BA] rounded-2xl p-6 flex flex-col items-center justify-center text-center bg-white hover:bg-[#FFFDFE] cursor-pointer transition-all"
+                                    >
+                                        <IoCloudUploadOutline className="text-[#6B0F2B] mb-2" size={28} />
+                                        <p className="text-sm font-black text-[#1A0008]">Upload Proof</p>
+                                        <p className="text-[9px] text-[#C8B0B8] uppercase font-bold">JPG or PNG • Max 5MB</p>
+                                    </div>
+
+                                    <div className="flex-[1.5] flex items-center">
+                                        {paymentFile ? (
+                                            <div className="w-full bg-white border border-[#F2D9DF] rounded-xl p-3 flex items-center gap-3">
+                                                <IoDocumentTextOutline className="text-[#6B0F2B]" size={20} />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[10px] font-bold text-[#1A0008] truncate">{paymentFile.name}</p>
+                                                    <span className="text-[8px] text-[#C8B0B8] font-bold uppercase">{paymentFile.size} • <span className="text-emerald-500">Uploaded</span></span>
+                                                    <div className="w-full bg-[#F5ECF0] h-1 rounded-full mt-1 overflow-hidden">
+                                                        <div className="h-full bg-[#6B0F2B]" style={{ width: `100%` }} />
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => setPaymentFile(null)} className="text-[#D4B0BA] hover:text-red-500"><IoCloseOutline size={18} /></button>
+                                            </div>
+                                        ) : (
+                                            <div className="w-full border border-dashed border-[#D4B0BA] rounded-xl py-8 flex items-center justify-center bg-white/50">
+                                                <p className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest">Waiting for upload...</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex-1 flex flex-col items-center justify-center lg:border-l border-[#F2D9DF] px-4 text-center">
+                                        {paymentFile ? (
+                                            <>
+                                                <IoCheckmarkCircle className="text-emerald-500 mb-1" size={40} />
+                                                <p className="text-[9px] font-black text-[#9A7080] uppercase leading-tight">Payment proof is successfully uploaded.</p>
+                                            </>
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full border-4 border-[#F5ECF0] border-t-[#D4B0BA] animate-spin opacity-30" />
+                                        )}
+                                    </div>
+                                </Card>
+                            </div>
+                        )}
+
                         <div className="space-y-4 pt-4 border-t border-[#F5ECF0]">
                             <h4 className="text-[12px] font-black text-[#6B0F2B] uppercase tracking-widest">Honesty Declaration Form</h4>
                             <p className="text-[11px] text-[#1A0008] leading-relaxed opacity-80 italic">
-                                I hereby declare that all information and documents I have provided are true, accurate, and complete.
-                                False information may result in application rejection.
+                                I hereby declare that all information and documents I have provided in this application are true, accurate, and complete to the best of my knowledge.
+                                I understand that providing false or misleading information may result in the rejection or cancellation of my application.
                             </p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -319,14 +419,19 @@ export default function RoomApplicationModal({ open, onClose, accommodation, ini
                                 </label>
                                 <label className="flex items-center gap-3 cursor-pointer">
                                     <input type="checkbox" checked={declaration === "retract"} onChange={() => setDeclaration(declaration === "retract" ? null : "retract")} className="w-5 h-5 rounded border-[#D4B0BA] text-[#6B0F2B] focus:ring-[#6B0F2B]" />
-                                    <span className="text-[11px] font-bold text-[#1A0008]">I would like to retract my application</span>
+                                    <span className="text-[11px] font-bold text-[#1A0008]">I don't acknowledge this clause, and I would like to retract my application</span>
                                 </label>
                             </div>
                         </div>
 
                         <div className="flex justify-end gap-4 pt-6">
                             <Button variant="secondary" onClick={() => setStep("apply")} className="px-10 rounded-full">Back</Button>
-                            <Button variant="primary" size="lg" className="px-16 rounded-full bg-[#8C1533] text-white" disabled={declaration !== "accept"}>
+                            <Button
+                                variant="primary"
+                                size="lg"
+                                className={`px-16 rounded-full text-white transition-all ${declaration === "accept" && (!isTransient || paymentFile) ? 'bg-emerald-500' : 'bg-[#8C1533] opacity-50 grayscale'}`}
+                                disabled={declaration !== "accept" || (isTransient && !paymentFile)}
+                            >
                                 Submit
                             </Button>
                         </div>
