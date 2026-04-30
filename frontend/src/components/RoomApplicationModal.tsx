@@ -186,7 +186,7 @@ export default function RoomApplicationModal({
                                         <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per month</p>
                                     </div>
                                 </div>
-                                {/* UPDATED ALL-AMENITIES LIST */}
+                                {/* Amenity Grid */}
                                 <div className="flex flex-wrap gap-1.5 mt-4">
                                     {sortedAmenities.map((amenity) => {
                                         const isSelected = selectedAmenities.includes(amenity);
@@ -194,10 +194,11 @@ export default function RoomApplicationModal({
                                         return (
                                             <button
                                                 key={amenity}
-                                                onClick={() => onToggleAmenity(amenity)}
+                                                type="button"
+                                                onClick={() => onToggleAmenity(amenity)} // This handles the "Passing" of the state back to the parent
                                                 className={`px-3 py-1 text-[9px] rounded-full font-bold uppercase transition-all flex items-center gap-1.5 ${isSelected
-                                                        ? "bg-[#6B0F2B] text-white border border-transparent shadow-sm"
-                                                        : "bg-transparent border-2 border-dashed border-[#D4B0BA] text-[#9A7080] opacity-70"
+                                                        ? "bg-[#6B0F2B] text-white border border-transparent shadow-sm" // SELECTED: Solid Maroon
+                                                        : "bg-transparent border-2 border-dashed border-[#D4B0BA] text-[#9A7080] opacity-70 hover:opacity-100" // DESELECTED: Dashed Pink
                                                     }`}
                                             >
                                                 {isSelected ? (
@@ -205,12 +206,11 @@ export default function RoomApplicationModal({
                                                 ) : (
                                                     <div className="w-2 h-2 rounded-full border border-[#D4B0BA]" />
                                                 )}
+
                                                 {amenity}
+
                                                 {isSelected && (
-                                                    <IoCloseOutline
-                                                        size={14}
-                                                        className="ml-1 hover:text-white/80"
-                                                    />
+                                                    <IoCloseOutline size={14} className="ml-1 hover:text-white/80" />
                                                 )}
                                             </button>
                                         );

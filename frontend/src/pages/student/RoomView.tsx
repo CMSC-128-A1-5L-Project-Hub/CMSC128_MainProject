@@ -572,30 +572,22 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
 }
 
 //Features Tab
-function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
+function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement, selectedAmenities, onToggleAmenity }: {
   accommodation: Accommodation;
   selectedTenantRestriction: Room["tenant_restriction"]; setselectedTenantRestriction: (v: Room["tenant_restriction"]) => void;
   selectedStayType: Room["room_stay_type"]; setSelectedStayType: (v: Room["room_stay_type"]) => void;
   selectedArrangement: Room["room_type"]; setSelectedArrangement: (v: Room["room_type"]) => void;
+  selectedAmenities: string[];
+  onToggleAmenity: (amenity: string) => void;
 }) {
   const tenantRestriction = [...new Set(accommodation.rooms.map((r) => r.tenant_restriction))];
   const stayTypes = [...new Set(accommodation.rooms.map((r) => r.room_stay_type))];
   const arrangements = [...new Set(accommodation.rooms.map((r) => r.room_type))];
 
-  //Display all amenities
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([...AMENITIES])
-  //Removed amenities
   const removedAmenities = AMENITIES.filter((a) => !selectedAmenities.includes(a))
 
-  const removeAmenity = (amenity: string) => {
-    setSelectedAmenities((prev) => prev.filter((a) => a !== amenity))
-  }
-
-  const addAmenity = (amenity: string) => {
-    setSelectedAmenities((prev) =>
-      AMENITIES.filter((a) => prev.includes(a) || a === amenity)
-    )
-  }
+  const removeAmenity = (amenity: string) => onToggleAmenity(amenity);
+  const addAmenity = (amenity: string) => onToggleAmenity(amenity);
 
   return (
     <div className="space-y-5 mt-14">
@@ -1520,6 +1512,8 @@ export default function RoomView() {
                 setSelectedStayType={setSelectedStayType}
                 selectedArrangement={selectedArrangement}
                 setSelectedArrangement={setSelectedArrangement}
+                selectedAmenities={selectedAmenities}
+                onToggleAmenity={toggleAmenity}
               />
             )}
             {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={accommodation.avgrating} />}
