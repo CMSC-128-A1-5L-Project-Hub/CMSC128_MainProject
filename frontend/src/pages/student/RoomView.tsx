@@ -572,8 +572,9 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
 }
 
 //Features Tab
-function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
+function FeaturesTab({ accommodation, amenities, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
   accommodation: Accommodation;
+  amenities: string[];
   selectedTenantRestriction: Room["tenant_restriction"]; setselectedTenantRestriction: (v: Room["tenant_restriction"]) => void;
   selectedStayType: Room["room_stay_type"]; setSelectedStayType: (v: Room["room_stay_type"]) => void;
   selectedArrangement: Room["room_type"]; setSelectedArrangement: (v: Room["room_type"]) => void;
@@ -583,9 +584,9 @@ function FeaturesTab({ accommodation, selectedTenantRestriction, setselectedTena
   const arrangements = [...new Set(accommodation.rooms.map((r) => r.room_type))];
 
   //Display all amenities
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([...AMENITIES])
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(amenities)
   //Removed amenities
-  const removedAmenities = AMENITIES.filter((a) => !selectedAmenities.includes(a))
+  const removedAmenities = amenities.filter((a) => !selectedAmenities.includes(a))
 
   const removeAmenity = (amenity: string) => {
     setSelectedAmenities((prev) => prev.filter((a) => a !== amenity))
@@ -1373,9 +1374,9 @@ export default function RoomView() {
         setAccommodation(data);
 
         if (data.rooms?.length) {
-          setselectedTenantRestriction(data.rooms[0].tenant_restriction ?? "coed");
-          setSelectedStayType(data.rooms[0].room_stay_type ?? "non_transient");
-          setSelectedArrangement(data.rooms[0].room_type ?? "single");
+          setselectedTenantRestriction(data.rooms[0].tenantRestriction ?? data.rooms[0].tenant_restriction ?? "coed");
+          setSelectedStayType(data.rooms[0].roomStayType ?? data.rooms[0].room_stay_type ?? "non_transient");
+          setSelectedArrangement(data.rooms[0].roomType ?? data.rooms[0].room_type ?? "single");
         }
       } catch (error) {
         console.error("Failed to fetch accommodation:", error);
@@ -1411,13 +1412,41 @@ export default function RoomView() {
   
   const today = new Date().toISOString().split("T")[0];
   const manager = accommodation.manager;
+  const managerUser = manager?.user;
+
+  const rooms = accommodation.rooms ?? [];
+  const reviews = accommodation.reviews ?? [];
+
+  const normalizedRooms = rooms.map((r: any) => ({
+    id: r.id,
+    tenant: r.tenantRestriction ?? r.tenant_restriction,
+    stay: r.roomStayType ?? r.room_stay_type,
+    type: r.roomType ?? r.room_type,
+    rent: r.roomRent ?? r.room_rent,
+    capacity: r.roomCapacity ?? r.room_capacity,
+    occupancy: r.roomCurrentOccupancy ?? r.room_current_occupancy,
+    roomNumber: r.roomNumber ?? r.room_number,
+    availability: r.roomAvailability ?? r.room_availability,
+  }));
 
   const selectedRoom =
-    accommodation.rooms?.find(
+    normalizedRooms.find(
       (r) =>
-        r.room_stay_type === selectedStayType &&
-        r.room_type === selectedArrangement
-    ) ?? accommodation.rooms?.[0];
+        r.tenant === selectedTenantRestriction &&
+        r.stay === selectedStayType &&
+        r.type === selectedArrangement
+    ) ?? normalizedRooms[0];
+
+  const amenities =
+    accommodation.tags
+      ?.map((tag: any) => tag.tagDetail ?? tag.tag_detail)
+      .filter(Boolean) ?? [];
+
+  const avgRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + Number(review.rating ?? 0), 0) /
+        reviews.length
+      : 0;
 
   const tabs: {key: TabKey; label:string}[] = [
     { key: "Features", label: "Features"},
@@ -1425,16 +1454,6 @@ export default function RoomView() {
     { key: "Reviews", label: "Reviews"},
     { key: "Requirements", label: "Requirements"},
   ];
-
-  const managerUser = manager?.user;
-
-  const reviews = accommodation.reviews ?? [];
-
-  const avgRating =
-    reviews.length > 0
-      ? reviews.reduce((sum, review) => sum + Number(review.rating ?? 0), 0) /
-        reviews.length
-      : 0;
 
 
   return (
@@ -1553,6 +1572,7 @@ export default function RoomView() {
         {selectedTab === "Features" && (
           <FeaturesTab
             accommodation={accommodation}
+            amenities={amenities}
             selectedTenantRestriction={selectedTenantRestriction}
             setselectedTenantRestriction={setselectedTenantRestriction}
             selectedStayType={selectedStayType}
