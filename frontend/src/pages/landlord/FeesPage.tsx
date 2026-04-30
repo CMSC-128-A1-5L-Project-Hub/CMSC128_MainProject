@@ -6,6 +6,7 @@ import OverdueFeesCard from '../../components/fees/OverdueFeesCard';
 import PaymentVerificationCard from '../../components/fees/PaymentVerificationCard';
 import OverdueFeesModal from '../../components/fees/OverdueFeesModal';
 import PaymentVerificationModal from '../../components/fees/PaymentVerificationModal';
+import RejectModal from '../../components/fees/RejectModal';
 
 export type PaymentStatus = "paid" | "partially_paid" | "unpaid" | "pending_verification";
 
@@ -154,6 +155,7 @@ export default function FeesPage() {
     const [overdueModalOpen, setOverdueModalOpen] = useState(false);
     const [verificationModalOpen, setVerificationModalOpen] = useState(false);
     const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+    const [rejectModalOpen, setRejectModalOpen] = useState(false);
 
     // Data fetching
     const { data: tenants = [], isLoading, isError } = useQuery({
@@ -240,15 +242,29 @@ export default function FeesPage() {
 
             {/* Payment Verification Modal */}
             {verificationModalOpen && selectedTenant && (
+                // In FeesPage.tsx, update the PaymentVerificationModal usage:
                 <PaymentVerificationModal
                     tenant={selectedTenant}
                     onClose={() => {
                         setVerificationModalOpen(false);
                         setSelectedTenant(null);
                     }}
+                    onReject={() => {
+                        setVerificationModalOpen(false);  // close payment modal
+                        setRejectModalOpen(true);         // open reject modal
+                    }}
                     onConfirmPayment={async (id, approved) => {
                         console.log(`Confirm payment for tenant ${id}: ${approved ? 'Approved' : 'Rejected'}`);
-                        // TODO: Connect to API
+                    }}
+                />
+            )}
+
+            {rejectModalOpen && selectedTenant && (
+                <RejectModal
+                    tenant={selectedTenant}
+                    onClose={() => {
+                        setRejectModalOpen(false);
+                        setSelectedTenant(null);
                     }}
                 />
             )}
