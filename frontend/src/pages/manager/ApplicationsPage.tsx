@@ -216,9 +216,9 @@ const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> 
   approved: { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" },
   pending: { color: "#C9973A", bg: "#fef3c7", dot: "#C9973A" },
   waitlisted: { color: "#7c3aed", bg: "#ede9fe", dot: "#7c3aed" },
+  under_review: { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" },
   cancelled: { color: "#AA2661", bg: "#ffe4e6", dot: "#AA2661" },
   rejected: { color: "#9E2040", bg: "#ffe4e6", dot: "#9E2040" },
-  under_review: { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" }
 };
 
 const IconMenu = () => (
@@ -449,6 +449,13 @@ export default function ApplicationsPage() {
       value: counts.waitlisted || 0,
     },
     {
+      label: "Under Review",
+      color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)",
+      text: "#1A7A4A",
+      light_bg: "#F0F7F3",
+      value: counts.under_review || 0,
+    },
+    {
       label: "Cancelled",
       color: "linear-gradient(135deg, #AA2661, #FDCAE0)",
       text: "#AE2F67",
@@ -461,13 +468,6 @@ export default function ApplicationsPage() {
       text: "#9E2040",
       light_bg: "#FDF0F3",
       value: counts.rejected || 0,
-    },
-    {
-      label: "Under Review",
-      color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)",
-      text: "#1A7A4A",
-      light_bg: "#F0F7F3",
-      value: counts.under_review || 0,
     },
   ];
 
@@ -487,8 +487,7 @@ export default function ApplicationsPage() {
         activePage={activePage}
         setActivePage={setActivePage}
       />
-
-      <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 min-w-0 overflow-x-hidden p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-4">
           <button
             onClick={() => setDrawerOpen(true)}

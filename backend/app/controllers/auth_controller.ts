@@ -73,6 +73,12 @@ export default class AuthController {
     return response.redirect(`${env.get('FRONTEND_URL')}/auth/success`)
   }
 
+  // ─── POST /logout ─────────────────────────────────────────────────────────
+  async logout({ auth, response }: HttpContext) {
+    await auth.use('web').logout()
+    return response.ok({ message: 'Logged out' })
+  }
+
   // ─── GET /me ──────────────────────────────────────────────────────────────
   async me({ auth, response }: HttpContext) {
     const user = await User.query()

@@ -25,6 +25,7 @@ import StudentApplicationsPage from "./pages/student/ApplicationStatus"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
 import FullRoomView from "./pages/student/FullRoomView"
+import RoomView from "./pages/student/RoomView"
 import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
 import PendingVerification from "./pages/shared/PendingVerification"
@@ -32,6 +33,7 @@ import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
 import Waitlist from "./pages/manager/Waitlist"
 import MoveinMoveout from "./pages/manager/MoveinMoveout"
 import ManagerProfile from "./pages/manager/Profile"
+import FeesPage from "./pages/landlord/FeesPage"
 // import ApplicationTestPage from "./pages/ApplicationTestPage"
 function FullLandingPage() {
   return (
@@ -70,6 +72,8 @@ function App() {
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
+        <Route path="/student/roomview" element={<RoomView />} />
+        {/* <Route path="/student/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} /> */}
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
@@ -84,6 +88,7 @@ function App() {
         <Route path="/landlord/accommodations/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
         <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
+        <Route path="/landlord/fees" element={<ProtectedRoute><FeesPage /></ProtectedRoute>} />
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />

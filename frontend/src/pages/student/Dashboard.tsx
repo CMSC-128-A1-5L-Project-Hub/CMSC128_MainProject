@@ -67,6 +67,7 @@ import bill_icon from "../../assets/icons/bill_icon.svg";
 const CLR = {
   dark: "#3D0718",
   mid: "#6B0F2B",
+  subtext: "#9A7080",
   accent: "#8C1535",
   gold: "#C9973A",
   goldLt: "#E8C37A",
