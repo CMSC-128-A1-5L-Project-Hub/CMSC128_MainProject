@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
 import GradientPillSelect from "../../components/DropDownGradient.tsx";
 
-//
+import { api } from "../../api/axios";
 
 
 //MapBox Imports
@@ -59,14 +59,17 @@ interface AccomTag {
 
 
 
-interface Manager{
-  id: number;
-  fname: string;
-  lname: string;
-  email: string;
-  pfp_file_id: number | null;
-  pfp_file?: FileMetadata;
-  phone?: string;
+interface Manager {
+  userId: number;
+  managerStatus: string;
+  verifiedAt: string | null;
+  user?: {
+    fname: string;
+    lname: string;
+    email: string;
+    phone?: string;
+    pfp_file?: FileMetadata;
+  };
 }
 
 //accommodation_id: getAccom("Scholar's Dorm"), room_number: '502', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 2, room_building: 'Building C', room_rent: 6000.00, tenant_restriction: 'coed', room_availability: 'available'
@@ -119,74 +122,74 @@ interface Accommodation {
   longitude: number;
 }
 
-const MOCK_ACCOMMODATION: Accommodation = {
-  id: 1,
-  accommodation_name: "Narra Residence",
-  accommodation_location: "L2 B4 Mint St., Demarses Subdivision, Bgy. Batong Malake, Los Baños",
-  accommodation_type: "off_campus",
-  accommodation_capacity: 50,
-  tenant_restriction: "coed",
-  application_start_date: "2026-04-01",
-  application_end_date: "2026-05-15",
-  avgrating: 4.8,
-  latitude: 14.1684,
-  longitude: 121.2435,
-  images: [
-    { accommodation_id: 1, image_file_id: 1, file: { id: 1, file_name: "accom1_img1.jpg", file_path: "/uploads/images/accom1_img1.jpg", file_type: "image" } },
-    { accommodation_id: 1, image_file_id: 2, file: { id: 2, file_name: "accom1_img2.jpg", file_path: "/uploads/images/accom1_img2.jpg", file_type: "image" } },
-    { accommodation_id: 1, image_file_id: 3, file: { id: 3, file_name: "accom2_img1.jpg", file_path: "/uploads/images/accom2_img1.jpg", file_type: "image" } },
-    { accommodation_id: 1, image_file_id: 4, file: { id: 4, file_name: "accom2_img2.jpg", file_path: "/uploads/images/accom2_img2.jpg", file_type: "image" } },
-  ],
-  tags: [
-    { accommodation_id: 1, tag_detail: "Near campus" },
-    { accommodation_id: 1, tag_detail: "Air-conditioned rooms" },
-  ],
-  rooms: [
-    {
-      id: 1, accommodation_id: 1, room_number: "101", room_type: "single",
-      room_stay_type: "non_transient", room_capacity: 1, room_current_occupancy: 0,
-      room_building: "Building A", room_rent: 3200, tenant_restriction: "coed", room_availability: "available",
-    },
-    {
-      id: 2, accommodation_id: 1, room_number: "102", room_type: "double",
-      room_stay_type: "transient", room_capacity: 2, room_current_occupancy: 1,
-      room_building: "Building A", room_rent: 4500, tenant_restriction: "male", room_availability: "available",
-    },
-    {
-      id: 3, accommodation_id: 1, room_number: "103", room_type: "shared",
-      room_stay_type: "non_transient", room_capacity: 3, room_current_occupancy: 1,
-      room_building: "Building B", room_rent: 2800, tenant_restriction: "female", room_availability: "available",
-    },
-  ],
-  reviews: [
-    {
-      id: 1, accommodation_id: 1, student_number: "2023-123456", rating: 5,
-      content: "Rooms are clean and the dormitory manager is easy to talk to. I would recommend for anyone finding an affordable and safe dormitory in UPLB.",
-      created_at: "2026-01-15",
-      student: { user: { fname: "Jack", lname: "Collins" } },
-    },
-    {
-      id: 2, accommodation_id: 1, student_number: "2023-123457", rating: 4,
-      content: "The layout of the room is nice. There are so many amenities which caters to my needs as a student. It is also a close walk to the campus.",
-      created_at: "2026-02-03",
-      student: { user: { fname: "Beyonce", lname: "Dimagiba" } },
-    },
-    {
-      id: 3, accommodation_id: 1, student_number: "2023-123458", rating: 4,
-      content: "The layout of the room is nice. There are so many amenities which caters to my needs as a student. It is also a close walk to the campus.",
-      created_at: "2026-02-03",
-      student: { user: { fname: "Lebron", lname: "James" } },
-    },
-  ],
-  manager: {
-    id: 13,
-    fname: "Juan",
-    lname: "Dela Cruz",
-    email: "juan.delacruz@gmail.com",
-    pfp_file_id: null,
-    phone: "09165478322",
-  },
-};
+// const MOCK_ACCOMMODATION: Accommodation = {
+//   id: 1,
+//   accommodation_name: "Narra Residence",
+//   accommodation_location: "L2 B4 Mint St., Demarses Subdivision, Bgy. Batong Malake, Los Baños",
+//   accommodation_type: "off_campus",
+//   accommodation_capacity: 50,
+//   tenant_restriction: "coed",
+//   application_start_date: "2026-04-01",
+//   application_end_date: "2026-05-15",
+//   avgrating: 4.8,
+//   latitude: 14.1684,
+//   longitude: 121.2435,
+//   images: [
+//     { accommodation_id: 1, image_file_id: 1, file: { id: 1, file_name: "accom1_img1.jpg", file_path: "/uploads/images/accom1_img1.jpg", file_type: "image" } },
+//     { accommodation_id: 1, image_file_id: 2, file: { id: 2, file_name: "accom1_img2.jpg", file_path: "/uploads/images/accom1_img2.jpg", file_type: "image" } },
+//     { accommodation_id: 1, image_file_id: 3, file: { id: 3, file_name: "accom2_img1.jpg", file_path: "/uploads/images/accom2_img1.jpg", file_type: "image" } },
+//     { accommodation_id: 1, image_file_id: 4, file: { id: 4, file_name: "accom2_img2.jpg", file_path: "/uploads/images/accom2_img2.jpg", file_type: "image" } },
+//   ],
+//   tags: [
+//     { accommodation_id: 1, tag_detail: "Near campus" },
+//     { accommodation_id: 1, tag_detail: "Air-conditioned rooms" },
+//   ],
+//   rooms: [
+//     {
+//       id: 1, accommodation_id: 1, room_number: "101", room_type: "single",
+//       room_stay_type: "non_transient", room_capacity: 1, room_current_occupancy: 0,
+//       room_building: "Building A", room_rent: 3200, tenant_restriction: "coed", room_availability: "available",
+//     },
+//     {
+//       id: 2, accommodation_id: 1, room_number: "102", room_type: "double",
+//       room_stay_type: "transient", room_capacity: 2, room_current_occupancy: 1,
+//       room_building: "Building A", room_rent: 4500, tenant_restriction: "male", room_availability: "available",
+//     },
+//     {
+//       id: 3, accommodation_id: 1, room_number: "103", room_type: "shared",
+//       room_stay_type: "non_transient", room_capacity: 3, room_current_occupancy: 1,
+//       room_building: "Building B", room_rent: 2800, tenant_restriction: "female", room_availability: "available",
+//     },
+//   ],
+//   reviews: [
+//     {
+//       id: 1, accommodation_id: 1, student_number: "2023-123456", rating: 5,
+//       content: "Rooms are clean and the dormitory manager is easy to talk to. I would recommend for anyone finding an affordable and safe dormitory in UPLB.",
+//       created_at: "2026-01-15",
+//       student: { user: { fname: "Jack", lname: "Collins" } },
+//     },
+//     {
+//       id: 2, accommodation_id: 1, student_number: "2023-123457", rating: 4,
+//       content: "The layout of the room is nice. There are so many amenities which caters to my needs as a student. It is also a close walk to the campus.",
+//       created_at: "2026-02-03",
+//       student: { user: { fname: "Beyonce", lname: "Dimagiba" } },
+//     },
+//     {
+//       id: 3, accommodation_id: 1, student_number: "2023-123458", rating: 4,
+//       content: "The layout of the room is nice. There are so many amenities which caters to my needs as a student. It is also a close walk to the campus.",
+//       created_at: "2026-02-03",
+//       student: { user: { fname: "Lebron", lname: "James" } },
+//     },
+//   ],
+//   manager: {
+//     id: 13,
+//     fname: "Juan",
+//     lname: "Dela Cruz",
+//     email: "juan.delacruz@gmail.com",
+//     pfp_file_id: null,
+//     phone: "09165478322",
+//   },
+// };
 
 const AMENITIES = [
   "Furnished",
@@ -1344,39 +1347,77 @@ function RequirementsTab() {
 
 export default function RoomView() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const accommodation = MOCK_ACCOMMODATION;
-
-  const [current, setCurrent] = useState(0);
-  const [showAllPhotos, setShowAllPhotosModal] = useState(false);
-  const displayPhotos = [
-      "https://scontent.fmnl17-2.fna.fbcdn.net/v/t39.30808-6/470222608_983930173757933_998118782445933365_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=2a1932&_nc_ohc=ZFZK7m7SOa0Q7kNvwGOPvqH&_nc_oc=AdqDd-9KAVigCK_3EWtYSiKPI3LQcUVYJnrsKNS8FkAFYu_F7R1kEigwCaFZR-vRmV0&_nc_zt=23&_nc_ht=scontent.fmnl17-2.fna&_nc_gid=r4rDrZ-9ks0O0mnDt0AqYw&_nc_ss=7a3a8&oh=00_Af2gqklSV4YC1rlAVLymw3a5pkNBSRrBaSnbwKxtYMPVLQ&oe=69E8489C",
-      "https://scontent.fmnl17-1.fna.fbcdn.net/v/t1.6435-9/66008036_487367045400857_1488351947843960832_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=f798df&_nc_ohc=ElHr-WrKZYcQ7kNvwFwvO8u&_nc_oc=Adpjp6BtjtcqZipKB0kvZwUKfdfmdA8FthjEjzcTTLJr_QrG8CJ_ziH_ueBWDhIj5m0&_nc_zt=23&_nc_ht=scontent.fmnl17-1.fna&_nc_gid=ohCc0hgO7ItkIo1D4h39dg&_nc_ss=7a3a8&oh=00_Af3SRsAoAaRLisofJivkX9TI-NV5f32-PPjLFNVUdbIgQw&oe=6A09DE9E",
-      "https://scontent.fmnl17-2.fna.fbcdn.net/v/t1.6435-9/65525855_487366502067578_6498764386226667520_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=f798df&_nc_ohc=lwgSYY8aRXMQ7kNvwG8DE1O&_nc_oc=Adr3QJE6pJ4Ix9GhvyrIm46YivGbyqqWj91r19RGHeKAk1ek9OjWbNZ3W7X__QQmkwQ&_nc_zt=23&_nc_ht=scontent.fmnl17-2.fna&_nc_gid=Y31MEwZ9ofBlvh9xazaSVg&_nc_ss=7a3a8&oh=00_Af2hAC2OUloa4E3JKdO0biDPLF0cJGI2De9EDWbNGJ4spg&oe=6A09D9E6",
-      "https://scontent.fmnl17-8.fna.fbcdn.net/v/t1.6435-9/65574464_487366468734248_8178610199741857792_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=f798df&_nc_ohc=EXZOAFgaSmEQ7kNvwGNMSIY&_nc_oc=Ado7mmT6oORNQgtkYEGMBuw_N8AtiWN5U0vvytCYvNjXU_uRCnqO7vejL1BEgWXksQo&_nc_zt=23&_nc_ht=scontent.fmnl17-8.fna&_nc_gid=G05aAyHCbEbugO1lM86-kA&_nc_ss=7a3a8&oh=00_Af0T8tdQzHrWjB2zeUZjedH8I5CpGvUDfq11soKx1O_Zwg&oe=6A09D02E",
-    ];
-
+  const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
   const [isFavorited, setIsFavorited] = useState(false);
-  const [selectedTenantRestriction, setselectedTenantRestriction] = useState<Room["tenant_restriction"]>(
-  accommodation.rooms[0]?.tenant_restriction ?? "coed"
-  );
-  const [selectedStayType, setSelectedStayType] = useState<Room["room_stay_type"]>(accommodation.rooms[0]?.room_stay_type ?? "non_transient");
-  const [selectedArrangement, setSelectedArrangement] = useState<Room["room_type"]>(accommodation.rooms[0]?.room_type ?? "single");
+  const [moveIn, setMoveIn] = useState("");
+  const [moveOut, setMoveOut] = useState("");
+  const [current, setCurrent] = useState(0);
+  const [showAllPhotos, setShowAllPhotosModal] = useState(false);
 
-  const today = new Date().toISOString().split("T")[0];
+  const [selectedTenantRestriction, setselectedTenantRestriction] = useState<Room["tenant_restriction"]>("coed");
+  const [selectedStayType, setSelectedStayType] = useState<Room["room_stay_type"]>("non_transient");
+  const [selectedArrangement, setSelectedArrangement] = useState<Room["room_type"]>("single");
+
+  useEffect(() => {
+    const fetchAccommodation = async () => {
+      try {
+        const res = await api.get(`/accommodations/${id}`);
+        const data = res.data.data ?? res.data;
+
+        console.log("ACCOMMODATION DETAILS:", data);
+        setAccommodation(data);
+
+        if (data.rooms?.length) {
+          setselectedTenantRestriction(data.rooms[0].tenant_restriction ?? "coed");
+          setSelectedStayType(data.rooms[0].room_stay_type ?? "non_transient");
+          setSelectedArrangement(data.rooms[0].room_type ?? "single");
+        }
+      } catch (error) {
+        console.error("Failed to fetch accommodation:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchAccommodation();
+  }, [id]);
+
+  if (loading) {
+    return <p>Loading accommodation...</p>;
+  }
+
+  if (!accommodation) {
+    return <p>Accommodation not found.</p>;
+  }
 
   
-  const [moveIn, setMoveIn] = useState(today);
-  const [moveOut, setMoveOut] = useState(today);
+  // const displayPhotos = [
+  //     "https://scontent.fmnl17-2.fna.fbcdn.net/v/t39.30808-6/470222608_983930173757933_998118782445933365_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=2a1932&_nc_ohc=ZFZK7m7SOa0Q7kNvwGOPvqH&_nc_oc=AdqDd-9KAVigCK_3EWtYSiKPI3LQcUVYJnrsKNS8FkAFYu_F7R1kEigwCaFZR-vRmV0&_nc_zt=23&_nc_ht=scontent.fmnl17-2.fna&_nc_gid=r4rDrZ-9ks0O0mnDt0AqYw&_nc_ss=7a3a8&oh=00_Af2gqklSV4YC1rlAVLymw3a5pkNBSRrBaSnbwKxtYMPVLQ&oe=69E8489C",
+  //     "https://scontent.fmnl17-1.fna.fbcdn.net/v/t1.6435-9/66008036_487367045400857_1488351947843960832_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=f798df&_nc_ohc=ElHr-WrKZYcQ7kNvwFwvO8u&_nc_oc=Adpjp6BtjtcqZipKB0kvZwUKfdfmdA8FthjEjzcTTLJr_QrG8CJ_ziH_ueBWDhIj5m0&_nc_zt=23&_nc_ht=scontent.fmnl17-1.fna&_nc_gid=ohCc0hgO7ItkIo1D4h39dg&_nc_ss=7a3a8&oh=00_Af3SRsAoAaRLisofJivkX9TI-NV5f32-PPjLFNVUdbIgQw&oe=6A09DE9E",
+  //     "https://scontent.fmnl17-2.fna.fbcdn.net/v/t1.6435-9/65525855_487366502067578_6498764386226667520_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=f798df&_nc_ohc=lwgSYY8aRXMQ7kNvwG8DE1O&_nc_oc=Adr3QJE6pJ4Ix9GhvyrIm46YivGbyqqWj91r19RGHeKAk1ek9OjWbNZ3W7X__QQmkwQ&_nc_zt=23&_nc_ht=scontent.fmnl17-2.fna&_nc_gid=Y31MEwZ9ofBlvh9xazaSVg&_nc_ss=7a3a8&oh=00_Af2hAC2OUloa4E3JKdO0biDPLF0cJGI2De9EDWbNGJ4spg&oe=6A09D9E6",
+  //     "https://scontent.fmnl17-8.fna.fbcdn.net/v/t1.6435-9/65574464_487366468734248_8178610199741857792_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=f798df&_nc_ohc=EXZOAFgaSmEQ7kNvwGNMSIY&_nc_oc=Ado7mmT6oORNQgtkYEGMBuw_N8AtiWN5U0vvytCYvNjXU_uRCnqO7vejL1BEgWXksQo&_nc_zt=23&_nc_ht=scontent.fmnl17-8.fna&_nc_gid=G05aAyHCbEbugO1lM86-kA&_nc_ss=7a3a8&oh=00_Af0T8tdQzHrWjB2zeUZjedH8I5CpGvUDfq11soKx1O_Zwg&oe=6A09D02E",
+  //   ];
 
+  const displayPhotos =
+    accommodation.images?.length > 0
+      ? accommodation.images.map((img) => assetUrl(img.file.file_path))
+      : ["/default-accommodation.png"];
+
+  
+  const today = new Date().toISOString().split("T")[0];
   const manager = accommodation.manager;
 
-  const selectedRoom = accommodation.rooms.find(
-    (r) => r.room_stay_type === selectedStayType && r.room_type === selectedArrangement
-  ) ?? accommodation.rooms[0];
-
+  const selectedRoom =
+    accommodation.rooms?.find(
+      (r) =>
+        r.room_stay_type === selectedStayType &&
+        r.room_type === selectedArrangement
+    ) ?? accommodation.rooms?.[0];
 
   const tabs: {key: TabKey; label:string}[] = [
     { key: "Features", label: "Features"},
@@ -1384,6 +1425,16 @@ export default function RoomView() {
     { key: "Reviews", label: "Reviews"},
     { key: "Requirements", label: "Requirements"},
   ];
+
+  const managerUser = manager?.user;
+
+  const reviews = accommodation.reviews ?? [];
+
+  const avgRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + Number(review.rating ?? 0), 0) /
+        reviews.length
+      : 0;
 
 
   return (
@@ -1446,9 +1497,9 @@ export default function RoomView() {
           
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mt-3">
             <div className="flex items-center gap-0 flex-wrap mb-2">
-              <StarRating rating={accommodation.avgrating} size="md" />
+              <StarRating rating={avgRating} size="md" />
               <span className="text-[15px] font- text-[#9A7080] font-semibold mr-5">
-                {accommodation.avgrating.toFixed(1)} ({accommodation.reviews.length})
+                {avgRating.toFixed(1)} ({accommodation.reviews.length})
               </span>
               <div className="ml-auto flex items-center gap-1">
                 <button onClick={() => setIsFavorited((f) => !f)} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
@@ -1473,8 +1524,9 @@ export default function RoomView() {
             </div>
           <h1 className="text-[30px] font-bold text-gray-900 mb-1">{accommodation.accommodation_name}</h1>
           <p className="text-[15px] font-semibold text-[#6B0F2B]" >{accommodation.accommodation_location}</p>
-          <p className="text-[18px] text-[#9A7080]">Studio · 22 m² · {accommodation.accommodation_type.replace(/_/g, " ")}</p>
-          
+          <p className="text-[18px] text-[#9A7080]">
+            Studio · 22 m² · {(accommodation.accommodation_type ?? "").replace(/[_-]/g, " ")}
+          </p>          
           {/* Tabs*/ }
           <div className="flex overflow-x-auto sm:justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-none">
             {tabs.map((t) => (
@@ -1509,7 +1561,7 @@ export default function RoomView() {
             setSelectedArrangement={setSelectedArrangement}
           />
         )}
-        {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={accommodation.avgrating} />}
+        {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={avgRating} />}
         {selectedTab === "Requirements" && <RequirementsTab />}
         {selectedTab === 'Location' && <LocationTab accommodation={accommodation} />}
 
@@ -1528,7 +1580,7 @@ export default function RoomView() {
                 <div className="mb-1">
                   <p className="text-[15px] font-bold text-[#3D0718] mt-2">Starts at: </p>
                   <span className="text-[37px] font-bold font-sans text-[#6B0F2B]">
-                    ₱{selectedRoom?.room_rent.toLocaleString() ?? "—"}
+                    ₱{Number(selectedRoom?.room_rent).toLocaleString() ?? "—"}
                   </span>
                   <span className="text-[21px] font-normal text-[#9A7080]"> / month</span>
                 </div>
@@ -1554,21 +1606,21 @@ export default function RoomView() {
               {manager && (
                 <div className="border border-[#F0E8EC] rounded-2xl p-4 flex flex-col items-center gap-1.5 mb-4">
                   <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mb-1"
-                    style={{ background: manager.pfp_file ? `url(${assetUrl(manager.pfp_file.file_path)}) center/cover` : CLR.mid }}>
-                    {!manager.pfp_file && `${manager.fname[0]}${manager.lname[0]}`}
+                    style={{ background: managerUser?.pfp_file ? `url(${assetUrl(managerUser.pfp_file.file_path)}) center/cover` : CLR.mid }}>
+                    {!managerUser?.pfp_file && `${managerUser?.fname[0]}${managerUser?.lname[0]}`}
                   </div>
                   <div className="w-full h-[2px] bg-[#F0E8EC] mt-2 mx-4"></div>
 
                   <p className="font-bold text-[#000000] text-[16px] flex items-center gap-1.5">
-                    {manager.fname} {manager.lname} <IconVerified />
+                    {managerUser?.fname} {managerUser?.lname} <IconVerified />
                   </p>
 
                   <p className="text-[11px] font-semibold text-[#848484] mb-1">Dorm Manager</p>
                   <p className="flex items-center gap-1.5 text-xs text-[#848484]">
-                    <IconPhone /> (+63){manager.phone?.slice(1) ?? "XXX XXX XXXX"}
+                    <IconPhone /> (+63){managerUser?.phone?.slice(1) ?? "XXX XXX XXXX"}
                   </p>
                   <p className="flex items-center gap-1.5 text-xs text-gray-500">
-                    <IconMail /> {manager.email}
+                    <IconMail /> {managerUser?.email}
                   </p>
                   <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
                     <button className="flex items-center gap-1 text-xs text-[#9A7080] hover:text-[#8C1535] background-[#9A7080]" ><IconShare /> Share</button>
