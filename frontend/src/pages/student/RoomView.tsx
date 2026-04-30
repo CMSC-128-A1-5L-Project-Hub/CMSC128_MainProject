@@ -572,16 +572,18 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
 }
 
 //Features Tab
-function FeaturesTab({ accommodation, amenities, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
+function FeaturesTab({ accommodation, rooms, amenities, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
   accommodation: Accommodation;
+  rooms: any[];
   amenities: string[];
   selectedTenantRestriction: Room["tenant_restriction"]; setselectedTenantRestriction: (v: Room["tenant_restriction"]) => void;
   selectedStayType: Room["room_stay_type"]; setSelectedStayType: (v: Room["room_stay_type"]) => void;
   selectedArrangement: Room["room_type"]; setSelectedArrangement: (v: Room["room_type"]) => void;
 }) {
-  const tenantRestriction = [...new Set(accommodation.rooms.map((r) => r.tenant_restriction))];
-  const stayTypes = [...new Set(accommodation.rooms.map((r) => r.room_stay_type))];
-  const arrangements = [...new Set(accommodation.rooms.map((r) => r.room_type))];
+
+  const tenantRestriction = [...new Set(rooms.map((r) => r.tenant).filter(Boolean))];
+  const stayTypes = [...new Set(rooms.map((r) => r.stay).filter(Boolean))];
+  const arrangements = [...new Set(rooms.map((r) => r.type).filter(Boolean))];
 
   //Display all amenities
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(amenities)
@@ -594,7 +596,7 @@ function FeaturesTab({ accommodation, amenities, selectedTenantRestriction, sets
 
   const addAmenity = (amenity: string) => {
     setSelectedAmenities((prev) =>
-      AMENITIES.filter((a) => prev.includes(a) || a === amenity)
+      amenities.filter((a) => prev.includes(a) || a === amenity)
     )
   }
 
@@ -1572,6 +1574,7 @@ export default function RoomView() {
         {selectedTab === "Features" && (
           <FeaturesTab
             accommodation={accommodation}
+            rooms={normalizedRooms}
             amenities={amenities}
             selectedTenantRestriction={selectedTenantRestriction}
             setselectedTenantRestriction={setselectedTenantRestriction}
@@ -1600,7 +1603,7 @@ export default function RoomView() {
                 <div className="mb-1">
                   <p className="text-[15px] font-bold text-[#3D0718] mt-2">Starts at: </p>
                   <span className="text-[37px] font-bold font-sans text-[#6B0F2B]">
-                    ₱{Number(selectedRoom?.room_rent).toLocaleString() ?? "—"}
+                    ₱{Number(selectedRoom?.rent).toLocaleString() ?? "—"}
                   </span>
                   <span className="text-[21px] font-normal text-[#9A7080]"> / month</span>
                 </div>
