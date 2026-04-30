@@ -105,10 +105,11 @@ interface Review{
 
 interface Accommodation {
   id: number;
-  accommodation_name: string;
-  accommodation_location: string;
-  accommodation_type: "on_campus" | "off_campus" | "partner_housing";
-  accommodation_capacity: number;
+  accommodationName: string;
+  accommodationLocation: string;
+  accommodationType: "on_campus" | "off_campus" | "partner_housing";
+  accommodationSize: number;
+  accommodationCapacity: number;
   tenant_restriction: "coed" | "male-only" | "female-only";
   application_start_date: string;
   application_end_date: string;
@@ -966,7 +967,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
               color: '#1a1a1a', background: '#fafafa',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', // truncate long names
             }}>
-              {accommodation.accommodation_name}
+              {accommodation.accommodationName}
             </div>
           </div>
 
@@ -1543,10 +1544,10 @@ export default function RoomView() {
                 </button>
               </div>
             </div>
-          <h1 className="text-[30px] font-bold text-gray-900 mb-1">{accommodation.accommodation_name}</h1>
-          <p className="text-[15px] font-semibold text-[#6B0F2B]" >{accommodation.accommodation_location}</p>
+          <h1 className="text-[30px] font-bold text-gray-900 mb-1">{accommodation.accommodationName}</h1>
+          <p className="text-[15px] font-semibold text-[#6B0F2B]" >{accommodation.accommodationLocation}</p>
           <p className="text-[18px] text-[#9A7080]">
-            Studio · 22 m² · {(accommodation.accommodation_type ?? "").replace(/[_-]/g, " ")}
+            Studio · {accommodation.accommodationSize ? accommodation.accommodationSize.toFixed(1) : "—"} m² · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ")}
           </p>          
           {/* Tabs*/ }
           <div className="flex overflow-x-auto sm:justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-none">
