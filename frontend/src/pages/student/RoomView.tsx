@@ -85,6 +85,8 @@ interface Room{
   room_building: string;
   room_rent: number;
   tenant_restriction: "male" | "female" | "coed";
+  advance_months?: number;
+  deposit_months?: number;
 }
 
 interface ReviewUser {
@@ -1430,6 +1432,8 @@ export default function RoomView() {
     occupancy: r.roomCurrentOccupancy ?? r.room_current_occupancy,
     roomNumber: r.roomNumber ?? r.room_number,
     availability: r.roomAvailability ?? r.room_availability,
+    advanceMonths: r.advanceMonths ?? r.advance_months,
+    depositMonths: r.depositMonths ?? r.deposit_months,
   }));
 
   const selectedRoom =
@@ -1609,7 +1613,13 @@ export default function RoomView() {
                   <span className="text-[21px] font-normal text-[#9A7080]"> / month</span>
                 </div>
                 <div className="w-full h-[6px] bg-gray-200 mt-2"></div>
-                <p className="text-[15px] font-normal text-[#000000] mt-2">2 months advance, 1 month deposit</p>
+                {/* <p className="text-[15px] font-normal text-[#000000] mt-2">2 months advance, 1 month deposit</p> */}
+                <p className="text-[15px] font-normal text-[#000000] mt-2">
+                  {selectedRoom?.advanceMonths ?? 0}{" "}
+                  {selectedRoom?.advanceMonths === 1 ? "month" : "months"} advance,{" "}
+                  {selectedRoom?.depositMonths ?? 0}{" "}
+                  {selectedRoom?.depositMonths === 1 ? "month" : "months"} deposit
+                </p>
 
                 {/* Inclusions */}
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Inclusions:</p>
