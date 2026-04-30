@@ -31,7 +31,7 @@ export default function RecentActivityLogs({
   return (
     <Card className="shadow-sm rounded-2xl border border-[#F2D9DF] bg-white p-8">
       <div className="mb-8">
-        <h4 className="text-2xl font-semibold text-[#2A0410]">
+        <h4 className="text-xl font-semibold text-[#2A0410]">
           Recent Activity Logs
         </h4>
         <p className="mt-1 text-sm text-gray-500">
