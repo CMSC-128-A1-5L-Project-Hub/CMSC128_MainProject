@@ -1357,7 +1357,7 @@ export default function RoomView() {
   const [loading, setLoading] = useState(true);
 
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
-  const [isFavorited, setIsFavorited] = useState(false);
+  // const [isFavorited, setIsFavorited] = useState(false);
   const [moveIn, setMoveIn] = useState("");
   const [moveOut, setMoveOut] = useState("");
   const [current, setCurrent] = useState(0);
@@ -1524,12 +1524,12 @@ export default function RoomView() {
                 {avgRating.toFixed(1)} ({accommodation.reviews.length})
               </span>
               <div className="ml-auto flex items-center gap-1">
-                <button onClick={() => setIsFavorited((f) => !f)} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
+                {/* <button onClick={() => setIsFavorited((f) => !f)} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
                   <IconHeart filled={isFavorited} />
                     <span className="hidden md:inline text-sm font-semibold">
                       Favorite
                     </span>
-                </button>
+                </button> */}
                 <button className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2">
                   <IconShare /> 
                     <span className="hidden md:inline text-sm font-semibold">
