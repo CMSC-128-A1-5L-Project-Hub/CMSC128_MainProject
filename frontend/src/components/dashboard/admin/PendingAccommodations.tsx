@@ -16,7 +16,7 @@ export default function PendingAccommodations({
   return (
     <Card className="shadow-sm">
       <div className="mb-4">
-        <h2 className="text-lg font-bold text-[#2A0410]">
+        <h2 className="text-xl font-bold text-[#2A0410]">
           Pending Accommodation Approvals
         </h2>
         <p className="text-xs text-gray-500">
