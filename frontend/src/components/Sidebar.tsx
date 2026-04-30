@@ -1,9 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import clsx from "clsx"; // tiny utility – install with `npm i clsx`
+import clsx from "clsx";
 
-// ── Icons (all from the same icon set – here we keep your existing assets,
-//     but of the same size for consistency) ──────────────────────────────
 import DashboardIcon from "../assets/icons/dashboard.svg?react";
 import SearchIcon from "../assets/icons/search.svg?react";
 import ApplicationIcon from "../assets/icons/applications.svg?react";
@@ -14,7 +12,6 @@ import { MdOutlineMeetingRoom } from "react-icons/md";
 import { BsUiChecks } from "react-icons/bs";
 import { PiCashRegister } from "react-icons/pi";
 
-// ── Brand design tokens (mirrored in tailwind.config if desired) ─────────
 const BRAND = {
   bgDark: "#2A0410",
   primary: "#6B0F2B",
@@ -27,7 +24,6 @@ const BRAND = {
 const SIDEBAR_GRADIENT =
   "linear-gradient(180deg, #2A0410 0%, #3D0718 40%, #6B0F2B 75%, #9E2040 100%)";
 
-// ── Types ──────────────────────────────────────────────────────────────────
 interface SidebarMenuItem {
   id: string;
   label: string;
@@ -50,7 +46,6 @@ interface SidebarProps {
   };
 }
 
-// ── Helper: determine active menu item from the current URL ────────────────
 function getActiveId(pathname: string, role: string): string {
   if (role === "student") {
     if (pathname.startsWith("/student/billingdashboard")) return "documents";
@@ -81,14 +76,18 @@ function getActiveId(pathname: string, role: string): string {
   return "dashboard";
 }
 
-// ── Reusable icon wrapper for consistent sizing ────────────────────────────
 const IconWrapper = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <span className={clsx("flex items-center justify-center w-5 h-5 [&>svg]:w-full [&>svg]:h-full", className)}>
+  <span
+    className={clsx(
+      "flex items-center justify-center w-5 h-5 flex-shrink-0",
+      "[&>svg]:w-full [&>svg]:h-full",
+      className
+    )}
+  >
     {children}
   </span>
 );
 
-// ── Tooltip for desktop icons ──────────────────────────────────────────────
 const DesktopTooltip = ({ label }: { label: string }) => (
   <div
     className="
@@ -109,7 +108,6 @@ const DesktopTooltip = ({ label }: { label: string }) => (
   </div>
 );
 
-// ── Mobile Drawer ──────────────────────────────────────────────────────────
 const MobileDrawer = ({
   open,
   onClose,
@@ -131,7 +129,6 @@ const MobileDrawer = ({
 }) => {
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Focus trap & outside click
   useEffect(() => {
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => {
@@ -150,7 +147,6 @@ const MobileDrawer = ({
 
   return (
     <>
-      {/* Overlay */}
       <div
         className={clsx(
           "fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
@@ -158,7 +154,6 @@ const MobileDrawer = ({
         )}
         onClick={onClose}
       />
-      {/* Drawer */}
       <div
         ref={drawerRef}
         role="dialog"
@@ -221,32 +216,55 @@ const MobileDrawer = ({
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {[...items, ...bottomItems].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => { onNavigate(item.path); onClose(); }}
-              className={clsx(
-                "w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 text-left",
-                active === item.id
-                  ? "bg-white/15 text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
-                  : "text-white/60 hover:bg-white/10 hover:text-white"
-              )}
-            >
-              <span className={active === item.id ? "text-white" : "text-white/50"}>
-                {item.icon}
-              </span>
-              {item.label}
-            </button>
-          ))}
+        {/* Navigation — top items scroll, bottom items pinned to footer */}
+        <nav className="flex-1 flex flex-col overflow-hidden">
+          {/* Scrollable top items */}
+          <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            {items.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => { onNavigate(item.path); onClose(); }}
+                className={clsx(
+                  "w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 text-left",
+                  active === item.id
+                    ? "bg-white/15 text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
+                )}
+              >
+                <IconWrapper className={active === item.id ? "text-white" : "text-white/50"}>
+                  {item.icon}
+                </IconWrapper>
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Pinned bottom items (Account, Logout) */}
+          <div className="px-3 pb-6 pt-2 space-y-1 border-t border-white/10">
+            {bottomItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => { onNavigate(item.path); onClose(); }}
+                className={clsx(
+                  "w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 text-left",
+                  active === item.id
+                    ? "bg-white/15 text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
+                )}
+              >
+                <IconWrapper className={active === item.id ? "text-white" : "text-white/50"}>
+                  {item.icon}
+                </IconWrapper>
+                {item.label}
+              </button>
+            ))}
+          </div>
         </nav>
       </div>
     </>
   );
 };
 
-// ── Desktop Sidebar ────────────────────────────────────────────────────────
 const DesktopSidebar = ({
   items,
   bottomItems,
@@ -276,7 +294,7 @@ const DesktopSidebar = ({
         </span>
       </div>
 
-      {/* Top items */}
+      {/* Top items — FIX: IconWrapper with react-icons support */}
       <nav className="flex flex-col items-center gap-1 flex-1">
         {items.map((item) => (
           <div key={item.id} className="relative group">
@@ -316,16 +334,14 @@ const DesktopSidebar = ({
   );
 };
 
-// ── Main Sidebar Component ──────────────────────────────────────────────────
 export default function Sidebar({ role, profile }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Derive active menu item from current path (no flicker)
   const active = getActiveId(location.pathname, role);
 
-  // ── Define menu structure per role (all icons now identical size) ─────────
+  // FIX: react-icons sized via className prop directly, not relying on CSS selectors alone
   const items: SidebarMenuItem[] = (() => {
     switch (role) {
       case "student":
@@ -347,9 +363,10 @@ export default function Sidebar({ role, profile }: SidebarProps) {
       case "landlordDashboard":
         return [
           { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/landlord/accommodations" },
-          { id: "room", label: "Rooms", icon: <MdOutlineMeetingRoom />, path: "/landlord/rooms" },
-          { id: "application", label: "Applications", icon: <BsUiChecks />, path: "/landlord/applications" },
-          { id: "fees", label: "Fees", icon: <PiCashRegister />, path: "/landlord/fees" },
+          // size={20} sets width/height directly as inline style — overrides react-icons default "1em"
+          { id: "room", label: "Rooms", icon: <MdOutlineMeetingRoom size={20} />, path: "/landlord/rooms" },
+          { id: "application", label: "Applications", icon: <BsUiChecks size={20} />, path: "/landlord/applications" },
+          { id: "fees", label: "Fees", icon: <PiCashRegister size={20} />, path: "/landlord/fees" },
         ];
       default:
         return [];
@@ -364,7 +381,6 @@ export default function Sidebar({ role, profile }: SidebarProps) {
   const handleNavigate = useCallback(
     (path: string) => {
       if (path === "/logout") {
-        // You may want to call an auth service here instead of just navigating
         navigate("/");
       } else {
         navigate(path);
