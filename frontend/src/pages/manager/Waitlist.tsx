@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import React, { useState, useMemo, useRef } from "react"
 
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
@@ -90,11 +90,10 @@ export interface Room {
 }
 
 export interface WaitlistedResponse {
-  // --- Original Application Fields ---
   id: number;
   accommodationId: number;
   studentNumber: string;
-  applicationDate: string; // The submission date you wanted
+  applicationDate: string; 
   applicationRoomType: string;
   applicationStayType: string;
   applicationStatus: "waitlisted";
@@ -111,15 +110,98 @@ export interface WaitlistedResponse {
     confirmedDate: string;
     moveIn: string;
     expectedMoveOut: string;
-    room: Room; // This contains the room number, building, etc.
+    room: Room;
   }; 
 }
 
 const HISTORY_PER_PAGE = 5
-const SORT_OPTS = ["Room Type", "Room No.", "Date", "Action"]
+const SORT_OPTS = [
+  { value: "Date", label: "Date" },
+  { value: "Room Type", label: "Room Type" },
+  { value: "Room No.", label: "Room No." },
+  { value: "Action", label: "Action" },
+]
+
+const FilterSelect = ({
+  value,
+  onChange,
+  compact,
+  onToggle,
+  sortOpen,
+  setSortOpen,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  compact?: boolean;
+  onToggle?: () => void;
+  sortOpen: boolean;
+  setSortOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+
+  const selected = SORT_OPTS.find((o) => o.value === value)?.label;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => {
+          if (compact) {
+            onToggle?.();
+            setSortOpen(false);
+          } else {
+            setSortOpen((o) => !o);
+          }
+        }}
+        className={`flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition ${
+        compact ? "w-10 justify-center" : "w-[140px]"
+        }`}
+      >
+        {compact ? (
+          <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+          </svg>
+        ) : (
+          <>
+            <span className="flex flex-col text-left">
+              <span className="text-[9px] uppercase text-[#9A7080] font-bold leading-none">
+                Sort By
+              </span>
+              <span className="text-[#1A0008] font-medium text-xs">
+                {selected}
+              </span>
+            </span>
+
+            <svg className="ml-auto w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </>
+        )}
+      </button>
+
+      {sortOpen && (
+        <div className="absolute z-10 top-full mt-1 right-0 bg-white border border-[#E8D5DC] rounded-xl shadow-md overflow-hidden w-full">
+          {SORT_OPTS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => {
+                onChange(opt.value);
+                setSortOpen(false);
+              }}
+              className={`w-full text-left px-4 py-2 text-xs hover:bg-[#F5ECF0] transition ${
+                value === opt.value
+                  ? "text-[#6B0F2B] font-semibold"
+                  : "text-[#1A0008]"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Waitlist() {
-
     const {
         data: user,
         isLoading: isLoadingUser,
@@ -149,7 +231,7 @@ export default function Waitlist() {
     const [selectedRecord, setSelectedRecord] = useState<WaitlistedResponse | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
     const [sortBy, setSortBy] = useState("Date")
-    const [sortOpen, setSortOpen] = useState(false)
+    
     const [search, setSearch] = useState("")
 
     // FILTER
@@ -173,13 +255,37 @@ export default function Waitlist() {
         })
     }, [filtered, sortBy])
 
+    const [mode, setMode] = useState<"both" | "search" | "sort">("both")
+    const [sortOpen, setSortOpen] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
+    const searchInputRef = useRef<HTMLInputElement>(null)
+
+    React.useEffect(() => {
+    const checkScreen = () => setIsMobile(window.innerWidth < 640)
+
+    checkScreen()
+    window.addEventListener("resize", checkScreen)
+
+    return () => window.removeEventListener("resize", checkScreen)
+    }, [])
+
+    const handleOpenSearch = () => {
+    setSortOpen(false)
+    setMode("search")
+    setTimeout(() => searchInputRef.current?.focus(), 50)
+    }
+
+    const handleCloseSearch = () => {
+    setMode("both")
+    setSearch("")
+    }
+
     const totalPages = Math.ceil(sorted.length / HISTORY_PER_PAGE)
     const startIndex = (currentPage - 1) * HISTORY_PER_PAGE
     const paginated = sorted.slice(startIndex, startIndex + HISTORY_PER_PAGE)
 
     const handleSort = (option: string) => {
         setSortBy(option)
-        setSortOpen(false)
         setCurrentPage(1)
     }
 
@@ -360,180 +466,197 @@ export default function Waitlist() {
           )}
       </Modal>
 
-        <Card className={className}>
+        <div className={`bg-white rounded-2xl shadow-sm border overflow-hidden ${className ?? ""}`}>
             {/* Header row */}
-            <div className="flex items-start justify-between mb-4">
-
+            <div className="flex items-center justify-between gap-4 p-4 border-b">
               {/* LEFT: grouped */}
-              <div className="flex flex-col gap-1">
-                  <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">
+              <div className="flex flex-col gap-1 shrink-0">
+                  <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg whitespace-nowrap">
                       Waitlist History
                   </h2>
                   <p className="text-xs text-gray-400">
                       {filtered.length} total applications
                   </p>
               </div>
+            
             {/* RIGHT: filters */}
-          <div className="flex items-center gap-2">
-              {/* DROPDOWN */}
-              <div className="relative">
-                  <button
-                      onClick={() => setSortOpen(o => !o)}
-                      className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 text-sm bg-white hover:bg-[#F5ECF0] transition min-w-[140px]"
-                  >
-                      <span className="flex flex-col text-left">
-                          <span className="text-[9px] uppercase text-[#9A7080] font-bold leading-none">
-                              Sort By
-                          </span>
-                          <span className="text-[#1A0008] font-medium text-sm">
-                              {sortBy}
-                          </span>
-                      </span>
-                      <svg
-                          className="ml-auto w-4 h-4 text-[#9A7080]"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                      >
-                          <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                          />
-                      </svg>
-                  </button>
-               
-                        {sortOpen && (
-                            <div className="absolute z-10 top-full mt-1 right-0 bg-white border border-[#E8D5DC] rounded-xl shadow-md overflow-hidden w-full">
-                                {SORT_OPTS.map(opt => (
-                                    <button
-                                        key={opt}
-                                        onClick={() => handleSort(opt)}
-                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F5ECF0] transition
-                                            ${sortBy === opt ? "text-[#6B0F2B] font-semibold" : "text-[#1A0008]"}`}
-                                    >
-                                        {opt}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+            <div className="flex items-center gap-2 ml-auto">
+            {/* SORT BY */}
+            <FilterSelect
+            value={sortBy}
+            onChange={(v) => {
+                handleSort(v)
+                setMode("both")
+            }}
+            compact={isMobile && mode === "search"}
+            onToggle={() => {
+                setSortOpen(false)
+                setMode("both")
+            }}
+            sortOpen={sortOpen}
+            setSortOpen={setSortOpen}
+            />
 
-                    {/* SEARCH */}
-                    <div className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 bg-white">
-                        <svg className="w-4 h-4 text-[#9A7080] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Search records..."
-                            value={search}
-                            onChange={handleSearch}
-                            className="text-sm outline-none bg-transparent text-[#1A0008] placeholder-[#C4A4B0] w-36"
-                        />
-                    </div>
-                </div>
+            {/* SEARCH ICON - mobile only */}
+            <button
+            onClick={handleOpenSearch}
+            className={`${mode === "search" ? "hidden" : "flex"} sm:hidden items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition`}
+            aria-label="Open search"
+            >
+            <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            </button>
+
+            {/* SEARCH INPUT */}
+            <div className={`relative ${mode === "search" ? "flex" : "hidden"} sm:flex w-full sm:w-[120px]`}>
+                <svg
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A36F82]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                viewBox="0 0 24 24"
+                >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+
+                <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search..."
+                value={search}
+                onChange={handleSearch}
+                className="w-full min-w-0 h-10 border border-[#E8D5DC] rounded-xl pl-8 pr-7 text-sm bg-white text-[#3D0718] placeholder:text-[#C7A7B3] focus:outline-none focus:bg-[#F5ECF0] transition-all duration-200"
+                />
+
+                <button
+                onClick={handleCloseSearch}
+                className="absolute right-2 top-1/2 -translate-y-1/2 sm:hidden text-[#9A7080] hover:text-[#6B0F2B]"
+                aria-label="Close search"
+                >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                </button>
+            </div>
+            </div>
             </div>
 
-                    {/* HEADER -- TABLE  */}
-                    <div className="grid grid-cols-12 lg:grid-cols-12 border-b border-[#F5ECF0] uppercase pb-1 mb-1">
-                        <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Students</p>
-                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
-                            Date
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </p>
-                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Time Submitted</p>
-                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Preferred Facility</p>
-                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Room Type</p>
-                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Action</p>
+    {/* HEADER -- TABLE  */}
+    <div className="w-full overflow-x-auto">
+    <div className="min-w-[900px]">
+    <div className="grid grid-cols-12 bg-gray-50 border-b border-[#F5ECF0] uppercase">
+      <p className="col-span-2 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Students</p>
+
+      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+        Date
+      </p>
+
+      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+        Time Submitted
+      </p>
+
+      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+        Preferred Facility
+      </p>
+
+      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+        Room Type
+      </p>
+
+      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+        Action
+      </p>
+    </div>
+
+        {/* ROWS */}
+        <div className="flex flex-col divide-y divide-[#F5ECF0]">
+            {/* LOADING STATE */}
+            {isLoadingList ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                    <div key={`skeleton-${i}`} className="grid grid-cols-12 items-center py-3 animate-pulse">
+                        <div className="col-span-2 flex items-center gap-2">
+                            <div className="w-9 h-9 rounded-xl bg-gray-200" />
+                            <div className="h-4 w-20 bg-gray-200 rounded" />
+                        </div>
+                        <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
+                        <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
+                        <div className="col-span-2 h-4 w-20 bg-gray-100 rounded mx-auto" />
+                        <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
+                        <div className="col-span-2 h-8 w-16 bg-gray-200 rounded mx-auto" />
+                    </div>
+                ))
+            ) : isErrorList ? (
+                /* ERROR STATE */
+                <div className="py-10 text-center">
+                    <p className="text-sm text-red-500 mb-2">Failed to load applications.</p>
+                    <Button size="sm" onClick={() => refetch()}>
+                        Retry
+                    </Button>
+                </div>
+            ) : paginated.length > 0 ? (
+                /* DATA STATE */
+                paginated.map((record, i) => (
+                    <div key={record.id || i} className="grid grid-cols-12 items-center py-3 hover:bg-[#FFF9FA] transition-colors">
                         
-                    </div>
-
-                    {/* ROWS */}
-                    <div className="flex flex-col divide-y divide-[#F5ECF0]">
-                        {/* LOADING STATE */}
-                        {isLoadingList ? (
-                            // Render 5 skeleton rows
-                            Array.from({ length: 5 }).map((_, i) => (
-                                <div key={`skeleton-${i}`} className="grid grid-cols-12 items-center py-3 animate-pulse">
-                                    <div className="col-span-2 flex items-center gap-2">
-                                        <div className="w-9 h-9 rounded-xl bg-gray-200" />
-                                        <div className="h-4 w-20 bg-gray-200 rounded" />
-                                    </div>
-                                    <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
-                                    <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
-                                    <div className="col-span-2 h-4 w-20 bg-gray-100 rounded mx-auto" />
-                                    <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
-                                    <div className="col-span-2 h-8 w-16 bg-gray-200 rounded mx-auto" />
-                                </div>
-                            ))
-                        ) : isErrorList ? (
-                            /* ERROR STATE */
-                            <div className="py-10 text-center">
-                                <p className="text-sm text-red-500 mb-2">Failed to load applications.</p>
-                                <Button size="sm" onClick={() => refetch()}>
-                                    Retry
-                                </Button>
+                        {/* STUDENT INFO */}
+                        <div className="col-span-2 flex items-center gap-2">
+                            <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                                style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                                {getInitials(record.student.user.fname)}
                             </div>
-                        ) : paginated.length > 0 ? (
-                            /* DATA STATE */
-                            paginated.map((record, i) => (
-                                <div key={record.id || i} className="grid grid-cols-12 items-center py-3 hover:bg-[#FFF9FA] transition-colors">
-                                    
-                                    {/* STUDENT INFO */}
-                                    <div className="col-span-2 flex items-center gap-2">
-                                        <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                            {getInitials(record.student.user.fname)}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
-                                                {record.student.user.fname} {record.student.user.lname}
-                                            </p>
-                                            <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* DATE SUBMITTED */}
-                                    <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                                        {new Date(record.applicationDate).toLocaleDateString()}
-                                    </p>
-
-                                    <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
-                                        {DateTime.fromISO(record.applicationDate).setZone('utc', { keepLocalTime: true }).toFormat('h:mm a')}
-                                    </p>
-
-                                    <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                                        {record.assignment?.room?.roomBuilding || "N/A"}
-                                    </p>
-
-                                    <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
-                                        {record.assignment?.room?.roomType || record.applicationRoomType}
-                                    </p>
-
-                                    {/* ACTION */}
-                                    <div className="col-span-2 flex justify-center">
-                                        <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
-                                            View
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            /* EMPTY STATE */
-                            <div className="flex flex-col items-center py-12">
-                                <p className="text-sm text-[#9A7080]">No waitlisted applications found.</p>
+                            <div>
+                                <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
+                                    {record.student.user.fname} {record.student.user.lname}
+                                </p>
+                                <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
                             </div>
-                        )}
+                        </div>
+
+                        {/* DATE SUBMITTED */}
+                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                            {new Date(record.applicationDate).toLocaleDateString()}
+                        </p>
+
+                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
+                            {DateTime.fromISO(record.applicationDate).setZone('utc', { keepLocalTime: true }).toFormat('h:mm a')}
+                        </p>
+
+                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                            {record.assignment?.room?.roomBuilding || "N/A"}
+                        </p>
+
+                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
+                            {record.assignment?.room?.roomType || record.applicationRoomType}
+                        </p>
+
+                        {/* ACTION */}
+                        <div className="col-span-2 flex justify-center">
+                            <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
+                                View
+                            </Button>
+                        </div>
                     </div>
+                ))
+            ) : (
+                /* EMPTY STATE */
+                <div className="flex flex-col items-center py-12">
+                    <p className="text-sm text-[#9A7080]">No waitlisted applications found.</p>
+                </div>
+            )}
+        </div>
+        </div>
+    </div>
 
             {/* FOOTER */}
-            <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#F5ECF0]">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-[#F5ECF0]">
                 <p className="text-xs text-[#9A7080]">
-                    Showing {sorted.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + HISTORY_PER_PAGE, sorted.length)} of {sorted.length} records
+                {filtered.length === 0
+                    ? "No results"
+                    : `Showing ${startIndex + 1}–${Math.min(
+                        startIndex + HISTORY_PER_PAGE,
+                        filtered.length
+                    )} of ${filtered.length}`}
                 </p>
                 <div className="flex items-center justify-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -559,7 +682,7 @@ export default function Waitlist() {
                     )}
                 </div>
             </div>
-        </Card>
+        </div>
       </>
     )
 }
@@ -573,7 +696,7 @@ export default function Waitlist() {
         }} />
 
             <div className="flex-1 flex flex-col p-5 overflow-y-auto">
-                <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
+                <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2">
                     <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
                         style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
                     />
