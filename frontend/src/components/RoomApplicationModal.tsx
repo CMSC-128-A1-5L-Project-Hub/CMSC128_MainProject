@@ -136,29 +136,36 @@ export default function RoomApplicationModal({
     };
 
     const handleSubmit = async () => {
-    try {
-        const payload = {
-        accommodationId: accommodation.id,
-        roomId: currentRoom?.id,
-        applicationRoomType: selectedArrangement,
-        applicationStayType: selectedStayType,
-        durationOfStayDays: isTransient ? numberOfDays : null,
-        preferredTags:
-            selectedPreferences.length > 0 ? selectedPreferences : null,
-        moveInDate,
-        moveOutDate,
-        reservationFee: isTransient ? reservationFee : null,
-        moveInFee: !isTransient ? moveInFee : null,
-        };
+        try {
+            const payload = {
+            accommodationId: accommodation.id,
+            roomId: currentRoom?.id,
+            applicationRoomType: selectedArrangement,
+            applicationStayType: selectedStayType,
+            durationOfStayDays: isTransient ? numberOfDays : null,
+            preferredTags:
+                selectedPreferences.length > 0 ? selectedPreferences : null,
+            moveInDate,
+            moveOutDate,
+            reservationFee: isTransient ? reservationFee : null,
+            moveInFee: !isTransient ? moveInFee : null,
+            };
 
-        console.log("Submitting payload:", payload);
+            console.log("Submitting payload:", payload);
 
-        await api.post("/applications", payload);
+            try {
+                const res = await api.post("/applications", payload);
+                console.log("Application submitted:", res.data);
+                handleClose();
+            } catch (err: any) {
+                console.error("Submit failed status:", err.response?.status);
+                console.error("Submit failed data:", err.response?.data);
+            }
 
-        handleClose(); // close modal after success
-    } catch (err) {
-        console.error("Submit failed:", err);
-    }
+            handleClose(); // close modal after success
+        } catch (err) {
+            console.error("Submit failed:", err);
+        }
     };        
 
     const removeFile = (index: number) => {
