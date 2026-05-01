@@ -17,12 +17,17 @@ interface ApplyModalProps {
     open: boolean;
     onClose: () => void;
     accommodation: any;
+    selectedRoom: any;
     initialStart: { year: number; month: number; day: number } | null;
     initialEnd: { year: number; month: number; day: number } | null;
     passedStayType?: string;
     passedArrangement?: string;
-    amenities: string[];
-    selectedAmenities: string[];
+    accommodationTags: string[];
+    commonPreferences: string[];
+    optionalPreferences: string[];
+    selectedPreferences: string[];
+    setSelectedPreferences: React.Dispatch<React.SetStateAction<string[]>>;
+    
     // onToggleAmenity: (amenity: string) => void;
 }
 
@@ -30,21 +35,24 @@ export default function RoomApplicationModal({
     open,
     onClose,
     accommodation,
+    selectedRoom,
     initialStart,
     initialEnd,
     passedStayType,
     passedArrangement,
-    amenities,
-    selectedAmenities,
-    // onToggleAmenity
+    accommodationTags,
+    commonPreferences,
+    optionalPreferences,
+    selectedPreferences,
+    setSelectedPreferences
 }: ApplyModalProps) {
 
-    const sortedAmenities = [...amenities].sort((a, b) => {
-        const aSelected = selectedAmenities.includes(a);
-        const bSelected = selectedAmenities.includes(b);
-        if (aSelected === bSelected) return 0;
-        return aSelected ? -1 : 1;
-    });
+    // const sortedAmenities = [...amenities].sort((a, b) => {
+    //     const aSelected = selectedAmenities.includes(a);
+    //     const bSelected = selectedAmenities.includes(b);
+    //     if (aSelected === bSelected) return 0;
+    //     return aSelected ? -1 : 1;
+    // });
 
     const [step, setStep] = useState<"apply" | "verify">("apply");
 
@@ -124,11 +132,11 @@ export default function RoomApplicationModal({
         setUploadedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    const selectedRoom = accommodation?.rooms?.find(
-        (r: any) => r.room_stay_type === selectedStayType && r.room_type === selectedArrangement
-    ) ?? accommodation?.rooms?.[0];
+    // const selectedRoom = accommodation?.rooms?.find(
+    //     (r: any) => r.room_stay_type === selectedStayType && r.room_type === selectedArrangement
+    // ) ?? accommodation?.rooms?.[0];
 
-    const moveInFee = (selectedRoom?.room_rent || 0) * 3;
+    const moveInFee = (selectedRoom?.rent || 0) * 3;
     const reservationFee = 1500;
 
     const handleClose = () => {
@@ -163,15 +171,15 @@ export default function RoomApplicationModal({
                             <div className="w-full md:w-[320px] h-[180px] rounded-3xl overflow-hidden shadow-sm flex-shrink-0">
                                 <img
                                     src={accommodation?.images?.[0]?.image_path || "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&q=80&w=400"}
-                                    alt={accommodation?.accommodation_name}
+                                    alt={accommodation?.accommodationName}
                                     className="w-full h-full object-cover"
                                 />
                             </div>
                             <div className="flex-1 w-full">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="text-2xl font-bold text-[#1A0008] tracking-tight">{accommodation?.accommodation_name}</h3>
-                                        <p className="text-[11px] text-[#9A7080] mt-1 font-medium">{accommodation?.accommodation_location}</p>
+                                        <h3 className="text-2xl font-bold text-[#1A0008] tracking-tight">{accommodation?.accommodationName}</h3>
+                                        <p className="text-[11px] text-[#9A7080] mt-1 font-medium">{accommodation?.accommodationLocation}</p>
                                         <div className="flex items-center gap-1 mt-2 text-[#C9973A]">
                                             {[...Array(5)].map((_, i) => (
                                                 <IoStar key={i} size={14} className={i >= Math.floor(accommodation?.avgrating || 0) ? "opacity-30" : ""} />
@@ -182,40 +190,51 @@ export default function RoomApplicationModal({
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-2xl font-black text-[#C9973A]">₱{selectedRoom?.room_rent?.toLocaleString() ?? "—"}</span>
+                                        <span className="text-2xl font-black text-[#C9973A]">₱{selectedRoom?.rent?.toLocaleString() ?? "—"}</span>
                                         <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per month</p>
                                     </div>
                                 </div>
                                 {/* Amenity Grid */}
                                 <div className="flex flex-wrap gap-1.5 mt-4">
-                                    {sortedAmenities.map((amenity) => {
-                                        const isSelected = selectedAmenities.includes(amenity);
+                                    {[...accommodationTags, ...commonPreferences].map((amenity) => (
+                                        <span
+                                        key={`static-${amenity}`}
+                                        className="px-3 py-1 text-[9px] rounded-full font-bold uppercase flex items-center gap-1.5 bg-[#6B0F2B] text-white border border-transparent shadow-sm"
+                                        >
+                                        <IoCheckmarkCircle size={12} />
+                                        {amenity}
+                                        </span>
+                                    ))}
 
-                                        return (
-                                            <button
-                                                key={amenity}
-                                                type="button"
-                                                // onClick={() => onToggleAmenity(amenity)} // This handles the "Passing" of the state back to the parent
-                                                // className={`px-3 py-1 text-[9px] rounded-full font-bold uppercase transition-all flex items-center gap-1.5 ${isSelected
-                                                //         ? "bg-[#6B0F2B] text-white border border-transparent shadow-sm" // SELECTED: Solid Maroon
-                                                //         : "bg-transparent border-2 border-dashed border-[#D4B0BA] text-[#9A7080] opacity-70 hover:opacity-100" // DESELECTED: Dashed Pink
-                                                //     }`}
-                                            >
-                                                {isSelected ? (
-                                                    <IoCheckmarkCircle size={12} />
-                                                ) : (
-                                                    <div className="w-2 h-2 rounded-full border border-[#D4B0BA]" />
-                                                )}
+                                    {selectedPreferences.map((pref) => (
+                                        <button
+                                        key={`selected-${pref}`}
+                                        type="button"
+                                        onClick={() =>
+                                            setSelectedPreferences((prev) => prev.filter((p) => p !== pref))
+                                        }
+                                        className="px-3 py-1 text-[9px] rounded-full font-bold uppercase transition-all flex items-center gap-1.5 bg-[#6B0F2B] text-white border border-transparent shadow-sm"
+                                        >
+                                        <IoCheckmarkCircle size={12} />
+                                        {pref}
+                                        <IoCloseOutline size={14} className="ml-1 hover:text-white/80" />
+                                        </button>
+                                    ))}
 
-                                                {amenity}
-
-                                                {isSelected && (
-                                                    <IoCloseOutline size={14} className="ml-1 hover:text-white/80" />
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                    {optionalPreferences
+                                        .filter((pref) => !selectedPreferences.includes(pref))
+                                        .map((pref) => (
+                                        <button
+                                            key={`optional-${pref}`}
+                                            type="button"
+                                            onClick={() => setSelectedPreferences((prev) => [...prev, pref])}
+                                            className="px-3 py-1 text-[9px] rounded-full font-bold uppercase transition-all flex items-center gap-1.5 bg-transparent border-2 border-dashed border-[#D4B0BA] text-[#9A7080] opacity-70 hover:opacity-100"
+                                        >
+                                            <div className="w-2 h-2 rounded-full border border-[#D4B0BA]" />
+                                            {pref}
+                                        </button>
+                                        ))}
+                                    </div>
                             </div>
                         </div>
 
@@ -343,8 +362,8 @@ export default function RoomApplicationModal({
                     /* VERIFICATION STEP */
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div>
-                            <h3 className="text-3xl font-black text-[#1A0008] tracking-tight">{accommodation?.accommodation_name}</h3>
-                            <p className="text-xs font-bold text-[#9A7080] mt-1">{accommodation?.accommodation_location}</p>
+                            <h3 className="text-3xl font-black text-[#1A0008] tracking-tight">{accommodation?.accommodationName}</h3>
+                            <p className="text-xs font-bold text-[#9A7080] mt-1">{accommodation?.accommodationLocation}</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

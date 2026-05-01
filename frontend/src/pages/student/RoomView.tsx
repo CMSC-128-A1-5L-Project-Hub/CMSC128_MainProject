@@ -1773,13 +1773,16 @@ export default function RoomView() {
                   open={isModalOpen}
                   onClose={() => setIsModalOpen(false)}
                   accommodation={accommodation}
+                  selectedRoom={selectedRoom}
                   initialStart={selectedStart}
                   initialEnd={selectedEnd}
                   passedStayType={selectedStayType}
                   passedArrangement={selectedArrangement}
-                  amenities={accommodationTags}
-                  selectedAmenities={selectedPreferences}
-                  // onToggleAmenity={toggleAmenity}
+                  accommodationTags={accommodationTags}
+                  commonPreferences={commonPreferences}
+                  optionalPreferences={optionalPreferences}
+                  selectedPreferences={selectedPreferences}
+                  setSelectedPreferences={setSelectedPreferences}
                 />
 
               </div>
