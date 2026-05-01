@@ -1413,6 +1413,7 @@ export default function RoomView() {
     advanceMonths: r.advanceMonths ?? r.advance_months,
     depositMonths: r.depositMonths ?? r.deposit_months,
     tags: r.tags ?? [],
+    size: r.roomSize ?? r.room_size,
   }));
 
   const baseMatchingRooms = normalizedRooms.filter((room) => {
@@ -1613,7 +1614,7 @@ export default function RoomView() {
           <h1 className="text-[30px] font-bold text-gray-900 mb-1">{accommodation.accommodationName}</h1>
           <p className="text-[15px] font-semibold text-[#6B0F2B]" >{accommodation.accommodationLocation}</p>
           <p className="text-[18px] text-[#9A7080]">
-            {accommodation.accommodationSize ? accommodation.accommodationSize.toFixed(1) : "—"} m² · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+            {selectedRoom?.size != null ? Number(selectedRoom.size).toFixed(1) : "—"}{" "} m² · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
           </p>          
           {/* Tabs*/ }
           <div className="flex overflow-x-auto sm:justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-none">

@@ -47,6 +47,9 @@ export default class Room extends BaseModel {
   @column()
   declare depositMonths: number
 
+  @column()
+  declare roomSize: number | null
+
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 
