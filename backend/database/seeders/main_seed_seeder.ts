@@ -469,69 +469,69 @@ export default class extends BaseSeeder {
       { room_id: getRoom('103', 'White House'), tag_detail: 'Private bathroom', type: 'inclusion' },
       { room_id: getRoom('103', 'White House'), tag_detail: 'Air-conditioned', type: 'inclusion' },
       { room_id: getRoom('103', 'White House'), tag_detail: 'Has study desk', type: 'inclusion' },
-      { room_id: getRoom('103', 'White House'), tag_detail: 'Prefers quiet tenant', type: 'preference' },
-      { room_id: getRoom('103', 'White House'), tag_detail: 'Prefers long-term stay', type: 'preference' },
+      { room_id: getRoom('103', 'White House'), tag_detail: 'Furnished', type: 'preference' },
+      { room_id: getRoom('103', 'White House'), tag_detail: 'Near Entrance', type: 'preference' },
 
       // White House — 104
       { room_id: getRoom('104', 'White House'), tag_detail: 'Has study desk', type: 'inclusion' },
       { room_id: getRoom('104', 'White House'), tag_detail: 'Has wardrobe', type: 'inclusion' },
       { room_id: getRoom('104', 'White House'), tag_detail: 'Air-conditioned', type: 'preference' },
-      { room_id: getRoom('104', 'White House'), tag_detail: 'Prefers quiet tenant', type: 'preference' },
+      { room_id: getRoom('104', 'White House'), tag_detail: 'Furnished', type: 'preference' },
 
       // White House — 105
       { room_id: getRoom('105', 'White House'), tag_detail: 'Has study desk', type: 'inclusion' },
       { room_id: getRoom('105', 'White House'), tag_detail: 'Has wardrobe', type: 'inclusion' },
       { room_id: getRoom('105', 'White House'), tag_detail: 'Near comfort room', type: 'preference' },
-      { room_id: getRoom('105', 'White House'), tag_detail: 'Prefers long-term stay', type: 'preference' },
+      { room_id: getRoom('105', 'White House'), tag_detail: 'Near Entrance', type: 'preference' },
 
       // White House — 106
       { room_id: getRoom('106', 'White House'), tag_detail: 'Has study desk', type: 'inclusion' },
       { room_id: getRoom('106', 'White House'), tag_detail: 'Has wardrobe', type: 'inclusion' },
       { room_id: getRoom('106', 'White House'), tag_detail: 'Ground floor', type: 'preference' },
-      { room_id: getRoom('106', 'White House'), tag_detail: 'Prefers organized tenants', type: 'preference' },
+      { room_id: getRoom('106', 'White House'), tag_detail: 'Near Entrance', type: 'preference' },
       
 
       // One Silangan — 204
       { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Air-conditioned', type: 'inclusion' },
       { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Has study desk', type: 'inclusion' },
       { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Has wardrobe', type: 'inclusion' },
-      { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Prefers organized tenants', type: 'preference' },
-      { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Prefers non-smoker', type: 'preference' },
+      { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Near Entrance', type: 'preference' },
+      { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Has balcony', type: 'preference' },
 
       // Men's Dorm — 303
       { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Shared bathroom', type: 'inclusion' },
       { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Has study area', type: 'inclusion' },
       { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Has locker', type: 'inclusion' },
-      { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Prefers male tenant', type: 'preference' },
-      { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Prefers clean tenant', type: 'preference' },
+      { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Near Fire Exit', type: 'preference' },
+      { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Top Floor', type: 'preference' },
 
       // ATI — 403
       { room_id: getRoom('403', 'ATI'), tag_detail: 'Shared bathroom', type: 'inclusion' },
       { room_id: getRoom('403', 'ATI'), tag_detail: 'Has study area', type: 'inclusion' },
       { room_id: getRoom('403', 'ATI'), tag_detail: 'Near comfort room', type: 'inclusion' },
-      { room_id: getRoom('403', 'ATI'), tag_detail: 'Prefers male tenant', type: 'preference' },
-      { room_id: getRoom('403', 'ATI'), tag_detail: 'Prefers early curfew', type: 'preference' },
+      { room_id: getRoom('403', 'ATI'), tag_detail: 'Near Fire Exit', type: 'preference' },
+      { room_id: getRoom('403', 'ATI'), tag_detail: 'Near Lobby', type: 'preference' },
 
       // Scholar's Dorm — 503
       { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Air-conditioned', type: 'inclusion' },
       { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Has study desk', type: 'inclusion' },
       { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Has wardrobe', type: 'inclusion' },
-      { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Prefers female tenant', type: 'preference' },
-      { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Prefers quiet tenant', type: 'preference' },
+      { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Ground Floor', type: 'preference' },
+      { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Furnished', type: 'preference' },
 
       // One Sapphire Place — 603
       { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Air-conditioned', type: 'inclusion' },
       { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Has study desk', type: 'inclusion' },
       { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Has wardrobe', type: 'inclusion' },
-      { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Prefers non-smoker', type: 'preference' },
-      { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Prefers long-term stay', type: 'preference' },
+      { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Near Lobby', type: 'preference' },
+      { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Near Entrance', type: 'preference' },
 
       // UBLE Residences — 705
       { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Has study area', type: 'inclusion' },
       { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Has locker', type: 'inclusion' },
       { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Shared bathroom', type: 'inclusion' },
-      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Prefers organized tenants', type: 'preference' },
-      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Prefers clean tenant', type: 'preference' },
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Near Lobby', type: 'preference' },
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Top Floor', type: 'preference' },
     ])
 
     // =========================================================================
