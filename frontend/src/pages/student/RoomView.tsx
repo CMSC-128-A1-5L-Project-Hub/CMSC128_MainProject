@@ -711,6 +711,9 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   const accomLat = accommodation.latitude
   const accomLng = accommodation.longitude 
 
+  const hasValidCoordinates =
+    !Number.isNaN(accomLat) && !Number.isNaN(accomLng)
+
   const handleSearch = (val: string) => {
     setSearchQuery(val)
 
@@ -818,6 +821,14 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
       }
     } catch (err) {console.error(err)}
     finally { setLoadingRoute(false) }
+  }
+
+  if (!hasValidCoordinates) {
+    return (
+      <p className="text-sm text-gray-500">
+        Location unavailable.
+      </p>
+    )
   }
 
   return (
@@ -1524,7 +1535,6 @@ export default function RoomView() {
   //       accommodation.cheapestRoomOverall;
 
     
-
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
