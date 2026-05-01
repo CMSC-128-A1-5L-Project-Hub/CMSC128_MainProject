@@ -103,7 +103,7 @@ interface Review{
   student_number: string;
   rating: number;
   content: string | null;
-  created_at?: string;
+  createdAt?: string;
   student?: { user?: ReviewUser };
 }
 
@@ -1119,8 +1119,8 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
 
   const sortedReviews = [...reviews].sort((a, b) => {
     if (sortBy === "star") return b.rating - a.rating;
-    if (sortBy === "date") return new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime();
-    return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+    if (sortBy === "date") return new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime();
+    return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
   });
 
   return (
@@ -1201,9 +1201,9 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
                         ? `${review.student?.user?.fname} ${review.student?.user?.lname}`
                         : "Anonymous"}
                     </p>
-                    {review.created_at && (
+                    {review.createdAt && (
                       <p className="text-[8px] font-light text-gray-800">
-                        {new Date(review.created_at).toLocaleDateString("en-PH", {
+                        {new Date(review.createdAt).toLocaleDateString("en-PH", {
                           month: "long",
                           day: "2-digit",
                           year: "numeric",
