@@ -1766,9 +1766,9 @@ export default function RoomView() {
                   initialEnd={selectedEnd}
                   passedStayType={selectedStayType}
                   passedArrangement={selectedArrangement}
-                  amenities={AMENITIES}
-                  selectedAmenities={selectedAmenities}
-                  onToggleAmenity={toggleAmenity}
+                  amenities={accommodationTags}
+                  selectedAmenities={selectedPreferences}
+                  // onToggleAmenity={toggleAmenity}
                 />
 
               </div>

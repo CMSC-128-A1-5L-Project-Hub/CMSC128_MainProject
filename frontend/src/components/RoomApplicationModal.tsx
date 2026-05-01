@@ -23,7 +23,7 @@ interface ApplyModalProps {
     passedArrangement?: string;
     amenities: string[];
     selectedAmenities: string[];
-    onToggleAmenity: (amenity: string) => void;
+    // onToggleAmenity: (amenity: string) => void;
 }
 
 export default function RoomApplicationModal({
@@ -36,7 +36,7 @@ export default function RoomApplicationModal({
     passedArrangement,
     amenities,
     selectedAmenities,
-    onToggleAmenity
+    // onToggleAmenity
 }: ApplyModalProps) {
 
     const sortedAmenities = [...amenities].sort((a, b) => {
@@ -195,11 +195,11 @@ export default function RoomApplicationModal({
                                             <button
                                                 key={amenity}
                                                 type="button"
-                                                onClick={() => onToggleAmenity(amenity)} // This handles the "Passing" of the state back to the parent
-                                                className={`px-3 py-1 text-[9px] rounded-full font-bold uppercase transition-all flex items-center gap-1.5 ${isSelected
-                                                        ? "bg-[#6B0F2B] text-white border border-transparent shadow-sm" // SELECTED: Solid Maroon
-                                                        : "bg-transparent border-2 border-dashed border-[#D4B0BA] text-[#9A7080] opacity-70 hover:opacity-100" // DESELECTED: Dashed Pink
-                                                    }`}
+                                                // onClick={() => onToggleAmenity(amenity)} // This handles the "Passing" of the state back to the parent
+                                                // className={`px-3 py-1 text-[9px] rounded-full font-bold uppercase transition-all flex items-center gap-1.5 ${isSelected
+                                                //         ? "bg-[#6B0F2B] text-white border border-transparent shadow-sm" // SELECTED: Solid Maroon
+                                                //         : "bg-transparent border-2 border-dashed border-[#D4B0BA] text-[#9A7080] opacity-70 hover:opacity-100" // DESELECTED: Dashed Pink
+                                                //     }`}
                                             >
                                                 {isSelected ? (
                                                     <IoCheckmarkCircle size={12} />
@@ -237,7 +237,7 @@ export default function RoomApplicationModal({
                                 </div>
 
                                 <div className="md:col-span-1">
-                                    <GradientPillSelect label="Arrangement" value={selectedArrangement} onChange={setSelectedArrangement} width="w-full" labelSize="text-[10px]" optionSize="text-[13px]" options={arrangements.map((a: any) => ({ value: a, label: a.charAt(0).toUpperCase() + a.slice(1) }))} />
+                                    {/* <GradientPillSelect label="Arrangement" value={selectedArrangement} onChange={setSelectedArrangement} width="w-full" labelSize="text-[10px]" optionSize="text-[13px]" options={arrangements.map((a: any) => ({ value: a, label: a.charAt(0).toUpperCase() + a.slice(1) }))} /> */}
                                 </div>
                             </div>
 
