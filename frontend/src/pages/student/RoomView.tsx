@@ -1774,6 +1774,7 @@ export default function RoomView() {
                   onClose={() => setIsModalOpen(false)}
                   accommodation={accommodation}
                   selectedRoom={selectedRoom}
+                  rooms={normalizedRooms}
                   initialStart={selectedStart}
                   initialEnd={selectedEnd}
                   passedStayType={selectedStayType}

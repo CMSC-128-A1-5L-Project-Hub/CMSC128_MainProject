@@ -18,6 +18,7 @@ interface ApplyModalProps {
     onClose: () => void;
     accommodation: any;
     selectedRoom: any;
+    rooms: any[];
     initialStart: { year: number; month: number; day: number } | null;
     initialEnd: { year: number; month: number; day: number } | null;
     passedStayType?: string;
@@ -36,6 +37,7 @@ export default function RoomApplicationModal({
     onClose,
     accommodation,
     selectedRoom,
+    rooms,
     initialStart,
     initialEnd,
     passedStayType,
@@ -54,13 +56,27 @@ export default function RoomApplicationModal({
     //     return aSelected ? -1 : 1;
     // });
 
+    
+
     const [step, setStep] = useState<"apply" | "verify">("apply");
 
-    const stayTypes = [...new Set(accommodation?.rooms?.map((r: any) => r.room_stay_type) || [])];
-    const arrangements = [...new Set(accommodation?.rooms?.map((r: any) => r.room_type) || [])];
+    const stayTypes = [
+        ...new Set<string>(
+            (accommodation?.rooms ?? [])
+            .map((r: any) => String(r.roomStayType ?? r.room_stay_type))
+            .filter(Boolean)
+        ),
+    ];
+    const arrangements = [
+    ...new Set<string>(
+        (accommodation?.rooms ?? [])
+        .map((r: any) => String(r.roomType ?? r.room_type))
+        .filter(Boolean)
+    ),
+    ];
 
-    const [selectedArrangement, setSelectedArrangement] = useState(arrangements[0] || "");
-    const [selectedStayType, setSelectedStayType] = useState(stayTypes[0] || "");
+    const [selectedArrangement, setSelectedArrangement] = useState<string>(arrangements[0] || "");
+    const [selectedStayType, setSelectedStayType] = useState<string>(stayTypes[0] || "");
 
     const [moveInDate, setMoveInDate] = useState("");
     const [moveOutDate, setMoveOutDate] = useState("");
@@ -132,11 +148,35 @@ export default function RoomApplicationModal({
         setUploadedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    // const selectedRoom = accommodation?.rooms?.find(
-    //     (r: any) => r.room_stay_type === selectedStayType && r.room_type === selectedArrangement
-    // ) ?? accommodation?.rooms?.[0];
+    const currentRoom =
+        rooms.find((room: any) => {
+            const matchesStay = room.stay === selectedStayType;
+            const matchesType = room.type === selectedArrangement;
 
-    const moveInFee = (selectedRoom?.rent || 0) * 3;
+            const roomPrefs =
+            room.tags
+                ?.filter((t: any) => t.type === "preference")
+                .map((t: any) => t.tagDetail ?? t.tag_detail) ?? [];
+
+            const matchesPreferences = selectedPreferences.every((pref) =>
+            roomPrefs.includes(pref)
+            );
+
+            return matchesStay && matchesType && matchesPreferences;
+        }) ??
+        rooms.find((room: any) =>
+            room.stay === selectedStayType &&
+            room.type === selectedArrangement
+        ) ??
+        selectedRoom;
+
+    // const moveInFee = (computedRoom?.rent || 0) * 3;
+    const advanceMonths = Number(currentRoom?.advanceMonths ?? 2);
+    const depositMonths = Number(currentRoom?.depositMonths ?? 1);
+    const rent = Number(currentRoom?.rent ?? 0);
+
+    const moveInFee = rent * (advanceMonths + depositMonths);
+
     const reservationFee = 1500;
 
     const handleClose = () => {
@@ -190,7 +230,7 @@ export default function RoomApplicationModal({
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-2xl font-black text-[#C9973A]">₱{selectedRoom?.rent?.toLocaleString() ?? "—"}</span>
+                                        <span className="text-2xl font-black text-[#C9973A]">₱{currentRoom?.rent?.toLocaleString() ?? "—"}</span>
                                         <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per month</p>
                                     </div>
                                 </div>
@@ -252,11 +292,11 @@ export default function RoomApplicationModal({
                                 </div>
 
                                 <div className="md:col-span-1">
-                                    <GradientPillSelect label="Stay Type" value={selectedStayType} onChange={setSelectedStayType} width="w-full" labelSize="text-[10px]" optionSize="text-[13px]" options={stayTypes.map((st: any) => ({ value: st, label: st === "non_transient" ? "Non-Transient" : "Transient" }))} />
+                                    <GradientPillSelect label="Stay Type" value={selectedStayType} onChange={setSelectedStayType} width="w-full" labelSize="text-[10px]" optionSize="text-[13px]" options={stayTypes.map((st: string) => ({ value: String(st), label: st === "non_transient" ? "Non-Transient" : "Transient" }))} />
                                 </div>
 
                                 <div className="md:col-span-1">
-                                    {/* <GradientPillSelect label="Arrangement" value={selectedArrangement} onChange={setSelectedArrangement} width="w-full" labelSize="text-[10px]" optionSize="text-[13px]" options={arrangements.map((a: any) => ({ value: a, label: a.charAt(0).toUpperCase() + a.slice(1) }))} /> */}
+                                    <GradientPillSelect label="Arrangement" value={selectedArrangement} onChange={setSelectedArrangement} width="w-full" labelSize="text-[10px]" optionSize="text-[13px]" options={arrangements.map((a: string) => ({ value: String(a), label: a.charAt(0).toUpperCase() + a.slice(1) }))} />
                                 </div>
                             </div>
 
@@ -279,7 +319,10 @@ export default function RoomApplicationModal({
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest block">Move-In Fee</label>
                                     <p className="text-2xl font-black text-[#C9973A]">₱{moveInFee.toLocaleString()}</p>
-                                    <p className="text-[9px] font-bold text-[#9A7080]">2 months advance, 1 month deposit</p>
+                                    <p className="text-[9px] font-bold text-[#9A7080]">
+                                        {advanceMonths} {advanceMonths === 1 ? "month" : "months"} advance,{" "}
+                                        {depositMonths} {depositMonths === 1 ? "month" : "months"} deposit
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -413,7 +456,7 @@ export default function RoomApplicationModal({
                                 </div>
                                 <div>
                                     <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">Monthly Rent</p>
-                                    <p className="text-3xl font-black text-[#C9973A]">₱{selectedRoom?.room_rent?.toLocaleString()}</p>
+                                    <p className="text-3xl font-black text-[#C9973A]">₱{currentRoom?.room_rent?.toLocaleString()}</p>
                                     <p className="text-[10px] text-[#9A7080] font-bold italic">Per 5th of the month</p>
                                 </div>
                             </div>
