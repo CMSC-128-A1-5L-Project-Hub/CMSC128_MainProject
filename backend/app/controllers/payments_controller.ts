@@ -73,7 +73,7 @@ export default class PaymentsController {
 
   // ─── MANAGER: VIEW PENDING PAYMENTS ───
   // GET /payments/pending
-  async pending({ auth }: HttpContext) {
+  async pending({ auth, response }: HttpContext) {
     const user = auth.user!
 
     const manager = await Manager
@@ -85,7 +85,7 @@ export default class PaymentsController {
     const accoms = manager.accommodations.map(accom => accom.id)
 
     if (accoms.length === 0) {
-      return []
+      return response.ok([]) // was: return []
     }
 
     const payments = await Payment
@@ -97,7 +97,7 @@ export default class PaymentsController {
       .preload('fee')
       .preload('proofFile')
 
-    return payments // ✅ auto-serialized
+    return response.ok(payments)
   }
 
   // ─── MANAGER: VERIFY PAYMENT ───

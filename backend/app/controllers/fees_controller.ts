@@ -105,4 +105,50 @@ export default class FeesController {
 
     return response.created({ message: 'Fee created successfully', fee })
   }
+
+  // ─── MANAGER/LANDLORD: VIEW OVERDUE FEES ───
+  // GET /fees/overdue
+  async overdueForManager({ auth, response }: HttpContext) {
+    const user = auth.user!
+
+    const manager = await Manager
+      .query()
+      .where('userId', user.id)
+      .preload('accommodations')
+      .firstOrFail()
+
+    const accommodationIds = manager.accommodations.map((a) => a.id)
+
+    if (accommodationIds.length === 0) {
+      return response.ok({ data: [] })
+    }
+
+    const overdueFees = await db
+      .from('fees')
+      .leftJoin('students', 'fees.student_number', 'students.student_number')
+      .leftJoin('users', 'students.user_id', 'users.id')
+      .leftJoin('assignments', 'students.student_number', 'assignments.student_number')
+      .leftJoin('rooms', 'assignments.room_id', 'rooms.id')
+      .leftJoin('accommodations', 'rooms.accommodation_id', 'accommodations.id')
+      .whereIn('accommodations.id', accommodationIds)
+      .where('fees.fee_status', 'overdue')
+      .select(
+        'fees.id',
+        'fees.student_number',
+        'fees.due_date',
+        'fees.fee_amount',
+        'fees.fee_balance',
+        'fees.fee_status',
+        'fees.fee_category',
+        'users.fname',
+        'users.lname',
+        'rooms.room_number',
+        'rooms.room_type',
+        'accommodations.accommodation_name',
+        'assignments.move_in',
+        'assignments.expected_move_out'
+      )
+
+    return response.ok(overdueFees)
+  }
 }
