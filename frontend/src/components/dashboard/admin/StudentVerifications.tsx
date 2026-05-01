@@ -61,8 +61,9 @@ export default function StudentVerifications({
                 <tr key={item.user.id}>
                   <td className="py-4">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042]" />
-
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042] flex items-center justify-center text-white font-semibold">
+                        {item.user.fname?.[0]?.toUpperCase() ?? "S"}
+                      </div>
                       <p className="text-base font-medium text-[#2A0410]">
                         {`${item.user.fname} ${item.user.lname}`}
                       </p>
