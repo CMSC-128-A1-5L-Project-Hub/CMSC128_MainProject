@@ -34,6 +34,8 @@ import Waitlist from "./pages/manager/Waitlist"
 import MoveinMoveout from "./pages/manager/MoveinMoveout"
 import ManagerProfile from "./pages/manager/Profile"
 import FeesPage from "./pages/landlord/FeesPage"
+import StudentVerificationsPage from "./pages/admin/StudentVerificationsPage"
+import LandlordVerificationsPage from "./pages/admin/LandlordVerificationsPage"
 // import ApplicationTestPage from "./pages/ApplicationTestPage"
 function FullLandingPage() {
   return (
@@ -41,7 +43,6 @@ function FullLandingPage() {
       <LandingPage />
       <AboutSection />
       <FeaturesSection />
-      <ResidenceCarousel />
       <UBLEFooter />
     </>
   );
@@ -58,6 +59,7 @@ function App() {
         <Route path="/auth/success" element={<AuthSuccess/>}/>
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/accommodations/:id" element={<FullRoomView />} />
+        <Route path="/landlord/rooms" element={<RoomsPage />} />
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
@@ -87,12 +89,13 @@ function App() {
         {/* ── Landlord routes ── */}
         <Route path="/landlord/accommodations/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
-        <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
+        
         <Route path="/landlord/fees" element={<ProtectedRoute><FeesPage /></ProtectedRoute>} />
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-
+        <Route path="/admin/student-verifications" element={<ProtectedRoute> <StudentVerificationsPage /> </ProtectedRoute>} />
+        <Route path="/admin/landlord-verifications" element={<ProtectedRoute> <LandlordVerificationsPage /> </ProtectedRoute>} />
         {/* ── Catch-all: 404 ── */}
         <Route path="*" element={<NotFound />} />
       </Routes>
