@@ -43,8 +43,6 @@ export default function RoomApplicationModal({
     passedStayType,
     passedArrangement,
     accommodationTags,
-    commonPreferences,
-    optionalPreferences,
     selectedPreferences,
     setSelectedPreferences
 }: ApplyModalProps) {
@@ -115,6 +113,12 @@ export default function RoomApplicationModal({
         }
     }, [open, passedStayType, passedArrangement]);
 
+    useEffect(() => {
+    setSelectedPreferences((prev) =>
+        prev.filter((p) => allPreferences.includes(p))
+    );
+    }, [selectedStayType, selectedArrangement]);
+
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(e.target.files || []);
         if (selectedFiles.length === 0) return;
@@ -178,6 +182,39 @@ export default function RoomApplicationModal({
     const moveInFee = rent * (advanceMonths + depositMonths);
 
     const reservationFee = 1500;
+    
+    const currentRoomTags = currentRoom?.tags ?? [];
+
+    const matchingRooms = rooms.filter(
+        (r: any) => r.stay === selectedStayType && r.type === selectedArrangement
+    );
+
+    const allPreferences = Array.from(
+    new Set(
+        matchingRooms.flatMap((r: any) =>
+        (r.tags ?? [])
+            .filter((t: any) => t.type === "preference")
+            .map((t: any) => t.tagDetail ?? t.tag_detail)
+        )
+    )
+    );
+    
+    const commonPreferences = allPreferences.filter((pref: string) =>
+        matchingRooms.every((r: any) =>
+            (r.tags ?? [])
+            .filter((t: any) => t.type === "preference")
+            .map((t: any) => t.tagDetail ?? t.tag_detail)
+            .includes(pref)
+        )
+    );
+
+    const optionalPreferences = allPreferences.filter(
+        (pref: string) => !commonPreferences.includes(pref)
+    );
+
+    const roomInclusions = currentRoomTags
+        .filter((t: any) => t.type === "inclusion")
+        .map((t: any) => t.tagDetail ?? t.tag_detail);
 
     const handleClose = () => {
         setStep("apply");
@@ -236,7 +273,7 @@ export default function RoomApplicationModal({
                                 </div>
                                 {/* Amenity Grid */}
                                 <div className="flex flex-wrap gap-1.5 mt-4">
-                                    {[...accommodationTags, ...commonPreferences].map((amenity) => (
+                                    {[...accommodationTags, ...roomInclusions, ...commonPreferences].map((amenity) => (
                                         <span
                                         key={`static-${amenity}`}
                                         className="px-3 py-1 text-[9px] rounded-full font-bold uppercase flex items-center gap-1.5 bg-[#6B0F2B] text-white border border-transparent shadow-sm"
