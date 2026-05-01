@@ -160,7 +160,24 @@ export default function RoomApplicationModal({
         ) ??
         selectedRoom;
 
-    // const moveInFee = (computedRoom?.rent || 0) * 3;
+    const numberOfDays =
+    moveInDate && moveOutDate
+        ? Math.max(
+            1,
+            Math.ceil(
+            (new Date(moveOutDate).getTime() -
+                new Date(moveInDate).getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+        )
+        : 1;
+
+    const rentPerDay = Number(currentRoom?.rent ?? 0);
+
+    const totalStayCost = isTransient
+    ? rentPerDay * numberOfDays
+    : rentPerDay;
+
     const advanceMonths = Number(currentRoom?.advanceMonths ?? 2);
     const depositMonths = Number(currentRoom?.depositMonths ?? 1);
     const rent = Number(currentRoom?.rent ?? 0);
@@ -176,7 +193,7 @@ export default function RoomApplicationModal({
 
     const reservationFee =
     reservationFeeType === "percentage"
-        ? rent * reservationFeeValue
+        ? totalStayCost  * reservationFeeValue
         : reservationFeeType === "fixed"
         ? reservationFeeValue
         : 0;
@@ -390,7 +407,7 @@ export default function RoomApplicationModal({
                                     )}
                                     {isTransient && (
                                     <p className="text-[9px] font-bold text-[#9A7080] italic">
-                                    One-time reservation fee
+                                        Total fee: ₱{rentPerDay.toLocaleString()} × {numberOfDays} days = ₱{totalStayCost.toLocaleString()}
                                     </p>
                                 )}
                                 </div>
