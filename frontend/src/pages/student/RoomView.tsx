@@ -123,6 +123,14 @@ interface Accommodation {
   avgrating: number;
   latitude: number;
   longitude: number;
+
+  cheapestRoomOverall?: number | string | null;
+
+  pricing?: {
+    overallStartingPrice?: number | string | null;
+    roomTypes?: Record<string, any>;
+    allInclusions?: string[];
+  };
 }
 
 // const MOCK_ACCOMMODATION: Accommodation = {
@@ -1382,6 +1390,7 @@ export default function RoomView() {
   const [selectedStayType, setSelectedStayType] = useState<Room["room_stay_type"]>("non_transient");
   const [selectedArrangement, setSelectedArrangement] = useState<Room["room_type"]>("single");
   const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
+  const [hasSelectedRoomFilters, setHasSelectedRoomFilters] = useState(false);
 
   useEffect(() => {
     const fetchAccommodation = async () => {
@@ -1451,6 +1460,25 @@ export default function RoomView() {
     tags: r.tags ?? [],
   }));
 
+  const matchingRooms = normalizedRooms.filter((room) => {
+    const matchesType =
+      !selectedArrangement || room.type === selectedArrangement;
+
+    const matchesStay =
+      !selectedStayType || room.stay === selectedStayType;
+
+    const roomPreferenceTags =
+      room.tags
+        ?.filter((tag: any) => tag.type === "preference")
+        .map((tag: any) => tag.tagDetail ?? tag.tag_detail) ?? [];
+
+    const matchesPreferences = selectedPreferences.every((pref) =>
+      roomPreferenceTags.includes(pref)
+    );
+
+    return matchesType && matchesStay && matchesPreferences;
+  });
+
   const selectedRoom =
     normalizedRooms.find(
       (r) =>
@@ -1458,6 +1486,13 @@ export default function RoomView() {
         r.stay === selectedStayType &&
         r.type === selectedArrangement
     ) ?? normalizedRooms[0];
+
+  const cheapestMatchingRoom =
+    matchingRooms.length > 0
+      ? matchingRooms.reduce((cheapest, room) =>
+          Number(room.rent) < Number(cheapest.rent) ? room : cheapest
+        )
+      : null;
 
   const accommodationTags  =
     accommodation.tags
@@ -1486,6 +1521,16 @@ export default function RoomView() {
     { key: "Reviews", label: "Reviews"},
     { key: "Requirements", label: "Requirements"},
   ];
+
+  const hasFilters =
+    hasSelectedRoomFilters || selectedPreferences.length > 0;
+
+  const displayPrice = hasFilters
+      ? cheapestMatchingRoom?.rent
+      : accommodation.pricing?.overallStartingPrice ??
+        accommodation.cheapestRoomOverall;
+
+    
 
 
   return (
@@ -1611,23 +1656,26 @@ export default function RoomView() {
             selectedPreferences={selectedPreferences}
             setSelectedPreferences={setSelectedPreferences}
             selectedTenantRestriction={selectedTenantRestriction}
-            setselectedTenantRestriction={setselectedTenantRestriction}
+            setselectedTenantRestriction={(v) => {
+              setselectedTenantRestriction(v);
+              setHasSelectedRoomFilters(true);
+            }}
             selectedStayType={selectedStayType}
-            setSelectedStayType={setSelectedStayType}
+            setSelectedStayType={(v) => {
+              setSelectedStayType(v);
+              setHasSelectedRoomFilters(true);
+            }}
             selectedArrangement={selectedArrangement}
-            setSelectedArrangement={setSelectedArrangement}
+            setSelectedArrangement={(v) => {
+              setSelectedArrangement(v);
+              setHasSelectedRoomFilters(true);
+            }}
           />
         )}
         {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={avgRating} />}
         {selectedTab === "Requirements" && <RequirementsTab />}
         {selectedTab === 'Location' && <LocationTab accommodation={accommodation} />}
-
-
-
-
-        
-
-          
+ 
         </div>
 
           <div className="mt-3 font-sans">
@@ -1635,9 +1683,11 @@ export default function RoomView() {
               {/* Price */}
               <div className="mx-9">
                 <div className="mb-1">
-                  <p className="text-[15px] font-bold text-[#3D0718] mt-2">Starts at: </p>
+                  <p className="text-[15px] font-bold text-[#3D0718] mt-2">
+                    {hasFilters ? "From:" : "Starts at:"}
+                  </p>
                   <span className="text-[37px] font-bold font-sans text-[#6B0F2B]">
-                    ₱{Number(selectedRoom?.rent).toLocaleString() ?? "—"}
+                    ₱{displayPrice != null ? Number(displayPrice).toLocaleString() : "—"}
                   </span>
                   <span className="text-[21px] font-normal text-[#9A7080]"> / month</span>
                 </div>
