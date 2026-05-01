@@ -1416,6 +1416,12 @@ export default function RoomView() {
     if (id) fetchAccommodation();
   }, [id]);
 
+  useEffect(() => {
+    setSelectedPreferences((prev) =>
+      prev.filter((pref) => availablePreferences.includes(pref))
+    );
+  }, [selectedTenantRestriction, selectedStayType, selectedArrangement]);
+
   if (loading) {
     return <p>Loading accommodation...</p>;
   }
@@ -1460,39 +1466,53 @@ export default function RoomView() {
     tags: r.tags ?? [],
   }));
 
-  const matchingRooms = normalizedRooms.filter((room) => {
-    const matchesType =
-      !selectedArrangement || room.type === selectedArrangement;
+  const baseMatchingRooms = normalizedRooms.filter((room) => {
+    return (
+      room.tenant === selectedTenantRestriction &&
+      room.stay === selectedStayType &&
+      room.type === selectedArrangement
+    );
+  });
 
-    const matchesStay =
-      !selectedStayType || room.stay === selectedStayType;
-
+  const matchingRooms = baseMatchingRooms.filter((room) => {
     const roomPreferenceTags =
       room.tags
         ?.filter((tag: any) => tag.type === "preference")
         .map((tag: any) => tag.tagDetail ?? tag.tag_detail) ?? [];
 
-    const matchesPreferences = selectedPreferences.every((pref) =>
+    return selectedPreferences.every((pref) =>
       roomPreferenceTags.includes(pref)
     );
-
-    return matchesType && matchesStay && matchesPreferences;
   });
 
   const selectedRoom =
-    normalizedRooms.find(
-      (r) =>
-        r.tenant === selectedTenantRestriction &&
-        r.stay === selectedStayType &&
-        r.type === selectedArrangement
-    ) ?? normalizedRooms[0];
-
-  const cheapestMatchingRoom =
     matchingRooms.length > 0
       ? matchingRooms.reduce((cheapest, room) =>
           Number(room.rent) < Number(cheapest.rent) ? room : cheapest
         )
+      : baseMatchingRooms.length > 0
+      ? baseMatchingRooms.reduce((cheapest, room) =>
+          Number(room.rent) < Number(cheapest.rent) ? room : cheapest
+        )
       : null;
+
+  const availablePreferences = [
+    ...new Set(
+      baseMatchingRooms.flatMap((room) =>
+        (room.tags ?? [])
+          .filter((tag: any) => tag.type === "preference")
+          .map((tag: any) => tag.tagDetail ?? tag.tag_detail)
+          .filter(Boolean)
+      )
+    ),
+  ];
+
+  // const cheapestMatchingRoom =
+  //   matchingRooms.length > 0
+  //     ? matchingRooms.reduce((cheapest, room) =>
+  //         Number(room.rent) < Number(cheapest.rent) ? room : cheapest
+  //       )
+  //     : null;
 
   const accommodationTags  =
     accommodation.tags
@@ -1505,9 +1525,9 @@ export default function RoomView() {
     .filter((t: any) => t.type === "inclusion")
     .map((t: any) => t.tagDetail);
 
-  const roomPreferences = selectedRoomTags
-    .filter((t: any) => t.type === "preference")
-    .map((t: any) => t.tagDetail);
+  // const roomPreferences = selectedRoomTags
+  //   .filter((t: any) => t.type === "preference")
+  //   .map((t: any) => t.tagDetail);
 
   const avgRating =
     reviews.length > 0
@@ -1523,12 +1543,12 @@ export default function RoomView() {
   ];
 
   const hasFilters =
-    hasSelectedRoomFilters || selectedPreferences.length > 0;
+      hasSelectedRoomFilters || selectedPreferences.length > 0;
 
-  const displayPrice = hasFilters
-      ? cheapestMatchingRoom?.rent
-      : accommodation.pricing?.overallStartingPrice ??
-        accommodation.cheapestRoomOverall;
+  // const displayPrice = hasFilters
+  //     ? cheapestMatchingRoom?.rent
+  //     : accommodation.pricing?.overallStartingPrice ??
+  //       accommodation.cheapestRoomOverall;
 
     
 
@@ -1652,7 +1672,7 @@ export default function RoomView() {
             rooms={normalizedRooms}
             accommodationTags={accommodationTags}
             roomInclusions={roomInclusions}
-            roomPreferences={roomPreferences}
+            roomPreferences={availablePreferences}
             selectedPreferences={selectedPreferences}
             setSelectedPreferences={setSelectedPreferences}
             selectedTenantRestriction={selectedTenantRestriction}
@@ -1687,7 +1707,7 @@ export default function RoomView() {
                     {hasFilters ? "From:" : "Starts at:"}
                   </p>
                   <span className="text-[37px] font-bold font-sans text-[#6B0F2B]">
-                    ₱{displayPrice != null ? Number(displayPrice).toLocaleString() : "—"}
+                    ₱{selectedRoom?.rent != null ? Number(selectedRoom.rent).toLocaleString() : "—"}
                   </span>
                   <span className="text-[21px] font-normal text-[#9A7080]"> / month</span>
                 </div>
