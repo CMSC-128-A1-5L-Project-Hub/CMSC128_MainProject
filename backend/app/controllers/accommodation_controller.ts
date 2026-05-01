@@ -41,7 +41,11 @@ export default class AccommodationController {
         q.preload('tags')  // Preload room inclusions
         q.orderBy('roomRent', 'asc')  // Cheapest first
       })
-      .preload('reviews')
+      .preload('reviews', (q) => {
+        q.preload('student', (studentQuery) => {
+          studentQuery.preload('user')
+        })
+      })
       .first()
 
     if (!accommodation) {

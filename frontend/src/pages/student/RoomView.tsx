@@ -1198,7 +1198,7 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
                   <div>
                     <p className="text-[15px] font-bold text-gray-800">
                       {review.student?.user
-                        ? `${review.student.user.fname} ${review.student.user.lname}`
+                        ? `${review.student?.user?.fname} ${review.student?.user?.lname}`
                         : "Anonymous"}
                     </p>
                     {review.created_at && (
@@ -1699,7 +1699,7 @@ export default function RoomView() {
                 <div className="flex gap-4 mb-4 mt-2">
                   {roomInclusions.length > 0 ? (
                     roomInclusions.map((inc: string) => (
-                      <span key={inc} className="flex items-center gap-1.5 text-sm text-gray-600 font-medium text-[white] bg-[#6B0F2B] px-3 py-1 rounded-full"> 
+                      <span key={inc} className="flex items-center gap-1.5 text-sm font-medium text-[white] bg-[#6B0F2B] px-3 py-1 rounded-full"> 
                         {inc}
                       </span>
                     ))

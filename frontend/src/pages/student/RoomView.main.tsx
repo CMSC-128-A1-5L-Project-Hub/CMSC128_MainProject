@@ -1610,7 +1610,7 @@ export default function RoomView() {
                   passedArrangement={selectedArrangement}
                   amenities={AMENITIES}
                   selectedAmenities={selectedAmenities}
-                  onToggleAmenity={toggleAmenity}
+                  // onToggleAmenity={toggleAmenity}
                 />
 
               </div>
