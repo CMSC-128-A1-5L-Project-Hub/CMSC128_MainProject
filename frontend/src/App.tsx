@@ -34,6 +34,7 @@ import MoveinMoveout from "./pages/manager/MoveinMoveout"
 import ManagerProfile from "./pages/manager/Profile"
 import FeesPage from "./pages/landlord/FeesPage"
 // import ApplicationTestPage from "./pages/ApplicationTestPage"
+import RoomView1 from "./pages/student/RoomView.main"
 function FullLandingPage() {
   return (
     <>
@@ -73,6 +74,7 @@ function App() {
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
         <Route path="/student/accommodations/:id/rooms" element={<RoomView />} />
         {/* <Route path="/student/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} /> */}
+        <Route path="/student/roomview" element={<RoomView1 />} />
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>

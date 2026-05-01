@@ -362,7 +362,7 @@ function MiniCalendar({ start, end, onStartChange, onEndChange, selecting, setSe
   );
 }
 
-function ApplicationPeriod() {
+function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, end: any) => void }) {
   const [savedStart, setSavedStart] = useState<DateVal>(null);
   const [savedEnd,   setSavedEnd]   = useState<DateVal>(null);
   const [draftStart, setDraftStart] = useState<DateVal>(null);
@@ -389,6 +389,7 @@ function ApplicationPeriod() {
   const handleSave = () => {
     if (!draftStart || !draftEnd) return;
     setSavedStart(draftStart); setSavedEnd(draftEnd); setEditing(false);
+    onPeriodChange(draftStart, draftEnd);
   };
 
   const isSet     = !!savedStart && !!savedEnd;
@@ -1323,10 +1324,14 @@ export default function RoomView() {
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStart, setSelectedStart] = useState<any>(null);
+  const [selectedEnd, setSelectedEnd] = useState<any>(null);
+
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
   // const [isFavorited, setIsFavorited] = useState(false);
-  const [moveIn, setMoveIn] = useState("");
-  const [moveOut, setMoveOut] = useState("");
+  // const [moveIn, setMoveIn] = useState("");
+  // const [moveOut, setMoveOut] = useState("");
   const [current, setCurrent] = useState(0);
   const [showAllPhotos, setShowAllPhotosModal] = useState(false);
 
@@ -1707,7 +1712,12 @@ export default function RoomView() {
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Duration of Stay:</p>
                 <div className="mb-4">
                   <div className="mt-2">
-                    <ApplicationPeriod />
+                    <ApplicationPeriod
+                      onPeriodChange={(start, end) => {
+                        setSelectedStart(start);
+                        setSelectedEnd(end);
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -1738,15 +1748,29 @@ export default function RoomView() {
                 </div>
               )}
 
-                {/* Apply */}
+               {/* Apply */}
                 <button
+                  onClick={() => setIsModalOpen(true)}
                   className="w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors"
                   style={{ background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = CLR.mid)}
                   onMouseLeave={(e) => (e.currentTarget.style.background = CLR.dark)}>
                   Apply for Occupancy
                 </button>
-                
+
+                <RoomApplicationModal
+                  open={isModalOpen}
+                  onClose={() => setIsModalOpen(false)}
+                  accommodation={accommodation}
+                  initialStart={selectedStart}
+                  initialEnd={selectedEnd}
+                  passedStayType={selectedStayType}
+                  passedArrangement={selectedArrangement}
+                  amenities={AMENITIES}
+                  selectedAmenities={selectedAmenities}
+                  onToggleAmenity={toggleAmenity}
+                />
+
               </div>
 
             </div>
