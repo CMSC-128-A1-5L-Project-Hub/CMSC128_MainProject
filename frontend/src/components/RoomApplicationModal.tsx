@@ -340,10 +340,10 @@ export default function RoomApplicationModal({
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
-                                <div className="space-y-1">
+                                {/* <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest">Application ID</label>
                                     <p className="text-xl font-bold text-[#1A0008]">1</p>
-                                </div>
+                                </div> */}
 
                                 <div className="md:col-span-1">
                                     <GradientPillSelect
@@ -500,12 +500,12 @@ export default function RoomApplicationModal({
                             <div>
                                 <h4 className="text-[11px] font-black text-[#6B0F2B] uppercase tracking-widest mb-4">Stay Details</h4>
                                 <div className="space-y-4">
-                                    {isTransient && (
+                                    {/* {isTransient && (
                                         <div>
                                             <p className="text-[9px] font-bold text-[#C8B0B8] uppercase tracking-widest">Application ID</p>
                                             <p className="text-lg font-black text-[#1A0008]">1</p>
                                         </div>
-                                    )}
+                                    )} */}
                                     <div>
                                         <p className="text-[9px] font-bold text-[#C8B0B8] uppercase tracking-widest">Stay Type</p>
                                         <p className="text-lg font-black text-[#1A0008] capitalize">{(String(selectedStayType) || "").replace('_', ' ')}</p>
