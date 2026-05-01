@@ -6,13 +6,13 @@ import Button from "../Button";
 interface PaymentVerificationModalProps {
     tenant: Tenant;
     onClose: () => void;
+    onReject?: () => void;
     onConfirmPayment?: (tenantId: number, approved: boolean) => void;
 }
 
-export default function PaymentVerificationModal({ tenant, onClose, onConfirmPayment }: PaymentVerificationModalProps) {
+export default function PaymentVerificationModal({ tenant, onClose, onReject, onConfirmPayment }: PaymentVerificationModalProps) {
     const [isConfirming, setIsConfirming] = useState(false);
     const [showDocumentModal, setShowDocumentModal] = useState(false);
-    const [rejectReason, setRejectReason] = useState("");
 
     const handleConfirm = async (approved: boolean) => {
         setIsConfirming(true);
@@ -75,35 +75,24 @@ export default function PaymentVerificationModal({ tenant, onClose, onConfirmPay
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="mt-2 flex gap-3 items-end">
-                        <textarea
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 resize-none focus:outline-none focus:ring-1 focus:ring-[#6B0F2B] placeholder-gray-400"
-                            rows={2}
-                            placeholder="Reason for rejection..."
-                            value={rejectReason}
-                            onChange={(e) => setRejectReason(e.target.value)}
-                        />
-                        <div className="flex flex-col gap-2">
-                            <Button
-                                variant="secondary"
-                                size="md"
-                                fullWidth={false}
-                                onClick={() => handleConfirm(false)}
-                                isLoading={isConfirming}
-                                disabled={!rejectReason.trim()}
-                            >
-                                Reject
-                            </Button>
-                            <Button
-                                variant="reddishPink"
-                                size="md"
-                                fullWidth={false}
-                                onClick={() => handleConfirm(true)}
-                                isLoading={isConfirming}
-                            >
-                                Confirm Payment
-                            </Button>
-                        </div>
+                    <div className="mt-2 flex gap-3">
+                        <Button
+                            variant="reddishPink"
+                            size="md"
+                            fullWidth={true}
+                            onClick={() => handleConfirm(true)}
+                            isLoading={isConfirming}
+                        >
+                            Confirm Payment
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            size="md"
+                            fullWidth={true}
+                            onClick={() => onReject?.()}
+                        >
+                            Reject
+                        </Button>
                     </div>
                 </div>
             </Modal>

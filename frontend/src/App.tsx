@@ -33,6 +33,8 @@ import Waitlist from "./pages/manager/Waitlist"
 import MoveinMoveout from "./pages/manager/MoveinMoveout"
 import ManagerProfile from "./pages/manager/Profile"
 import FeesPage from "./pages/landlord/FeesPage"
+import StudentVerificationsPage from "./pages/admin/StudentVerificationsPage"
+import LandlordVerificationsPage from "./pages/admin/LandlordVerificationsPage"
 // import ApplicationTestPage from "./pages/ApplicationTestPage"
 
 function FullLandingPage() {
@@ -41,7 +43,6 @@ function FullLandingPage() {
       <LandingPage />
       <AboutSection />
       <FeaturesSection />
-      <ResidenceCarousel />
       <UBLEFooter />
     </>
   );
@@ -92,7 +93,8 @@ function App() {
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-
+        <Route path="/admin/student-verifications" element={<ProtectedRoute> <StudentVerificationsPage /> </ProtectedRoute>} />
+        <Route path="/admin/landlord-verifications" element={<ProtectedRoute> <LandlordVerificationsPage /> </ProtectedRoute>} />
         {/* ── Catch-all: 404 ── */}
         <Route path="*" element={<NotFound />} />
       </Routes>
