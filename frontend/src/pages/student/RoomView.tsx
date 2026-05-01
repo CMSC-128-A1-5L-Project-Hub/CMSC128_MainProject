@@ -1425,6 +1425,8 @@ export default function RoomView() {
     depositMonths: r.depositMonths ?? r.deposit_months,
     tags: r.tags ?? [],
     size: r.roomSize ?? r.room_size,
+    reservationFeeType: r.reservationFeeType ?? r.reservation_fee_type,
+  reservationFeeValue: r.reservationFeeValue ?? r.reservation_fee_value,
   }));
 
   const baseMatchingRooms = normalizedRooms.filter((room) => {

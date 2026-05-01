@@ -167,7 +167,19 @@ export default function RoomApplicationModal({
 
     const moveInFee = rent * (advanceMonths + depositMonths);
 
-    const reservationFee = 1500;
+    const reservationFeeType =
+        currentRoom?.reservationFeeType ?? currentRoom?.reservation_fee_type;
+
+    const reservationFeeValue = Number(
+        currentRoom?.reservationFeeValue ?? currentRoom?.reservation_fee_value ?? 0
+    );
+
+    const reservationFee =
+    reservationFeeType === "percentage"
+        ? rent * reservationFeeValue
+        : reservationFeeType === "fixed"
+        ? reservationFeeValue
+        : 0;
     
     const currentRoomTags = currentRoom?.tags ?? [];
 
@@ -360,12 +372,23 @@ export default function RoomApplicationModal({
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest block">Move-In Fee</label>
-                                    <p className="text-2xl font-black text-[#C9973A]">₱{moveInFee.toLocaleString()}</p>
-                                    <p className="text-[9px] font-bold text-[#9A7080]">
+                                    <label className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest block">
+                                        {isTransient ? "Reservation Fee" : "Move-In Fee"}
+                                    </label>
+                                    <p className="text-2xl font-black text-[#C9973A]">
+                                        ₱{(isTransient ? reservationFee : moveInFee).toLocaleString()}
+                                    </p>
+                                    {!isTransient && (
+                                        <p className="text-[9px] font-bold text-[#9A7080]">
                                         {advanceMonths} {advanceMonths === 1 ? "month" : "months"} advance,{" "}
                                         {depositMonths} {depositMonths === 1 ? "month" : "months"} deposit
+                                        </p>
+                                    )}
+                                    {isTransient && (
+                                    <p className="text-[9px] font-bold text-[#9A7080] italic">
+                                    One-time reservation fee
                                     </p>
+                                )}
                                 </div>
                             </div>
                         </div>
