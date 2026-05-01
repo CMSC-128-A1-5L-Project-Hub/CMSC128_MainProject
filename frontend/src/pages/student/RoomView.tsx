@@ -1536,6 +1536,18 @@ export default function RoomView() {
   //     : accommodation.pricing?.overallStartingPrice ??
   //       accommodation.cheapestRoomOverall;
 
+  const isTransient = selectedRoom?.stay === "transient";
+
+  const reservationFeeType = selectedRoom?.reservationFeeType;
+  const reservationFeeValue = Number(selectedRoom?.reservationFeeValue ?? 0);
+  const roomRent = Number(selectedRoom?.rent ?? 0);
+
+  const reservationFee =
+    reservationFeeType === "percentage"
+      ? roomRent * reservationFeeValue
+      : reservationFeeType === "fixed"
+        ? reservationFeeValue
+        : 0;
     
 
   return (
@@ -1696,16 +1708,24 @@ export default function RoomView() {
                   <span className="text-[37px] font-bold font-sans text-[#6B0F2B]">
                     ₱{selectedRoom?.rent != null ? Number(selectedRoom.rent).toLocaleString() : "—"}
                   </span>
-                  <span className="text-[21px] font-normal text-[#9A7080]"> / month</span>
+                  {!isTransient ? (
+                    <span className="text-[21px] font-normal text-[#9A7080]"> / month</span>
+                  ) : ( <span className="text-[21px] font-normal text-[#9A7080]"> / day </span> )}
                 </div>
                 <div className="w-full h-[6px] bg-gray-200 mt-2"></div>
                 {/* <p className="text-[15px] font-normal text-[#000000] mt-2">2 months advance, 1 month deposit</p> */}
-                <p className="text-[15px] font-normal text-[#000000] mt-2">
-                  {selectedRoom?.advanceMonths ?? 0}{" "}
-                  {selectedRoom?.advanceMonths === 1 ? "month" : "months"} advance,{" "}
-                  {selectedRoom?.depositMonths ?? 0}{" "}
-                  {selectedRoom?.depositMonths === 1 ? "month" : "months"} deposit
-                </p>
+                {isTransient ? (
+                  <p className="text-[15px] font-normal text-[#000000] mt-2">
+                    One-time reservation fee
+                  </p>
+                ) : (
+                  <p className="text-[15px] font-normal text-[#000000] mt-2">
+                    {selectedRoom?.advanceMonths ?? 0}{" "}
+                    {selectedRoom?.advanceMonths === 1 ? "month" : "months"} advance,{" "}
+                    {selectedRoom?.depositMonths ?? 0}{" "}
+                    {selectedRoom?.depositMonths === 1 ? "month" : "months"} deposit
+                  </p>
+                )}
 
                 {/* Inclusions */}
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Inclusions:</p>
