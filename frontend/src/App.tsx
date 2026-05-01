@@ -74,7 +74,7 @@ function App() {
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
-        <Route path="/student/accommodations/:id/rooms" element={<RoomView />} />
+        <Route path="/student/accommodations/:id" element={<RoomView />} />
         {/* <Route path="/student/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} /> */}
 
         {/* ── Manager routes ── */}

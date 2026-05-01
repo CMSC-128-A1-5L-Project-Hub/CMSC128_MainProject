@@ -164,7 +164,15 @@ export default function BrowsePage() {
                 tempCounter++;
                 temp[tempCounter] = []
             }
-            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance, rooms, reviews, bookmarks, tags } = accommodations[i]
+            let { 
+                id, accommodationName, accommodationLocation, accommodationType,
+                accommodationCapacity, tenantRestriction, latitude, longitude,
+                walkingDistance, drivingDistance, bikingDistance,
+                rooms = [], 
+                reviews = [], 
+                bookmarks = [], 
+                tags = [] 
+            } = accommodations[i]
             let minimum = -1;
             let maximum = -1;
 
@@ -453,7 +461,7 @@ export default function BrowsePage() {
                                                                 <div className="flex items-center justify-center">
                                                                     {dorms[Number(key)].map((value) => {
                                                                         return <div className="w-full flex items-center justify-center">
-                                                                            <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { navigate(`/accommodations/${value.accommodationId}`) }} />
+                                                                            <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { navigate(`/student/accommodations/${value.accommodationId}`) }} />
                                                                         </div>
                                                                     })}
                                                                 </div>
@@ -484,7 +492,7 @@ export default function BrowsePage() {
                                                             <div className={`grid ${hasOnePage ? "grid-cols-1" : "grid-cols-2"} gap-6 w-full mx-auto justify-items-center`}>
                                                                 {dorms[Number(key)].map((value) => {
                                                                     return <div className="w-full flex items-center justify-center">
-                                                                        <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { navigate(`/accommodations/${value.accommodationId}`) }} />
+                                                                        <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { navigate(`/student/accommodations/${value.accommodationId}`) }} />
                                                                     </div>
                                                                 })}
                                                             </div>
@@ -602,7 +610,7 @@ export default function BrowsePage() {
                                 <AccommodationMap
                                     accommodations={mapAccommodations}
                                     centeredAccommodation={centeredAccommodation}
-                                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+                                    onCardClick={(acc) => navigate(`/student/accommodations/${acc.accommodationId}`)}
                                 />
 
 
@@ -630,7 +638,7 @@ function SearchBar() {
         <div className="flex items-center bg-white rounded-lg shadow-md px-4 py-2 border border-gray-200">
             <div className="flex items-center flex-1 space-x-2">
 
-                <svg className="w-5 h-5 text-[#8A2A45]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-[#8A2A45]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
@@ -647,7 +655,7 @@ function SearchBar() {
                 const input = document.getElementById("search-bar") as HTMLInputElement
                 setSearching((input.value.trim()).toLowerCase())
             }} className="flex items-center space-x-2 bg-gradient-to-r from-[#6B0F2B] to-[#8A1C3D] hover:from-[#7A162D] hover:to-[#A3264A] text-white px-5 py-2 rounded-full transition-colors duration-200">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
