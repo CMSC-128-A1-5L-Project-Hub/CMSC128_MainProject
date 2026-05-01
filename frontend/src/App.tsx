@@ -21,7 +21,6 @@ import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import BillingDashboard from "./pages/student/BillingDashboard"
 import LandlordDashboard from "./pages/landlord/Dashboard"
 import NotificationsPage from "./pages/shared/Notifications"
-import StudentApplicationsPage from "./pages/student/ApplicationStatus"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
 import RoomView from "./pages/student/RoomView"
@@ -35,7 +34,8 @@ import ManagerProfile from "./pages/manager/Profile"
 import FeesPage from "./pages/landlord/FeesPage"
 import StudentVerificationsPage from "./pages/admin/StudentVerificationsPage"
 import LandlordVerificationsPage from "./pages/admin/LandlordVerificationsPage"
-// import ApplicationTestPage from "./pages/ApplicationTestPage"
+import Applications from "./pages/landlord/Applications"
+
 
 function FullLandingPage() {
   return (
@@ -91,6 +91,7 @@ function App() {
         <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
         
         <Route path="/landlord/fees" element={<ProtectedRoute><FeesPage /></ProtectedRoute>} />
+        <Route path="/landlord/application" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
