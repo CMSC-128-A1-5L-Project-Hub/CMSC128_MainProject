@@ -1358,7 +1358,17 @@ export default function RoomView() {
         const res = await api.get(`/accommodations/${id}`);
         const data = res.data.data ?? res.data;
 
+        // setAccommodation({
+        //   ...data,
+        //   images: data.images ?? [],
+        //   rooms: data.rooms ?? [],
+        //   reviews: data.reviews ?? [],
+        //   tags: data.tags ?? [],
+        //   manager: data.manager ?? null,
+        // });
+
         console.log("ACCOMMODATION DETAILS:", data);
+        
         setAccommodation(data);
 
         if (data.rooms?.length) {
