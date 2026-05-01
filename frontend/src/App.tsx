@@ -24,7 +24,6 @@ import NotificationsPage from "./pages/shared/Notifications"
 import StudentApplicationsPage from "./pages/student/ApplicationStatus"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
-import FullRoomView from "./pages/student/FullRoomView"
 import RoomView from "./pages/student/RoomView"
 import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
@@ -37,6 +36,7 @@ import FeesPage from "./pages/landlord/FeesPage"
 import StudentVerificationsPage from "./pages/admin/StudentVerificationsPage"
 import LandlordVerificationsPage from "./pages/admin/LandlordVerificationsPage"
 // import ApplicationTestPage from "./pages/ApplicationTestPage"
+
 function FullLandingPage() {
   return (
     <>
@@ -58,8 +58,8 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/success" element={<AuthSuccess/>}/>
         <Route path="/map" element={<InteractiveMap />} />
-        <Route path="/accommodations/:id" element={<FullRoomView />} />
-        <Route path="/landlord/rooms" element={<RoomsPage />} />
+        <Route path="/browse" element={<BrowsePage />} />
+        {/* <Route path="/accommodations/:id" element={<RoomView />} /> */}
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
@@ -74,7 +74,7 @@ function App() {
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
-        <Route path="/student/roomview" element={<RoomView />} />
+        <Route path="/student/accommodations/:id/rooms" element={<RoomView />} />
         {/* <Route path="/student/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} /> */}
 
         {/* ── Manager routes ── */}

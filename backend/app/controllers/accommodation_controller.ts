@@ -11,6 +11,8 @@ import Landlord from '#models/landlord'
 import { withPrimaryImageUrl } from '#services/image_service'
 import ZipExportService from '#services/zip_export_service'
 import type { ZipEntry } from '#services/zip_export_service'
+import { signImageUrl } from '#services/image_service'
+import Room from '#models/room'
 
 export default class AccommodationController {
   private accommodationService = new AccommodationService()
@@ -31,11 +33,19 @@ export default class AccommodationController {
   async show({ params, response }: HttpContext) {
     const accommodation = await Accommodation.query()
       .where('id', params.id)
+      .where('status', 'verified')
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
       .preload('manager', (q) => q.preload('user'))
-      .preload('rooms')
-      .preload('reviews')
+      .preload('rooms', (q) => {
+        q.preload('tags')  // Preload room inclusions
+        q.orderBy('roomRent', 'asc')  // Cheapest first
+      })
+      .preload('reviews', (q) => {
+        q.preload('student', (studentQuery) => {
+          studentQuery.preload('user')
+        })
+      })
       .first()
 
     if (!accommodation) {
@@ -46,7 +56,134 @@ export default class AccommodationController {
       })
     }
 
-    return response.ok(accommodation.serialize())
+    // Attach pricing summary for the detail view
+    const serialized = accommodation.serialize() as any
+    
+    // Group rooms by type and calculate price ranges
+    const roomsByType: Record<string, Room[]> = {}
+    const roomTypePricing: Record<string, any> = {}
+    const allInclusions = new Set<string>()
+    
+    for (const room of accommodation.rooms) {
+      // Group rooms by type
+      if (!roomsByType[room.roomType]) {
+        roomsByType[room.roomType] = []
+      }
+      roomsByType[room.roomType].push(room)
+      
+      // Collect all inclusions across all rooms
+      room.tags?.forEach(tag => allInclusions.add(tag.tagDetail))
+    }
+    
+    // Calculate price ranges per room type
+    for (const [type, rooms] of Object.entries(roomsByType)) {
+      const prices = rooms.map(r => r.roomRent)
+      const inclusions = new Set<string>()
+      rooms.forEach(room => {
+        room.tags?.forEach(tag => inclusions.add(tag.tagDetail))
+      })
+      
+      roomTypePricing[type] = {
+        roomCount: rooms.length,
+        minPrice: Math.min(...prices),
+        maxPrice: Math.max(...prices),
+        inclusions: Array.from(inclusions)
+      }
+    }
+    
+    // Calculate overall starting price
+    const allPrices = accommodation.rooms.map(r => r.roomRent)
+    const overallStartingPrice = allPrices.length > 0 ? Math.min(...allPrices) : null
+    
+    // Attach pricing metadata
+    serialized.pricing = {
+      overallStartingPrice,
+      roomTypes: roomTypePricing,
+      allInclusions: Array.from(allInclusions)
+    }
+    
+    // Attach signed primary image URL
+    if (accommodation.images?.length > 0) {
+      const primary = accommodation.images[accommodation.primaryImageIndex]
+      serialized.primaryImageUrl = await signImageUrl(primary?.file?.filePath)
+    }
+
+    return response.ok(serialized)
+  }
+
+  // ─── GET /accommodations/:id/rooms ─────────────────────────────────────────
+  // Public: get rooms matching specific criteria for dynamic filtering
+  async filterRooms({ params, request, response }: HttpContext) {
+    const accommodation = await Accommodation.query()
+      .where('id', params.id)
+      .where('status', 'verified')
+      .first()
+
+    if (!accommodation) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Accommodation not found.',
+      })
+    }
+
+    const { roomType, inclusions } = request.qs()
+    
+    // Parse inclusions from query string
+    let parsedInclusions: string[] = []
+    if (inclusions) {
+      if (typeof inclusions === 'string') {
+        try {
+          parsedInclusions = JSON.parse(inclusions)
+        } catch {
+          parsedInclusions = inclusions.split(',').map(t => t.trim())
+        }
+      } else if (Array.isArray(inclusions)) {
+        parsedInclusions = inclusions
+      }
+    }
+
+    // Query rooms with filters
+    let roomQuery = Room.query()
+      .where('accommodationId', accommodation.id)
+      .where('roomAvailability', 'available')
+      .preload('tags')
+      .orderBy('roomRent', 'asc')
+
+    if (roomType) {
+      roomQuery.where('roomType', roomType)
+    }
+
+    let rooms = await roomQuery
+
+    // Filter by inclusions (must have ALL requested inclusions)
+    if (parsedInclusions.length > 0) {
+      rooms = rooms.filter(room => {
+        const roomInclusions = room.tags?.map(t => t.tagDetail) || []
+        return parsedInclusions.every(inclusion => roomInclusions.includes(inclusion))
+      })
+    }
+
+    // Calculate pricing summary
+    const availableRoomTypes = [...new Set(rooms.map(r => r.roomType))]
+    const prices = rooms.map(r => r.roomRent)
+    const allAvailableInclusions = new Set<string>()
+    rooms.forEach(room => {
+      room.tags?.forEach(tag => allAvailableInclusions.add(tag.tagDetail))
+    })
+
+    return response.ok({
+      rooms,
+      summary: {
+        totalRooms: rooms.length,
+        minPrice: prices.length > 0 ? Math.min(...prices) : null,
+        maxPrice: prices.length > 0 ? Math.max(...prices) : null,
+        roomTypes: availableRoomTypes,
+        availableInclusions: Array.from(allAvailableInclusions),
+        requestedInclusions: parsedInclusions,
+        matchesAllFilters: rooms.length > 0
+      }
+    })
   }
 
   // ─── POST /landlord/accommodations ───────────────────────────────────────

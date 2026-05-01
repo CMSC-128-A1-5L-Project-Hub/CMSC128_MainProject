@@ -26,6 +26,7 @@ export default class extends BaseSeeder {
       { file_name: 'pfp_16.jpg', file_path: '/uploads/images/pfp_16.jpg', file_type: 'image' },
       { file_name: 'pfp_17.jpg', file_path: '/uploads/images/pfp_17.jpg', file_type: 'image' },
       { file_name: 'pfp_18.jpg', file_path: '/uploads/images/pfp_18.jpg', file_type: 'image' },
+      { file_name: 'pfp_19.jpg', file_path: '/uploads/images/pfp_19.jpg', file_type: 'image' },
       // Enrollment Proofs
       { file_name: 'enroll_2023123456.pdf', file_path: '/uploads/documents/enroll_2023123456.pdf', file_type: 'document' },
       { file_name: 'enroll_2023123457.pdf', file_path: '/uploads/documents/enroll_2023123457.pdf', file_type: 'document' },
@@ -37,12 +38,14 @@ export default class extends BaseSeeder {
 
       { file_name: 'enroll_2023123463.pdf', file_path: '/uploads/documents/enroll_2023123463.pdf', file_type: 'document' },
       { file_name: 'enroll_2023123464.pdf', file_path: '/uploads/documents/enroll_2023123464.pdf', file_type: 'document' },
+      { file_name: 'enroll_2023123465.pdf', file_path: '/uploads/documents/enroll_202300000.pdf', file_type: 'document' },
       // Reports
       { file_name: 'report_1.pdf', file_path: '/uploads/documents/report_1.pdf', file_type: 'document' },
       { file_name: 'report_2.pdf', file_path: '/uploads/documents/report_2.pdf', file_type: 'document' },
       { file_name: 'report_3.pdf', file_path: '/uploads/documents/report_3.pdf', file_type: 'document' },
       { file_name: 'report_4.pdf', file_path: '/uploads/documents/report_4.pdf', file_type: 'document' },
       { file_name: 'report_5.pdf', file_path: '/uploads/documents/report_5.pdf', file_type: 'document' },
+      { file_name: 'report_6.pdf', file_path: '/uploads/documents/report_6.pdf', file_type: 'document' },
       // Business Permits
       { file_name: 'business_permit_1.pdf', file_path: '/uploads/documents/business_permit_1.pdf', file_type: 'document' },
       { file_name: 'business_permit_2.pdf', file_path: '/uploads/documents/business_permit_2.pdf', file_type: 'document' },
@@ -68,6 +71,7 @@ export default class extends BaseSeeder {
       { file_name: 'payment_1.jpg', file_path: '/uploads/images/payment_1.jpg', file_type: 'image' },
       { file_name: 'payment_2.jpg', file_path: '/uploads/images/payment_2.jpg', file_type: 'image' },
       { file_name: 'payment_3.jpg', file_path: '/uploads/images/payment_3.jpg', file_type: 'image' },
+      { file_name: 'payment_4.jpg', file_path: '/uploads/images/payment_4.jpg', file_type: 'image' },
       // Other Docs
       { file_name: 'doc_img_1.jpg', file_path: '/uploads/documents/doc_1.pdf', file_type: 'document' },
       { file_name: 'doc_img_2.jpg', file_path: '/uploads/documents/doc_2.pdf', file_type: 'document' },
@@ -92,6 +96,7 @@ export default class extends BaseSeeder {
       { pfp_file_id: getFile('pfp_5.jpg'), fname: 'Daniel Joseph', mname: 'Flores', lname: 'Santos', suffix: null, email: 'djsantos@up.edu.ph', facebook_account: 'facebook.com/daniel.santos', role: 'student' },
       { pfp_file_id: getFile('pfp_6.jpg'), fname: 'Kristine Joy', mname: 'Mendoza', lname: 'Villanueva', suffix: null, email: 'kjvillanueva@up.edu.ph', facebook_account: 'facebook.com/kristine.villanueva', role: 'student' },
       { pfp_file_id: getFile('pfp_7.jpg'), fname: 'Joshua Daniel', mname: 'Castro', lname: 'Aguilar', suffix: null, email: 'jdaguilar@up.edu.ph', facebook_account: 'facebook.com/joshua.aguilar', role: 'student' },
+      { pfp_file_id: getFile('pfp_19.jpg'), fname: 'Windee', mname: 'X', lname: 'De Ramos', suffix: null, email: 'wderamos@up.edu.ph', facebook_account: 'facebook.com/winde.de.ramos', role: 'student' },
       // Landlords
       { pfp_file_id: getFile('pfp_8.jpg'), fname: 'Larkin', mname: 'Diaz', lname: 'Sanchez', suffix: 'III', email: 'larkinsanchez@gmail.com', facebook_account: 'facebook.com/kino3.juarez', role: 'landlord' },
       { pfp_file_id: getFile('pfp_9.jpg'), fname: 'Carlos Miguel', mname: 'Reyes', lname: 'Navarro', suffix: null, email: 'cmnavarro@gmail.com', facebook_account: 'facebook.com/carlos.navarro', role: 'landlord' },
@@ -135,6 +140,17 @@ export default class extends BaseSeeder {
         email: 'pending.landlord1@gmail.com',
         facebook_account: 'facebook.com/carla.navarro',
         role: 'unassigned'
+      },
+
+      {
+        pfp_file_id: getFile('pfp_19.jpg'),
+        fname: 'Windee',
+        mname: 'X',
+        lname: 'De Ramos',
+        suffix: null,
+        email: 'wderamos@up.edu.ph',
+        facebook_account: 'facebook.com/winde.de.ramos',
+        role: 'student'
       },
 
       // ── UBLE test account ──────────────────────────────────────────────────
@@ -182,6 +198,7 @@ export default class extends BaseSeeder {
       { user_id: getUser('slmanuel@up.edu.ph'), contact_number: '09916543287', is_primary: false },
       { user_id: getUser('ampineda@up.edu.ph'), contact_number: '09185673429', is_primary: false },
       { user_id: getUser('vepadilla@gmail.com'), contact_number: '09793456128', is_primary: false },
+      { user_id: getUser('wderamos@up.edu.ph'), contact_number: '09175678321', is_primary: false },
       // UBLE manager phone
       { user_id: getUser('manager.uble.test@gmail.com'), contact_number: '09191234567', is_primary: true },
     ])
@@ -222,6 +239,7 @@ export default class extends BaseSeeder {
       { student_number: '2023-123460', user_id: getUser('djsantos@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123460.pdf'), college: 'CEAT', degree_program: 'BS Industrial Engineering', gender: 'Male', emergency_contact_name: null, emergency_contact_number: null, year_level: '2nd Year' },
       { student_number: '2023-123461', user_id: getUser('kjvillanueva@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123461.pdf'), college: 'CBA', degree_program: 'BS Accountancy', gender: 'Female', emergency_contact_name: 'Rafael Ortega', emergency_contact_number: '09172345678', year_level: '5th Year' },
       { student_number: '2023-123462', user_id: getUser('jdaguilar@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_2023123462.pdf'), college: 'CITE', degree_program: 'BS Computer Science', gender: 'Male', emergency_contact_name: 'Victor Padilla', emergency_contact_number: '09987654321', year_level: '3rd Year' },
+      { student_number: '2023-00000', user_id: getUser('wderamos@up.edu.ph'), enrollment_proof_file_id: getFile('enroll_202300000.pdf'), college: 'CAS', degree_program: 'BS Computer Science', gender: 'Female', emergency_contact_name: 'Maria Reyes', emergency_contact_number: '09171234567', year_level: '3rd Year' },
 
       {
         student_number: '2023-223456',
@@ -320,44 +338,53 @@ export default class extends BaseSeeder {
     ])
 
     await db.table('reviews').multiInsert([
-      { accommodation_id: getAccom('White House'), student_number: '2023-123456', rating: 4, content: 'Clean rooms, responsive landlord, and very close to the university.' },
-      { accommodation_id: getAccom('White House'), student_number: '2023-123456', rating: 3, content: 'Decent but the room is small.' },
-      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123456', rating: 5, content: null },
-      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123456', rating: 5, content: 'Clean rooms, responsive landlord, and very close to the university.' },
-      { accommodation_id: getAccom("Men's Dorm"), student_number: '2023-123456', rating: 1, content: 'Maintenance needs improvement.' },
-      { accommodation_id: getAccom("Men's Dorm"), student_number: '2023-123456', rating: 4, content: 'Nice location, but the internet is sometimes slow.' },
-      { accommodation_id: getAccom("ATI"), rating: 2, student_number: '2023-123456', content: 'Noisy environment and needs better lighting.' },
-      { accommodation_id: getAccom("ATI"), rating: 4, student_number: '2023-123456', content: 'Spacious room but shared bathroom can be crowded.' },
-      { accommodation_id: getAccom("Scholar's Dorm"), rating: 3, student_number: '2023-123456', content: 'Affordable, but cleaning service is irregular.' },
-      { accommodation_id: getAccom("Scholar's Dorm"), rating: 2, student_number: '2023-123456', content: 'Walls are thin, noise from neighbors is noticeable.' },
-      { accommodation_id: getAccom("One Sapphire Place"), rating: 5, student_number: '2023-123456', content: 'Excellent accommodation, would highly recommend!' },
-      { accommodation_id: getAccom("One Sapphire Place"), rating: 3, student_number: '2023-123456', content: 'Average stay, nothing special but decent overall.' }
+      { accommodation_id: getAccom('White House'), student_number: '2023-123456', rating: 4, content: 'Clean rooms, responsive landlord, and very close to the university.' , created_at: '2026-03-10 09:15:00' },
+      { accommodation_id: getAccom('White House'), student_number: '2023-123456', rating: 3, content: 'Decent but the room is small.' , created_at: '2026-03-12 14:20:00' },
+      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123456', rating: 5, content: null , created_at: '2026-03-15 10:00:00' },
+      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123456', rating: 5, content: 'Clean rooms, responsive landlord, and very close to the university.' , created_at: '2026-03-16 16:45:00' },
+      { accommodation_id: getAccom("Men's Dorm"), student_number: '2023-123456', rating: 1, content: 'Maintenance needs improvement.' , created_at: '2026-03-18 11:30:00' },
+      { accommodation_id: getAccom("Men's Dorm"), student_number: '2023-123456', rating: 4, content: 'Nice location, but the internet is sometimes slow.' , created_at: '2026-03-19 13:10:00' },
+      { accommodation_id: getAccom("ATI"), rating: 2, student_number: '2023-123456', content: 'Noisy environment and needs better lighting.' , created_at: '2026-03-21 08:55:00' },
+      { accommodation_id: getAccom("ATI"), rating: 4, student_number: '2023-123456', content: 'Spacious room but shared bathroom can be crowded.' , created_at: '2026-03-22 17:25:00' },
+      { accommodation_id: getAccom("Scholar's Dorm"), rating: 3, student_number: '2023-123456', content: 'Affordable, but cleaning service is irregular.' , created_at: '2026-03-24 09:40:00' },
+      { accommodation_id: getAccom("Scholar's Dorm"), rating: 2, student_number: '2023-123456', content: 'Walls are thin, noise from neighbors is noticeable.' , created_at: '2026-03-25 15:05:00' },
+      { accommodation_id: getAccom("One Sapphire Place"), rating: 5, student_number: '2023-123456', content: 'Excellent accommodation, would highly recommend!' , created_at: '2026-03-27 12:00:00' },
+      { accommodation_id: getAccom("One Sapphire Place"), rating: 3, student_number: '2023-123456', content: 'Average stay, nothing special but decent overall.' , created_at: '2026-03-28 18:30:00' }
     ])
 
     // =========================================================================
     // 9. ROOMS
     // =========================================================================
     await db.table('rooms').multiInsert([
-      { accommodation_id: getAccom('White House'), room_number: '101', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building A', room_rent: 5000.00, tenant_restriction: 'coed', room_availability: 'available' },
-      { accommodation_id: getAccom('White House'), room_number: '102', room_type: 'double', room_stay_type: 'transient', room_capacity: 2, room_current_occupancy: 1, room_building: 'Building A', room_rent: 6500.00, tenant_restriction: 'coed', room_availability: 'available' },
-      { accommodation_id: getAccom('One Silangan'), room_number: '201', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building A', room_rent: 6000.00, tenant_restriction: 'coed', room_availability: 'available' },
-      { accommodation_id: getAccom('One Silangan'), room_number: '202', room_type: 'double', room_stay_type: 'transient', room_capacity: 2, room_current_occupancy: 2, room_building: 'Building A', room_rent: 7000.00, tenant_restriction: 'coed', room_availability: 'occupied' },
-      { accommodation_id: getAccom("Men's Dorm"), room_number: '301', room_type: 'shared', room_stay_type: 'transient', room_capacity: 4, room_current_occupancy: 3, room_building: 'Building B', room_rent: 800.00, tenant_restriction: 'non-coed', room_availability: 'occupied' },
-      { accommodation_id: getAccom("Men's Dorm"), room_number: '302', room_type: 'shared', room_stay_type: 'transient', room_capacity: 4, room_current_occupancy: 1, room_building: 'Building C', room_rent: 800.00, tenant_restriction: 'non-coed', room_availability: 'available' },
-      { accommodation_id: getAccom("ATI"), room_number: '401', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 4, room_building: 'Building A', room_rent: 800.00, tenant_restriction: 'non-coed', room_availability: 'occupied' },
-      { accommodation_id: getAccom("ATI"), room_number: '402', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Building B', room_rent: 800.00, tenant_restriction: 'non-coed', room_availability: 'available' },
-      { accommodation_id: getAccom("Scholar's Dorm"), room_number: '501', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building C', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'maintenance' },
-      { accommodation_id: getAccom("Scholar's Dorm"), room_number: '502', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 2, room_building: 'Building C', room_rent: 6000.00, tenant_restriction: 'coed', room_availability: 'available' },
-      { accommodation_id: getAccom('White House'), room_number: '303', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 1, room_building: 'Building A', room_rent: 4800.00, tenant_restriction: 'coed', room_availability: 'available' },
-      { accommodation_id: getAccom('One Silangan'), room_number: '203', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building B', room_rent: 6200.00, tenant_restriction: 'coed', room_availability: 'available' },
+      { accommodation_id: getAccom('White House'), room_number: '101', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building A', room_rent: 5000.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 18.50, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 1000.00 },
+      { accommodation_id: getAccom('White House'), room_number: '102', room_type: 'double', room_stay_type: 'transient', room_capacity: 2, room_current_occupancy: 1, room_building: 'Building A', room_rent: 6500.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 24.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 1500.00 },
+      { accommodation_id: getAccom('One Silangan'), room_number: '201', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building A', room_rent: 6000.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 20.00, advance_months: 1, deposit_months: 2, reservation_fee_type: 'percentage', reservation_fee_value: 20.00 },
+      { accommodation_id: getAccom('One Silangan'), room_number: '202', room_type: 'double', room_stay_type: 'transient', room_capacity: 2, room_current_occupancy: 2, room_building: 'Building A', room_rent: 7000.00, tenant_restriction: 'coed', room_availability: 'occupied' , room_size: 28.00, advance_months: 1, deposit_months: 2, reservation_fee_type: 'percentage', reservation_fee_value: 20.00 },
+      { accommodation_id: getAccom("Men's Dorm"), room_number: '301', room_type: 'shared', room_stay_type: 'transient', room_capacity: 4, room_current_occupancy: 3, room_building: 'Building B', room_rent: 800.00, tenant_restriction: 'non-coed', room_availability: 'occupied' , room_size: 32.00, advance_months: 1, deposit_months: 0, reservation_fee_type: 'fixed', reservation_fee_value: 500.00 },
+      { accommodation_id: getAccom("Men's Dorm"), room_number: '302', room_type: 'shared', room_stay_type: 'transient', room_capacity: 4, room_current_occupancy: 1, room_building: 'Building C', room_rent: 800.00, tenant_restriction: 'non-coed', room_availability: 'available' , room_size: 32.00, advance_months: 1, deposit_months: 0, reservation_fee_type: 'fixed', reservation_fee_value: 500.00 },
+      { accommodation_id: getAccom("ATI"), room_number: '401', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 4, room_building: 'Building A', room_rent: 800.00, tenant_restriction: 'non-coed', room_availability: 'occupied' , room_size: 34.00, advance_months: 0, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 500.00 },
+      { accommodation_id: getAccom("ATI"), room_number: '402', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Building B', room_rent: 800.00, tenant_restriction: 'non-coed', room_availability: 'available' , room_size: 34.00, advance_months: 0, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 500.00 },
+      { accommodation_id: getAccom("Scholar's Dorm"), room_number: '501', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building C', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'maintenance' , room_size: 19.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'percentage', reservation_fee_value: 25.00 },
+      { accommodation_id: getAccom("Scholar's Dorm"), room_number: '502', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 2, room_building: 'Building C', room_rent: 6000.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 30.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'percentage', reservation_fee_value: 25.00 },
+      { accommodation_id: getAccom('White House'), room_number: '303', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 1, room_building: 'Building A', room_rent: 4800.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 27.50, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 1000.00 },
+      { accommodation_id: getAccom('One Silangan'), room_number: '203', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building B', room_rent: 6200.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 21.00, advance_months: 1, deposit_months: 2, reservation_fee_type: 'percentage', reservation_fee_value: 20.00 },
       
-      { accommodation_id: getAccom("One Sapphire Place"), room_number: '601', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' },
-      { accommodation_id: getAccom("One Sapphire Place"), room_number: '602', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3200.00, tenant_restriction: 'coed', room_availability: 'available' },
+      { accommodation_id: getAccom("One Sapphire Place"), room_number: '601', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 18.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 1000.00 },
+      { accommodation_id: getAccom("One Sapphire Place"), room_number: '602', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3200.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 25.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 800.00 },
       // UBLE Residences rooms (capacity 8, occupied 3)
-      { accommodation_id: getAccom('UBLE Residences'), room_number: '701', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'occupied' },
-      { accommodation_id: getAccom('UBLE Residences'), room_number: '702', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'occupied' },
-      { accommodation_id: getAccom('UBLE Residences'), room_number: '703', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' },
-      { accommodation_id: getAccom('UBLE Residences'), room_number: '704', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3500.00, tenant_restriction: 'coed', room_availability: 'available' },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '701', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'occupied' , room_size: 20.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 1000.00 },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '702', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'occupied' , room_size: 20.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 1000.00 },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '703', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 26.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 900.00 },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '704', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3500.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 36.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 700.00 },
+    
+      // Additional rooms
+      { accommodation_id: getAccom('White House'), room_number: '103', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building A', room_rent: 5200.00, tenant_restriction: 'coed', room_availability: 'available', room_size: 14.50, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 1000.00 },
+      { accommodation_id: getAccom('One Silangan'), room_number: '204', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Building B', room_rent: 6800.00, tenant_restriction: 'coed', room_availability: 'available', room_size: 20.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'percentage', reservation_fee_value: 20.00 },
+      { accommodation_id: getAccom("Men's Dorm"), room_number: '303', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Building C', room_rent: 850.00, tenant_restriction: 'non-coed', room_availability: 'available', room_size: 28.00, advance_months: 0, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 500.00 },
+      { accommodation_id: getAccom('ATI'), room_number: '403', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 1, room_building: 'Building B', room_rent: 850.00, tenant_restriction: 'non-coed', room_availability: 'available', room_size: 30.00, advance_months: 0, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 500.00 },
+      { accommodation_id: getAccom("Scholar's Dorm"), room_number: '503', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 0, room_building: 'Building C', room_rent: 5800.00, tenant_restriction: 'coed', room_availability: 'available', room_size: 24.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'percentage', reservation_fee_value: 15.00 },
+      { accommodation_id: getAccom('One Sapphire Place'), room_number: '603', room_type: 'double', room_stay_type: 'transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3800.00, tenant_restriction: 'coed', room_availability: 'available', room_size: 19.50, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 800.00 },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '705', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3500.00, tenant_restriction: 'coed', room_availability: 'available', room_size: 26.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 1000.00 },
     ])
 
     const allRooms = await db.from('rooms').select('id', 'room_number', 'accommodation_id')
@@ -366,74 +393,124 @@ export default class extends BaseSeeder {
     // ─── ROOM TAGS ────────────────────────────────────────────────────────────
     await db.table('room_tags').multiInsert([
       // White House — 101 (single, transient)
-      { room_id: getRoom('101', 'White House'), tag_detail: 'Private bathroom' },
-      { room_id: getRoom('101', 'White House'), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('101', 'White House'), tag_detail: 'Ground floor' },
+      { room_id: getRoom('101', 'White House'), tag_detail: 'Private bathroom' , type: 'inclusion' },
+      { room_id: getRoom('101', 'White House'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('101', 'White House'), tag_detail: 'Ground floor' , type: 'preference' },
       // White House — 102 (double, transient)
-      { room_id: getRoom('102', 'White House'), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('102', 'White House'), tag_detail: 'Has study desk' },
-      { room_id: getRoom('102', 'White House'), tag_detail: 'Has wardrobe' },
+      { room_id: getRoom('102', 'White House'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('102', 'White House'), tag_detail: 'Has study desk' , type: 'inclusion' },
+      { room_id: getRoom('102', 'White House'), tag_detail: 'Has wardrobe' , type: 'inclusion' },
       // White House — 303 (shared, non-transient)
-      { room_id: getRoom('303', 'White House'), tag_detail: 'Has study desk' },
-      { room_id: getRoom('303', 'White House'), tag_detail: 'Has wardrobe' },
+      { room_id: getRoom('303', 'White House'), tag_detail: 'Has study desk' , type: 'inclusion' },
+      { room_id: getRoom('303', 'White House'), tag_detail: 'Has wardrobe' , type: 'inclusion' },
       // One Silangan — 201 (single, transient)
-      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Private bathroom' },
-      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Has ref' },
+      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Private bathroom' , type: 'inclusion' },
+      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('201', 'One Silangan'), tag_detail: 'Has ref' , type: 'inclusion' },
       // One Silangan — 202 (double, transient)
-      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Has study desk' },
-      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Near elevator' },
+      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Has study desk' , type: 'inclusion' },
+      { room_id: getRoom('202', 'One Silangan'), tag_detail: 'Near elevator' , type: 'preference' },
       // One Silangan — 203 (single, non-transient)
-      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Private bathroom' },
-      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Has balcony' },
+      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Private bathroom' , type: 'inclusion' },
+      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('203', 'One Silangan'), tag_detail: 'Has balcony' , type: 'preference' },
       // Men's Dorm — 301 (shared, transient)
-      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Shared bathroom' },
-      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Has study area' },
-      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Has locker' },
+      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Shared bathroom' , type: 'inclusion' },
+      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Has study area' , type: 'inclusion' },
+      { room_id: getRoom('301', "Men's Dorm"), tag_detail: 'Has locker' , type: 'inclusion' },
       // Men's Dorm — 302 (shared, transient)
-      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Shared bathroom' },
-      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Has locker' },
-      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Ground floor' },
+      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Shared bathroom' , type: 'inclusion' },
+      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Has locker' , type: 'inclusion' },
+      { room_id: getRoom('302', "Men's Dorm"), tag_detail: 'Ground floor' , type: 'preference' },
       // ATI — 401 (shared, non-transient)
-      { room_id: getRoom('401', 'ATI'), tag_detail: 'Shared bathroom' },
-      { room_id: getRoom('401', 'ATI'), tag_detail: 'Has study area' },
-      { room_id: getRoom('401', 'ATI'), tag_detail: 'Has locker' },
+      { room_id: getRoom('401', 'ATI'), tag_detail: 'Shared bathroom' , type: 'inclusion' },
+      { room_id: getRoom('401', 'ATI'), tag_detail: 'Has study area' , type: 'inclusion' },
+      { room_id: getRoom('401', 'ATI'), tag_detail: 'Has locker' , type: 'inclusion' },
       // ATI — 402 (shared, non-transient)
-      { room_id: getRoom('402', 'ATI'), tag_detail: 'Shared bathroom' },
-      { room_id: getRoom('402', 'ATI'), tag_detail: 'Has study area' },
-      { room_id: getRoom('402', 'ATI'), tag_detail: 'Near comfort room' },
+      { room_id: getRoom('402', 'ATI'), tag_detail: 'Shared bathroom' , type: 'inclusion' },
+      { room_id: getRoom('402', 'ATI'), tag_detail: 'Has study area' , type: 'inclusion' },
+      { room_id: getRoom('402', 'ATI'), tag_detail: 'Near comfort room' , type: 'preference' },
       // Scholar's Dorm — 501 (single, non-transient)
-      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Private bathroom' },
-      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Has study desk' },
+      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Private bathroom' , type: 'inclusion' },
+      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('501', "Scholar's Dorm"), tag_detail: 'Has study desk' , type: 'inclusion' },
       // Scholar's Dorm — 502 (shared, non-transient)
-      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Has study desk' },
-      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Has wardrobe' },
+      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Has study desk' , type: 'inclusion' },
+      { room_id: getRoom('502', "Scholar's Dorm"), tag_detail: 'Has wardrobe' , type: 'inclusion' },
       // One Sapphire Place — 601 (single, transient)
-      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Private bathroom' },
-      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Has ref' },
+      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Private bathroom' , type: 'inclusion' },
+      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Has ref' , type: 'inclusion' },
       // One Sapphire Place — 602 (double, non-transient)
-      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has study desk' },
-      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has wardrobe' },
+      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has study desk' , type: 'inclusion' },
+      { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has wardrobe' , type: 'inclusion' },
       // UBLE Residences — 701 (single)
-      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Private bathroom' },
-      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Has study desk' },
+      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Private bathroom' , type: 'inclusion' },
+      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Has study desk' , type: 'inclusion' },
       // UBLE Residences — 702 (single)
-      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Private bathroom' },
-      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Has wardrobe' },
+      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Private bathroom' , type: 'inclusion' },
+      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Has wardrobe' , type: 'inclusion' },
       // UBLE Residences — 703 (double)
-      { room_id: getRoom('703', 'UBLE Residences'), tag_detail: 'Air-conditioned' },
-      { room_id: getRoom('703', 'UBLE Residences'), tag_detail: 'Has study desk' },
+      { room_id: getRoom('703', 'UBLE Residences'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
+      { room_id: getRoom('703', 'UBLE Residences'), tag_detail: 'Has study desk' , type: 'inclusion' },
       // UBLE Residences — 704 (shared)
-      { room_id: getRoom('704', 'UBLE Residences'), tag_detail: 'Has study area' },
-      { room_id: getRoom('704', 'UBLE Residences'), tag_detail: 'Has locker' },
+      { room_id: getRoom('704', 'UBLE Residences'), tag_detail: 'Has study area' , type: 'inclusion' },
+      { room_id: getRoom('704', 'UBLE Residences'), tag_detail: 'Has locker' , type: 'inclusion' },
+
+      // Additional room tags
+      // White House — 103
+      { room_id: getRoom('103', 'White House'), tag_detail: 'Private bathroom', type: 'inclusion' },
+      { room_id: getRoom('103', 'White House'), tag_detail: 'Air-conditioned', type: 'inclusion' },
+      { room_id: getRoom('103', 'White House'), tag_detail: 'Has study desk', type: 'inclusion' },
+      { room_id: getRoom('103', 'White House'), tag_detail: 'Prefers quiet tenant', type: 'preference' },
+      { room_id: getRoom('103', 'White House'), tag_detail: 'Prefers long-term stay', type: 'preference' },
+
+      // One Silangan — 204
+      { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Air-conditioned', type: 'inclusion' },
+      { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Has study desk', type: 'inclusion' },
+      { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Has wardrobe', type: 'inclusion' },
+      { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Prefers organized tenants', type: 'preference' },
+      { room_id: getRoom('204', 'One Silangan'), tag_detail: 'Prefers non-smoker', type: 'preference' },
+
+      // Men's Dorm — 303
+      { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Shared bathroom', type: 'inclusion' },
+      { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Has study area', type: 'inclusion' },
+      { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Has locker', type: 'inclusion' },
+      { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Prefers male tenant', type: 'preference' },
+      { room_id: getRoom('303', "Men's Dorm"), tag_detail: 'Prefers clean tenant', type: 'preference' },
+
+      // ATI — 403
+      { room_id: getRoom('403', 'ATI'), tag_detail: 'Shared bathroom', type: 'inclusion' },
+      { room_id: getRoom('403', 'ATI'), tag_detail: 'Has study area', type: 'inclusion' },
+      { room_id: getRoom('403', 'ATI'), tag_detail: 'Near comfort room', type: 'inclusion' },
+      { room_id: getRoom('403', 'ATI'), tag_detail: 'Prefers male tenant', type: 'preference' },
+      { room_id: getRoom('403', 'ATI'), tag_detail: 'Prefers early curfew', type: 'preference' },
+
+      // Scholar's Dorm — 503
+      { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Air-conditioned', type: 'inclusion' },
+      { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Has study desk', type: 'inclusion' },
+      { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Has wardrobe', type: 'inclusion' },
+      { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Prefers female tenant', type: 'preference' },
+      { room_id: getRoom('503', "Scholar's Dorm"), tag_detail: 'Prefers quiet tenant', type: 'preference' },
+
+      // One Sapphire Place — 603
+      { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Air-conditioned', type: 'inclusion' },
+      { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Has study desk', type: 'inclusion' },
+      { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Has wardrobe', type: 'inclusion' },
+      { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Prefers non-smoker', type: 'preference' },
+      { room_id: getRoom('603', 'One Sapphire Place'), tag_detail: 'Prefers long-term stay', type: 'preference' },
+
+      // UBLE Residences — 705
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Has study area', type: 'inclusion' },
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Has locker', type: 'inclusion' },
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Shared bathroom', type: 'inclusion' },
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Prefers organized tenants', type: 'preference' },
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Prefers clean tenant', type: 'preference' },
     ])
 
     // =========================================================================
@@ -441,28 +518,28 @@ export default class extends BaseSeeder {
     // =========================================================================
     await db.table('applications').multiInsert([
       // --- CLARENCE TEST APPLICATIONS ---
-      { accommodation_id: getAccom('One Silangan'), student_number: '2024-000002', application_room_type: 'double', application_stay_type: 'transient', application_status: 'approved', duration_of_stay_days: 365, application_date: '2026-04-28 10:00:00', reviewed_at: '2026-04-28 12:30:00', reviewed_by: getUser('slmanuel@up.edu.ph'), approved_at: '2026-04-28 12:30:00', slot_confirm_deadline: '2026-04-30 23:59:59'},
-      { accommodation_id: getAccom("White House"), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 180, application_date: '2026-04-01 10:00:00', reviewed_at: '2026-04-28 10:00:00', reviewed_by: getUser('slmanuel@up.edu.ph'), approved_at: '2026-04-28 10:00:00', slot_confirm_deadline: '2026-04-28 10:00:00'},
-      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'transient', application_status: 'rejected', rejection_reason: 'Incomplete requirements – missing proof of enrollment', duration_of_stay_days: 10, application_date: '2026-02-10 11:00:00', reviewed_at: '2026-02-12 09:15:00', reviewed_by: getUser('aralvarez@gmail.com') },
-      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 180, application_date: '2026-02-15 09:30:00', reviewed_at: '2026-02-18 16:00:00', reviewed_by: getUser('vepadilla@gmail.com') },
-      { accommodation_id: getAccom("ATI"), student_number: '2024-000002', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'under_review', duration_of_stay_days: 30, application_date: '2026-02-20 14:00:00', reviewed_at: null, reviewed_by: null },
+      { accommodation_id: getAccom('One Silangan'), student_number: '2024-000002', application_room_type: 'double', application_stay_type: 'transient', application_status: 'approved', duration_of_stay_days: 365, application_date: '2026-04-28 10:00:00', reviewed_at: '2026-04-28 12:30:00', reviewed_by: getUser('slmanuel@up.edu.ph'), approved_at: '2026-04-28 12:30:00', slot_confirm_deadline: '2026-04-30 23:59:59', room_id: getRoom('202', 'One Silangan'), move_in_date: '2026-05-01', move_out_date: '2027-05-01', reservation_fee: 1400.00, move_in_fee: 21000.00 },
+      { accommodation_id: getAccom("White House"), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 180, application_date: '2026-04-01 10:00:00', reviewed_at: '2026-04-28 10:00:00', reviewed_by: getUser('slmanuel@up.edu.ph'), approved_at: '2026-04-28 10:00:00', slot_confirm_deadline: '2026-04-28 10:00:00', room_id: getRoom('101', 'White House'), move_in_date: '2026-05-01', move_out_date: '2026-10-28', reservation_fee: 1000.00, move_in_fee: 10000.00 },
+      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'transient', application_status: 'rejected', rejection_reason: 'Incomplete requirements – missing proof of enrollment', duration_of_stay_days: 10, application_date: '2026-02-10 11:00:00', reviewed_at: '2026-02-12 09:15:00', reviewed_by: getUser('aralvarez@gmail.com') , room_id: getRoom('601', 'One Sapphire Place'), move_in_date: '2026-02-20', move_out_date: '2026-03-02', reservation_fee: 1000.00, move_in_fee: 9000.00 },
+      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 180, application_date: '2026-02-15 09:30:00', reviewed_at: '2026-02-18 16:00:00', reviewed_by: getUser('vepadilla@gmail.com') , room_id: getRoom('501', "Scholar's Dorm"), move_in_date: '2026-03-01', move_out_date: '2026-08-28', reservation_fee: 1375.00, move_in_fee: 11000.00 },
+      { accommodation_id: getAccom("ATI"), student_number: '2024-000002', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'under_review', duration_of_stay_days: 30, application_date: '2026-02-20 14:00:00', reviewed_at: null, reviewed_by: null , room_id: getRoom('402', 'ATI'), move_in_date: '2026-03-05', move_out_date: '2026-04-04', reservation_fee: 500.00, move_in_fee: 800.00 },
 
-      { accommodation_id: getAccom('White House'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 150 },
-      { accommodation_id: getAccom('White House'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 180 },
-      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
-      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 120 },
-      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
-      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123457', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 10 },
-      { accommodation_id: getAccom("ATI"), student_number: '2023-123458', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 30 },
-      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2023-123458', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'pending', duration_of_stay_days: 180 },
-      { accommodation_id: getAccom("ATI"), student_number: '2023-123459', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 200 },
-      { accommodation_id: getAccom('White House'), student_number: '2023-123459', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 },
-      { accommodation_id: getAccom("Men's Dorm"), student_number: '2023-123460', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'waitlisted', duration_of_stay_days: 15 },
-      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123460', application_room_type: 'double', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 60 },
-      { accommodation_id: getAccom('White House'), student_number: '2023-123461', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 150 },
-      { accommodation_id: getAccom("ATI"), student_number: '2023-123461', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 200 },
-      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123462', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 45 },
-      { accommodation_id: getAccom("ATI"), student_number: '2023-123462', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'approved', duration_of_stay_days: 90 }
+      { accommodation_id: getAccom('White House'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 150 , room_id: getRoom('102', 'White House'), move_in_date: null, move_out_date: null, reservation_fee: null, move_in_fee: null },
+      { accommodation_id: getAccom('White House'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 180 , room_id: getRoom('101', 'White House'), move_in_date: null, move_out_date: null, reservation_fee: null, move_in_fee: null },
+      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 , room_id: getRoom('601', 'One Sapphire Place'), move_in_date: '2026-03-01', move_out_date: '2027-03-01', reservation_fee: 1000.00, move_in_fee: 9000.00 },
+      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 120 , room_id: getRoom('501', "Scholar's Dorm"), move_in_date: null, move_out_date: null, reservation_fee: null, move_in_fee: null },
+      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 , room_id: getRoom('202', 'One Silangan'), move_in_date: '2026-02-15', move_out_date: '2027-02-15', reservation_fee: 1400.00, move_in_fee: 21000.00 },
+      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123457', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 10 , room_id: getRoom('601', 'One Sapphire Place'), move_in_date: '2026-04-01', move_out_date: '2026-04-11', reservation_fee: 1000.00, move_in_fee: 9000.00 },
+      { accommodation_id: getAccom("ATI"), student_number: '2023-123458', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 30 , room_id: getRoom('402', 'ATI'), move_in_date: '2026-04-05', move_out_date: '2026-05-05', reservation_fee: 500.00, move_in_fee: 800.00 },
+      { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2023-123458', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'pending', duration_of_stay_days: 180 , room_id: getRoom('502', "Scholar's Dorm"), move_in_date: '2026-04-15', move_out_date: '2026-10-12', reservation_fee: 1500.00, move_in_fee: 12000.00 },
+      { accommodation_id: getAccom("ATI"), student_number: '2023-123459', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 200 , room_id: getRoom('402', 'ATI'), move_in_date: null, move_out_date: null, reservation_fee: null, move_in_fee: null },
+      { accommodation_id: getAccom('White House'), student_number: '2023-123459', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365 , room_id: getRoom('101', 'White House'), move_in_date: '2026-01-10', move_out_date: '2027-01-10', reservation_fee: 1000.00, move_in_fee: 10000.00 },
+      { accommodation_id: getAccom("Men's Dorm"), student_number: '2023-123460', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'waitlisted', duration_of_stay_days: 15 , room_id: getRoom('302', "Men's Dorm"), move_in_date: '2026-03-20', move_out_date: '2026-04-04', reservation_fee: 500.00, move_in_fee: 800.00 },
+      { accommodation_id: getAccom('One Silangan'), student_number: '2023-123460', application_room_type: 'double', application_stay_type: 'transient', application_status: 'under_review', duration_of_stay_days: 60 , room_id: getRoom('202', 'One Silangan'), move_in_date: '2026-04-01', move_out_date: '2026-05-31', reservation_fee: 1400.00, move_in_fee: 21000.00 },
+      { accommodation_id: getAccom('White House'), student_number: '2023-123461', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 150 , room_id: getRoom('102', 'White House'), move_in_date: '2026-03-05', move_out_date: '2026-08-05', reservation_fee: 1500.00, move_in_fee: 13000.00 },
+      { accommodation_id: getAccom("ATI"), student_number: '2023-123461', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 200 , room_id: getRoom('401', 'ATI'), move_in_date: null, move_out_date: null, reservation_fee: null, move_in_fee: null },
+      { accommodation_id: getAccom('One Sapphire Place'), student_number: '2023-123462', application_room_type: 'single', application_stay_type: 'transient', application_status: 'pending', duration_of_stay_days: 45 , room_id: getRoom('601', 'One Sapphire Place'), move_in_date: '2026-04-10', move_out_date: '2026-05-25', reservation_fee: 1000.00, move_in_fee: 9000.00 },
+      { accommodation_id: getAccom("ATI"), student_number: '2023-123462', application_room_type: 'shared', application_stay_type: 'transient', application_status: 'approved', duration_of_stay_days: 90 , room_id: getRoom('401', 'ATI'), move_in_date: '2026-03-10', move_out_date: '2026-06-08', reservation_fee: 500.00, move_in_fee: 800.00 }
     ])
 
     await db.table('assignments').multiInsert([

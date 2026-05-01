@@ -5,6 +5,7 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Accommodation from '#models/accommodation'
 import Student from '#models/student'
 import User from '#models/user'
+import Room from '#models/room'
 
 export default class Application extends BaseModel {
   static table = 'applications'
@@ -54,6 +55,21 @@ export default class Application extends BaseModel {
   @column.dateTime()
   declare slotConfirmedAt: DateTime | null 
 
+  @column()
+  declare roomId: number | null
+
+  @column.date()
+  declare moveInDate: DateTime | null
+
+  @column.date()
+  declare moveOutDate: DateTime | null
+
+  @column()
+  declare reservationFee: number | null
+
+  @column()
+  declare moveInFee: number | null
+
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 
@@ -62,4 +78,7 @@ export default class Application extends BaseModel {
 
   @belongsTo(() => User, { foreignKey: 'reviewedBy' })
   declare reviewer: BelongsTo<typeof User>
+
+  @belongsTo(() => Room, { foreignKey: 'roomId' })
+  declare room: BelongsTo<typeof Room>
 }

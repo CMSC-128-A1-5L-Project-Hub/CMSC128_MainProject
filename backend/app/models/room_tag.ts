@@ -14,6 +14,9 @@ export default class RoomTag extends BaseModel {
     @column()
     declare tagDetail: string
 
+    @column()
+    declare type: 'inclusion' | 'preference' // inclusion = di natatanggal; preference = pwedeng tanggalin yuh
+
     @belongsTo(() => Room, { foreignKey: 'roomId' })
     declare room: BelongsTo<typeof Room>
 }
