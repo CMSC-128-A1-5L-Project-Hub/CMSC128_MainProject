@@ -1777,13 +1777,13 @@ export default function RoomView() {
                   rooms={normalizedRooms}
                   initialStart={selectedStart}
                   initialEnd={selectedEnd}
-                  passedStayType={selectedStayType}
-                  passedArrangement={selectedArrangement}
                   accommodationTags={accommodationTags}
-                  commonPreferences={commonPreferences}
-                  optionalPreferences={optionalPreferences}
                   selectedPreferences={selectedPreferences}
                   setSelectedPreferences={setSelectedPreferences}
+                  selectedStayType={selectedStayType}
+                  setSelectedStayType={setSelectedStayType}
+                  selectedArrangement={selectedArrangement}
+                  setSelectedArrangement={setSelectedArrangement}
                 />
 
               </div>

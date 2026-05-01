@@ -21,13 +21,13 @@ interface ApplyModalProps {
     rooms: any[];
     initialStart: { year: number; month: number; day: number } | null;
     initialEnd: { year: number; month: number; day: number } | null;
-    passedStayType?: string;
-    passedArrangement?: string;
     accommodationTags: string[];
-    commonPreferences: string[];
-    optionalPreferences: string[];
     selectedPreferences: string[];
     setSelectedPreferences: React.Dispatch<React.SetStateAction<string[]>>;
+    selectedStayType: "transient" | "non_transient";
+    setSelectedStayType: React.Dispatch<React.SetStateAction<"transient" | "non_transient">>;
+    selectedArrangement: "single" | "double" | "shared";
+    setSelectedArrangement: React.Dispatch<React.SetStateAction<"single" | "double" | "shared">>;
     
     // onToggleAmenity: (amenity: string) => void;
 }
@@ -40,41 +40,34 @@ export default function RoomApplicationModal({
     rooms,
     initialStart,
     initialEnd,
-    passedStayType,
-    passedArrangement,
     accommodationTags,
     selectedPreferences,
-    setSelectedPreferences
+    setSelectedPreferences,
+    selectedStayType,
+    setSelectedStayType,
+    selectedArrangement,
+    setSelectedArrangement,
 }: ApplyModalProps) {
-
-    // const sortedAmenities = [...amenities].sort((a, b) => {
-    //     const aSelected = selectedAmenities.includes(a);
-    //     const bSelected = selectedAmenities.includes(b);
-    //     if (aSelected === bSelected) return 0;
-    //     return aSelected ? -1 : 1;
-    // });
-
     
-
     const [step, setStep] = useState<"apply" | "verify">("apply");
+    type StayType = "transient" | "non_transient";
+    type Arrangement = "single" | "double" | "shared";
 
-    const stayTypes = [
-        ...new Set<string>(
-            (accommodation?.rooms ?? [])
-            .map((r: any) => String(r.roomStayType ?? r.room_stay_type))
-            .filter(Boolean)
-        ),
-    ];
-    const arrangements = [
-    ...new Set<string>(
+    const stayTypes: StayType[] = [
+    ...new Set(
         (accommodation?.rooms ?? [])
-        .map((r: any) => String(r.roomType ?? r.room_type))
+        .map((r: any) => r.roomStayType ?? r.room_stay_type)
         .filter(Boolean)
     ),
-    ];
+    ] as StayType[];
 
-    const [selectedArrangement, setSelectedArrangement] = useState<string>(arrangements[0] || "");
-    const [selectedStayType, setSelectedStayType] = useState<string>(stayTypes[0] || "");
+    const arrangements: Arrangement[] = [
+    ...new Set(
+        (accommodation?.rooms ?? [])
+        .map((r: any) => r.roomType ?? r.room_type)
+        .filter(Boolean)
+    ),
+    ] as Arrangement[];
 
     const [moveInDate, setMoveInDate] = useState("");
     const [moveOutDate, setMoveOutDate] = useState("");
@@ -105,13 +98,6 @@ export default function RoomApplicationModal({
             setMoveOutDate(moveInDate);
         }
     }, [moveInDate, moveOutDate]);
-
-    useEffect(() => {
-        if (open) {
-            if (passedStayType) setSelectedStayType(passedStayType);
-            if (passedArrangement) setSelectedArrangement(passedArrangement);
-        }
-    }, [open, passedStayType, passedArrangement]);
 
     useEffect(() => {
     setSelectedPreferences((prev) =>
@@ -222,8 +208,6 @@ export default function RoomApplicationModal({
         setMoveOutDate("");
         setUploadedFiles([]);
         setPaymentFile(null);
-        setSelectedStayType(stayTypes[0] || "");
-        setSelectedArrangement(arrangements[0] || "");
         setDeclaration(null);
         onClose();
     };
@@ -329,11 +313,33 @@ export default function RoomApplicationModal({
                                 </div>
 
                                 <div className="md:col-span-1">
-                                    <GradientPillSelect label="Stay Type" value={selectedStayType} onChange={setSelectedStayType} width="w-full" labelSize="text-[10px]" optionSize="text-[13px]" options={stayTypes.map((st: string) => ({ value: String(st), label: st === "non_transient" ? "Non-Transient" : "Transient" }))} />
+                                    <GradientPillSelect
+                                        label="Stay Type"
+                                        value={selectedStayType}
+                                        onChange={(v) => setSelectedStayType(v as StayType)}
+                                        width="w-full"
+                                        labelSize="text-[10px]"
+                                        optionSize="text-[13px]"
+                                        options={stayTypes.map((st) => ({
+                                            value: st,
+                                            label: st === "non_transient" ? "Non-Transient" : "Transient",
+                                        }))}
+                                    />
                                 </div>
 
                                 <div className="md:col-span-1">
-                                    <GradientPillSelect label="Arrangement" value={selectedArrangement} onChange={setSelectedArrangement} width="w-full" labelSize="text-[10px]" optionSize="text-[13px]" options={arrangements.map((a: string) => ({ value: String(a), label: a.charAt(0).toUpperCase() + a.slice(1) }))} />
+                                    <GradientPillSelect
+                                        label="Arrangement"
+                                        value={selectedArrangement}
+                                        onChange={(v) => setSelectedArrangement(v as Arrangement)}
+                                        width="w-full"
+                                        labelSize="text-[10px]"
+                                        optionSize="text-[13px]"
+                                        options={arrangements.map((a) => ({
+                                            value: a,
+                                            label: a.charAt(0).toUpperCase() + a.slice(1),
+                                        }))}
+                                    />
                                 </div>
                             </div>
 
