@@ -264,7 +264,11 @@ export default function RoomApplicationModal({
                                     </div>
                                     <div className="text-right">
                                         <span className="text-2xl font-black text-[#C9973A]">₱{currentRoom?.rent?.toLocaleString() ?? "—"}</span>
-                                        <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per month</p>
+                                        {!isTransient ? (
+                                            <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per month</p>
+                                        ) : (
+                                            <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per day</p>
+                                        )}
                                     </div>
                                 </div>
                                 {/* Amenity Grid */}
