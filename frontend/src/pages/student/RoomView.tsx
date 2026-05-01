@@ -583,12 +583,14 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
 }
 
 //Features Tab
-function FeaturesTab({ accommodation, rooms, accommodationTags, roomInclusions, roomPreferences, selectedPreferences, setSelectedPreferences, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
+function FeaturesTab({ accommodation, rooms, accommodationTags, roomInclusions, roomPreferences, commonPreferences, optionalPreferences, selectedPreferences, setSelectedPreferences, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
   accommodation: Accommodation;
   rooms: any[];
   accommodationTags: string[];
   roomInclusions: string[];
   roomPreferences: string[];
+  commonPreferences: string[];
+  optionalPreferences: string[];
   selectedPreferences: string[];
   setSelectedPreferences: React.Dispatch<React.SetStateAction<string[]>>;
   selectedTenantRestriction: Room["tenant_restriction"]; setselectedTenantRestriction: (v: Room["tenant_restriction"]) => void;
@@ -640,78 +642,97 @@ function FeaturesTab({ accommodation, rooms, accommodationTags, roomInclusions, 
           Amenities
         </p>
 
+        {/* COMMON FEATURES */}
+        {(commonPreferences.length > 0 || accommodationTags.length > 0) && (
+          <>
+            <p className="text-[14px] text-gray-500 mb-2">All rooms include:</p>
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              {/* Accommodation tags: static, no X */}
+              {accommodationTags.map((tag: string) => (
+                <span
+                  key={`accom-${tag}`}
+                  className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full"
+                  style={{ background: CLR.mid }}
+                >
+                  {tag}
+                </span>
+              ))}
+              
+             {commonPreferences.map((pref: string) => (
+              <span
+                key={`common-${pref}`}
+                className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full"
+                style={{ background: CLR.mid }}
+              >
+                {pref}
+              </span>
+            ))}
+            </div>
+          </>
+        )}
+
         <div className="flex flex-wrap gap-2 min-h-[36px]">
-          {/* Accommodation tags: static, no X */}
-          {accommodationTags.map((tag: string) => (
-            <span
-              key={`accom-${tag}`}
-              className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full"
-              style={{ background: CLR.mid }}
-            >
-              {tag}
-            </span>
-          ))}
+        {selectedPreferences.map((pref: string) => (
+          <button
+            key={`pref-${pref}`}
+            onClick={() =>
+              setSelectedPreferences((prev) => prev.filter((p) => p !== pref))
+            }
+            className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full transition-opacity hover:opacity-80"
+            style={{ background: CLR.mid }}
+            title="Click to remove"
+          >
+            {pref}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        ))}
 
-          {/* Selected room preferences: removable */}
-          {selectedPreferences.map((pref: string) => (
-            <button
-              key={`pref-${pref}`}
-              onClick={() =>
-                setSelectedPreferences((prev) => prev.filter((p) => p !== pref))
-              }
-              className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full transition-opacity hover:opacity-80"
-              style={{ background: CLR.mid }}
-              title="Click to remove"
-            >
-              {pref}
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12" />
-              </svg>
-            </button>
-          ))}
-
-          {accommodationTags.length === 0 && selectedPreferences.length === 0 && (
+        {commonPreferences.length === 0 &&
+          accommodationTags.length === 0 &&
+          selectedPreferences.length === 0 && (
             <p className="text-[12px] text-[#8C1535] italic">No amenities selected</p>
           )}
-        </div>
-
-        {/* Deselected preferences only */}
-        {roomPreferences.filter((p) => !selectedPreferences.includes(p)).length > 0 && (
-          <div className="mt-4">
-            <div className="flex-1 h-px bg-gray-200"></div>
-
-            <p className="text-[12px] text-[#8C1535] italic mt-5">
-              Click to add 
-            </p>
-
-            <div className="flex flex-wrap gap-2 mt-5">
-              {roomPreferences
-                .filter((p) => !selectedPreferences.includes(p))
-                .map((pref: string) => (
-                  <button
-                    key={`removed-${pref}`}
-                    onClick={() =>
-                      setSelectedPreferences((prev) => [...prev, pref])
-                    }
-                    className="flex items-center gap-1.5 font-sans text-[15px] font-medium px-4 py-1.5 rounded-full border-2 border-dashed transition-colors hover:border-solid"
-                    style={{
-                      color: CLR.mid,
-                      borderColor: CLR.subtext,
-                      background: "transparent",
-                    }}
-                    title="Click to add amenity of choice."
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={CLR.mid} strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    {pref}
-                  </button>
-                ))}
-            </div>
-          </div>
-        )}
       </div>
-      
+
+      {optionalPreferences.filter((p) => !selectedPreferences.includes(p)).length > 0 && (
+        <div className="mt-4">
+          <div className="flex-1 h-px bg-gray-200"></div>
+
+          <p className="text-[12px] text-[#8C1535] italic mt-5">
+            Click to add
+          </p>
+
+          <div className="flex flex-wrap gap-2 mt-5">
+            {optionalPreferences
+              .filter((p) => !selectedPreferences.includes(p))
+              .map((pref: string) => (
+                <button
+                  key={`removed-${pref}`}
+                  onClick={() =>
+                    setSelectedPreferences((prev) => [...prev, pref])
+                  }
+                  className="flex items-center gap-1.5 font-sans text-[15px] font-medium px-4 py-1.5 rounded-full border-2 border-dashed transition-colors hover:border-solid"
+                  style={{
+                    color: CLR.mid,
+                    borderColor: CLR.subtext,
+                    background: "transparent",
+                  }}
+                  title="Click to add amenity of choice."
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={CLR.mid} strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  {pref}
+                </button>
+              ))}
+          </div>
+        </div>
+      )}
+
+      </div>
       
     </div>
   );
@@ -1418,7 +1439,7 @@ export default function RoomView() {
 
   useEffect(() => {
     setSelectedPreferences((prev) =>
-      prev.filter((pref) => availablePreferences.includes(pref))
+      prev.filter((pref) => optionalPreferences.includes(pref))
     );
   }, [selectedTenantRestriction, selectedStayType, selectedArrangement]);
 
@@ -1475,14 +1496,12 @@ export default function RoomView() {
   });
 
   const matchingRooms = baseMatchingRooms.filter((room) => {
-    const roomPreferenceTags =
+    const roomPrefs =
       room.tags
         ?.filter((tag: any) => tag.type === "preference")
         .map((tag: any) => tag.tagDetail ?? tag.tag_detail) ?? [];
 
-    return selectedPreferences.every((pref) =>
-      roomPreferenceTags.includes(pref)
-    );
+    return selectedPreferences.every((pref) => roomPrefs.includes(pref));
   });
 
   const selectedRoom =
@@ -1506,6 +1525,31 @@ export default function RoomView() {
       )
     ),
   ];
+
+  const allPreferences = [
+    ...new Set(
+      baseMatchingRooms.flatMap((room) =>
+        (room.tags ?? [])
+          .filter((tag: any) => tag.type === "preference")
+          .map((tag: any) => tag.tagDetail ?? tag.tag_detail)
+          .filter(Boolean)
+      )
+    ),
+  ];
+
+  const commonPreferences = allPreferences.filter((pref) =>
+    baseMatchingRooms.every((room) =>
+      (room.tags ?? []).some(
+        (tag: any) =>
+          tag.type === "preference" &&
+          (tag.tagDetail ?? tag.tag_detail) === pref
+      )
+    )
+  );
+
+  const optionalPreferences = allPreferences.filter(
+    (pref) => !commonPreferences.includes(pref)
+  );
 
   // const cheapestMatchingRoom =
   //   matchingRooms.length > 0
@@ -1673,6 +1717,8 @@ export default function RoomView() {
             accommodationTags={accommodationTags}
             roomInclusions={roomInclusions}
             roomPreferences={availablePreferences}
+            commonPreferences={commonPreferences}
+            optionalPreferences={optionalPreferences}
             selectedPreferences={selectedPreferences}
             setSelectedPreferences={setSelectedPreferences}
             selectedTenantRestriction={selectedTenantRestriction}
