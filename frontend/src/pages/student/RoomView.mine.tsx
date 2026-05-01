@@ -11,8 +11,6 @@ import { api } from "../../api/axios";
 import Map, { Marker, NavigationControl, Source, Layer } from 'react-map-gl'
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import ApplicationModals from "@/components/applications/ApplicationModals.tsx";
-import RoomApplicationModal from "@/components/RoomApplicationModal.tsx";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const UPLB_COORDS = { longitude: 121.2436, latitude: 14.1654 }
