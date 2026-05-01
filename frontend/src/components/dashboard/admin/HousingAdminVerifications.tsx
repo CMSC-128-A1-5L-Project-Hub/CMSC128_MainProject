@@ -1,4 +1,5 @@
 import Card from "@/components/ui/Card"
+import { useNavigate } from "react-router-dom"
 
 type HousingAdminVerificationsProps = {
   admins: any[]
@@ -23,6 +24,9 @@ export default function HousingAdminVerifications({
     })
   }
 
+  const navigate = useNavigate()
+
+
   return (
     <Card className="shadow-sm rounded-2xl border border-[#F2D9DF] bg-white p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -30,7 +34,10 @@ export default function HousingAdminVerifications({
           Housing Administrator Verifications
         </h4>
 
-        <button className="text-sm font-semibold text-[#6B0F2B] hover:text-[#2A0410]">
+        <button
+          onClick={() => navigate("/admin/landlord-verifications")}
+          className="text-sm font-semibold text-[#6B0F2B] hover:text-[#2A0410]"
+        >
           View all →
         </button>
       </div>
