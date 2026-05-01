@@ -575,10 +575,14 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
 }
 
 //Features Tab
-function FeaturesTab({ accommodation, rooms, amenities, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
+function FeaturesTab({ accommodation, rooms, accommodationTags, roomInclusions, roomPreferences, selectedPreferences, setSelectedPreferences, selectedTenantRestriction, setselectedTenantRestriction, selectedStayType, setSelectedStayType, selectedArrangement, setSelectedArrangement }: {
   accommodation: Accommodation;
   rooms: any[];
-  amenities: string[];
+  accommodationTags: string[];
+  roomInclusions: string[];
+  roomPreferences: string[];
+  selectedPreferences: string[];
+  setSelectedPreferences: React.Dispatch<React.SetStateAction<string[]>>;
   selectedTenantRestriction: Room["tenant_restriction"]; setselectedTenantRestriction: (v: Room["tenant_restriction"]) => void;
   selectedStayType: Room["room_stay_type"]; setSelectedStayType: (v: Room["room_stay_type"]) => void;
   selectedArrangement: Room["room_type"]; setSelectedArrangement: (v: Room["room_type"]) => void;
@@ -588,20 +592,6 @@ function FeaturesTab({ accommodation, rooms, amenities, selectedTenantRestrictio
   const stayTypes = [...new Set(rooms.map((r) => r.stay).filter(Boolean))];
   const arrangements = [...new Set(rooms.map((r) => r.type).filter(Boolean))];
 
-  //Display all amenities
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(amenities)
-  //Removed amenities
-  const removedAmenities = amenities.filter((a) => !selectedAmenities.includes(a))
-
-  const removeAmenity = (amenity: string) => {
-    setSelectedAmenities((prev) => prev.filter((a) => a !== amenity))
-  }
-
-  const addAmenity = (amenity: string) => {
-    setSelectedAmenities((prev) =>
-      amenities.filter((a) => prev.includes(a) || a === amenity)
-    )
-  }
 
 
   return (
@@ -639,58 +629,56 @@ function FeaturesTab({ accommodation, rooms, amenities, selectedTenantRestrictio
       <div className="w-full h-[2px] bg-gray-200 mt-5"></div>
 
       <div className="mt-12">
-        <p className="text-[18px] font-bold font-sans  tracking-widest text-[#9A7080] mb-5">Amenities</p>
-          <div className="flex flex-wrap gap-2 min-h-[36px]">
-            {selectedAmenities.length > 0 ? (
-              selectedAmenities.map((a) => (
-                <button
-                  key={a}
-                  onClick={() => removeAmenity(a)}
-                  className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full transition-opacity hover:opacity-80"
-                  style={{ background: CLR.mid }}
-                  title="Click to remove"
-                >
-                  {a}
+        <p className="text-[18px] font-bold tracking-widest text-[#9A7080] mb-5">
+          Amenities
+        </p>
+
+        {/* Accommodation Tags (STATIC) */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {accommodationTags.map((tag: string) => (
+            <span
+              key={tag}
+              className="px-4 py-1.5 rounded-full text-white text-[15px]"
+              style={{ background: CLR.mid }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* Preferences (SELECTABLE) */}
+        <div className="flex flex-wrap gap-2">
+          {roomPreferences.map((pref: string) => {
+            const isSelected = selectedPreferences.includes(pref);
+
+            return (
+              <button
+                key={pref}
+                onClick={() => {
+                  if (isSelected) {
+                    setSelectedPreferences((prev) =>
+                      prev.filter((p) => p !== pref)
+                    );
+                  } else {
+                    setSelectedPreferences((prev) => [...prev, pref]);
+                  }
+                }}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[15px] font-medium transition"
+                style={{
+                  background: isSelected ? CLR.mid : "#eee",
+                  color: isSelected ? "#fff" : "#000",
+                }}
+              >
+                {pref}
+                {isSelected && (
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12" />
                   </svg>
-                </button>
-              ))
-            ) : (
-              <p className="text-[12px] text-[#8C1535] italic">No amenities selected</p>
-            )}
-          </div>
-          
-          {removedAmenities.length > 0 && (
-            <div className="mt-4">
-              <div className="flex-1 h-px bg-gray-200">
-
-              </div>
-              <p className="text-[12px] text-[#8C1535] italic mt-5">Click to add back</p>
-
-              <div className="flex flex-wrap gap-2 mt-5">
-                {removedAmenities.map((a) => (
-                  <button
-                    key={a}
-                    onClick={() => addAmenity(a)}
-                    className="flex items-center gap-1.5 font-sans text-[15px] font-medium px-4 py-1.5 rounded-full border-2 border-dashed transition-colors hover:border-solid"
-                    style={{
-                      color: CLR.mid,
-                      borderColor: CLR.subtext,
-                      background: 'transparent',
-                    }}
-                    title="Click to add back amenity of choice."
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={CLR.mid} strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    {a}
-                  </button>
-                ))}
-              </div>
-            </div>
-        )}
-
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -1368,6 +1356,7 @@ export default function RoomView() {
   const [selectedTenantRestriction, setselectedTenantRestriction] = useState<Room["tenant_restriction"]>("coed");
   const [selectedStayType, setSelectedStayType] = useState<Room["room_stay_type"]>("non_transient");
   const [selectedArrangement, setSelectedArrangement] = useState<Room["room_type"]>("single");
+  const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchAccommodation = async () => {
@@ -1434,6 +1423,7 @@ export default function RoomView() {
     availability: r.roomAvailability ?? r.room_availability,
     advanceMonths: r.advanceMonths ?? r.advance_months,
     depositMonths: r.depositMonths ?? r.deposit_months,
+    tags: r.tags ?? [],
   }));
 
   const selectedRoom =
@@ -1444,10 +1434,20 @@ export default function RoomView() {
         r.type === selectedArrangement
     ) ?? normalizedRooms[0];
 
-  const amenities =
+  const accommodationTags  =
     accommodation.tags
       ?.map((tag: any) => tag.tagDetail ?? tag.tag_detail)
       .filter(Boolean) ?? [];
+  
+  const selectedRoomTags = selectedRoom?.tags ?? [];
+
+  const roomInclusions = selectedRoomTags
+    .filter((t: any) => t.type === "inclusion")
+    .map((t: any) => t.tagDetail);
+
+  const roomPreferences = selectedRoomTags
+    .filter((t: any) => t.type === "preference")
+    .map((t: any) => t.tagDetail);
 
   const avgRating =
     reviews.length > 0
@@ -1580,7 +1580,11 @@ export default function RoomView() {
           <FeaturesTab
             accommodation={accommodation}
             rooms={normalizedRooms}
-            amenities={amenities}
+            accommodationTags={accommodationTags}
+            roomInclusions={roomInclusions}
+            roomPreferences={roomPreferences}
+            selectedPreferences={selectedPreferences}
+            setSelectedPreferences={setSelectedPreferences}
             selectedTenantRestriction={selectedTenantRestriction}
             setselectedTenantRestriction={setselectedTenantRestriction}
             selectedStayType={selectedStayType}
@@ -1624,9 +1628,15 @@ export default function RoomView() {
                 {/* Inclusions */}
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Inclusions:</p>
                 <div className="flex gap-4 mb-4 mt-2">
-                  <span className="flex items-center gap-1.5 text-[12px] text-[#6B0F2B] font-medium"><IconBolt /> Electricity</span>
-                  <span className="flex items-center gap-1.5 text-sm text-gray-600 font-medium"><IconDroplet /> Water</span>
-                  <span className="flex items-center gap-1.5 text-sm text-gray-600 font-medium"><IconWifi /> Wifi</span>
+                  {roomInclusions.length > 0 ? (
+                    roomInclusions.map((inc: string) => (
+                      <span key={inc} className="text-[13px] text-[#000000] bg-[#F0E8EC] px-3 py-1 rounded-full"> 
+                        {inc}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-[13px] text-gray-500 italic">No listed inclusions</span>
+                  )}
                 </div>
 
                 {/* Dates */}
