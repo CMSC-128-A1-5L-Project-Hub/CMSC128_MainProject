@@ -12,6 +12,7 @@ import {
     IoCheckmarkCircle
 } from "react-icons/io5";
 import GradientPillSelect from "./DropDownGradient.tsx";
+import { api } from "../api/axios";
 
 interface ApplyModalProps {
     open: boolean;
@@ -133,6 +134,32 @@ export default function RoomApplicationModal({
             status: "Completed"
         });
     };
+
+    const handleSubmit = async () => {
+    try {
+        const payload = {
+        accommodationId: accommodation.id,
+        roomId: currentRoom?.id,
+        applicationRoomType: selectedArrangement,
+        applicationStayType: selectedStayType,
+        durationOfStayDays: isTransient ? numberOfDays : null,
+        preferredTags:
+            selectedPreferences.length > 0 ? selectedPreferences : null,
+        moveInDate,
+        moveOutDate,
+        reservationFee: isTransient ? reservationFee : null,
+        moveInFee: !isTransient ? moveInFee : null,
+        };
+
+        console.log("Submitting payload:", payload);
+
+        await api.post("/applications", payload);
+
+        handleClose(); // close modal after success
+    } catch (err) {
+        console.error("Submit failed:", err);
+    }
+    };        
 
     const removeFile = (index: number) => {
         setUploadedFiles(prev => prev.filter((_, i) => i !== index));
@@ -539,13 +566,22 @@ export default function RoomApplicationModal({
                                 <div>
                                     <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">{isTransient ? "Reservation Fee" : "Move-In Fee"}</p>
                                     <p className="text-3xl font-black text-[#C9973A]">₱{(isTransient ? reservationFee : moveInFee).toLocaleString()}</p>
-                                    <p className="text-[10px] text-[#9A7080] font-bold">2 months advance, 1 month deposit</p>
+                                    { !isTransient ? (
+                                        <p className="text-[10px] text-[#9A7080] font-bold">{advanceMonths} {advanceMonths === 1 ? "month" : "months"}, {depositMonths} {depositMonths === 1 ? "month" : "months"} deposit</p>
+                                    ) : ( <p className="text-[10px] text-[#9A7080] font-bold italic">One-time reservation fee</p> ) }
                                 </div>
-                                <div>
-                                    <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">Monthly Rent</p>
-                                    <p className="text-3xl font-black text-[#C9973A]">₱{currentRoom?.room_rent?.toLocaleString()}</p>
-                                    <p className="text-[10px] text-[#9A7080] font-bold italic">Per 5th of the month</p>
-                                </div>
+                                { !isTransient ? (
+                                    <div>
+                                        <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">Monthly Rent</p>
+                                        <p className="text-3xl font-black text-[#C9973A]">₱{currentRoom?.rent?.toLocaleString()}</p>
+                                        <p className="text-[10px] text-[#9A7080] font-bold italic">Per month</p>
+                                    </div>
+                                ): 
+                                    <div>
+                                        <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">Total Payment</p>
+                                        <p className="text-3xl font-black text-[#C9973A]">₱{totalStayCost.toLocaleString()}</p>
+                                    <p className="text-[10px] text-[#9A7080] font-bold italic">For {numberOfDays} {numberOfDays === 1 ? "day" : "days"}</p>
+                                    </div>}
                             </div>
                         </div>
 
@@ -621,6 +657,7 @@ export default function RoomApplicationModal({
                         <div className="flex justify-end gap-4 pt-6">
                             <Button variant="secondary" onClick={() => setStep("apply")} className="px-10 rounded-full">Back</Button>
                             <Button
+                                onClick={handleSubmit}
                                 variant="primary"
                                 size="lg"
                                 className={`px-16 rounded-full text-white transition-all ${declaration === "accept" && (!isTransient || paymentFile) ? 'bg-emerald-500' : 'bg-[#8C1533] opacity-50 grayscale'}`}
