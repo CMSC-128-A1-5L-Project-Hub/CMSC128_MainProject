@@ -177,34 +177,38 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
             </p>
           </div>
           <div className="overflow-y-auto -mx-0">
-            <div className="min-w-[680px] pb-3 lg:pb-0 px-1">
-              <div className="grid grid-cols-5 border-b border-[#F5ECF0] uppercase" style={{ gridTemplateColumns: "2fr 1.5fr 1fr 1.5fr 1.5fr" }}>
-                <p className="col-span-1 text-[#9A7080] text-xs font-bold p-1">Student</p>
-                <p className="col-span-1 px-2 text-[#9A7080] text-xs font-bold p-1">Room</p>
-                <p className="col-span-1 px-2 text-[#9A7080] text-xs font-bold p-1">Move-in</p>
-                <p className="col-span-1 px-2 text-center text-[#9A7080] text-xs font-bold p-1">Status</p>
-                <p className="col-span-1 px-2 text-center text-[#9A7080] text-xs font-bold p-1">Action</p>
-              </div>
-              {data.length > 0 ? (
-                <div className="flex flex-col">
-                  {data.map((assignment, i) => (
-                    <div key={i} className="grid grid-cols-5 items-center mt-3" style={{ gridTemplateColumns: "2fr 1.5fr 1fr 1.5fr 1.5fr" }}>
-                      <div className="col-span-1 flex flex-row items-center">
-                        <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                             style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                          {getInitials(assignment.student.student.fullName)}
+            <table className="w-full min-w-[680px] table-fixed">
+              <thead className="tracking-widest">
+                <tr className="border-b border-[#F5ECF0] uppercase">
+                  <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-56">Student</th>
+                  <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-48">Room</th>
+                  <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-28">Move-in</th>
+                  <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-48">Status</th>
+                  <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-44">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.length > 0 ? (
+                  data.map((assignment, i) => (
+                    <tr key={i} className="border-b border-[#F5ECF0]/50 last:border-0">
+                      <td className="p-1 py-2">
+                        <div className="flex flex-row items-center">
+                          <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                              style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                            {getInitials(assignment.student.student.fullName)}
+                          </div>
+                          <p className="text-black text-sm pl-2 truncate">{assignment.student.student.fullName}</p>
                         </div>
-                        <p className="text-black text-sm pl-2 truncate min-w-0">{assignment.student.student.fullName}</p>
-                      </div>
-                      <div className="flex flex-col px-2">
+                      </td>
+                      <td className="p-1 py-2">
                         <p className="text-[#1A0008] text-sm">Room {assignment.roomNumber || '—'}</p>
-                        <p className="text-[#9A7080] text-xs capitalize">
+                        <p className="text-[#9A7080] text-xs truncate capitalize">
                           {assignment.roomBuilding
                             ? `Building ${assignment.roomBuilding} · ${assignment.roomType.charAt(0).toUpperCase() + assignment.roomType.slice(1)}`
                             : 'Not assigned'}
                         </p>
-                      </div>
-                      <div className="flex flex-col px-2">
+                      </td>
+                      <td className="p-1 py-2">
                         <p className="text-[#1A0008] text-sm">
                           {assignment.status === 'pending_confirmation' ? 'TBD' : (assignment.moveIn || '—')}
                         </p>
@@ -213,8 +217,8 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                             {assignment.moveIn ? timeAgo(assignment.moveIn) : ''}
                           </p>
                         )}
-                      </div>
-                      <div className="col-span-1 px-2 flex justify-center items-center">
+                      </td>
+                      <td className="p-1 py-2 text-left">
                         <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-full font-bold capitalize whitespace-nowrap ${
                           assignment.status === "not assigned" ? "bg-[#9E2040]/10 text-[#9E2040]" :
                           assignment.status === "pending_confirmation" ? "bg-amber-100 text-amber-800" :
@@ -225,32 +229,32 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                             assignment.status === "pending_confirmation" ? "bg-amber-500" : "bg-[#1A7A4A]"
                           }`} />
                           {assignment.status === "not assigned" ? "Not Assigned" :
-                           assignment.status === "pending_confirmation" ? "Pending Confirmation" : "Assigned"}
+                          assignment.status === "pending_confirmation" ? "Pending Confirmation" : "Assigned"}
                         </span>
-                      </div>
-                      <div className="col-span-1 px-2 flex justify-center items-center">
+                      </td>
+                      <td className="p-1 py-2 text-left">
                         {assignment.status === "not assigned" ? (
                           <Button variant="reddishPink" size="sm" onClick={() => openModal(assignment)}>
                             Assign Room
                           </Button>
                         ) : (
-                          <span className="text-sm font-semibold text-[#1A7A4A]">
+                          <span className="text-xs truncate font-semibold text-[#1A7A4A]">
                             {assignment.status === "pending_confirmation" ? "Awaiting Confirmation" : "Assigned"}
                           </span>
                         )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex-1 flex justify-center items-center py-4 italic text-gray-500">
-                  Nothing to see here
-                </div>
-              )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4 italic text-gray-500">Nothing to see here</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
             </div>
           </div>
         </div>
-      </div>
     </>
   )
 }
