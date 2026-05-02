@@ -2,6 +2,8 @@ import type { HttpContext } from '@adonisjs/core/http'
 import SysVariables from '#models/sys_variable'
 import Student from '#models/student'
 import User from '#models/user'
+import db from '@adonisjs/lucid/services/db'
+
 
 export default class AdminSettingsController {
   async index({ response }: HttpContext) {
@@ -67,6 +69,14 @@ export default class AdminSettingsController {
 
     return response.ok({
       total: Number(totalUsers[0].$extras.total),
+    })
+  }
+
+  async countFacilities({ response }: HttpContext) {
+    const result = await db.from('accommodations').count('* as total')
+
+    return response.ok({
+      total: Number(result[0].total),
     })
   }
 }

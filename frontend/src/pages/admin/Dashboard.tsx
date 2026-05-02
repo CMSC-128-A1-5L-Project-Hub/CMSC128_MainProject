@@ -1,23 +1,28 @@
 import React, { useEffect, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
-import Sidebar from "../../components/Sidebar"
-import Button from "../../components/Button"
 import { api } from "../../api/axios"
+// IMPORTS OF COMPONENTS
+import Sidebar from "../../components/Sidebar"
+import HeroBanner from "@/components/dashboard/HeroBanner"
+import Card from "@/components/ui/Card"
+import RecentActivityLogs from "@/components/dashboard/admin/RecentActivityLogs"
+import StudentVerifications from "@/components/dashboard/admin/StudentVerifications"
+import HousingAdminVerifications from "@/components/dashboard/admin/HousingAdminVerifications"
+import PendingAccommodations from "@/components/dashboard/admin/PendingAccommodations"
+import SystemSettings from "@/components/dashboard/admin/SystemSettings"
+import ActivityLogs from "@/components/dashboard/admin/ActivityLogs"
 
-// bahala na kayo sa design bye
 const AdminDashboard = () => {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   const [academicYear, setAcademicYear] = useState("")
   const [semester, setSemester] = useState("")
-
   const [filterDate, setFilterDate] = useState("")
   const [filterAction, setFilterAction] = useState("")
-
   const [verifyingUserId, setVerifyingUserId] = useState<number | null>(null)
-
-  const navigate = useNavigate()
+  const [verifyingAccommodationId, setVerifyingAccommodationId] = useState<number | null>(null)
 
   const {
     data: user,
@@ -27,14 +32,11 @@ const AdminDashboard = () => {
     queryKey: ["me"],
     queryFn: async () => {
       const res = await api.get("/me")
-      console.log("GET /me:", res.data)
       return res.data
     },
-    // don't retry the "me" endpoint endlessly if it fails
-    retry: false, 
-  });
+    retry: false,
+  })
 
-  // Pending users
   const {
     data: pendingUsersRaw,
     isLoading: isPendingLoading,
@@ -43,12 +45,10 @@ const AdminDashboard = () => {
     queryKey: ["admin-pending-users"],
     queryFn: async () => {
       const res = await api.get("/admin/users/pending")
-      console.log("pending users:", res.data)
       return res.data
     },
   })
 
-  // Settings
   const {
     data: settings,
     isLoading: isSettingsLoading,
@@ -57,7 +57,6 @@ const AdminDashboard = () => {
     queryKey: ["admin-settings"],
     queryFn: async () => {
       const res = await api.get("/admin/settings")
-      console.log("settings:", res.data)
       return res.data
     },
   })
@@ -70,19 +69,18 @@ const AdminDashboard = () => {
     queryKey: ["admin-total-users"],
     queryFn: async () => {
       const res = await api.get("/admin/users/count")
-      console.log("total users:", res.data)
       return res.data
     },
   })
 
   const {
-    data: availableRoomsData,
-    isLoading: isRoomsLoading,
-    isError: isRoomsError,
+    data: facilitiesData,
+    isLoading: isFacilitiesLoading,
+    isError: isFacilitiesError,
   } = useQuery({
-    queryKey: ["admin-available-rooms"],
+    queryKey: ["admin-facilities-count"],
     queryFn: async () => {
-      const res = await api.get("/admin/rooms/available/count")
+      const res = await api.get("/admin/facilities/count")
       return res.data
     },
   })
@@ -92,15 +90,14 @@ const AdminDashboard = () => {
     isLoading: isRecentLogsLoading,
     isError: isRecentLogsError,
   } = useQuery({
-    queryKey: ["admin-logs"],
+    queryKey: ["admin-recent-logs"],
     queryFn: async () => {
       const res = await api.get("/admin/logs")
-      console.log("logs:", res.data)
       return res.data
     },
   })
 
-    const {
+  const {
     data: logs,
     isLoading: isLogsLoading,
     isError: isLogsError,
@@ -109,36 +106,11 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const params: any = {}
 
-      if (filterDate) {
-      params.date = filterDate
-    }
-
-      if (filterAction) {
-        params.entity_type = filterAction
-      }
+      if (filterDate) params.date = filterDate
+      if (filterAction) params.entity_type = filterAction
 
       const res = await api.get("/admin/logs", { params })
       return res.data
-    },
-  })
-
-  const updateSettingsMutation = useMutation({
-    mutationFn: async () => {
-      const semesterMapReverse: Record<string, string> = {
-        "1st Semester": "first_sem",
-        "2nd Semester": "second_sem",
-        "Midyear": "midyear",
-      }
-
-      const res = await api.put("/admin/settings", {
-        currentSy: academicYear,
-        currentSemester: semesterMapReverse[semester] ?? semester,
-      })
-
-      return res.data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-settings"] })
     },
   })
 
@@ -153,23 +125,23 @@ const AdminDashboard = () => {
     },
   })
 
-  const pendingAccommodations = Array.isArray(pendingAccommodationsRaw)
-    ? pendingAccommodationsRaw
-    : []
+  const updateSettingsMutation = useMutation({
+    mutationFn: async () => {
+      const semesterMapReverse: Record<string, string> = {
+        "1st Semester": "first_sem",
+        "2nd Semester": "second_sem",
+        Midyear: "midyear",
+      }
 
-  const [verifyingAccommodationId, setVerifyingAccommodationId] = useState<number | null>(null)
+      const res = await api.put("/admin/settings", {
+        currentSy: academicYear,
+        currentSemester: semesterMapReverse[semester] ?? semester,
+      })
 
-  const verifyAccommodationMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      setVerifyingAccommodationId(id)
-      const res = await api.patch(`/admin/accommodations/${id}/verify`, { status })
       return res.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-accommodations"] })
-    },
-    onSettled: () => {
-      setVerifyingAccommodationId(null)
+      queryClient.invalidateQueries({ queryKey: ["admin-settings"] })
     },
   })
 
@@ -182,9 +154,11 @@ const AdminDashboard = () => {
       roleToAssign: "student" | "landlord"
     }) => {
       setVerifyingUserId(userId)
+
       const res = await api.patch(`/admin/users/${userId}/verify`, {
         roleToAssign,
       })
+
       return res.data
     },
     onSuccess: () => {
@@ -196,10 +170,34 @@ const AdminDashboard = () => {
     },
   })
 
+  const verifyAccommodationMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      setVerifyingAccommodationId(id)
+
+      const res = await api.patch(`/admin/accommodations/${id}/verify`, {
+        status,
+      })
+
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["admin-pending-accommodations"],
+      })
+    },
+    onSettled: () => {
+      setVerifyingAccommodationId(null)
+    },
+  })
+
   const pendingUsers = Array.isArray(pendingUsersRaw)
     ? pendingUsersRaw
     : Array.isArray(pendingUsersRaw?.data)
     ? pendingUsersRaw.data
+    : []
+
+  const pendingAccommodations = Array.isArray(pendingAccommodationsRaw)
+    ? pendingAccommodationsRaw
     : []
 
   const logsList = Array.isArray(logs)
@@ -208,26 +206,26 @@ const AdminDashboard = () => {
     ? logs.data
     : []
 
+  const recentLogsList = Array.isArray(recentLogs)
+    ? recentLogs
+    : Array.isArray(recentLogs?.data)
+    ? recentLogs.data
+    : []
+
   const studentPending = pendingUsers.filter(
     (item: any) => item.requestedRole === "student"
   )
 
-  const housingAdminPending  = pendingUsers.filter(
+  const housingAdminPending = pendingUsers.filter(
     (item: any) => item.requestedRole === "landlord"
   )
 
   useEffect(() => {
-    if (isError) {
-      navigate("/auth/signin")
-    }
+    if (isError) navigate("/auth/signin")
   }, [isError, navigate])
 
   useEffect(() => {
-    if (
-      user &&
-      user.role !== "manager" &&
-      user.role !== "super_admin"
-    ) {
+    if (user && user.role !== "manager" && user.role !== "super_admin") {
       navigate("/auth/signin")
     }
   }, [user, navigate])
@@ -241,38 +239,36 @@ const AdminDashboard = () => {
 
   if (isUserLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Loading...</p>
+      <div className="flex items-center justify-center h-screen bg-[#F9F4F5]">
+        <p className="text-sm text-[#6B0F2B]">Loading...</p>
       </div>
     )
   }
 
-  if (
-    !user ||
-    (user.role !== "manager" && user.role !== "super_admin")
-  ) {
+  if (!user || (user.role !== "manager" && user.role !== "super_admin")) {
     return null
   }
 
-  // Helper
-  const formatAction = (action: string) => {
-    if (!action) return "Activity"
-
-    return action
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase())
-  }
-
-  const formatDate = (timestamp: string) => {
-    return new Date(timestamp).toLocaleDateString()
-  }
-
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString()
-  }
+  const StatCard = ({
+    label,
+    value,
+    helper,
+  }: {
+    label: string
+    value: string | number
+    helper?: string
+  }) => (
+    <Card className="shadow-sm">
+      <p className="text-xs font-semibold tracking-widest text-gray-500">
+        {label}
+      </p>
+      <p className="mt-3 text-3xl font-bold text-[#2A0410]">{value}</p>
+      {helper && <p className="mt-1 text-xs text-gray-500">{helper}</p>}
+    </Card>
+  )
 
   return (
-    <div className="flex flex-col lg:flex-row bg-[#f5f5f5] min-h-screen">
+    <div className="flex min-h-screen bg-[#F9F4F5]">
       <Sidebar
         role={user?.role}
         profile={{
@@ -282,481 +278,146 @@ const AdminDashboard = () => {
         }}
       />
 
-      <div className="flex-1 p-6 lg:p-10 mt-12 lg:mt-0">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold">Admin Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-2">
-            Overview of system activity and settings.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Users */}
-          <div className="bg-white rounded-xl shadow p-4">
-            <p className="text-sm text-gray-500">Total Users</p>
-            <p className="text-2xl font-bold">
-              {isTotalUsersLoading
-                ? "..."
-                : isTotalUsersError
-                ? "Error"
-                : totalUsersData?.total ?? 0}
-            </p>
-          </div>
-
-          {/* Pending Verifications */}
-          <div className="bg-white rounded-xl shadow p-4">
-            <p className="text-sm text-gray-500">Pending Verifications</p>
-            <p className="text-2xl font-bold">
-              {isPendingLoading ? "..." : isPendingError ? "Error" : pendingUsers.length}
-            </p>
-          </div>
-
-          {/* Current Academic Year */}
-          <div className="bg-white rounded-xl shadow p-4">
-            <p className="text-sm text-gray-500">Current Academic Year</p>
-            <p className="text-lg font-semibold">
-              {isSettingsLoading
-                ? "..."
-                : isSettingsError
-                ? "Error"
-                : settings
-                ? `${settings.currentSemester} A.Y. ${settings.currentSy}`
-                : "N/A"}
-            </p>
-          </div>
-
-          {/* Available Rooms */}
-          <div className="bg-white rounded-xl shadow p-4">
-            <p className="text-sm text-gray-500">Available Rooms</p>
-            <p className="text-2xl font-bold">
-              {isRoomsLoading
-                ? "..."
-                : isRoomsError
-                ? "Error"
-                : availableRoomsData?.total ?? 0}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 bg-white rounded-xl shadow p-6">
-          {/* Recent Activity Logs */}
-          <h2 className="text-lg font-semibold mb-4">Recent Activity Logs</h2>
-
-          {isRecentLogsLoading ? (
-            <p className="text-sm text-gray-500">Loading...</p>
-          ) : isRecentLogsError ? (
-            <p className="text-sm text-red-500">Error loading logs.</p>
-          ) : recentLogs.length === 0 ? (
-            <p className="text-sm text-gray-500">No activity yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <div className="max-h-[300px] overflow-y-auto border rounded-lg">
-                <table className="min-w-full text-sm">
-                  {/* HEADER */}
-                  <thead className="bg-gray-100 sticky top-0">
-                    <tr>
-                      <th className="text-left px-4 py-2 font-medium border-b">
-                        Action
-                      </th>
-                      <th className="text-left px-4 py-2 font-medium border-b">
-                        Details
-                      </th>
-                      <th className="text-left px-4 py-2 font-medium border-b">
-                        Date
-                      </th>
-                      <th className="text-left px-4 py-2 font-medium border-b">
-                        Time
-                      </th>
-                    </tr>
-                  </thead>
-
-                  {/* BODY */}
-                  <tbody>
-                    {recentLogs.map((log: any) => (
-                      <tr key={log.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 border-b">
-                          {formatAction(log.activityType)}
-                        </td>
-
-                        <td className="px-4 py-2 border-b text-gray-600">
-                          {log.activityDetails}
-                        </td>
-
-                        <td className="px-4 py-2 border-b">
-                          {formatDate(log.logTimestamp)}
-                        </td>
-
-                        <td className="px-4 py-2 border-b">
-                          {formatTime(log.logTimestamp)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* STUDENT VERIFICATIONS */}
-          <div className="bg-white rounded-xl shadow p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Student Verifications</h2>
-              <button className="text-sm text-red-600 hover:underline">
-                View all →
-              </button>
-            </div>
-
-            {isPendingLoading ? (
-              <p className="text-sm text-gray-500">Loading...</p>
-            ) : studentPending.length === 0 ? (
-              <p className="text-sm text-gray-500">No pending students.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <div className="max-h-[260px] overflow-y-auto border rounded-lg">
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-gray-100 sticky top-0">
-                      <tr>
-                        <th className="text-left px-4 py-2 font-medium border-b">
-                          Student
-                        </th>
-                        <th className="text-left px-4 py-2 font-medium border-b">
-                          Applied
-                        </th>
-                        <th className="text-left px-4 py-2 font-medium border-b">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {studentPending.slice(0, 5).map((item: any) => (
-                        <tr key={item.user.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 border-b">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-red-700 rounded-md"></div>
-                              <div>
-                                <p className="font-medium">
-                                  {`${item.user.fname} ${item.user.lname}`}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* this is alwys N/A, might need to update user model or sumn idk -w */}
-                          <td className="px-4 py-3 border-b text-gray-600">
-                            {item.user.createdAt
-                              ? new Date(item.user.createdAt).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })
-                              : "N/A"}
-                          </td>
-
-                          <td className="px-4 py-3 border-b">
-                            <button className="text-sm px-3 py-1 border rounded-md hover:bg-gray-100">
-                              Review
-                            </button>
-                            <button
-                              onClick={() =>
-                                verifyUserMutation.mutate({
-                                  userId: item.user.id,
-                                  roleToAssign: "student",
-                                })
-                              }
-                              disabled={verifyingUserId === item.user.id}
-                              className="text-sm px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-60"
-                            >
-                              {verifyingUserId === item.user.id ? "Approving..." : "Approve"}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-
-          
-          {/* LANDLORD VERIFICATIONS */}
-          <div className="bg-white rounded-xl shadow p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Housing Administrator Verifications</h2>
-              <button className="text-sm text-red-600 hover:underline">
-                View all →
-              </button>
-            </div>
-
-            {isPendingLoading ? (
-              <p className="text-sm text-gray-500">Loading...</p>
-            ) : housingAdminPending.length === 0 ? (
-              <p className="text-sm text-gray-500">No pending housing administrators.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <div className="max-h-[260px] overflow-y-auto border rounded-lg">
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-gray-100 sticky top-0">
-                      <tr>
-                        <th className="text-left px-4 py-2 font-medium border-b">
-                          Housing Administrator
-                        </th>
-                        <th className="text-left px-4 py-2 font-medium border-b">
-                          Applied
-                        </th>
-                        <th className="text-left px-4 py-2 font-medium border-b">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {housingAdminPending.slice(0, 5).map((item: any) => (
-                        <tr key={item.user.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 border-b">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-red-700 rounded-md"></div>
-                              <div>
-                                <p className="font-medium">
-                                  {`${item.user.fname} ${item.user.lname}`}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* blanko rin yah  */}
-                          <td className="px-4 py-3 border-b text-gray-600">
-                            {item.appliedAt
-                              ? new Date(item.appliedAt).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })
-                              : "N/A"}
-                          </td>
-
-                          <td className="px-4 py-3 border-b">
-                            <button className="text-sm px-3 py-1 border rounded-md hover:bg-gray-100">
-                              Review
-                            </button>
-                            
-                            <button
-                              onClick={() =>
-                                verifyUserMutation.mutate({
-                                  userId: item.user.id,
-                                  roleToAssign: "landlord",
-                                })
-                              }
-                              disabled={verifyingUserId === item.user.id}
-                              className="text-sm px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-60"
-                            >
-                              {verifyingUserId === item.user.id ? "Approving..." : "Approve"}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* PENDING ACCOMMODATION VERIFICATIONS */}
-          <div className="bg-white rounded-xl shadow p-6 mt-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Pending Accommodation Approvals</h2>
-            </div>
-
-            {isPendingAccommodationsLoading ? (
-              <p className="text-sm text-gray-500">Loading...</p>
-            ) : pendingAccommodations.length === 0 ? (
-              <p className="text-sm text-gray-500">No pending accommodations.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <div className="max-h-[260px] overflow-y-auto border rounded-lg">
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-gray-100 sticky top-0">
-                      <tr>
-                        <th className="text-left px-4 py-2 font-medium border-b">Accommodation</th>
-                        <th className="text-left px-4 py-2 font-medium border-b">Landlord</th>
-                        <th className="text-left px-4 py-2 font-medium border-b">Location</th>
-                        <th className="text-left px-4 py-2 font-medium border-b">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pendingAccommodations.map((item: any) => (
-                        <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 border-b font-medium">{item.accommodationName ?? "—"}</td>
-                          <td className="px-4 py-3 border-b text-gray-600">
-                            {item.landlord?.user
-                              ? `${item.landlord.user.fname} ${item.landlord.user.lname}`
-                              : "—"}
-                          </td>
-                          <td className="px-4 py-3 border-b text-gray-600">{item.accommodationLocation ?? "—"}</td>
-                          <td className="px-4 py-3 border-b flex gap-2">
-                            <button
-                              onClick={() => verifyAccommodationMutation.mutate({ id: item.id, status: "verified" })}
-                              disabled={verifyingAccommodationId === item.id}
-                              className="text-sm px-3 py-1 border rounded-md bg-green-50 hover:bg-green-100 text-green-700 disabled:opacity-60"
-                            >
-                              {verifyingAccommodationId === item.id ? "Approving..." : "Approve"}
-                            </button>
-                            <button
-                              onClick={() => verifyAccommodationMutation.mutate({ id: item.id, status: "rejected" })}
-                              disabled={verifyingAccommodationId === item.id}
-                              className="text-sm px-3 py-1 border rounded-md bg-red-50 hover:bg-red-100 text-red-700 disabled:opacity-60"
-                            >
-                              Reject
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">System Settings</h2>
-                <button className="text-sm text-red-600 hover:underline">
-                  View →
-                </button>
-              </div>
-
-              {isSettingsLoading ? (
-                <p className="text-sm text-gray-500">Loading...</p>
-              ) : isSettingsError ? (
-                <p className="text-sm text-red-500">Error loading settings.</p>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Academic Year
-                    </label>
-                    {/* i-type niyo na lang jusq */}
-                    <input
-                      type="text"
-                      value={academicYear}
-                      onChange={(e) => setAcademicYear(e.target.value)}
-                      className="w-full border rounded-md px-3 py-2"
-                      placeholder="2025-2026"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Semester
-                    </label>
-                    <select
-                      value={semester}
-                      onChange={(e) => setSemester(e.target.value)}
-                      className="w-full border rounded-md px-3 py-2"
-                    >
-                      <option value="">Select semester</option>
-                      <option value="1st Semester">1st Semester</option>
-                      <option value="2nd Semester">2nd Semester</option>
-                      <option value="Midyear">Midyear</option>
-                    </select>
-                  </div>
-
-                  <div className="pt-2">
-                    <button
-                      onClick={() => updateSettingsMutation.mutate()}
-                      disabled={updateSettingsMutation.isPending}
-                      className="text-sm px-4 py-2 rounded-md bg-red-700 text-white hover:bg-red-800 disabled:opacity-60"
-                    >
-                      {updateSettingsMutation.isPending ? "Updating..." : "Update"}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* ACTIVITY LOGS */}
-          <div className="bg-white rounded-xl shadow p-6">
-            <h2 className="text-lg font-semibold mb-4">Activity Logs</h2>
-
-            {/* FILTERS */}
-            <div className="flex gap-3 mb-4">
-              <input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                className="border rounded-md px-3 py-2 text-sm"
+      <main className="flex-1 p-5 lg:p-8 mt-12 lg:mt-0 overflow-x-hidden">
+        <div className="space-y-6">
+          <div className="relative pl-10 lg:pl-0 flex flex-row items-center justify-between border-b border-[#6B0F2B]/7 mb-2 pb-1">
+            <div className="flex flex-row items-center">
+              <div
+                className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
+                style={{
+                  background:
+                    'linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)',
+                }}
               />
-
-              <select
-                value={filterAction}
-                onChange={(e) => setFilterAction(e.target.value)}
-                className="border rounded-md px-3 py-2 text-sm"
-              >
-                <option value="">All Actions</option>
-                <option value="application">Application</option>
-                <option value="assignment">Assignment</option>
-                <option value="payment">Payment</option>
-                <option value="room">Room</option>
-                <option value="account">Account</option>
-              </select>
+              <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">
+                Dashboard
+              </h1>
             </div>
-
-            {/* TABLE */}
-            {isLogsLoading ? (
-              <p className="text-sm text-gray-500">Loading...</p>
-            ) : isLogsError ? (
-              <p className="text-sm text-red-500">Error loading logs.</p>
-            ) : logsList.length === 0 ? (
-              <p className="text-sm text-gray-500">No logs found.</p>
-            ) : (
-              <div className="max-h-[260px] overflow-y-auto border rounded-lg">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-gray-100 sticky top-0">
-                    <tr>
-                      <th className="text-left px-4 py-2 border-b">Action</th>
-                      <th className="text-left px-4 py-2 border-b">Details</th>
-                      <th className="text-left px-4 py-2 border-b">Date</th>
-                      <th className="text-left px-4 py-2 border-b">Time</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {logsList.map((log: any) => (
-                      <tr key={log.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 border-b">
-                          {formatAction(log.activityType)}
-                        </td>
-
-                        <td className="px-4 py-2 border-b text-gray-600">
-                          {log.activityDetails}
-                        </td>
-
-                        <td className="px-4 py-2 border-b">
-                          {formatDate(log.logTimestamp)}
-                        </td>
-
-                        <td className="px-4 py-2 border-b">
-                          {formatTime(log.logTimestamp)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
           </div>
-
-
+          <HeroBanner
+            greeting="Welcome back"
+            name={user?.fname ?? "Admin"}
+            title="Overview of UBLE's System"
+            subtitle="Manage users, accommodations, activity logs, and system settings."
+            type="full"
+          />
+          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <StatCard
+              label="Total Users"
+              value={
+                isTotalUsersLoading
+                  ? "..."
+                  : isTotalUsersError
+                  ? "Error"
+                  : totalUsersData?.total ?? 0
+              }
+              helper="Registered accounts"
+            />
+            <StatCard
+              label="Pending Users"
+              value={
+                isPendingLoading
+                  ? "..."
+                  : isPendingError
+                  ? "Error"
+                  : pendingUsers.length
+              }
+              helper="Needs verification"
+            />
+            <StatCard
+              label="Academic Term"
+              value={
+                isSettingsLoading
+                  ? "..."
+                  : isSettingsError
+                  ? "Error"
+                  : settings
+                  ? settings.currentSemester ?? "N/A"
+                  : "N/A"
+              }
+              helper={settings?.currentSy ? `A.Y. ${settings.currentSy}` : "Current setting"}
+            />
+            <StatCard
+              label="Housing Facilities"
+              value={
+                isFacilitiesLoading
+                  ? "..."
+                  : isFacilitiesError
+                  ? "Error"
+                  : facilitiesData?.total ?? 0
+              }
+              helper="Registered facilities"
+            />
+          </section>
+          {/* RECENT ACTIVITY LOGS */}
+          {/* <RecentActivityLogs
+            logs={recentLogsList}
+            isLoading={isRecentLogsLoading}
+            isError={isRecentLogsError}
+          /> */}
+          <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* STUDENT VERIFICATIONS */}
+            <StudentVerifications
+              students={studentPending}
+              isLoading={isPendingLoading}
+              verifyingUserId={verifyingUserId}
+              onApprove={(userId) =>
+                verifyUserMutation.mutate({
+                  userId,
+                  roleToAssign: "student",
+                })
+              }
+            />
+            {/* HOUSING ADMIN VERIFICATIONS */}
+            <HousingAdminVerifications
+              admins={housingAdminPending}
+              isLoading={isPendingLoading}
+              verifyingUserId={verifyingUserId}
+              onApprove={(userId) =>
+                verifyUserMutation.mutate({
+                  userId,
+                  roleToAssign: "landlord",
+                })
+              }
+            />
+          </section>
+          {/* PENDING ACCOMMODATION APPROVAL */}
+          <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <PendingAccommodations
+              accommodations={pendingAccommodations}
+              isLoading={isPendingAccommodationsLoading}
+              verifyingAccommodationId={verifyingAccommodationId}
+              onVerify={(id, status) =>
+                verifyAccommodationMutation.mutate({
+                  id,
+                  status,
+                })
+              }
+            />
+            {/* SYSTEM SETTINGS */}
+            <SystemSettings
+              academicYear={academicYear}
+              semester={semester}
+              isLoading={isSettingsLoading}
+              isError={isSettingsError}
+              isUpdating={updateSettingsMutation.isPending}
+              onAcademicYearChange={setAcademicYear}
+              onSemesterChange={setSemester}
+              onUpdate={() => updateSettingsMutation.mutate()}
+            />
+          </section>
+          {/* ACTIVITY LOGS */}
+          <ActivityLogs
+            logs={logsList}
+            isLoading={isLogsLoading}
+            isError={isLogsError}
+            filterDate={filterDate}
+            filterAction={filterAction}
+            onFilterDateChange={setFilterDate}
+            onFilterActionChange={setFilterAction}
+          />
         </div>
-      </div>
+      </main>
     </div>
   )
 }
