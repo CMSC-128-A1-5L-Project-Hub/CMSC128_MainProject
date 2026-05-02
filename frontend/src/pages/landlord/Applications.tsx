@@ -405,7 +405,7 @@ export default function Applications() {
 
   return (
     <div className="flex h-screen bg-[#F5EEF0]">
-      <Sidebar role="landlordDashboard" />
+      <Sidebar role="landlord" />
       <DrawerNav open={drawerOpen} onClose={() => setDrawerOpen(false)} activePage={activePage} setActivePage={setActivePage} />
 
       <main className="flex-1 p-4 md:p-6 overflow-y-auto">
