@@ -6,6 +6,8 @@ export class AccommodationService {
       .where('status', 'verified')
       .preload('images')
       .preload('tags')
+      .preload('bookmarks')
+      .preload('reviews')
       .preload('rooms', (roomQuery) => {
         // Apply hard filters to rooms (type, stay type, price range)
         if (filters.roomType) {

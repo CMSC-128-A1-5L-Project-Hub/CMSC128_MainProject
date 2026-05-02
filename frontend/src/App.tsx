@@ -59,7 +59,6 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/success" element={<AuthSuccess/>}/>
         <Route path="/map" element={<InteractiveMap />} />
-        <Route path="/browse" element={<BrowsePage />} />
         <Route path="/accommodations/:id" element={<FullRoomView />} />
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
@@ -71,6 +70,7 @@ function App() {
 
         {/* ── Student routes ── */}
         <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
+        <Route path="/student/browse" element={<BrowsePage />} />
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applicationstatus" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>

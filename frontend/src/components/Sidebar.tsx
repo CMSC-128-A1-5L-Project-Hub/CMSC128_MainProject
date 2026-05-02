@@ -353,10 +353,10 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     switch (role) {
       case "student":
         return [
-          { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/student/dashboard" },
-          { id: "search", label: "Browse Rooms", icon: <SearchIcon />, path: "/browse" },
-          { id: "applications", label: "Applications", icon: <ApplicationIcon />, path: "/student/applications" },
-          { id: "documents", label: "Billing", icon: <DocumentIcon />, path: "/student/billingdashboard" },
+          { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" />,           path: "/student/dashboard",          label: "Dashboard" },
+          { id: "search",       icon: <SearchIcon      className="w-[21px] h-[21px]" />, path: "/student/browse",                     label: "Browse Rooms" },
+          { id: "applications", icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/student/applicationstatus",  label: "Applications" },
+          { id: "documents",    icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/student/billingdashboard",   label: "Billing Statements" },
         ];
       case "manager":
         return [
