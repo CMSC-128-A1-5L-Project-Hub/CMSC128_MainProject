@@ -10,6 +10,7 @@ import SummaryCards from '../../components/BillingDashboard/SummaryCards';
 import SearchBar from '../../components/SearchBar';
 import { useFees } from '../../../hooks/useBillingQueries';
 import { useProfile } from '../../../hooks/useDashboardQueries';
+import CustomHeader from '../../components/CustomHeader';
 
 // ── Types ──────────────────────────────────────────────────────
 export interface Bill {
@@ -27,10 +28,76 @@ export interface Bill {
 
 // ── Component ──────────────────────────────────────────────────
 export default function BillingDashboard() {
-  const { data: bills = [], isLoading: billsLoading, isError, error } = useFees();
-  const { data: profile, isLoading: profileLoading } = useProfile();
+  // const { data: bills = [], isLoading: billsLoading, isError, error } = useFees();
+  // const { data: profile, isLoading: profileLoading } = useProfile();
 
-  const safeBills: Bill[] = Array.isArray(bills) ? bills : [];
+  // const safeBills: Bill[] = Array.isArray(bills) ? bills : [];
+
+  const bills: Bill[] = [
+      {
+          id: 1,
+          landlord_id: 1,
+          student_number: "2023-12345",
+          due_date: new Date("2026-03-20"),
+          category: "rent",
+          amount: 3200,
+          balance: 0,
+          status: "paid",
+          accommodation_name: "Kamia Residence Hall",
+      },
+      {
+          id: 2,
+          landlord_id: 1,
+          student_number: "2023-12345",
+          due_date: new Date("2026-04-20"),
+          category: "rent",
+          amount: 3200,
+          balance: 3200,
+          status: "unpaid",
+          accommodation_name: "Kamia Residence Hall",
+      },
+      {
+          id: 3,
+          landlord_id: 1,
+          student_number: "2023-12345",
+          due_date: new Date("2026-02-20"),
+          category: "utilities",
+          amount: 850,
+          balance: 425,
+          status: "partial",
+          accommodation_name: "Kamia Residence Hall",
+      },
+      {
+          id: 4,
+          landlord_id: 1,
+          student_number: "2023-12345",
+          due_date: new Date("2026-01-20"),
+          category: "rent",
+          amount: 3200,
+          balance: 3200,
+          status: "overdue",
+          accommodation_name: "Kamia Residence Hall",
+      },
+      {
+          id: 5,
+          landlord_id: 1,
+          student_number: "2023-12345",
+          due_date: new Date("2026-03-05"),
+          category: "miscellaneous",
+          amount: 500,
+          balance: 0,
+          status: "paid",
+          accommodation_name: "Kamia Residence Hall",
+      },
+  ];
+
+  const safeBills = bills;
+  const billsLoading = false;
+  const isError = false;
+  const error = null;
+
+  const profile = { fname: "Ana", lname: "Reyes" };
+  const profileLoading = false;
 
   const currentResidence = safeBills[0]?.accommodation_name ?? '—';
   const studentName = profile ? `${profile.fname} ${profile.lname}` : '';
@@ -131,139 +198,161 @@ export default function BillingDashboard() {
 
   return (
     <div className="bg-[#F5EEF0] h-screen overflow-hidden flex flex-row">
-      <hr className="fixed border-t-1 top-14 w-full border-t border-[#6B0F2B] border-opacity-10 my-3" />
-
       <Sidebar role='student' />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className='flex flex-row justify-start items-center mt-4'>
-          <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-5 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div>
-          <div className="flex flex-col justify-left gap-[1px]">
-            <h1 className='font-serif font-bold italic text-[28.5px] lg:text-[31px] text-[#6B0F2B] pl-16 lg:p-0 leading-tight -mt-2'>Billing Dashboard</h1>
-            <p className="text-[#9A7080] text-[13px] pl-16 lg:pl-0 -mt-1 lg:-mt-2">{currentResidence}</p>
-          </div>
-        </div>
-        <div className='pt-7 px-4'>
-          <HeroBanner
-            greeting="Good Day"
-            name={studentName}
-            title="Manage your billing and payments"
-            subtitle="Stay on top of your balances, track transactions, and view your payment history with ease"
-            type="mini"
-          />
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mx-4 mt-4 my-2">
-          <div className="flex items-center flex-row justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-6 col-span-2 lg:col-span-1 rounded-2xl shrink-0">
-            <div>
-              <p className="uppercase font-bold text-white text-opacity-55 text-[12px] lg:text-[13px]">pay now</p>
-              <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">
-                ₱{(nextDueBill?.amount ?? 0).toLocaleString()}
-              </h1>
-              <p className="text-white font-semibold text-opacity-55 text-[12.5px] lg:text-[13.5px]">
-                {nextDueBill?.due_date
-                  ? new Date(nextDueBill.due_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-                  : '-'}
-              </p>
-            </div>
-            <button
-              onClick={() => { if (nextDueBill) { setSelectedBill(nextDueBill); setPayOpen(true); } }}
-              className="flex shrink-0 justify-center items-center w-30 lg:w-14 h-10 flex-row text-[11px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25"
-            >
-              <p className='lg:hidden'>Pay Now</p>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4 text-[#6B0F2B] self-center ml-2 lg:m-0"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M9 18l6-6-6-6"
-                  stroke="white"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-          {summaryCards.map(card => (
-            <SummaryCards
-              key={card.label}
-              label={card.label}
-              value={card.value}
-              color={card.color}
-              sub={card.sub}
-            />
-          ))}
-        </div>
+      <div className = "flex flex-col w-full">
+          <CustomHeader 
+        title = "Billing Dashboard"></CustomHeader>
+        <div className="flex-1 flex flex-col overflow-hidden gap-4 lg:gap-6 p-4 lg:p-6">
+                {/* <div className='flex flex-row justify-start items-center mt-4'>
+                  <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-5 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div>
+                  <div className="flex flex-col justify-left gap-[1px]">
+                    <h1 className='font-serif font-bold italic text-[28.5px] lg:text-[31px] text-[#6B0F2B] pl-16 lg:p-0 leading-tight -mt-2'>Billing Dashboard</h1>
+                    <p className="text-[#9A7080] text-[13px] pl-16 lg:pl-0 -mt-1 lg:-mt-2">{currentResidence}</p>
+                  </div>
+                </div> */}
+                <div>
+                  <HeroBanner
+                    greeting="Good Day"
+                    name={studentName}
+                    title="Manage your billing and payments"
+                    subtitle="Stay on top of your balances, track transactions, and view your payment history with ease"
+                    type="mini"
+                  />
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
+                  <div className="flex items-center flex-row justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-6 col-span-2 lg:col-span-1 rounded-2xl shrink-0">
+                    <div>
+                      <p className="uppercase font-bold text-white text-opacity-55 text-[12px] lg:text-[13px]">pay now</p>
+                      <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">
+                        ₱{(nextDueBill?.amount ?? 0).toLocaleString()}
+                      </h1>
+                      <p className="text-white font-semibold text-opacity-55 text-[12.5px] lg:text-[13.5px]">
+                        {nextDueBill?.due_date
+                          ? new Date(nextDueBill.due_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                          : '-'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => { if (nextDueBill) { setSelectedBill(nextDueBill); setPayOpen(true); } }}
+                      className="flex shrink-0 justify-center items-center w-30 lg:w-14 h-10 flex-row text-[11px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25"
+                    >
+                      <p className='lg:hidden'>Pay Now</p>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-4 h-4 text-[#6B0F2B] self-center ml-2 lg:m-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M9 18l6-6-6-6"
+                          stroke="white"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  {summaryCards.map(card => (
+                    <SummaryCards
+                      key={card.label}
+                      label={card.label}
+                      value={card.value}
+                      color={card.color}
+                      sub={card.sub}
+                    />
+                  ))}
+                </div>
 
-        <div className="flex-1 min-h-0 flex flex-col bg-white mx-4 mt-2 mb-4 rounded-2xl p-6">
-          <div className='flex flex-row justify-between'>
-            <div>
-              <p className='font-bold'>Billing History</p>
-              <p className='italic text-[11px] lg:text-[12px]'>{safeBills.length} total bills</p>
-            </div>
-            <div className='flex flex-row gap-2'>
-              <Dropdown
-                title="Sort by"
-                items={[
-                  { label: "Status", href: "" },
-                  { label: "Date issued (Asc.)", href: "" },
-                  { label: "Date issued (Desc.)", href: "" },
-                  { label: "Amount (Asc.)", href: "" },
-                  { label: "Amount (Desc.)", href: "" },
-                ]}
-                direction="down"
-                widthClass="w-32 lg:w-44"
-                titleClass="text-[10px] lg:text-[11px]"
-                selectedClass="text-[12px] lg:text-[13px]"
-                onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
-              />
-              <SearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
-                onPageReset={() => setCurrentPage(1)}
-              />
-            </div>
-          </div>
+                <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl p-6">
+                  <div className='flex flex-row justify-between'>
+                    <div>
+                      <p className='font-bold'>Billing History</p>
+                      <p className='italic text-[11px] lg:text-[12px]'>{safeBills.length} total bills</p>
+                    </div>
+                    <div className='flex flex-row gap-2'>
+                      <div className='hidden lg:block'>
+                        <Dropdown
+                            title="No. of Items"
+                            items={[
+                                { label: "5", href: "" },
+                                { label: "10", href: "" },
+                                { label: "15", href: "" },
+                                { label: "20", href: "" },
+                            ]}
+                            direction='down'
+                            widthClass="w-29 lg:w-32"
+                            titleClass="text-[10px] lg:text-[11px]"
+                            selectedClass="text-[12px] lg:text-[13px]"
+                            onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
+                        />
+                    </div>
+                      <Dropdown
+                        title="Sort by"
+                        items={[
+                          { label: "Status", href: "" },
+                          { label: "Date issued (Asc.)", href: "" },
+                          { label: "Date issued (Desc.)", href: "" },
+                          { label: "Amount (Asc.)", href: "" },
+                          { label: "Amount (Desc.)", href: "" },
+                        ]}
+                        direction="down"
+                        widthClass="w-32 lg:w-44"
+                        titleClass="text-[10px] lg:text-[11px]"
+                        selectedClass="text-[12px] lg:text-[13px]"
+                        onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
+                      />
+                      <SearchBar
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        onPageReset={() => setCurrentPage(1)}
+                      />
+                    </div>
+                  </div>
 
-          <div className='overflow-auto flex-1 min-h-0 mt-3 rounded-t-lg'>
-            <BillingTable
-              bills={paginated}
-              onPay={(bill) => { setSelectedBill(bill); setPayOpen(true); }}
-            />
-          </div>
-          <hr className="border-[#6B0F2B]/5 border-t-2"/>
+                  <div className='overflow-auto flex-1 min-h-0 mt-3 rounded-t-lg'>
+                    <BillingTable
+                      bills={paginated}
+                      onPay={(bill) => { setSelectedBill(bill); setPayOpen(true); }}
+                    />
+                  </div>
+                  <hr className="border-[#6B0F2B]/5 border-t-2"/>
 
-          <div className='flex flex-nowrap justify-between'>
-            <div className='flex justify-start items-center gap-2'>
-              <div className='m-1 mt-4'>
-                <Dropdown
-                  title="No. of Items"
-                  items={[
-                    { label: "5", href: "" },
-                    { label: "10", href: "" },
-                    { label: "15", href: "" },
-                    { label: "20", href: "" },
-                  ]}
-                  direction='up'
-                  widthClass="w-29 lg:w-32"
-                  titleClass="text-[10px] lg:text-[12px]"
-                  selectedClass="text-[12px] lg:text-[14px]"
-                  onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                />
+                  <div className='flex flex-nowrap justify-between'>
+                    <div className='flex justify-start items-center gap-2'>
+                      <div className='m-1 mt-4 lg:hidden'>
+                        <Dropdown
+                          title="No. of Items"
+                          items={[
+                            { label: "5", href: "" },
+                            { label: "10", href: "" },
+                            { label: "15", href: "" },
+                            { label: "20", href: "" },
+                          ]}
+                          direction='up'
+                          widthClass="w-29 lg:w-32"
+                          titleClass="text-[10px] lg:text-[12px]"
+                          selectedClass="text-[12px] lg:text-[14px]"
+                          onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
+                        />
+                      </div>
+                      <span className='text-[11px] text-[#9A7080] p-0 mt-2 m-0'>
+                        Showing {safeBills.length === 0 ? 0 : (currentPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center m-2 mt-6 text-sm text-[#9A7080]">
+                      <div className="flex gap-2 text-[12px] lg:text-[15px]">
+                        <Pagination totalPages={totalPages} currentPage={currentPage} onPageChange={setCurrentPage} buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8' />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <span className='text-[11px] text-[#9A7080] p-0 mt-2 m-0'>
-                Showing {(currentPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}
-              </span>
-            </div>
-            <div className="flex justify-between items-center m-2 mt-6 text-sm text-[#9A7080]">
-              <div className="flex gap-2 text-[12px] lg:text-[15px]">
-                <Pagination totalPages={totalPages} currentPage={currentPage} onPageChange={setCurrentPage} buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8' />
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
+      
+      {/* <hr className="fixed border-t-1 top-14 w-full border-t border-[#6B0F2B] border-opacity-10 my-3" /> */}
+
+      
 
       {payOpen && selectedBill && (
         <BillingModal

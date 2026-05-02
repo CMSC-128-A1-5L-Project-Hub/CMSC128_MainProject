@@ -39,7 +39,7 @@ export default function SearchBar({value, onChange, onPageReset} : SearchBarProp
                         className={`bg-[#FAF4F6] text-[12px] lg:text-[13px] px-1 outline-none transition-all duration-300 ${searchOpen ? 'w-full opacity-100' : 'w-0 opacity-0'}`} />
                 </div>
             </div>
-            <button className="lg:hidden border-2 p-1 px-2 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px]" onClick={() => setSearchOpen(true)}>
+            <button className="lg:hidden border-2 px-2 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px]" onClick={() => setSearchOpen(true)}>
                 <SearchIcon />
             </button>
             {searchOpen && (

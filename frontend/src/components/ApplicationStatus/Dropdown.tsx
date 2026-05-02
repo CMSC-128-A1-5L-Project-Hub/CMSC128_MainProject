@@ -23,11 +23,11 @@ export default function Dropdown({ title, items, onSelect, direction = "down", w
   }, []);
 
   return (
-    <div className="relative">
+    <div className="relative h-12">
       <button
         onClick={() => setOpen(!open)}
         type="button"
-        className={`px-2 py-1 border-2 lg:border-3 border-[#6B0F2B] border-opacity-10 bg-white rounded-[8.8px] flex items-center justify-between gap-4 ${widthClass}`}
+        className={`h-full px-2 py-1 border-2 lg:border-3 border-[#6B0F2B] border-opacity-10 bg-white rounded-[8.8px] flex items-center justify-between gap-4 ${widthClass}`}
       >
         <div className="flex flex-col items-start overflow-hidden w-full">
           <span className={`${titleClass} text-[#9A7080] uppercase`}>{title}</span>
@@ -50,7 +50,7 @@ export default function Dropdown({ title, items, onSelect, direction = "down", w
                     setOpen(false); 
                     onSelect?.(item.label);
                   }}
-                  className="text-[12px] block p-2 justify-start hover:bg-gray-100 rounded w-50"
+                  className="text-[12px] block p-2 justify-start hover:bg-[#6B0F2B] hover:text-white transition-all rounded w-50"
                 >
                   {item.label}
                 </a>

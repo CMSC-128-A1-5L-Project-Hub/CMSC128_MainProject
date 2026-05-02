@@ -5,6 +5,7 @@ import Pagination from '../../components/ApplicationStatus/Pagination';
 import Sidebar from '../../components/Sidebar';
 import ApplicationTable from '../../components/ApplicationStatus/ApplicationTable';
 import HeroBanner from '../../components/dashboard/HeroBanner';
+import CustomHeader from '../../components/CustomHeader';
 import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
 import SearchBar from '../../components/SearchBar';
 import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
@@ -42,10 +43,82 @@ export default function ApplicationStatusPage() {
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
     // Data fetching - using the real API
-    const { data: applications = [], isLoading, isError } = useQuery({
-        queryKey: ["applications"],
-        queryFn: fetchApplications,
-    });
+    // const { data: applications = [], isLoading, isError } = useQuery({
+    //     queryKey: ["applications"],
+    //     queryFn: fetchApplications,
+    // });
+
+    const { data: applications = [], isLoading, isError } = {
+        data: [
+            {
+                id: 1,
+                applicationDate: "2026-03-12T00:00:00.000Z",
+                applicationStatus: "approved",
+                applicationRoomType: "single",
+                applicationStayType: "non_transient",
+                rejectionReason: null,
+                accommodation: {
+                    accommodationName: "Kamia Residence Hall",
+                    accommodationLocation: "UPLB Campus, Los Baños",
+                    accommodationType: "on-campus",
+                },
+            },
+            {
+                id: 2,
+                applicationDate: "2026-03-14T00:00:00.000Z",
+                applicationStatus: "pending",
+                applicationRoomType: "shared",
+                applicationStayType: "non_transient",
+                rejectionReason: null,
+                accommodation: {
+                    accommodationName: "Molave Residence Hall",
+                    accommodationLocation: "Off-campus, Los Baños",
+                    accommodationType: "off-campus",
+                },
+            },
+            {
+                id: 3,
+                applicationDate: "2026-03-15T00:00:00.000Z",
+                applicationStatus: "under_review",
+                applicationRoomType: "single",
+                applicationStayType: "transient",
+                rejectionReason: null,
+                accommodation: {
+                    accommodationName: "Narra Residence",
+                    accommodationLocation: "Near Gate 1, Los Baños",
+                    accommodationType: "off-campus",
+                },
+            },
+            {
+                id: 4,
+                applicationDate: "2026-02-20T00:00:00.000Z",
+                applicationStatus: "rejected",
+                applicationRoomType: "shared",
+                applicationStayType: "non_transient",
+                rejectionReason: "Room no longer available for the requested period.",
+                accommodation: {
+                    accommodationName: "Acacia Suites",
+                    accommodationLocation: "Batong Malake, Los Baños",
+                    accommodationType: "partner_housing",
+                },
+            },
+            {
+                id: 5,
+                applicationDate: "2026-01-10T00:00:00.000Z",
+                applicationStatus: "waitlisted",
+                applicationRoomType: "studio",
+                applicationStayType: "non_transient",
+                rejectionReason: null,
+                accommodation: {
+                    accommodationName: "Kalikasan Suites",
+                    accommodationLocation: "Umali Subdivision, Los Baños",
+                    accommodationType: "off-campus",
+                },
+            },
+        ] as Application[],
+        isLoading: false,
+        isError: false,
+    };
     
     const sortedApplications = useMemo(() => {
         const q = searchQuery.toLowerCase();
@@ -103,148 +176,135 @@ export default function ApplicationStatusPage() {
 
     return (
         <div className="bg-[#F5EEF0] h-screen overflow-hidden flex flex-row">
-            <hr className="fixed border-t-1 top-16 w-full border-t border-[#6B0F2B] border-opacity-10 my-1" />
-
             <Sidebar role='student' />
+            <div className = "flex flex-col overflow-hidden w-full">
+                <CustomHeader
+                    title="Application Dashboard"></CustomHeader>
+                <div className="flex-1 flex flex-col overflow-hidden gap-4 lg:gap-6 p-4 lg:p-6">
+                    <div>
+                        <HeroBanner
+                            greeting={heroContent.greeting}
+                            name={heroContent.name}
+                            title={heroContent.title}
+                            subtitle={heroContent.subtitle}
+                            type="mini"
+                        />
+                    </div>
+                    
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <div className='flex flex-row justify-start items-center mt-3'>
-                    <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-5 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div>
-                    <h1 className='font-serif font-bold italic text-[32px] lg:text-[33px] text-[#6B0F2B] pl-16 lg:p-0'>Application Dashboard</h1>
-                </div>
+                    <StatsBanner stats={stats} total={trueTotal} />
 
-                <div className='pt-6 px-4'>
-                    <HeroBanner
-                        greeting={heroContent.greeting}
-                        name={heroContent.name}
-                        title={heroContent.title}
-                        subtitle={heroContent.subtitle}
-                        type="mini"
+                    <div className="bg-white rounded-xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
+                        <div className='flex justify-between items-center pb-2 lg:pb-4'>
+                            <div>
+                                <h1 className='font-bold -mt-1'>Application History</h1>
+                                <p className='italic text-[11px] lg:text-[12px]'>{totalApps} total applications</p>
+                            </div>
+
+                            <div className='flex flex-row gap-2'>
+                                <div className='hidden lg:block'>
+                                    <Dropdown
+                                        title="No. of Items"
+                                        items={[
+                                            { label: "5", href: "" },
+                                            { label: "10", href: "" },
+                                            { label: "15", href: "" },
+                                            { label: "20", href: "" },
+                                        ]}
+                                        direction='down'
+                                        widthClass="w-29 lg:w-32"
+                                        titleClass="text-[10px] lg:text-[11px]"
+                                        selectedClass="text-[12px] lg:text-[13px]"
+                                        onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
+                                    />
+                                </div>
+                                <Dropdown
+                                    title="Sort by"
+                                    items={[
+                                        { label: "Date applied (Asc.)", href: "" },
+                                        { label: "Date applied (Desc.)", href: "" },
+                                        { label: "Status", href: "" },
+                                    ]}
+                                    direction="down"
+                                    widthClass="w-32 lg:w-44"
+                                    titleClass="text-[10px] lg:text-[11px]"
+                                    selectedClass="text-[12px] lg:text-[13px]"
+                                    onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
+                                />
+                                <div className="flex items-center gap-2 lg:gap-3">
+                                    <SearchBar
+                                        value={searchQuery}
+                                        onChange={setSearchQuery}
+                                        onPageReset={() => setCurrentPage(1)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="overflow-auto flex-1 min-h-0 mt-1 rounded-t-lg">
+                            {isLoading ? (
+                                <div className="flex justify-center items-center h-full">
+                                    <p className="text-gray-400 font-medium text-center animate-pulse">
+                                        Loading your applications...
+                                    </p>
+                                </div>
+                            ) : isError ? (
+                                <div className="flex justify-center items-center h-full">
+                                    <p className="text-red-500 font-medium text-center">
+                                        Failed to load applications. Please check your connection.
+                                    </p>
+                                </div>
+                            ) : applications.length === 0 ? (
+                                <div className="flex flex-col justify-center items-center h-full text-center">
+                                    <p className="text-gray-500 font-medium text-lg">No applications found.</p>
+                                    <p className="text-gray-400 text-sm mt-1">When you apply for an accommodation, it will appear here.</p>
+                                </div>
+                            ) : (
+                                <ApplicationTable
+                                    applications={tableApplications}
+                                    onView={(app) => { 
+                                        // Find the original app so the modal displays the full text
+                                        const originalApp = applications.find(a => a.id === app.id) || app;
+                                        setSelectedApp(originalApp); 
+                                        setViewOpen(true); 
+                                    }}
+                                />
+                            )}
+                        </div>
+                        <hr className=" border-[#6B0F2B]/5 border-t-2" />
+
+                        <div className='flex flex-nowrap justify-between'>
+                            <div className='flex justify-start flex-col gap-2'>
+                                <div className='flex flex-col items-start justify-start'>
+                                    <span className='text-[11px] lg:text-[13px] text-[#9A7080] p-0 mt-4 m-0'>
+                                        Showing {totalApps === 0 ? 0 : (currentPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between items-center m-2 mt-4 lg:mt-6 text-sm text-[#9A7080]">
+                                <div className={applications.length > 0 ? 'flex gap-2 text-[12px] lg:text-[15px]' : 'hidden'}>
+                                    <Pagination
+                                        totalPages={totalPages}
+                                        currentPage={currentPage}
+                                        onPageChange={setCurrentPage}
+                                        buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8'
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Modal */}
+                    <ApplicationStatusModal
+                        open={viewOpen}
+                        onClose={() => { setViewOpen(false); setSelectedApp(null); }}
+                        application={selectedApp}
                     />
                 </div>
-
-                <StatsBanner stats={stats} total={trueTotal} />
-
-                <div className="bg-white mx-4 my-0 rounded-xl mb-4 p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
-                    <div className='flex justify-between items-center pb-2 lg:pb-4'>
-                        <div>
-                            <h1 className='font-bold -mt-1'>Application History</h1>
-                            <p className='italic text-[11px] lg:text-[12px]'>{totalApps} total applications</p>
-                        </div>
-
-                        <div className='flex flex-row gap-2'>
-                            <Dropdown
-                                title="No. of Items"
-                                items={[
-                                    { label: "5", href: "" },
-                                    { label: "10", href: "" },
-                                    { label: "15", href: "" },
-                                    { label: "20", href: "" },
-                                ]}
-                                direction='down'
-                                widthClass="w-29 lg:w-32"
-                                titleClass="text-[10px] lg:text-[11px]"
-                                selectedClass="text-[12px] lg:text-[13px]"
-                                onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                            />
-                            <Dropdown
-                                title="Sort by"
-                                items={[
-                                    { label: "Date applied (Asc.)", href: "" },
-                                    { label: "Date applied (Desc.)", href: "" },
-                                    { label: "Status", href: "" },
-                                ]}
-                                direction="down"
-                                widthClass="w-32 lg:w-44"
-                                titleClass="text-[10px] lg:text-[11px]"
-                                selectedClass="text-[12px] lg:text-[13px]"
-                                onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
-                            />
-                            <div className="flex items-center gap-2 lg:gap-3">
-                                <SearchBar
-                                    value={searchQuery}
-                                    onChange={setSearchQuery}
-                                    onPageReset={() => setCurrentPage(1)}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="overflow-auto flex-1 min-h-0 mt-1 rounded-t-lg">
-                        {isLoading ? (
-                            <div className="flex justify-center items-center h-full">
-                                <p className="text-gray-400 font-medium text-center animate-pulse">
-                                    Loading your applications...
-                                </p>
-                            </div>
-                        ) : isError ? (
-                            <div className="flex justify-center items-center h-full">
-                                <p className="text-red-500 font-medium text-center">
-                                    Failed to load applications. Please check your connection.
-                                </p>
-                            </div>
-                        ) : applications.length === 0 ? (
-                            <div className="flex flex-col justify-center items-center h-full text-center">
-                                <p className="text-gray-500 font-medium text-lg">No applications found.</p>
-                                <p className="text-gray-400 text-sm mt-1">When you apply for an accommodation, it will appear here.</p>
-                            </div>
-                        ) : (
-                            <ApplicationTable
-                                applications={tableApplications}
-                                onView={(app) => { 
-                                    // Find the original app so the modal displays the full text
-                                    const originalApp = applications.find(a => a.id === app.id) || app;
-                                    setSelectedApp(originalApp); 
-                                    setViewOpen(true); 
-                                }}
-                            />
-                        )}
-                    </div>
-                    <hr className=" border-[#6B0F2B]/5 border-t-2" />
-
-                    <div className='flex flex-nowrap justify-between'>
-                        <div className='flex justify-start flex-col gap-2'>
-                            <div className='flex flex-col items-start justify-start'>
-                                <span className='text-[11px] lg:text-[13px] text-[#9A7080] p-0 mt-4 m-0'>
-                                    Showing {totalApps === 0 ? 0 : (currentPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}
-                                </span>
-                            </div>
-                            <button className='text-[#6B0F2B] -mt-1 p-0 text-[14px] flex flex-row items-center'>
-                                View all
-                                <svg
-                                    className='w-4 h-4'
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                                    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-                                    <g id="SVGRepo_iconCarrier"> <path fillRule="evenodd" clipRule="evenodd" d="M12.2929 4.29289C12.6834 3.90237 13.3166 3.90237 13.7071 4.29289L20.7071 11.2929C21.0976 11.6834 21.0976 12.3166 20.7071 12.7071L13.7071 19.7071C13.3166 20.0976 12.6834 20.0976 12.2929 19.7071C11.9024 19.3166 11.9024 18.6834 12.2929 18.2929L17.5858 13H4C3.44772 13 3 12.5523 3 12C3 11.4477 3.44772 11 4 11H17.5858L12.2929 5.70711C11.9024 5.31658 11.9024 4.68342 12.2929 4.29289Z" fill="#6B0F2B">
-                                    </path>
-                                    </g>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="flex justify-between items-center m-2 mt-4 lg:mt-6 text-sm text-[#9A7080]">
-                            <div className="flex gap-2 text-[12px] lg:text-[15px]">
-                                <Pagination
-                                    totalPages={totalPages}
-                                    currentPage={currentPage}
-                                    onPageChange={setCurrentPage}
-                                    buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8'
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Modal */}
-                <ApplicationStatusModal
-                    open={viewOpen}
-                    onClose={() => { setViewOpen(false); setSelectedApp(null); }}
-                    application={selectedApp}
-                />
+            
             </div>
+            
         </div>
     )
 }

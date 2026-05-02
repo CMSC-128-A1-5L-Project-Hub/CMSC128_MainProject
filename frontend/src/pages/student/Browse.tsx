@@ -4,6 +4,15 @@ import DormCard from "../../components/DormCardBrowse";
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { Star } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
+import CustomHeader from '../../components/CustomHeader';
+import HeroBanner from "@/components/dashboard/HeroBanner";
+
+interface HeroContent {
+    greeting: string;
+    name: string;
+    title: string;
+    subtitle: string;
+}
 
 type Dorm = {
     name: string;
@@ -105,7 +114,7 @@ const MOCK_ACCOMMODATIONS: AccommodationPin[] = [
 
 function SearchBar() {
     return <div className="w-full max-w-5xl mx-auto">
-        <div className="flex items-center bg-white rounded-lg shadow-md px-4 py-2 border border-gray-200">
+        <div className="flex items-center bg-white rounded-2xl shadow-md px-4 py-2 border border-gray-200">
             <div className="flex items-center flex-1 space-x-2">
 
                 <svg className="w-5 h-5 text-[#8A2A45]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -116,7 +125,7 @@ function SearchBar() {
                 <input
                     type="text"
                     placeholder="Search dormitory name"
-                    className="w-full outline-none text-gray-700 placeholder-[#C8B0B8]"
+                    className="w-full outline-none text-gray-700 rounded-xl placeholder-[#C8B0B8]"
                 />
             </div>
 
@@ -570,6 +579,13 @@ function DualRangeSlider({
 
 
 export default function BrowsePage() {
+    const heroContent: HeroContent = {
+        name: "Ana Reyes",
+        greeting: "Good Day",
+        title: "Browse available rooms",
+        subtitle: "Browse available accommodations and apply in just a few clicks",
+    }; 
+    
     const [dorms, setDorms] = useState<{ [key: number]: Dorm[] }>(
         {
             0: [
@@ -647,25 +663,21 @@ export default function BrowsePage() {
             <div className="relative z-[9999]">
                 <Sidebar role="student" />
             </div>
-            <div className="flex flex-col items-start w-full min-h-screen">
+            <div className="flex flex-col items-start w-full min-w-0 min-h-screen">
 
-                <div className="w-full px-2 py-4 flex items-center justify-start gap-2">
-                    <div className="w-2 h-10 bg-[#7A0F23] rounded-full"></div>
-                    <h1 className="text-3xl md:text-4xl font-serif italic font-bold text-[#7A0F23]">
-                        Browse Rooms
-                    </h1>
-                </div>
+                <CustomHeader
+                    title="Browse Rooms"></CustomHeader>
 
-                <div className="flex flex-col w-full p-2 items-center">
-                    <div className="flex flex-col w-full h-full justify-center items-start p-2 rounded-lg bg-gradient-to-r from-[#4A0E1C] via-[#7A162D] to-[#4A0E1C] shadow-lg">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400/80">
-                            Good Day, User
-                        </span>
-                        <h2 className="font-semibold tracking-tight text-white">
-                            Check out new accommodations
-                        </h2>
-                    </div>
+                <div className="w-full p-6 px-4">
+                    <HeroBanner
+                        greeting={heroContent.greeting}
+                        name={heroContent.name}
+                        title={heroContent.title}
+                        subtitle={heroContent.subtitle}
+                        type="mini"
+                    />
                 </div>
+                
 
                 <div className="flex flex-wrap justify-center items-start w-full gap-2 md:gap-0">
 
@@ -832,8 +844,8 @@ export default function BrowsePage() {
                     </div>
 
                     {/* second half */}
-                    <div className="flex justify-center items-start w-full h-[70%] md:w-1/2 md:h-full shrink-0 relative z-50 bg-[radial-gradient(circle_at_center,#F5EEF0)]">
-                        <div className="flex flex-col justify-center items-center bg-white rounded-lg p-4 shadow-md w-[90%] h-full gap-2">
+                    <div className="flex justify-center rounded-xl items-start w-full h-[70%] md:w-1/2 md:h-full shrink-0 relative z-50 bg-[radial-gradient(circle_at_center,#F5EEF0)]">
+                        <div className="flex flex-col justify-center items-center bg-white rounded-2xl p-4 shadow-md w-[90%] h-full gap-2">
 
                             <AccommodationMap
                                 accommodations={filtered}
