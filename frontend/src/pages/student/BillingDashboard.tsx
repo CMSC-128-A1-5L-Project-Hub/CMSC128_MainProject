@@ -28,76 +28,10 @@ export interface Bill {
 
 // ── Component ──────────────────────────────────────────────────
 export default function BillingDashboard() {
-  // const { data: bills = [], isLoading: billsLoading, isError, error } = useFees();
-  // const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: bills = [], isLoading: billsLoading, isError, error } = useFees();
+  const { data: profile, isLoading: profileLoading } = useProfile();
 
-  // const safeBills: Bill[] = Array.isArray(bills) ? bills : [];
-
-  const bills: Bill[] = [
-      {
-          id: 1,
-          landlord_id: 1,
-          student_number: "2023-12345",
-          due_date: new Date("2026-03-20"),
-          category: "rent",
-          amount: 3200,
-          balance: 0,
-          status: "paid",
-          accommodation_name: "Kamia Residence Hall",
-      },
-      {
-          id: 2,
-          landlord_id: 1,
-          student_number: "2023-12345",
-          due_date: new Date("2026-04-20"),
-          category: "rent",
-          amount: 3200,
-          balance: 3200,
-          status: "unpaid",
-          accommodation_name: "Kamia Residence Hall",
-      },
-      {
-          id: 3,
-          landlord_id: 1,
-          student_number: "2023-12345",
-          due_date: new Date("2026-02-20"),
-          category: "utilities",
-          amount: 850,
-          balance: 425,
-          status: "partial",
-          accommodation_name: "Kamia Residence Hall",
-      },
-      {
-          id: 4,
-          landlord_id: 1,
-          student_number: "2023-12345",
-          due_date: new Date("2026-01-20"),
-          category: "rent",
-          amount: 3200,
-          balance: 3200,
-          status: "overdue",
-          accommodation_name: "Kamia Residence Hall",
-      },
-      {
-          id: 5,
-          landlord_id: 1,
-          student_number: "2023-12345",
-          due_date: new Date("2026-03-05"),
-          category: "miscellaneous",
-          amount: 500,
-          balance: 0,
-          status: "paid",
-          accommodation_name: "Kamia Residence Hall",
-      },
-  ];
-
-  const safeBills = bills;
-  const billsLoading = false;
-  const isError = false;
-  const error = null;
-
-  const profile = { fname: "Ana", lname: "Reyes" };
-  const profileLoading = false;
+  const safeBills: Bill[] = Array.isArray(bills) ? bills : [];
 
   const currentResidence = safeBills[0]?.accommodation_name ?? '—';
   const studentName = profile ? `${profile.fname} ${profile.lname}` : '';

@@ -11,8 +11,13 @@ interface BillingTableProps {
 
 export default function BillingTable({ bills, onPay }: BillingTableProps){
     if (bills.length === 0) return (
-        <div className="text-center text-sm text-gray-400 py-6 italic">No bills yet</div>
+        <div className="flex flex-col justify-center items-center h-full text-center">
+            <p className="text-gray-500 font-medium text-lg">No bills found</p>
+            <p className="text-gray-400 text-sm mt-1">When you receive a bill, it will appear here</p>
+        </div>
     );
+
+    
 
     const format = (date: Date) => 
         new Date(date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});

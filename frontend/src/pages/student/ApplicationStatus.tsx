@@ -43,83 +43,11 @@ export default function ApplicationStatusPage() {
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
     // Data fetching - using the real API
-    // const { data: applications = [], isLoading, isError } = useQuery({
-    //     queryKey: ["applications"],
-    //     queryFn: fetchApplications,
-    // });
+    const { data: applications = [], isLoading, isError } = useQuery({
+        queryKey: ["applications"],
+        queryFn: fetchApplications,
+    });
 
-    const { data: applications = [], isLoading, isError } = {
-        data: [
-            {
-                id: 1,
-                applicationDate: "2026-03-12T00:00:00.000Z",
-                applicationStatus: "approved",
-                applicationRoomType: "single",
-                applicationStayType: "non_transient",
-                rejectionReason: null,
-                accommodation: {
-                    accommodationName: "Kamia Residence Hall",
-                    accommodationLocation: "UPLB Campus, Los Baños",
-                    accommodationType: "on-campus",
-                },
-            },
-            {
-                id: 2,
-                applicationDate: "2026-03-14T00:00:00.000Z",
-                applicationStatus: "pending",
-                applicationRoomType: "shared",
-                applicationStayType: "non_transient",
-                rejectionReason: null,
-                accommodation: {
-                    accommodationName: "Molave Residence Hall",
-                    accommodationLocation: "Off-campus, Los Baños",
-                    accommodationType: "off-campus",
-                },
-            },
-            {
-                id: 3,
-                applicationDate: "2026-03-15T00:00:00.000Z",
-                applicationStatus: "under_review",
-                applicationRoomType: "single",
-                applicationStayType: "transient",
-                rejectionReason: null,
-                accommodation: {
-                    accommodationName: "Narra Residence",
-                    accommodationLocation: "Near Gate 1, Los Baños",
-                    accommodationType: "off-campus",
-                },
-            },
-            {
-                id: 4,
-                applicationDate: "2026-02-20T00:00:00.000Z",
-                applicationStatus: "rejected",
-                applicationRoomType: "shared",
-                applicationStayType: "non_transient",
-                rejectionReason: "Room no longer available for the requested period.",
-                accommodation: {
-                    accommodationName: "Acacia Suites",
-                    accommodationLocation: "Batong Malake, Los Baños",
-                    accommodationType: "partner_housing",
-                },
-            },
-            {
-                id: 5,
-                applicationDate: "2026-01-10T00:00:00.000Z",
-                applicationStatus: "waitlisted",
-                applicationRoomType: "studio",
-                applicationStayType: "non_transient",
-                rejectionReason: null,
-                accommodation: {
-                    accommodationName: "Kalikasan Suites",
-                    accommodationLocation: "Umali Subdivision, Los Baños",
-                    accommodationType: "off-campus",
-                },
-            },
-        ] as Application[],
-        isLoading: false,
-        isError: false,
-    };
-    
     const sortedApplications = useMemo(() => {
         const q = searchQuery.toLowerCase();
         return [...applications]
@@ -195,7 +123,7 @@ export default function ApplicationStatusPage() {
                     <StatsBanner stats={stats} total={trueTotal} />
 
                     <div className="bg-white rounded-xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
-                        <div className='flex justify-between items-center pb-2 lg:pb-4'>
+                        <div className='flex justify-between pb-2 lg:pb-4'>
                             <div>
                                 <h1 className='font-bold -mt-1'>Application History</h1>
                                 <p className='italic text-[11px] lg:text-[12px]'>{totalApps} total applications</p>
@@ -256,8 +184,8 @@ export default function ApplicationStatusPage() {
                                 </div>
                             ) : applications.length === 0 ? (
                                 <div className="flex flex-col justify-center items-center h-full text-center">
-                                    <p className="text-gray-500 font-medium text-lg">No applications found.</p>
-                                    <p className="text-gray-400 text-sm mt-1">When you apply for an accommodation, it will appear here.</p>
+                                    <p className="text-gray-500 font-medium text-lg">No applications found</p>
+                                    <p className="text-gray-400 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
                                 </div>
                             ) : (
                                 <ApplicationTable

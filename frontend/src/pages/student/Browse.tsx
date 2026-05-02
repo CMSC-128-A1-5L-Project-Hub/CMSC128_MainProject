@@ -6,6 +6,20 @@ import { Star } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
 import CustomHeader from '../../components/CustomHeader';
 import HeroBanner from "@/components/dashboard/HeroBanner";
+import Dropdown from "../../components/ApplicationStatus/Dropdown";
+
+const IconArrowNext = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+);
+
+const IconArrowBack = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24" style={{ transform: 'scaleX(-1)' }}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+);
+
 
 interface HeroContent {
     greeting: string;
@@ -208,7 +222,7 @@ function Form() {
                 <div className="flex w-full">
                     <div className="flex flex-col justify-center w-[50%] md:gap-3 p-2">
                         <div className='flex flex-col'>
-                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                            <p className="text-[10px] sm:text-sm font-semibold uppercase text-[#9a7080] tracking-widest mb-1 sm:mb-2">
                                 SHOW FAVORITES ONLY
                             </p>
 
@@ -250,24 +264,26 @@ function Form() {
 
                         <div className="flex flex-col">
 
-                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
                                 DORM TYPE
                             </p>
 
                             <div className="relative w-full">
-                                <select
-                                    id="dorm-type"
-                                    className="w-full px-3 py-2 sm:px-4 sm:py-4 rounded-xl sm:rounded-2xl border border-[#EDE1E5] sm:border-2 text-sm sm:text-base text-gray-800 appearance-none outline-none"
-                                >
-                                    <option>All Types</option>
-                                    <option>Apartment</option>
-                                    <option>Dormitory</option>
-                                    <option>Boarding House</option>
-                                </select>
-
-                                <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-[#6B0F2B] text-xs sm:text-base">
-                                    ▼
-                                </div>
+                                <Dropdown
+                                    title="No. of Items"
+                                    items={[
+                                        { label: "All Types", href: "" },
+                                        { label: "Apartment", href: "" },
+                                        { label: "Dormitory", href: "" },
+                                        { label: "Boarding House", href: "" },
+                                    ]}
+                                    showTitle= {false}
+                                    direction='down'
+                                    widthClass="w-full"
+                                    titleClass="text-[10px] lg:text-[11px]"
+                                    selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
+                                    //onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
+                                />
                             </div>
                         </div>
 
@@ -275,31 +291,33 @@ function Form() {
 
                         <div className='flex flex-col'>
 
-                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
                                 ROOM TYPE
                             </p>
 
                             <div className="relative w-full">
-                                <select
-                                    id="room-type"
-                                    className="w-full px-3 py-2 sm:px-4 sm:py-4 pr-8 sm:pr-10 rounded-xl sm:rounded-2xl border border-[#EDE1E5] sm:border-2 text-sm sm:text-base text-gray-800 appearance-none outline-none"
-                                >
-                                    <option>All</option>
-                                    <option>Single</option>
-                                    <option>Shared</option>
-                                    <option>Studio</option>
-                                </select>
-
-                                <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-[#6B0F2B] text-xs sm:text-base">
-                                    ▼
-                                </div>
+                                <Dropdown
+                                    title="No. of Items"
+                                    items={[
+                                        { label: "All", href: "" },
+                                        { label: "Single", href: "" },
+                                        { label: "Shared", href: "" },
+                                        { label: "Studio", href: "" },
+                                    ]}
+                                    showTitle= {false}
+                                    direction='down'
+                                    widthClass="w-full"
+                                    titleClass="text-[10px] lg:text-[11px]"
+                                    selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
+                                    //onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
+                                />
                             </div>
                         </div>
 
 
                         <div className="flex flex-col justify-center items-start">
 
-                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
                                 MIN RATING
                             </p>
 
@@ -344,7 +362,7 @@ function Form() {
                     </div>
                     <div className="flex flex-col justify-center w-[50%] md:gap-3 p-2">
                         <div className="flex flex-col">
-                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
+                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
                                 PRICE RANGE
                             </p>
                             <div style={{ padding: "14px 16px" }}>
@@ -659,209 +677,210 @@ export default function BrowsePage() {
     }, []);
 
     return <>
-        <div className="flex w-full min-h-screen bg-[#F5EEF0]">
+        <div className="flex flex-row w-full min-h-screen bg-[#F5EEF0]">
             <div className="relative z-[9999]">
                 <Sidebar role="student" />
             </div>
-            <div className="flex flex-col items-start w-full min-w-0 min-h-screen">
 
+            <div className="flex flex-col w-full">
                 <CustomHeader
-                    title="Browse Rooms"></CustomHeader>
+                        title="Browse Rooms"></CustomHeader>
+                <div className="flex flex-col items-start w-full min-w-0 min-h-screen">
+                    
+                    <div className="w-full p-6">
+                        <HeroBanner
+                            greeting={heroContent.greeting}
+                            name={heroContent.name}
+                            title={heroContent.title}
+                            subtitle={heroContent.subtitle}
+                            type="mini"
+                        />
+                    </div>
+                    
 
-                <div className="w-full p-6 px-4">
-                    <HeroBanner
-                        greeting={heroContent.greeting}
-                        name={heroContent.name}
-                        title={heroContent.title}
-                        subtitle={heroContent.subtitle}
-                        type="mini"
-                    />
-                </div>
-                
+                    <div className="flex flex-wrap justify-center items-start w-full gap-2 mb-6 md:gap-0">
 
-                <div className="flex flex-wrap justify-center items-start w-full gap-2 md:gap-0">
+                        {/* first half */}
+                        <div className="flex flex-col justify-center items-center w-full gap-2 md:w-1/2 shrink-0">
+                            {/* search bar */}
+                            <div className="flex w-full justify-center items-center px-4 sm:px-6 lg:px-12">
+                                <SearchBar></SearchBar>
+                            </div>
 
-                    {/* first half */}
-                    <div className="flex flex-col justify-center items-center w-full gap-2 md:w-1/2 shrink-0">
-                        {/* search bar */}
-                        <div className="flex w-full justify-center items-center px-4 sm:px-6 lg:px-12">
-                            <SearchBar></SearchBar>
-                        </div>
+                            {/* dorm cards and buttons */}
+                            <div className="flex w-full justify-center items-center p-4 gap-2">
+                                <div className="flex justify-center items-center relative z-50">
+                                    <button onClick={() => {
+                                        let counter = pageNumber
+                                        if (counter == 0) {
+                                            counter = Object.keys(dorms).length - 1
+                                        } else {
+                                            counter--
+                                        }
 
-                        {/* dorm cards and buttons */}
-                        <div className="flex w-full justify-center items-center p-4 gap-2">
-                            <div className="flex justify-center items-center relative z-50">
-                                <button onClick={() => {
-                                    let counter = pageNumber
-                                    if (counter == 0) {
-                                        counter = Object.keys(dorms).length - 1
-                                    } else {
-                                        counter--
-                                    }
+                                        if (counter % 2 == 0 && counter != Object.keys(dorms).length - 1) {
+                                            let temp = [...pageLimits]
+                                            if (temp[0] - 2 >= 0) {
+                                                temp[0] -= 2
+                                                temp[1] -= 2
+                                                setPageLimits(temp)
+                                            }
+                                        } else if (counter % 2 == 0 && counter == Object.keys(dorms).length - 1) {
+                                            let max = Object.keys(dorms).length
+                                            max = max % 2 == 0 ? max : max + 1
+                                            let temp = [max - 2, max]
+                                            setPageLimits(temp)
+                                        }
 
-                                    if (counter % 2 == 0 && counter != Object.keys(dorms).length - 1) {
+                                        setPageNumber(counter)
+                                    }} className="rounded-full p-3 bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
+                                        <IconArrowBack className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="flex">
+                                    <div
+                                        className="flex"
+                                        style={{
+                                            transform: `translateX(-${100 * pageNumber}%)`,
+                                            transition: 'transform 500ms ease-in-out',
+                                        }}
+                                    >
+
+                                        {Object.keys(dorms).map((key, index) => {
+                                            console.log(isBelowSm)
+                                            if (pageNumber == index) {
+                                                return <div className={`w-full shrink-0 flex items-center transition-opacity duration-500 ${"opacity-500"
+                                                    }`}>
+                                                    <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
+                                                        {dorms[Number(key)].map((value) => (
+                                                            <div className="w-full flex items-center justify-center">
+                                                                <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            } else {
+                                                return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-0"
+                                                    }`}>
+                                                    <div className="grid grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
+                                                        {dorms[Number(key)].map((value) => (
+                                                            <div className="w-full flex items-center justify-center">
+                                                                <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            }
+
+                                        })}
+                                    </div>
+
+                                </div>
+
+                                <div className="flex justify-center items-center relative z-20">
+                                    <button onClick={() => {
+
+                                        let counter = pageNumber
+                                        if (counter == Object.keys(dorms).length - 1) {
+                                            counter = 0
+                                        } else {
+                                            counter++
+                                        }
+
+                                        console.log(counter)
+                                        if (counter % 2 == 0 && counter != 0) {
+                                            let temp = [...pageLimits]
+                                            let max = Object.keys(dorms).length
+                                            max = max % 2 == 0 ? max : max + 1
+
+
+                                            if (temp[1] + 2 <= max) {
+                                                temp[0] += 2
+                                                temp[1] += 2
+                                                setPageLimits(temp)
+                                            }
+                                        } else if (counter % 2 == 0 && counter == 0) {
+                                            let temp = [0, 2]
+                                            setPageLimits(temp)
+                                        }
+
+                                        setPageNumber(counter)
+                                    }} className="rounded-full p-3 bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
+                                        <IconArrowNext className="w-6 h-6" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end items-center w-[70%] gap-2">
+                                {pageLimits[0] != 0 &&
+                                    <button onClick={() => {
                                         let temp = [...pageLimits]
                                         if (temp[0] - 2 >= 0) {
                                             temp[0] -= 2
                                             temp[1] -= 2
                                             setPageLimits(temp)
+                                            setPageNumber(temp[1] - 1)
                                         }
-                                    } else if (counter % 2 == 0 && counter == Object.keys(dorms).length - 1) {
-                                        let max = Object.keys(dorms).length
-                                        max = max % 2 == 0 ? max : max + 1
-                                        let temp = [max - 2, max]
-                                        setPageLimits(temp)
-                                    }
-
-                                    setPageNumber(counter)
-                                }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
-                                    <span className="text-white text-3xl">{'<'}</span>
-                                </button>
-                            </div>
-
-                            <div className="flex">
-                                <div
-                                    className="flex"
-                                    style={{
-                                        transform: `translateX(-${100 * pageNumber}%)`,
-                                        transition: 'transform 500ms ease-in-out',
-                                    }}
-                                >
-
-                                    {Object.keys(dorms).map((key, index) => {
-                                        console.log(isBelowSm)
-                                        if (pageNumber == index) {
-                                            return <div className={`w-full shrink-0 flex items-center transition-opacity duration-500 ${"opacity-500"
-                                                }`}>
-                                                <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
-                                                    {dorms[Number(key)].map((value) => (
-                                                        <div className="w-full flex items-center justify-center">
-                                                            <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        } else {
-                                            return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-0"
-                                                }`}>
-                                                <div className="grid grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
-                                                    {dorms[Number(key)].map((value) => (
-                                                        <div className="w-full flex items-center justify-center">
-                                                            <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                    }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
+                                        {'<'}
+                                    </button>
+                                }
+                                {
+                                    Object.keys(dorms).map((value, index) => {
+                                        let start = pageLimits[0]
+                                        let end = pageLimits[1]
+                                        let current = parseInt(value) + 1
+                                        if (current >= start && current <= end) {
+                                            return <button onClick={() => {
+                                                setPageNumber(current - 1)
+                                            }} className={`flex w-[10%] items-center justify-center rounded-xl ${pageNumber == index ? '' : 'border border-[#E8D4E2]'} ${pageNumber == index ? 'bg-[#7A162D]' : 'bg-white'} text-lg font-semibold ${pageNumber == index ? 'text-white' : 'text-[#654050]'} shadow-md hover:bg-[#7A162D] hover:text-white`}>
+                                                {current}
+                                            </button>
                                         }
-
-                                    })}
-                                </div>
-
-                            </div>
-
-                            <div className="flex justify-center items-center relative z-50">
-                                <button onClick={() => {
-
-                                    let counter = pageNumber
-                                    if (counter == Object.keys(dorms).length - 1) {
-                                        counter = 0
-                                    } else {
-                                        counter++
-                                    }
-
-                                    console.log(counter)
-                                    if (counter % 2 == 0 && counter != 0) {
+                                    })
+                                }
+                                {
+                                    pageLimits[1] < Object.keys(dorms).length &&
+                                    <button onClick={() => {
                                         let temp = [...pageLimits]
                                         let max = Object.keys(dorms).length
                                         max = max % 2 == 0 ? max : max + 1
-
 
                                         if (temp[1] + 2 <= max) {
                                             temp[0] += 2
                                             temp[1] += 2
                                             setPageLimits(temp)
+                                            setPageNumber(temp[0] - 1)
                                         }
-                                    } else if (counter % 2 == 0 && counter == 0) {
-                                        let temp = [0, 2]
-                                        setPageLimits(temp)
-                                    }
+                                    }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
+                                        {'>'}
+                                    </button>
+                                }
 
-                                    setPageNumber(counter)
-                                }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
-                                    <span className="text-white text-3xl">{'>'}</span>
-                                </button>
                             </div>
-                        </div>
-
-                        <div className="flex justify-end items-center w-[70%] gap-2">
-                            {pageLimits[0] != 0 &&
-                                <button onClick={() => {
-                                    let temp = [...pageLimits]
-                                    if (temp[0] - 2 >= 0) {
-                                        temp[0] -= 2
-                                        temp[1] -= 2
-                                        setPageLimits(temp)
-                                        setPageNumber(temp[1] - 1)
-                                    }
-                                }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
-                                    {'<'}
-                                </button>
-                            }
-                            {
-                                Object.keys(dorms).map((value, index) => {
-                                    let start = pageLimits[0]
-                                    let end = pageLimits[1]
-                                    let current = parseInt(value) + 1
-                                    if (current >= start && current <= end) {
-                                        return <button onClick={() => {
-                                            setPageNumber(current - 1)
-                                        }} className={`flex w-[10%] items-center justify-center rounded-xl ${pageNumber == index ? '' : 'border border-[#E8D4E2]'} ${pageNumber == index ? 'bg-[#7A162D]' : 'bg-white'} text-lg font-semibold ${pageNumber == index ? 'text-white' : 'text-[#654050]'} shadow-md hover:bg-[#7A162D] hover:text-white`}>
-                                            {current}
-                                        </button>
-                                    }
-                                })
-                            }
-                            {
-                                pageLimits[1] < Object.keys(dorms).length &&
-                                <button onClick={() => {
-                                    let temp = [...pageLimits]
-                                    let max = Object.keys(dorms).length
-                                    max = max % 2 == 0 ? max : max + 1
-
-                                    if (temp[1] + 2 <= max) {
-                                        temp[0] += 2
-                                        temp[1] += 2
-                                        setPageLimits(temp)
-                                        setPageNumber(temp[0] - 1)
-                                    }
-                                }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
-                                    {'>'}
-                                </button>
-                            }
 
                         </div>
 
-                    </div>
+                        {/* second half */}
+                        <div className="flex justify-center rounded-xl items-start w-full h-[70%] md:w-1/2 md:h-full shrink-0 relative bg-[radial-gradient(circle_at_center,#F5EEF0)]">
+                            <div className="flex flex-col justify-center items-center bg-white rounded-2xl p-4 shadow-md w-[90%] h-full gap-2">
 
-                    {/* second half */}
-                    <div className="flex justify-center rounded-xl items-start w-full h-[70%] md:w-1/2 md:h-full shrink-0 relative z-50 bg-[radial-gradient(circle_at_center,#F5EEF0)]">
-                        <div className="flex flex-col justify-center items-center bg-white rounded-2xl p-4 shadow-md w-[90%] h-full gap-2">
-
-                            <AccommodationMap
-                                accommodations={filtered}
-                                centeredAccommodation={centeredAccommodation}
-                                onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
-                            />
+                                <AccommodationMap
+                                    accommodations={filtered}
+                                    centeredAccommodation={centeredAccommodation}
+                                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+                                />
 
 
-                            <div className="flex justify-center items-center w-[90%] gap-3">
-                                <Form></Form>
+                                <div className="flex justify-center items-center w-[90%] gap-3">
+                                    <Form></Form>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-            </div >
+                </div >
+            </div>
         </div>
     </>
 }

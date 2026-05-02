@@ -1251,8 +1251,6 @@ if (isUserLoading) {
                   ))
                 )}
               </div>
-              </div>
-
               <button
                 type="button"
                 onClick={scrollRecommendedRight}
@@ -1261,6 +1259,9 @@ if (isUserLoading) {
               >
                 <IconArrowNext className="w-5 h-5" />
               </button>
+              </div>
+
+              
             </div>
 
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-[22px] shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
