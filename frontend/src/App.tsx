@@ -21,7 +21,6 @@ import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import BillingDashboard from "./pages/student/BillingDashboard"
 import LandlordDashboard from "./pages/landlord/Dashboard"
 import NotificationsPage from "./pages/shared/Notifications"
-import StudentApplicationsPage from "./pages/student/ApplicationStatus"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
 import FullRoomView from "./pages/student/FullRoomView"
@@ -33,15 +32,18 @@ import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
 import Waitlist from "./pages/manager/Waitlist"
 import MoveinMoveout from "./pages/manager/MoveinMoveout"
 import ManagerProfile from "./pages/manager/Profile"
-import FeesPage from "./pages/landlord/FeesPage"
-// import ApplicationTestPage from "./pages/ApplicationTestPage"
+import FeesPage from './pages/landlord/FeesPage'
+import LandlordProfile from './pages/landlord/LandlordProfile'
+import Applications from "./pages/landlord/Applications"
+import StudentVerificationsPage from "./pages/admin/StudentVerificationsPage"
+import LandlordVerificationsPage from "./pages/admin/LandlordVerificationsPage"
+
 function FullLandingPage() {
   return (
     <>
       <LandingPage />
       <AboutSection />
       <FeaturesSection />
-      <ResidenceCarousel />
       <UBLEFooter />
     </>
   );
@@ -80,7 +82,7 @@ function App() {
         <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
         <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
         <Route path="/manager/movein-moveout" element={<ProtectedRoute><MoveinMoveout /></ProtectedRoute>}/>
-        <Route path="/manager/application" element={<ProtectedRoute><ManagerApplicationsPage /></ProtectedRoute>}/>
+        <Route path="/manager/applications" element={<ProtectedRoute><ManagerApplicationsPage /></ProtectedRoute>}/>
         <Route path="/manager/waitlist" element={<ProtectedRoute><Waitlist /></ProtectedRoute>} />
         <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
 
@@ -89,10 +91,13 @@ function App() {
         <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
         <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
         <Route path="/landlord/fees" element={<ProtectedRoute><FeesPage /></ProtectedRoute>} />
+        <Route path="/landlord/profile" element={<ProtectedRoute><LandlordProfile /></ProtectedRoute>} />
+        <Route path="/landlord/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-
+        <Route path="/admin/student-verifications" element={<ProtectedRoute> <StudentVerificationsPage /> </ProtectedRoute>} />
+        <Route path="/admin/landlord-verifications" element={<ProtectedRoute> <LandlordVerificationsPage /> </ProtectedRoute>} />
         {/* ── Catch-all: 404 ── */}
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -1,18 +1,16 @@
 "use client";
 
-import Card from "../../../ui/Card";
 import Button from "../../../Button";
 import {
-  BedDouble,
-  Users,
   Wallet,
   Trash2,
-  User,
-  Building,
-  Tag,
   FileText,
+  Crown,
+  BedDouble,
+  Users,
 } from "lucide-react";
 import type { Room } from "../../../../pages/landlord/RoomPage";
+import { useState } from "react";
 
 interface RoomCardProps {
   room: Room;
@@ -21,102 +19,136 @@ interface RoomCardProps {
   onDelete: () => void;
 }
 
-const getStatusInfo = (room: Room) => {
-  const isFull = room.occupants.length >= room.capacity;
-  if (isFull) {
-    return { label: "FULL", bg: "bg-red-50", text: "text-red-600", border: "border-red-100", bar: "bg-[#8C1535]" };
-  }
-  return { label: "AVAILABLE", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-100", bar: "bg-[#8C1535]" };
-};
-
 export default function RoomCard({ room, onManage, onBilling, onDelete }: RoomCardProps) {
-  const status = getStatusInfo(room);
-  const fillPercentage = (room.occupants.length / room.capacity) * 100;
+  const isFull = room.currentOccupancy >= room.capacity;
+  const fillPercentage = (room.currentOccupancy / room.capacity) * 100;
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const TypeIcon = room.type === "Single" ? Crown : room.type === "Double" ? BedDouble : Users;
+
+  // Maroon spectrum based on occupancy
+  const getMaroonGradient = () => {
+    if (fillPercentage === 0) return "from-[#8C1535]/20 to-[#8C1535]/30";
+    if (fillPercentage >= 100) return "from-[#4A0E1B] to-[#3A0A15]";
+    if (fillPercentage >= 75) return "from-red-600 to-red-700";
+    if (fillPercentage >= 50) return "from-[#8C1535] to-[#6B0F2B]";
+    return "from-[#8C1535]/50 to-[#8C1535]/70";
+  };
+
+  const gradient = getMaroonGradient();
 
   return (
-    <Card className="p-0 overflow-hidden group relative flex flex-col border border-[#F2D9DF] bg-white hover:shadow-md transition-all">
-      <div className={`h-1 w-full ${status.bar}`} />
-      <div className="p-3 flex-1 flex flex-col">
-        <div className="flex justify-between items-start mb-2">
-          <div>
-            <h3 className="text-base font-bold text-[#4A1F2D]">{room.name}</h3>
-            <div className="flex items-center gap-1 mt-0.5 text-[#8A5C6B] text-xs flex-wrap">
-              <Building size={11} />
-              <span>{room.building}</span>
-              <span className="mx-1">•</span>
-              <BedDouble size={11} />
-              <span>{room.type}</span>
-              <span className="mx-1">•</span>
-              <span className="px-1.5 py-0.5 bg-gray-100 rounded-full text-[10px] font-medium text-gray-700">
-                {room.stay_type === "transient" ? "Transient" : "Non‑Transient"}
-              </span>
-              <span className="px-1.5 py-0.5 bg-gray-100 rounded-full text-[10px] font-medium text-gray-700">
-                {room.tenant_restriction === "coed" ? "Co‑ed" : "Non‑Coed"}
-              </span>
+    <div 
+      className={`relative transition-all duration-300 cursor-pointer ${
+        isExpanded ? "z-20 scale-105" : "z-10 hover:scale-[1.02]"
+      }`}
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
+      {/* Main Compact Card */}
+      <div className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-gray-100`}>
+        <div className="flex items-stretch">
+          {/* Left Color Bar - Maroon Spectrum */}
+          <div className={`w-2 flex-shrink-0 bg-gradient-to-b ${gradient}`} />
+          
+          <div className="flex-1 p-3">
+            <div className="flex items-center justify-between">
+              {/* Left: Name + Type */}
+              <div className="flex items-center gap-2 min-w-0">
+                <TypeIcon size={16} className="text-gray-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <h3 className="text-sm font-black text-gray-800 truncate">{room.name}</h3>
+                  <p className="text-[10px] text-gray-400 truncate">{room.building} • {room.type}</p>
+                </div>
+              </div>
+
+              {/* Right: Price + Dots */}
+              <div className="flex items-center gap-3 flex-shrink-0 ml-2">
+                <div className="text-right">
+                  <p className="text-lg font-black text-gray-800 leading-none">₱{room.price}</p>
+                  <p className="text-[9px] text-gray-400">/month</p>
+                </div>
+                
+                {/* Circular Progress */}
+                <div className="relative w-10 h-10 flex-shrink-0">
+                  <svg className="w-10 h-10 transform -rotate-90">
+                    <circle
+                      cx="20"
+                      cy="20"
+                      r="16"
+                      stroke="#f3f4f6"
+                      strokeWidth="3"
+                      fill="none"
+                    />
+                    <circle
+                      cx="20"
+                      cy="20"
+                      r="16"
+                      stroke={isFull ? "#4A0E1B" : "#8C1535"}
+                      strokeWidth="3"
+                      fill="none"
+                      strokeDasharray={`${fillPercentage * 1.005} 100`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[9px] font-black text-gray-600">{room.currentOccupancy}/{room.capacity}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Expandable Section */}
+            <div className={`grid transition-all duration-300 ${
+              isExpanded ? "grid-rows-[1fr] opacity-100 mt-3" : "grid-rows-[0fr] opacity-0"
+            }`}>
+              <div className="overflow-hidden">
+                {/* Tags Row */}
+                {room.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {room.tags.map(tag => (
+                      <span 
+                        key={tag.name}
+                        className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${
+                          tag.type === "inclusion" 
+                            ? "bg-emerald-50 text-emerald-600" 
+                            : "bg-amber-50 text-amber-600"
+                        }`}
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Tenants Mini List */}
+                {room.occupants.length > 0 && (
+                  <div className="mb-3">
+                    {room.occupants.map(t => (
+                      <div key={t.id} className="flex items-center gap-1.5 text-[10px] text-gray-500 py-0.5">
+                        <div className="w-3 h-3 rounded-full bg-[#8C1535]" />
+                        {t.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <Button variant="secondary" size="sm" className="flex-1 text-[10px] py-1.5 rounded-lg font-bold" onClick={(e) => { e.stopPropagation(); onManage(); }}>
+                    Manage
+                  </Button>
+                  <Button variant="secondary" size="sm" className="flex-1 text-[10px] py-1.5 rounded-lg font-bold" onClick={(e) => { e.stopPropagation(); onBilling(); }}>
+                    <FileText size={11} className="mr-1" /> Bill
+                  </Button>
+                  <Button variant="danger" size="sm" className="text-[10px] py-1.5 px-3 rounded-lg" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+                    <Trash2 size={11} />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-          <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${status.bg} ${status.text} border`}>
-            {status.label}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex items-center gap-1.5 flex-1 px-2 py-1.5 rounded-lg bg-[#F9F6F7]/60 border">
-            <Wallet size={12} className="text-[#8C1535]" />
-            <span className="text-xs font-bold">₱{room.price.toLocaleString()}</span>
-          </div>
-          <div className="flex items-center gap-1.5 flex-1 px-2 py-1.5 rounded-lg bg-[#F9F6F7]/60 border">
-            <Users size={12} className="text-[#8C1535]" />
-            <span className="text-xs font-bold">{room.occupants.length}/{room.capacity}</span>
-          </div>
-        </div>
-
-        {room.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {room.tags.map((tag) => (
-              <span key={tag} className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded-full bg-[#6B0F2B] text-white font-medium">
-                <Tag size={8} />
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-auto">
-          <div className="w-full bg-[#F2D9DF]/50 rounded-full h-1.5 mb-2 overflow-hidden">
-            <div className={`h-1.5 rounded-full transition-all duration-500 ${status.bar}`} style={{ width: `${fillPercentage}%` }} />
-          </div>
-          <div className="min-h-[32px]">
-            {room.occupants.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {room.occupants.slice(0, 2).map((t) => (
-                  <span key={t.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] rounded-md bg-white border border-[#F2D9DF]">
-                    <User size={8} className="text-[#8C1535]" />
-                    {t.name.length > 12 ? t.name.slice(0, 10) + "..." : t.name}
-                  </span>
-                ))}
-                {room.occupants.length > 2 && <span className="text-[9px] text-[#9A7080]">+{room.occupants.length - 2}</span>}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center rounded-md border border-dashed py-1">
-                <span className="text-[9px] text-[#9A7080]">No occupants</span>
-              </div>
-            )}
-          </div>
         </div>
       </div>
-
-      <div className="border-t border-[#F2D9DF] p-2 bg-gray-50/50 flex gap-2">
-        <Button variant="secondary" size="sm" className="flex-1 text-xs py-1.5" onClick={onManage}>
-          Manage
-        </Button>
-        <Button variant="secondary" size="sm" className="flex-1 text-xs py-1.5" onClick={onBilling}>
-          <FileText size={12} className="mr-1" /> Billing
-        </Button>
-        <Button variant="danger" size="sm" className="py-1.5 px-3" onClick={onDelete}>
-          <Trash2 size={13} />
-        </Button>
-      </div>
-    </Card>
+    </div>
   );
 }

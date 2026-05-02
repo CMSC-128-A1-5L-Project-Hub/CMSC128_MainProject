@@ -74,13 +74,13 @@ const AdminDashboard = () => {
   })
 
   const {
-    data: availableRoomsData,
-    isLoading: isRoomsLoading,
-    isError: isRoomsError,
+    data: facilitiesData,
+    isLoading: isFacilitiesLoading,
+    isError: isFacilitiesError,
   } = useQuery({
-    queryKey: ["admin-available-rooms"],
+    queryKey: ["admin-facilities-count"],
     queryFn: async () => {
-      const res = await api.get("/admin/rooms/available/count")
+      const res = await api.get("/admin/facilities/count")
       return res.data
     },
   })
@@ -259,7 +259,7 @@ const AdminDashboard = () => {
     helper?: string
   }) => (
     <Card className="shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-widest text-[#C9973A]">
+      <p className="text-xs font-semibold tracking-widest text-gray-500">
         {label}
       </p>
       <p className="mt-3 text-3xl font-bold text-[#2A0410]">{value}</p>
@@ -297,9 +297,9 @@ const AdminDashboard = () => {
           <HeroBanner
             greeting="Welcome back"
             name={user?.fname ?? "Admin"}
-            title="Admin Dashboard "
+            title="Overview of UBLE's System"
             subtitle="Manage users, accommodations, activity logs, and system settings."
-            type="mini"
+            type="full"
           />
           <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <StatCard
@@ -338,23 +338,23 @@ const AdminDashboard = () => {
               helper={settings?.currentSy ? `A.Y. ${settings.currentSy}` : "Current setting"}
             />
             <StatCard
-              label="Available Rooms"
+              label="Housing Facilities"
               value={
-                isRoomsLoading
+                isFacilitiesLoading
                   ? "..."
-                  : isRoomsError
+                  : isFacilitiesError
                   ? "Error"
-                  : availableRoomsData?.total ?? 0
+                  : facilitiesData?.total ?? 0
               }
-              helper="Open for tenants"
+              helper="Registered facilities"
             />
           </section>
           {/* RECENT ACTIVITY LOGS */}
-          <RecentActivityLogs
+          {/* <RecentActivityLogs
             logs={recentLogsList}
             isLoading={isRecentLogsLoading}
             isError={isRecentLogsError}
-          />
+          /> */}
           <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* STUDENT VERIFICATIONS */}
             <StudentVerifications
