@@ -1,4 +1,3 @@
-// app/controllers/application_controller.ts
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import { DateTime } from 'luxon'

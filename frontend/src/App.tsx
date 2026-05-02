@@ -21,7 +21,6 @@ import ManageAccommodationDashboard from "./pages/landlord/manageAcommodation"
 import BillingDashboard from "./pages/student/BillingDashboard"
 import LandlordDashboard from "./pages/landlord/Dashboard"
 import NotificationsPage from "./pages/shared/Notifications"
-import StudentApplicationsPage from "./pages/student/ApplicationStatus"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
 import FullRoomView from "./pages/student/FullRoomView"
@@ -33,10 +32,12 @@ import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
 import Waitlist from "./pages/manager/Waitlist"
 import MoveinMoveout from "./pages/manager/MoveinMoveout"
 import ManagerProfile from "./pages/manager/Profile"
-import FeesPage from "./pages/landlord/FeesPage"
+import FeesPage from './pages/landlord/FeesPage'
+import LandlordProfile from './pages/landlord/LandlordProfile'
+import Applications from "./pages/landlord/Applications"
 import StudentVerificationsPage from "./pages/admin/StudentVerificationsPage"
 import LandlordVerificationsPage from "./pages/admin/LandlordVerificationsPage"
-// import ApplicationTestPage from "./pages/ApplicationTestPage"
+
 function FullLandingPage() {
   return (
     <>
@@ -89,8 +90,10 @@ function App() {
         {/* ── Landlord routes ── */}
         <Route path="/landlord/accommodations/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
-        
+        <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
         <Route path="/landlord/fees" element={<ProtectedRoute><FeesPage /></ProtectedRoute>} />
+        <Route path="/landlordDashboard/profile" element={<ProtectedRoute><LandlordProfile /></ProtectedRoute>} />
+        <Route path="/landlord/application" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />

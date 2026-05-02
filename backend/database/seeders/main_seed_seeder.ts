@@ -317,6 +317,10 @@ export default class extends BaseSeeder {
     // 9. ROOMS
     // =========================================================================
     await db.table('rooms').multiInsert([
+      // --- CLARENCE TEST ROOMS ---
+      { accommodation_id: getAccom('White House'), room_number: '103', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building A', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'available' },
+      { accommodation_id: getAccom('White House'), room_number: '104', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Building A', room_rent: 7000.00, tenant_restriction: 'coed', room_availability: 'available' },
+      
       { accommodation_id: getAccom('White House'), room_number: '101', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building A', room_rent: 5000.00, tenant_restriction: 'coed', room_availability: 'available' },
       { accommodation_id: getAccom('White House'), room_number: '102', room_type: 'double', room_stay_type: 'transient', room_capacity: 2, room_current_occupancy: 1, room_building: 'Building A', room_rent: 6500.00, tenant_restriction: 'coed', room_availability: 'available' },
       { accommodation_id: getAccom('One Silangan'), room_number: '201', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building A', room_rent: 6000.00, tenant_restriction: 'coed', room_availability: 'available' },
@@ -406,6 +410,8 @@ export default class extends BaseSeeder {
       { accommodation_id: getAccom('One Sapphire Place'), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'transient', application_status: 'rejected', rejection_reason: 'Incomplete requirements – missing proof of enrollment', duration_of_stay_days: 10, application_date: '2026-02-10 11:00:00', reviewed_at: '2026-02-12 09:15:00', reviewed_by: getUser('aralvarez@gmail.com') },
       { accommodation_id: getAccom("Scholar's Dorm"), student_number: '2024-000002', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 180, application_date: '2026-02-15 09:30:00', reviewed_at: '2026-02-18 16:00:00', reviewed_by: getUser('vepadilla@gmail.com') },
       { accommodation_id: getAccom("ATI"), student_number: '2024-000002', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'under_review', duration_of_stay_days: 30, application_date: '2026-02-20 14:00:00', reviewed_at: null, reviewed_by: null },
+      { accommodation_id: getAccom('White House'), student_number: '2023-223456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'pending', duration_of_stay_days: 180, application_date: '2026-04-29 08:00:00' },
+      { accommodation_id: getAccom('White House'), student_number: '2023-223457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 365, application_date: '2026-04-29 09:30:00' },
 
       { accommodation_id: getAccom('White House'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 150 },
       { accommodation_id: getAccom('White House'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 180 },
