@@ -32,7 +32,7 @@ interface SidebarMenuItem {
 }
 
 interface SidebarProps {
-  role: "student" | "landlord" | "manager" | "landlordDashboard";
+  role: "student" | "landlord" | "manager" | "landlord";
   profile?: {
     fullName: string;
     shortName: string;
@@ -65,7 +65,7 @@ function getActiveId(pathname: string, role: string): string {
     if (pathname.startsWith("/manager/profile")) return "account";
     return "dashboard";
   }
-  if (role === "landlordDashboard") {
+  if (role === "landlord") {
     if (pathname.startsWith("/landlord/dashboard") || pathname.startsWith("/landlord/accommodations")) return "dashboard";
     if (pathname.startsWith("/landlord/rooms")) return "room";
     if (pathname.startsWith("/landlord/applications") || pathname.startsWith("/landlord/waitlist")) return "application";
@@ -360,7 +360,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
           { id: "waitlist", label: "Waitlist", icon: <DocumentIcon />, path: "/manager/waitlist" },
           { id: "movein-moveout", label: "Move In/Out", icon: <DocumentIcon />, path: "/manager/movein-moveout" },
         ];
-      case "landlordDashboard":
+      case "landlord":
         return [
           { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/landlord/dashboard" },
           // size={20} sets width/height directly as inline style — overrides react-icons default "1em"
