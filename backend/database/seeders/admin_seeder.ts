@@ -1,6 +1,5 @@
 import User from '#models/user'
 import Student from '#models/student'
-import Landlord from '#models/landlord'
 import FileMetadata from '#models/file_metadatum'
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 
@@ -58,24 +57,6 @@ export default class AdminSeeder extends BaseSeeder {
         email: 'jpomamos1@up.edu.ph',
         role: 'super_admin',
         // pfpFileId is nullable, so we can leave it out
-      }
-    )
-
-    const ubleLandlordUser = await User.firstOrCreate(
-      { email: 'uble.ics.uplb@gmail.com' },
-      {
-        fname: 'UBLE',
-        lname: 'ICS UPLB',
-        email: 'uble.ics.uplb@gmail.com',
-        role: 'landlord',
-      }
-    )
-
-    await Landlord.firstOrCreate(
-      { userId: ubleLandlordUser.id },
-      {
-        userId: ubleLandlordUser.id,
-        tin: '000-000-000-000',
       }
     )
 

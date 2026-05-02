@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
 import HeroBanner from "../../components/dashboard/HeroBanner";
 import Button from "../../components/Button";
 import Card from "@/components/ui/Card";
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   X,
   Building2,
   BedDouble,
@@ -26,6 +26,7 @@ import DeleteRoomModal from "../../components/dashboard/landlord/rooms/DeleteRoo
 import ManageRoomModal from "../../components/dashboard/landlord/rooms/ManageRoomModal";
 import BillingModal from "../../components/dashboard/landlord/rooms/BillingModal";
 import Pagination from "../../components/dashboard/landlord/rooms/Pagination";
+import { api } from "../../api/axios";
 
 /* ================= TYPES ================= */
 export interface Tenant {
@@ -49,6 +50,8 @@ export interface Room {
   capacity: number;
   price: number;
   occupants: Tenant[];
+  currentOccupancy: number;
+  availability: "available" | "occupied" | "maintenance";
   tags: RoomTag[];
   stay_type: "transient" | "non_transient";
   tenant_restriction: "coed" | "non-coed";
@@ -65,92 +68,30 @@ export interface RoomIssue {
   reportedAt: string;
 }
 
-export default function RoomsPage() {
-  const [rooms, setRooms] = useState<Room[]>([
-    {
-      id: 1,
-      name: "Sunrise Suite",
-      building: "Main Hall",
-      type: "Double",
-      capacity: 2,
-      price: 3500,
-      occupants: [
-        { id: 1, name: "Kayanne Reyes", email: "kayanne@example.com", phone: "09123456789", degree: "Computer Science" },
-        { id: 2, name: "Mark Rivera", email: "mark@example.com", phone: "09234567890", degree: "Business Admin" },
-      ],
-      tags: [
-        { name: "WiFi", type: "inclusion" },
-        { name: "Aircon", type: "preference" },
-        { name: "Study Desk", type: "inclusion" },
-      ],
-      stay_type: "non_transient",
-      tenant_restriction: "coed",
-    },
-    {
-      id: 2,
-      name: "Garden View",
-      building: "East Wing",
-      type: "Shared",
-      capacity: 4,
-      price: 5200,
-      occupants: [],
-      tags: [
-        { name: "WiFi", type: "inclusion" },
-        { name: "Shared Kitchen", type: "inclusion" },
-      ],
-      stay_type: "transient",
-      tenant_restriction: "non-coed",
-    },
-    {
-      id: 3,
-      name: "Cozy Nook",
-      building: "West Wing",
-      type: "Single",
-      capacity: 1,
-      price: 2800,
-      occupants: [],
-      tags: [
-        { name: "Quiet", type: "preference" },
-        { name: "Window View", type: "inclusion" },
-      ],
-      stay_type: "non_transient",
-      tenant_restriction: "coed",
-    },
-    {
-      id: 4,
-      name: "Penthouse",
-      building: "Main Hall",
-      type: "Single",
-      capacity: 1,
-      price: 5000,
-      occupants: [],
-      tags: [
-        { name: "WiFi", type: "inclusion" },
-        { name: "Aircon", type: "preference" },
-        { name: "Balcony", type: "inclusion" },
-      ],
-      stay_type: "non_transient",
-      tenant_restriction: "coed",
-    },
-    {
-      id: 5,
-      name: "Studio 5",
-      building: "East Wing",
-      type: "Double",
-      capacity: 2,
-      price: 4200,
-      occupants: [
-        { id: 3, name: "Anna Cruz", email: "anna@example.com", phone: "09345678901", degree: "Biology" },
-      ],
-      tags: [
-        { name: "Furnished", type: "inclusion" },
-        { name: "TV", type: "preference" },
-      ],
-      stay_type: "non_transient",
-      tenant_restriction: "non-coed",
-    },
-  ]);
+/* ================= HELPERS ================= */
+function capitalizeFirst(s: string): "Single" | "Double" | "Shared" {
+  return (s.charAt(0).toUpperCase() + s.slice(1)) as "Single" | "Double" | "Shared";
+}
 
+function mapRoom(r: any): Room {
+  return {
+    id: r.id,
+    name: r.roomNumber,
+    building: r.roomBuilding,
+    type: capitalizeFirst(r.roomType),
+    capacity: r.roomCapacity,
+    price: Number(r.roomRent),
+    occupants: [],
+    currentOccupancy: r.roomCurrentOccupancy,
+    availability: r.roomAvailability,
+    tags: (r.tags ?? []).map((t: any) => ({ name: t.tagDetail, type: "inclusion" as const })),
+    stay_type: r.roomStayType,
+    tenant_restriction: r.tenantRestriction,
+  };
+}
+
+export default function RoomsPage() {
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [reportedIssues, setReportedIssues] = useState<RoomIssue[]>([
     {
       id: 1,
@@ -173,6 +114,9 @@ export default function RoomsPage() {
       reportedAt: "2025-04-27",
     },
   ]);
+  const [loading, setLoading] = useState(true);
+  const [accommodations, setAccommodations] = useState<{ id: number; accommodationName: string }[]>([]);
+  const [selectedAccomId, setSelectedAccomId] = useState<number | null>(null);
 
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [modalType, setModalType] = useState<"add" | "delete" | "manage" | "billing" | null>(null);
@@ -189,21 +133,40 @@ export default function RoomsPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(8);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // ─── FETCH ACCOMMODATIONS ON MOUNT ───
+  useEffect(() => {
+    api.get("/landlord/accommodations").then((res) => {
+      const list = res.data ?? [];
+      setAccommodations(list);
+      if (list.length > 0) setSelectedAccomId(list[0].id);
+    });
+  }, []);
+
+  // ─── FETCH ROOMS WHEN ACCOMMODATION CHANGES ───
+  useEffect(() => {
+    if (!selectedAccomId) return;
+    setLoading(true);
+    api
+      .get(`/accommodations/${selectedAccomId}/rooms`)
+      .then((res) => setRooms((res.data ?? []).map(mapRoom)))
+      .finally(() => setLoading(false));
+  }, [selectedAccomId]);
+
   // Extract unique buildings
   const buildings = useMemo(() => [...new Set(rooms.map(r => r.building))].sort(), [rooms]);
 
   // Filter rooms
   const filteredRooms = useMemo(() => {
     return rooms.filter(room => {
-      if (searchQuery && !room.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+      if (searchQuery && !room.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !room.building.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
       }
       if (selectedBuilding !== "all" && room.building !== selectedBuilding) return false;
       if (selectedType !== "all" && room.type !== selectedType) return false;
       if (selectedStayType !== "all" && room.stay_type !== selectedStayType) return false;
-      if (selectedStatus === "available" && room.occupants.length >= room.capacity) return false;
-      if (selectedStatus === "full" && room.occupants.length < room.capacity) return false;
+      if (selectedStatus === "available" && room.availability !== "available") return false;
+      if (selectedStatus === "full" && room.availability === "available") return false;
       return true;
     });
   }, [rooms, searchQuery, selectedBuilding, selectedType, selectedStayType, selectedStatus]);
@@ -211,9 +174,9 @@ export default function RoomsPage() {
   // Stats
   const stats = useMemo(() => ({
     total: filteredRooms.length,
-    available: filteredRooms.filter(r => r.occupants.length < r.capacity).length,
-    full: filteredRooms.filter(r => r.occupants.length >= r.capacity).length,
-    totalTenants: filteredRooms.reduce((sum, r) => sum + r.occupants.length, 0),
+    available: filteredRooms.filter(r => r.availability === "available").length,
+    full: filteredRooms.filter(r => r.availability !== "available").length,
+    totalTenants: filteredRooms.reduce((sum, r) => sum + r.currentOccupancy, 0),
   }), [filteredRooms]);
 
   // Pagination
@@ -221,7 +184,7 @@ export default function RoomsPage() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedRooms = filteredRooms.slice(startIndex, startIndex + itemsPerPage);
 
-  const hasActiveFilters = searchQuery !== "" || selectedBuilding !== "all" || selectedType !== "all" || 
+  const hasActiveFilters = searchQuery !== "" || selectedBuilding !== "all" || selectedType !== "all" ||
     selectedStayType !== "all" || selectedStatus !== "all";
 
   // Reset page on filter change
@@ -249,7 +212,6 @@ export default function RoomsPage() {
     setCurrentPage(1);
   };
 
-  // Dismiss a reported issue
   const dismissIssue = (issueId: number) => {
     setReportedIssues(prev => prev.filter(issue => issue.id !== issueId));
   };
@@ -264,18 +226,27 @@ export default function RoomsPage() {
     setSelectedRoom(null);
   };
 
-  const addRoom = (roomData: Omit<Room, "id" | "occupants"> & { tags: RoomTag[] }) => {
-    const newId = Math.max(0, ...rooms.map(r => r.id)) + 1;
-    const newRoom: Room = { id: newId, ...roomData, occupants: [] };
-    setRooms([...rooms, newRoom]);
+  const addRoom = async (roomData: Omit<Room, "id" | "occupants" | "currentOccupancy" | "availability"> & { tags: RoomTag[] }) => {
+    if (!selectedAccomId) return;
+    const res = await api.post(`/accommodations/${selectedAccomId}/rooms`, {
+      room_number: roomData.name,
+      room_type: roomData.type.toLowerCase(),
+      room_stay_type: roomData.stay_type,
+      room_capacity: roomData.capacity,
+      room_building: roomData.building,
+      room_rent: roomData.price,
+      tenant_restriction: roomData.tenant_restriction,
+      tags: roomData.tags.map(t => t.name),
+    });
+    setRooms(prev => [...prev, mapRoom(res.data)]);
     closeModal();
   };
 
-  const deleteRoom = () => {
-    if (selectedRoom) {
-      setRooms(rooms.filter(r => r.id !== selectedRoom.id));
-      closeModal();
-    }
+  const deleteRoom = async () => {
+    if (!selectedRoom) return;
+    await api.delete(`/rooms/${selectedRoom.id}`);
+    setRooms(prev => prev.filter(r => r.id !== selectedRoom.id));
+    closeModal();
   };
 
   const reassignTenant = (tenant: Tenant, fromRoom: Room, toRoom: Room) => {
@@ -304,12 +275,30 @@ export default function RoomsPage() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 space-y-4 sm:space-y-5">
           {/* Header */}
-          <div className="pl-14 sm:pl-16 lg:pl-0 flex items-center gap-2 sm:gap-3 mb-2">
-            <div
-              className="hidden lg:inline w-1.5 sm:w-2 h-6 sm:h-8 rounded-xl mt-1"
-              style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)" }}
-            />
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif italic font-bold text-[#6B0F2B]">Manage Rooms</h1>
+          <div className="pl-14 sm:pl-16 lg:pl-0 flex items-center justify-between gap-2 sm:gap-3 mb-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div
+                className="hidden lg:inline w-1.5 sm:w-2 h-6 sm:h-8 rounded-xl mt-1"
+                style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)" }}
+              />
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif italic font-bold text-[#6B0F2B]">Manage Rooms</h1>
+            </div>
+
+            {/* Accommodation selector — only shown when landlord has multiple */}
+            {accommodations.length > 1 && (
+              <div className="relative">
+                <select
+                  value={selectedAccomId ?? ""}
+                  onChange={e => { setSelectedAccomId(Number(e.target.value)); setCurrentPage(1); }}
+                  className="appearance-none text-xs sm:text-sm pl-3 pr-8 py-2 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-[#8C1535]/10"
+                >
+                  {accommodations.map(a => (
+                    <option key={a.id} value={a.id}>{a.accommodationName}</option>
+                  ))}
+                </select>
+                <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            )}
           </div>
 
           <HeroBanner
@@ -370,8 +359,8 @@ export default function RoomsPage() {
 
               <div className="space-y-2 sm:space-y-3">
                 {reportedIssues.map((issue) => (
-                  <div 
-                    key={issue.id} 
+                  <div
+                    key={issue.id}
                     className="p-3 sm:p-4 rounded-xl border border-gray-100 hover:border-[#8C1535]/20 transition-colors"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
@@ -382,8 +371,8 @@ export default function RoomsPage() {
                             {issue.building}
                           </span>
                           <span className={`text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-medium ${
-                            issue.reportedByRole === "student" 
-                              ? "bg-blue-50 text-blue-600" 
+                            issue.reportedByRole === "student"
+                              ? "bg-blue-50 text-blue-600"
                               : "bg-purple-50 text-purple-600"
                           }`}>
                             Reported by {issue.reportedByRole}
@@ -396,7 +385,6 @@ export default function RoomsPage() {
                           <span>{issue.reportedAt}</span>
                         </div>
                       </div>
-                      {/* Dismiss Button */}
                       <button
                         onClick={() => dismissIssue(issue.id)}
                         className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl text-[10px] sm:text-xs font-bold transition-colors flex-shrink-0 self-end sm:self-start"
@@ -535,12 +523,14 @@ export default function RoomsPage() {
             )}
           </div>
 
-          {/* Rooms Grid or Empty State */}
-          {filteredRooms.length > 0 ? (
+          {/* Rooms Grid / Loading / Empty State */}
+          {loading ? (
+            <div className="flex items-center justify-center py-20 text-gray-400 text-sm">Loading rooms…</div>
+          ) : filteredRooms.length > 0 ? (
             <>
               <div className={`grid gap-3 sm:gap-4 ${
-                viewMode === "grid" 
-                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+                viewMode === "grid"
+                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                   : "grid-cols-1"
               }`}>
                 {paginatedRooms.map((room) => (
@@ -585,7 +575,7 @@ export default function RoomsPage() {
               </div>
               <h3 className="text-base sm:text-lg font-semibold text-gray-600 mb-1 sm:mb-2">No rooms found</h3>
               <p className="text-xs sm:text-sm text-gray-400 max-w-md">
-                {hasActiveFilters 
+                {hasActiveFilters
                   ? "No rooms match your current filters. Try adjusting your search criteria."
                   : "Your accommodation doesn't have any rooms yet. Add your first room to get started!"}
               </p>

@@ -9,7 +9,7 @@ import type { Room, RoomTag } from "../../../../pages/landlord/RoomPage";
 interface AddRoomModalProps {
   open: boolean;
   onClose: () => void;
-  onAdd: (room: Omit<Room, "id" | "occupants"> & { tags: RoomTag[] }) => void;
+  onAdd: (room: Omit<Room, "id" | "occupants" | "currentOccupancy" | "availability"> & { tags: RoomTag[] }) => void;
 }
 
 const COMMON_INCLUSIONS = [

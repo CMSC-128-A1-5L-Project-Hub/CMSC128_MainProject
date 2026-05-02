@@ -22,7 +22,7 @@ export default function ManageRoomModal({ open, room, rooms, onClose, onReassign
     return rooms.filter(r =>
       r.id !== currentRoom.id &&
       r.type === currentRoom.type &&
-      r.occupants.length < r.capacity
+      r.currentOccupancy < r.capacity
     );
   };
 
@@ -41,14 +41,14 @@ export default function ManageRoomModal({ open, room, rooms, onClose, onReassign
           <div className="p-3 bg-[#F9F6F7] rounded-xl flex justify-between items-center">
             <div>
               <p className="text-xs font-bold text-[#8C1535] uppercase">Occupancy</p>
-              <p className="text-2xl font-bold">{room.occupants.length} / {room.capacity}</p>
+              <p className="text-2xl font-bold">{room.currentOccupancy} / {room.capacity}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-[#7A4E5D]">Building</p>
               <p className="font-medium">{room.building}</p>
             </div>
           </div>
-          {room.occupants.length === 0 ? (
+          {room.currentOccupancy === 0 ? (
             <div className="text-center py-8 text-gray-400">No tenants assigned to this room.</div>
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
@@ -103,7 +103,7 @@ export default function ManageRoomModal({ open, room, rooms, onClose, onReassign
                 >
                   <div>
                     <p className="font-semibold">{target.name}</p>
-                    <p className="text-xs text-gray-500">{target.building} • {target.occupants.length}/{target.capacity} occupied</p>
+                    <p className="text-xs text-gray-500">{target.building} • {target.currentOccupancy}/{target.capacity} occupied</p>
                   </div>
                   <Button variant="secondary" size="sm">Move →</Button>
                 </div>

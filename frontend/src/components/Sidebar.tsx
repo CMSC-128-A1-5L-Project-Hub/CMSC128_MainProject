@@ -66,7 +66,7 @@ function getActiveId(pathname: string, role: string): string {
     return "dashboard";
   }
   if (role === "landlordDashboard") {
-    if (pathname.startsWith("/landlord/accommodations")) return "dashboard";
+    if (pathname.startsWith("/landlord/dashboard") || pathname.startsWith("/landlord/accommodations")) return "dashboard";
     if (pathname.startsWith("/landlord/rooms")) return "room";
     if (pathname.startsWith("/landlord/applications") || pathname.startsWith("/landlord/waitlist")) return "application";
     if (pathname.startsWith("/landlord/fees")) return "fees";
@@ -362,7 +362,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         ];
       case "landlordDashboard":
         return [
-          { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/landlord/accommodations" },
+          { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/landlord/dashboard" },
           // size={20} sets width/height directly as inline style — overrides react-icons default "1em"
           { id: "room", label: "Rooms", icon: <MdOutlineMeetingRoom size={20} />, path: "/landlord/rooms" },
           { id: "application", label: "Applications", icon: <BsUiChecks size={20} />, path: "/landlord/applications" },
