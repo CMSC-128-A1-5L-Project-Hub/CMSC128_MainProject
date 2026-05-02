@@ -5,6 +5,10 @@ import HeroBanner from "../../components/dashboard/HeroBanner"
 import Card from "../../components/ui/Card"
 import Button from "../../components/Button"
 import Modal from "../../components/Modal"
+import CustomHeader from '../../components/CustomHeader';
+import Dropdown from "../../components/ApplicationStatus/Dropdown";
+import SearchBar from '../../components/SearchBar';
+
 
 interface ManagerProfile {
     fullName: string
@@ -202,104 +206,92 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
             className={className}
             children={
                 <div className="">
-                    <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">
+                    <h2 className="text-[#1A0008] font-bold text-base">
                         Room Occupancy Details
                     </h2>
-                    <div className="grid grid-cols-4 lg:grid-cols-5 border-b border-[#F5ECF0] uppercase">
-                        <p className="col-span-1 text-[#9A7080] text-xs lg:text-md font-bold p-1">
-                            Room No.
-                        </p>
-                        <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
-                            Room Type
-                        </p>
-                        <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
-                            Capacity
-                        </p>
-                        <p className="hidden lg:block col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
-                            Status
-                        </p>
-                        <p className="col-span-1 text-center text-[#9A7080] text-xs lg:text-md font-bold p-1">
-                            Action
-                        </p>
-                    </div>
-                    {rooms.length > 0 
-                        ? (
-                            <>
-                            <div className="flex flex-col">
-                                {paginatedRooms.map((room, i) => {
+                    <div className="overflow-x-auto">
+                        <table className="w-full mt-3">
+                            <thead className="tracking-widest">
+                                <tr className="border-y-2 border-[#6B0F2B]/5 uppercase">
+                                    <th className="text-[#9A7080] text-[11px] font-bold p-1 pr-8 whitespace-nowrap text-left w-44">Room No.</th>
+                                    <th className="text-[#9A7080] text-[11px] font-bold truncate p-1 pr-8 text-left w-[30%]">Room Type</th>
+                                    <th className="text-[#9A7080] text-[11px] font-bold p-1 pr-8 text-left w-[30%]">Capacity</th>
+                                    <th className="hidden lg:table-cell text-[#9A7080] text-[11px] font-bold p-1 pr-8 text-left w-[15%]">Status</th>
+                                    <th className="text-[#9A7080] text-[11px] font-bold p-1 pr-8 text-left w-[30%]">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rooms.length > 0 ? (
+                                paginatedRooms.map((room, i) => {
                                     const status = getStatus(room)
-                                    return(
-                                        <div key={i} className="grid grid-cols-4 lg:grid-cols-5 flex justify-between items-center py-1 pl-1">
-                                            <div className="col-span-1 flex flex-col">
-                                                <p className="font-bold text-sm lg:text-md text-[#1A0008]">
-                                                    Room {room.roomNumber}
-                                                </p>
-                                                <p className="text-[10px] lg:text-sm text-[#9A7080]">
-                                                    Building {room.roomBuilding}
-                                                </p>
-                                            </div>
-                                            <p className="col-span-1 text-center text-sm text-[#1A0008] capitalize">
-                                                {room.roomType}
-                                            </p>
-                                            <p className="col-span-1 text-center text-sm text-[#1A0008]">
-                                                {room.roomCurrentOccupancy}/{room.roomCapacity}
-                                            </p>
-                                            <div className="hidden lg:flex col-span-1 justify-center">
-                                                <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1 min-w-[90px] rounded-full font-bold
-                                                    ${status === "Full" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
-                                                    `}>
-                                                    <span className={`w-2 h-2 rounded-full 
-                                                        ${status === "Full" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}
-                                                        `}/>
-                                                    {status}
-                                                </span>
-                                            </div>
-                                            <div className="col-span-1 flex justify-center">
-                                                <Button variant="reddishPink" size="sm" className="px-6" onClick={() => openModal(room)}>
-                                                        View
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )    
-                                })}
-                            </div>
-                            <div className="flex items-center justify-between mt-3">
-                                <p className="text-xs text-[#9A7080]">
-                                    Showing {startIndex + 1}–{Math.min(startIndex + ROOMS_PER_PAGE, rooms.length)} of {rooms.length} records
-                                </p>
-                                <div className="flex items-center justify-center gap-1">
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                        <button
-                                            key={page}
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
-                                                ${currentPage === page
-                                                    ? "text-white"
-                                                    : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"
-                                                }`}
-                                            style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
-                                        >
-                                            {page}
-                                        </button>
-                                    ))}
-                                    {currentPage < totalPages && (
-                                        <button
-                                            onClick={() => setCurrentPage(p => p + 1)}
-                                            className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
-                                        >
-                                            {">"}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                            </>
-                        )
-                        : (
-                            <div>
+                                    return (
+                                    <tr key={i}>
+                                        <td className="p-1 py-2">
+                                            <p className="font-bold text-sm text-[#1A0008]">Room {room.roomNumber}</p>
+                                            <p className="text-[10px] lg:text-xs text-[#9A7080]">Building {room.roomBuilding}</p>
+                                        </td>
+                                        <td className="p-1 py-2 text-left text-sm text-[#1A0008] capitalize">
+                                        {room.roomType}
+                                        </td>
+                                        <td className="p-1 py-2 text-left text-sm text-[#1A0008]">
+                                        {room.roomCurrentOccupancy}/{room.roomCapacity}
+                                        </td>
+                                        <td className="hidden lg:table-cell p-1 py-2 text-left">
+                                            <span className={`inline-flex items-center justify-center gap-1 text-xs px-3 py-2 rounded-full font-bold ${
+                                                status === "Full" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"
+                                            }`}>
+                                                <span className={`w-2 h-2 rounded-full ${status === "Full" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}`} />
+                                                {status}
+                                            </span>
+                                        </td>
+                                        <td className="p-1 py-2 text-left">
+                                            <Button variant="reddishPink" size="sm" className="px-6" onClick={() => openModal(room)}>
+                                                View
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                    )
+                                })
+                                ) : (
+                                <tr>
+                                    <td colSpan={5} className="text-center py-4 italic text-gray-500">Nothing to see here</td>
+                                </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
+                    {rooms.length > 0 && (
+                        <div className="flex items-center justify-between mt-3">
+                            <p className="text-xs text-[#9A7080]">
+                            Showing {startIndex + 1}–{Math.min(startIndex + ROOMS_PER_PAGE, rooms.length)} of {rooms.length} records
+                            </p>
+                            <div className="flex items-center justify-center gap-1">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center ${
+                                    currentPage === page
+                                    ? "text-white"
+                                    : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"
+                                }`}
+                                style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
+                                >
+                                {page}
+                                </button>
+                            ))}
+                            {currentPage < totalPages && (
+                                <button
+                                onClick={() => setCurrentPage(p => p + 1)}
+                                className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                                >
+                                {">"}
+                                </button>
+                            )}
                             </div>
-                        )
-                    }
+                        </div>
+                    )}
                 </div>
             }
         />
@@ -341,7 +333,7 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
 
     return (
         <Card className={className}>
-            <h2 className="text-[#1A0008] font-bold text-base lg:text-lg mb-3">
+            <h2 className="text-[#1A0008] font-bold text-base mb-3">
                 Occupancy Rooms
             </h2>
             <div className="flex items-center gap-6">
@@ -430,9 +422,11 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
         })
     }, [filtered, sortBy])
 
-    const totalPages = Math.ceil(sorted.length / HISTORY_PER_PAGE)
-    const startIndex = (currentPage - 1) * HISTORY_PER_PAGE
-    const paginated = sorted.slice(startIndex, startIndex + HISTORY_PER_PAGE)
+    const [itemsPerPage, setItemsPerPage] = useState(HISTORY_PER_PAGE)
+
+    const totalPages = Math.ceil(sorted.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const paginated = sorted.slice(startIndex, startIndex + itemsPerPage)
 
     const handleSort = (option: string) => {
         setSortBy(option)
@@ -450,15 +444,47 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
         name[0]
 
     return (
-        <Card className={className}>
+        <Card className="overflow-x-auto">
             {/* Header row */}
-            <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-                <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+                <h2 className="text-[#1A0008] font-bold text-base">
                     Occupancy History
                 </h2>
                 <div className="flex items-center gap-2 ml-auto">
                     {/* Sort dropdown */}
-                    <div className="relative">
+                    <div className='hidden lg:block'>
+                        <Dropdown
+                            title="No. of Items"
+                            items={[
+                                { label: "5", href: "" },
+                                { label: "10", href: "" },
+                                { label: "15", href: "" },
+                                { label: "20", href: "" },
+                            ]}
+                            direction='down'
+                            widthClass="w-29 lg:w-32"
+                            titleClass="text-[10px] lg:text-[11px]"
+                            selectedClass="text-[12px] lg:text-[13px]"
+                            onSelect={(label) => {
+                                setItemsPerPage(Number(label))
+                                setCurrentPage(1)
+                            }}
+                        />
+                    </div>
+                    
+                    <Dropdown
+                        title="Sort By"
+                        items={SORT_OPTS.map(opt => ({ label: opt, href: "" }))}
+                        direction='down'
+                        widthClass="w-29 lg:w-32"
+                        titleClass="text-[10px] lg:text-[11px]"
+                        selectedClass="text-[12px] lg:text-[13px] block"
+                        onSelect={(label) => {
+                            setSortBy(label)
+                            setCurrentPage(1)
+                        }}
+                        />
+                    {/* <div className="relative">
                         <button
                             onClick={() => setSortOpen(o => !o)}
                             className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 text-sm bg-white hover:bg-[#F5ECF0] transition min-w-[140px]"
@@ -485,10 +511,10 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                                 ))}
                             </div>
                         )}
-                    </div>
+                    </div> */}
 
                     {/* Search */}
-                    <div className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 bg-white">
+                    {/* <div className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 bg-white">
                         <svg className="w-4 h-4 text-[#9A7080] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                         </svg>
@@ -499,66 +525,85 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
                             onChange={handleSearch}
                             className="text-sm outline-none bg-transparent text-[#1A0008] placeholder-[#C4A4B0] w-36"
                         />
-                    </div>
+                    </div> */}
+                    <SearchBar
+                        value={search}
+                        onChange={(query) => {
+                            setSearch(query)
+                            }}
+                        onPageReset={() => setCurrentPage(1)}
+                    />
                 </div>
             </div>
 
-                    {/* Table header */}
-                    <div className="grid grid-cols-8 lg:grid-cols-12 border-b border-[#F5ECF0] uppercase pb-1 mb-1">
-                        <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Students</p>
-                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Room No.</p>
-                        <p className="hidden lg:block col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Building No.</p>
-                        <p className="hidden lg:block col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Room Type</p>
-                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1">Action</p>
-                        <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+            {/* Table header */}
+            <div className="overflow-x-auto ">
+                <table className="w-full mt-4">
+                    <thead className="tracking-widest">
+                        <tr className="border-[#6B0F2B]/5 border-y-2 uppercase">
+                        <th className="text-[#9A7080] text-[11px] font-bold p-1 pr-16 text-left">Students</th>
+                        <th className="text-[#9A7080] truncate text-[11px] font-bold p-1 pr-12 text-left">Room No.</th>
+                        <th className="hidden lg:table-cell text-[#9A7080] text-[11px] font-bold pr-20 text-left">Building No.</th>
+                        <th className="hidden lg:table-cell text-[#9A7080] text-[11px]  font-bold pr-8 text-left">Room Type</th>
+                        <th className="text-[#9A7080] text-[11px] font-bold pr-16 text-left">Action</th>
+                        <th className="text-[#9A7080] text-[11px] font-bold pr-12 text-left">
+                            <span className="inline-flex items-center justify-center gap-1">
                             Date
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
-                        </p>
-                    </div>
-
-                    {/* Rows */}
-                    <div className="flex flex-col divide-y divide-[#F5ECF0]">
+                            </span>
+                        </th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         {paginated.length > 0 ? paginated.map((record, i) => (
-                            <div key={i} className="grid grid-cols-8 lg:grid-cols-12 items-center py-3">
-                                {/* Student */}
-                                <div className="col-span-2 flex items-center gap-2">
-                                    <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                        {getInitials(record.tenant.fullName)}
-                                    </div>
-                                    <p className="font-bold text-[12px] ml-1 lg:ml-0 lg:text-sm text-[#1A0008]">{record.tenant.fullName}</p>
+                        <tr key={i}>
+                            <td className="py-3 p-1">
+                            <div className="flex items-center gap-2">
+                                <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                                    style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                                {getInitials(record.tenant.fullName)}
                                 </div>
-                                <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">Room {record.roomNumber}</p>
-                                <p className="hidden lg:block col-span-2 text-center text-sm text-[#1A0008]">Building {record.roomBuilding}</p>
-                                <p className="hidden lg:block col-span-2 text-center text-sm text-[#1A0008] capitalize">{record.roomType}</p>
-                                <div className="col-span-2 flex justify-center">
-                                    <span className={`inline-flex items-center justify-center gap-1 text-[10px] lg:text-xs px-2 py-1 rounded-full font-bold
-                                        ${record.action === "Move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"}
-                                    `}>
-                                        <span className={`w-2 h-2 rounded-full 
-                                            ${record.action === "Move-out" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}
-                                        `}/>
-                                        {record.action}
-                                    </span>
-                                </div>
-                                <div className="col-span-2 flex justify-center">
-                                    <div>
-                                        <p className="text-[11px] lg:text-sm text-[#1A0008]">{record.date}</p>
-                                        <p className="text-[8px] lg:text-[10px] text-[#9A7080]">{record.time}</p>
-                                    </div>
-                                </div>
+                                <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">{record.tenant.fullName}</p>
                             </div>
+                            </td>
+                            <td className="py-3 p-1 text-left text-[12px] lg:text-sm text-[#1A0008]">
+                            Room {record.roomNumber}
+                            </td>
+                            <td className="hidden lg:table-cell py-3 p-1 text-left text-sm text-[#1A0008]">
+                            Building {record.roomBuilding}
+                            </td>
+                            <td className="hidden lg:table-cell py-3 p-1 text-left text-sm text-[#1A0008] capitalize">
+                            {record.roomType}
+                            </td>
+                            <td className="py-3 p-1">
+                            <span className={`inline-flex items-center justify-center gap-1 text-[10px] lg:text-xs px-3 py-2 rounded-full font-bold ${
+                                record.action === "Move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"
+                            }`}>
+                                <span className={`w-2 h-2 rounded-full ${record.action === "Move-out" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}`} />
+                                {record.action}
+                            </span>
+                            </td>
+                            <td className="py-3 p-1">
+                            <p className="text-[11px] lg:text-sm text-[#1A0008]">{record.date}</p>
+                            <p className="text-[8px] lg:text-[10px] text-[#9A7080]">{record.time}</p>
+                            </td>
+                        </tr>
                         )) : (
-                            <p className="text-sm text-[#9A7080] py-6 text-center">No records found.</p>
+                        <tr>
+                            <td colSpan={6} className="text-sm text-[#9A7080] py-6">No records found.</td>
+                        </tr>
                         )}
-                    </div>
+                    </tbody>
+                </table>
+            </div>
+            
 
             {/* Footer */}
             <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#F5ECF0]">
                 <p className="text-xs text-[#9A7080]">
-                    Showing {sorted.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + HISTORY_PER_PAGE, sorted.length)} of {sorted.length} records
+                    Showing {sorted.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + itemsPerPage, sorted.length)} of {sorted.length} records
                 </p>
                 <div className="flex items-center justify-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -592,40 +637,36 @@ export default function OccupancyRecords() {
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
             <Sidebar role="manager" profile={managerProfile}/>
+            <div className = "flex flex-col flex-1 min-w-0">
+                <CustomHeader
+                    title="Occupancy Records"></CustomHeader>
+                <div className="flex-1 flex flex-col p-6 overflow-y-auto">
+                    <main className="flex-1 flex flex-col gap-6">
+                        <HeroBanner 
+                            greeting="Good Day"
+                            name={managerProfile.fullName}
+                            title="View occupancy records"
+                            subtitle="We make it easy for you to keep track of occupancy records"
+                            type="mini"
+                        />
 
-            <div className="flex-1 flex flex-col px-8 py-5 overflow-y-auto">
-                <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
-                    <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
-                        style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
-                    />
-                    <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B] ">
-                        Occupancy Records
-                    </h1>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <RoomOccupancyDetails
+                                rooms={Rooms}
+                                className="col-span-1 lg:col-span-2"
+                            />
+                            <OccupancyRooms 
+                                rooms={Rooms}
+                                className="col-span-1"
+                            />
+                        </div>
+                        <OccupancyHistory 
+                            records={historyRecords}
+                        />
+                    </main>
                 </div>
-                <main className="flex-1 flex flex-col gap-4">
-                    <HeroBanner 
-                        greeting="Good Day"
-                        name={managerProfile.fullName}
-                        title="View occupancy records"
-                        subtitle="We make it easy for you to keep track of occupancy records"
-                        type="mini"
-                    />
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <RoomOccupancyDetails
-                            rooms={Rooms}
-                            className="col-span-1 lg:col-span-2"
-                        />
-                        <OccupancyRooms 
-                            rooms={Rooms}
-                            className="col-span-1"
-                        />
-                    </div>
-                    <OccupancyHistory 
-                        records={historyRecords}
-                    />
-                </main>
             </div>
+            
         </div>
     )
 }

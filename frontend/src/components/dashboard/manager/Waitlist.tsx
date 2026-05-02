@@ -92,19 +92,19 @@ export default function Waitlist({ waitlists, className = "" }: Props) {
       </Modal>
 
       <Card className={className}>
-        <div className="w-full h-full flex flex-col min-w-0">
+        <div className="w-full h-full flex flex-col p-1 min-w-0">
           <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
             <p className="text-[#1A0008] font-bold">Waitlist</p>
             <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/waitlist")}>View all →</p>
           </div>
           <div className="grid grid-cols-3 border-b border-[#F5ECF0] uppercase">
-            <p className="col-span-2 text-[#9A7080] text-xs font-bold p-1">Student</p>
-            <p className="col-span-1 text-center text-[#9A7080] text-xs font-bold p-1">Action</p>
+            <p className="col-span-2 text-[#9A7080] tracking-widest text-xs font-bold p-1">Student</p>
+            <p className="col-span-1 text-center tracking-widest text-[#9A7080] text-xs font-bold p-1">Action</p>
           </div>
           {waitlists.length > 0 ? (
             <div className="grid grid-cols-3">
               {waitlists.map((waitlist, i) => (
-                <div key={i} className="col-span-3 grid grid-cols-3 flex justify-between items-center py-2 px-1">
+                <div key={i} className="col-span-3 grid grid-cols-3 justify-between items-center py-2 px-1">
                   <div className="col-span-2 flex flex-row items-center">
                     <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
                          style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
