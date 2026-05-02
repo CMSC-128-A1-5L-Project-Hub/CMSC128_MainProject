@@ -375,6 +375,14 @@ export default function Applications() {
       return;
     }
 
+    // check if the student already has an assigned room that is different from the newly selected one
+    if (selectedApp.assignedRoom && selectedApp.assignedRoom !== selectedRoom.toString()) {
+      const confirmOverride = window.confirm(
+        "This applicant is already assigned to a room. Are you sure you want to release their old room and reassign them to this new one?"
+      );
+      if (!confirmOverride) return; // stop the function if they click cancel
+    }
+
     assignRoomMutation.mutate({ 
       roomId: selectedRoom, 
       applicationId: selectedApp.id,

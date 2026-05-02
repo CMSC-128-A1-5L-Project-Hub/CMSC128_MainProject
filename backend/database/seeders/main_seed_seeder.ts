@@ -362,6 +362,7 @@ export default class extends BaseSeeder {
       { accommodation_id: getAccom('UBLE Residences'), room_number: '702', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'occupied' },
       { accommodation_id: getAccom('UBLE Residences'), room_number: '703', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' },
       { accommodation_id: getAccom('UBLE Residences'), room_number: '704', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3500.00, tenant_restriction: 'coed', room_availability: 'available' },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '705', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3500.00, tenant_restriction: 'coed', room_availability: 'available' },
     ])
 
     const allRooms = await db.from('rooms').select('id', 'room_number', 'accommodation_id')
@@ -438,6 +439,9 @@ export default class extends BaseSeeder {
       // UBLE Residences — 704 (shared)
       { room_id: getRoom('704', 'UBLE Residences'), tag_detail: 'Has study area' },
       { room_id: getRoom('704', 'UBLE Residences'), tag_detail: 'Has locker' },
+      // UBLE Residences — 705 (shared)
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Has study area' },
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Near elevator' },
     ])
 
     // =========================================================================
@@ -452,6 +456,9 @@ export default class extends BaseSeeder {
       { accommodation_id: getAccom("ATI"), student_number: '2024-000002', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'under_review', duration_of_stay_days: 30, application_date: '2026-02-20 14:00:00', reviewed_at: null, reviewed_by: null },
       { accommodation_id: getAccom('White House'), student_number: '2023-223456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'pending', duration_of_stay_days: 180, application_date: '2026-04-29 08:00:00' },
       { accommodation_id: getAccom('White House'), student_number: '2023-223457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 365, application_date: '2026-04-29 09:30:00' },
+      { accommodation_id: getAccom('UBLE Residences'), student_number: '2023-123458', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365, application_date: '2026-04-28 10:00:00', reviewed_at: '2026-04-28 12:30:00', reviewed_by: getUser('uble.ics.uplb@gmail.com'), approved_at: '2026-04-28 12:30:00', slot_confirm_deadline: '2026-05-05 23:59:59'},
+      { accommodation_id: getAccom('UBLE Residences'), student_number: '2023-123461', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'under_review', duration_of_stay_days: 180, application_date: '2026-04-30 08:00:00' },
+      { accommodation_id: getAccom('UBLE Residences'), student_number: '2023-123462', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 180, application_date: '2026-04-25 09:30:00', reviewed_at: '2026-04-26 10:00:00', reviewed_by: getUser('uble.ics.uplb@gmail.com') },
 
       { accommodation_id: getAccom('White House'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 150 },
       { accommodation_id: getAccom('White House'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 180 },
@@ -480,6 +487,7 @@ export default class extends BaseSeeder {
       // UBLE Residences assignments
       { student_number: '2023-123458', room_id: getRoom('701', 'UBLE Residences'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2027-03-05', actual_move_out: null, grace_period_days: 5 },
       { student_number: '2023-123460', room_id: getRoom('702', 'UBLE Residences'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2027-03-05', actual_move_out: null, grace_period_days: 5 },
+      { student_number: '2023-223456', room_id: getRoom('703', 'UBLE Residences'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2027-03-05', actual_move_out: null, grace_period_days: 5 },
     ])
 
     await db.table('bookmarks').multiInsert([

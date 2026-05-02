@@ -203,7 +203,7 @@ export default class ApplicationsController {
     if (user.role === 'landlord') {
       const applications = await Application.query()
         .whereHas('accommodation', (q) => q.where('landlordId', user.id))
-        .where('applicationStatus', 'under_review')
+        .whereIn('applicationStatus', ['under_review', 'approved', 'waitlisted', 'confirmed'])
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
         .orderBy('applicationDate', 'asc')
