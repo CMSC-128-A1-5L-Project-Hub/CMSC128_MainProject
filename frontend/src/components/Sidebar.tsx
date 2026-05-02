@@ -8,6 +8,13 @@ import ApplicationIcon from "../assets/icons/applications.svg?react";
 import ProfileIcon from "../assets/icons/profile.svg?react";
 import DocumentIcon from "../assets/icons/documents.svg?react";
 import LogoutIcon from "../assets/icons/logout.svg?react";
+import RoomIcon from "../assets/icons/room.svg?react";
+import LandlordApplicationIcon from "../assets/icons/application&waitlisted.svg?react";
+import FeesIcon from "../assets/icons/fees.svg?react";
+import OccupancyIcon from "../assets/icons/occupancy.svg?react";
+import MoveIcon from "../assets/icons/move.svg?react";
+import WaitlistedIcon from "../assets/icons/waitlisted.svg?react";
+import AssignIcon from "../assets/icons/assign.svg?react";
 import { MdOutlineMeetingRoom } from "react-icons/md";
 import { BsUiChecks } from "react-icons/bs";
 import { PiCashRegister } from "react-icons/pi";
@@ -354,19 +361,19 @@ export default function Sidebar({ role, profile }: SidebarProps) {
       case "manager":
         return [
           { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/manager/dashboard" },
-          { id: "applications", label: "Applications", icon: <DocumentIcon />, path: "/manager/applications" },
-          { id: "reports", label: "Occupancy", icon: <DocumentIcon />, path: "/manager/occupancy-records" },
-          { id: "users", label: "Room Assign", icon: <ApplicationIcon />, path: "/manager/room-assignment" },
-          { id: "waitlist", label: "Waitlist", icon: <DocumentIcon />, path: "/manager/waitlist" },
-          { id: "movein-moveout", label: "Move In/Out", icon: <DocumentIcon />, path: "/manager/movein-moveout" },
+          { id: "applications", label: "Applications", icon: <LandlordApplicationIcon />, path: "/manager/applications" },
+          { id: "reports", label: "Occupancy", icon: <OccupancyIcon />, path: "/manager/occupancy-records" },
+          { id: "users", label: "Room Assign", icon: <AssignIcon />, path: "/manager/room-assignment" },
+          { id: "waitlist", label: "Waitlist", icon: <WaitlistedIcon />, path: "/manager/waitlist" },
+          { id: "movein-moveout", label: "Move In/Out", icon: <MoveIcon />, path: "/manager/movein-moveout" },
         ];
       case "landlord":
         return [
           { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/landlord/dashboard" },
           // size={20} sets width/height directly as inline style — overrides react-icons default "1em"
-          { id: "room", label: "Rooms", icon: <MdOutlineMeetingRoom size={20} />, path: "/landlord/rooms" },
-          { id: "application", label: "Applications", icon: <BsUiChecks size={20} />, path: "/landlord/applications" },
-          { id: "fees", label: "Fees", icon: <PiCashRegister size={20} />, path: "/landlord/fees" },
+          { id: "room", label: "Rooms", icon: <RoomIcon />, path: "/landlord/rooms" },
+          { id: "application", label: "Applications & Waitlisted", icon: <LandlordApplicationIcon />, path: "/landlord/applications" },
+          { id: "fees", label: "Fees", icon: < FeesIcon/>, path: "/landlord/fees" },
         ];
       default:
         return [];
