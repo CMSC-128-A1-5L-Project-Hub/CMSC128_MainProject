@@ -1,4 +1,4 @@
-import type { Application } from "../../pages/student/ApplicationStatus";
+import type { Application } from "./ApplicationStatusModal";
 import StylizedStatus from "../BillingDashboard/StylizedStatus";
 import Button from "../Button";
 
