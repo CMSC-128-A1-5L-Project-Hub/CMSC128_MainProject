@@ -201,7 +201,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-[#F5EEF0] overflow-hidden">
-      <Sidebar role="landlordDashboard" />
+      <Sidebar role="landlord" />
 
       {/* Everything right of sidebar: main + right panel, side by side */}
       <div className="flex flex-1 overflow-hidden min-w-0">

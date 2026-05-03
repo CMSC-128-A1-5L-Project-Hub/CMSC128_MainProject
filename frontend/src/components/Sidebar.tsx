@@ -8,6 +8,11 @@ import ApplicationIcon from "../assets/icons/applications.svg?react";
 import ProfileIcon from "../assets/icons/profile.svg?react";
 import DocumentIcon from "../assets/icons/documents.svg?react";
 import LogoutIcon from "../assets/icons/logout.svg?react";
+import RoomIcon from "../assets/icons/room.svg?react";
+import LandlordApplicationIcon from "../assets/icons/application&waitlisted.svg?react";
+import FeesIcon from "../assets/icons/fees.svg?react";
+import WaitlistedIcon from "../assets/icons/waitlisted.svg?react";
+import AssignIcon from "../assets/icons/assign.svg?react";
 import { MdOutlineMeetingRoom } from "react-icons/md";
 import { BsUiChecks } from "react-icons/bs";
 import { PiCashRegister } from "react-icons/pi";
@@ -55,7 +60,7 @@ interface SidebarMenuItem {
 }
 
 interface SidebarProps {
-  role: "student" | "landlord" | "manager" | "landlordDashboard";
+  role: "student" | "landlord" | "manager" | "landlord";
   profile?: {
     fullName: string;
     shortName: string;
@@ -88,8 +93,8 @@ function getActiveId(pathname: string, role: string): string {
     if (pathname.startsWith("/manager/profile")) return "account";
     return "dashboard";
   }
-  if (role === "landlordDashboard") {
-    if (pathname.startsWith("/landlord/accommodations")) return "dashboard";
+  if (role === "landlord") {
+    if (pathname.startsWith("/landlord/dashboard") || pathname.startsWith("/landlord/accommodations")) return "dashboard";
     if (pathname.startsWith("/landlord/rooms")) return "room";
     if (pathname.startsWith("/landlord/applications") || pathname.startsWith("/landlord/waitlist")) return "application";
     if (pathname.startsWith("/landlord/fees")) return "fees";
@@ -369,10 +374,10 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     switch (role) {
       case "student":
         return [
-          { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/student/dashboard" },
-          { id: "search", label: "Browse Rooms", icon: <SearchIcon />, path: "/browse" },
-          { id: "applications", label: "Applications", icon: <ApplicationIcon />, path: "/student/applications" },
-          { id: "documents", label: "Billing", icon: <DocumentIcon />, path: "/student/billingdashboard" },
+          { id: "dashboard",    icon: <DashboardIcon   className="w-5 h-5" />,           path: "/student/dashboard",          label: "Dashboard" },
+          { id: "search",       icon: <SearchIcon      className="w-[21px] h-[21px]" />, path: "/student/browse",                     label: "Browse Rooms" },
+          { id: "applications", icon: <ApplicationIcon className="w-[26px] h-[26px]" />, path: "/student/applicationstatus",  label: "Applications" },
+          { id: "documents",    icon: <DocumentIcon    className="w-[20px] h-[20px]" />, path: "/student/billingdashboard",   label: "Billing Statements" },
         ];
       case "manager":
         return [
@@ -383,13 +388,13 @@ export default function Sidebar({ role, profile }: SidebarProps) {
           { id: "waitlist", label: "Waitlist", icon: <WaitlistIcon />, path: "/manager/waitlist" },
           { id: "movein-moveout", label: "Move In/Out", icon: <MoveIcon />, path: "/manager/movein-moveout" },
         ];
-      case "landlordDashboard":
+      case "landlord":
         return [
-          { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/landlord/accommodations" },
+          { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/landlord/dashboard" },
           // size={20} sets width/height directly as inline style — overrides react-icons default "1em"
-          { id: "room", label: "Rooms", icon: <MdOutlineMeetingRoom size={20} />, path: "/landlord/rooms" },
-          { id: "application", label: "Applications", icon: <BsUiChecks size={20} />, path: "/landlord/applications" },
-          { id: "fees", label: "Fees", icon: <PiCashRegister size={20} />, path: "/landlord/fees" },
+          { id: "room", label: "Rooms", icon: <RoomIcon />, path: "/landlord/rooms" },
+          { id: "application", label: "Applications & Waitlisted", icon: <LandlordApplicationIcon />, path: "/landlord/applications" },
+          { id: "fees", label: "Fees", icon: < FeesIcon/>, path: "/landlord/fees" },
         ];
       default:
         return [];

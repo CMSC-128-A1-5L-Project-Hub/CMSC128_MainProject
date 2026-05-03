@@ -20,8 +20,8 @@ interface RoomCardProps {
 }
 
 export default function RoomCard({ room, onManage, onBilling, onDelete }: RoomCardProps) {
-  const isFull = room.occupants.length >= room.capacity;
-  const fillPercentage = (room.occupants.length / room.capacity) * 100;
+  const isFull = room.currentOccupancy >= room.capacity;
+  const fillPercentage = (room.currentOccupancy / room.capacity) * 100;
   const [isExpanded, setIsExpanded] = useState(false);
 
   const TypeIcon = room.type === "Single" ? Crown : room.type === "Double" ? BedDouble : Users;
@@ -91,7 +91,7 @@ export default function RoomCard({ room, onManage, onBilling, onDelete }: RoomCa
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-[9px] font-black text-gray-600">{room.occupants.length}/{room.capacity}</span>
+                    <span className="text-[9px] font-black text-gray-600">{room.currentOccupancy}/{room.capacity}</span>
                   </div>
                 </div>
               </div>
