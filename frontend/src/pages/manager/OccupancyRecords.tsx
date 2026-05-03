@@ -168,7 +168,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                 <div>
                                     <p className="font-bold text-md lg:text-lg text-[#1A0008] mb-3">Current Occupants</p>
                                     {modalRoom.tenants.length > 0 ? (
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                                             {modalRoom.tenants.map((tenant, i) => (
                                                 <div key={i} className="flex flex-col gap-3">
                                                     {/* Avatar + Name */}
@@ -640,8 +640,8 @@ export default function OccupancyRecords() {
             <div className = "flex flex-col flex-1 min-w-0">
                 <CustomHeader
                     title="Occupancy Records"></CustomHeader>
-                <div className="flex-1 flex flex-col p-6 overflow-y-auto">
-                    <main className="flex-1 flex flex-col gap-6">
+                <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
+                    <main className="flex-1 flex flex-col gap-4 lg:gap-6">
                         <HeroBanner 
                             greeting="Good Day"
                             name={managerProfile.fullName}
@@ -650,7 +650,7 @@ export default function OccupancyRecords() {
                             type="mini"
                         />
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
                             <RoomOccupancyDetails
                                 rooms={Rooms}
                                 className="col-span-1 lg:col-span-2"
