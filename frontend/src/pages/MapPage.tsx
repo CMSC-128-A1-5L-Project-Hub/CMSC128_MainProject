@@ -132,7 +132,7 @@ export default function MapPage() {
   }, [accommodations, search, appliedFilters])
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', fontFamily: "'Segoe UI', sans-serif", overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', fontFamily: "'Plus Jakarta Sans', sans-serif", overflow: 'hidden' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', height: '100%' }}>
         <div className="relative flex-1 overflow-hidden">
 
@@ -160,16 +160,24 @@ export default function MapPage() {
                   </button>
                 )}
                 <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-2xl font-bold text-white">
+                  <h2 className="text-xl font-bold text-white">
                     {centeredAccommodation ? centeredAccommodation.accommodationName : 'Find Accommodation'}
                   </h2>
-                  <button onClick={resetFilters} className="text-sm font-semibold text-[#C69C3B] hover:opacity-80" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <button onClick={resetFilters} className="text-xs font-semibold text-[#C69C3B] hover:opacity-80" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     Reset all
                   </button>
                 </div>
-                <p className="text-sm text-white/60">
-                  {isLoading ? 'Loading...' : `${filtered.length} of ${accommodations.length} shown`}
-                </p>
+                <div className='flex flex-row justify-between'>
+                  <p className="text-sm -mt-1 text-white/60">
+                    {isLoading ? 'Loading...' : `${filtered.length} of ${accommodations.length} shown`}
+                  </p>
+                  <button 
+                  onClick={() => navigate('/')}
+                  className='mt-4 p-0 flex items-center text-white text-xs hover:underline hover:scale-105 transition-all'>
+                    ← Back
+                  </button>
+                </div>
+                
               </div>
 
               {/* Scrollable Filters */}
@@ -397,7 +405,7 @@ export default function MapPage() {
               <div className="p-6 pt-4 border-t border-gray-50">
                 <button
                   onClick={handleApplyFilters}
-                  className="w-full py-4 bg-[#710A2B] text-white font-bold rounded-2xl shadow-lg hover:bg-[#5a0822] transition-all active:scale-95"
+                  className="w-full py-4 bg-[#710A2B] text-sm text-white font-bold rounded-2xl shadow-lg hover:bg-[#5a0822] transition-all active:scale-95"
                 >
                   Apply Filters
                 </button>

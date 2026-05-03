@@ -1,5 +1,8 @@
 import { useState, useMemo } from "react"
 import { api } from "../../api/axios";
+import CustomHeader from '../../components/CustomHeader';
+import Dropdown from "../../components/ApplicationStatus/Dropdown";
+import SearchBar from '../../components/SearchBar';
 
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
@@ -102,7 +105,7 @@ const diffFromNow = (isoDate: string | DateTime): number => {
   return Math.trunc(days ?? 0)
 }
 
-const RECORDS_PER_PAGE = 5
+// const RECORDS_PER_PAGE = 5
 type FilterType = "all" | "move-in" | "move-out"
 
 // initial for avatar 
@@ -148,6 +151,20 @@ export default function MoveinMoveout() {
         const [currentPage, setCurrentPage] = useState(1)
         const [search, setSearch] = useState("")
 
+        const [itemsPerPage, setItemsPerPage] = useState(5)
+        const [sortBy, setSortBy] = useState("Date")
+
+        const SORT_OPTS = [
+        { value: "Date", label: "Date" },
+        { value: "Room Type", label: "Room Type" },
+        { value: "Building", label: "Building" },
+        ]
+
+        const handleSort = (option: string) => {
+        setSortBy(option)
+        setCurrentPage(1)
+        }
+
         //FILTER AND SEARCH
         const filtered = useMemo(() => {
             const q = search.toLowerCase()
@@ -166,23 +183,32 @@ export default function MoveinMoveout() {
             })
         }, [records, search, filter])
 
+        const sorted = useMemo(() => {
+            return [...filtered].sort((a, b) => {
+                if (sortBy === "Room Type") return a.room.roomType.localeCompare(b.room.roomType)
+                if (sortBy === "Building") return a.room.roomBuilding.localeCompare(b.room.roomBuilding)
+                if (sortBy === "Date") return new Date(a.moveIn as string).getTime() - new Date(b.moveIn as string).getTime()
+                return 0
+            })
+            }, [filtered, sortBy])
+
         //PAGES 
-        const totalPages = Math.ceil(filtered.length / RECORDS_PER_PAGE)
-        const startIndex = (currentPage - 1) * RECORDS_PER_PAGE
-        const paginated = filtered.slice(startIndex, startIndex + RECORDS_PER_PAGE)
+        const totalPages = Math.ceil(sorted.length / itemsPerPage)
+        const startIndex = (currentPage - 1) * itemsPerPage
+        const paginated = sorted.slice(startIndex, startIndex + itemsPerPage)
 
         const handleFilterChange = (f: FilterType) => {
             setFilter(f)
             setCurrentPage(1)
         }
 
-        const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-            setSearch(e.target.value)
-            setCurrentPage(1)
-        }
+        // const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        //     setSearch(e.target.value)
+        //     setCurrentPage(1)
+        // }
 
         return (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
                 {/* FILTER BUTTONS */}
                 <div className="flex items-center gap-2">
                     {(["all", "move-in", "move-out"] as FilterType[]).map(f => (
@@ -202,161 +228,182 @@ export default function MoveinMoveout() {
                 </div>
                 
 
-               <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+               <div className="bg-white rounded-2xl shadow-sm p-6 border overflow-hidden">
                     {/*HEADER (TITLE + SERACG */}
-                    <div className="flex items-start justify-between p-4 border-b">
+                    <div className="flex items-start justify-between">
                         <div className="flex flex-col gap-1">
                             <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight whitespace-nowrap">
-                            Move in &amp; Move out
-                            <br />
-                            History
+                            Move in &amp; Move out History
                             </h2>
                             <p className="text-xs text-gray-400">
-                                {filtered.length} total move {filter === "all" ? "outs" : filter === "move-out" ? "outs" : "ins"}
+                            {filtered.length} total move {filter === "all" ? "outs" : filter === "move-out" ? "outs" : "ins"}
                             </p>
                         </div>
 
-                        <div className="relative w-[130px] sm:w-[180px]">
-                            <svg
-                                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A36F82]"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2.5}
-                                viewBox="0 0 24 24"
-                                >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z"
-                                />
-                                </svg>
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                value={search}
-                                onChange={handleSearch}
-                                className="w-full min-w-0 h-10 bg-white border border-[#E8D5DC] rounded-xl pl-8 pr-7 text-sm text-[#3D0718] placeholder:text-[#C7A7B3] focus:outline-none focus:bg-[#F5ECF0] transition-all duration-200"
+                        <div className="flex items-center gap-2">
+                            <div className="hidden lg:block">
+                                <Dropdown
+                                    title="No. of Items"
+                                    items={[
+                                        { label: "5", href: "" },
+                                        { label: "10", href: "" },
+                                        { label: "15", href: "" },
+                                        { label: "20", href: "" },
+                                    ]}
+                                    direction='down'
+                                    widthClass="w-29 lg:w-32"
+                                    titleClass="text-[10px] lg:text-[11px]"
+                                    selectedClass="text-[12px] lg:text-[13px]"
+                                    onSelect={(label) => {
+                                        setItemsPerPage(Number(label))
+                                        setCurrentPage(1)
+                                    }}
+                                    />
+                            </div>
+                            
+                            <Dropdown
+                            title="Sort By"
+                            items={SORT_OPTS.map(opt => ({ label: opt.label, href: "" }))}
+                            direction='down'
+                            widthClass="w-29 lg:w-32"
+                            titleClass="text-[10px] lg:text-[11px]"
+                            selectedClass="text-[12px] lg:text-[13px] block"
+                            onSelect={(label) => {
+                                handleSort(label)
+                            }}
+                            />
+                            <SearchBar
+                            value={search}
+                            onChange={(query) => setSearch(query)}
+                            onPageReset={() => setCurrentPage(1)}
                             />
                         </div>
+                        
                     </div>
-
-                    {/* TABLE HEADER */}
-                        <div className="w-full overflow-x-auto">
-                            <div className="min-w-[900px]">
-
-                                {/* TABLE HEADER */}
-                                <div className="grid grid-cols-12 bg-gray-50 border-b border-[#F5ECF0] uppercase">
-                                <p className="col-span-3 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Students</p>
-                                <p className="col-span-2 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Room</p>
-                                <p className="col-span-3 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Room Type</p>
-                                <p className="col-span-3 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Date</p>
-                                <p className="col-span-1 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Type</p>
-                                </div>
-                    </div>
-
-                    {/* ROWS */}
-                    <div className="flex flex-col divide-y divide-[#F5ECF0]">
-                        {/* LOADING STATE */}
-                        {isLoadingList && (
-                            <div className="py-10 text-center">
-                                <div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-[#9E2040] rounded-full" role="status">
-                                    <span className="sr-only">Loading...</span>
-                                </div>
-                                <p className="text-sm text-[#9A7080] mt-2">Fetching assignments...</p>
-                            </div>
-                        )}
-
-                        {/* ERROR STATE */}
-                        {isErrorList && (
-                            <div className="py-10 text-center">
-                                <p className="text-sm text-red-600 font-medium">Failed to load data.</p>
-                                <button 
-                                    onClick={() => refetch()} 
-                                    className="mt-2 text-xs font-bold text-[#9E2040] hover:underline uppercase tracking-wider"
+                    <div className="w-full overflow-x-auto">
+                        <table className="min-w-[900px] w-full border-b-2 mt-4 border-[#F5ECF0]">
+                            <thead>
+                            <tr className="border-y-2 border-[#6B0F2B]/5">
+                                {["Students", "Room", "Room Type", "Date", "Type"].map((h, i) => (
+                                <th
+                                    key={h}
+                                    className="text-[#9A7080] text-xs font-bold tracking-widest uppercase pl-3 py-1 text-left"
                                 >
+                                    {h}
+                                </th>
+                                ))}
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {isLoadingList ? (
+                                <tr>
+                                <td colSpan={5} className="py-10 text-center">
+                                    <div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-[#9E2040] rounded-full" role="status">
+                                    <span className="sr-only">Loading...</span>
+                                    </div>
+                                    <p className="text-sm text-[#9A7080]">Fetching assignments...</p>
+                                </td>
+                                </tr>
+                            ) : isErrorList ? (
+                                <tr>
+                                <td colSpan={5} className="py-10 text-center">
+                                    <p className="text-sm text-red-600 font-medium">Failed to load data.</p>
+                                    <button
+                                    onClick={() => refetch()}
+                                    className="text-xs font-bold text-[#9E2040] hover:underline uppercase tracking-wider"
+                                    >
                                     Try Again
-                                </button>
-                            </div>
-                        )}
-
-                        {/* SUCCESS STATE */}
-                        {!isLoadingList && !isErrorList && (
-                            paginated.length > 0 ? paginated.map((record, i) => {
-                                const diffMoveIn = diffFromNow(record.moveIn);
-                                const diffMoveOut = diffFromNow(record.expectedMoveOut);
-                                const isMoveIn = diffMoveIn <= 0;
+                                    </button>
+                                </td>
+                                </tr>
+                            ) : paginated.length > 0 ? (
+                                paginated.map((record, i) => {
+                                const diffMoveIn = diffFromNow(record.moveIn)
+                                const diffMoveOut = diffFromNow(record.expectedMoveOut)
+                                const isMoveIn = diffMoveIn <= 0
 
                                 return (
-                                    <div
-                                        key={i}
-                                        className={`grid grid-cols-12 items-center transition
-                                            ${isMoveIn ? "" : "bg-[#FDF4F7]"}`}
+                                    <tr
+                                    key={i}
+                                    className={`transition ${isMoveIn ? "" : "bg-[#FDF4F7]"}`}
                                     >
-                                        {/* STUDENT */}
-                                        <div className="col-span-3 px-4 py-3 flex items-center gap-3">
-                                            <div
-                                                className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
-                                                style={avatarStyle(isMoveIn ? 'move-in' : 'move-out')}
+                                    {/* Student */}
+                                    <td className="py-3 pl-3">
+                                        <div className="flex items-center gap-3">
+                                        <div
+                                            className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
                                             >
-                                                {getInitial(record.student.user.lname)}
-                                            </div>
-                                            <p className="font-semibold text-sm text-[#1A0008]">
-                                                {record.student.user.fname} {record.student.user.lname}
-                                            </p>
+                                            {record.student.user.fname[0]}
                                         </div>
+                                        <p className="font-semibold text-sm text-[#1A0008]">
+                                            {record.student.user.fname} {record.student.user.lname}
+                                        </p>
+                                        </div>
+                                    </td>
 
-                                        {/* ROOM */}
-                                        <div className="col-span-2 px-4 py-3 flex flex-col">
-                                            <span className="text-sm text-[#1A0008]">{record.room.roomNumber}</span>
+                                    {/* Room */}
+                                    <td className="py-3 pl-3">
+                                        <div className="leading-none">
+                                            <span className="text-sm text-[#1A0008] block">{record.room.roomNumber}</span>
                                             <span className="text-xs text-[#9A7080]">{record.room.roomBuilding}</span>
                                         </div>
+                                    </td>
 
-                                        {/* ROOM TYPE */}
-                                        <div className="col-span-3 px-4 py-3 flex flex-col">
-                                            <span className="text-sm text-[#1A0008] capitalize">
-                                                {record.room.roomStayType.replace('_', ' ')}
+                                    {/* Room Type */}
+                                    <td className="py-3 pl-3">
+                                        <div className="flex flex-col leading-none">
+                                            <span className="text-sm text-[#1A0008] capitalize block">
+                                            {record.room.roomStayType.replace('_', ' ')}
                                             </span>
                                             <span className="text-xs text-[#9A7080] capitalize">{record.room.roomType}</span>
                                         </div>
+                                        
+                                    </td>
 
-                                        {/* DATE */}
-                                        <div className="col-span-2 px-4 py-3 flex flex-col">
-                                            <span className="text-sm text-[#1A0008]">
-                                                {isMoveIn ? record.moveIn.toLocaleString() : record.expectedMoveOut.toLocaleString()}
+                                    {/* Date */}
+                                    <td className="py-3 pl-3">
+                                        <div className="leading-none">
+                                            <span className="text-sm text-[#1A0008] block">
+                                            {isMoveIn ? record.moveIn.toLocaleString() : record.expectedMoveOut.toLocaleString()}
                                             </span>
                                             <span className={`text-xs ${isMoveIn ? "text-[#9A7080]" : "text-[#9E2040]"}`}>
-                                                {isMoveIn 
-                                                    ? `${Math.abs(diffMoveIn)} days until move-in` 
-                                                    : `${diffMoveOut < 0 
-                                                        ? Math.abs(diffMoveOut) + ' days until move-out' 
-                                                        : Math.abs(diffMoveOut) + ' days since move-out'}`}
+                                            {isMoveIn
+                                                ? `${Math.abs(diffMoveIn)} days until move-in`
+                                                : diffMoveOut < 0
+                                                ? `${Math.abs(diffMoveOut)} days until move-out`
+                                                : `${Math.abs(diffMoveOut)} days since move-out`}
                                             </span>
                                         </div>
+                                    </td>
 
-                                        {/* MOVE TYPE */}
-                                        <div className="col-span-1 px-4 py-3">
-                                            <span className={`text-sm font-medium capitalize ${isMoveIn ? "text-[#1A0008]" : "text-[#9E2040]"}`}>
-                                                {isMoveIn ? "Move-in" : "Move-out"}
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
-                            }) : (
-                                <p className="text-sm text-[#9A7080] py-6 text-center">No records found.</p>
-                            )
-                        )}
-                    </div>
+                                    {/* Type */}
+                                    <td>
+                                        <span className={`text-sm font-medium capitalize ${isMoveIn ? "text-[#1A0008]" : "text-[#9E2040]"}`}>
+                                        {isMoveIn ? "Move-in" : "Move-out"}
+                                        </span>
+                                    </td>
+                                    </tr>
+                                )
+                                })
+                            ) : (
+                                <tr>
+                                <td colSpan={5} className="py-6 text-center text-sm text-[#9A7080]">
+                                    No records found.
+                                </td>
+                                </tr>
+                            )}
+                            </tbody>
+                        </table>
+                        </div>
                     
 
                     {/* FOOTER */}
-                    <div className="flex items-center justify-between px-4 py-3 border-t border-[#F5ECF0]">
+                    <div className="flex items-center justify-between mt-4 ">
                         <p className="text-xs text-[#9A7080]">
-                        {filtered.length === 0
+                        {sorted.length === 0
                             ? "No results"
-                            : `Showing ${startIndex + 1}–${Math.min(
-                                startIndex + RECORDS_PER_PAGE,
-                                filtered.length
-                            )} of ${filtered.length}`}
+                            : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, sorted.length)} of ${sorted.length}`}
                         </p>
                         <div className="flex items-center gap-1">
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -382,10 +429,32 @@ export default function MoveinMoveout() {
                             )}
                         </div>
                     </div>
+
+                        {/* <div className="relative w-[130px] sm:w-[180px]">
+                            <svg
+                                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A36F82]"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={2.5}
+                                viewBox="0 0 24 24"
+                                >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                                </svg>
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                value={search}
+                                onChange={handleSearch}
+                                className="w-full min-w-0 h-10 bg-white border border-[#E8D5DC] rounded-xl pl-8 pr-7 text-sm text-[#3D0718] placeholder:text-[#C7A7B3] focus:outline-none focus:bg-[#F5ECF0] transition-all duration-200"
+                            />
+                        </div> */}
+                    </div>
                  </div>
-            </div>
-         </div>
-        )
+       )
     }
 
     return (
@@ -393,29 +462,25 @@ export default function MoveinMoveout() {
             {/* SIDEBAR */}
             <Sidebar role="manager" profile={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname} />
             {/* CONTENT */}
-            <div className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-5 overflow-y-auto">                
-                <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
-                    <div
-                        className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
-                        style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)" }}
-                    />
-                    <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">
-                        Move in and Move out
-                    </h1>
+            <div className="flex flex-col flex-1 min-w-0 w-full">
+                <CustomHeader
+                    title="Move In & Move Out"></CustomHeader>    
+                <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
+                    <main className="flex-1 flex flex-col gap-4">
+                        <HeroBanner
+                            greeting="Good Day"
+                            name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
+                            title="Check your applicants"
+                            subtitle="We make it easy for you to track the accommodation applications you manage."
+                            type="mini"
+                        />
+                        {/* TABLE */}
+                        <MoveInMoveOutTable records={assignments} />
+                    </main>
                 </div>
-
-                <main className="flex-1 flex flex-col gap-4">
-                    <HeroBanner
-                        greeting="Good Day"
-                        name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-                        title="Check your applicants"
-                        subtitle="We make it easy for you to track the accommodation applications you manage."
-                        type="mini"
-                    />
-                    {/* TABLE */}
-                    <MoveInMoveOutTable records={assignments} />
-                </main>
             </div>
+            
+            
         </div>
     )
 }

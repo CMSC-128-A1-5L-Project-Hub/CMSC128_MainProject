@@ -10,6 +10,7 @@ import ProfileCard from '../../components/dashboard/manager/ProfileCard'
 import ActivityLogs from '../../components/dashboard/landlord/rooms/dashboard/ActivityLogs'
 import AvailableRooms from '../../components/dashboard/manager/AvailableRooms'
 import OccupiedRooms from '../../components/dashboard/manager/OccupiedRooms'
+import CustomHeader from '../../components/CustomHeader';
 import ReportModal from '../../components/ReportModal'
 import NotificationPanel, {
   MOCK_NOTIFICATIONS,
@@ -153,113 +154,107 @@ export default function Dashboard() {
       <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
       <div className="relative flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
         <Sidebar role="manager" profile={profile as any} />
-        <div className="relative z-10 flex-1 flex flex-col px-8 py-5 overflow-y-auto">
-          {/* Header */}
-          <div className="relative pl-10 lg:pl-0 flex flex-row items-center justify-between border-b border-[#6B0F2B]/7 mb-2 pb-1">
-            <div className="flex flex-row items-center">
-              <div
-                className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
-                style={{
-                  background:
-                    'linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)',
-                }}
-              />
-              <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">
-                Dashboard
-              </h1>
-            </div>
-            <div className="flex flex-row gap-2 lg:hidden">
-              <button
-                onClick={() => setReportOpen(true)}
-                className="w-12 h-11 rounded-2xl flex items-center justify-center"
-              >
-                <img src={report_icon} alt="Report" className="w-6 h-6" />
-              </button>
-              <div ref={notifWrapperRef} className="relative">
-                <button
-                  onClick={() => setNotifOpen((prev) => !prev)}
-                  className="w-12 h-11 rounded-2xl flex items-center justify-center"
-                >
-                  <img src={notif_icon} alt="Notifications" className="w-6 h-6" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-0.5 right-1 w-3 h-3 rounded-full border border-white bg-[#C9973A]" />
-                  )}
-                </button>
-                <NotificationPanel
-                  open={notifOpen}
-                  notifications={notifications}
-                  unreadCount={unreadCount}
-                  onMarkAllRead={markAllRead}
-                  onMarkOneRead={markOneRead}
-                  onClose={() => setNotifOpen(false)}
-                  wrapperRef={notifWrapperRef}
+        <div className='flex flex-col'>
+            <CustomHeader
+              title="Application Dashboard"></CustomHeader>
+            <div className="relative z-10 flex-1 flex flex-col p-6 pt-6 gap-6 overflow-y-auto">
+              {/* Header */}
+              
+              {/* <div className="relative pl-10 lg:pl-0 flex flex-row items-center justify-between mb-2 pb-1">
+                <div className="flex flex-row gap-2 lg:hidden">
+                  <button
+                    onClick={() => setReportOpen(true)}
+                    className="w-12 h-11 rounded-2xl flex items-center justify-center"
+                  >
+                    <img src={report_icon} alt="Report" className="w-6 h-6" />
+                  </button>
+                  <div ref={notifWrapperRef} className="relative">
+                    <button
+                      onClick={() => setNotifOpen((prev) => !prev)}
+                      className="w-12 h-11 rounded-2xl flex items-center justify-center"
+                    >
+                      <img src={notif_icon} alt="Notifications" className="w-6 h-6" />
+                      {unreadCount > 0 && (
+                        <span className="absolute top-0.5 right-1 w-3 h-3 rounded-full border border-white bg-[#C9973A]" />
+                      )}
+                    </button>
+                    <NotificationPanel
+                      open={notifOpen}
+                      notifications={notifications}
+                      unreadCount={unreadCount}
+                      onMarkAllRead={markAllRead}
+                      onMarkOneRead={markOneRead}
+                      onClose={() => setNotifOpen(false)}
+                      wrapperRef={notifWrapperRef}
+                    />
+                  </div>
+                </div>
+              </div> */}
+
+              <main className="flex-1 flex flex-col gap-6">
+                <HeroBanner
+                  greeting="Good Day"
+                  name={fullName}
+                  title={heroTitle}
+                  subtitle={heroSubtitle}
+                  type="full"
                 />
-              </div>
-            </div>
-          </div>
 
-          <main className="flex-1 flex flex-col gap-4">
-            <HeroBanner
-              greeting="Good Day"
-              name={fullName}
-              title={heroTitle}
-              subtitle={heroSubtitle}
-              type="full"
-            />
+                <div className="grid grid-cols-3 lg:grid-cols-3 gap-6">
+                  <DonutStatCard
+                    title="Pending Approvals"
+                    value={pendingApps.length}
+                    total={30}
+                  />
+                  <DonutStatCard
+                    title="Pending Confirmations"
+                    value={readyForAssignment.filter(item => item.status === 'pending_confirmation').length}
+                    total={approvedApps.length}
+                  />
+                  <DonutStatCard
+                    title="Total Tenants"
+                    value={totalTenants}
+                    total={100}
+                  />
+                </div>
 
-            <div className="grid grid-cols-3 lg:grid-cols-3 gap-4">
-              <DonutStatCard
-                title="Pending Approvals"
-                value={pendingApps.length}
-                total={30}
-              />
-              <DonutStatCard
-                title="Pending Confirmations"
-                value={readyForAssignment.filter(item => item.status === 'pending_confirmation').length}
-                total={approvedApps.length || 1}              
-                />
-              <DonutStatCard
-                title="Total Tenants"
-                value={totalTenants}
-                total={100}
-              />
-            </div>
+                <div className="flex flex-col gap-6 lg:hidden">
+                  <AvailableRooms
+                    totalRooms={rooms.length}
+                    soloRooms={soloAvailable}
+                    doubleRooms={doubleAvailable}
+                    sharedRooms={sharedAvailable}
+                  />
+                  <OccupiedRooms
+                    occupiedSolo={soloOccupied}
+                    totalSolo={totalSolo}
+                    occupiedDouble={doubleOccupied}
+                    totalDouble={totalDouble}
+                    occupiedShared={sharedOccupied}
+                    totalShared={totalShared}
+                  />
+                  <ActivityLogs data={recentLogs} />
+                </div>
 
-            <div className="flex flex-col gap-4 lg:hidden">
-              <AvailableRooms
-                totalRooms={rooms.length}
-                soloRooms={soloAvailable}
-                doubleRooms={doubleAvailable}
-                sharedRooms={sharedAvailable}
-              />
-              <OccupiedRooms
-                occupiedSolo={soloOccupied}
-                totalSolo={totalSolo}
-                occupiedDouble={doubleOccupied}
-                totalDouble={totalDouble}
-                occupiedShared={sharedOccupied}
-                totalShared={totalShared}
-              />
-              <ActivityLogs data={recentLogs} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch w-full">
+                  <Applications
+                    data={pendingApps}
+                    className="col-span-1 lg:col-span-1 xl:col-span-2"
+                    onAction={refreshDashboard}
+                  />
+                  <Waitlist waitlists={waitlistedApps} className="col-span-1" />
+                  <ConfirmedStudents
+                    data={readyForAssignment}
+                    allRooms={rooms}
+                    onAssigned={refreshDashboard}
+                    className="col-span-1 lg:col-span-2 xl:col-span-3"
+                  />
+                  <Moves data={moves} className="col-span-1 lg:col-span-2 xl:col-span-3" />
+                </div>
+              </main>
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch w-full">
-              <Applications
-                data={pendingApps}
-                className="col-span-1 lg:col-span-1 xl:col-span-2"
-                onAction={refreshDashboard}
-              />
-              <Waitlist waitlists={waitlistedApps} className="col-span-1" />
-              <ConfirmedStudents
-                data={readyForAssignment}
-                allRooms={rooms}
-                onAssigned={refreshDashboard}
-                className="col-span-1 lg:col-span-2 xl:col-span-3"
-              />
-              <Moves data={moves} className="col-span-1 lg:col-span-2 xl:col-span-3" />
-            </div>
-          </main>
         </div>
+        
 
         <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
           <ProfileCard

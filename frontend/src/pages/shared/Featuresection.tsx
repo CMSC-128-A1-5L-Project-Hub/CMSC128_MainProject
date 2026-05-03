@@ -330,6 +330,7 @@ export default function FeaturesSection() {
         }
         
         @media(max-width:768px) {
+          .fs-panel { transition: min-height 0.7s cubic-bezier(0.77,0,0.175,1); }
           .fs-slider { flex-direction:column; height:auto; border-radius:20px; }
           .fs-panel.open   { width:100%; min-height:560px; }
           .fs-panel.closed { width:100%; min-height:52px; }
