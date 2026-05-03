@@ -14,7 +14,7 @@ interface StatsBannerProps {
 
 export default function StatsBanner({ stats, total }: StatsBannerProps){
     return (
-        <div className="bg-white p-6 mx-4 mt-4 mb-4 rounded-xl shrink-0">
+        <div className="bg-white p-6 rounded-xl shrink-0">
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 {stats.map((stat, i) => (
                     <div key={stat.label} className={i === 0 ? "col-span-2 lg:col-span-1" : "col-span-1"}>

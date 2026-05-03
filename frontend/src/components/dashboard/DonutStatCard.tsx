@@ -36,8 +36,8 @@ export default function DonutStatCard({
     donutSize = 60,
     strokeWidth = 6,
 }: StatCardProps) {
-    const percentage = Math.round((value / total) * 100)
-
+    const percentage = total > 0 ? Math.round((value / total) * 100) : 0
+    
     return (
         <Card className="flex flex-col xl:flex-row items-center gap-4 bg-white rounded-2xl px-5 py-3 lg:py-4">
             <DonutChart

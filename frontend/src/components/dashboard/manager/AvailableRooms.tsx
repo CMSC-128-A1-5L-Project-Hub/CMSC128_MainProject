@@ -14,7 +14,7 @@ export default function AvailableRooms({
     doubleRooms,
     sharedRooms
 }: AvailableRoomsProps) {
-    const percentage = Math.round(((soloRooms + doubleRooms + sharedRooms) / totalRooms) * 100)
+    const percentage = totalRooms > 0 ? Math.round(((soloRooms + doubleRooms + sharedRooms) / totalRooms) * 100) : 0
 
     const rooms = [
         { label: "Solo Rooms",   value: soloRooms },
