@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { api } from "../../api/axios";
 import { useQuery } from "@tanstack/react-query";
+import HeroBanner from '../../components/dashboard/HeroBanner'
 import Sidebar from "../../components/Sidebar";
 import toast from 'react-hot-toast';
 
@@ -389,8 +390,6 @@ export default function ApplicationsPage() {
 
   const handleConfirmReject = async (remark: string) => {
       if (!rejectingApp) return;
-
-      // Optional: Keep your local state updates if you need immediate UI feedback
       setAppStatuses((prev) => ({
         ...prev,
         [rejectingApp.id]: "rejected",
@@ -488,32 +487,27 @@ export default function ApplicationsPage() {
         setActivePage={setActivePage}
       />
         <main className="flex-1 min-w-0 overflow-x-hidden p-4 sm:p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="lg:hidden p-1"
-            aria-label="Open menu"
-            style={{ color: CLR.mid }}
-          >
-            <IconMenu />
-          </button>
-          <div className="hidden lg:block w-1 h-6 rounded-full" style={{ background: CLR.mid }} />
-          <h1 className="font-serif italic text-[28px] lg:text-[34px] font-semibold text-gray-900 tracking-tight">
+        <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
+          <div
+            className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-1"
+            style={{
+              background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)",
+            }}
+          />
+
+          <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B] ml-1.5">
             Applications
           </h1>
         </div>
 
-        <div
-          className="rounded-2xl p-6 mb-6 text-white"
-          style={{ background: `linear-gradient(135deg, ${CLR.dark}, ${CLR.accent})` }}
-        >
-          <p className="text-xs uppercase tracking-widest opacity-70">
-            Good Day, {isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-          </p>
-          <h2 className="text-2xl font-bold mt-1">Check your applicants</h2>
-          <p className="text-sm opacity-70 mt-1">
-            We make it easy for you to track the accommodation applications you manage.
-          </p>
+        <div className="mb-6">
+          <HeroBanner
+            greeting="Good Day"
+            name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
+            title="Check your applicants"
+            subtitle="We make it easy for you to track the accommodation applications you manage."
+            type="full"
+          />
         </div>
 
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
@@ -566,6 +560,9 @@ export default function ApplicationsPage() {
           onSearchChange={handleSearch}
           isLoading={isLoadingList}
           isError={isErrorList}
+
+          // isLoading={!USE_MOCK && isLoadingList}
+          // isError={!USE_MOCK && isErrorList}
           refetch={refetch}
           clr={CLR}
           statusConfig={STATUS_CONFIG}

@@ -573,27 +573,28 @@ export default function Waitlist() {
         <div className="flex flex-col divide-y divide-[#F5ECF0]">
             {/* LOADING STATE */}
             {isLoadingList ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                    <div key={`skeleton-${i}`} className="grid grid-cols-12 items-center py-3 animate-pulse">
-                        <div className="col-span-2 flex items-center gap-2">
-                            <div className="w-9 h-9 rounded-xl bg-gray-200" />
-                            <div className="h-4 w-20 bg-gray-200 rounded" />
-                        </div>
-                        <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
-                        <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
-                        <div className="col-span-2 h-4 w-20 bg-gray-100 rounded mx-auto" />
-                        <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
-                        <div className="col-span-2 h-8 w-16 bg-gray-200 rounded mx-auto" />
-                    </div>
-                ))
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                    <div
+                        className="animate-spin rounded-full h-8 w-8 border-b-2"
+                        style={{ borderColor: "#9E2040" }}
+                        />
+                    <p className="text-sm text-[#9A7080] mt-2">
+                    Fetching waitlisted applications...
+                    </p>
+                </div>
             ) : isErrorList ? (
                 /* ERROR STATE */
-                <div className="py-10 text-center">
-                    <p className="text-sm text-red-500 mb-2">Failed to load applications.</p>
-                    <Button size="sm" onClick={() => refetch()}>
-                        Retry
-                    </Button>
-                </div>
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                    <p className="text-sm text-red-500 font-medium">
+                        Failed to load data.
+                    </p>
+                    <button
+                        onClick={() => refetch()}
+                        className="mt-2 text-xs font-semibold text-[#9E2040] hover:underline"
+                    >
+                        TRY AGAIN
+                    </button>
+                    </div>
             ) : paginated.length > 0 ? (
                 /* DATA STATE */
                 paginated.map((record, i) => (
@@ -640,9 +641,11 @@ export default function Waitlist() {
                 ))
             ) : (
                 /* EMPTY STATE */
-                <div className="flex flex-col items-center py-12">
-                    <p className="text-sm text-[#9A7080]">No waitlisted applications found.</p>
-                </div>
+                <div className="py-12 flex items-center justify-center text-center">
+                    <p className="text-base italic text-gray-400">
+                        Nothing to see here
+                    </p>
+                    </div>
             )}
         </div>
         </div>
@@ -710,7 +713,7 @@ export default function Waitlist() {
                         name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
                         title="Check your waitlisted applicants"
                         subtitle="We make it easy for you to track the accommodation  applications you manage. "
-                        type="mini"
+                        type="full"
                     />
 
                     <WaitlistHistory 

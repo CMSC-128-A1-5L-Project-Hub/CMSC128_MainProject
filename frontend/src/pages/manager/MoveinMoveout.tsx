@@ -96,7 +96,6 @@ const diffFromNow = (isoDate: string | DateTime): number => {
 
   const now = DateTime.now()
 
-  // .diff() calculates: target - now
   const { days } = now.diff(target, 'days').toObject()
 
   return Math.trunc(days ?? 0)
@@ -148,6 +147,13 @@ export default function MoveinMoveout() {
         const [currentPage, setCurrentPage] = useState(1)
         const [search, setSearch] = useState("")
 
+        const tableTitle =
+        filter === "move-in"
+            ? "Move in History"
+            : filter === "move-out"
+            ? "Move out History"
+            : "Move in and Move out History"
+
         //FILTER AND SEARCH
         const filtered = useMemo(() => {
             const q = search.toLowerCase()
@@ -184,36 +190,51 @@ export default function MoveinMoveout() {
         return (
             <div className="flex flex-col gap-3">
                 {/* FILTER BUTTONS */}
-                <div className="flex items-center gap-2">
-                    {(["all", "move-in", "move-out"] as FilterType[]).map(f => (
-                        <button
-                            key={f}
-                            onClick={() => handleFilterChange(f)}
-                            className={`px-5 py-2 rounded-full text-sm font-semibold transition capitalize
-                                ${filter === f
-                                    ? "text-white shadow"
-                                    : "text-[#6B0F2B] bg-white border border-[#E8D5DC] hover:bg-[#F5ECF0]"
-                                }`}
-                            style={filter === f ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
-                        >
-                            {f === "all" ? "All" : f === "move-in" ? "Move in" : "Move out"}
-                        </button>
-                    ))}
+                <div className="bg-white p-1 rounded-xl inline-flex gap-1 w-fit">
+                {(["all", "move-in", "move-out"] as FilterType[]).map(f => (
+                    <button
+                    key={f}
+                    onClick={() => handleFilterChange(f)}
+                    className={`px-4 py-1.5 text-sm rounded-lg transition ${
+                        filter === f
+                        ? "bg-[#6B0F2B] text-white shadow"
+                        : "text-gray-500 hover:text-black"
+                    }`}
+                    >
+                    {f === "all" ? "All" : f === "move-in" ? "Move in" : "Move out"}
+                    </button>
+                ))}
                 </div>
-                
+            
 
                <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
                     {/*HEADER (TITLE + SERACG */}
                     <div className="flex items-start justify-between p-4 border-b">
                         <div className="flex flex-col gap-1">
-                            <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight whitespace-nowrap">
-                            Move in &amp; Move out
-                            <br />
-                            History
-                            </h2>
+                            <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight">
+                                <span className="hidden sm:inline whitespace-nowrap">
+                                    {tableTitle}
+                                </span>
+
+                                <span className="sm:hidden">
+                                    {filter === "all" ? (
+                                    <>
+                                        Move in and Move out
+                                        <br />
+                                        History
+                                    </>
+                                    ) : (
+                                    tableTitle
+                                    )}
+                                </span>
+                                </h2>
                             <p className="text-xs text-gray-400">
-                                {filtered.length} total move {filter === "all" ? "outs" : filter === "move-out" ? "outs" : "ins"}
-                            </p>
+                                {filter === "all"
+                                ? `${filtered.length} total move-in and move-out history`
+                                : filter === "move-out"
+                                ? `${filtered.length} total move-outs`
+                                : `${filtered.length} total move-ins`}                            
+                                </p>
                         </div>
 
                         <div className="relative w-[130px] sm:w-[180px]">
@@ -254,15 +275,22 @@ export default function MoveinMoveout() {
                                 </div>
                     </div>
 
-                    {/* ROWS */}
-                    <div className="flex flex-col divide-y divide-[#F5ECF0]">
+                        {/* ROWS */}
+                        <div className="flex flex-col divide-y divide-[#F5ECF0]">
                         {/* LOADING STATE */}
                         {isLoadingList && (
-                            <div className="py-10 text-center">
-                                <div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-[#9E2040] rounded-full" role="status">
-                                    <span className="sr-only">Loading...</span>
-                                </div>
-                                <p className="text-sm text-[#9A7080] mt-2">Fetching assignments...</p>
+                            <div className="py-10 flex flex-col items-center justify-center text-center">
+                            <div
+                                className="animate-spin rounded-full h-8 w-8 border-b-2"
+                                style={{ borderColor: "#9E2040" }}
+                                role="status"
+                            >
+                                <span className="sr-only">Loading...</span>
+                            </div>
+
+                            <p className="text-sm text-[#9A7080] mt-2">
+                                Fetching move-in and move-out history...
+                            </p>
                             </div>
                         )}
 
@@ -342,8 +370,11 @@ export default function MoveinMoveout() {
                                     </div>
                                 );
                             }) : (
-                                <p className="text-sm text-[#9A7080] py-6 text-center">No records found.</p>
-                            )
+                            <div className="py-12 flex items-center justify-center">
+                            <p className="text-base italic text-gray-400">
+                                Nothing to see here
+                            </p>
+                            </div>                            )
                         )}
                     </div>
                     
@@ -408,9 +439,9 @@ export default function MoveinMoveout() {
                     <HeroBanner
                         greeting="Good Day"
                         name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-                        title="Check your applicants"
+                        title="Check your move-in and move-out history"
                         subtitle="We make it easy for you to track the accommodation applications you manage."
-                        type="mini"
+                        type="full"
                     />
                     {/* TABLE */}
                     <MoveInMoveOutTable records={assignments} />

@@ -367,11 +367,18 @@ const handleCloseSearch = () => {
               </tr>
             ) : isError ? (
               <tr>
-                <td colSpan={6} className="text-center py-16 text-red-500 text-sm">
-                  <p>Failed to load applications.</p>
-                  <button onClick={() => refetch()} className="mt-2 underline text-xs">
-                    Try again
-                  </button>
+                <td colSpan={6} className="py-16">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <p className="text-sm text-red-500 font-medium">
+                      Failed to load data.
+                    </p>
+                    <button
+                      onClick={() => refetch()}
+                      className="mt-2 text-xs font-semibold text-[#9E2040] hover:underline"
+                    >
+                      TRY AGAIN
+                    </button>
+                  </div>
                 </td>
               </tr>
             ) : (
