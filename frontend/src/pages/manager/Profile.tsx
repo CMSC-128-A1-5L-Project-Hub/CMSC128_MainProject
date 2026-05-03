@@ -254,12 +254,12 @@ export default function Profile() {
                     </button>
                   </div>
 
-                  <div className="mt-4 hidden rounded-full bg-[#E6F4EA] px-6 py-3 text-[#1F7A3A] lg:inline-flex">
+                  <div className="mt-4 hidden rounded-full bg-[#E6F4EA] px-11 py-1 text-[#1F7A3A] lg:inline-flex">
                     <div className="flex items-center gap-3">
                       <img src={BadgeCheck} alt="" className="h-4 w-4 shrink-0" />
                      
                       <div className="flex flex-col leading-tight text-center">
-                        <p className="text-base lg:text-sm font-semibold">
+                        <p className="text-base lg:text-xs font-semibold">
                             Verified Dormitory Manager
                         </p>
                         <span className="text-xs opacity-80">
@@ -301,9 +301,9 @@ export default function Profile() {
 
                   <div className="mt-5 hidden grid-cols-1 gap-x-10 gap-y-5 md:grid-cols-2 lg:mt-6 lg:grid">
                     <Field
-                      label="UP MAIL"
+                      label="EMAIL ACCOUNT"
                       value={profile.email}
-                      editing={editing}
+                      editing={false}
                       onChange={(v) => update("email", v)}
                     />
                     <Field
@@ -351,9 +351,9 @@ export default function Profile() {
               <div className="mt-6 lg:hidden">
                 <div className="grid grid-cols-1 gap-x-8 gap-y-5 border-t border-[#F0E3E8] pt-5 md:grid-cols-2">
                   <Field
-                    label="EMAIL"
+                    label="EMAIL ACCOUNT"
                     value={profile.email}
-                    editing={editing}
+                    editing={false}
                     onChange={(v) => update("email", v)}
                   />
                   <Field
