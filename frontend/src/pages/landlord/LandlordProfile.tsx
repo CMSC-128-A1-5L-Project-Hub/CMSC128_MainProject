@@ -21,6 +21,8 @@ interface ProfileData {
     accommodationType: string;
 }
 
+
+
 export default function LandlordProfile() {
     const navigate = useNavigate();
     const [editing, setEditing] = useState(false);
@@ -31,9 +33,21 @@ export default function LandlordProfile() {
         queryKey: ["me"],
         queryFn: async () => {
             const res = await api.get("/me");
+            console.log("hey", res.data)
             return res.data;
         },
     });
+
+
+    const getInitials = (fullName: string) => {
+        return fullName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .substring(0, 2);
+    };
+
 
     const update = (k: keyof ProfileData, v: string) =>
         setProfile((prev) => (prev ? { ...prev, [k]: v } : prev));
@@ -125,14 +139,25 @@ export default function LandlordProfile() {
                                 {/* LEFT COLUMN */}
                                 <div className="w-full lg:w-[280px] lg:shrink-0">
                                     <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-4 md:grid-cols-[170px_minmax(0,1fr)] lg:block">
-                                        <div className="relative h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px]">
-                                            <button aria-label="Change photo">
-                                                <img src={Camera} alt="" className="h-7 w-7" />
+                                        {/* Parent: Ensure no padding is interfering with the absolute positioning */}
+                                        <div className="relative flex items-center justify-center h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px] w-full">
+
+                                            {/* Camera Button: Use smaller spacing on mobile (top-2 right-2) if space is tight */}
+                                            <button
+                                                aria-label="Change photo"
+                                                className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 p-1"
+                                            >
+                                                <img src={Camera} alt="" className="h-6 w-6 sm:h-7 sm:w-7" />
                                             </button>
-                                            <div className="flex h-full items-end justify-center">
-                                                <div className="h-[110px] w-[70px] rounded-t-full bg-[#7A2948] md:h-[150px] md:w-[90px] lg:h-[210px] lg:w-[140px]" />
+
+                                            {/* Initials Circle */}
+                                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#5A0B21] flex items-center justify-center shadow-md">
+                                                <span className="text-white text-2xl sm:text-3xl font-bold tracking-tighter">
+                                                    {getInitials(profile.fullName)}
+                                                </span>
                                             </div>
                                         </div>
+
 
                                         {/* Mobile-only right of photo */}
                                         <div className="min-w-0 lg:hidden">
@@ -345,3 +370,25 @@ function Field({ label, value, editing, onChange }: FieldProps) {
         </div>
     );
 }
+
+const ProfilePicture = ({ name = "Joshua Carlos" }) => {
+    // Function to get initials (e.g., "Joshua Carlos" -> "JC")
+    const getInitials = (fullName: string) => {
+        return fullName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .substring(0, 2);
+    };
+
+    const initials = getInitials(name);
+
+    return (
+        <div className="w-24 h-24 rounded-full bg-[#5A0B21] flex items-center justify-center shadow-md">
+            <span className="text-white text-3xl font-bold tracking-tighter">
+                {initials}
+            </span>
+        </div>
+    );
+};
