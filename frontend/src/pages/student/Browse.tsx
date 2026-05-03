@@ -4,31 +4,9 @@ import DormCard from "../../components/DormCardBrowse";
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { BookMarked, Star } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
-import CustomHeader from '../../components/CustomHeader';
-import HeroBanner from "@/components/dashboard/HeroBanner";
-import Dropdown from "../../components/ApplicationStatus/Dropdown";
-import { useQuery } from "@tanstack/react-query"
 import { api } from "../../api/axios"
-
-const IconArrowNext = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-  </svg>
-);
-
-const IconArrowBack = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24" style={{ transform: 'scaleX(-1)' }}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-  </svg>
-);
-
-
-interface HeroContent {
-    greeting: string;
-    name: string;
-    title: string;
-    subtitle: string;
-}
+import { useQuery } from "@tanstack/react-query";
+import { number } from "framer-motion";
 
 type FilterContextType = {
     dormType: string;
@@ -71,7 +49,7 @@ export default function BrowsePage() {
 
     const [searchExact, setSearchExact] = useState(false);
 
-    const [name, setName] = useState("");
+    const [name, setName] = useState("Joshua Carlos");
     const [filters, setFilters] = useState<{ [key: string]: boolean }>({
         "Near campus": false,
         "Pet friendly": false,
@@ -117,11 +95,21 @@ export default function BrowsePage() {
         queryKey: ["me"],
         queryFn: async () => {
             const res = await api.get("/me");
-            setStudentNo(res.data.student.studentNumber)
-            setName(`${res.data.student.fname} ${res.data.student.lname}`)
+   
             return res.data;
         },
-    });  
+    });
+
+    useEffect(() => {
+        if (!user?.student) return;
+    
+        if (user.student.studentNumber != undefined && user.student.fname != undefined)
+        {
+            setStudentNo(user.student.studentNumber);
+            setName(`${user.student.fname} ${user.student.lname}`);
+        } 
+        
+    }, []);
 
     const safeAccommodations = Array.isArray(accommodations) ? accommodations : [];
 
@@ -181,7 +169,6 @@ export default function BrowsePage() {
         let tempCounter = 0
         temp[tempCounter] = []
         for (let i = 0; i < accommodations.length; i++) {
-            console.log(accommodations[i])
             if (i != 0 && i % 4 == 0) {
                 tempCounter++;
                 temp[tempCounter] = []
@@ -271,19 +258,20 @@ export default function BrowsePage() {
 
             if (trueTags.length != 0) {
                 console.log(tempTags, accommodationName)
-                let tagIncluded = false
-                for (let i = 0; i < tempTags.length; i++) {
-                    if (trueTags.includes(tempTags[i])) {
-                        tagIncluded = true
+                let tagIncluded = true
+                for (let i = 0; i < trueTags.length; i++) {
+                    if (!tempTags.includes(trueTags[i])) {
+                        tagIncluded = false
                         break
                     }
                 }
                 if (!tagIncluded) {
+                    console.log(accommodationName, accommodationType, "rejected")
                     continue
                 }
             }
 
-
+            console.log(accommodationName, accommodationType)
             tempAccommodations.push({
                 accommodationId: id,
                 accommodationName,
@@ -383,34 +371,43 @@ export default function BrowsePage() {
     }, []);
 
     return <>
-    <filterContext.Provider value={{ dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked, searching, setSearching, filters, setFilters }}>
-        <div className="flex flex-row w-full min-h-screen bg-[#F5EEF0]">
-            <div className="relative z-[9999]">
-                <Sidebar role="student" />
-            </div>
+        <filterContext.Provider value={{ dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked, searching, setSearching, filters, setFilters }}>
+            <div className="flex w-full min-h-screen bg-[#F5EEF0]">
+                <div className="relative z-[9999]">
+                    <Sidebar role="student" />
+                </div>
+                <div className="flex flex-col items-start w-full min-h-screen">
 
-            <div className="flex flex-col w-full">
-                <CustomHeader title="Browse Rooms" />
-                <div className="flex flex-col items-start w-full min-w-0 min-h-screen">
+                    <div className="w-full px-2 py-4 flex items-center gap-2 
+                    ml-14 sm:ml-14 md:ml-0">
+                        <div className="w-2 h-10 bg-[#7A0F23] rounded-full"></div>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif italic font-bold text-[#7A0F23]">
+                            Browse Rooms
+                        </h1>
+                    </div>
+                 
 
-                    <div className="w-full p-6">
-                        <HeroBanner
-                            greeting="Good Day"
-                            name={name}
-                            title="Browse available rooms"
-                            subtitle="Browse available accommodations and apply in just a few clicks"
-                            type="mini"
-                        />
+                    <div className="flex flex-col w-full p-2 items-center">
+                        <div className="flex flex-col w-full h-full justify-center items-start p-2 rounded-lg bg-gradient-to-r from-[#4A0E1C] via-[#7A162D] to-[#4A0E1C] shadow-lg">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400/80">
+                                Good Day, {name}
+                            </span>
+                            <h2 className="font-semibold tracking-tight text-white">
+                                Check out new accommodations
+                            </h2>
+                        </div>
                     </div>
 
-                    <div className="flex flex-wrap justify-center items-start w-full gap-2 mb-6 md:gap-0">
+                    <div className="flex flex-wrap justify-center items-start w-full gap-2 md:gap-0">
 
                         {/* first half */}
                         <div className="flex flex-col justify-center items-center w-full gap-2 md:w-1/2 shrink-0">
+                            {/* search bar */}
                             <div className="flex w-full justify-center items-center px-4 sm:px-6 lg:px-12">
-                                <SearchBar />
+                                <SearchBar></SearchBar>
                             </div>
 
+                            {/* dorm cards and buttons */}
                             <div className="flex w-full justify-center items-center p-4 gap-2">
                                 {Object.keys(dorms).length > 0 && !searchExact && (
                                     <div className="flex justify-center items-center relative z-50">
@@ -422,25 +419,33 @@ export default function BrowsePage() {
                                                 } else {
                                                     counter--;
                                                 }
+
                                                 if (counter % 2 == 0 && counter != Object.keys(dorms).length - 1) {
                                                     let temp = [...pageLimits];
-                                                    if (temp[0] - 2 >= 0) { temp[0] -= 2; temp[1] -= 2; setPageLimits(temp); }
+                                                    if (temp[0] - 2 >= 0) {
+                                                        temp[0] -= 2;
+                                                        temp[1] -= 2;
+                                                        setPageLimits(temp);
+                                                    }
                                                 } else if (counter % 2 == 0 && counter == Object.keys(dorms).length - 1) {
                                                     let max = Object.keys(dorms).length;
                                                     max = max % 2 == 0 ? max : max + 1;
-                                                    setPageLimits([max - 2, max]);
+                                                    let temp = [max - 2, max];
+                                                    setPageLimits(temp);
                                                 }
+
                                                 setPageNumber(counter);
                                             }}
-                                            className="rounded-full p-3 bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg"
+                                            className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg"
                                         >
-                                            <IconArrowBack className="w-6 h-6" />
+                                            <span className="text-white text-3xl">{'<'}</span>
                                         </button>
                                     </div>
                                 )}
 
                                 <div className="flex">
-                                    <div className="flex" style={{ transform: `translateX(-${100 * pageNumber}%)`, transition: 'transform 500ms ease-in-out' }}>
+                                    {<div className="flex" style={{ transform: `translateX(-${100 * pageNumber}%)`, transition: 'transform 500ms ease-in-out', }}>
+
                                         {Object.keys(dorms).length === 0 ? (
                                             <div className="w-full flex items-center justify-center">
                                                 <div className="flex justify-center w-full max-w-[100%] h-[300px] md:h-[600px]">
@@ -451,109 +456,179 @@ export default function BrowsePage() {
                                             </div>
                                         ) : (
                                             Object.keys(dorms).map((key, index) => {
-                                                const hasOnePage = dorms[Number(key)].length === 1;
-                                                const isActive = pageNumber == index;
-                                                return (
-                                                    <div key={key} className={`w-full shrink-0 flex items-center transition-opacity duration-500 ${isActive ? "opacity-100" : "opacity-0"}`}>
-                                                        <div className={`grid ${hasOnePage ? "grid-cols-1" : "grid-cols-2"} gap-6 w-full mx-auto justify-items-center`}>
-                                                            {dorms[Number(key)].map((value) => (
-                                                                <div key={value.accommodationId} className="w-full flex items-center justify-center">
-                                                                    <DormCard
-                                                                        {...{ ...value, isSmall: isBelowSm }}
-                                                                        verified
-                                                                        onView={() => isActive ? navigate(`/accommodations/${value.accommodationId}`) : undefined}
-                                                                    />
+                                                const hasOnePage = Object.keys(dorms[Number(key)]).length === 1;
+
+                                                if (hasOnePage && pageNumber == index) {
+                                                    return (
+                                                        <div className="w-full shrink-0 flex items-center transition-opacity duration-500 opacity-100">
+                                                            <div className="flex justify-center w-full max-w-[100%] h-[300px] md:h-[600px]">
+                                                                <div className="flex items-center justify-center">
+                                                                    {dorms[Number(key)].map((value) => {
+                                                                        return <div className="w-full flex items-center justify-center">
+                                                                            <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { navigate(`/accommodations/${value.accommodationId}`) }} />
+                                                                        </div>
+                                                                    })}
                                                                 </div>
-                                                            ))}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                );
+                                                    );
+                                                }
+                                                else if (hasOnePage && pageNumber != index) {
+                                                    return (
+                                                        <div className="w-full shrink-0 flex items-center transition-opacity duration-500 opacity-0">
+                                                            <div className="flex justify-center w-full max-w-[100%] h-[300px] md:h-[600px]">
+                                                                <div className="flex items-center justify-center">
+                                                                    {dorms[Number(key)].map((value) => {
+                                                                        return <div className="w-full flex items-center justify-center">
+                                                                            <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
+                                                                        </div>
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+
+
+                                                if (pageNumber == index) {
+                                                    return (
+                                                        <div className="w-full shrink-0 flex items-center transition-opacity duration-500 opacity-100">
+                                                            <div className={`grid ${hasOnePage ? "grid-cols-1" : "grid-cols-2"} gap-6 w-full mx-auto justify-items-center`}>
+                                                                {dorms[Number(key)].map((value) => {
+                                                                    return <div className="w-full flex items-center justify-center">
+                                                                        <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { navigate(`/student/roomview/${value.accommodationId}`) }} />
+                                                                    </div>
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                } else {
+                                                    return (
+                                                        <div className="w-full shrink-0 flex items-center transition-opacity duration-500 opacity-0">
+                                                            <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
+                                                                {dorms[Number(key)].map((value) => {
+                                                                    console.log(dorms[Number(key)].length)
+                                                                    return <div className="w-full flex items-center justify-center">
+                                                                        <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
+                                                                    </div>
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
                                             })
                                         )}
-                                    </div>
+                                    </div>}
+
                                 </div>
 
-                                {Object.keys(dorms).length > 0 && !searchExact && (
-                                    <div className="flex justify-center items-center relative z-50">
-                                        <button
-                                            onClick={() => {
-                                                let counter = pageNumber;
-                                                if (counter == Object.keys(dorms).length - 1) {
-                                                    counter = 0;
-                                                } else {
-                                                    counter++;
+                                {Object.keys(dorms).length > 0 && !searchExact &&
+                                    (<div className="flex justify-center items-center relative z-50">
+                                        <button onClick={() => {
+
+                                            let counter = pageNumber
+                                            if (counter == Object.keys(dorms).length - 1) {
+                                                counter = 0
+                                            } else {
+                                                counter++
+                                            }
+
+
+                                            if (counter % 2 == 0 && counter != 0) {
+                                                let temp = [...pageLimits]
+                                                let max = Object.keys(dorms).length
+                                                max = max % 2 == 0 ? max : max + 1
+
+
+                                                if (temp[1] + 2 <= max) {
+                                                    temp[0] += 2
+                                                    temp[1] += 2
+                                                    setPageLimits(temp)
                                                 }
-                                                if (counter % 2 == 0 && counter != 0) {
-                                                    let temp = [...pageLimits];
-                                                    let max = Object.keys(dorms).length;
-                                                    max = max % 2 == 0 ? max : max + 1;
-                                                    if (temp[1] + 2 <= max) { temp[0] += 2; temp[1] += 2; setPageLimits(temp); }
-                                                } else if (counter % 2 == 0 && counter == 0) {
-                                                    setPageLimits([0, 2]);
-                                                }
-                                                setPageNumber(counter);
-                                            }}
-                                            className="rounded-full p-3 bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg"
-                                        >
-                                            <IconArrowNext className="w-6 h-6" />
+                                            } else if (counter % 2 == 0 && counter == 0) {
+                                                let temp = [0, 2]
+                                                setPageLimits(temp)
+                                            }
+
+                                            setPageNumber(counter)
+                                        }} className="rounded-full bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
+                                            <span className="text-white text-3xl">{'>'}</span>
                                         </button>
-                                    </div>
-                                )}
+                                    </div>)}
                             </div>
 
                             <div className="flex justify-end items-center w-[70%] gap-2">
-                                {pageLimits[0] != 0 && (
+                                {pageLimits[0] != 0 &&
                                     <button onClick={() => {
-                                        let temp = [...pageLimits];
-                                        if (temp[0] - 2 >= 0) { temp[0] -= 2; temp[1] -= 2; setPageLimits(temp); setPageNumber(temp[1] - 1); }
+                                        let temp = [...pageLimits]
+                                        if (temp[0] - 2 >= 0) {
+                                            temp[0] -= 2
+                                            temp[1] -= 2
+                                            setPageLimits(temp)
+                                            setPageNumber(temp[1] - 1)
+                                        }
                                     }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
                                         {'<'}
                                     </button>
-                                )}
-                                {Object.keys(dorms).map((value, index) => {
-                                    const current = parseInt(value) + 1;
-                                    if (current >= pageLimits[0] && current <= pageLimits[1]) {
-                                        return (
-                                            <button key={value} onClick={() => setPageNumber(current - 1)}
-                                                className={`flex w-[10%] items-center justify-center rounded-xl text-lg font-semibold shadow-md hover:bg-[#7A162D] hover:text-white
-                                                    ${pageNumber == index ? 'bg-[#7A162D] text-white' : 'bg-white text-[#654050] border border-[#E8D4E2]'}`}>
+                                }
+                                {
+                                    Object.keys(dorms).map((value, index) => {
+                                        let start = pageLimits[0]
+                                        let end = pageLimits[1]
+                                        let current = parseInt(value) + 1
+                                        if (current >= start && current <= end) {
+                                            return <button onClick={() => {
+                                                setPageNumber(current - 1)
+                                            }} className={`flex w-[10%] items-center justify-center rounded-xl ${pageNumber == index ? '' : 'border border-[#E8D4E2]'} ${pageNumber == index ? 'bg-[#7A162D]' : 'bg-white'} text-lg font-semibold ${pageNumber == index ? 'text-white' : 'text-[#654050]'} shadow-md hover:bg-[#7A162D] hover:text-white`}>
                                                 {current}
                                             </button>
-                                        );
-                                    }
-                                })}
-                                {pageLimits[1] < Object.keys(dorms).length && (
+                                        }
+                                    })
+                                }
+                                {
+                                    pageLimits[1] < Object.keys(dorms).length &&
                                     <button onClick={() => {
-                                        let temp = [...pageLimits];
-                                        let max = Object.keys(dorms).length;
-                                        max = max % 2 == 0 ? max : max + 1;
-                                        if (temp[1] + 2 <= max) { temp[0] += 2; temp[1] += 2; setPageLimits(temp); setPageNumber(temp[0] - 1); }
+                                        let temp = [...pageLimits]
+                                        let max = Object.keys(dorms).length
+                                        max = max % 2 == 0 ? max : max + 1
+
+                                        if (temp[1] + 2 <= max) {
+                                            temp[0] += 2
+                                            temp[1] += 2
+                                            setPageLimits(temp)
+                                            setPageNumber(temp[0] - 1)
+                                        }
                                     }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
                                         {'>'}
                                     </button>
-                                )}
+                                }
+
                             </div>
+
                         </div>
 
-                        {/* second half - map */}
-                        <div className="flex justify-center rounded-xl items-start w-full h-[700px] md:w-1/2 md:h-[800px] shrink-0 relative z-50 bg-[radial-gradient(circle_at_center,#F5EEF0)]">
-                            <div className="flex flex-col justify-center items-center bg-white rounded-2xl p-4 shadow-md w-[90%] h-full gap-2">
+                        {/* second half */}
+                        <div className="flex justify-center items-start w-full h-[700px] md:w-1/2 md:h-[800px] shrink-0 relative z-50 bg-[radial-gradient(circle_at_center,#F5EEF0)]">
+                            <div className="flex flex-col justify-center items-center bg-white rounded-lg p-4 shadow-md w-[90%] h-full gap-2">
+
                                 <AccommodationMap
                                     accommodations={mapAccommodations}
                                     centeredAccommodation={centeredAccommodation}
-                                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+                                    onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
                                 />
+
+
                                 <div className="flex justify-center items-center w-[90%] gap-3">
-                                    <Form />
+                                    <Form></Form>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+
+                </div >
             </div>
-        </div>
-    </filterContext.Provider>
-</>
+        </filterContext.Provider>
+    </>
 }
 
 function SearchBar() {
@@ -564,7 +639,7 @@ function SearchBar() {
     const { setSearching } = context
 
     return <div className="w-full max-w-5xl mx-auto">
-        <div className="flex items-center bg-white rounded-2xl shadow-md px-4 py-2 border border-gray-200">
+        <div className="flex items-center bg-white rounded-lg shadow-md px-4 py-2 border border-gray-200">
             <div className="flex items-center flex-1 space-x-2">
 
                 <svg className="w-5 h-5 text-[#8A2A45]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -576,7 +651,7 @@ function SearchBar() {
                     id="search-bar"
                     type="text"
                     placeholder="Search dormitory name"
-                    className="w-full outline-none text-gray-700 rounded-xl placeholder-[#C8B0B8]"
+                    className="w-full outline-none text-gray-700 placeholder-[#C8B0B8]"
                 />
             </div>
 
@@ -658,7 +733,7 @@ function Form() {
                 <div className="flex w-full">
                     <div className="flex flex-col justify-center w-[50%] md:gap-3 p-2">
                         <div className='flex flex-col'>
-                            <p className="text-[10px] sm:text-sm font-semibold uppercase text-[#9a7080] tracking-widest mb-1 sm:mb-2">
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
                                 SHOW FAVORITES ONLY
                             </p>
 
@@ -678,7 +753,7 @@ function Form() {
                                                 Saved Rooms
                                             </p>
 
-                                            <p className="text-[11px] sm:text-xs text-gray-500 leading-tight">
+                                            <p className="hidden sm:block text-[11px] sm:text-xs text-gray-500 leading-tight">
                                                 Show only your saved dorms
                                             </p>
                                         </div>
@@ -699,26 +774,27 @@ function Form() {
 
                         <div className="flex flex-col">
 
-                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
                                 DORM TYPE
                             </p>
 
                             <div className="relative w-full">
-                                <Dropdown
-                                    title="No. of Items"
-                                    items={[
-                                        { label: "All Types", href: "" },
-                                        { label: "Apartment", href: "" },
-                                        { label: "Dormitory", href: "" },
-                                        { label: "Boarding House", href: "" },
-                                    ]}
-                                    showTitle= {false}
-                                    direction='down'
-                                    widthClass="w-full"
-                                    titleClass="text-[10px] lg:text-[11px]"
-                                    selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
-                                    //onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                                />
+                                <select
+                                    onChange={(e) => {
+                                        setDormType(e.target.value)
+                                    }}
+                                    id="dorm-type"
+                                    className="w-full px-3 py-2 sm:px-4 sm:py-4 rounded-xl sm:rounded-2xl border border-[#EDE1E5] sm:border-2 text-sm sm:text-base text-gray-800 appearance-none outline-none"
+                                >
+                                    <option value="All">All</option>
+                                    <option value="on-campus">On-campus</option>
+                                    <option value="off-campus">Off-campus</option>
+                                    <option value="partner_housing">Partner-housing</option>
+                                </select>
+
+                                <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-[#6B0F2B] text-xs sm:text-base">
+                                    ▼
+                                </div>
                             </div>
                         </div>
 
@@ -726,33 +802,34 @@ function Form() {
 
                         <div className='flex flex-col'>
 
-                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
                                 ROOM TYPE
                             </p>
 
                             <div className="relative w-full">
-                                <Dropdown
-                                    title="No. of Items"
-                                    items={[
-                                        { label: "All", href: "" },
-                                        { label: "Single", href: "" },
-                                        { label: "Shared", href: "" },
-                                        { label: "Studio", href: "" },
-                                    ]}
-                                    showTitle= {false}
-                                    direction='down'
-                                    widthClass="w-full"
-                                    titleClass="text-[10px] lg:text-[11px]"
-                                    selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
-                                    //onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                                />
+                                <select
+                                    onChange={(e) => {
+                                        setRoomType(e.target.value)
+                                    }}
+                                    id="room-type"
+                                    className="w-full px-3 py-2 sm:px-4 sm:py-4 pr-8 sm:pr-10 rounded-xl sm:rounded-2xl border border-[#EDE1E5] sm:border-2 text-sm sm:text-base text-gray-800 appearance-none outline-none"
+                                >
+                                    <option value="All">All</option>
+                                    <option value="single">Single</option>
+                                    <option value="double">Double</option>
+                                    <option value="shared">Shared</option>
+                                </select>
+
+                                <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-[#6B0F2B] text-xs sm:text-base">
+                                    ▼
+                                </div>
                             </div>
                         </div>
 
 
                         <div className="flex flex-col justify-center items-start">
 
-                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
                                 MIN RATING
                             </p>
 
@@ -797,7 +874,7 @@ function Form() {
                     </div>
                     <div className="flex flex-col justify-center w-[50%] md:gap-3 p-2">
                         <div className="flex flex-col">
-                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
+                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
                                 PRICE RANGE
                             </p>
                             <div className="px-3 py-3 sm:px-4 sm:py-4">
@@ -1036,293 +1113,3 @@ function DualRangeSlider({
         </div>
     );
 }
-
-
-// export default function BrowsePage() {
-//     const heroContent: HeroContent = {
-//         name: "Ana Reyes",
-//         greeting: "Good Day",
-//         title: "Browse available rooms",
-//         subtitle: "Browse available accommodations and apply in just a few clicks",
-//     }; 
-    
-//     const [dorms, setDorms] = useState<{ [key: number]: Dorm[] }>(
-//         {
-//             0: [
-//                 { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//             ], 1: [
-//                 { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//             ], 2: [
-//                 { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//             ]
-//         });
-
-//     const [pageNumber, setPageNumber] = useState(0);
-//     const [pageLimits, setPageLimits] = useState([0, 2])
-
-//     // everything under here is for map
-//     const navigate = useNavigate()
-//     const [searchParams, setSearchParams] = useSearchParams()
-
-//     // ─── Read filters from URL query params ──────────────────────────────────
-//     // This way filters set on the cards/browse page carry over to the map
-//     const search = searchParams.get('search') ?? ''
-//     const type = searchParams.get('type') ?? 'all'
-//     const restriction = searchParams.get('restriction') ?? 'all'
-//     const minRent = Number(searchParams.get('min_rent') ?? 0)
-//     const maxRent = Number(searchParams.get('max_rent') ?? 10000)
-//     const maxWalk = Number(searchParams.get('max_walk') ?? 60)
-//     const minCapacity = Number(searchParams.get('min_capacity') ?? 0)
-//     const stayType = searchParams.get('stay_type') ?? 'all'
-
-//     // ─── Apply filters ────────────────────────────────────────────────────────
-//     const filtered = useMemo(() => {
-//         return MOCK_ACCOMMODATIONS.filter((acc) => {
-//             const matchSearch =
-//                 acc.accommodationName.toLowerCase().includes(search.toLowerCase()) ||
-//                 acc.accommodationLocation.toLowerCase().includes(search.toLowerCase())
-//             const matchType = type === 'all' || acc.accommodationType === type
-//             const matchRestriction = restriction === 'all' || acc.tenantRestriction === restriction
-//             const matchRent = acc.minRent >= minRent && acc.maxRent <= maxRent
-//             const matchWalk = acc.walkingDistance <= maxWalk
-//             const matchCapacity = acc.accommodationCapacity >= minCapacity
-//             const matchStayType = stayType === 'all' || acc.stayType === stayType || acc.stayType === 'both'
-//             return matchSearch && matchType && matchRestriction && matchRent && matchWalk && matchCapacity && matchStayType
-//         })
-//     }, [search, type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType])
-
-//     const centerId = searchParams.get('center')
-//     const centeredAccommodation = centerId
-//         ? MOCK_ACCOMMODATIONS.find((a) => a.accommodationId === Number(centerId)) ?? null
-//         : null
-
-//     const [isBelowSm, setIsBelowSm] = useState(false);
-
-//     useEffect(() => {
-//         const media = window.matchMedia("(max-width: 639px)");
-
-//         const handleChange = (e: MediaQueryListEvent) => setIsBelowSm(e.matches);
-
-//         setIsBelowSm(media.matches);
-//         media.addEventListener("change", handleChange);
-
-//         return () => media.removeEventListener("change", handleChange);
-//     }, []);
-
-//     return <>
-//         <div className="flex flex-row w-full min-h-screen bg-[#F5EEF0]">
-//             <div className="relative z-[9999]">
-//                 <Sidebar role="student" />
-//             </div>
-
-//             <div className="flex flex-col w-full">
-//                 <CustomHeader
-//                         title="Browse Rooms"></CustomHeader>
-//                 <div className="flex flex-col items-start w-full min-w-0 min-h-screen">
-                    
-//                     <div className="w-full p-6">
-//                         <HeroBanner
-//                             greeting={heroContent.greeting}
-//                             name={heroContent.name}
-//                             title={heroContent.title}
-//                             subtitle={heroContent.subtitle}
-//                             type="mini"
-//                         />
-//                     </div>
-                    
-
-//                     <div className="flex flex-wrap justify-center items-start w-full gap-2 mb-6 md:gap-0">
-
-//                         {/* first half */}
-//                         <div className="flex flex-col justify-center items-center w-full gap-2 md:w-1/2 shrink-0">
-//                             {/* search bar */}
-//                             <div className="flex w-full justify-center items-center px-4 sm:px-6 lg:px-12">
-//                                 <SearchBar></SearchBar>
-//                             </div>
-
-//                             {/* dorm cards and buttons */}
-//                             <div className="flex w-full justify-center items-center p-4 gap-2">
-//                                 <div className="flex justify-center items-center relative z-50">
-//                                     <button onClick={() => {
-//                                         let counter = pageNumber
-//                                         if (counter == 0) {
-//                                             counter = Object.keys(dorms).length - 1
-//                                         } else {
-//                                             counter--
-//                                         }
-
-//                                         if (counter % 2 == 0 && counter != Object.keys(dorms).length - 1) {
-//                                             let temp = [...pageLimits]
-//                                             if (temp[0] - 2 >= 0) {
-//                                                 temp[0] -= 2
-//                                                 temp[1] -= 2
-//                                                 setPageLimits(temp)
-//                                             }
-//                                         } else if (counter % 2 == 0 && counter == Object.keys(dorms).length - 1) {
-//                                             let max = Object.keys(dorms).length
-//                                             max = max % 2 == 0 ? max : max + 1
-//                                             let temp = [max - 2, max]
-//                                             setPageLimits(temp)
-//                                         }
-
-//                                         setPageNumber(counter)
-//                                     }} className="rounded-full p-3 bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
-//                                         <IconArrowBack className="w-6 h-6" />
-//                                     </button>
-//                                 </div>
-
-//                                 <div className="flex">
-//                                     <div
-//                                         className="flex"
-//                                         style={{
-//                                             transform: `translateX(-${100 * pageNumber}%)`,
-//                                             transition: 'transform 500ms ease-in-out',
-//                                         }}
-//                                     >
-
-//                                         {Object.keys(dorms).map((key, index) => {
-//                                             console.log(isBelowSm)
-//                                             if (pageNumber == index) {
-//                                                 return <div className={`w-full shrink-0 flex items-center transition-opacity duration-500 ${"opacity-500"
-//                                                     }`}>
-//                                                     <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
-//                                                         {dorms[Number(key)].map((value) => (
-//                                                             <div className="w-full flex items-center justify-center">
-//                                                                 <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
-//                                                             </div>
-//                                                         ))}
-//                                                     </div>
-//                                                 </div>
-//                                             } else {
-//                                                 return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-0"
-//                                                     }`}>
-//                                                     <div className="grid grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
-//                                                         {dorms[Number(key)].map((value) => (
-//                                                             <div className="w-full flex items-center justify-center">
-//                                                                 <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
-//                                                             </div>
-//                                                         ))}
-//                                                     </div>
-//                                                 </div>
-//                                             }
-
-//                                         })}
-//                                     </div>
-
-//                                 </div>
-
-//                                 <div className="flex justify-center items-center relative z-20">
-//                                     <button onClick={() => {
-
-//                                         let counter = pageNumber
-//                                         if (counter == Object.keys(dorms).length - 1) {
-//                                             counter = 0
-//                                         } else {
-//                                             counter++
-//                                         }
-
-//                                         console.log(counter)
-//                                         if (counter % 2 == 0 && counter != 0) {
-//                                             let temp = [...pageLimits]
-//                                             let max = Object.keys(dorms).length
-//                                             max = max % 2 == 0 ? max : max + 1
-
-
-//                                             if (temp[1] + 2 <= max) {
-//                                                 temp[0] += 2
-//                                                 temp[1] += 2
-//                                                 setPageLimits(temp)
-//                                             }
-//                                         } else if (counter % 2 == 0 && counter == 0) {
-//                                             let temp = [0, 2]
-//                                             setPageLimits(temp)
-//                                         }
-
-//                                         setPageNumber(counter)
-//                                     }} className="rounded-full p-3 bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
-//                                         <IconArrowNext className="w-6 h-6" />
-//                                     </button>
-//                                 </div>
-//                             </div>
-
-//                             <div className="flex justify-end items-center w-[70%] gap-2">
-//                                 {pageLimits[0] != 0 &&
-//                                     <button onClick={() => {
-//                                         let temp = [...pageLimits]
-//                                         if (temp[0] - 2 >= 0) {
-//                                             temp[0] -= 2
-//                                             temp[1] -= 2
-//                                             setPageLimits(temp)
-//                                             setPageNumber(temp[1] - 1)
-//                                         }
-//                                     }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
-//                                         {'<'}
-//                                     </button>
-//                                 }
-//                                 {
-//                                     Object.keys(dorms).map((value, index) => {
-//                                         let start = pageLimits[0]
-//                                         let end = pageLimits[1]
-//                                         let current = parseInt(value) + 1
-//                                         if (current >= start && current <= end) {
-//                                             return <button onClick={() => {
-//                                                 setPageNumber(current - 1)
-//                                             }} className={`flex w-[10%] items-center justify-center rounded-xl ${pageNumber == index ? '' : 'border border-[#E8D4E2]'} ${pageNumber == index ? 'bg-[#7A162D]' : 'bg-white'} text-lg font-semibold ${pageNumber == index ? 'text-white' : 'text-[#654050]'} shadow-md hover:bg-[#7A162D] hover:text-white`}>
-//                                                 {current}
-//                                             </button>
-//                                         }
-//                                     })
-//                                 }
-//                                 {
-//                                     pageLimits[1] < Object.keys(dorms).length &&
-//                                     <button onClick={() => {
-//                                         let temp = [...pageLimits]
-//                                         let max = Object.keys(dorms).length
-//                                         max = max % 2 == 0 ? max : max + 1
-
-//                                         if (temp[1] + 2 <= max) {
-//                                             temp[0] += 2
-//                                             temp[1] += 2
-//                                             setPageLimits(temp)
-//                                             setPageNumber(temp[0] - 1)
-//                                         }
-//                                     }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
-//                                         {'>'}
-//                                     </button>
-//                                 }
-
-//                             </div>
-
-//                         </div>
-
-//                         {/* second half */}
-//                         <div className="flex justify-center rounded-xl items-start w-full h-[70%] md:w-1/2 md:h-full shrink-0 relative bg-[radial-gradient(circle_at_center,#F5EEF0)]">
-//                             <div className="flex flex-col justify-center items-center bg-white rounded-2xl p-4 shadow-md w-[90%] h-full gap-2">
-
-//                                 <AccommodationMap
-//                                     accommodations={filtered}
-//                                     centeredAccommodation={centeredAccommodation}
-//                                     onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
-//                                 />
-
-
-//                                 <div className="flex justify-center items-center w-[90%] gap-3">
-//                                     <Form></Form>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </div >
-//             </div>
-//         </div>
-//     </>
-// }
