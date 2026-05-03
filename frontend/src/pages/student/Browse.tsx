@@ -85,8 +85,7 @@ export default function BrowsePage() {
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
     useEffect(() => { if (user && user.role !== "student") navigate("/auth/signin") }, [user, navigate])
 
-    /* ── flat filtered list (replaces paginated dorms object) ── */
-    const [flatDorms, setFlatDorms]                 = useState<Dorm[]>([])
+    const [flatDorms, setFlatDorms] = useState<Dorm[]>([])
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([])
 
     useEffect(() => {
