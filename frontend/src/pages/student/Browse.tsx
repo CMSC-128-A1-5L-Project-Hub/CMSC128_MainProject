@@ -36,17 +36,17 @@ type Dorm = {
 export default function BrowsePage() {
 
     /* ── state — all untouched ── */
-    const [searchTerm, setSearchTerm]           = useState("")
-    const [activeFilter, setActiveFilter]       = useState("All")
-    const [onlyBookmarked, setOnlyBookmarked]   = useState(false)
-    const [minPrice, setMinPrice]               = useState(2500)
-    const [maxPrice, setMaxPrice]               = useState(7000)
-    const [dormType, setDormType]               = useState("All")
-    const [roomType, setRoomType]               = useState("All")
-    const [starRating, setStarRating]           = useState(3)
-    const [searching, setSearching]             = useState("")
+    const [searchTerm, setSearchTerm] = useState("")
+    const [activeFilter, setActiveFilter] = useState("All")
+    const [onlyBookmarked, setOnlyBookmarked] = useState(false)
+    const [minPrice, setMinPrice] = useState(2500)
+    const [maxPrice, setMaxPrice] = useState(7000)
+    const [dormType, setDormType] = useState("All")
+    const [roomType, setRoomType] = useState("All")
+    const [starRating, setStarRating] = useState(3)
+    const [searching, setSearching] = useState("")
     const [filterPanelOpen, setFilterPanelOpen] = useState(false)
-    const [hoveredId, setHoveredId]             = useState<number | null>(null)
+    const [hoveredId, setHoveredId] = useState<number | null>(null)
     const [filters, setFilters] = useState<{ [key: string]: boolean }>({
         "Near campus": false, "Pet friendly": false, "Near establishments": false,
         "Air-conditioned rooms": false, "Has study area": false,
@@ -62,8 +62,8 @@ export default function BrowsePage() {
             const params: Record<string, any> = {}
             if (searchTerm.trim()) params.search = searchTerm.trim()
             if (activeFilter !== "All") {
-                if (activeFilter === "On-Campus")     params.dormType = "On-Campus"
-                else if (activeFilter === "Off-Campus")   params.dormType = "Off-Campus"
+                if (activeFilter === "On-Campus") params.dormType = "On-Campus"
+                else if (activeFilter === "Off-Campus") params.dormType = "Off-Campus"
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
@@ -79,7 +79,7 @@ export default function BrowsePage() {
         },
     })
 
-    const name      = user ? `${user.fname} ${user.lname}` : ""
+    const name = user ? `${user.fname} ${user.lname}` : ""
     const studentNo = user?.student?.studentNumber ?? ""
 
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
@@ -128,9 +128,7 @@ export default function BrowsePage() {
                 if (el.studentNumber === studentNo) bookmarked = true
             })
 
-            /* search match */
-            const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
-            if (!nameMatch) continue
+
 
             /* filters */
             if (!bookmarked && onlyBookmarked) continue
@@ -142,6 +140,10 @@ export default function BrowsePage() {
                 const hasTag = tempTags.some(t => trueTags.includes(t))
                 if (!hasTag) continue
             }
+
+            /* search match */
+            const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
+            if (!nameMatch) continue
 
             tempDorms.push({
                 name: accommodationName, subtitle: accommodationLocation,
