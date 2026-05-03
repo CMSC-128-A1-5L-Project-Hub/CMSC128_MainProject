@@ -266,7 +266,7 @@ export default function BrowsePage() {
                                             dorm={dorm}
                                             hovered={hoveredId === dorm.accommodationId}
                                             onHover={setHoveredId}
-                                            onClick={() => navigate(`/accommodations/${dorm.accommodationId}`)}
+                                            onClick={() => navigate(`/student/roomview/${dorm.accommodationId}`)}
                                         />
                                     ))
                                 )}
@@ -286,7 +286,7 @@ export default function BrowsePage() {
                                 <AccommodationMap
                                     accommodations={mapAccommodations}
                                     centeredAccommodation={centeredAccommodation}
-                                    onCardClick={acc => navigate(`/accommodations/${acc.accommodationId}`)}
+                                    onCardClick={acc => navigate(`/student/roomview/${acc.accommodationId}`)}
                                 />
                             </div>
                         </div>
