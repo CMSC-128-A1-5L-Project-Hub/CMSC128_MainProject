@@ -31,7 +31,7 @@ const CLR = {
 } as const;
 //todo: configure file paths images, from db 
 //will check pa 
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333";
+const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 function assetUrl(filePath: string) { return `${BASE_URL}${filePath}`; }
 
 const GRID_COLS = "grid grid-cols-1 lg:grid-cols-[1.75fr_1fr] gap-3";

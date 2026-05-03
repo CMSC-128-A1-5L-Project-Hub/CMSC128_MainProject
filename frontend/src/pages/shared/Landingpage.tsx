@@ -507,7 +507,7 @@ export default function LandingPage() {
 
   // Fetch semester from backend
   useEffect(() => {
-    fetch("http://localhost:3333/api/v1/sys-variables", { credentials: "include" })
+    fetch("/api/v1/sys-variables", { credentials: "include" })
       .then(res => res.json())
       .then(data => {
         if (data?.data) {
