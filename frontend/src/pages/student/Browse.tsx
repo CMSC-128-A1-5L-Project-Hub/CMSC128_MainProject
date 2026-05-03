@@ -323,9 +323,6 @@ export default function BrowsePage() {
     )
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   DORM TILE — new inline component, no DormCard dependency
-══════════════════════════════════════════════════════════════════════════════ */
 function DormTile({
     dorm, hovered, onHover, onClick,
 }: {
@@ -511,9 +508,9 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                 title="Dorm type"
                 items={[
                     { label: "All Types", href: "" },
-                    { label: "Apartment", href: "" },
-                    { label: "Dormitory", href: "" },
-                    { label: "Boarding House", href: "" },
+                    { label: "On Campus", href: "" },
+                    { label: "Off Campus", href: "" },
+                    { label: "Partnered Houses", href: "" },
                 ]}
                 showTitle={false} direction="down"
                 widthClass="w-full" titleClass="text-[10px] lg:text-[11px]"
@@ -529,8 +526,8 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                 items={[
                     { label: "All", href: "" },
                     { label: "Single", href: "" },
+                    { label: "Double", href: "" },
                     { label: "Shared", href: "" },
-                    { label: "Studio", href: "" },
                 ]}
                 showTitle={false} direction="down"
                 widthClass="w-full" titleClass="text-[10px] lg:text-[11px]"
