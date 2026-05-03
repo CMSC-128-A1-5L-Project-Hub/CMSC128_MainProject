@@ -695,8 +695,8 @@ export default function Waitlist() {
               status: `${user?.manager?.managerStatus}`
         }} />
 
-            <div className="flex-1 flex flex-col p-5 overflow-y-auto">
-                <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2">
+                    <div className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-5 overflow-y-auto"> 
+                    <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2">
                     <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
                         style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
                     />

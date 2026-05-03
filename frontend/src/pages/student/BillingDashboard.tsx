@@ -136,13 +136,14 @@ export default function BillingDashboard() {
       <Sidebar role='student' />
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className='flex flex-row justify-start items-center mt-4'>
-          <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-5 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div>
+          <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-4 sm:ml-6 lg:ml-8 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div>
           <div className="flex flex-col justify-left gap-[1px]">
             <h1 className='font-serif font-bold italic text-[28.5px] lg:text-[31px] text-[#6B0F2B] pl-16 lg:p-0 leading-tight -mt-2'>Billing Dashboard</h1>
             <p className="text-[#9A7080] text-[13px] pl-16 lg:pl-0 -mt-1 lg:-mt-2">{currentResidence}</p>
           </div>
         </div>
-        <div className='pt-7 px-4'>
+
+        <div className='pt-7 px-4 sm:px-6 lg:px-8'>
           <HeroBanner
             greeting="Good Day"
             name={studentName}
@@ -151,7 +152,8 @@ export default function BillingDashboard() {
             type="mini"
           />
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mx-4 mt-4 my-2">
+
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mx-4 sm:mx-6 lg:mx-8 mt-4 my-2">
           <div className="flex items-center flex-row justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-6 col-span-2 lg:col-span-1 rounded-2xl shrink-0">
             <div>
               <p className="uppercase font-bold text-white text-opacity-55 text-[12px] lg:text-[13px]">pay now</p>
@@ -196,7 +198,7 @@ export default function BillingDashboard() {
           ))}
         </div>
 
-        <div className="flex-1 min-h-0 flex flex-col bg-white mx-4 mt-2 mb-4 rounded-2xl p-6">
+        <div className="flex-1 min-h-0 flex flex-col bg-white mx-4 sm:mx-6 lg:mx-8 mt-2 mb-4 rounded-2xl p-6">
           <div className='flex flex-row justify-between'>
             <div>
               <p className='font-bold'>Billing History</p>

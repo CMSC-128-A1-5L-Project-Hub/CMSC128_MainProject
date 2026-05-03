@@ -109,11 +109,11 @@ export default function ApplicationStatusPage() {
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 <div className='flex flex-row justify-start items-center mt-3'>
-                    <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-5 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div>
+                    <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-4 sm:ml-6 lg:ml-8 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div>
                     <h1 className='font-serif font-bold italic text-[32px] lg:text-[33px] text-[#6B0F2B] pl-16 lg:p-0'>Application Dashboard</h1>
                 </div>
 
-                <div className='pt-6 px-4'>
+                <div className='pt-6 px-4 sm:px-6 lg:px-8'>
                     <HeroBanner
                         greeting={heroContent.greeting}
                         name={heroContent.name}
@@ -125,7 +125,7 @@ export default function ApplicationStatusPage() {
 
                 <StatsBanner stats={stats} total={trueTotal} />
 
-                <div className="bg-white mx-4 my-0 rounded-xl mb-4 p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
+                <div className="bg-white mx-4 sm:mx-6 lg:mx-8 my-0 rounded-xl mb-4 p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
                     <div className='flex justify-between items-center pb-2 lg:pb-4'>
                         <div>
                             <h1 className='font-bold -mt-1'>Application History</h1>
