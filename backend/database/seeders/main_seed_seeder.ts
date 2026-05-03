@@ -140,19 +140,6 @@ export default class extends BaseSeeder {
         facebook_account: 'facebook.com/carla.navarro',
         role: 'unassigned'
       },
-
-      // ── UBLE test account ──────────────────────────────────────────────────
-      // NOTE: uble.ics.uplb@gmail.com is already created by admin_seeder — only add the manager here.
-      {
-        pfp_file_id: getFile('pfp_2.jpg'),
-        fname: 'Rosa',
-        mname: null,
-        lname: 'Dela Cruz',
-        suffix: null,
-        email: 'manager.uble.test@gmail.com',
-        facebook_account: null,
-        role: 'manager',
-      },
     ])
 
     // --- DYNAMIC FETCH: USERS ---
@@ -558,9 +545,6 @@ export default class extends BaseSeeder {
       { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023-123459', due_date: '2026-04-30', fee_category: 'rent', fee_amount: 5000.00, fee_balance: 0.00, fee_status: 'paid' },
       { landlord_id: getUser('larkinsanchez@gmail.com'), student_number: '2023-123461', due_date: '2026-04-30', fee_category: 'miscellaneous', fee_amount: 800.00, fee_balance: 400.00, fee_status: 'partial' },
       { landlord_id: getUser('raortega@gmail.com'), student_number: '2023-123457', due_date: '2026-03-31', fee_category: 'rent', fee_amount: 800.00, fee_balance: 800.00, fee_status: 'overdue' },
-      // UBLE fees
-      { landlord_id: getUser('uble.ics.uplb@gmail.com'), student_number: '2023-123458', due_date: '2026-03-01', fee_category: 'rent', fee_amount: 5500.00, fee_balance: 5500.00, fee_status: 'overdue' },
-      { landlord_id: getUser('uble.ics.uplb@gmail.com'), student_number: '2023-123460', due_date: '2026-03-01', fee_category: 'rent', fee_amount: 5500.00, fee_balance: 0.00, fee_status: 'paid' },
     ])
 
     const allFees = await db.from('fees').select('id', 'student_number', 'fee_category')
