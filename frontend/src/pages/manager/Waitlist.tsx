@@ -6,6 +6,9 @@ import Card from "../../components/ui/Card"
 import Button from "../../components/Button"
 import Modal from "../../components/Modal"
 import StatusBadge from "../../components/ui/StatusBadge"
+import CustomHeader from '../../components/CustomHeader';
+import Dropdown from "../../components/ApplicationStatus/Dropdown";
+import SearchBar from '../../components/SearchBar';
 
 
 import { 
@@ -114,7 +117,7 @@ export interface WaitlistedResponse {
   }; 
 }
 
-const HISTORY_PER_PAGE = 5
+// const HISTORY_PER_PAGE = 5
 const SORT_OPTS = [
   { value: "Date", label: "Date" },
   { value: "Room Type", label: "Room Type" },
@@ -122,84 +125,84 @@ const SORT_OPTS = [
   { value: "Action", label: "Action" },
 ]
 
-const FilterSelect = ({
-  value,
-  onChange,
-  compact,
-  onToggle,
-  sortOpen,
-  setSortOpen,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  compact?: boolean;
-  onToggle?: () => void;
-  sortOpen: boolean;
-  setSortOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
+// const FilterSelect = ({
+//   value,
+//   onChange,
+//   compact,
+//   onToggle,
+//   sortOpen,
+//   setSortOpen,
+// }: {
+//   value: string;
+//   onChange: (v: string) => void;
+//   compact?: boolean;
+//   onToggle?: () => void;
+//   sortOpen: boolean;
+//   setSortOpen: React.Dispatch<React.SetStateAction<boolean>>;
+// }) => {
 
-  const selected = SORT_OPTS.find((o) => o.value === value)?.label;
+//   const selected = SORT_OPTS.find((o) => o.value === value)?.label;
 
-  return (
-    <div className="relative">
-      <button
-        onClick={() => {
-          if (compact) {
-            onToggle?.();
-            setSortOpen(false);
-          } else {
-            setSortOpen((o) => !o);
-          }
-        }}
-        className={`flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition ${
-        compact ? "w-10 justify-center" : "w-[140px]"
-        }`}
-      >
-        {compact ? (
-          <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-          </svg>
-        ) : (
-          <>
-            <span className="flex flex-col text-left">
-              <span className="text-[9px] uppercase text-[#9A7080] font-bold leading-none">
-                Sort By
-              </span>
-              <span className="text-[#1A0008] font-medium text-xs">
-                {selected}
-              </span>
-            </span>
+//   return (
+//     <div className="relative">
+//       <button
+//         onClick={() => {
+//           if (compact) {
+//             onToggle?.();
+//             setSortOpen(false);
+//           } else {
+//             setSortOpen((o) => !o);
+//           }
+//         }}
+//         className={`flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition ${
+//         compact ? "w-10 justify-center" : "w-[140px]"
+//         }`}
+//       >
+//         {compact ? (
+//           <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//             <path strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+//           </svg>
+//         ) : (
+//           <>
+//             <span className="flex flex-col text-left">
+//               <span className="text-[9px] uppercase text-[#9A7080] font-bold leading-none">
+//                 Sort By
+//               </span>
+//               <span className="text-[#1A0008] font-medium text-xs">
+//                 {selected}
+//               </span>
+//             </span>
 
-            <svg className="ml-auto w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </>
-        )}
-      </button>
+//             <svg className="ml-auto w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//               <path strokeWidth={2} d="M19 9l-7 7-7-7" />
+//             </svg>
+//           </>
+//         )}
+//       </button>
 
-      {sortOpen && (
-        <div className="absolute z-10 top-full mt-1 right-0 bg-white border border-[#E8D5DC] rounded-xl shadow-md overflow-hidden w-full">
-          {SORT_OPTS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => {
-                onChange(opt.value);
-                setSortOpen(false);
-              }}
-              className={`w-full text-left px-4 py-2 text-xs hover:bg-[#F5ECF0] transition ${
-                value === opt.value
-                  ? "text-[#6B0F2B] font-semibold"
-                  : "text-[#1A0008]"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+//       {sortOpen && (
+//         <div className="absolute z-10 top-full mt-1 right-0 bg-white border border-[#E8D5DC] rounded-xl shadow-md overflow-hidden w-full">
+//           {SORT_OPTS.map((opt) => (
+//             <button
+//               key={opt.value}
+//               onClick={() => {
+//                 onChange(opt.value);
+//                 setSortOpen(false);
+//               }}
+//               className={`w-full text-left px-4 py-2 text-xs hover:bg-[#F5ECF0] transition ${
+//                 value === opt.value
+//                   ? "text-[#6B0F2B] font-semibold"
+//                   : "text-[#1A0008]"
+//               }`}
+//             >
+//               {opt.label}
+//             </button>
+//           ))}
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
 
 export default function Waitlist() {
     const {
@@ -231,32 +234,36 @@ export default function Waitlist() {
     const [selectedRecord, setSelectedRecord] = useState<WaitlistedResponse | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
     const [sortBy, setSortBy] = useState("Date")
+    const [itemsPerPage, setItemsPerPage] = useState(5)
     
     const [search, setSearch] = useState("")
 
     // FILTER
     const filtered = useMemo(() => {
-        const q = search.toLowerCase()
+    const q = search.toLowerCase()
         return records.filter(r =>
             r.student.user.fname.toLowerCase().includes(q) ||
             r.student.user.lname.toLowerCase().includes(q) ||
-            r.assignment.room.roomBuilding.toLowerCase().includes(q) ||
-            r.assignment.room.roomType.toLowerCase().includes(q)
+            (r.assignment?.room?.roomBuilding ?? '').toLowerCase().includes(q) ||
+            (r.assignment?.room?.roomType ?? '').toLowerCase().includes(q)
         )
     }, [records, search])
 
     //SORT
     const sorted = useMemo(() => {
         return [...filtered].sort((a, b) => {
-            if (sortBy === "Room Type") return a.assignment.room.roomType.localeCompare(b.assignment.room.roomType)
-            if (sortBy === "accommodation.building") return a.assignment.room.roomBuilding.localeCompare(b.assignment.room.roomBuilding)
-            if (sortBy === "Date") return new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime()
+            if (sortBy === "Room Type")
+                return (a.assignment?.room?.roomType ?? '').localeCompare(b.assignment?.room?.roomType ?? '')
+            if (sortBy === "accommodation.building")
+                return (a.assignment?.room?.roomBuilding ?? '').localeCompare(b.assignment?.room?.roomBuilding ?? '')
+            if (sortBy === "Date")
+                return new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime()
             return 0
         })
     }, [filtered, sortBy])
 
     const [mode, setMode] = useState<"both" | "search" | "sort">("both")
-    const [sortOpen, setSortOpen] = useState(false)
+    // const [sortOpen, setSortOpen] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
     const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -269,20 +276,20 @@ export default function Waitlist() {
     return () => window.removeEventListener("resize", checkScreen)
     }, [])
 
-    const handleOpenSearch = () => {
-    setSortOpen(false)
-    setMode("search")
-    setTimeout(() => searchInputRef.current?.focus(), 50)
-    }
+    // const handleOpenSearch = () => {
+    // setSortOpen(false)
+    // setMode("search")
+    // setTimeout(() => searchInputRef.current?.focus(), 50)
+    // }
 
-    const handleCloseSearch = () => {
-    setMode("both")
-    setSearch("")
-    }
+    // const handleCloseSearch = () => {
+    // setMode("both")
+    // setSearch("")
+    // }
 
-    const totalPages = Math.ceil(sorted.length / HISTORY_PER_PAGE)
-    const startIndex = (currentPage - 1) * HISTORY_PER_PAGE
-    const paginated = sorted.slice(startIndex, startIndex + HISTORY_PER_PAGE)
+    const totalPages = Math.ceil(sorted.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const paginated = sorted.slice(startIndex, startIndex + itemsPerPage)
 
     const handleSort = (option: string) => {
         setSortBy(option)
@@ -466,38 +473,62 @@ export default function Waitlist() {
           )}
       </Modal>
 
-        <div className={`bg-white rounded-2xl shadow-sm border overflow-hidden ${className ?? ""}`}>
+        <div className={`bg-white rounded-2xl p-4 lg:p-6 shadow-sm border overflow-hidden ${className ?? ""}`}>
             {/* Header row */}
-            <div className="flex items-center justify-between gap-4 p-4 border-b">
+            <div className="flex items-center justify-between">
               {/* LEFT: grouped */}
               <div className="flex flex-col gap-1 shrink-0">
                   <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg whitespace-nowrap">
                       Waitlist History
                   </h2>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs -mt-1 text-gray-400">
                       {filtered.length} total applications
                   </p>
               </div>
             
             {/* RIGHT: filters */}
             <div className="flex items-center gap-2 ml-auto">
-            {/* SORT BY */}
-            <FilterSelect
-            value={sortBy}
-            onChange={(v) => {
-                handleSort(v)
-                setMode("both")
-            }}
-            compact={isMobile && mode === "search"}
-            onToggle={() => {
-                setSortOpen(false)
-                setMode("both")
-            }}
-            sortOpen={sortOpen}
-            setSortOpen={setSortOpen}
-            />
+                <div className="hidden lg:block">
+                    <Dropdown
+                        title="No. of Items"
+                        items={[
+                            { label: "5", href: "" },
+                            { label: "10", href: "" },
+                            { label: "15", href: "" },
+                            { label: "20", href: "" },
+                        ]}
+                        direction='down'
+                        widthClass="w-29 lg:w-32"
+                        titleClass="text-[10px] lg:text-[11px]"
+                        selectedClass="text-[12px] lg:text-[13px]"
+                        onSelect={(label) => {
+                            setItemsPerPage(Number(label))
+                            setCurrentPage(1)
+                        }}
+                    />
+                </div>
+                
+                <Dropdown
+                    title="Sort By"
+                    items={SORT_OPTS.map(opt => ({ label: opt.label, href: "" }))}
+                    direction='down'
+                    widthClass="w-29 lg:w-32"
+                    titleClass="text-[10px] lg:text-[11px]"
+                    selectedClass="text-[12px] lg:text-[13px] block"
+                    onSelect={(label) => {
+                    handleSort(label)
+                    setMode("both")
+                    }}
+                />
+                <SearchBar
+                    value={search}
+                    onChange={(query) => {
+                        setSearch(query)
+                        }}
+                    onPageReset={() => setCurrentPage(1)}
+                />
 
-            {/* SEARCH ICON - mobile only */}
+            {/* SEARCH ICON - mobile only
             <button
             onClick={handleOpenSearch}
             className={`${mode === "search" ? "hidden" : "flex"} sm:hidden items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition`}
@@ -509,7 +540,7 @@ export default function Waitlist() {
             </button>
 
             {/* SEARCH INPUT */}
-            <div className={`relative ${mode === "search" ? "flex" : "hidden"} sm:flex w-full sm:w-[120px]`}>
+            {/* <div className={`relative ${mode === "search" ? "flex" : "hidden"} sm:flex w-full sm:w-[120px]`}>
                 <svg
                 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A36F82]"
                 fill="none"
@@ -538,125 +569,106 @@ export default function Waitlist() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 </button>
-            </div>
-            </div>
-            </div>
+            </div> */}
+        </div>
+    </div>
 
     {/* HEADER -- TABLE  */}
     <div className="w-full overflow-x-auto">
-    <div className="min-w-[900px]">
-    <div className="grid grid-cols-12 bg-gray-50 border-b border-[#F5ECF0] uppercase">
-      <p className="col-span-2 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Students</p>
-
-      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
-        Date
-      </p>
-
-      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
-        Time Submitted
-      </p>
-
-      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
-        Preferred Facility
-      </p>
-
-      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
-        Room Type
-      </p>
-
-      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
-        Action
-      </p>
-    </div>
-
-        {/* ROWS */}
-        <div className="flex flex-col divide-y divide-[#F5ECF0]">
-            {/* LOADING STATE */}
+        <table className="min-w-[900px] w-full border-b-2 mt-4 border-[#F5ECF0]">
+            <thead>
+            <tr className="border-[#6B0F2B]/5 border-y-2">
+                {["Students", "Date", "Time Submitted", "Preferred Facility", "Room Type", "Action"].map((h, i) => (
+                <th
+                    key={h}
+                    className={`text-[#9A7080] text-xs font-bold tracking-widest uppercase p-1 ${i === 0 ? "text-left pl-1" : "text-center"}`}
+                >
+                    {h}
+                </th>
+                ))}
+            </tr>
+            </thead>
+            <tbody style={{ borderTop: "none" }}>
             {isLoadingList ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                    <div key={`skeleton-${i}`} className="grid grid-cols-12 items-center py-3 animate-pulse">
-                        <div className="col-span-2 flex items-center gap-2">
-                            <div className="w-9 h-9 rounded-xl bg-gray-200" />
-                            <div className="h-4 w-20 bg-gray-200 rounded" />
-                        </div>
-                        <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
-                        <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
-                        <div className="col-span-2 h-4 w-20 bg-gray-100 rounded mx-auto" />
-                        <div className="col-span-2 h-4 w-16 bg-gray-100 rounded mx-auto" />
-                        <div className="col-span-2 h-8 w-16 bg-gray-200 rounded mx-auto" />
+                <tr key={`skeleton-${i}`} className="animate-pulse">
+                    <td className="py-3 pl-1">
+                    <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-xl bg-gray-200" />
+                        <div className="h-4 w-20 bg-gray-200 rounded" />
                     </div>
+                    </td>
+                    <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
+                    <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
+                    <td className="py-3 text-center"><div className="h-4 w-20 bg-gray-100 rounded mx-auto" /></td>
+                    <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
+                    <td className="py-3 text-center"><div className="h-8 w-16 bg-gray-200 rounded mx-auto" /></td>
+                </tr>
                 ))
             ) : isErrorList ? (
-                /* ERROR STATE */
-                <div className="py-10 text-center">
+                <tr>
+                <td colSpan={6} className="py-10 text-center">
                     <p className="text-sm text-red-500 mb-2">Failed to load applications.</p>
-                    <Button size="sm" onClick={() => refetch()}>
-                        Retry
-                    </Button>
-                </div>
+                    <Button size="sm" onClick={() => refetch()}>Retry</Button>
+                </td>
+                </tr>
             ) : paginated.length > 0 ? (
-                /* DATA STATE */
                 paginated.map((record, i) => (
-                    <div key={record.id || i} className="grid grid-cols-12 items-center py-3 hover:bg-[#FFF9FA] transition-colors">
-                        
-                        {/* STUDENT INFO */}
-                        <div className="col-span-2 flex items-center gap-2">
-                            <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                                style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                {getInitials(record.student.user.fname)}
-                            </div>
-                            <div>
-                                <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
-                                    {record.student.user.fname} {record.student.user.lname}
-                                </p>
-                                <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
-                            </div>
+                <tr key={record.id || i} className="hover:bg-[#FFF9FA] transition-colors">
+                    <td className="py-3 pl-1">
+                    <div className="flex items-center gap-2">
+                        <div
+                        className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                        >
+                        {getInitials(record.student.user.fname)}
                         </div>
-
-                        {/* DATE SUBMITTED */}
-                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                            {new Date(record.applicationDate).toLocaleDateString()}
+                        <div>
+                        <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
+                            {record.student.user.fname} {record.student.user.lname}
                         </p>
-
-                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
-                            {DateTime.fromISO(record.applicationDate).setZone('utc', { keepLocalTime: true }).toFormat('h:mm a')}
-                        </p>
-
-                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                            {record.assignment?.room?.roomBuilding || "N/A"}
-                        </p>
-
-                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
-                            {record.assignment?.room?.roomType || record.applicationRoomType}
-                        </p>
-
-                        {/* ACTION */}
-                        <div className="col-span-2 flex justify-center">
-                            <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
-                                View
-                            </Button>
+                        <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
                         </div>
                     </div>
+                    </td>
+                    <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                    {new Date(record.applicationDate).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
+                    {DateTime.fromISO(record.applicationDate).setZone('utc', { keepLocalTime: true }).toFormat('h:mm a')}
+                    </td>
+                    <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                    {record.assignment?.room?.roomBuilding || "N/A"}
+                    </td>
+                    <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
+                    {record.assignment?.room?.roomType || record.applicationRoomType}
+                    </td>
+                    <td className="py-3 text-center">
+                    <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
+                        View
+                    </Button>
+                    </td>
+                </tr>
                 ))
             ) : (
-                /* EMPTY STATE */
-                <div className="flex flex-col items-center py-12">
-                    <p className="text-sm text-[#9A7080]">No waitlisted applications found.</p>
-                </div>
+                <tr>
+                <td colSpan={6} className="py-12 text-center text-sm text-[#9A7080]">
+                    No waitlisted applications found.
+                </td>
+                </tr>
             )}
+            </tbody>
+        </table>
         </div>
-        </div>
-    </div>
 
             {/* FOOTER */}
-            <div className="flex items-center justify-between px-4 py-3 border-t border-[#F5ECF0]">
+            <div className="flex items-center justify-between px-4 py-3 border-[#F5ECF0]">
                 <p className="text-xs text-[#9A7080]">
                 {filtered.length === 0
                     ? "No results"
-                    : `Showing ${startIndex + 1}–${Math.min(
-                        startIndex + HISTORY_PER_PAGE,
-                        filtered.length
-                    )} of ${filtered.length}`}
+                    : `Showing ${startIndex + 1}
+                        –${Math.min(startIndex + itemsPerPage, filtered.length)} 
+                        of ${filtered.length}`}
                 </p>
                 <div className="flex items-center justify-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -690,34 +702,34 @@ export default function Waitlist() {
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
             <Sidebar role="manager" profile={{fullName: `${user?.fname} ${user?.lname}`,
-              shortName: `${user?.fname}`,
-              email: `${user?.email}`,
-              status: `${user?.manager?.managerStatus}`
-        }} />
+                shortName: `${user?.fname}`,
+                email: `${user?.email}`,
+                status: `${user?.manager?.managerStatus}`
+            }} />
+            <div className="flex flex-col flex-1 min-w-0 w-full">
+                <CustomHeader
+                    title="Waitlist"></CustomHeader>
+                <div className="flex-1 flex flex-col p-4 lg:p-6 lg:gap-6 overflow-y-auto">
+                    <main className="flex-1 flex flex-col gap-4 lg:gap-6">
+                        <div className="mt-1">
+                            <HeroBanner 
+                                greeting="Good Day"
+                                name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
+                                title="Check your waitlisted applicants"
+                                subtitle="We make it easy for you to track the accommodation  applications you manage. "
+                                type="mini"
+                            />
+                        </div>
+                        
 
-            <div className="flex-1 flex flex-col p-5 overflow-y-auto">
-                <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2">
-                    <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
-                        style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
-                    />
-                    <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B] ">
-                        Waitlist
-                    </h1>
+                        <WaitlistHistory 
+                            records={waitlistRecords}
+                        />
+                    </main>
                 </div>
-                <main className="flex-1 flex flex-col gap-4">
-                    <HeroBanner 
-                        greeting="Good Day"
-                        name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-                        title="Check your waitlisted applicants"
-                        subtitle="We make it easy for you to track the accommodation  applications you manage. "
-                        type="mini"
-                    />
-
-                    <WaitlistHistory 
-                        records={waitlistRecords}
-                    />
-                </main>
             </div>
+
+            
         </div>
     )
 }
