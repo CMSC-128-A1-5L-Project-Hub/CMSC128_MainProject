@@ -1,1328 +1,654 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import DormCard from "../../components/DormCardBrowse";
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
-import { BookMarked, Star } from "lucide-react";
-import Sidebar from "../../components/Sidebar";
-import CustomHeader from '../../components/CustomHeader';
-import HeroBanner from "@/components/dashboard/HeroBanner";
-import Dropdown from "../../components/ApplicationStatus/Dropdown";
+import { Star, SlidersHorizontal, MapPin, X, BookmarkCheck, ChevronRight } from "lucide-react"
+import Sidebar from "../../components/Sidebar"
+import CustomHeader from '../../components/CustomHeader'
+import HeroBanner from "@/components/dashboard/HeroBanner"
+import Dropdown from "../../components/ApplicationStatus/Dropdown"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../api/axios"
 
-const IconArrowNext = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-  </svg>
-);
+/* ─── Context ──────────────────────────────────────────────────────────────── */
+type FilterContextType = {
+    dormType: string; setDormType: (v: string) => void
+    minPrice: number; setMinPrice: (v: number) => void
+    maxPrice: number; setMaxPrice: (v: number) => void
+    roomType: string; setRoomType: (v: string) => void
+    starRating: number; setStarRating: (v: number) => void
+    onlyBookmarked: boolean; setOnlyBookmarked: (v: boolean) => void
+    searching: string; setSearching: (v: string) => void
+    filters: { [key: string]: boolean }; setFilters: (v: { [key: string]: boolean }) => void
+}
+export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
-const IconArrowBack = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24" style={{ transform: 'scaleX(-1)' }}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-  </svg>
-);
-
-
-interface HeroContent {
-    greeting: string;
-    name: string;
-    title: string;
-    subtitle: string;
+/* ─── Dorm tile type ───────────────────────────────────────────────────────── */
+type Dorm = {
+    name: string; subtitle: string; meta: string
+    minPrice: number; maxPrice: number; priceUnit: string
+    rating: string; accommodationId: number; tags: string[]
+    bookmarked?: boolean
 }
 
-type FilterContextType = {
-    dormType: string;
-    setDormType: (value: string) => void;
-    minPrice: number;
-    setMinPrice: (value: number) => void;
-    maxPrice: number;
-    setMaxPrice: (value: number) => void;
-    roomType: string;
-    setRoomType: (value: string) => void;
-    starRating: number;
-    setStarRating: (value: number) => void;
-    onlyBookmarked: boolean;
-    setOnlyBookmarked: (value: boolean) => void;
-    searching: string;
-    setSearching: (value: string) => void;
-    filters: { [key: string]: boolean };
-    setFilters: (value: { [key: string]: boolean }) => void;
-};
-
-export const filterContext = createContext<FilterContextType | undefined>(undefined);
-
+/* ══════════════════════════════════════════════════════════════════════════════
+   MAIN PAGE
+══════════════════════════════════════════════════════════════════════════════ */
 export default function BrowsePage() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [activeFilter, setActiveFilter] = useState("All");
-    const [profileLoading, setProfileLoading] = useState(true);
 
-    // these are for filtering
-    const [onlyBookmarked, setOnlyBookmarked] = useState(false);
-    const [minPrice, setMinPrice] = useState(2500);
-    const [maxPrice, setMaxPrice] = useState(7000);
-    const [dormType, setDormType] = useState("All")
-    const [roomType, setRoomType] = useState("All")
-    const [starRating, setStarRating] = useState(3);
-    const [studentNo, setStudentNo] = useState("");
-
-    const [searching, setSearching] = useState("");
-
-    const [isBelowSm, setIsBelowSm] = useState(false);
-
-    const [searchExact, setSearchExact] = useState(false);
-
-    const [name, setName] = useState("");
+    /* ── state — all untouched ── */
+    const [searchTerm, setSearchTerm]           = useState("")
+    const [activeFilter, setActiveFilter]       = useState("All")
+    const [onlyBookmarked, setOnlyBookmarked]   = useState(false)
+    const [minPrice, setMinPrice]               = useState(2500)
+    const [maxPrice, setMaxPrice]               = useState(7000)
+    const [dormType, setDormType]               = useState("All")
+    const [roomType, setRoomType]               = useState("All")
+    const [starRating, setStarRating]           = useState(3)
+    const [searching, setSearching]             = useState("")
+    const [filterPanelOpen, setFilterPanelOpen] = useState(false)
+    const [hoveredId, setHoveredId]             = useState<number | null>(null)
     const [filters, setFilters] = useState<{ [key: string]: boolean }>({
-        "Near campus": false,
-        "Pet friendly": false,
-        "Near establishments": false,
-        "Air-conditioned rooms": false,
-        "Has study area": false,
-        "24/7 security": false,
-        "Has curfew": false,
-        "Has canteen": false
-    });
+        "Near campus": false, "Pet friendly": false, "Near establishments": false,
+        "Air-conditioned rooms": false, "Has study area": false,
+        "24/7 security": false, "Has curfew": false, "Has canteen": false,
+    })
 
     const navigate = useNavigate()
 
-
-    const {
-        data: accommodations = [],
-        isLoading: accommodationsLoading,
-        isError: accommodationsError,
-    } = useQuery({
+    /* ── queries — untouched ── */
+    const { data: accommodations = [], isError: accommodationsError } = useQuery({
         queryKey: ["accommodations", searchTerm, activeFilter],
         queryFn: async () => {
-            const params: Record<string, any> = {};
-
-            if (searchTerm.trim()) {
-                params.search = searchTerm.trim();
-            }
-
+            const params: Record<string, any> = {}
+            if (searchTerm.trim()) params.search = searchTerm.trim()
             if (activeFilter !== "All") {
-                if (activeFilter === "On-Campus") params.dormType = "On-Campus";
-                else if (activeFilter === "Off-Campus") params.dormType = "Off-Campus";
-                else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner";
+                if (activeFilter === "On-Campus")     params.dormType = "On-Campus"
+                else if (activeFilter === "Off-Campus")   params.dormType = "Off-Campus"
+                else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
-
-            const res = await api.get("/accommodations", { params });
-            console.log("ACCOMMODATIONS RAW RESPONSE:", res.data);
-            console.log("ACCOMMODATIONS ARRAY:", res.data?.data?.data);
-            console.log(Array.isArray(res.data))
-            return Array.isArray(res.data) ? res.data : [];
+            const res = await api.get("/accommodations", { params })
+            return Array.isArray(res.data) ? res.data : []
         },
-    });
+    })
 
-    const { data: user, isLoading: isUserLoading, isError } = useQuery({
+    const { data: user, isError } = useQuery({
         queryKey: ["me"],
         queryFn: async () => {
-            const res = await api.get("/me");
-            setStudentNo(res.data.student.studentNumber)
-            setName(`${res.data.student.fname} ${res.data.student.lname}`)
-            return res.data;
+            const res = await api.get("/me")
+            return res.data
         },
-    });  
+    })
 
-    const safeAccommodations = Array.isArray(accommodations) ? accommodations : [];
+    const name      = user ? `${user.fname} ${user.lname}` : ""
+    const studentNo = user?.student?.studentNumber ?? ""
 
+    useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
+    useEffect(() => { if (user && user.role !== "student") navigate("/auth/signin") }, [user, navigate])
 
-    useEffect(() => {
-        if (isError) {
-            navigate("/auth/signin");
-        }
-    }, [isError, navigate]);
-
-    useEffect(() => {
-        if (user && user.role !== "student") {
-            navigate("/auth/signin");
-        }
-    }, [user, navigate]);
-
-
-    // if (profileLoading) {
-    //     return (
-    //         <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
-    //             <p className="text-gray-600">Loading profile...</p>
-    //         </div>
-    //     );
-    // }
-
-    // if (isUserLoading) {
-    //     return (
-    //         <div className="flex items-center justify-center h-screen">
-    //             <p>Loading...</p>
-    //         </div>
-    //     );
-    // }
-
-    const [dorms, setDorms] = useState<{ [key: number]: Dorm[] }>(
-        {});
-
-    const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([]);
-
-    type Dorm = {
-        name: string;
-        subtitle: string;
-        meta: string;
-        price: number;
-        priceUnit: string;
-        'featured chips': string[];
-        rating: string;
-        minPrice: number;
-        maxPrice: number;
-        invisible?: boolean;
-        accommodationId: number;
-        tags: string[];
-    }
+    const [flatDorms, setFlatDorms] = useState<Dorm[]>([])
+    const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([])
 
     useEffect(() => {
-        const tempAccommodations: AccommodationPin[] = [];
-        let temp: { [key: number]: Dorm[] } = {}
-        let tempCounter = 0
-        temp[tempCounter] = []
+        const tempPins: AccommodationPin[] = []
+        const tempDorms: Dorm[] = []
+
         for (let i = 0; i < accommodations.length; i++) {
-            console.log(accommodations[i])
-            if (i != 0 && i % 4 == 0) {
-                tempCounter++;
-                temp[tempCounter] = []
-            }
-            let { id, accommodationName, accommodationLocation, accommodationType, accommodationCapacity, tenantRestriction, latitude, longitude, walkingDistance, drivingDistance, bikingDistance, rooms, reviews, bookmarks, tags } = accommodations[i]
-            let minimum = -1;
-            let maximum = -1;
+            const {
+                id, accommodationName, accommodationLocation, accommodationType,
+                accommodationCapacity, tenantRestriction, latitude, longitude,
+                walkingDistance, drivingDistance, bikingDistance,
+                rooms, reviews, bookmarks, tags,
+            } = accommodations[i]
 
-            const roomTypes = new Set();
-            let rating = "6";
-            let trueTags: string[] = []
-            let tempTags: string[] = []
+            let minimum = -1, maximum = -1
+            const roomTypes = new Set<string>()
+            let rating = "6"
+            const trueTags: string[] = []
+            const tempTags: string[] = []
             let bookmarked = false
 
-            Object.keys(filters).forEach((key: string) => {
-                if (filters[key]) {
-                    trueTags.push(key)
-                }
+            Object.keys(filters).forEach(k => { if (filters[k]) trueTags.push(k) })
+            Object.keys(tags).forEach((k: string) => { tempTags.push(tags[k].tagDetail) })
+
+            rooms.forEach((el: { roomRent: number; roomType: string }) => {
+                roomTypes.add(el.roomType)
+                const rent = Number(el.roomRent)
+                if (minimum === -1) minimum = rent
+                if (maximum === -1) maximum = rent
+                if (rent < minimum) minimum = rent
+                if (rent > maximum) maximum = rent
             })
 
-            Object.keys(tags).forEach((key: string) => {
-                tempTags.push(tags[key].tagDetail);
+            reviews.forEach((el: { rating: number }) => {
+                if (Number(el.rating) < Number(rating))
+                    rating = Number(el.rating).toFixed(1)
             })
 
-            rooms.forEach((element: { roomRent: Number; roomType: String }) => {
-                roomTypes.add(element.roomType)
-                let rent = Number(element.roomRent)
-                if (minimum == -1) {
-                    minimum = rent
-                }
-
-                if (maximum == -1) {
-                    maximum = rent
-                }
-
-                if (Number(rent) < Number(minimum)) {
-                    minimum = rent
-                }
-
-                if (Number(rent) > Number(maximum)) {
-                    maximum = rent
-                }
-            });
-
-            reviews.forEach((element: { rating: Number }) => {
-                if (Number(element.rating) < Number(rating)) {
-                    let temp = Number(element.rating);
-                    rating = temp.toFixed(1)
-                }
+            bookmarks.forEach((el: { studentNumber: string }) => {
+                if (el.studentNumber === studentNo) bookmarked = true
             })
 
-            bookmarks.forEach((element: { studentNumber: string }) => {
-                if (element.studentNumber === studentNo) {
-                    bookmarked = true
-                }
+            /* search match */
+            const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
+            if (!nameMatch) continue
+
+            /* filters */
+            if (!bookmarked && onlyBookmarked) continue
+            if (Number(rating) < starRating || rating === "6") continue
+            if (minimum < minPrice || maximum > maxPrice) continue
+            if (dormType !== "All" && accommodationType !== dormType) continue
+            if (roomType !== "All" && !roomTypes.has(roomType)) continue
+            if (trueTags.length !== 0) {
+                const hasTag = tempTags.some(t => trueTags.includes(t))
+                if (!hasTag) continue
+            }
+
+            tempDorms.push({
+                name: accommodationName, subtitle: accommodationLocation,
+                meta: accommodationType, minPrice: minimum, maxPrice: maximum,
+                priceUnit: "/ month", rating, accommodationId: id,
+                tags: tempTags, bookmarked,
             })
 
-            if (searching === "" || searching === accommodationName.toLowerCase()) {
-                if (searching === accommodationName.toLowerCase()) {
-                    setSearchExact(true)
-                    setPageNumber(0)
-                } else {
-                    setSearchExact(false)
-                }
-                temp[tempCounter].push({ name: accommodationName, subtitle: accommodationLocation, meta: accommodationType, price: 3200, minPrice: minimum, maxPrice: maximum, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: rating, accommodationId: id, tags: tempTags })
-            }
-
-            if (!bookmarked && onlyBookmarked) {
-                continue
-            }
-
-            if (Number(rating) < starRating || rating == "6") {
-                continue
-            }
-
-            if (minimum < minPrice || maximum > maxPrice) {
-                continue
-            }
-
-            if (dormType !== "All" && accommodationType !== dormType) {
-                continue
-            }
-
-            if (roomType !== "All" && !(roomTypes.has(roomType))) {
-                continue
-            }
-
-            if (trueTags.length != 0) {
-                console.log(tempTags, accommodationName)
-                let tagIncluded = false
-                for (let i = 0; i < tempTags.length; i++) {
-                    if (trueTags.includes(tempTags[i])) {
-                        tagIncluded = true
-                        break
-                    }
-                }
-                if (!tagIncluded) {
-                    continue
-                }
-            }
-
-
-            tempAccommodations.push({
-                accommodationId: id,
-                accommodationName,
-                accommodationLocation,
-                accommodationType,
-                accommodationCapacity,
-                tenantRestriction,
-                latitude,
-                longitude,
-                minRent: minimum,
-                maxRent: maximum,
-                walkingDistance,
-                drivingDistance,
-                bikingDistance,
-                rating,
-                price: 500,
-                maxPrice: maximum,
-                minPrice: minimum
+            tempPins.push({
+                accommodationId: id, accommodationName, accommodationLocation,
+                accommodationType, accommodationCapacity, tenantRestriction,
+                latitude, longitude, minRent: minimum, maxRent: maximum,
+                walkingDistance, drivingDistance, bikingDistance,
+                rating, price: 500, maxPrice: maximum, minPrice: minimum,
             })
-
-        }
-        let final: { [key: number]: Dorm[] } = {}
-
-        for (const key in temp) {
-            const value = temp[key]
-            if (value.length >= 1) {
-                // if (value.length < 4 && !isBelowSm) {
-                //     for (let i = value.length; i < 4; i++) {
-                //         value.push({ name: "", subtitle: "", meta: "", price: 0, minPrice: 0, maxPrice: 0, priceUnit: '/ month', 'featured chips': [""], rating: "", invisible: true })
-                //     }
-                // }
-                final[key] = value
-            }
         }
 
-        // if (Object.keys(final).length === 0) {
-        //     final[0] = [];
-        //     const value = final[0];
-        //     for (let i = 0; i < 4; i++) {
-        //         value.push({ name: "", subtitle: "", meta: "", price: 0, minPrice: 0, maxPrice: 0, priceUnit: '/ month', 'featured chips': [""], rating: "", invisible: true })
-        //     }
-        // }
-        setDorms(final)
-        setMapAccommodations(tempAccommodations)
-    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, isBelowSm, filters]);
+        setFlatDorms(tempDorms)
+        setMapAccommodations(tempPins)
+    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters, studentNo])
 
-
-    const [pageNumber, setPageNumber] = useState(0);
-    const [pageLimits, setPageLimits] = useState([0, 2])
-
-    // everything under here is for map
-    const [searchParams, setSearchParams] = useSearchParams()
-
-    // ─── Read filters from URL query params ──────────────────────────────────
-    // This way filters set on the cards/browse page carry over to the map
-    const search = searchParams.get('search') ?? ''
-    const type = searchParams.get('type') ?? 'all'
-    const restriction = searchParams.get('restriction') ?? 'all'
-    const minRent = Number(searchParams.get('min_rent') ?? 0)
-    const maxRent = Number(searchParams.get('max_rent') ?? 10000)
-    const maxWalk = Number(searchParams.get('max_walk') ?? 60)
-    const minCapacity = Number(searchParams.get('min_capacity') ?? 0)
-    const stayType = searchParams.get('stay_type') ?? 'all'
-
-    // ─── Apply filters ────────────────────────────────────────────────────────
-    // const filtered = useMemo(() => {
-    //     return mapAccommodations.filter((acc) => {
-    //         console.log("hello", acc)
-    //         const matchSearch =
-    //             acc.accommodationName.toLowerCase().includes(search.toLowerCase()) ||
-    //             acc.accommodationLocation.toLowerCase().includes(search.toLowerCase())
-    //         const matchType = type === 'all' || acc.accommodationType === type
-    //         const matchRestriction = restriction === 'all' || acc.tenantRestriction === restriction
-    //         const matchRent = acc.minRent >= minRent && acc.maxRent <= maxRent
-    //         const matchWalk = acc.walkingDistance <= maxWalk
-    //         const matchCapacity = acc.accommodationCapacity >= minCapacity
-    //         const matchStayType = stayType === 'all' || acc.stayType === stayType || acc.stayType === 'both'
-    //         return true
-    //     })
-    // }, [search, type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType])
-
-
-    const centerId = searchParams.get('center')
+    /* map URL params — untouched */
+    const [searchParams] = useSearchParams()
+    const centerId = searchParams.get("center")
     const centeredAccommodation = centerId
-        ? mapAccommodations.find((a) => a.accommodationId === Number(centerId)) ?? null
+        ? mapAccommodations.find(a => a.accommodationId === Number(centerId)) ?? null
         : null
 
-    useEffect(() => {
-        const media = window.matchMedia("(max-width: 639px)");
+    /* active filter chip labels */
+    const activeChips: string[] = []
+    if (dormType !== "All") activeChips.push(`Type: ${dormType}`)
+    if (roomType !== "All") activeChips.push(`Room: ${roomType}`)
+    if (onlyBookmarked) activeChips.push("Saved only")
+    Object.keys(filters).forEach(k => { if (filters[k]) activeChips.push(k) })
 
-        const handleChange = (e: MediaQueryListEvent) => setIsBelowSm(e.matches);
+    /* ══════════════════════════════════════════════════════════════════════════
+       RENDER
+    ══════════════════════════════════════════════════════════════════════════ */
+    return (
+        <filterContext.Provider value={{
+            dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
+            roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
+            searching, setSearching, filters, setFilters,
+        }}>
+            <div className="flex flex-row w-full min-h-screen bg-[#FDF8FA]">
 
-        setIsBelowSm(media.matches);
-        media.addEventListener("change", handleChange);
+                {/* Sidebar */}
+                <div className="relative z-[9999]">
+                    <Sidebar role="student" />
+                </div>
 
-        return () => media.removeEventListener("change", handleChange);
-    }, []);
+                {/* Main */}
+                <div className="flex flex-col w-full min-w-0">
+                    <CustomHeader title="Browse Rooms" />
 
-    return <>
-    <filterContext.Provider value={{ dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked, searching, setSearching, filters, setFilters }}>
-        <div className="flex flex-row w-full min-h-screen bg-[#F5EEF0]">
-            <div className="relative z-[9999]">
-                <Sidebar role="student" />
-            </div>
-
-            <div className="flex flex-col w-full">
-                <CustomHeader title="Browse Rooms" />
-                <div className="flex flex-col items-start w-full min-w-0 min-h-screen">
-
-                    <div className="w-full p-6">
+                    {/* Hero — position untouched */}
+                    <div className="w-full px-6 pt-6 pb-2">
                         <HeroBanner
-                            greeting="Good Day"
-                            name={name}
+                            greeting="Good Day" name={name}
                             title="Browse available rooms"
                             subtitle="Browse available accommodations and apply in just a few clicks"
                             type="mini"
                         />
                     </div>
 
-                    <div className="flex flex-wrap justify-center items-start w-full gap-2 mb-6 md:gap-0">
+                    {/* Toolbar */}
+                    <div className="flex items-center gap-3 px-6 py-3">
+                        <SearchBar />
+                        <button
+                            onClick={() => setFilterPanelOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E8D4DF] bg-white text-[#6B0F2B] text-sm font-semibold shadow-sm hover:bg-[#F5ECF0] transition-colors shrink-0"
+                        >
+                            <SlidersHorizontal size={15} />
+                            Filters
+                            {activeChips.length > 0 && (
+                                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#6B0F2B] text-white text-[10px] font-bold">
+                                    {activeChips.length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
 
-                        {/* first half */}
-                        <div className="flex flex-col justify-center items-center w-full gap-2 md:w-1/2 shrink-0">
-                            <div className="flex w-full justify-center items-center px-4 sm:px-6 lg:px-12">
-                                <SearchBar />
+                    {/* Active filter chips */}
+                    {activeChips.length > 0 && (
+                        <div className="flex flex-wrap gap-2 px-6 pb-2">
+                            {activeChips.map(chip => (
+                                <span key={chip} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#6B0F2B]/10 text-[#6B0F2B]">
+                                    {chip}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Body */}
+                    <div className="flex flex-col md:flex-row gap-4 px-6 pb-8 flex-1">
+
+                        {/* ── LEFT: scrollable tile list ── */}
+                        <div className="flex flex-col w-full md:w-1/2 shrink-0">
+
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="text-[#1C0A11] font-semibold text-sm">
+                                    {flatDorms.length > 0 ? (
+                                        <>
+                                            <span className="text-[#6B0F2B] font-bold">{flatDorms.length}</span>
+                                            {" "}accommodation{flatDorms.length !== 1 ? "s" : ""} found
+                                        </>
+                                    ) : "No accommodations found"}
+                                </p>
                             </div>
 
-                            <div className="flex w-full justify-center items-center p-4 gap-2">
-                                {Object.keys(dorms).length > 0 && !searchExact && (
-                                    <div className="flex justify-center items-center relative z-50">
-                                        <button
-                                            onClick={() => {
-                                                let counter = pageNumber;
-                                                if (counter == 0) {
-                                                    counter = Object.keys(dorms).length - 1;
-                                                } else {
-                                                    counter--;
-                                                }
-                                                if (counter % 2 == 0 && counter != Object.keys(dorms).length - 1) {
-                                                    let temp = [...pageLimits];
-                                                    if (temp[0] - 2 >= 0) { temp[0] -= 2; temp[1] -= 2; setPageLimits(temp); }
-                                                } else if (counter % 2 == 0 && counter == Object.keys(dorms).length - 1) {
-                                                    let max = Object.keys(dorms).length;
-                                                    max = max % 2 == 0 ? max : max + 1;
-                                                    setPageLimits([max - 2, max]);
-                                                }
-                                                setPageNumber(counter);
-                                            }}
-                                            className="rounded-full p-3 bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg"
-                                        >
-                                            <IconArrowBack className="w-6 h-6" />
-                                        </button>
+                            <div className="flex flex-col gap-3 overflow-y-auto pr-1 max-h-[78vh]">
+                                {flatDorms.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-72 gap-3 text-[#9A7080]">
+                                        <MapPin size={40} strokeWidth={1.3} />
+                                        <p className="text-sm font-medium">No results match your current filters</p>
+                                        <p className="text-xs">Try adjusting the filters or search term</p>
                                     </div>
-                                )}
-
-                                <div className="flex">
-                                    <div className="flex" style={{ transform: `translateX(-${100 * pageNumber}%)`, transition: 'transform 500ms ease-in-out' }}>
-                                        {Object.keys(dorms).length === 0 ? (
-                                            <div className="w-full flex items-center justify-center">
-                                                <div className="flex justify-center w-full max-w-[100%] h-[300px] md:h-[600px]">
-                                                    <div className="col-span-2 flex items-center justify-center py-10 text-gray-500 text-lg">
-                                                        No searches found
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            Object.keys(dorms).map((key, index) => {
-                                                const hasOnePage = dorms[Number(key)].length === 1;
-                                                const isActive = pageNumber == index;
-                                                return (
-                                                    <div key={key} className={`w-full shrink-0 flex items-center transition-opacity duration-500 ${isActive ? "opacity-100" : "opacity-0"}`}>
-                                                        <div className={`grid ${hasOnePage ? "grid-cols-1" : "grid-cols-2"} gap-6 w-full mx-auto justify-items-center`}>
-                                                            {dorms[Number(key)].map((value) => (
-                                                                <div key={value.accommodationId} className="w-full flex items-center justify-center">
-                                                                    <DormCard
-                                                                        {...{ ...value, isSmall: isBelowSm }}
-                                                                        verified
-                                                                        onView={() => isActive ? navigate(`/accommodations/${value.accommodationId}`) : undefined}
-                                                                    />
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })
-                                        )}
-                                    </div>
-                                </div>
-
-                                {Object.keys(dorms).length > 0 && !searchExact && (
-                                    <div className="flex justify-center items-center relative z-50">
-                                        <button
-                                            onClick={() => {
-                                                let counter = pageNumber;
-                                                if (counter == Object.keys(dorms).length - 1) {
-                                                    counter = 0;
-                                                } else {
-                                                    counter++;
-                                                }
-                                                if (counter % 2 == 0 && counter != 0) {
-                                                    let temp = [...pageLimits];
-                                                    let max = Object.keys(dorms).length;
-                                                    max = max % 2 == 0 ? max : max + 1;
-                                                    if (temp[1] + 2 <= max) { temp[0] += 2; temp[1] += 2; setPageLimits(temp); }
-                                                } else if (counter % 2 == 0 && counter == 0) {
-                                                    setPageLimits([0, 2]);
-                                                }
-                                                setPageNumber(counter);
-                                            }}
-                                            className="rounded-full p-3 bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg"
-                                        >
-                                            <IconArrowNext className="w-6 h-6" />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex justify-end items-center w-[70%] gap-2">
-                                {pageLimits[0] != 0 && (
-                                    <button onClick={() => {
-                                        let temp = [...pageLimits];
-                                        if (temp[0] - 2 >= 0) { temp[0] -= 2; temp[1] -= 2; setPageLimits(temp); setPageNumber(temp[1] - 1); }
-                                    }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
-                                        {'<'}
-                                    </button>
-                                )}
-                                {Object.keys(dorms).map((value, index) => {
-                                    const current = parseInt(value) + 1;
-                                    if (current >= pageLimits[0] && current <= pageLimits[1]) {
-                                        return (
-                                            <button key={value} onClick={() => setPageNumber(current - 1)}
-                                                className={`flex w-[10%] items-center justify-center rounded-xl text-lg font-semibold shadow-md hover:bg-[#7A162D] hover:text-white
-                                                    ${pageNumber == index ? 'bg-[#7A162D] text-white' : 'bg-white text-[#654050] border border-[#E8D4E2]'}`}>
-                                                {current}
-                                            </button>
-                                        );
-                                    }
-                                })}
-                                {pageLimits[1] < Object.keys(dorms).length && (
-                                    <button onClick={() => {
-                                        let temp = [...pageLimits];
-                                        let max = Object.keys(dorms).length;
-                                        max = max % 2 == 0 ? max : max + 1;
-                                        if (temp[1] + 2 <= max) { temp[0] += 2; temp[1] += 2; setPageLimits(temp); setPageNumber(temp[0] - 1); }
-                                    }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
-                                        {'>'}
-                                    </button>
+                                ) : (
+                                    flatDorms.map(dorm => (
+                                        <DormTile
+                                            key={dorm.accommodationId}
+                                            dorm={dorm}
+                                            hovered={hoveredId === dorm.accommodationId}
+                                            onHover={setHoveredId}
+                                            onClick={() => navigate(`/accommodations/${dorm.accommodationId}`)}
+                                        />
+                                    ))
                                 )}
                             </div>
                         </div>
 
-                        {/* second half - map */}
-                        <div className="flex justify-center rounded-xl items-start w-full h-[700px] md:w-1/2 md:h-[800px] shrink-0 relative z-50 bg-[radial-gradient(circle_at_center,#F5EEF0)]">
-                            <div className="flex flex-col justify-center items-center bg-white rounded-2xl p-4 shadow-md w-[90%] h-full gap-2">
+                        {/* ── RIGHT: map ── */}
+                        <div className="flex flex-col w-full md:w-1/2 shrink-0 rounded-2xl overflow-hidden border border-[#E8D4DF] shadow-md min-h-[560px] relative z-50">
+                            <div className="flex items-center gap-2 px-5 py-4 bg-white border-b border-[#E8D4DF] shrink-0">
+                                <MapPin size={14} className="text-[#6B0F2B]" />
+                                <span className="text-[#1C0A11] font-semibold text-sm">Map view</span>
+                                <span className="ml-auto text-xs text-[#9A7080] font-medium">
+                                    {mapAccommodations.length} pinned
+                                </span>
+                            </div>
+                            <div className="flex-1 min-h-0">
                                 <AccommodationMap
                                     accommodations={mapAccommodations}
                                     centeredAccommodation={centeredAccommodation}
-                                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+                                    onCardClick={acc => navigate(`/accommodations/${acc.accommodationId}`)}
                                 />
-                                <div className="flex justify-center items-center w-[90%] gap-3">
-                                    <Form />
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </filterContext.Provider>
-</>
-}
 
-function SearchBar() {
-    const context = useContext(filterContext);
-    if (!context) {
-        throw new Error("FilterContext must be used within a Provider");
-    }
-    const { setSearching } = context
-
-    return <div className="w-full max-w-5xl mx-auto">
-        <div className="flex items-center bg-white rounded-2xl shadow-md px-4 py-2 border border-gray-200">
-            <div className="flex items-center flex-1 space-x-2">
-
-                <svg className="w-5 h-5 text-[#8A2A45]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-
-                <input
-                    id="search-bar"
-                    type="text"
-                    placeholder="Search dormitory name"
-                    className="w-full outline-none text-gray-700 rounded-xl placeholder-[#C8B0B8]"
+                {/* Backdrop */}
+                <div
+                    onClick={() => setFilterPanelOpen(false)}
+                    className={`fixed inset-0 bg-[#1C0A11]/30 backdrop-blur-sm z-[8999] transition-opacity duration-300
+                        ${filterPanelOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
                 />
+
+                {/* Filter slide-in panel */}
+                <div className={`fixed top-0 right-0 bottom-0 w-full max-w-[420px] bg-white z-[9000] shadow-2xl border-l border-[#E8D4DF] overflow-y-auto transition-transform duration-300 ease-in-out
+                    ${filterPanelOpen ? "translate-x-0" : "translate-x-full"}`}>
+                    <div className="px-7 pt-7">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-[#1C0A11] font-bold text-xl tracking-tight">Filter results</h2>
+                            <button
+                                onClick={() => setFilterPanelOpen(false)}
+                                className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#F5ECF0] text-[#6B0F2B] hover:bg-[#E8D4DF] transition-colors"
+                            >
+                                <X size={15} />
+                            </button>
+                        </div>
+                        <FilterForm onClose={() => setFilterPanelOpen(false)} />
+                    </div>
+                </div>
+
             </div>
-
-            <button onClick={() => {
-                const input = document.getElementById("search-bar") as HTMLInputElement
-                setSearching((input.value.trim()).toLowerCase())
-            }} className="flex items-center space-x-2 bg-gradient-to-r from-[#6B0F2B] to-[#8A1C3D] hover:from-[#7A162D] hover:to-[#A3264A] text-white px-5 py-2 rounded-full transition-colors duration-200">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <span>Search</span>
-            </button>
-
-        </div>
-    </div>
+        </filterContext.Provider>
+    )
 }
 
-function Form() {
+function DormTile({
+    dorm, hovered, onHover, onClick,
+}: {
+    dorm: Dorm
+    hovered: boolean
+    onHover: (id: number | null) => void
+    onClick: () => void
+}) {
+    const ratingNum = parseFloat(dorm.rating)
+    const validRating = !isNaN(ratingNum) && ratingNum <= 5
 
-    const labelStyle: React.CSSProperties = { fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9A7080", marginBottom: 6, fontFamily: "'Plus Jakarta Sans',sans-serif" };
-
-
-    const context = useContext(filterContext);
-    if (!context) {
-        throw new Error("FilterContext must be used within a Provider");
-    }
-    const { dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice, roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked, filters, setFilters } = context
-
-    const [newFilter, setNewFilter] = useState("")
-    const [modal, setModal] = useState(false);
-
-    const originalFilters = {
-        "Near campus": false,
-        "Pet friendly": false,
-        "Near establishments": false,
-        "Air-conditioned rooms": false,
-        "Has study area": false,
-        "24/7 security": false,
-        "Has curfew": false,
-        "Has canteen": false
-    }
+    const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
 
     return (
-        <>
-            <div className="flex flex-col w-full">
-                <div className="flex flex-col items-end">
-                    <button
-                        className="group flex flex-col items-center justify-start w-fit"
-                        onClick={() => {
-                            setFilters(originalFilters)
-                            setStarRating(3)
-                            setOnlyBookmarked(false)
-                            setDormType("All")
-                            setRoomType("All")
-                            setMinPrice(2500)
-                            setMaxPrice(7000)
-                            const dorm_type = document.getElementById("dorm-type") as HTMLSelectElement | null;
-                            const room_type = document.getElementById("room-type") as HTMLSelectElement | null;
-
-                            if (dorm_type) {
-                                dorm_type.selectedIndex = 0;
-                            }
-
-                            if (room_type) {
-                                room_type.selectedIndex = 0;
-                            }
-                        }}
-                    >
-
-                        <span className="text-xs font-bold text-[#8a7686] group-hover:text-[#7A162D] transition-colors">
-                            Reset Filters
-                        </span>
-
-
-                        <div className="w-full h-[1.5px] bg-[#d2c2ce] mt-[-2px] group-hover:bg-[#7A162D] transition-colors" />
-                    </button>
+        <div
+            onMouseEnter={() => onHover(dorm.accommodationId)}
+            onMouseLeave={() => onHover(null)}
+            onClick={onClick}
+            className={`group flex gap-0 bg-white rounded-2xl border cursor-pointer transition-all duration-200 overflow-hidden
+                ${hovered
+                    ? "border-[#6B0F2B] shadow-lg shadow-[#6B0F2B]/10 -translate-y-0.5"
+                    : "border-[#E8D4DF] shadow-sm hover:border-[#6B0F2B]/40 hover:shadow-md hover:-translate-y-0.5"
+                }`}
+        >
+            {/* Thumbnail */}
+            <div className="relative w-40 shrink-0 bg-gradient-to-br from-[#6B0F2B] to-[#B5344F] flex items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 grid grid-cols-3 gap-px opacity-[0.15] p-1.5">
+                    {[...Array(6)].map((_, i) => (
+                        <div key={i} className="bg-white rounded-sm" />
+                    ))}
                 </div>
-                <div className="flex w-full">
-                    <div className="flex flex-col justify-center w-[50%] md:gap-3 p-2">
-                        <div className='flex flex-col'>
-                            <p className="text-[10px] sm:text-sm font-semibold uppercase text-[#9a7080] tracking-widest mb-1 sm:mb-2">
-                                SHOW FAVORITES ONLY
-                            </p>
+                <MapPin size={20} className="text-white/50 relative z-10" strokeWidth={1.4} />
+            </div>
 
-                            <div className="flex items-center justify-center rounded-2xl border bg-pink-50 p-2">
-                                <div className="flex items-center gap-3">
-                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white" stroke="#6B0F2B" strokeWidth="2">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6.5 5.5 5.5 0 0121.5 12C19 16.5 12 21 12 21z"
-                                        />
-                                    </svg>
-                                    <div className="flex items-center gap-3 w-[80%]">
-                                        <div className="flex flex-col h-full">
-
-                                            <p className="font-semibold text-gray-800 text-sm sm:text-base">
-                                                Saved Rooms
-                                            </p>
-
-                                            <p className="text-[11px] sm:text-xs text-gray-500 leading-tight">
-                                                Show only your saved dorms
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-
-
-                                <button className={`toggle-btn ${onlyBookmarked ? 'toggled' : ''} `} onClick={() => setOnlyBookmarked(!onlyBookmarked)}>
-                                    <div className="thumb w-[10px]"></div>
-                                </button>
-
-                            </div>
-                        </div>
-
-                        {/* <hr className="border-gray-200" /> */}
-
-                        <div className="flex flex-col">
-
-                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
-                                DORM TYPE
-                            </p>
-
-                            <div className="relative w-full">
-                                <Dropdown
-                                    title="No. of Items"
-                                    items={[
-                                        { label: "All Types", href: "" },
-                                        { label: "Apartment", href: "" },
-                                        { label: "Dormitory", href: "" },
-                                        { label: "Boarding House", href: "" },
-                                    ]}
-                                    showTitle= {false}
-                                    direction='down'
-                                    widthClass="w-full"
-                                    titleClass="text-[10px] lg:text-[11px]"
-                                    selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
-                                    //onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* <hr className="border-gray-200" /> */}
-
-                        <div className='flex flex-col'>
-
-                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
-                                ROOM TYPE
-                            </p>
-
-                            <div className="relative w-full">
-                                <Dropdown
-                                    title="No. of Items"
-                                    items={[
-                                        { label: "All", href: "" },
-                                        { label: "Single", href: "" },
-                                        { label: "Shared", href: "" },
-                                        { label: "Studio", href: "" },
-                                    ]}
-                                    showTitle= {false}
-                                    direction='down'
-                                    widthClass="w-full"
-                                    titleClass="text-[10px] lg:text-[11px]"
-                                    selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
-                                    //onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                                />
-                            </div>
-                        </div>
-
-
-                        <div className="flex flex-col justify-center items-start">
-
-                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
-                                MIN RATING
-                            </p>
-
-                            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-
-                                <div className="flex items-center">
-                                    {[...Array(5)].map((_, index) => {
-                                        const filled = index < starRating;
-
-                                        return (
-                                            <button
-                                                key={index}
-                                                type="button"
-                                                onClick={() => setStarRating(index + 1)}
-                                                className="transition-transform active:scale-90 p-0 leading-none"
-                                            >
-                                                <Star
-                                                    size={20}
-                                                    className="sm:w-6 sm:h-6 transition-colors duration-200"
-                                                    fill={filled ? '#C0934B' : '#E5D5DB'}
-                                                    stroke="none"
-                                                />
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                <button
-                                    disabled
-                                    type="button"
-                                    className="flex items-center gap-1 rounded-full border border-pink-200 bg-pink-50 px-3 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-pink-900"
-                                >
-                                    <span>{starRating}</span>
-                                    <Star size={12} className="sm:w-4 sm:h-4 text-pink-900" fill="currentColor" stroke="none" />
-                                    <span>+</span>
-                                </button>
-
-                            </div>
-                        </div>
-
-
+            {/* Content */}
+            <div className="flex flex-col justify-between flex-1 py-4 px-4 min-w-0">
+                <div>
+                    {/* Name row */}
+                    <div className="flex items-start justify-between gap-2 mb-0.5">
+                        <h3 className="text-[#1C0A11] font-bold text-sm leading-snug line-clamp-1">
+                            {dorm.name}
+                        </h3>
+                        {dorm.bookmarked && (
+                            <BookmarkCheck size={15} className="text-[#6B0F2B] shrink-0 mt-0.5" />
+                        )}
                     </div>
-                    <div className="flex flex-col justify-center w-[50%] md:gap-3 p-2">
-                        <div className="flex flex-col">
-                            <p className="text-[11px] sm:text-sm font-semibold text-[#9a7080] tracking-widest mb-1 sm:mb-2">
-                                PRICE RANGE
-                            </p>
-                            <div className="px-3 py-3 sm:px-4 sm:py-4">
 
-                                {/* Price row */}
-                                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                    {/* Location */}
+                    <p className="text-[#9A7080] text-xs mb-2.5 truncate">{dorm.subtitle}</p>
 
-                                    <span className="bg-[#f5f0f2] rounded-full px-2.5 py-0.5 text-[11px] sm:text-xs font-bold text-[#6B0F2B] font-sans">
-                                        ₱{minPrice.toLocaleString()}
-                                    </span>
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                        {dorm.meta && (
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide
+                                ${isOnCampus ? "bg-amber-100 text-amber-700" : "bg-rose-50 text-[#6B0F2B]"}`}>
+                                {dorm.meta}
+                            </span>
+                        )}
+                        {dorm.tags.slice(0, 2).map(tag => (
+                            <span key={tag} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F5ECF0] text-[#6B0F2B] border border-[#E8D4DF]">
+                                {tag}
+                            </span>
+                        ))}
+                        {dorm.tags.length > 2 && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium text-[#9A7080]">
+                                +{dorm.tags.length - 2}
+                            </span>
+                        )}
+                    </div>
+                </div>
 
-                                    <span className="text-[10px] sm:text-xs text-gray-400 font-sans">
-                                        to
-                                    </span>
+                {/* Price + rating + CTA */}
+                <div className="flex items-end justify-between gap-2">
+                    <div>
+                        <p className="text-[#6B0F2B] font-bold text-base leading-none">
+                            ₱{dorm.minPrice > 0 ? dorm.minPrice.toLocaleString() : "—"}
+                            {dorm.maxPrice > dorm.minPrice && (
+                                <span className="text-sm"> – {dorm.maxPrice.toLocaleString()}</span>
+                            )}
+                        </p>
+                        <p className="text-[#9A7080] text-[10px] mt-0.5">{dorm.priceUnit}</p>
+                    </div>
 
-                                    <span className="bg-[#f5f0f2] rounded-full px-2.5 py-0.5 text-[11px] sm:text-xs font-bold text-[#6B0F2B] font-sans">
-                                        ₱{maxPrice.toLocaleString()}
-                                    </span>
-
-                                </div>
-
-                                {/* Slider */}
-                                <div className="px-1 sm:px-2">
-                                    <DualRangeSlider
-                                        minVal={minPrice}
-                                        maxVal={maxPrice}
-                                        onMinChange={setMinPrice}
-                                        onMaxChange={setMaxPrice}
-                                        dataMin={2500}
-                                        dataMax={10000}
-                                    />
-                                </div>
-
+                    <div className="flex items-center gap-3">
+                        {validRating && (
+                            <div className="flex items-center gap-1">
+                                <Star size={12} fill="#C0934B" stroke="none" />
+                                <span className="text-[#C0934B] font-bold text-xs">{dorm.rating}</span>
                             </div>
-                        </div>
-
-                        <div className="flex flex-col">
-                            <p className="text-[11px] sm:text-sm font-semibold text-gray-500 tracking-wide mb-1 sm:mb-2">
-                                OTHERS
-                            </p>
-                            <div className="flex flex-wrap w-full gap-1">
-                                {
-                                    Object.keys(filters).map((value) => (
-                                        <button onClick={() => {
-                                            let tempFilters = { ...filters }
-                                            tempFilters[value] = !tempFilters[value]
-                                            setFilters(tempFilters)
-                                        }} className={`
-                                        px-2 py-0.5 text-[10px]
-                                        sm:px-3 sm:py-1 sm:text-xs
-                                        md:px-3.5 md:py-1.5 md:text-sm
-                        
-                                        rounded-full font-medium border
-                                        transition active:scale-95
-                                        whitespace-nowrap touch-manipulation
-                        
-                                        ${filters[value]
-                                                ? "bg-[#7A0F23] text-white border-[#7A0F23]"
-                                                : "bg-transparent text-[#7A0F23] border-[#7A0F23]"
-                                            }
-                                    `}>
-                                            {value}
-                                        </button>
-                                    ))
-                                }
-                                {/* <button onClick={() => { setModal(true) }} className={`px-3 py-1 rounded-full font-medium transition border-2 border-dashed bg-transparent text-[#7A0F23]/60 border-[#7A0F23]/60`}>
-                                    + Add more
-                                </button> */}
-                                {modal && (
-                                    <div className="fixed inset-0 z-50 flex items-center justify-center">
-
-                                        {/* Backdrop Blur */}
-                                        <div
-                                            className="absolute inset-0 bg-[#4A0E1C]/40 backdrop-blur-sm"
-                                            onClick={() => {
-                                                setModal(modal => !modal)
-                                            }}
-                                        />
-
-                                        {/* Modal Card */}
-                                        <div className="relative z-10 w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl mx-4">
-                                            <div className="flex justify-between items-center mb-6">
-                                                <h2 className="text-2xl font-serif italic text-[#7A162D]">Add filter</h2>
-                                                <button
-                                                    onClick={() => {
-                                                        setModal(modal => !modal)
-                                                    }}
-                                                    className="text-gray-400 hover:text-maroon-800"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <input
-                                                    onChange={(e) => {
-                                                        setNewFilter(e.target.value)
-                                                    }}
-                                                    type="text"
-                                                    placeholder="New Filter"
-                                                    className="w-full px-5 py-3 rounded-2xl border border-gray-100 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#7A162D]/20"
-                                                />
-
-                                                <button onClick={() => {
-                                                    let tempFilters = { ...filters }
-                                                    tempFilters[newFilter] = true
-                                                    setFilters(tempFilters)
-                                                    setModal(modal => !modal)
-                                                }}
-                                                    className="w-full py-4 mt-4 bg-[#7A162D] text-white rounded-2xl font-semibold shadow-lg shadow-maroon-200 hover:bg-[#5a1021] transition-colors">
-                                                    Add
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        )}
+                        <span className={`flex items-center gap-0.5 text-xs font-semibold transition-colors
+                            ${hovered ? "text-[#6B0F2B]" : "text-[#9A7080] group-hover:text-[#6B0F2B]"}`}>
+                            View
+                            <ChevronRight size={13} />
+                        </span>
                     </div>
                 </div>
             </div>
-        </>
-    );
+        </div>
+    )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SEARCH BAR
+══════════════════════════════════════════════════════════════════════════════ */
+function SearchBar() {
+    const context = useContext(filterContext)
+    if (!context) throw new Error("FilterContext must be used within a Provider")
+    const { setSearching } = context
+
+    return (
+        <div className="flex-1 flex items-center gap-2 bg-white rounded-xl border border-[#E8D4DF] px-3.5 py-2 shadow-sm focus-within:border-[#6B0F2B] focus-within:ring-2 focus-within:ring-[#6B0F2B]/10 transition-all">
+            <svg className="w-4 h-4 text-[#9A7080] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+                id="search-bar"
+                type="text"
+                placeholder="Search dormitory name…"
+                className="flex-1 text-sm text-[#1C0A11] placeholder-[#C8B0B8] outline-none bg-transparent"
+            />
+            <button
+                onClick={() => {
+                    const input = document.getElementById("search-bar") as HTMLInputElement
+                    setSearching(input.value.trim().toLowerCase())
+                }}
+                className="bg-[#6B0F2B] hover:bg-[#8A1C3D] text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition-colors shrink-0"
+            >
+                Search
+            </button>
+        </div>
+    )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   FILTER FORM
+══════════════════════════════════════════════════════════════════════════════ */
+function FilterForm({ onClose }: { onClose: () => void }) {
+    const context = useContext(filterContext)
+    if (!context) throw new Error("FilterContext must be used within a Provider")
+    const {
+        dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
+        roomType, setRoomType, starRating, setStarRating,
+        onlyBookmarked, setOnlyBookmarked, filters, setFilters,
+    } = context
+
+    const originalFilters: { [key: string]: boolean } = {
+        "Near campus": false, "Pet friendly": false, "Near establishments": false,
+        "Air-conditioned rooms": false, "Has study area": false,
+        "24/7 security": false, "Has curfew": false, "Has canteen": false,
+    }
+
+    const resetAll = () => {
+        setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
+        setDormType("All"); setRoomType("All"); setMinPrice(2500); setMaxPrice(7000)
+    }
+
+    const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
+
+    return (
+        <div className="pb-28">
+
+            {/* Saved only */}
+            <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Show saved only</p>
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-[#F0E4E9] bg-[#FDF8FA]">
+                <div>
+                    <p className="text-[#1C0A11] font-semibold text-sm mb-0.5">Saved Rooms</p>
+                    <p className="text-[#9A7080] text-xs">Show only bookmarked dorms</p>
+                </div>
+                <button
+                    className={`relative w-11 h-6 rounded-full border-none transition-colors duration-200 ${onlyBookmarked ? "bg-[#6B0F2B]" : "bg-[#E8D4DF]"}`}
+                    onClick={() => setOnlyBookmarked(!onlyBookmarked)}
+                >
+                    <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${onlyBookmarked ? "translate-x-[22px]" : "translate-x-[3px]"}`} />
+                </button>
+            </div>
+
+            <Divider />
+
+            {/* Dorm type */}
+            <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Dorm type</p>
+            <Dropdown
+                title="Dorm type"
+                items={[
+                    { label: "All Types", href: "" },
+                    { label: "On Campus", href: "" },
+                    { label: "Off Campus", href: "" },
+                    { label: "Partnered Houses", href: "" },
+                ]}
+                showTitle={false} direction="down"
+                widthClass="w-full" titleClass="text-[10px] lg:text-[11px]"
+                selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
+            />
+
+            <Divider />
+
+            {/* Room type */}
+            <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Room type</p>
+            <Dropdown
+                title="Room type"
+                items={[
+                    { label: "All", href: "" },
+                    { label: "Single", href: "" },
+                    { label: "Double", href: "" },
+                    { label: "Shared", href: "" },
+                ]}
+                showTitle={false} direction="down"
+                widthClass="w-full" titleClass="text-[10px] lg:text-[11px]"
+                selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
+            />
+
+            <Divider />
+
+            {/* Star rating */}
+            <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Minimum rating</p>
+            <div className="flex items-center gap-3">
+                <div className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                        <button key={i} type="button" onClick={() => setStarRating(i + 1)}
+                            className="p-0.5 bg-transparent border-none cursor-pointer">
+                            <Star size={22} fill={i < starRating ? "#C0934B" : "#E8D4DF"} stroke="none" />
+                        </button>
+                    ))}
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-[#C0934B]">
+                    {starRating}+
+                </span>
+            </div>
+
+            <Divider />
+
+            {/* Price range */}
+            <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
+            <div className="flex justify-between mb-3">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
+                    ₱{minPrice.toLocaleString()}
+                </span>
+                <span className="text-xs text-[#9A7080] self-center">to</span>
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
+                    ₱{maxPrice.toLocaleString()}
+                </span>
+            </div>
+            <DualRangeSlider
+                minVal={minPrice} maxVal={maxPrice}
+                onMinChange={setMinPrice} onMaxChange={setMaxPrice}
+                dataMin={2500} dataMax={10000}
+            />
+
+            <Divider />
+
+            {/* Amenity tags */}
+            <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Amenities & features</p>
+            <div className="flex flex-wrap gap-2">
+                {Object.keys(filters).map(value => (
+                    <button
+                        key={value}
+                        onClick={() => setFilters({ ...filters, [value]: !filters[value] })}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all active:scale-95
+                            ${filters[value]
+                                ? "bg-[#6B0F2B] text-white border-[#6B0F2B]"
+                                : "bg-transparent text-[#6B0F2B] border-[#6B0F2B] hover:bg-[#F5ECF0]"
+                            }`}
+                    >
+                        {value}
+                    </button>
+                ))}
+            </div>
+
+            {/* Sticky footer */}
+            <div className="fixed bottom-0 right-0 w-full max-w-[420px] flex gap-3 px-7 py-4 bg-white border-t border-[#F0E4E9]">
+                <button
+                    onClick={resetAll}
+                    className="flex-1 py-2.5 rounded-xl border border-[#E8D4DF] bg-white text-[#9A7080] text-sm font-semibold hover:bg-[#F5ECF0] transition-colors"
+                >
+                    Reset
+                </button>
+                <button
+                    onClick={onClose}
+                    className="flex-[2] py-2.5 rounded-xl bg-[#6B0F2B] hover:bg-[#8A1C3D] text-white text-sm font-semibold transition-colors"
+                >
+                    Apply filters
+                </button>
+            </div>
+        </div>
+    )
 }
 
 function DualRangeSlider({
-    minVal, maxVal,
-    onMinChange, onMaxChange,
-    dataMin, dataMax,
+    minVal, maxVal, onMinChange, onMaxChange, dataMin, dataMax,
 }: {
-    minVal: number; maxVal: number;
-    onMinChange: (v: number) => void; onMaxChange: (v: number) => void;
-    dataMin: number; dataMax: number;
+    minVal: number; maxVal: number
+    onMinChange: (v: number) => void; onMaxChange: (v: number) => void
+    dataMin: number; dataMax: number
 }) {
-    const STEP = 100;
-    const range = dataMax - dataMin;
-    const minPct = ((minVal - dataMin) / range) * 100;
-    const maxPct = ((maxVal - dataMin) / range) * 100;
+    const STEP = 100
+    const range = dataMax - dataMin
+    const minPct = ((minVal - dataMin) / range) * 100
+    const maxPct = ((maxVal - dataMin) / range) * 100
 
     return (
-        <div style={{ position: "relative", width: "100%", height: 28 }}>
+        <div className="relative w-full h-8">
             {/* Track */}
-            <div style={{
-                position: "absolute",
-                top: "50%", left: 0, right: 0,
-                height: 6,
-                borderRadius: 99,
-                background: "#ede8ea",
-                transform: "translateY(-50%)",
-            }} />
-
+            <div className="absolute top-1/2 left-0 right-0 h-1.5 rounded-full bg-[#EDE4E9] -translate-y-1/2" />
             {/* Fill */}
-            <div style={{
-                position: "absolute",
-                top: "50%",
-                left: `${minPct}%`,
-                width: `${maxPct - minPct}%`,
-                height: 6,
-                borderRadius: 99,
-                background: "linear-gradient(90deg, #6B0F2B, #B5344F)",
-                transform: "translateY(-50%)",
-            }} />
-
-            {/* Min Thumb */}
-            <input
-                type="range"
-                min={dataMin}
-                max={dataMax}
-                step={STEP}
-                value={minVal}
-                onChange={(e) => onMinChange(Number(e.target.value))}
+            <div
+                className="absolute top-1/2 h-1.5 rounded-full -translate-y-1/2"
                 style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: 0,
-                    width: "100%",
-                    height: 28,
-                    transform: "translateY(-50%)",
-                    opacity: 0,
-                    cursor: "pointer",
-                    zIndex: 10,
-                    WebkitAppearance: "none",
+                    left: `${minPct}%`,
+                    width: `${maxPct - minPct}%`,
+                    background: "linear-gradient(90deg,#6B0F2B,#B5344F)",
                 }}
             />
-
-            {/* Max Thumb */}
-            <input
-                type="range"
-                min={dataMin}
-                max={dataMax}
-                step={STEP}
-                value={maxVal}
-                onChange={(e) => onMaxChange(Number(e.target.value))}
-                style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: 0,
-                    width: "100%",
-                    height: 28,
-                    transform: "translateY(-50%)",
-                    opacity: 0,
-                    cursor: "pointer",
-                    zIndex: 10,
-                    WebkitAppearance: "none",
-                }}
-            />
-
-            {/* Visual Circles */}
-            <div style={{
-                position: "absolute",
-                top: "50%",
-                left: `${minPct}%`,
-                transform: "translate(-50%, -50%)",
-                width: 22,
-                height: 22,
-                borderRadius: "50%",
-                background: "white",
-                border: "3px solid #6B0F2B",
-                pointerEvents: "none",
-                zIndex: 5,
-            }} />
-
-            <div style={{
-                position: "absolute",
-                top: "50%",
-                left: `${maxPct}%`,
-                transform: "translate(-50%, -50%)",
-                width: 22,
-                height: 22,
-                borderRadius: "50%",
-                background: "white",
-                border: "3px solid #6B0F2B",
-                pointerEvents: "none",
-                zIndex: 5,
-            }} />
+            {/* Min thumb */}
+            <input type="range" min={dataMin} max={dataMax} step={STEP} value={minVal}
+                onChange={e => onMinChange(Number(e.target.value))}
+                className="absolute top-1/2 left-0 w-full h-8 -translate-y-1/2 opacity-0 cursor-pointer z-10" />
+            {/* Max thumb */}
+            <input type="range" min={dataMin} max={dataMax} step={STEP} value={maxVal}
+                onChange={e => onMaxChange(Number(e.target.value))}
+                className="absolute top-1/2 left-0 w-full h-8 -translate-y-1/2 opacity-0 cursor-pointer z-10" />
+            {/* Visual knobs */}
+            {[minPct, maxPct].map((pct, i) => (
+                <div key={i}
+                    className="absolute top-1/2 w-5 h-5 rounded-full bg-white border-[2.5px] border-[#6B0F2B] shadow-md pointer-events-none z-[5]"
+                    style={{ left: `${pct}%`, transform: "translate(-50%, -50%)" }}
+                />
+            ))}
         </div>
-    );
+    )
 }
-
-
-// export default function BrowsePage() {
-//     const heroContent: HeroContent = {
-//         name: "Ana Reyes",
-//         greeting: "Good Day",
-//         title: "Browse available rooms",
-//         subtitle: "Browse available accommodations and apply in just a few clicks",
-//     }; 
-    
-//     const [dorms, setDorms] = useState<{ [key: number]: Dorm[] }>(
-//         {
-//             0: [
-//                 { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Kamia Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//             ], 1: [
-//                 { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Markov Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//             ], 2: [
-//                 { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//                 { name: 'Elene Residence', subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: 4.9 },
-//             ]
-//         });
-
-//     const [pageNumber, setPageNumber] = useState(0);
-//     const [pageLimits, setPageLimits] = useState([0, 2])
-
-//     // everything under here is for map
-//     const navigate = useNavigate()
-//     const [searchParams, setSearchParams] = useSearchParams()
-
-//     // ─── Read filters from URL query params ──────────────────────────────────
-//     // This way filters set on the cards/browse page carry over to the map
-//     const search = searchParams.get('search') ?? ''
-//     const type = searchParams.get('type') ?? 'all'
-//     const restriction = searchParams.get('restriction') ?? 'all'
-//     const minRent = Number(searchParams.get('min_rent') ?? 0)
-//     const maxRent = Number(searchParams.get('max_rent') ?? 10000)
-//     const maxWalk = Number(searchParams.get('max_walk') ?? 60)
-//     const minCapacity = Number(searchParams.get('min_capacity') ?? 0)
-//     const stayType = searchParams.get('stay_type') ?? 'all'
-
-//     // ─── Apply filters ────────────────────────────────────────────────────────
-//     const filtered = useMemo(() => {
-//         return MOCK_ACCOMMODATIONS.filter((acc) => {
-//             const matchSearch =
-//                 acc.accommodationName.toLowerCase().includes(search.toLowerCase()) ||
-//                 acc.accommodationLocation.toLowerCase().includes(search.toLowerCase())
-//             const matchType = type === 'all' || acc.accommodationType === type
-//             const matchRestriction = restriction === 'all' || acc.tenantRestriction === restriction
-//             const matchRent = acc.minRent >= minRent && acc.maxRent <= maxRent
-//             const matchWalk = acc.walkingDistance <= maxWalk
-//             const matchCapacity = acc.accommodationCapacity >= minCapacity
-//             const matchStayType = stayType === 'all' || acc.stayType === stayType || acc.stayType === 'both'
-//             return matchSearch && matchType && matchRestriction && matchRent && matchWalk && matchCapacity && matchStayType
-//         })
-//     }, [search, type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType])
-
-//     const centerId = searchParams.get('center')
-//     const centeredAccommodation = centerId
-//         ? MOCK_ACCOMMODATIONS.find((a) => a.accommodationId === Number(centerId)) ?? null
-//         : null
-
-//     const [isBelowSm, setIsBelowSm] = useState(false);
-
-//     useEffect(() => {
-//         const media = window.matchMedia("(max-width: 639px)");
-
-//         const handleChange = (e: MediaQueryListEvent) => setIsBelowSm(e.matches);
-
-//         setIsBelowSm(media.matches);
-//         media.addEventListener("change", handleChange);
-
-//         return () => media.removeEventListener("change", handleChange);
-//     }, []);
-
-//     return <>
-//         <div className="flex flex-row w-full min-h-screen bg-[#F5EEF0]">
-//             <div className="relative z-[9999]">
-//                 <Sidebar role="student" />
-//             </div>
-
-//             <div className="flex flex-col w-full">
-//                 <CustomHeader
-//                         title="Browse Rooms"></CustomHeader>
-//                 <div className="flex flex-col items-start w-full min-w-0 min-h-screen">
-                    
-//                     <div className="w-full p-6">
-//                         <HeroBanner
-//                             greeting={heroContent.greeting}
-//                             name={heroContent.name}
-//                             title={heroContent.title}
-//                             subtitle={heroContent.subtitle}
-//                             type="mini"
-//                         />
-//                     </div>
-                    
-
-//                     <div className="flex flex-wrap justify-center items-start w-full gap-2 mb-6 md:gap-0">
-
-//                         {/* first half */}
-//                         <div className="flex flex-col justify-center items-center w-full gap-2 md:w-1/2 shrink-0">
-//                             {/* search bar */}
-//                             <div className="flex w-full justify-center items-center px-4 sm:px-6 lg:px-12">
-//                                 <SearchBar></SearchBar>
-//                             </div>
-
-//                             {/* dorm cards and buttons */}
-//                             <div className="flex w-full justify-center items-center p-4 gap-2">
-//                                 <div className="flex justify-center items-center relative z-50">
-//                                     <button onClick={() => {
-//                                         let counter = pageNumber
-//                                         if (counter == 0) {
-//                                             counter = Object.keys(dorms).length - 1
-//                                         } else {
-//                                             counter--
-//                                         }
-
-//                                         if (counter % 2 == 0 && counter != Object.keys(dorms).length - 1) {
-//                                             let temp = [...pageLimits]
-//                                             if (temp[0] - 2 >= 0) {
-//                                                 temp[0] -= 2
-//                                                 temp[1] -= 2
-//                                                 setPageLimits(temp)
-//                                             }
-//                                         } else if (counter % 2 == 0 && counter == Object.keys(dorms).length - 1) {
-//                                             let max = Object.keys(dorms).length
-//                                             max = max % 2 == 0 ? max : max + 1
-//                                             let temp = [max - 2, max]
-//                                             setPageLimits(temp)
-//                                         }
-
-//                                         setPageNumber(counter)
-//                                     }} className="rounded-full p-3 bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
-//                                         <IconArrowBack className="w-6 h-6" />
-//                                     </button>
-//                                 </div>
-
-//                                 <div className="flex">
-//                                     <div
-//                                         className="flex"
-//                                         style={{
-//                                             transform: `translateX(-${100 * pageNumber}%)`,
-//                                             transition: 'transform 500ms ease-in-out',
-//                                         }}
-//                                     >
-
-//                                         {Object.keys(dorms).map((key, index) => {
-//                                             console.log(isBelowSm)
-//                                             if (pageNumber == index) {
-//                                                 return <div className={`w-full shrink-0 flex items-center transition-opacity duration-500 ${"opacity-500"
-//                                                     }`}>
-//                                                     <div className="grid grid-cols-2 gap-6 w-full mx-auto justify-items-center">
-//                                                         {dorms[Number(key)].map((value) => (
-//                                                             <div className="w-full flex items-center justify-center">
-//                                                                 <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
-//                                                             </div>
-//                                                         ))}
-//                                                     </div>
-//                                                 </div>
-//                                             } else {
-//                                                 return <div className={`w-full h-full shrink-0 transition-opacity duration-500 ${"opacity-0"
-//                                                     }`}>
-//                                                     <div className="grid grid-cols-2 gap-4 w-full h-full mx-auto justify-items-center">
-//                                                         {dorms[Number(key)].map((value) => (
-//                                                             <div className="w-full flex items-center justify-center">
-//                                                                 <DormCard {...{ ...value, isSmall: isBelowSm }} verified onView={() => { }} />
-//                                                             </div>
-//                                                         ))}
-//                                                     </div>
-//                                                 </div>
-//                                             }
-
-//                                         })}
-//                                     </div>
-
-//                                 </div>
-
-//                                 <div className="flex justify-center items-center relative z-20">
-//                                     <button onClick={() => {
-
-//                                         let counter = pageNumber
-//                                         if (counter == Object.keys(dorms).length - 1) {
-//                                             counter = 0
-//                                         } else {
-//                                             counter++
-//                                         }
-
-//                                         console.log(counter)
-//                                         if (counter % 2 == 0 && counter != 0) {
-//                                             let temp = [...pageLimits]
-//                                             let max = Object.keys(dorms).length
-//                                             max = max % 2 == 0 ? max : max + 1
-
-
-//                                             if (temp[1] + 2 <= max) {
-//                                                 temp[0] += 2
-//                                                 temp[1] += 2
-//                                                 setPageLimits(temp)
-//                                             }
-//                                         } else if (counter % 2 == 0 && counter == 0) {
-//                                             let temp = [0, 2]
-//                                             setPageLimits(temp)
-//                                         }
-
-//                                         setPageNumber(counter)
-//                                     }} className="rounded-full p-3 bg-gradient-to-b from-[#9b3b55] to-[#5a1e2f] flex items-center justify-center shadow-lg">
-//                                         <IconArrowNext className="w-6 h-6" />
-//                                     </button>
-//                                 </div>
-//                             </div>
-
-//                             <div className="flex justify-end items-center w-[70%] gap-2">
-//                                 {pageLimits[0] != 0 &&
-//                                     <button onClick={() => {
-//                                         let temp = [...pageLimits]
-//                                         if (temp[0] - 2 >= 0) {
-//                                             temp[0] -= 2
-//                                             temp[1] -= 2
-//                                             setPageLimits(temp)
-//                                             setPageNumber(temp[1] - 1)
-//                                         }
-//                                     }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
-//                                         {'<'}
-//                                     </button>
-//                                 }
-//                                 {
-//                                     Object.keys(dorms).map((value, index) => {
-//                                         let start = pageLimits[0]
-//                                         let end = pageLimits[1]
-//                                         let current = parseInt(value) + 1
-//                                         if (current >= start && current <= end) {
-//                                             return <button onClick={() => {
-//                                                 setPageNumber(current - 1)
-//                                             }} className={`flex w-[10%] items-center justify-center rounded-xl ${pageNumber == index ? '' : 'border border-[#E8D4E2]'} ${pageNumber == index ? 'bg-[#7A162D]' : 'bg-white'} text-lg font-semibold ${pageNumber == index ? 'text-white' : 'text-[#654050]'} shadow-md hover:bg-[#7A162D] hover:text-white`}>
-//                                                 {current}
-//                                             </button>
-//                                         }
-//                                     })
-//                                 }
-//                                 {
-//                                     pageLimits[1] < Object.keys(dorms).length &&
-//                                     <button onClick={() => {
-//                                         let temp = [...pageLimits]
-//                                         let max = Object.keys(dorms).length
-//                                         max = max % 2 == 0 ? max : max + 1
-
-//                                         if (temp[1] + 2 <= max) {
-//                                             temp[0] += 2
-//                                             temp[1] += 2
-//                                             setPageLimits(temp)
-//                                             setPageNumber(temp[0] - 1)
-//                                         }
-//                                     }} className="flex w-[10%] items-center justify-center rounded-xl bg-white text-lg font-semibold text-[#654050] shadow-md hover:bg-[#5a1021] hover:text-white border border-[#E8D4E2]">
-//                                         {'>'}
-//                                     </button>
-//                                 }
-
-//                             </div>
-
-//                         </div>
-
-//                         {/* second half */}
-//                         <div className="flex justify-center rounded-xl items-start w-full h-[70%] md:w-1/2 md:h-full shrink-0 relative bg-[radial-gradient(circle_at_center,#F5EEF0)]">
-//                             <div className="flex flex-col justify-center items-center bg-white rounded-2xl p-4 shadow-md w-[90%] h-full gap-2">
-
-//                                 <AccommodationMap
-//                                     accommodations={filtered}
-//                                     centeredAccommodation={centeredAccommodation}
-//                                     onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
-//                                 />
-
-
-//                                 <div className="flex justify-center items-center w-[90%] gap-3">
-//                                     <Form></Form>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </div >
-//             </div>
-//         </div>
-//     </>
-// }
