@@ -487,7 +487,7 @@ export default function ApplicationsPage() {
         activePage={activePage}
         setActivePage={setActivePage}
       />
-        <main className="flex-1 min-w-0 overflow-x-hidden p-4 sm:p-6">
+        <main className="flex-1 min-w-0 overflow-x-hidden px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-7">
         <div className="flex items-center gap-3 mb-4">
           <button
             onClick={() => setDrawerOpen(true)}
