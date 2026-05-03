@@ -216,8 +216,8 @@ export default function Dashboard() {
               <DonutStatCard
                 title="Pending Confirmations"
                 value={readyForAssignment.filter(item => item.status === 'pending_confirmation').length}
-                total={approvedApps.length}
-              />
+                total={approvedApps.length || 1}              
+                />
               <DonutStatCard
                 title="Total Tenants"
                 value={totalTenants}
