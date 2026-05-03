@@ -370,7 +370,7 @@ const handleCloseSearch = () => {
                 <td colSpan={6} className="py-16">
                   <div className="flex flex-col items-center justify-center text-center">
                     <p className="text-sm text-red-500 font-medium">
-                      Failed to load data.
+                      Fetching data failed
                     </p>
                     <button
                       onClick={() => refetch()}
@@ -379,6 +379,16 @@ const handleCloseSearch = () => {
                       TRY AGAIN
                     </button>
                   </div>
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              // - no data from DB
+              // - no search results
+              <tr>
+                <td colSpan={6} className="py-16 text-center">
+                  <p className="text-base italic text-gray-400">
+                    Nothing to see here
+                  </p>
                 </td>
               </tr>
             ) : (
