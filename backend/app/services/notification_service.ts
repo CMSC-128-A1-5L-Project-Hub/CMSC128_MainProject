@@ -358,4 +358,25 @@ export default class NotificationService {
       `
     )
   }
+
+  // ─── Admin: New User Pending Verification ─────────────────────────────────
+  async sendNewUserPendingVerificationEmail(newUser: User, roleAppliedFor: string) {
+    const admins = await User.query().where('role', 'super_admin')
+
+    const subject = `[UBLE] New ${roleAppliedFor} account pending verification`
+    const html = `
+      <p>A new user has submitted their setup form and is awaiting account verification.</p>
+      <table>
+        <tr><td><strong>Name:</strong></td><td>${newUser.fname} ${newUser.lname}</td></tr>
+        <tr><td><strong>Email:</strong></td><td>${newUser.email}</td></tr>
+        <tr><td><strong>Role applied for:</strong></td><td>${roleAppliedFor}</td></tr>
+      </table>
+      <br/>
+      <p>Please log in to the UBLE admin dashboard to review and verify this account.</p>
+      <br/>
+      <p>UBLE Housing</p>
+    `
+
+    await Promise.all(admins.map((admin) => this.send(admin.email, subject, html)))
+  }
 }

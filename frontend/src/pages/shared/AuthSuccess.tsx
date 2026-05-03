@@ -24,8 +24,8 @@ export default function AuthSuccess() {
             try {
                 const user = (await api.get<User>('/me')).data;
                 let route: string;
-                if (user.role === 'unassigned') route = '/auth/role';
-                else if (user.account_status === 'pending') route = '/pending-verification';
+                if (user.account_status === 'pending') route = '/pending-verification';
+                else if (user.role === 'unassigned') route = '/auth/role';
                 else route = ROLE_ROUTES[user.role] ?? '/auth/signin';
                 navigate(route, { replace: true });
             } catch {

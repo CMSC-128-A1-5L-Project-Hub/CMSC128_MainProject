@@ -2,6 +2,9 @@ import { useState, useRef } from "react";
 import { api } from "../../../api/axios"; 
 import Button from "../../Button";
 
+// Set to false to re-enable OTP verification via Semaphore SMS
+const SKIP_OTP = true
+
 export default function PhoneVerification({ data, setData, prevStep, submitForm, isSubmitting }: any) {
     const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
     const otpRefs = useRef<(HTMLInputElement | null)[]>([])
@@ -44,14 +47,22 @@ export default function PhoneVerification({ data, setData, prevStep, submitForm,
     // ─── THE VERIFICATION CHECK ───
     const handleNext = async () => {
         const newErrors: Record<string,string> = {}
+        const otpValue = otp.join("")
 
         if (!data.phoneNumber) newErrors.phoneNumber = "This field is required"
-        
-        const otpValue = otp.join("")
-        if (otpValue.length < 6) newErrors.otp = "Please enter the complete 6-digit code"
+        else if (!/^9\d{9}$/.test(data.phoneNumber)) newErrors.phoneNumber = "Must be a valid PH mobile number starting with 9 (e.g. 9171234567)"
+
+        if (!SKIP_OTP) {
+            if (otpValue.length < 6) newErrors.otp = "Please enter the complete 6-digit code"
+        }
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors)
+            return
+        }
+
+        if (SKIP_OTP) {
+            submitForm()
             return
         }
 
@@ -151,7 +162,7 @@ export default function PhoneVerification({ data, setData, prevStep, submitForm,
                         variant="primary" 
                         size="lg" 
                         className="w-auto flex-shrink-0"
-                        disabled={isSendingOtp}
+                        disabled={isSendingOtp || SKIP_OTP}
                     >
                         {isSendingOtp ? "Sending..." : "Request Code"}
                     </Button>
@@ -215,8 +226,8 @@ export default function PhoneVerification({ data, setData, prevStep, submitForm,
             <p className="col-span-12 text-sm -mt-3 text-[#9A7080]">
                 Didn't receive a code?{" "}
                 <span 
-                    onClick={handleOTP}
-                    className={`font-bold transition ${isSendingOtp ? 'text-gray-400 cursor-not-allowed' : 'text-[#6B0F2B] cursor-pointer hover:underline'}`}
+                    onClick={SKIP_OTP ? undefined : handleOTP}
+                    className={`font-bold transition ${isSendingOtp || SKIP_OTP ? 'text-gray-400 cursor-not-allowed' : 'text-[#6B0F2B] cursor-pointer hover:underline'}`}
                 >
                     {isSendingOtp ? "Sending..." : "Resend OTP"}
                 </span>
@@ -236,7 +247,7 @@ export default function PhoneVerification({ data, setData, prevStep, submitForm,
                 ← Back 
             </Button>
             <Button onClick={handleNext} variant="primary" size="lg" disabled={isSubmitting || isVerifyingOtp}>
-                {isVerifyingOtp ? 'Verifying...' : isSubmitting ? 'Submitting...' : 'Verify & Continue'}
+                {isVerifyingOtp ? 'Verifying...' : isSubmitting ? 'Submitting...' : SKIP_OTP ? 'Submit' : 'Verify & Continue'}
             </Button>
         </div>
         </>
