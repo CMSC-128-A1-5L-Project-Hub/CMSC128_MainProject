@@ -610,10 +610,6 @@ function FilterForm({ onClose }: { onClose: () => void }) {
     )
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   DUAL RANGE SLIDER
-   Inline styles are unavoidable — dynamic % values can't be Tailwind classes.
-══════════════════════════════════════════════════════════════════════════════ */
 function DualRangeSlider({
     minVal, maxVal, onMinChange, onMaxChange, dataMin, dataMax,
 }: {
