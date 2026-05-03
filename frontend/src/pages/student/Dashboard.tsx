@@ -1048,7 +1048,7 @@ if (isUserLoading) {
 
         <CustomHeader
           title="Dashboard"></CustomHeader>
-        <div className="flex-1 overflow-y-auto px-4 sm:px-4 lg:px-6 lg:pt-7 py-4 lg:py-5 space-y-4 lg:space-y-5">
+        <div className="flex-1 overflow-y-auto px-4 lg:px-6 lg:pt-6 py-4 lg:py-5 space-y-4 lg:space-y-5">
           <div
             className="relative rounded-2xl overflow-hidden flex items-center min-h-[140px] sm:min-h-[176px]"
             style={{ background: `linear-gradient(135deg, ${CLR.dark} 0%, ${CLR.accent} 60%, ${CLR.mid} 100%)` }}

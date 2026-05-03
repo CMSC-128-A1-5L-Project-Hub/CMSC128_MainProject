@@ -618,16 +618,16 @@ export default function Waitlist() {
                     <td className="py-3 pl-1">
                     <div className="flex items-center gap-2">
                         <div
-                        className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                        >
-                        {getInitials(record.student.user.fname)}
+                            className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                            >
+                            {record.student.user.fname[0]}
                         </div>
                         <div>
-                        <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
-                            {record.student.user.fname} {record.student.user.lname}
-                        </p>
-                        <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
+                            <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
+                                {record.student.user.fname} {record.student.user.lname}
+                            </p>
+                            <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
                         </div>
                     </div>
                     </td>

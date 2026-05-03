@@ -241,23 +241,26 @@ export default function MoveinMoveout() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Dropdown
-                            title="No. of Items"
-                            items={[
-                                { label: "5", href: "" },
-                                { label: "10", href: "" },
-                                { label: "15", href: "" },
-                                { label: "20", href: "" },
-                            ]}
-                            direction='down'
-                            widthClass="w-29 lg:w-32"
-                            titleClass="text-[10px] lg:text-[11px]"
-                            selectedClass="text-[12px] lg:text-[13px]"
-                            onSelect={(label) => {
-                                setItemsPerPage(Number(label))
-                                setCurrentPage(1)
-                            }}
-                            />
+                            <div className="hidden lg:block">
+                                <Dropdown
+                                    title="No. of Items"
+                                    items={[
+                                        { label: "5", href: "" },
+                                        { label: "10", href: "" },
+                                        { label: "15", href: "" },
+                                        { label: "20", href: "" },
+                                    ]}
+                                    direction='down'
+                                    widthClass="w-29 lg:w-32"
+                                    titleClass="text-[10px] lg:text-[11px]"
+                                    selectedClass="text-[12px] lg:text-[13px]"
+                                    onSelect={(label) => {
+                                        setItemsPerPage(Number(label))
+                                        setCurrentPage(1)
+                                    }}
+                                    />
+                            </div>
+                            
                             <Dropdown
                             title="Sort By"
                             items={SORT_OPTS.map(opt => ({ label: opt.label, href: "" }))}
@@ -328,10 +331,10 @@ export default function MoveinMoveout() {
                                     <td className="py-3 pl-3">
                                         <div className="flex items-center gap-3">
                                         <div
-                                            className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
-                                            style={avatarStyle(isMoveIn ? 'move-in' : 'move-out')}
-                                        >
-                                            {getInitial(record.student.user.lname)}
+                                            className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                                            >
+                                            {record.student.user.fname[0]}
                                         </div>
                                         <p className="font-semibold text-sm text-[#1A0008]">
                                             {record.student.user.fname} {record.student.user.lname}
