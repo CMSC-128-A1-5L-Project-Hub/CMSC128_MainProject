@@ -19,6 +19,7 @@ type FilterContextType = {
     onlyBookmarked: boolean; setOnlyBookmarked: (v: boolean) => void
     searching: string; setSearching: (v: string) => void
     filters: { [key: string]: boolean }; setFilters: (v: { [key: string]: boolean }) => void
+    setFilterPanelOpen: (v: boolean) => void
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
@@ -67,6 +68,7 @@ export default function BrowsePage() {
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
+            console.log(res.data, "hello")
             return Array.isArray(res.data) ? res.data : []
         },
     })
@@ -91,6 +93,11 @@ export default function BrowsePage() {
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
+        if (filterPanelOpen)
+        {
+            console.log("whoops")
+            return
+        }
 
         for (let i = 0; i < accommodations.length; i++) {
             const {
@@ -129,21 +136,49 @@ export default function BrowsePage() {
             })
 
 
-
-            /* filters */
-            if (!bookmarked && onlyBookmarked) continue
-            if (Number(rating) < starRating || rating === "6") continue
-            if (minimum < minPrice || maximum > maxPrice) continue
-            if (dormType !== "All" && accommodationType !== dormType) continue
-            if (roomType !== "All" && !roomTypes.has(roomType)) continue
-            if (trueTags.length !== 0) {
-                const hasTag = tempTags.some(t => trueTags.includes(t))
-                if (!hasTag) continue
-            }
-
             /* search match */
             const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
             if (!nameMatch) continue
+
+            
+
+            /* filters */
+            if (!bookmarked && onlyBookmarked) 
+            {
+                console.log("book", accommodationName)
+                continue
+            }
+            if (Number(rating) < starRating || rating === "6")
+            {
+                console.log("rating", accommodationName)
+                continue
+            } 
+            if (minimum < minPrice || maximum > maxPrice)
+            {
+                console.log("proce", accommodationName)
+                continue
+            } 
+            if (dormType !== "All" && accommodationType !== dormType)
+            {
+                console.log("domrtpe", accommodationName, dormType, accommodationType)
+                continue
+            }
+            if (roomType !== "All" && !roomTypes.has(roomType))
+            {
+                console.log("roomtpe", accommodationName)
+                continue
+            }
+            if (trueTags.length !== 0) {
+                
+            
+                const hasTag = tempTags.some(t => trueTags.includes(t))
+                if (!hasTag)
+                {
+                    console.log("tags", accommodationName)
+                    continue
+                } 
+            }
+
 
             tempDorms.push({
                 name: accommodationName, subtitle: accommodationLocation,
@@ -163,7 +198,7 @@ export default function BrowsePage() {
 
         setFlatDorms(tempDorms)
         setMapAccommodations(tempPins)
-    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters, studentNo])
+    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters, studentNo, filterPanelOpen])
 
     /* map URL params — untouched */
     const [searchParams] = useSearchParams()
@@ -186,7 +221,7 @@ export default function BrowsePage() {
         <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
-            searching, setSearching, filters, setFilters,
+            searching, setSearching, filters, setFilters, setFilterPanelOpen
         }}>
             <div className="flex flex-row w-full min-h-screen bg-[#FDF8FA]">
 
@@ -467,7 +502,7 @@ function FilterForm({ onClose }: { onClose: () => void }) {
     const {
         dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
         roomType, setRoomType, starRating, setStarRating,
-        onlyBookmarked, setOnlyBookmarked, filters, setFilters,
+        onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen
     } = context
 
     const originalFilters: { [key: string]: boolean } = {
@@ -478,7 +513,8 @@ function FilterForm({ onClose }: { onClose: () => void }) {
 
     const resetAll = () => {
         setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
-        setDormType("All"); setRoomType("All"); setMinPrice(2500); setMaxPrice(7000)
+        setDormType("All"); setRoomType("All"); setMinPrice(2500); setMaxPrice(7000);
+        setFilterPanelOpen(false)
     }
 
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
@@ -509,10 +545,11 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                 title="Dorm type"
                 items={[
                     { label: "All Types", href: "" },
-                    { label: "On Campus", href: "" },
-                    { label: "Off Campus", href: "" },
-                    { label: "Partnered Houses", href: "" },
+                    { label: "on-campus", href: "" },
+                    { label: "off-campus", href: "" },
+                    { label: "partner-housing", href: "" },
                 ]}
+                onSelect={setDormType}
                 showTitle={false} direction="down"
                 widthClass="w-full" titleClass="text-[10px] lg:text-[11px]"
                 selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
@@ -526,10 +563,11 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                 title="Room type"
                 items={[
                     { label: "All", href: "" },
-                    { label: "Single", href: "" },
-                    { label: "Double", href: "" },
-                    { label: "Shared", href: "" },
+                    { label: "single", href: "" },
+                    { label: "double", href: "" },
+                    { label: "shared", href: "" },
                 ]}
+                onSelect={setRoomType}
                 showTitle={false} direction="down"
                 widthClass="w-full" titleClass="text-[10px] lg:text-[11px]"
                 selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
