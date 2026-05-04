@@ -88,8 +88,8 @@ export default function SystemSettings({
               }`}
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                  autoVerifyUsers ? "translate-x-5" : "translate-x-0"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full transition-transform ${
+                  autoVerifyUsers ? "translate-x-5 bg-white" : "translate-x-0 bg-white"
                 }`}
               />
             </button>
