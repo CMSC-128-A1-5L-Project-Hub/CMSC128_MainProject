@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/axios";
@@ -23,9 +23,14 @@ interface ProfileData {
 
 export default function LandlordProfile() {
     const navigate = useNavigate();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const [editing, setEditing] = useState(false);
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
+
+    // Local state for the temporary image preview
+    const [tempImage, setTempImage] = useState<string | null>(null);
 
     const { data: user, isError } = useQuery({
         queryKey: ["me"],
@@ -35,8 +40,26 @@ export default function LandlordProfile() {
         },
     });
 
+    const getInitials = (fullName: string) => {
+        return fullName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .substring(0, 2);
+    };
+
     const update = (k: keyof ProfileData, v: string) =>
         setProfile((prev) => (prev ? { ...prev, [k]: v } : prev));
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Create a temporary local URL for the image
+            const imageUrl = URL.createObjectURL(file);
+            setTempImage(imageUrl);
+        }
+    };
 
     const saveProfile = async () => {
         if (!profile) return;
@@ -101,7 +124,7 @@ export default function LandlordProfile() {
 
     return (
         <div className="min-h-screen bg-[#FAF6F2] text-[#2A1F1A] lg:flex">
-            <Sidebar role="landlordDashboard" />
+            <Sidebar role="landlord" />
 
             <div className="flex-1">
                 <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
@@ -122,16 +145,44 @@ export default function LandlordProfile() {
                     <section className="overflow-hidden rounded-[28px] border border-[#EADFD3] bg-white shadow-sm">
                         <div className="p-4 md:p-6 lg:p-8">
                             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+
                                 {/* LEFT COLUMN */}
                                 <div className="w-full lg:w-[280px] lg:shrink-0">
                                     <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-4 md:grid-cols-[170px_minmax(0,1fr)] lg:block">
-                                        <div className="relative h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px]">
-                                            <button aria-label="Change photo">
-                                                <img src={Camera} alt="" className="h-7 w-7" />
+
+                                        <div className="relative flex items-center justify-center h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px] w-full">
+
+                                            {/* Hidden File Input */}
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                            />
+
+                                            <button
+                                                aria-label="Change photo"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 p-2 bg-white/50 hover:bg-white/80 rounded-full transition-all"
+                                            >
+                                                <img src={Camera} alt="" className="h-6 w-6 sm:h-7 sm:w-7" />
                                             </button>
-                                            <div className="flex h-full items-end justify-center">
-                                                <div className="h-[110px] w-[70px] rounded-t-full bg-[#7A2948] md:h-[150px] md:w-[90px] lg:h-[210px] lg:w-[140px]" />
-                                            </div>
+
+                                            {/* Image Preview or Initials */}
+                                            {tempImage ? (
+                                                <img
+                                                    src={tempImage}
+                                                    alt="Profile"
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#5A0B21] flex items-center justify-center shadow-md">
+                                                    <span className="text-white text-2xl sm:text-3xl font-bold tracking-tighter">
+                                                        {getInitials(profile.fullName)}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Mobile-only right of photo */}
@@ -145,9 +196,7 @@ export default function LandlordProfile() {
 
                                             <div className="mt-3">
                                                 <button
-                                                    onClick={
-                                                        editing ? saveProfile : () => setEditing(true)
-                                                    }
+                                                    onClick={editing ? saveProfile : () => setEditing(true)}
                                                     className="inline-flex items-center gap-2 rounded-xl border border-[#D9BBC4] px-4 py-2 text-sm font-semibold text-[#A04E66]"
                                                 >
                                                     <img
@@ -162,7 +211,10 @@ export default function LandlordProfile() {
                                     </div>
 
                                     <div className="mt-4 grid grid-cols-2 gap-3">
-                                        <button className="flex min-h-[76px] items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E6CAD3] px-3 py-3 text-left">
+                                        <button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="flex min-h-[76px] items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E6CAD3] px-3 py-3 text-left hover:bg-[#FBF5F7] transition-colors"
+                                        >
                                             <img src={Camera} alt="" className="h-5 w-5 shrink-0" />
                                             <div className="leading-tight">
                                                 <p className="text-[11px] font-bold tracking-wider text-[#A04E66]">
@@ -174,7 +226,7 @@ export default function LandlordProfile() {
                                             </div>
                                         </button>
 
-                                        <button className="flex min-h-[76px] items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E6CAD3] px-3 py-3 text-left">
+                                        <button className="flex min-h-[76px] items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E6CAD3] px-3 py-3 text-left hover:bg-[#FBF5F7] transition-colors">
                                             <img src={FileUp} alt="" className="h-5 w-5 shrink-0" />
                                             <div className="leading-tight">
                                                 <p className="text-[11px] font-bold tracking-wider text-[#A04E66]">
@@ -202,7 +254,7 @@ export default function LandlordProfile() {
 
                                         <button
                                             onClick={editing ? saveProfile : () => setEditing(true)}
-                                            className="inline-flex items-center gap-2 rounded-xl border border-[#A04E66] px-5 py-3 text-sm font-semibold text-[#A04E66]"
+                                            className="inline-flex items-center gap-2 rounded-xl border border-[#A04E66] px-5 py-3 text-sm font-semibold text-[#A04E66] hover:bg-[#A04E66] hover:text-white transition-all"
                                         >
                                             <img
                                                 src={editing ? Save : Pencil}
@@ -214,15 +266,12 @@ export default function LandlordProfile() {
                                     </div>
 
                                     <div className="mt-5 hidden grid-cols-1 gap-x-10 gap-y-5 md:grid-cols-2 lg:mt-6 lg:grid">
-                                        {/* Read-only */}
                                         <Field
                                             label="UP MAIL"
                                             value={profile.email}
                                             editing={false}
                                             onChange={() => { }}
                                         />
-
-                                        {/* Editable */}
                                         <Field
                                             label="FACEBOOK LINK"
                                             value={profile.facebook}
@@ -337,7 +386,7 @@ function Field({ label, value, editing, onChange }: FieldProps) {
                 <input
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    className="w-full rounded-xl border border-[#E6CAD3] bg-[#FBF5F7] px-3 py-2 text-sm text-[#2A1F1A] outline-none"
+                    className="w-full rounded-xl border border-[#E6CAD3] bg-[#FBF5F7] px-3 py-2 text-sm text-[#2A1F1A] outline-none focus:border-[#A04E66]"
                 />
             ) : (
                 <div className="text-[15px] text-[#4A3940]">{value}</div>

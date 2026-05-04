@@ -43,7 +43,7 @@ export default function MapPage() {
     if (stayType !== 'all') params.set('stay_type', stayType)
 
     //Changet this depending
-    fetch(`http://localhost:3333/accommodations?${params}`)
+    fetch(`/api/accommodations?${params}`)
       .then((res) => res.json())
       .then((data) => {
         setAccommodations(data.data)

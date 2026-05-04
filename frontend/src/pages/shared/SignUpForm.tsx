@@ -146,6 +146,12 @@ export default function SignUpForm() {
         const response = await api.get('/me')
         const user = response.data
 
+        // Pending users have already submitted — send them to the waiting page
+        if (user.account_status === 'pending') {
+          navigate('/pending-verification', { replace: true })
+          return
+        }
+
         setFormData(prev => ({
           ...prev,
           firstName: user.fname || "",

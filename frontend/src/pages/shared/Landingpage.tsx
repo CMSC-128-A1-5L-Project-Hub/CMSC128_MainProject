@@ -118,7 +118,7 @@ function MobileDrawer({ open, onClose, activeNav, setActiveNav, scrollTo }: {
         <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, pointerEvents: "none", backgroundImage: "linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px)", backgroundSize: "32px 32px" }} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", position: "relative", zIndex: 2 }}>
           <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, fontWeight: 700, color: "#fff" }}>USAT</span>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.7)", fontSize: 18 }}>×</button>
+          <button onClick={onClose} style={{ lineHeight: 1, paddingBottom: 4, padding: "0px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.7)", fontSize: 18 }}>×</button>
         </div>
         <nav style={{ padding: "16px 0", position: "relative", zIndex: 2, flex: 1 }}>
           {NAV_LINKS.map((link, i) => (
@@ -390,6 +390,7 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
             <button
               onClick={handleSearch}
               style={{
+                padding: "0px",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 width: 50, height: 50, borderRadius: 14, border: "none", cursor: "pointer",
                 background: "linear-gradient(135deg,#6B0F2B,#3D0718)",
@@ -401,8 +402,9 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
             >
               {/* Bigger search icon — 22px */}
-              <svg width={100} height={100} fill="none" stroke="currentColor" strokeWidth={3.5} viewBox="0 0 20 20">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="#ffffff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                  d="m21 21-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z" />
               </svg>
             </button>
           </div>
@@ -505,7 +507,7 @@ export default function LandingPage() {
 
   // Fetch semester from backend
   useEffect(() => {
-    fetch("http://localhost:3333/api/v1/sys-variables", { credentials: "include" })
+    fetch("/api/v1/sys-variables", { credentials: "include" })
       .then(res => res.json())
       .then(data => {
         if (data?.data) {
@@ -693,7 +695,7 @@ export default function LandingPage() {
         {/* Mobile Nav - only show on mobile */}
         {isMobile && (
           <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px" }}>
-            <button className="hamburger-btn" onClick={() => setDrawerOpen(o => !o)}>
+            <button className="hamburger-btn" style={{ padding: "0px" }} onClick={() => setDrawerOpen(o => !o)}>
               <HamburgerIcon open={drawerOpen} />
             </button>
             <button

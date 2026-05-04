@@ -1,10 +1,12 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import ProfileService from '#services/profile_service'
+import NotificationService from '#services/notification_service'
 import { setupProfileValidator } from '#validators/profile'
 
 export default class SetupController {
   private profileService = new ProfileService()
+  private notificationService = new NotificationService()
 
   async show({ auth, response }: HttpContext) {
     const user = auth.user as User
@@ -23,6 +25,12 @@ export default class SetupController {
     try {
       const validatedData = await request.validateUsing(setupProfileValidator)
       const result = await this.profileService.setupProfile(user, validatedData)
+
+      // Notify all admins — fire-and-forget (don't block the response)
+      this.notificationService
+        .sendNewUserPendingVerificationEmail(user, validatedData.role)
+        .catch((err) => console.error('[SetupForm] Admin notification failed:', err))
+
       return response.ok(result)
     } catch (error) {
       console.error("SETUP ERROR:", error)

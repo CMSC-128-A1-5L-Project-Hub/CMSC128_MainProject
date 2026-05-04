@@ -22,8 +22,8 @@ export default function AcademicDetails({ data, setData, nextStep, prevStep }: a
         if (!data.course) newErrors.course = "This field is required"
         if (!data.studentNumber) {
             newErrors.studentNumber = "This field is required"
-        } else if (data.studentNumber.length !==10 ) {
-            newErrors.studentNumber = "Must be 10 characters (e.g 2023-12345)"
+        } else if (!/^20\d{2}-\d{5}$/.test(data.studentNumber)) {
+            newErrors.studentNumber = "Must follow the format 20XX-XXXXX (e.g. 2023-12345)"
         }
         if (!data.standing) newErrors.standing = "This field is required"
         if (data.form5 == null) newErrors.form5 = "This field is required"
@@ -91,11 +91,11 @@ export default function AcademicDetails({ data, setData, nextStep, prevStep }: a
                 name="studentNumber"
                 value={data.studentNumber}
                 onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9-]/g, "")
-                    setData({
-                        ...data,
-                        studentNumber: val
-                    })
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 9)
+                    const formatted = digits.length > 4
+                        ? digits.slice(0, 4) + '-' + digits.slice(4)
+                        : digits
+                    setData({ ...data, studentNumber: formatted })
                 }}
                 placeholder="20XX-XXXXX"
                 className="col-span-6"

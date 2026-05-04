@@ -72,11 +72,11 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
               <div><p className="text-gray-500">Room</p><p className="font-semibold">{room.name}</p></div>
               <div><p className="text-gray-500">Type</p><p className="font-semibold">{room.type}</p></div>
-              <div><p className="text-gray-500">Capacity</p><p className="font-semibold">{room.occupants.length}/{room.capacity}</p></div>
+              <div><p className="text-gray-500">Capacity</p><p className="font-semibold">{room.currentOccupancy}/{room.capacity}</p></div>
             </div>
           </div>
 
-          {room.occupants.length > 1 && (
+          {room.currentOccupancy > 1 && (
             <div className="flex flex-col gap-1">
               <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">BILL FOR</label>
               <select

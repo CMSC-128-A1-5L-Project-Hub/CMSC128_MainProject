@@ -5,6 +5,11 @@ import Sidebar from "../../components/Sidebar";
 import { api } from "../../api/axios"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import defaultAccommodation from "@/assets/defaults/accommodation.png"
+import CustomHeader from '../../components/CustomHeader';
+
+
+import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
+
 
 // Helpers
 const capitalize = (str: string) =>
@@ -53,8 +58,6 @@ const emptyBilling: BillingOverview = {
   totalDue: 0,
   progressPercent: 0,
 };
-import HeroBanner from "../../components/dashboard/HeroBanner";
-import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 
 // ── SVG / asset imports ────────────────────────────────────────────────────
 import house_icon from "../../assets/icons/house_icon.svg";
@@ -87,6 +90,7 @@ interface Application {
 }
 
 interface BillingStatement {
+  id: number;
   label: string;
   status: "Paid" | "Unpaid";
   onClick?: () => void;
@@ -142,19 +146,6 @@ interface BillingOverview {
 }
 
 // ── Mock Data ──────────────────────────────────────────────────────────────
-const studentProfile: StudentProfile = {
-  fullName: "Ana Marie Reyes",
-  shortName: "Ana Reyes",
-  course: "BS BIOLOGY",
-  campus: "UPLB",
-  email: "areyes@up.edu.ph",
-  phone: "+63 912 345 6789",
-  studentNo: "2023-12345",
-  college: "CAS",
-  yearLevel: "2nd Year",
-  status: "Active",
-};
-
 const heroContent: HeroContent = {
   greeting: "Good Day",
   title: "Check your applications & explore new accommodations.",
@@ -162,84 +153,6 @@ const heroContent: HeroContent = {
   pendingApplications: 2,
   newNotificationsToday: 3,
 };
-
-const applications: Application[] = [
-  {
-    id: 1,
-    dorm: "Kamia Residence",
-    type: "Non-transient",
-    applied: "Mar 12, 2026",
-    location: "On-campus",
-    status: "Approved",
-  },
-  {
-    id: 2,
-    dorm: "Molave Residence",
-    type: "Non-transient",
-    applied: "Mar 14, 2026",
-    location: "Off-campus",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    dorm: "Narra Residence",
-    type: "Non-transient",
-    applied: "Mar 15, 2026",
-    location: "Near Gate 1",
-    status: "In Review",
-  },
-];
-
-const recommended = [
-  {
-    id: 1,
-    name: "Kamia Residence",
-    tag: "Transient",
-    size: "22 m²",
-    location: "On-campus",
-    price: 3200,
-    rating: 4,
-    review:
-      "Rooms are clean and the dormitory manager is easy to talk to. I would recommend for anyone finding an affordable and safe dormitory in UPLB.",
-    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-  {
-    id: 2,
-    name: "Narra Residence",
-    tag: "Dormitory",
-    size: "30 m²",
-    location: "Off-campus",
-    price: 8500,
-    rating: 5,
-    review:
-      "The layout of the room is nice. There are so many amenities which caters to my needs as a student. It is also a close walk to the campus.",
-    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-  {
-    id: 3,
-    name: "Molave Dorm",
-    tag: "Dormitory",
-    size: "28 m²",
-    location: "On-campus",
-    price: 5000,
-    rating: 4,
-    review:
-      "Great location near the main gate. The rooms are spacious and well-ventilated. Staff are also very accommodating.",
-    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-  {
-    id: 4,
-    name: "Acacia Suites",
-    tag: "Transient",
-    size: "20 m²",
-    location: "Near Gate 1",
-    price: 4200,
-    rating: 3,
-    review:
-      "Affordable and decent stay. Best for short-term use. The place is clean but can get a bit noisy during peak hours.",
-    img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-];
 
 const dashboardMapAccommodations: AccommodationPin[] = [
   {
@@ -253,6 +166,9 @@ const dashboardMapAccommodations: AccommodationPin[] = [
     longitude: 121.2430,
     minRent: 3200,
     maxRent: 3200,
+    price: 3200,    
+    minPrice: 3200,  
+    maxPrice: 3200,  
     walkingDistance: 3,
     drivingDistance: 2,
     bikingDistance: 2,
@@ -270,6 +186,9 @@ const dashboardMapAccommodations: AccommodationPin[] = [
     longitude: 121.2455,
     minRent: 8500,
     maxRent: 8500,
+    price: 3200,    
+    minPrice: 3200,  
+    maxPrice: 3200,  
     walkingDistance: 8,
     drivingDistance: 4,
     bikingDistance: 5,
@@ -287,6 +206,9 @@ const dashboardMapAccommodations: AccommodationPin[] = [
     longitude: 121.2418,
     minRent: 5000,
     maxRent: 5000,
+    price: 3200,     
+    minPrice: 3200,  
+    maxPrice: 3200,  
     walkingDistance: 5,
     drivingDistance: 3,
     bikingDistance: 3,
@@ -304,6 +226,9 @@ const dashboardMapAccommodations: AccommodationPin[] = [
     longitude: 121.2400,
     minRent: 4200,
     maxRent: 4200,
+    price: 3200,     
+    minPrice: 3200,   
+    maxPrice: 3200,   
     walkingDistance: 10,
     drivingDistance: 6,
     bikingDistance: 7,
@@ -312,26 +237,12 @@ const dashboardMapAccommodations: AccommodationPin[] = [
   },
 ];
 
-const billingOverview: BillingOverview = {
-  residenceHall: "Kamia Residence Hall",
-  dueDay: "20",
-  dueMonth: "Mar",
-  summaryTitle: "Rent Paid",
-  paidOn: "March 1, 2026",
-  amountPaid: 3200,
-  nextDue: "June 1, 2026",
-  monthlyRent: 3200,
-  remainingAmount: 0,
-  totalPaid: 3200,
-  totalDue: 3200,
-  progressPercent: 100,
-};
 
-const billingStatements: BillingStatement[] = [
-  { label: "March Billing Statement", status: "Paid" },
-  { label: "February Billing Statement", status: "Paid" },
-  { label: "January Billing Statement", status: "Unpaid" },
-];
+// const billingStatements: BillingStatement[] = [
+//   { label: "March Billing Statement", status: "Paid" },
+//   { label: "February Billing Statement", status: "Paid" },
+//   { label: "January Billing Statement", status: "Unpaid" },
+// ];
 
 // ── Inline Icons ───────────────────────────────────────────────────────────
 const IconChevronRight = ({ className = "w-3.5 h-3.5" }: { className?: string }) => (
@@ -577,7 +488,7 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
       <div className="max-h-[280px] overflow-y-auto pr-1 space-y-3">
         {statements.map((b, index) => (
           <button
-            key={b.label}
+            key={`${b.id}-${index}`}
             type="button"
             onClick={b.onClick}
             className={`w-full text-left flex items-center gap-3 p-4 rounded-2xl bg-[#F8F1F4] border border-[#EFE5E8] transition hover:bg-[#F4EAEE] hover:shadow-[0_6px_14px_rgba(61,7,24,0.10)] focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 ${
@@ -904,7 +815,7 @@ useEffect(() => {
   const fetchBilling = async () => {
     try {
       const res = await api.get("/my-fees");
-      const fees = res.data ?? [];
+      const fees = res.data.data ?? res.data ?? [];
 
       console.log("BILLING:", fees);
 
@@ -922,12 +833,12 @@ useEffect(() => {
       const latestFee = sortedFees[0];
 
       const totalDue = sortedFees.reduce(
-        (sum, fee) => sum + Number(fee.fee_amount ?? 0),
+        (sum, fee) => sum + Number(fee.amount ?? 0),
         0
       );
 
       const remainingAmount = sortedFees.reduce(
-        (sum, fee) => sum + Number(fee.fee_balance ?? 0),
+        (sum, fee) => sum + Number(fee.balance ?? 0),
         0
       );
 
@@ -956,7 +867,7 @@ useEffect(() => {
           day: "numeric",
           year: "numeric",
         }),
-        monthlyRent: Number(latestFee.fee_amount ?? 0),
+        monthlyRent: Number(latestFee.amount ?? 0),
         remainingAmount,
         totalPaid,
         totalDue,
@@ -967,14 +878,15 @@ useEffect(() => {
         str ? str.charAt(0).toUpperCase() + str.slice(1) : "Fee";
 
       const statements: BillingStatement[] = fees.map((f: any) => ({
-        label: `${capitalize(f.fee_category)} - ${new Date(
+        id: f.id,
+        label: `${capitalize(f.category)} - ${new Date(
           f.due_date
         ).toLocaleDateString("en-US", {
           month: "long",
           day: "numeric",
           year: "numeric",
         })}`,
-        status: f.fee_status === "paid" ? "Paid" : "Unpaid",
+        status: f.status === "paid" ? "Paid" : "Unpaid",
       }));
 
       setBillingOverviewData(overview);
@@ -1034,16 +946,19 @@ if (isUserLoading) {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-5 pb-3 lg:pt-7 lg:pb-2 sticky top-0 z-30 bg-[#F6F2F4]">
+        {/* <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-5 pb-3 lg:pt-7 lg:pb-2 sticky top-0 z-30 bg-[#F6F2F4]">
           <div className="flex items-center gap-3">
             <div className="hidden lg:flex items-center gap-2">
               <div className="w-1 h-6 rounded-full" style={{ background: CLR.mid }} />
             </div>
+            
             <h1 className="font-serif italic text-2xl lg:text-4xl font-bold text-gray-900">Dashboard</h1>
           </div>
-        </header>
+        </header> */}
 
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-5 space-y-4 lg:space-y-5">
+        <CustomHeader
+          title="Dashboard"></CustomHeader>
+        <div className="flex-1 overflow-y-auto px-4 lg:px-6 lg:pt-6 py-4 lg:py-5 space-y-4 lg:space-y-5">
           <div
             className="relative rounded-2xl overflow-hidden flex items-center min-h-[140px] sm:min-h-[176px]"
             style={{ background: `linear-gradient(135deg, ${CLR.dark} 0%, ${CLR.accent} 60%, ${CLR.mid} 100%)` }}
@@ -1065,7 +980,7 @@ if (isUserLoading) {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-[22px] shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-3">
               <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
               <button className="text-sm font-semibold hover:underline flex items-center gap-1" style={{ color: CLR.mid }}>
@@ -1121,7 +1036,7 @@ if (isUserLoading) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="sm:col-span-1 lg:col-span-3 bg-white rounded-[28px] shadow-[0_10px_24px_rgba(61,7,24,0.12)] border border-[#EFE5E8] px-5 pt-5 pb-4">
+            <div className="sm:col-span-1 lg:col-span-3 bg-white rounded-[28px] shadow-[0_10px_24px_rgba(61,7,24,0.12)] border border-[#EFE5E8] p-6">
               <div className="flex items-center justify-between pb-4 border-b border-[#F1E5EA]">
                 <h3 className="font-bold text-[#1B2233] text-[15px]">Recommended</h3>
                 <button
@@ -1156,9 +1071,9 @@ if (isUserLoading) {
                             alt={dorm.accommodation_name ?? dorm.accommodationName}
                             className="absolute inset-0 w-full h-full object-cover"
                           />
-
-                          <div className="absolute top-3 left-3 bg-white rounded-full px-3 py-1.5 shadow-sm">
-                            <span className="text-[9px] font-bold" style={{ color: CLR.gold }}>
+                          
+                          <div className="absolute top-3 left-3 bg-white rounded-full px-2 pb-1 shadow-sm">
+                            <span className="text-[11px] -mt-2 font-bold" style={{ color: CLR.gold }}>
                               {formatRating(dorm.average_rating ?? dorm.averageRating)} ★★★★★
                             </span>
                           </div>
@@ -1180,7 +1095,7 @@ if (isUserLoading) {
                           {dorm.accommodation_name ?? dorm.accommodationName}
                         </h4>
 
-                        <p className="mt-1.5 text-[1  2px] leading-tight text-[#8C6A75]">
+                        <p className="mt-1 leading-tight text-sm text-[#8C6A75]">
                           {formatAccommodationType(dorm.accommodation_type ?? dorm.accommodationType)} ·{" "}
                           {dorm.accommodation_location ?? dorm.accommodationLocation}
                         </p>
@@ -1246,8 +1161,6 @@ if (isUserLoading) {
                   ))
                 )}
               </div>
-              </div>
-
               <button
                 type="button"
                 onClick={scrollRecommendedRight}
@@ -1256,9 +1169,12 @@ if (isUserLoading) {
               >
                 <IconArrowNext className="w-5 h-5" />
               </button>
+              </div>
+
+              
             </div>
 
-            <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
+            <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-[22px] shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
               <div className="rounded-xl overflow-hidden flex-1 min-h-[220px] sm:min-h-[260px] relative">
                 <div className="absolute inset-0">
                   <AccommodationMap
