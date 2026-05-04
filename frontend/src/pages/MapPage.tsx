@@ -473,7 +473,7 @@ export default function MapPage() {
             <AccommodationMap
               accommodations={filtered}
               centeredAccommodation={centeredAccommodation}
-              onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+              onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
             />
           </div>
         </div>
