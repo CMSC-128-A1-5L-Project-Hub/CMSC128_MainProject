@@ -43,6 +43,7 @@ function FullLandingPage() {
       <LandingPage />
       <AboutSection />
       <FeaturesSection />
+      <ResidenceCarousel />
       <UBLEFooter />
     </>
   );
