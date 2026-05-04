@@ -6,11 +6,11 @@ import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import AccommodationMap, { type AccommodationPin } from '../components/AccommodationMaps'
+import { api } from '../api/axios'
 
 const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
-  const res = await fetch('/api/accommodations')
-  if (!res.ok) throw new Error('Failed to fetch accommodations')
-  const body = await res.json()
+  const res = await api.get('/accommodations')
+  const body = res.data
   // serialize() wraps in { data: ... }, and index() adds its own { message, data } envelope
   const list: any[] = body?.data?.data ?? body?.data ?? body ?? []
   return list.map((acc: any) => {
