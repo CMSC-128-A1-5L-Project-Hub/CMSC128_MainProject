@@ -21,4 +21,7 @@ export default class SysVariables extends BaseModel {
 
   @column()
   declare uplbLongitude: number
+
+  @column()
+  declare autoVerifyUsers: boolean
 }

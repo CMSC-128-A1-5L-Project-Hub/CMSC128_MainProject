@@ -5,6 +5,7 @@ import Landlord from '#models/landlord'
 // import Manager from '#models/manager'
 import FileMetadata from '#models/file_metadatum'
 import Document from '#models/document'
+import SysVariables from '#models/sys_variable'
 import drive from '@adonisjs/drive/services/main'
 import db from '@adonisjs/lucid/services/db'
 
@@ -12,6 +13,9 @@ export default class ProfileService {
   async setupProfile(user: User, validatedData: any) {
     // PhoneNumber is created during OTP verification (/auth/verify-sms), not here.
     
+    const sysVars = await SysVariables.query().orderBy('semStartDate', 'desc').first()
+    const autoVerify = sysVars?.autoVerifyUsers ?? false
+
     // ==========================================
     // SCENARIO A: THE USER IS A STUDENT
     // ==========================================
@@ -40,7 +44,8 @@ export default class ProfileService {
 
       // All DB writes in one transaction — rolls back everything if any step fails
       const student = await db.transaction(async (trx) => {
-        user.accountStatus = 'pending'
+        user.accountStatus = autoVerify ? 'active' : 'pending'
+        if (autoVerify) user.role = 'student'
         user.useTransaction(trx)
         await user.save()
 
@@ -95,7 +100,8 @@ export default class ProfileService {
 
       // All DB writes in one transaction — rolls back everything if any step fails
       const landlord = await db.transaction(async (trx) => {
-        user.accountStatus = 'pending'
+        user.accountStatus = autoVerify ? 'active' : 'pending'
+        if (autoVerify) user.role = 'landlord'
         user.useTransaction(trx)
         await user.save()
 

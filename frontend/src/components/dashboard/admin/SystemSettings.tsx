@@ -3,22 +3,26 @@ import Card from "@/components/ui/Card"
 type SystemSettingsProps = {
   academicYear: string
   semester: string
+  autoVerifyUsers: boolean
   isLoading: boolean
   isError: boolean
   isUpdating: boolean
   onAcademicYearChange: (value: string) => void
   onSemesterChange: (value: string) => void
+  onAutoVerifyChange: (value: boolean) => void
   onUpdate: () => void
 }
 
 export default function SystemSettings({
   academicYear,
   semester,
+  autoVerifyUsers,
   isLoading,
   isError,
   isUpdating,
   onAcademicYearChange,
   onSemesterChange,
+  onAutoVerifyChange,
   onUpdate,
 }: SystemSettingsProps) {
   return (
@@ -65,6 +69,30 @@ export default function SystemSettings({
               <option value="2nd Semester">2nd Semester</option>
               <option value="Midyear">Midyear</option>
             </select>
+          </div>
+
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <p className="text-sm font-medium text-[#2A0410]">Auto-Verify New Users</p>
+              <p className="text-xs text-gray-500">
+                Instantly approves students and landlords on setup. For testing only.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={autoVerifyUsers}
+              onClick={() => onAutoVerifyChange(!autoVerifyUsers)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-[#C9973A] focus:ring-offset-2 ${
+                autoVerifyUsers ? "bg-[#6B0F2B]" : "bg-gray-200"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  autoVerifyUsers ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
           </div>
 
           <button

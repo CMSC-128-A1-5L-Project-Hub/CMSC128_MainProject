@@ -19,6 +19,7 @@ const AdminDashboard = () => {
 
   const [academicYear, setAcademicYear] = useState("")
   const [semester, setSemester] = useState("")
+  const [autoVerifyUsers, setAutoVerifyUsers] = useState(false)
   const [filterDate, setFilterDate] = useState("")
   const [filterAction, setFilterAction] = useState("")
   const [verifyingUserId, setVerifyingUserId] = useState<number | null>(null)
@@ -136,6 +137,7 @@ const AdminDashboard = () => {
       const res = await api.put("/admin/settings", {
         currentSy: academicYear,
         currentSemester: semesterMapReverse[semester] ?? semester,
+        autoVerifyUsers,
       })
 
       return res.data
@@ -234,6 +236,7 @@ const AdminDashboard = () => {
     if (settings) {
       setAcademicYear(settings.currentSy ?? "")
       setSemester(settings.currentSemester ?? "")
+      setAutoVerifyUsers(settings.autoVerifyUsers ?? false)
     }
   }, [settings])
 
@@ -398,11 +401,13 @@ const AdminDashboard = () => {
             <SystemSettings
               academicYear={academicYear}
               semester={semester}
+              autoVerifyUsers={autoVerifyUsers}
               isLoading={isSettingsLoading}
               isError={isSettingsError}
               isUpdating={updateSettingsMutation.isPending}
               onAcademicYearChange={setAcademicYear}
               onSemesterChange={setSemester}
+              onAutoVerifyChange={setAutoVerifyUsers}
               onUpdate={() => updateSettingsMutation.mutate()}
             />
           </section>

@@ -26,12 +26,19 @@ export default class SetupController {
       const validatedData = await request.validateUsing(setupProfileValidator)
       const result = await this.profileService.setupProfile(user, validatedData)
 
-      // Notify all admins — fire-and-forget (don't block the response)
-      this.notificationService
-        .sendNewUserPendingVerificationEmail(user, validatedData.role)
-        .catch((err) => console.error('[SetupForm] Admin notification failed:', err))
+      await user.refresh()
 
-      return response.ok(result)
+      // Only notify admins when the user still needs manual review
+      if (user.accountStatus === 'pending') {
+        this.notificationService
+          .sendNewUserPendingVerificationEmail(user, validatedData.role)
+          .catch((err) => console.error('[SetupForm] Admin notification failed:', err))
+      }
+
+      return response.ok({
+        ...result,
+        user: { role: user.role, accountStatus: user.accountStatus },
+      })
     } catch (error) {
       console.error("SETUP ERROR:", error)
       throw error
