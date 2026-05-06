@@ -20,6 +20,10 @@ interface HeroContent {
     subtitle: string;
 }
 
+interface ApplicationStatusPageProps {
+    userName?: string;
+}
+
 // Fetch from the API
 const fetchApplications = async (): Promise<Application[]> => {
     const res = await fetch("/api/applications/my-applications");
@@ -29,9 +33,9 @@ const fetchApplications = async (): Promise<Application[]> => {
 };
 
 // Main component
-export default function ApplicationStatusPage() {
+export default function ApplicationStatusPage({ userName = "Student" }: ApplicationStatusPageProps) {
     const heroContent: HeroContent = {
-        name: "Ana Reyes",
+        name: userName, // Replaced mock "Ana Reyes" with dynamic prop
         greeting: "Good Day",
         title: "Check your application status",
         subtitle: "We make it easy for you to track the accommodations you've applied for",
