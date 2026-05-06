@@ -16,6 +16,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import ApplicationModals from "@/components/applications/ApplicationModals.tsx";
 import RoomApplicationModal from "@/components/RoomApplicationModal.tsx";
 import ShareModal from "@/components/ShareModal.tsx";
+//import ReportAccommodationModal from "@/components/RoomViewReportModal.tsx";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const UPLB_COORDS = { longitude: 121.2436, latitude: 14.1654 }
@@ -1326,6 +1327,8 @@ export default function RoomView() {
   const [selectedStart, setSelectedStart] = useState<any>(null);
   const [selectedEnd, setSelectedEnd] = useState<any>(null);
 
+  const [reportType, setReportType] = useState<"dorm" | "manager">("dorm")
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
   // const [isFavorited, setIsFavorited] = useState(false);
@@ -1616,11 +1619,12 @@ export default function RoomView() {
                 <IconShare />
                   <span className="hidden md:inline text-sm font-semibold">Share</span>
                 </button>
-                <button className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2" >
+                <button
+                  onClick={() => { setReportType("dorm"); setIsReportModalOpen(true) }}
+                  className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
+                >
                   <IconReport />
-                    <span className="hidden md:inline text-sm font-semibold">
-                      Report
-                    </span>
+                  <span className="hidden md:inline text-sm font-semibold">Report</span>
                 </button>
               </div>
             </div>
@@ -1732,34 +1736,34 @@ export default function RoomView() {
 
                 {/* Dates */}
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Duration of Stay:</p>
-              {isTransient ? (
-                <ApplicationPeriod
-                  onPeriodChange={(start, end) => {
-                    setSelectedStart(start);
-                    setSelectedEnd(end);
-                  }}
-                />
-              ) : (
-                <div className="flex items-center gap-3 mt-2 mb-8">
-                  <div className="flex-1">
-                    <p className="text-[11px] font-bold text-[#6B0F2B]">
-                      {selectedStart
-                        ? `${MONTHS_SHORT[selectedStart.month]} ${selectedStart.day}, ${selectedStart.year}`
-                        : "—"}
-                    </p>
-                    <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-In</span>
+                {isTransient ? (
+                  <ApplicationPeriod
+                    onPeriodChange={(start, end) => {
+                      setSelectedStart(start);
+                      setSelectedEnd(end);
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center gap-3 mt-2 mb-8">
+                    <div className="flex-1">
+                      <p className="text-[11px] font-bold text-[#6B0F2B]">
+                        {selectedStart
+                          ? `${MONTHS_SHORT[selectedStart.month]} ${selectedStart.day}, ${selectedStart.year}`
+                          : "—"}
+                      </p>
+                      <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-In</span>
+                    </div>
+                    <span className="text-[#D4B0BA] text-[10px] font-bold uppercase mb-4">to</span>
+                    <div className="flex-1">
+                      <p className="text-[11px] font-bold text-[#6B0F2B]">
+                        {selectedEnd
+                          ? `${MONTHS_SHORT[selectedEnd.month]} ${selectedEnd.day}, ${selectedEnd.year}`
+                          : "—"}
+                      </p>
+                      <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-Out</span>
+                    </div>
                   </div>
-                  <span className="text-[#D4B0BA] text-[10px] font-bold uppercase mb-4">to</span>
-                  <div className="flex-1">
-                    <p className="text-[11px] font-bold text-[#6B0F2B]">
-                      {selectedEnd
-                        ? `${MONTHS_SHORT[selectedEnd.month]} ${selectedEnd.day}, ${selectedEnd.year}`
-                        : "—"}
-                    </p>
-                    <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-Out</span>
-                  </div>
-                </div>
-              )}
+                )}
 
               {manager && (
                 <div className="border border-[#F0E8EC] rounded-2xl p-4 flex flex-col items-center gap-1.5 mb-4">
@@ -1781,7 +1785,14 @@ export default function RoomView() {
                     <IconMail /> {managerUser?.email}
                   </p>
                   <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
-                    <button className="flex items-center gap-1 text-xs text-[#9A7080] hover:text-[#8C1535]"><IconReport /> Report</button>
+                    <button
+                      onClick={() => { setReportType("manager"); setIsReportModalOpen(true) }}
+                      className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
+                    >
+                      <IconReport />
+                      <span className="hidden md:inline text-sm font-semibold">Report</span>
+                    </button>
+
                   </div>
                 </div>
               )}
@@ -1818,6 +1829,14 @@ export default function RoomView() {
                   onClose={() => setIsShareModalOpen(false)}
                   accommodationName={accommodation.accommodationName}
                 />
+{/* 
+                <ReportAccommodationModal
+                  open={isReportModalOpen}
+                  onClose={() => setIsReportModalOpen(false)}
+                  reportType={reportType}
+                  accommodationName={accommodation.accommodationName}
+                  managerName={managerUser ? `${managerUser.fname} ${managerUser.lname}` : undefined}
+                /> */}
 
               </div>
 

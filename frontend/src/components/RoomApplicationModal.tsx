@@ -550,20 +550,51 @@ export default function RoomApplicationModal({
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="md:col-span-2">
-                                <h4 className="text-[11px] font-black text-[#6B0F2B] uppercase tracking-widest mb-4">Duration of Stay</h4>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex-1 bg-[#FAF7F8] border border-[#F2D9DF] rounded-2xl p-4 text-center">
-                                        <p className="text-[13px] font-black text-[#1A0008]">{moveInDate ? new Date(moveInDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "—"}</p>
-                                        <p className="text-[9px] text-[#9A7080] mt-1 font-black uppercase">Target Move-In</p>
-                                    </div>
-                                    <span className="text-[#D4B0BA] font-black text-sm">to</span>
-                                    <div className="flex-1 bg-[#FAF7F8] border border-[#F2D9DF] rounded-2xl p-4 text-center">
-                                        <p className="text-[13px] font-black text-[#1A0008]">{moveOutDate ? new Date(moveOutDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "—"}</p>
-                                        <p className="text-[9px] text-[#9A7080] mt-1 font-black uppercase">Target Move-Out</p>
-                                    </div>
+                            
+                            <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest block">Duration of Stay</label>
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1">
+                                {isTransient ? (
+                                    <input
+                                    type="date"
+                                    value={moveInDate}
+                                    onChange={(e) => setMoveInDate(e.target.value)}
+                                    className="w-full border border-[#F2D9DF] rounded-lg px-2 py-1.5 text-[11px] font-bold text-[#6B0F2B] outline-none"
+                                    />
+                                ) : (
+                                    <p className="text-[11px] font-bold text-[#6B0F2B]">
+                                    {moveInDate
+                                        ? new Date(moveInDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                                        : "—"}
+                                    </p>
+                                )}
+                                <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">
+                                    {isTransient ? "Target Move-In" : "Expected Move-In"}
+                                </span>
                                 </div>
+                                <span className="text-[#D4B0BA] text-[10px] font-bold uppercase mb-4">to</span>
+                                <div className="flex-1">
+                                {isTransient ? (
+                                    <input
+                                    type="date"
+                                    value={moveOutDate}
+                                    min={moveInDate}
+                                    onChange={(e) => setMoveOutDate(e.target.value)}
+                                    className="w-full border border-[#F2D9DF] rounded-lg px-2 py-1.5 text-[11px] font-bold text-[#6B0F2B] outline-none"
+                                    />
+                                ) : (
+                                    <p className="text-[11px] font-bold text-[#6B0F2B]">
+                                    {moveOutDate
+                                        ? new Date(moveOutDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                                        : "—"}
+                                    </p>
+                                )}
+                                <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">
+                                    {isTransient ? "Target Move-Out" : "Expected Move-Out"}
+                                </span>
+                                </div>
+                            </div>
                             </div>
                         </div>
 
