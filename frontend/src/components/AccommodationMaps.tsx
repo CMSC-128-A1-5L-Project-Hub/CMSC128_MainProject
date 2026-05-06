@@ -3,6 +3,7 @@ import Map, { Marker, Popup, NavigationControl, Source, Layer} from 'react-map-g
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { UPLB } from '../constants/uplb'
+import UPLBMarker from './UPLBMarker'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -51,7 +52,6 @@ export default function AccommodationMap({
   centeredAccommodation,
 }: AccommodationMapProps) {
   const [selectedPin, setSelectedPin] = useState<AccommodationPin | null>(null)
-  const [selectedUPLB, setSelectedUPLB] = useState(false)
   const [travelMode, setTravelMode] = useState<TravelMode>('walking')
   const [routeGeoJSON, setRouteGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null)
   const [loadingRoute, setLoadingRoute] = useState(false)
@@ -111,6 +111,9 @@ export default function AccommodationMap({
       >
         <NavigationControl position="top-right" />
 
+        {/* UPLB Pin */}
+        <UPLBMarker onSelect={() => setSelectedPin(null)} />
+
         {/* Route Line */}
         {routeGeoJSON && (
           <Source id="route" type="geojson" data={routeGeoJSON}>
@@ -118,50 +121,6 @@ export default function AccommodationMap({
           </Source>
         )}
 
-        {/* UPLB Pin */}
-        <Marker
-          longitude={UPLB.longitude}
-          latitude={UPLB.latitude}
-          anchor="bottom"
-          onClick={(e) => {
-            e.originalEvent.stopPropagation()
-            setSelectedUPLB(true)
-            setSelectedPin(null)
-          }}
-        >
-          <div style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{
-              backgroundColor: '#7C3AED',
-              borderRadius: '50%',
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-              border: '2px solid white',
-              fontSize: '20px',
-            }}>🎓</div>
-            <div style={{ width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid #7C3AED' }} />
-          </div>
-        </Marker>
-
-        {selectedUPLB && (
-          <Popup
-            longitude={UPLB.longitude}
-            latitude={UPLB.latitude}
-            anchor="top"
-            onClose={() => setSelectedUPLB(false)}
-            closeButton
-            closeOnClick={false}
-            maxWidth="220px"
-          >
-            <div style={{ fontFamily: 'sans-serif', padding: '4px' }}>
-              <p style={{ fontWeight: 'bold', fontSize: '14px', margin: '0 0 4px 0' }}>🎓 {UPLB.name}</p>
-              <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>University of the Philippines Los Baños</p>
-            </div>
-          </Popup>
-        )}
 
         {/* Accommodation Popup */}
         {selectedPin && (
@@ -274,7 +233,6 @@ export default function AccommodationMap({
                   setSelectedPin(null)
                 } else {
                   setSelectedPin(acc)
-                  setSelectedUPLB(false)
                 }
               }}
             >
@@ -324,7 +282,7 @@ export default function AccommodationMap({
           <div style={{ marginRight: '8px', textAlign: 'center' }}>
             <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>To UPLB</p>
             <p style={{ fontSize: '14px', fontWeight: '700', color: '#6B0F2B', margin: 0 }}>
-              {loadingRoute ? 'Loading...' : currentDistance()}
+              {currentDistance()}
             </p>
           </div>
           <div style={{ width: '1px', height: '36px', backgroundColor: '#E5E7EB' }} />

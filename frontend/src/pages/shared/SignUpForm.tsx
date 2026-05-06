@@ -194,11 +194,20 @@ export default function SignUpForm() {
 
       payload.append('facebook_link', formData.facebook)
 
-      await api.post('/setup', payload, {
+      const setupRes = await api.post('/setup', payload, {
         headers: {'Content-Type':'multipart/form-data'}
       })
-      
-      navigate('/pending-verification')
+
+      const updatedUser = setupRes.data?.user
+      if (updatedUser?.accountStatus === 'active' && updatedUser?.role !== 'unassigned') {
+        const roleRoutes: Record<string, string> = {
+          student: '/student/dashboard',
+          landlord: '/landlord/dashboard',
+        }
+        navigate(roleRoutes[updatedUser.role] ?? '/pending-verification')
+      } else {
+        navigate('/pending-verification')
+      }
     } catch (error) {
       console.error("Failed to finish setup:", error)
       alert("Failed to submit form. Please check your connection and try again.")
