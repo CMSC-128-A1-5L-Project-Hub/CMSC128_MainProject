@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
@@ -8,6 +8,7 @@ import Modal from "../../components/Modal"
 import CustomHeader from '../../components/CustomHeader';
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import SearchBar from '../../components/SearchBar';
+import { api } from "../../api/axios"
 
 
 interface ManagerProfile {
@@ -20,6 +21,7 @@ interface ManagerProfile {
 }
 
 interface Room {
+    id: number
     roomNumber: string
     stayType: "transient" | "non-transient"
     roomType: "single" | "double" | "shared"
@@ -54,32 +56,32 @@ const managerProfile: ManagerProfile = {
     dormitory: "Narra Residences"
 }
 
-const Rooms: Room[] = [
-    {roomNumber: "6101", stayType: "transient", roomType: "double", roomCapacity:2 , roomCurrentOccupancy:2 , roomBuilding: "6", 
-        tenants:[
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"}
-        ]},
-    {roomNumber: "6102", stayType: "non-transient", roomType: "double", roomCapacity:2 , roomCurrentOccupancy:2 , roomBuilding: "6", 
-        tenants:[
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"}
-        ]},
-    {roomNumber: "6103", stayType: "transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:1 , roomBuilding: "6", 
-        tenants:[
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
-        ]},
-    {roomNumber: "6104", stayType: "non-transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:0 , roomBuilding: "6", 
-        tenants:[]},
-    {roomNumber: "6105", stayType: "transient", roomType: "shared", roomCapacity:4 , roomCurrentOccupancy:1 , roomBuilding: "6", 
-        tenants:[
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
-        ]},
-    {roomNumber: "6106", stayType: "transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:1 , roomBuilding: "6", 
-        tenants:[
-            {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
-        ]},
-]
+// const Rooms: Room[] = [
+//     {roomNumber: "6101", stayType: "transient", roomType: "double", roomCapacity:2 , roomCurrentOccupancy:2 , roomBuilding: "6", 
+//         tenants:[
+//             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
+//             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"}
+//         ]},
+//     {roomNumber: "6102", stayType: "non-transient", roomType: "double", roomCapacity:2 , roomCurrentOccupancy:2 , roomBuilding: "6", 
+//         tenants:[
+//             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
+//             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"}
+//         ]},
+//     {roomNumber: "6103", stayType: "transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:1 , roomBuilding: "6", 
+//         tenants:[
+//             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
+//         ]},
+//     {roomNumber: "6104", stayType: "non-transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:0 , roomBuilding: "6", 
+//         tenants:[]},
+//     {roomNumber: "6105", stayType: "transient", roomType: "shared", roomCapacity:4 , roomCurrentOccupancy:1 , roomBuilding: "6", 
+//         tenants:[
+//             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
+//         ]},
+//     {roomNumber: "6106", stayType: "transient", roomType: "single", roomCapacity:1 , roomCurrentOccupancy:1 , roomBuilding: "6", 
+//         tenants:[
+//             {fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789"},
+//         ]},
+// ]
 
 const historyRecords: HistoryRecord[] = [
     { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
@@ -634,6 +636,27 @@ const OccupancyHistory = ({ records = historyRecords, className }: { records?: H
 }
 
 export default function OccupancyRecords() {
+    const [rooms, setRooms] = useState<Room[]>([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState("")
+
+    useEffect(() => {
+        const fetchRooms = async () => {
+            try {
+                const response = await api.get("/manager/occupancy-records")
+
+                setRooms(response.data)
+            } catch (err) {
+                console.error(err)
+                setError("Could not load occupancy records.")
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchRooms()
+    }, [])
+
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
             <Sidebar role="manager" profile={managerProfile}/>
@@ -649,20 +672,37 @@ export default function OccupancyRecords() {
                             subtitle="We make it easy for you to keep track of occupancy records"
                             type="mini"
                         />
+                        
+                        {loading && (
+                            <p className="text-sm text-[#9A7080]">
+                                Loading occupancy records...
+                            </p>
+                        )}
+
+                        {error && (
+                            <p className="text-sm text-red-600">
+                                {error}
+                            </p>
+                        )}
+
+                        {!loading && !error && (
+                            <>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
                             <RoomOccupancyDetails
-                                rooms={Rooms}
+                                rooms={rooms}
                                 className="col-span-1 lg:col-span-2"
                             />
                             <OccupancyRooms 
-                                rooms={Rooms}
+                                rooms={rooms}
                                 className="col-span-1"
                             />
                         </div>
                         <OccupancyHistory 
                             records={historyRecords}
                         />
+                        </>
+                    )}
                     </main>
                 </div>
             </div>
