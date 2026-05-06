@@ -520,7 +520,7 @@ function FilterForm({ onClose }: { onClose: () => void }) {
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
 
     return (
-        <div className="pb-28">
+        <div className="pb-0">
 
             {/* Saved only */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Show saved only</p>
@@ -629,6 +629,8 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                     </button>
                 ))}
             </div>
+
+            <div className="h-24" />
 
             {/* Sticky footer */}
             <div className="fixed bottom-0 right-0 w-full max-w-[420px] flex gap-3 px-7 py-4 bg-white border-t border-[#F0E4E9]">
