@@ -1743,16 +1743,64 @@ export default function RoomView() {
 
                 {/* Dates */}
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Duration of Stay:</p>
-                <div className="mb-4">
-                  <div className="mt-2">
-                    <ApplicationPeriod
-                      onPeriodChange={(start, end) => {
-                        setSelectedStart(start);
-                        setSelectedEnd(end);
+              {isTransient ? (
+                <ApplicationPeriod
+                  onPeriodChange={(start, end) => {
+                    setSelectedStart(start);
+                    setSelectedEnd(end);
+                  }}
+                />
+              ) : (
+                <div className="flex items-center gap-3 mt-2">
+                  <div className="flex-1">
+                    <input
+                      type="date"
+                      value={
+                        selectedStart &&
+                        !isNaN(selectedStart.year) &&
+                        !isNaN(selectedStart.month) &&
+                        !isNaN(selectedStart.day)
+                          ? `${selectedStart.year}-${String(selectedStart.month + 1).padStart(2, '0')}-${String(selectedStart.day).padStart(2, '0')}`
+                          : ""
+                      }
+                      onChange={(e) => {
+                        if (!e.target.value) { setSelectedStart(null); return; }
+                        const [y, m, d] = e.target.value.split("-").map(Number);
+                        setSelectedStart({ year: y, month: m - 1, day: d });
                       }}
+                      className="w-full border border-[#F2D9DF] rounded-lg px-2 py-1.5 text-[11px] font-bold text-[#6B0F2B] outline-none"
                     />
+                    <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-In</span>
+                  </div>
+                  <span className="text-[#D4B0BA] text-[10px] font-bold uppercase mb-4">to</span>
+                  <div className="flex-1">
+                    <input
+                      type="date"
+                      value={
+                        selectedEnd &&
+                        !isNaN(selectedEnd.year) &&
+                        !isNaN(selectedEnd.month) &&
+                        !isNaN(selectedEnd.day)
+                          ? `${selectedEnd.year}-${String(selectedEnd.month + 1).padStart(2, '0')}-${String(selectedEnd.day).padStart(2, '0')}`
+                          : ""
+                      }
+                      min={
+                        selectedStart &&
+                        !isNaN(selectedStart.year)
+                          ? `${selectedStart.year}-${String(selectedStart.month + 1).padStart(2, '0')}-${String(selectedStart.day).padStart(2, '0')}`
+                          : ""
+                      }
+                      onChange={(e) => {
+                        if (!e.target.value) { setSelectedEnd(null); return; }
+                        const [y, m, d] = e.target.value.split("-").map(Number);
+                        setSelectedEnd({ year: y, month: m - 1, day: d });
+                      }}
+                      className="w-full border border-[#F2D9DF] rounded-lg px-2 py-1.5 text-[11px] font-bold text-[#6B0F2B] outline-none"
+                    />
+                    <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-Out</span>
                   </div>
                 </div>
+              )}
 
               {manager && (
                 <div className="border border-[#F0E8EC] rounded-2xl p-4 flex flex-col items-center gap-1.5 mb-4">
