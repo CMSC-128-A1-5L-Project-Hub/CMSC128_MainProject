@@ -6,6 +6,7 @@ import Card from "../../components/ui/Card"
 import Button from "../../components/Button"
 import Modal from "../../components/Modal"
 import StatusBadge from "../../components/ui/StatusBadge"
+import CustomHeader from '../../components/CustomHeader';
 
 
 import { 
@@ -114,7 +115,7 @@ export interface WaitlistedResponse {
   }; 
 }
 
-const HISTORY_PER_PAGE = 5
+const HISTORY_PER_PAGE = 20
 const SORT_OPTS = [
   { value: "Date", label: "Date" },
   { value: "Room Type", label: "Room Type" },
@@ -545,28 +546,30 @@ export default function Waitlist() {
     {/* HEADER -- TABLE  */}
     <div className="w-full overflow-x-auto">
     <div className="min-w-[900px]">
-    <div className="grid grid-cols-12 bg-gray-50 border-b border-[#F5ECF0] uppercase">
-      <p className="col-span-2 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Students</p>
+    <div className="grid grid-cols-12 border-b border-[#6B0F2B]/10">
+    <p className="col-span-2 px-4 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+        Students
+    </p>
 
-      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+    <p className="col-span-2 px-2 py-3 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1 whitespace-nowrap">
         Date
-      </p>
+    </p>
 
-      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+    <p className="col-span-2 px-2 py-3 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1 whitespace-nowrap">
         Time Submitted
-      </p>
+    </p>
 
-      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+    <p className="col-span-2 px-2 py-3 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1 whitespace-nowrap">
         Preferred Facility
-      </p>
+    </p>
 
-      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+    <p className="col-span-2 px-2 py-3 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1 whitespace-nowrap">
         Room Type
-      </p>
+    </p>
 
-      <p className="col-span-2 text-center text-[#9A7080] text-xs font-bold p-1 flex items-center justify-center gap-1">
+    <p className="col-span-2 px-2 py-3 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1 whitespace-nowrap">
         Action
-      </p>
+    </p>
     </div>
 
         {/* ROWS */}
@@ -601,7 +604,7 @@ export default function Waitlist() {
                     <div key={record.id || i} className="grid grid-cols-12 items-center py-3 hover:bg-[#FFF9FA] transition-colors">
                         
                         {/* STUDENT INFO */}
-                        <div className="col-span-2 flex items-center gap-2">
+                        <div className="col-span-2 px-4 flex items-center gap-2">
                             <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
                                 style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                                 {getInitials(record.student.user.fname)}
@@ -698,28 +701,23 @@ export default function Waitlist() {
               status: `${user?.manager?.managerStatus}`
         }} />
 
-            <div className="flex-1 flex flex-col p-5 overflow-y-auto">
-                <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2">
-                    <div className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
-                        style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)"}}
-                    />
-                    <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B] ">
-                        Waitlist
-                    </h1>
-                </div>
-                <main className="flex-1 flex flex-col gap-4">
-                    <HeroBanner 
-                        greeting="Good Day"
-                        name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-                        title="Check your waitlisted applicants"
-                        subtitle="We make it easy for you to track the accommodation  applications you manage. "
-                        type="full"
-                    />
+            <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+                <CustomHeader title="Waitlist" />
+                    <div className="flex-1 flex flex-col p-5 overflow-y-auto">
+                        <main className="flex-1 flex flex-col gap-4">
+                            <HeroBanner 
+                                greeting="Good Day"
+                                name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
+                                title="Check your waitlisted applicants"
+                                subtitle="We make it easy for you to track the accommodation  applications you manage. "
+                                type="full"
+                            />
 
-                    <WaitlistHistory 
-                        records={waitlistRecords}
-                    />
-                </main>
+                            <WaitlistHistory 
+                                records={waitlistRecords}
+                            />
+                        </main>
+                    </div>
             </div>
         </div>
     )

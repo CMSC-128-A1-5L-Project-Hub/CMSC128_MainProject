@@ -339,17 +339,31 @@ const handleCloseSearch = () => {
       
        <table className="min-w-[900px] w-full text-sm table-fixed">
           <thead>
-            <tr
-              className="text-left text-xs uppercase tracking-wide bg-gray-50"
-              style={{ color: clr.mid }}
-            >
-              <th className="px-4 py-3 whitespace-nowrap">Student</th>             
-              <th className="px-4 py-3">Date Applied</th>
-              <th className="px-6 py-3">Time</th>
-              <th className="px-4 py-3 ">Facility</th>
-              <th className="px-8 py-3 whitespace-nowrap">Status</th>
-              <th className="px-4 py-3 text-center">Action</th>
-            </tr>
+          <tr className="border-b border-[#6B0F2B]/10">
+            <th className="px-4 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+              Student
+            </th>
+
+            <th className="px-2 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+              Date Applied
+            </th>
+
+            <th className="px-5 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+              Time
+            </th>
+
+            <th className="px-4 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+              Facility
+            </th>
+
+            <th className="px-7 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+              Status
+            </th>
+
+            <th className="px-2 py-1 p-1 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+              Action
+            </th>
+          </tr>
           </thead>
 
           <tbody>
@@ -394,7 +408,6 @@ const handleCloseSearch = () => {
             ) : (
               paginated.map((app) => {
                 const initial = app.student.user.fname.charAt(0).toUpperCase();
-                const avatarColor = clr.avatars[app.id % clr.avatars.length];
 
                 return (
                   <tr
@@ -406,7 +419,7 @@ const handleCloseSearch = () => {
                         <div
                           aria-hidden="true"
                           className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                          style={{ background: avatarColor }}
+                          style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
                         >
                           {initial}
                         </div>
