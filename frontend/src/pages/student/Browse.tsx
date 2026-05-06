@@ -20,6 +20,8 @@ type FilterContextType = {
     searching: string; setSearching: (v: string) => void
     filters: { [key: string]: boolean }; setFilters: (v: { [key: string]: boolean }) => void
     setFilterPanelOpen: (v: boolean) => void
+    origMin: number; origMax: number;
+    setFilterInEffect: (v: boolean) => void;
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
@@ -35,13 +37,13 @@ type Dorm = {
    MAIN PAGE
 ══════════════════════════════════════════════════════════════════════════════ */
 export default function BrowsePage() {
-
-    /* ── state — all untouched ── */
     const [searchTerm, setSearchTerm] = useState("")
     const [activeFilter, setActiveFilter] = useState("All")
     const [onlyBookmarked, setOnlyBookmarked] = useState(false)
-    const [minPrice, setMinPrice] = useState(2500)
+    const [minPrice, setMinPrice] = useState(500)
     const [maxPrice, setMaxPrice] = useState(7000)
+    const [origMin, setOrigMin] = useState(500)
+    const [origMax, setOrigMax] = useState(7000)
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
     const [starRating, setStarRating] = useState(3)
@@ -53,10 +55,9 @@ export default function BrowsePage() {
         "Air-conditioned rooms": false, "Has study area": false,
         "24/7 security": false, "Has curfew": false, "Has canteen": false,
     })
-
+    const [filterInEffect, setFilterInEffect] = useState(true);
     const navigate = useNavigate()
 
-    /* ── queries — untouched ── */
     const { data: accommodations = [], isError: accommodationsError } = useQuery({
         queryKey: ["accommodations", searchTerm, activeFilter],
         queryFn: async () => {
@@ -90,15 +91,44 @@ export default function BrowsePage() {
     const [flatDorms, setFlatDorms] = useState<Dorm[]>([])
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([])
 
+
+    // for finding the minimum and maximum price
+    useEffect(() => {
+
+        let min = -1;
+        let max = -1;
+
+        for (let i = 0; i < accommodations.length; i++) {
+            const { rooms } = accommodations[i]
+
+            rooms.forEach((el: { roomRent: number }) => {
+                const rent = Number(el.roomRent)
+                if (min === -1 || rent < min)
+                {
+                    min = rent;
+                }
+
+                if (max === -1 || rent > max)
+                {
+                    max = rent;
+                }
+            })
+        }
+
+        setMinPrice(min);
+        setMaxPrice(max);
+        setOrigMin(min);
+        setOrigMax(max);
+    }, [accommodations]);
+
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
-        if (filterPanelOpen)
-        {
-            console.log("whoops")
+        if (!filterInEffect) {
             return
         }
 
+        setFilterInEffect(false);
         for (let i = 0; i < accommodations.length; i++) {
             const {
                 id, accommodationName, accommodationLocation, accommodationType,
@@ -140,50 +170,36 @@ export default function BrowsePage() {
             const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
             if (!nameMatch) continue
 
-            
+
 
             /* filters */
-            if (!bookmarked && onlyBookmarked) 
-            {
-                console.log("book", accommodationName)
+            if (!bookmarked && onlyBookmarked) {
                 continue
             }
-            if (Number(rating) < starRating || rating === "6")
-            {
-                console.log("rating", accommodationName)
-                continue
-            } 
-            if (minimum < minPrice || maximum > maxPrice)
-            {
-                console.log("proce", accommodationName)
-                continue
-            } 
-            if (dormType !== "All" && accommodationType !== dormType)
-            {
-                console.log("domrtpe", accommodationName, dormType, accommodationType)
+            if (Number(rating) < starRating) {
                 continue
             }
-            if (roomType !== "All" && !roomTypes.has(roomType))
-            {
-                console.log("roomtpe", accommodationName)
+            if (minimum < minPrice || maximum > maxPrice) {
+                continue
+            }
+            if (dormType !== "All" && accommodationType !== dormType) {
+                continue
+            }
+            if (roomType !== "All" && !roomTypes.has(roomType)) {
                 continue
             }
             if (trueTags.length !== 0) {
-                
-            
                 const hasTag = tempTags.some(t => trueTags.includes(t))
-                if (!hasTag)
-                {
-                    console.log("tags", accommodationName)
+                if (!hasTag) {
                     continue
-                } 
+                }
             }
 
 
             tempDorms.push({
                 name: accommodationName, subtitle: accommodationLocation,
                 meta: accommodationType, minPrice: minimum, maxPrice: maximum,
-                priceUnit: "/ month", rating, accommodationId: id,
+                priceUnit: "/ month", rating: rating == "6" ? "0" : rating, accommodationId: id,
                 tags: tempTags, bookmarked,
             })
 
@@ -192,7 +208,7 @@ export default function BrowsePage() {
                 accommodationType, accommodationCapacity, tenantRestriction,
                 latitude, longitude, minRent: minimum, maxRent: maximum,
                 walkingDistance, drivingDistance, bikingDistance,
-                rating, price: 500, maxPrice: maximum, minPrice: minimum,
+                rating: rating == "6" ? "0" : rating, price: 500, maxPrice: maximum, minPrice: minimum,
             })
         }
 
@@ -221,7 +237,7 @@ export default function BrowsePage() {
         <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
-            searching, setSearching, filters, setFilters, setFilterPanelOpen
+            searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect
         }}>
             <div className="flex flex-row w-full min-h-screen bg-[#FDF8FA]">
 
@@ -273,12 +289,12 @@ export default function BrowsePage() {
                     )}
 
                     {/* Body */}
-                    <div className="flex flex-col md:flex-row gap-4 px-6 pb-8 flex-1">
+                    <div className="flex flex-col md:flex-row gap-4 px-6 pb-8 flex-1 overflow-hidden">
 
-                        {/* ── LEFT: scrollable tile list ── */}
-                        <div className="flex flex-col w-full md:w-1/2 shrink-0">
+                        {/* ── LEFT ---*/}
+                        <div className="flex flex-col w-full md:w-1/2 shrink-0 min-h-0">
 
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center justify-between mb-3 shrink-0">
                                 <p className="text-[#1C0A11] font-semibold text-sm">
                                     {flatDorms.length > 0 ? (
                                         <>
@@ -289,7 +305,7 @@ export default function BrowsePage() {
                                 </p>
                             </div>
 
-                            <div className="flex flex-col gap-3 overflow-y-auto pr-1 max-h-[78vh]">
+                            <div className="flex flex-col gap-3 overflow-y-auto pr-1 min-h-0 flex-1 max-h-[60vh] md:max-h-[78vh]">
                                 {flatDorms.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center h-72 gap-3 text-[#9A7080]">
                                         <MapPin size={40} strokeWidth={1.3} />
@@ -311,7 +327,7 @@ export default function BrowsePage() {
                         </div>
 
                         {/* ── RIGHT: map ── */}
-                        <div className="flex flex-col w-full md:w-1/2 shrink-0 rounded-2xl overflow-hidden border border-[#E8D4DF] shadow-md min-h-[560px] relative z-50">
+                        <div className="flex flex-col w-full md:w-1/2 shrink-0 rounded-2xl overflow-hidden border border-[#E8D4DF] shadow-md h-[50vh] md:h-auto md:min-h-[560px] relative z-50">
                             <div className="flex items-center gap-2 px-5 py-4 bg-white border-b border-[#E8D4DF] shrink-0">
                                 <MapPin size={14} className="text-[#6B0F2B]" />
                                 <span className="text-[#1C0A11] font-semibold text-sm">Map view</span>
@@ -350,7 +366,9 @@ export default function BrowsePage() {
                                 <X size={15} />
                             </button>
                         </div>
-                        <FilterForm onClose={() => setFilterPanelOpen(false)} />
+                        <FilterForm onClose={() => {
+                            setFilterInEffect(true)
+                            setFilterPanelOpen(false)}} />
                     </div>
                 </div>
 
@@ -446,7 +464,7 @@ function DormTile({
                         {validRating && (
                             <div className="flex items-center gap-1">
                                 <Star size={12} fill="#C0934B" stroke="none" />
-                                <span className="text-[#C0934B] font-bold text-xs">{dorm.rating}</span>
+                                <span className="text-[#C0934B] font-bold text-xs">{dorm.rating == "0" ? "unrated" : dorm.rating}</span>
                             </div>
                         )}
                         <span className={`flex items-center gap-0.5 text-xs font-semibold transition-colors
@@ -502,7 +520,8 @@ function FilterForm({ onClose }: { onClose: () => void }) {
     const {
         dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
         roomType, setRoomType, starRating, setStarRating,
-        onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen
+        onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen, origMin, origMax,
+        setFilterInEffect
     } = context
 
     const originalFilters: { [key: string]: boolean } = {
@@ -513,14 +532,14 @@ function FilterForm({ onClose }: { onClose: () => void }) {
 
     const resetAll = () => {
         setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
-        setDormType("All"); setRoomType("All"); setMinPrice(2500); setMaxPrice(7000);
-        setFilterPanelOpen(false)
+        setDormType("All"); setRoomType("All"); setMinPrice(origMin); setMaxPrice(origMax);
+        setFilterPanelOpen(false); setFilterInEffect(true)
     }
 
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
 
     return (
-        <div className="pb-28">
+        <div className="pb-4">
 
             {/* Saved only */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Show saved only</p>
@@ -595,20 +614,22 @@ function FilterForm({ onClose }: { onClose: () => void }) {
 
             {/* Price range */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
-            <div className="flex justify-between mb-3">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
-                    ₱{minPrice.toLocaleString()}
-                </span>
-                <span className="text-xs text-[#9A7080] self-center">to</span>
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
-                    ₱{maxPrice.toLocaleString()}
-                </span>
+            <div className="px-2">
+                <div className="flex justify-between mb-3">
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
+                        ₱{minPrice.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-[#9A7080] self-center">to</span>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
+                        ₱{maxPrice.toLocaleString()}
+                    </span>
+                </div>
+                <DualRangeSlider
+                    minVal={minPrice} maxVal={maxPrice}
+                    onMinChange={setMinPrice} onMaxChange={setMaxPrice}
+                    dataMin={0} dataMax={10000}
+                />
             </div>
-            <DualRangeSlider
-                minVal={minPrice} maxVal={maxPrice}
-                onMinChange={setMinPrice} onMaxChange={setMaxPrice}
-                dataMin={2500} dataMax={10000}
-            />
 
             <Divider />
 
@@ -630,8 +651,10 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                 ))}
             </div>
 
-            {/* Sticky footer */}
-            <div className="fixed bottom-0 right-0 w-full max-w-[420px] flex gap-3 px-7 py-4 bg-white border-t border-[#F0E4E9]">
+            <Divider />
+
+            {/* Buttons — inline, scrollable */}
+            <div className="flex gap-3 mb-8">
                 <button
                     onClick={resetAll}
                     className="flex-1 py-2.5 rounded-xl border border-[#E8D4DF] bg-white text-[#9A7080] text-sm font-semibold hover:bg-[#F5ECF0] transition-colors"
@@ -645,6 +668,7 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                     Apply filters
                 </button>
             </div>
+
         </div>
     )
 }

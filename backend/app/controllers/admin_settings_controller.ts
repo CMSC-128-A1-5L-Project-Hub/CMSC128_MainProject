@@ -32,6 +32,7 @@ export default class AdminSettingsController {
       semStartDate: settings.semStartDate,
       uplbLatitude: settings.uplbLatitude,
       uplbLongitude: settings.uplbLongitude,
+      autoVerifyUsers: settings.autoVerifyUsers,
     })
   }
 
@@ -48,11 +49,12 @@ export default class AdminSettingsController {
       })
     }
 
-    const { currentSemester, currentSy } = request.body()
+    const { currentSemester, currentSy, autoVerifyUsers } = request.body()
 
     settings.merge({
       ...(currentSemester && { currentSemester }),
       ...(currentSy && { currentSy }),
+      ...(autoVerifyUsers !== undefined && { autoVerifyUsers }),
     })
 
     await Student.query().update({

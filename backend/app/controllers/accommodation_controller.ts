@@ -8,10 +8,9 @@ import db from '@adonisjs/lucid/services/db'
 import { uploadImage, deleteImage } from '#services/b2_services'
 import { AccommodationService } from '#services/accommodation_service'
 import Landlord from '#models/landlord'
-import { withPrimaryImageUrl } from '#services/image_service'
+import { withPrimaryImageUrl, signImageUrl, withAllImageUrls } from '#services/image_service'
 import ZipExportService from '#services/zip_export_service'
 import type { ZipEntry } from '#services/zip_export_service'
-import { signImageUrl } from '#services/image_service'
 import Room from '#models/room'
 
 export default class AccommodationController {
@@ -36,7 +35,7 @@ export default class AccommodationController {
       .where('status', 'verified')
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
-      .preload('manager', (q) => q.preload('user'))
+      .preload('manager', (q) => q.preload('user', (q2) => q2.preload('profilePicture')))
       .preload('rooms', (q) => {
         q.preload('tags')  // Preload room inclusions
         q.orderBy('roomRent', 'asc')  // Cheapest first
@@ -102,10 +101,17 @@ export default class AccommodationController {
       allInclusions: Array.from(allInclusions)
     }
     
-    // Attach signed primary image URL
+    // Attach signed image URLs
     if (accommodation.images?.length > 0) {
       const primary = accommodation.images[accommodation.primaryImageIndex]
       serialized.primaryImageUrl = await signImageUrl(primary?.file?.filePath)
+    }
+    await withAllImageUrls(serialized, accommodation)
+
+    // Attach signed manager profile picture URL
+    const managerUser = accommodation.manager?.user
+    if (managerUser && serialized.manager?.user) {
+      serialized.manager.user.pfpUrl = await signImageUrl(managerUser.profilePicture?.filePath)
     }
 
     return response.ok(serialized)
@@ -671,6 +677,7 @@ async store({ request, auth, response }: HttpContext) {
       .leftJoin('accommodation_images', 'accommodations.id', 'accommodation_images.accommodation_id')
       .leftJoin('file_metadata', 'accommodation_images.image_file_id', 'file_metadata.id')
       .where('accommodations.status', 'verified')
+      .whereNotNull('accommodations.manager_id')
       .whereIn('accommodations.tenant_restriction', allowedRestrictions)
       .groupBy('accommodations.id')
       .select(

@@ -117,7 +117,7 @@ function MobileDrawer({ open, onClose, activeNav, setActiveNav, scrollTo }: {
       >
         <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, pointerEvents: "none", backgroundImage: "linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px)", backgroundSize: "32px 32px" }} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", position: "relative", zIndex: 2 }}>
-          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, fontWeight: 700, color: "#fff" }}>USAT</span>
+          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, fontWeight: 700, color: "#fff" }}>UBLE</span>
           <button onClick={onClose} style={{ lineHeight: 1, paddingBottom: 4, padding: "0px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.7)", fontSize: 18 }}>×</button>
         </div>
         <nav style={{ padding: "16px 0", position: "relative", zIndex: 2, flex: 1 }}>

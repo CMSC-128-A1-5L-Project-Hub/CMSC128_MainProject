@@ -20,18 +20,44 @@ interface HeroContent {
     subtitle: string;
 }
 
+interface ApplicationStatusPageProps {
+    userName?: string;
+}
+
 // Fetch from the API
 const fetchApplications = async (): Promise<Application[]> => {
-    const res = await fetch("/api/applications/my-applications");
-    if (!res.ok) throw new Error("Failed to fetch applications");
-    const body = await res.json();
-    return body.data ?? body;
+    try {
+        const res = await fetch("/api/applications/my-applications");
+        
+        // if the server explicitly says "Not Found" (404), return an empty array
+        if (res.status === 404) {
+            return [];
+        }
+
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        // check if the response is actually JSON before parsing
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            // if it's an HTML error page from the server, treat as empty or handle accordingly
+            console.error("Received non-JSON response");
+            return [];
+        }
+
+        const body = await res.json();
+        return body.data ?? body;
+    } catch (error) {
+        console.error("Fetch applications error:", error);
+        throw error; // let react query catch this to trigger isError
+    }
 };
 
 // Main component
-export default function ApplicationStatusPage() {
+export default function ApplicationStatusPage({ userName = "Student" }: ApplicationStatusPageProps) {
     const heroContent: HeroContent = {
-        name: "Ana Reyes",
+        name: userName,
         greeting: "Good Day",
         title: "Check your application status",
         subtitle: "We make it easy for you to track the accommodations you've applied for",

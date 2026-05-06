@@ -6,11 +6,11 @@ import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import AccommodationMap, { type AccommodationPin } from '../components/AccommodationMaps'
+import { api } from '../api/axios'
 
 const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
-  const res = await fetch('/api/accommodations')
-  if (!res.ok) throw new Error('Failed to fetch accommodations')
-  const body = await res.json()
+  const res = await api.get('/accommodations')
+  const body = res.data
   // serialize() wraps in { data: ... }, and index() adds its own { message, data } envelope
   const list: any[] = body?.data?.data ?? body?.data ?? body ?? []
   return list.map((acc: any) => {
@@ -33,12 +33,12 @@ const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
       minRent: rents.length ? Math.min(...rents) : 0,
       maxRent: rents.length ? Math.max(...rents) : 0,
       stayType,
-      imageUrl: acc.images?.[0]?.url ?? undefined,
+      imageUrl: acc.primaryImageUrl ?? undefined,
     } satisfies AccommodationPin
   })
 }
 
-const DEFAULT_MIN_RENT = 1000
+const DEFAULT_MIN_RENT = 500 // convert this to search for the lowest and highest rent from the DB next time.
 const DEFAULT_MAX_RENT = 15000
 
 export default function MapPage() {
@@ -473,7 +473,7 @@ export default function MapPage() {
             <AccommodationMap
               accommodations={filtered}
               centeredAccommodation={centeredAccommodation}
-              onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
+              onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
             />
           </div>
         </div>

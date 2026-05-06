@@ -345,6 +345,14 @@ export default class extends BaseSeeder {
       { accommodation_id: getAccom("One Sapphire Place"), room_number: '601', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 18.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 1000.00 },
       { accommodation_id: getAccom("One Sapphire Place"), room_number: '602', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3200.00, tenant_restriction: 'coed', room_availability: 'available' , room_size: 25.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 800.00 },
       
+      { accommodation_id: getAccom("One Sapphire Place"), room_number: '601', room_type: 'single', room_stay_type: 'transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' },
+      { accommodation_id: getAccom("One Sapphire Place"), room_number: '602', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3200.00, tenant_restriction: 'coed', room_availability: 'available' },
+      // UBLE Residences rooms (capacity 8, occupied 3)
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '701', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'occupied' },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '702', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 5500.00, tenant_restriction: 'coed', room_availability: 'occupied' },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '703', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 1, room_building: 'Main Building', room_rent: 4500.00, tenant_restriction: 'coed', room_availability: 'available' },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '704', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3500.00, tenant_restriction: 'coed', room_availability: 'available' },
+      { accommodation_id: getAccom('UBLE Residences'), room_number: '705', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 4, room_current_occupancy: 0, room_building: 'Main Building', room_rent: 3500.00, tenant_restriction: 'coed', room_availability: 'available' },
       // Additional rooms
       { accommodation_id: getAccom('White House'), room_number: '103', room_type: 'single', room_stay_type: 'non_transient', room_capacity: 1, room_current_occupancy: 0, room_building: 'Building A', room_rent: 5200.00, tenant_restriction: 'coed', room_availability: 'available', room_size: 14.50, advance_months: 1, deposit_months: 1, reservation_fee_type: 'fixed', reservation_fee_value: 1000.00 },
       { accommodation_id: getAccom('One Silangan'), room_number: '204', room_type: 'double', room_stay_type: 'non_transient', room_capacity: 2, room_current_occupancy: 0, room_building: 'Building B', room_rent: 6800.00, tenant_restriction: 'coed', room_availability: 'available', room_size: 20.00, advance_months: 1, deposit_months: 1, reservation_fee_type: 'percentage', reservation_fee_value: 20.00 },
@@ -414,6 +422,23 @@ export default class extends BaseSeeder {
       { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
       { room_id: getRoom('601', 'One Sapphire Place'), tag_detail: 'Has ref' , type: 'inclusion' },
       // One Sapphire Place — 602 (double, non-transient)
+      // UBLE Residences — 701 (single)
+      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('701', 'UBLE Residences'), tag_detail: 'Has study desk' },
+      // UBLE Residences — 702 (single)
+      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Private bathroom' },
+      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('702', 'UBLE Residences'), tag_detail: 'Has wardrobe' },
+      // UBLE Residences — 703 (double)
+      { room_id: getRoom('703', 'UBLE Residences'), tag_detail: 'Air-conditioned' },
+      { room_id: getRoom('703', 'UBLE Residences'), tag_detail: 'Has study desk' },
+      // UBLE Residences — 704 (shared)
+      { room_id: getRoom('704', 'UBLE Residences'), tag_detail: 'Has study area' },
+      { room_id: getRoom('704', 'UBLE Residences'), tag_detail: 'Has locker' },
+      // UBLE Residences — 705 (shared)
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Has study area' },
+      { room_id: getRoom('705', 'UBLE Residences'), tag_detail: 'Near elevator' },
       { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Air-conditioned' , type: 'inclusion' },
       { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has study desk' , type: 'inclusion' },
       { room_id: getRoom('602', 'One Sapphire Place'), tag_detail: 'Has wardrobe' , type: 'inclusion' },
@@ -495,6 +520,9 @@ export default class extends BaseSeeder {
       { accommodation_id: getAccom("ATI"), student_number: '2023-123457', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'under_review', duration_of_stay_days: 30, application_date: '2026-02-20 14:00:00', reviewed_at: null, reviewed_by: null , room_id: getRoom('402', 'ATI'), move_in_date: '2026-03-05', move_out_date: '2026-04-04', reservation_fee: 500.00, move_in_fee: 800.00 },
       { accommodation_id: getAccom('White House'), student_number: '2023-223456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'pending', duration_of_stay_days: 180, application_date: '2026-04-29 08:00:00' },
       { accommodation_id: getAccom('White House'), student_number: '2023-223457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 365, application_date: '2026-04-29 09:30:00' },
+      { accommodation_id: getAccom('UBLE Residences'), student_number: '2023-123458', application_room_type: 'shared', application_stay_type: 'non_transient', application_status: 'approved', duration_of_stay_days: 365, application_date: '2026-04-28 10:00:00', reviewed_at: '2026-04-28 12:30:00', reviewed_by: getUser('uble.ics.uplb@gmail.com'), approved_at: '2026-04-28 12:30:00', slot_confirm_deadline: '2026-05-05 23:59:59'},
+      { accommodation_id: getAccom('UBLE Residences'), student_number: '2023-123461', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'under_review', duration_of_stay_days: 180, application_date: '2026-04-30 08:00:00' },
+      { accommodation_id: getAccom('UBLE Residences'), student_number: '2023-123462', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'waitlisted', duration_of_stay_days: 180, application_date: '2026-04-25 09:30:00', reviewed_at: '2026-04-26 10:00:00', reviewed_by: getUser('uble.ics.uplb@gmail.com') },
 
       { accommodation_id: getAccom('White House'), student_number: '2023-123457', application_room_type: 'double', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 150 , room_id: getRoom('102', 'White House'), move_in_date: null, move_out_date: null, reservation_fee: null, move_in_fee: null },
       { accommodation_id: getAccom('White House'), student_number: '2023-123456', application_room_type: 'single', application_stay_type: 'non_transient', application_status: 'cancelled', duration_of_stay_days: 180 , room_id: getRoom('101', 'White House'), move_in_date: null, move_out_date: null, reservation_fee: null, move_in_fee: null },
@@ -520,6 +548,10 @@ export default class extends BaseSeeder {
       { student_number: '2023-123459', room_id: getRoom('101', 'White House'), confirmed_date: '2026-01-05', move_in: '2026-01-10', expected_move_out: '2027-01-10', actual_move_out: null, grace_period_days: 5 },
       { student_number: '2023-123461', room_id: getRoom('102', 'White House'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2026-08-05', actual_move_out: null, grace_period_days: 5 },
       { student_number: '2023-123462', room_id: getRoom('301', "Men's Dorm"), confirmed_date: '2026-03-08', move_in: '2026-03-10', expected_move_out: '2026-06-10', actual_move_out: null, grace_period_days: 5 },
+      // UBLE Residences assignments
+      { student_number: '2023-123458', room_id: getRoom('701', 'UBLE Residences'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2027-03-05', actual_move_out: null, grace_period_days: 5 },
+      { student_number: '2023-123460', room_id: getRoom('702', 'UBLE Residences'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2027-03-05', actual_move_out: null, grace_period_days: 5 },
+      { student_number: '2023-223456', room_id: getRoom('703', 'UBLE Residences'), confirmed_date: '2026-03-01', move_in: '2026-03-05', expected_move_out: '2027-03-05', actual_move_out: null, grace_period_days: 5 },
     ])
 
     await db.table('bookmarks').multiInsert([

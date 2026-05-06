@@ -720,7 +720,7 @@ useEffect(() => {
     const fetchNotifications = async () => {
         try {
         const res = await api.get("/notifications");
-        console.log("notifications:", res.data);
+        // console.log("notifications:", res.data);
 
 
         const data = res.data;
@@ -777,8 +777,8 @@ useEffect(() => {
 
         setPendingApplicationsCount(pendingCount);
 
-        console.log("APPLICATIONS:", data);
-        console.log("PENDING COUNT:", pendingCount);
+        // console.log("APPLICATIONS:", data);
+        // console.log("PENDING COUNT:", pendingCount);
       } catch (error) {
         console.error("Failed to fetch applications:", error);
       } finally {
@@ -797,7 +797,7 @@ useEffect(() => {
     try {
       const res = await api.get('/recommended-accommodations')
       const data = res.data ?? []
-      console.log("RECOMMENDED DORMS:", data);
+      // console.log("RECOMMENDED DORMS:", data);
       setRecommendedDorms(data)
     } catch (error) {
       console.error('Failed to fetch recommended dorms:', error)
@@ -817,7 +817,7 @@ useEffect(() => {
       const res = await api.get("/my-fees");
       const fees = res.data.data ?? res.data ?? [];
 
-      console.log("BILLING:", fees);
+      // console.log("BILLING:", fees);
 
       if (!Array.isArray(fees) || fees.length === 0) {
         setBillingOverviewData(null);
@@ -1061,6 +1061,14 @@ if (isUserLoading) {
                       <button
                         key={dorm.id}
                         type="button"
+                        onClick={() => {
+                          const id = dorm.id ?? dorm.accommodationId ?? dorm.accommodation_id
+
+                          // console.log("RECOMMENDED DORM CLICKED:", dorm)
+                          // console.log("NAVIGATING TO ID:", id)
+
+                          navigate(`/student/roomview/${id}`)
+                        }}
                         className="min-w-[280px] max-w-[280px] text-left flex-shrink-0 rounded-[24px] border border-[#EFE5E8] bg-white shadow-[0_8px_18px_rgba(61,7,24,0.06)] overflow-hidden transition hover:-translate-y-0.5 snap-start"
                       >
                       <div className="px-4 pt-4 pb-4">
@@ -1177,11 +1185,14 @@ if (isUserLoading) {
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-[22px] shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
               <div className="rounded-xl overflow-hidden flex-1 min-h-[220px] sm:min-h-[260px] relative">
                 <div className="absolute inset-0">
-                  <AccommodationMap
-                    accommodations={dashboardMapAccommodations}
-                    centeredAccommodation={dashboardMapAccommodations[0]}
-                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
-                  />
+                 <AccommodationMap
+                  accommodations={dashboardMapAccommodations}
+                  centeredAccommodation={dashboardMapAccommodations[0]}
+                  onCardClick={(acc) => {
+                    // console.log("ACC CLICKED:", acc)
+                    navigate(`/student/roomview/${acc.accommodationId}`)
+                  }}
+                />
                 </div>
               </div>
 
