@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { Star, SlidersHorizontal, MapPin, X, BookmarkCheck, ChevronRight } from "lucide-react"
 import Sidebar from "../../components/Sidebar"
 import CustomHeader from '../../components/CustomHeader'
+import PriceRangeSlider from "../../components/PriceRangeSlider"
 import HeroBanner from "@/components/dashboard/HeroBanner"
 import Dropdown from "../../components/ApplicationStatus/Dropdown"
 import { useQuery } from "@tanstack/react-query"
@@ -42,8 +43,8 @@ export default function BrowsePage() {
     const [onlyBookmarked, setOnlyBookmarked] = useState(false)
     const [minPrice, setMinPrice] = useState(500)
     const [maxPrice, setMaxPrice] = useState(7000)
-    const [origMin, setOrigMin] = useState(500)
-    const [origMax, setOrigMax] = useState(7000)
+    const [origMin, setOrigMin] = useState(800)
+    const [origMax, setOrigMax] = useState(12000)
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
     const [starRating, setStarRating] = useState(3)
@@ -69,7 +70,8 @@ export default function BrowsePage() {
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
-            console.log(res.data, "hello")
+            console.log("done loading")
+            setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
     })
@@ -94,7 +96,6 @@ export default function BrowsePage() {
 
     // for finding the minimum and maximum price
     useEffect(() => {
-
         let min = -1;
         let max = -1;
 
@@ -103,33 +104,39 @@ export default function BrowsePage() {
 
             rooms.forEach((el: { roomRent: number }) => {
                 const rent = Number(el.roomRent)
-                if (min === -1 || rent < min)
-                {
+                if (min === -1 || rent < min) {
                     min = rent;
                 }
 
-                if (max === -1 || rent > max)
-                {
+                if (max === -1 || rent > max) {
                     max = rent;
                 }
             })
         }
 
-        setMinPrice(min);
-        setMaxPrice(max);
-        setOrigMin(min);
-        setOrigMax(max);
+        if (min !== -1 && max !== -1) {
+            setMinPrice(min)
+            setMaxPrice(max)
+            setOrigMin(min);
+            setOrigMax(max);
+
+            console.log(min, max, "yowzers", accommodations.length)
+        }
     }, [accommodations]);
 
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
         if (!filterInEffect) {
+            console.log("broken", filterInEffect)
             return
         }
 
+        console.log("yahooo")
+        console.log(accommodations)
         setFilterInEffect(false);
         for (let i = 0; i < accommodations.length; i++) {
+            console.log(i)
             const {
                 id, accommodationName, accommodationLocation, accommodationType,
                 accommodationCapacity, tenantRestriction, latitude, longitude,
@@ -150,8 +157,14 @@ export default function BrowsePage() {
             rooms.forEach((el: { roomRent: number; roomType: string }) => {
                 roomTypes.add(el.roomType)
                 const rent = Number(el.roomRent)
-                if (minimum === -1) minimum = rent
-                if (maximum === -1) maximum = rent
+                if (minimum === -1) {
+                    console.log("minimum -1", rent)
+                    minimum = rent
+                }
+                if (maximum === -1) {
+                    console.log("maximum -1")
+                    maximum = rent
+                }
                 if (rent < minimum) minimum = rent
                 if (rent > maximum) maximum = rent
             })
@@ -168,29 +181,39 @@ export default function BrowsePage() {
 
             /* search match */
             const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
-            if (!nameMatch) continue
+            if (!nameMatch) {
+                console.log(accommodationName, "not matched")
+                continue
+            }
+
 
 
 
             /* filters */
             if (!bookmarked && onlyBookmarked) {
+                console.log(accommodationName, "not matched book")
                 continue
             }
             if (Number(rating) < starRating) {
+                console.log(accommodationName, "not matched rate")
                 continue
             }
             if (minimum < minPrice || maximum > maxPrice) {
+                console.log(accommodationName, "not matched price", minimum, minPrice, maximum, maxPrice)
                 continue
             }
             if (dormType !== "All" && accommodationType !== dormType) {
+                console.log(accommodationName, "not dormtype")
                 continue
             }
             if (roomType !== "All" && !roomTypes.has(roomType)) {
+                console.log(accommodationName, "not matched room")
                 continue
             }
             if (trueTags.length !== 0) {
                 const hasTag = tempTags.some(t => trueTags.includes(t))
                 if (!hasTag) {
+                    console.log(accommodationName, "not matched tags")
                     continue
                 }
             }
@@ -368,7 +391,8 @@ export default function BrowsePage() {
                         </div>
                         <FilterForm onClose={() => {
                             setFilterInEffect(true)
-                            setFilterPanelOpen(false)}} />
+                            setFilterPanelOpen(false)
+                        }} />
                     </div>
                 </div>
 
@@ -538,6 +562,13 @@ function FilterForm({ onClose }: { onClose: () => void }) {
 
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
 
+    const [range, setRange] = useState({min: 0, max: 100});
+    const handleRangeChange = (value: { min: number; max: number }) => {
+        setRange(value);
+        setMinPrice(value.min)
+        setMaxPrice(value.max)
+      };
+
     return (
         <div className="pb-4">
 
@@ -552,7 +583,7 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                     className={`relative w-11 h-6 rounded-full border-none transition-colors duration-200 ${onlyBookmarked ? "bg-[#6B0F2B]" : "bg-[#E8D4DF]"}`}
                     onClick={() => setOnlyBookmarked(!onlyBookmarked)}
                 >
-                    <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${onlyBookmarked ? "translate-x-[22px]" : "translate-x-[3px]"}`} />
+                    <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${onlyBookmarked ? "translate-x-[1px]" : "translate-x-[-18px]"}`} />
                 </button>
             </div>
 
@@ -615,20 +646,14 @@ function FilterForm({ onClose }: { onClose: () => void }) {
             {/* Price range */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
             <div className="px-2">
-                <div className="flex justify-between mb-3">
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
-                        ₱{minPrice.toLocaleString()}
-                    </span>
-                    <span className="text-xs text-[#9A7080] self-center">to</span>
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
-                        ₱{maxPrice.toLocaleString()}
-                    </span>
-                </div>
-                <DualRangeSlider
+         
+                {/* <DualRangeSlider
                     minVal={minPrice} maxVal={maxPrice}
                     onMinChange={setMinPrice} onMaxChange={setMaxPrice}
-                    dataMin={0} dataMax={10000}
-                />
+                    dataMin={origMin} dataMax={origMax}
+                /> */}
+                <PriceRangeSlider min={origMin} max={origMax} onChange={handleRangeChange}></PriceRangeSlider>
+
             </div>
 
             <Divider />
@@ -716,3 +741,5 @@ function DualRangeSlider({
         </div>
     )
 }
+
+
