@@ -57,7 +57,7 @@ const fetchApplications = async (): Promise<Application[]> => {
 // Main component
 export default function ApplicationStatusPage({ userName = "Student" }: ApplicationStatusPageProps) {
     const heroContent: HeroContent = {
-        name: userName, // Replaced mock "Ana Reyes" with dynamic prop
+        name: userName,
         greeting: "Good Day",
         title: "Check your application status",
         subtitle: "We make it easy for you to track the accommodations you've applied for",
