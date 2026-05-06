@@ -29,25 +29,7 @@ const CLR = {
   gold: "#C9973A",
   goldLt: "#E8C37A",
 } as const;
-//todo: configure file paths images, from db 
-//will check pa 
-const BASE_URL = import.meta.env.VITE_API_URL ?? '';
-function assetUrl(filePath: string) { return `${BASE_URL}${filePath}`; }
-
 const GRID_COLS = "grid grid-cols-1 lg:grid-cols-[1.75fr_1fr] gap-3";
-
-interface FileMetadata {
-  id: number;
-  file_name: string;
-  file_path: string; 
-  file_type: "image" | "document";
-}
-
-interface AccomImage {
-  accommodation_id: number;
-  image_file_id: number;
-  file: FileMetadata; 
-}
 
 interface AccomID {
   accomodation_id: number;
@@ -70,7 +52,7 @@ interface Manager {
     lname: string;
     email: string;
     phone?: string;
-    pfp_file?: FileMetadata;
+    pfpUrl?: string;
   };
 }
 
@@ -94,7 +76,6 @@ interface Room{
 interface ReviewUser {
   fname: string;
   lname: string;
-  pfp_file?: FileMetadata;
 }
 
 interface Review{
@@ -117,7 +98,8 @@ interface Accommodation {
   tenant_restriction: "coed" | "male-only" | "female-only";
   application_start_date: string;
   application_end_date: string;
-  images: AccomImage[];
+  imageUrls: string[];
+  primaryImageUrl?: string;
   tags: AccomTag[];
   rooms: Room[];
   reviews: Review[];
@@ -1399,8 +1381,8 @@ export default function RoomView() {
   //   ];
 
   const displayPhotos =
-    accommodation.images?.length > 0
-      ? accommodation.images.map((img) => assetUrl(img.file.file_path))
+    accommodation.imageUrls?.length > 0
+      ? accommodation.imageUrls
       : ["/default-accommodation.png"];
 
   
@@ -1757,8 +1739,8 @@ export default function RoomView() {
               {manager && (
                 <div className="border border-[#F0E8EC] rounded-2xl p-4 flex flex-col items-center gap-1.5 mb-4">
                   <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mb-1"
-                    style={{ background: managerUser?.pfp_file ? `url(${assetUrl(managerUser.pfp_file.file_path)}) center/cover` : CLR.mid }}>
-                    {!managerUser?.pfp_file && `${managerUser?.fname[0]}${managerUser?.lname[0]}`}
+                    style={{ background: managerUser?.pfpUrl ? `url(${managerUser.pfpUrl}) center/cover` : CLR.mid }}>
+                    {!managerUser?.pfpUrl && `${managerUser?.fname[0]}${managerUser?.lname[0]}`}
                   </div>
                   <div className="w-full h-[2px] bg-[#F0E8EC] mt-2 mx-4"></div>
 
