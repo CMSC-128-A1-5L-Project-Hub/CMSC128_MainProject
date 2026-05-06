@@ -20,6 +20,8 @@ type FilterContextType = {
     searching: string; setSearching: (v: string) => void
     filters: { [key: string]: boolean }; setFilters: (v: { [key: string]: boolean }) => void
     setFilterPanelOpen: (v: boolean) => void
+    origMin: number; origMax: number;
+    setFilterInEffect: (v: boolean) => void;
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
@@ -42,6 +44,8 @@ export default function BrowsePage() {
     const [onlyBookmarked, setOnlyBookmarked] = useState(false)
     const [minPrice, setMinPrice] = useState(500) // converted to 500 for now. In the future min and max should be based on the lowest rent in the DB, same for max
     const [maxPrice, setMaxPrice] = useState(7000)
+    const [origMin, setOrigMin] = useState(500)
+    const [origMax, setOrigMax] = useState(7000)
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
     const [starRating, setStarRating] = useState(3)
@@ -53,7 +57,7 @@ export default function BrowsePage() {
         "Air-conditioned rooms": false, "Has study area": false,
         "24/7 security": false, "Has curfew": false, "Has canteen": false,
     })
-
+    const [filterInEffect, setFilterInEffect] = useState(true);
     const navigate = useNavigate()
 
     /* ── queries — untouched ── */
@@ -116,15 +120,18 @@ export default function BrowsePage() {
 
         setMinPrice(min);
         setMaxPrice(max);
+        setOrigMin(min);
+        setOrigMax(max);
     }, [accommodations]);
 
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
-        if (filterPanelOpen) {
+        if (!filterInEffect) {
             return
         }
 
+        setFilterInEffect(false);
         for (let i = 0; i < accommodations.length; i++) {
             const {
                 id, accommodationName, accommodationLocation, accommodationType,
@@ -233,7 +240,7 @@ export default function BrowsePage() {
         <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
-            searching, setSearching, filters, setFilters, setFilterPanelOpen
+            searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect
         }}>
             <div className="flex flex-row w-full min-h-screen bg-[#FDF8FA]">
 
@@ -362,7 +369,9 @@ export default function BrowsePage() {
                                 <X size={15} />
                             </button>
                         </div>
-                        <FilterForm onClose={() => setFilterPanelOpen(false)} />
+                        <FilterForm onClose={() => {
+                            setFilterInEffect(true)
+                            setFilterPanelOpen(false)}} />
                     </div>
                 </div>
 
@@ -514,7 +523,8 @@ function FilterForm({ onClose }: { onClose: () => void }) {
     const {
         dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
         roomType, setRoomType, starRating, setStarRating,
-        onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen
+        onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen, origMin, origMax,
+        setFilterInEffect
     } = context
 
     const originalFilters: { [key: string]: boolean } = {
@@ -525,8 +535,8 @@ function FilterForm({ onClose }: { onClose: () => void }) {
 
     const resetAll = () => {
         setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
-        setDormType("All"); setRoomType("All"); setMinPrice(2500); setMaxPrice(7000);
-        setFilterPanelOpen(false)
+        setDormType("All"); setRoomType("All"); setMinPrice(origMin); setMaxPrice(origMax);
+        setFilterPanelOpen(false); setFilterInEffect(true)
     }
 
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
