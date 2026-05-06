@@ -90,12 +90,38 @@ export default function BrowsePage() {
     const [flatDorms, setFlatDorms] = useState<Dorm[]>([])
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([])
 
+
+    // for finding the minimum and maximum price
+    useEffect(() => {
+
+        let min = -1;
+        let max = -1;
+
+        for (let i = 0; i < accommodations.length; i++) {
+            const { rooms } = accommodations[i]
+
+            rooms.forEach((el: { roomRent: number }) => {
+                const rent = Number(el.roomRent)
+                if (min === -1 || rent < min)
+                {
+                    min = rent;
+                }
+
+                if (max === -1 || rent > max)
+                {
+                    max = rent;
+                }
+            })
+        }
+
+        setMinPrice(min);
+        setMaxPrice(max);
+    }, [accommodations]);
+
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
-        if (filterPanelOpen)
-        {
-            console.log("whoops")
+        if (filterPanelOpen) {
             return
         }
 
@@ -140,35 +166,29 @@ export default function BrowsePage() {
             const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
             if (!nameMatch) continue
 
-            
+
 
             /* filters */
-            if (!bookmarked && onlyBookmarked) 
-            {
+            if (!bookmarked && onlyBookmarked) {
                 continue
             }
-            if (Number(rating) < starRating)
-            {
-                continue
-            } 
-            if (minimum < minPrice || maximum > maxPrice)
-            {
-                continue
-            } 
-            if (dormType !== "All" && accommodationType !== dormType)
-            {
+            if (Number(rating) < starRating) {
                 continue
             }
-            if (roomType !== "All" && !roomTypes.has(roomType))
-            {
+            if (minimum < minPrice || maximum > maxPrice) {
+                continue
+            }
+            if (dormType !== "All" && accommodationType !== dormType) {
+                continue
+            }
+            if (roomType !== "All" && !roomTypes.has(roomType)) {
                 continue
             }
             if (trueTags.length !== 0) {
                 const hasTag = tempTags.some(t => trueTags.includes(t))
-                if (!hasTag)
-                {
+                if (!hasTag) {
                     continue
-                } 
+                }
             }
 
 
