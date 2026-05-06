@@ -89,7 +89,9 @@ export interface AssignmentResponse {
   room: Room 
 }
 
-const diffFromNow = (isoDate: string | DateTime): number => {
+const diffFromNow = (isoDate: string | DateTime | undefined | null): number => {
+  if (!isoDate) return 0
+
   const target = typeof isoDate === 'string' 
     ? DateTime.fromISO(isoDate) 
     : isoDate
