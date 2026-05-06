@@ -38,7 +38,7 @@ const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
   })
 }
 
-const DEFAULT_MIN_RENT = 1000
+const DEFAULT_MIN_RENT = 500 // convert this to search for the lowest and highest rent from the DB next time.
 const DEFAULT_MAX_RENT = 15000
 
 export default function MapPage() {

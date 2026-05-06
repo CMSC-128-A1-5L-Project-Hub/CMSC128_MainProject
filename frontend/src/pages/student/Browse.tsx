@@ -40,7 +40,7 @@ export default function BrowsePage() {
     const [searchTerm, setSearchTerm] = useState("")
     const [activeFilter, setActiveFilter] = useState("All")
     const [onlyBookmarked, setOnlyBookmarked] = useState(false)
-    const [minPrice, setMinPrice] = useState(2500)
+    const [minPrice, setMinPrice] = useState(500) // converted to 500 for now. In the future min and max should be based on the lowest rent in the DB, same for max
     const [maxPrice, setMaxPrice] = useState(7000)
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
