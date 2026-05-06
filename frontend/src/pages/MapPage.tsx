@@ -33,7 +33,7 @@ const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
       minRent: rents.length ? Math.min(...rents) : 0,
       maxRent: rents.length ? Math.max(...rents) : 0,
       stayType,
-      imageUrl: acc.images?.[0]?.url ?? undefined,
+      imageUrl: acc.primaryImageUrl ?? undefined,
     } satisfies AccommodationPin
   })
 }
