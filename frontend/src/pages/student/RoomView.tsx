@@ -1,3 +1,5 @@
+//https://uble.onrender.com
+
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
@@ -13,6 +15,7 @@ import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import ApplicationModals from "@/components/applications/ApplicationModals.tsx";
 import RoomApplicationModal from "@/components/RoomApplicationModal.tsx";
+import ShareModal from "@/components/ShareModal.tsx";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const UPLB_COORDS = { longitude: 121.2436, latitude: 14.1654 }
@@ -1317,9 +1320,12 @@ export default function RoomView() {
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStart, setSelectedStart] = useState<any>(null);
   const [selectedEnd, setSelectedEnd] = useState<any>(null);
+
 
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
   // const [isFavorited, setIsFavorited] = useState(false);
@@ -1603,11 +1609,12 @@ export default function RoomView() {
                       Favorite
                     </span>
                 </button> */}
-                <button className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2">
-                  <IconShare /> 
-                    <span className="hidden md:inline text-sm font-semibold">
-                      Share
-                    </span>
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
+                >
+                <IconShare />
+                  <span className="hidden md:inline text-sm font-semibold">Share</span>
                 </button>
                 <button className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2" >
                   <IconReport />
@@ -1733,52 +1740,22 @@ export default function RoomView() {
                   }}
                 />
               ) : (
-                <div className="flex items-center gap-3 mt-2">
+                <div className="flex items-center gap-3 mt-2 mb-8">
                   <div className="flex-1">
-                    <input
-                      type="date"
-                      value={
-                        selectedStart &&
-                        !isNaN(selectedStart.year) &&
-                        !isNaN(selectedStart.month) &&
-                        !isNaN(selectedStart.day)
-                          ? `${selectedStart.year}-${String(selectedStart.month + 1).padStart(2, '0')}-${String(selectedStart.day).padStart(2, '0')}`
-                          : ""
-                      }
-                      onChange={(e) => {
-                        if (!e.target.value) { setSelectedStart(null); return; }
-                        const [y, m, d] = e.target.value.split("-").map(Number);
-                        setSelectedStart({ year: y, month: m - 1, day: d });
-                      }}
-                      className="w-full border border-[#F2D9DF] rounded-lg px-2 py-1.5 text-[11px] font-bold text-[#6B0F2B] outline-none"
-                    />
+                    <p className="text-[11px] font-bold text-[#6B0F2B]">
+                      {selectedStart
+                        ? `${MONTHS_SHORT[selectedStart.month]} ${selectedStart.day}, ${selectedStart.year}`
+                        : "—"}
+                    </p>
                     <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-In</span>
                   </div>
                   <span className="text-[#D4B0BA] text-[10px] font-bold uppercase mb-4">to</span>
                   <div className="flex-1">
-                    <input
-                      type="date"
-                      value={
-                        selectedEnd &&
-                        !isNaN(selectedEnd.year) &&
-                        !isNaN(selectedEnd.month) &&
-                        !isNaN(selectedEnd.day)
-                          ? `${selectedEnd.year}-${String(selectedEnd.month + 1).padStart(2, '0')}-${String(selectedEnd.day).padStart(2, '0')}`
-                          : ""
-                      }
-                      min={
-                        selectedStart &&
-                        !isNaN(selectedStart.year)
-                          ? `${selectedStart.year}-${String(selectedStart.month + 1).padStart(2, '0')}-${String(selectedStart.day).padStart(2, '0')}`
-                          : ""
-                      }
-                      onChange={(e) => {
-                        if (!e.target.value) { setSelectedEnd(null); return; }
-                        const [y, m, d] = e.target.value.split("-").map(Number);
-                        setSelectedEnd({ year: y, month: m - 1, day: d });
-                      }}
-                      className="w-full border border-[#F2D9DF] rounded-lg px-2 py-1.5 text-[11px] font-bold text-[#6B0F2B] outline-none"
-                    />
+                    <p className="text-[11px] font-bold text-[#6B0F2B]">
+                      {selectedEnd
+                        ? `${MONTHS_SHORT[selectedEnd.month]} ${selectedEnd.day}, ${selectedEnd.year}`
+                        : "—"}
+                    </p>
                     <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-Out</span>
                   </div>
                 </div>
@@ -1804,8 +1781,6 @@ export default function RoomView() {
                     <IconMail /> {managerUser?.email}
                   </p>
                   <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
-                    <button className="flex items-center gap-1 text-xs text-[#9A7080] hover:text-[#8C1535] background-[#9A7080]" ><IconShare /> Share</button>
-                    <span className="text-gray-200">|</span>
                     <button className="flex items-center gap-1 text-xs text-[#9A7080] hover:text-[#8C1535]"><IconReport /> Report</button>
                   </div>
                 </div>
@@ -1836,6 +1811,12 @@ export default function RoomView() {
                   setSelectedStayType={setSelectedStayType}
                   selectedArrangement={selectedArrangement}
                   setSelectedArrangement={setSelectedArrangement}
+                />
+
+                <ShareModal
+                  open={isShareModalOpen}
+                  onClose={() => setIsShareModalOpen(false)}
+                  accommodationName={accommodation.accommodationName}
                 />
 
               </div>
