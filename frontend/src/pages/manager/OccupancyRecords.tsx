@@ -643,16 +643,19 @@ export default function OccupancyRecords() {
     useEffect(() => {
         const fetchOccupancyData = async () => {
             try {
-                const [roomsResponse, historyResponse] = await Promise.all([
-                    api.get("/manager/occupancy-records"),
-                    api.get("/manager/occupancy-history"),
-                ])
-
+                const roomsResponse = await api.get("/manager/occupancy-records")
                 setRooms(roomsResponse.data)
+            } catch (err: any) {
+                console.error("Rooms error:", err)
+                setError(err.response?.data?.message || "Could not load rooms.")
+            }
+
+            try {
+                const historyResponse = await api.get("/manager/occupancy-history")
                 setHistoryRecords(historyResponse.data)
-            } catch (err) {
-                console.error(err)
-                setError("Could not load occupancy records.")
+            } catch (err: any) {
+                console.error("History error:", err)
+                setHistoryRecords([])
             } finally {
                 setLoading(false)
             }

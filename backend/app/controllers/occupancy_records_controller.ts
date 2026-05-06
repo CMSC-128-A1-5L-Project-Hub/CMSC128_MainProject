@@ -89,7 +89,7 @@ export default class OccupancyRecordsController {
       .whereHas('room', (roomQuery) => {
         roomQuery.where('accommodationId', accommodation.id)
       })
-      .orderBy('created_at', 'desc')
+      .orderBy('move_in', 'desc')
 
     const data = assignments.flatMap((assignment) => {
       const student = assignment.student
