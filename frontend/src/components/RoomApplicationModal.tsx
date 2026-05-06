@@ -12,47 +12,63 @@ import {
     IoCheckmarkCircle
 } from "react-icons/io5";
 import GradientPillSelect from "./DropDownGradient.tsx";
+import { api } from "../api/axios";
 
 interface ApplyModalProps {
     open: boolean;
     onClose: () => void;
     accommodation: any;
+    selectedRoom: any;
+    rooms: any[];
     initialStart: { year: number; month: number; day: number } | null;
     initialEnd: { year: number; month: number; day: number } | null;
-    passedStayType?: string;
-    passedArrangement?: string;
-    amenities: string[];
-    selectedAmenities: string[];
-    onToggleAmenity: (amenity: string) => void;
+    accommodationTags: string[];
+    selectedPreferences: string[];
+    setSelectedPreferences: React.Dispatch<React.SetStateAction<string[]>>;
+    selectedStayType: "transient" | "non_transient";
+    setSelectedStayType: React.Dispatch<React.SetStateAction<"transient" | "non_transient">>;
+    selectedArrangement: "single" | "double" | "shared";
+    setSelectedArrangement: React.Dispatch<React.SetStateAction<"single" | "double" | "shared">>;
+    
+    // onToggleAmenity: (amenity: string) => void;
 }
 
 export default function RoomApplicationModal({
     open,
     onClose,
     accommodation,
+    selectedRoom,
+    rooms,
     initialStart,
     initialEnd,
-    passedStayType,
-    passedArrangement,
-    amenities,
-    selectedAmenities,
-    onToggleAmenity
+    accommodationTags,
+    selectedPreferences,
+    setSelectedPreferences,
+    selectedStayType,
+    setSelectedStayType,
+    selectedArrangement,
+    setSelectedArrangement,
 }: ApplyModalProps) {
-
-    const sortedAmenities = [...amenities].sort((a, b) => {
-        const aSelected = selectedAmenities.includes(a);
-        const bSelected = selectedAmenities.includes(b);
-        if (aSelected === bSelected) return 0;
-        return aSelected ? -1 : 1;
-    });
-
+    
     const [step, setStep] = useState<"apply" | "verify">("apply");
+    type StayType = "transient" | "non_transient";
+    type Arrangement = "single" | "double" | "shared";
 
-    const stayTypes = [...new Set(accommodation?.rooms?.map((r: any) => r.room_stay_type) || [])];
-    const arrangements = [...new Set(accommodation?.rooms?.map((r: any) => r.room_type) || [])];
+    const stayTypes: StayType[] = [
+    ...new Set(
+        (accommodation?.rooms ?? [])
+        .map((r: any) => r.roomStayType ?? r.room_stay_type)
+        .filter(Boolean)
+    ),
+    ] as StayType[];
 
-    const [selectedArrangement, setSelectedArrangement] = useState(arrangements[0] || "");
-    const [selectedStayType, setSelectedStayType] = useState(stayTypes[0] || "");
+    const arrangements: Arrangement[] = [
+    ...new Set(
+        (accommodation?.rooms ?? [])
+        .map((r: any) => r.roomType ?? r.room_type)
+        .filter(Boolean)
+    ),
+    ] as Arrangement[];
 
     const [moveInDate, setMoveInDate] = useState("");
     const [moveOutDate, setMoveOutDate] = useState("");
@@ -85,11 +101,10 @@ export default function RoomApplicationModal({
     }, [moveInDate, moveOutDate]);
 
     useEffect(() => {
-        if (open) {
-            if (passedStayType) setSelectedStayType(passedStayType);
-            if (passedArrangement) setSelectedArrangement(passedArrangement);
-        }
-    }, [open, passedStayType, passedArrangement]);
+    setSelectedPreferences((prev) =>
+        prev.filter((p) => allPreferences.includes(p))
+    );
+    }, [selectedStayType, selectedArrangement]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(e.target.files || []);
@@ -120,16 +135,135 @@ export default function RoomApplicationModal({
         });
     };
 
+    const handleSubmit = async () => {
+        try {
+            const payload = {
+            accommodationId: accommodation.id,
+            roomId: currentRoom?.id,
+            applicationRoomType: selectedArrangement,
+            applicationStayType: selectedStayType,
+            durationOfStayDays: isTransient ? numberOfDays : null,
+            preferredTags:
+                selectedPreferences.length > 0 ? selectedPreferences : null,
+            moveInDate,
+            moveOutDate,
+            reservationFee: isTransient ? reservationFee : null,
+            moveInFee: !isTransient ? moveInFee : null,
+            };
+
+            console.log("Submitting payload:", payload);
+
+            try {
+                const res = await api.post("/applications", payload);
+                console.log("Application submitted:", res.data);
+                handleClose();
+            } catch (err: any) {
+                console.error("Submit failed status:", err.response?.status);
+                console.error("Submit failed data:", err.response?.data);
+            }
+
+            handleClose(); // close modal after success
+        } catch (err) {
+            console.error("Submit failed:", err);
+        }
+    };        
+
     const removeFile = (index: number) => {
         setUploadedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    const selectedRoom = accommodation?.rooms?.find(
-        (r: any) => r.room_stay_type === selectedStayType && r.room_type === selectedArrangement
-    ) ?? accommodation?.rooms?.[0];
+    const currentRoom =
+        rooms.find((room: any) => {
+            const matchesStay = room.stay === selectedStayType;
+            const matchesType = room.type === selectedArrangement;
 
-    const moveInFee = (selectedRoom?.room_rent || 0) * 3;
-    const reservationFee = 1500;
+            const roomPrefs =
+            room.tags
+                ?.filter((t: any) => t.type === "preference")
+                .map((t: any) => t.tagDetail ?? t.tag_detail) ?? [];
+
+            const matchesPreferences = selectedPreferences.every((pref) =>
+            roomPrefs.includes(pref)
+            );
+
+            return matchesStay && matchesType && matchesPreferences;
+        }) ??
+        rooms.find((room: any) =>
+            room.stay === selectedStayType &&
+            room.type === selectedArrangement
+        ) ??
+        selectedRoom;
+
+    const numberOfDays =
+    moveInDate && moveOutDate
+        ? Math.max(
+            1,
+            Math.ceil(
+            (new Date(moveOutDate).getTime() -
+                new Date(moveInDate).getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+        )
+        : 1;
+
+    const rentPerDay = Number(currentRoom?.rent ?? 0);
+
+    const totalStayCost = isTransient
+    ? rentPerDay * numberOfDays
+    : rentPerDay;
+
+    const advanceMonths = Number(currentRoom?.advanceMonths ?? 2);
+    const depositMonths = Number(currentRoom?.depositMonths ?? 1);
+    const rent = Number(currentRoom?.rent ?? 0);
+
+    const moveInFee = rent * (advanceMonths + depositMonths);
+
+    const reservationFeeType =
+        currentRoom?.reservationFeeType ?? currentRoom?.reservation_fee_type;
+
+    const reservationFeeValue = Number(
+        currentRoom?.reservationFeeValue ?? currentRoom?.reservation_fee_value ?? 0
+    );
+
+    const reservationFee =
+    reservationFeeType === "percentage"
+        ? totalStayCost  * reservationFeeValue
+        : reservationFeeType === "fixed"
+        ? reservationFeeValue
+        : 0;
+    
+    const currentRoomTags = currentRoom?.tags ?? [];
+
+    const matchingRooms = rooms.filter(
+        (r: any) => r.stay === selectedStayType && r.type === selectedArrangement
+    );
+
+    const allPreferences = Array.from(
+    new Set(
+        matchingRooms.flatMap((r: any) =>
+        (r.tags ?? [])
+            .filter((t: any) => t.type === "preference")
+            .map((t: any) => t.tagDetail ?? t.tag_detail)
+        )
+    )
+    );
+    
+    const commonPreferences = allPreferences.filter((pref: string) =>
+        matchingRooms.every((r: any) =>
+            (r.tags ?? [])
+            .filter((t: any) => t.type === "preference")
+            .map((t: any) => t.tagDetail ?? t.tag_detail)
+            .includes(pref)
+        )
+    );
+
+    const optionalPreferences = allPreferences.filter(
+        (pref: string) => !commonPreferences.includes(pref)
+    );
+
+    const roomInclusions = currentRoomTags
+        .filter((t: any) => t.type === "inclusion")
+        .map((t: any) => t.tagDetail ?? t.tag_detail);
 
     const handleClose = () => {
         setStep("apply");
@@ -137,8 +271,6 @@ export default function RoomApplicationModal({
         setMoveOutDate("");
         setUploadedFiles([]);
         setPaymentFile(null);
-        setSelectedStayType(stayTypes[0] || "");
-        setSelectedArrangement(arrangements[0] || "");
         setDeclaration(null);
         onClose();
     };
@@ -163,15 +295,15 @@ export default function RoomApplicationModal({
                             <div className="w-full md:w-[320px] h-[180px] rounded-3xl overflow-hidden shadow-sm flex-shrink-0">
                                 <img
                                     src={accommodation?.images?.[0]?.image_path || "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&q=80&w=400"}
-                                    alt={accommodation?.accommodation_name}
+                                    alt={accommodation?.accommodationName}
                                     className="w-full h-full object-cover"
                                 />
                             </div>
                             <div className="flex-1 w-full">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="text-2xl font-bold text-[#1A0008] tracking-tight">{accommodation?.accommodation_name}</h3>
-                                        <p className="text-[11px] text-[#9A7080] mt-1 font-medium">{accommodation?.accommodation_location}</p>
+                                        <h3 className="text-2xl font-bold text-[#1A0008] tracking-tight">{accommodation?.accommodationName}</h3>
+                                        <p className="text-[11px] text-[#9A7080] mt-1 font-medium">{accommodation?.accommodationLocation}</p>
                                         <div className="flex items-center gap-1 mt-2 text-[#C9973A]">
                                             {[...Array(5)].map((_, i) => (
                                                 <IoStar key={i} size={14} className={i >= Math.floor(accommodation?.avgrating || 0) ? "opacity-30" : ""} />
@@ -182,40 +314,55 @@ export default function RoomApplicationModal({
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-2xl font-black text-[#C9973A]">₱{selectedRoom?.room_rent?.toLocaleString() ?? "—"}</span>
-                                        <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per month</p>
+                                        <span className="text-2xl font-black text-[#C9973A]">₱{currentRoom?.rent?.toLocaleString() ?? "—"}</span>
+                                        {!isTransient ? (
+                                            <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per month</p>
+                                        ) : (
+                                            <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per day</p>
+                                        )}
                                     </div>
                                 </div>
                                 {/* Amenity Grid */}
                                 <div className="flex flex-wrap gap-1.5 mt-4">
-                                    {sortedAmenities.map((amenity) => {
-                                        const isSelected = selectedAmenities.includes(amenity);
+                                    {[...accommodationTags, ...roomInclusions, ...commonPreferences].map((amenity) => (
+                                        <span
+                                        key={`static-${amenity}`}
+                                        className="px-3 py-1 text-[9px] rounded-full font-bold uppercase flex items-center gap-1.5 bg-[#6B0F2B] text-white border border-transparent shadow-sm"
+                                        >
+                                        <IoCheckmarkCircle size={12} />
+                                        {amenity}
+                                        </span>
+                                    ))}
 
-                                        return (
-                                            <button
-                                                key={amenity}
-                                                type="button"
-                                                onClick={() => onToggleAmenity(amenity)} // This handles the "Passing" of the state back to the parent
-                                                className={`px-3 py-1 text-[9px] rounded-full font-bold uppercase transition-all flex items-center gap-1.5 ${isSelected
-                                                        ? "bg-[#6B0F2B] text-white border border-transparent shadow-sm" // SELECTED: Solid Maroon
-                                                        : "bg-transparent border-2 border-dashed border-[#D4B0BA] text-[#9A7080] opacity-70 hover:opacity-100" // DESELECTED: Dashed Pink
-                                                    }`}
-                                            >
-                                                {isSelected ? (
-                                                    <IoCheckmarkCircle size={12} />
-                                                ) : (
-                                                    <div className="w-2 h-2 rounded-full border border-[#D4B0BA]" />
-                                                )}
+                                    {selectedPreferences.map((pref) => (
+                                        <button
+                                        key={`selected-${pref}`}
+                                        type="button"
+                                        onClick={() =>
+                                            setSelectedPreferences((prev) => prev.filter((p) => p !== pref))
+                                        }
+                                        className="px-3 py-1 text-[9px] rounded-full font-bold uppercase transition-all flex items-center gap-1.5 bg-[#6B0F2B] text-white border border-transparent shadow-sm"
+                                        >
+                                        <IoCheckmarkCircle size={12} />
+                                        {pref}
+                                        <IoCloseOutline size={14} className="ml-1 hover:text-white/80" />
+                                        </button>
+                                    ))}
 
-                                                {amenity}
-
-                                                {isSelected && (
-                                                    <IoCloseOutline size={14} className="ml-1 hover:text-white/80" />
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                    {optionalPreferences
+                                        .filter((pref) => !selectedPreferences.includes(pref))
+                                        .map((pref) => (
+                                        <button
+                                            key={`optional-${pref}`}
+                                            type="button"
+                                            onClick={() => setSelectedPreferences((prev) => [...prev, pref])}
+                                            className="px-3 py-1 text-[9px] rounded-full font-bold uppercase transition-all flex items-center gap-1.5 bg-transparent border-2 border-dashed border-[#D4B0BA] text-[#9A7080] opacity-70 hover:opacity-100"
+                                        >
+                                            <div className="w-2 h-2 rounded-full border border-[#D4B0BA]" />
+                                            {pref}
+                                        </button>
+                                        ))}
+                                    </div>
                             </div>
                         </div>
 
@@ -227,17 +374,39 @@ export default function RoomApplicationModal({
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
-                                <div className="space-y-1">
+                                {/* <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest">Application ID</label>
                                     <p className="text-xl font-bold text-[#1A0008]">1</p>
+                                </div> */}
+
+                                <div className="md:col-span-1">
+                                    <GradientPillSelect
+                                        label="Stay Type"
+                                        value={selectedStayType}
+                                        onChange={(v) => setSelectedStayType(v as StayType)}
+                                        width="w-full"
+                                        labelSize="text-[10px]"
+                                        optionSize="text-[13px]"
+                                        options={stayTypes.map((st) => ({
+                                            value: st,
+                                            label: st === "non_transient" ? "Non-Transient" : "Transient",
+                                        }))}
+                                    />
                                 </div>
 
                                 <div className="md:col-span-1">
-                                    <GradientPillSelect label="Stay Type" value={selectedStayType} onChange={setSelectedStayType} width="w-full" labelSize="text-[10px]" optionSize="text-[13px]" options={stayTypes.map((st: any) => ({ value: st, label: st === "non_transient" ? "Non-Transient" : "Transient" }))} />
-                                </div>
-
-                                <div className="md:col-span-1">
-                                    <GradientPillSelect label="Arrangement" value={selectedArrangement} onChange={setSelectedArrangement} width="w-full" labelSize="text-[10px]" optionSize="text-[13px]" options={arrangements.map((a: any) => ({ value: a, label: a.charAt(0).toUpperCase() + a.slice(1) }))} />
+                                    <GradientPillSelect
+                                        label="Arrangement"
+                                        value={selectedArrangement}
+                                        onChange={(v) => setSelectedArrangement(v as Arrangement)}
+                                        width="w-full"
+                                        labelSize="text-[10px]"
+                                        optionSize="text-[13px]"
+                                        options={arrangements.map((a) => ({
+                                            value: a,
+                                            label: a.charAt(0).toUpperCase() + a.slice(1),
+                                        }))}
+                                    />
                                 </div>
                             </div>
 
@@ -258,9 +427,23 @@ export default function RoomApplicationModal({
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest block">Move-In Fee</label>
-                                    <p className="text-2xl font-black text-[#C9973A]">₱{moveInFee.toLocaleString()}</p>
-                                    <p className="text-[9px] font-bold text-[#9A7080]">2 months advance, 1 month deposit</p>
+                                    <label className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest block">
+                                        {isTransient ? "Reservation Fee" : "Move-In Fee"}
+                                    </label>
+                                    <p className="text-2xl font-black text-[#C9973A]">
+                                        ₱{(isTransient ? reservationFee : moveInFee).toLocaleString()}
+                                    </p>
+                                    {!isTransient && (
+                                        <p className="text-[9px] font-bold text-[#9A7080]">
+                                        {advanceMonths} {advanceMonths === 1 ? "month" : "months"} advance,{" "}
+                                        {depositMonths} {depositMonths === 1 ? "month" : "months"} deposit
+                                        </p>
+                                    )}
+                                    {isTransient && (
+                                    <p className="text-[9px] font-bold text-[#9A7080] italic">
+                                        Total fee: ₱{rentPerDay.toLocaleString()} × {numberOfDays} days = ₱{totalStayCost.toLocaleString()}
+                                    </p>
+                                )}
                                 </div>
                             </div>
                         </div>
@@ -343,20 +526,20 @@ export default function RoomApplicationModal({
                     /* VERIFICATION STEP */
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div>
-                            <h3 className="text-3xl font-black text-[#1A0008] tracking-tight">{accommodation?.accommodation_name}</h3>
-                            <p className="text-xs font-bold text-[#9A7080] mt-1">{accommodation?.accommodation_location}</p>
+                            <h3 className="text-3xl font-black text-[#1A0008] tracking-tight">{accommodation?.accommodationName}</h3>
+                            <p className="text-xs font-bold text-[#9A7080] mt-1">{accommodation?.accommodationLocation}</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <div>
                                 <h4 className="text-[11px] font-black text-[#6B0F2B] uppercase tracking-widest mb-4">Stay Details</h4>
                                 <div className="space-y-4">
-                                    {isTransient && (
+                                    {/* {isTransient && (
                                         <div>
                                             <p className="text-[9px] font-bold text-[#C8B0B8] uppercase tracking-widest">Application ID</p>
                                             <p className="text-lg font-black text-[#1A0008]">1</p>
                                         </div>
-                                    )}
+                                    )} */}
                                     <div>
                                         <p className="text-[9px] font-bold text-[#C8B0B8] uppercase tracking-widest">Stay Type</p>
                                         <p className="text-lg font-black text-[#1A0008] capitalize">{(String(selectedStayType) || "").replace('_', ' ')}</p>
@@ -390,13 +573,22 @@ export default function RoomApplicationModal({
                                 <div>
                                     <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">{isTransient ? "Reservation Fee" : "Move-In Fee"}</p>
                                     <p className="text-3xl font-black text-[#C9973A]">₱{(isTransient ? reservationFee : moveInFee).toLocaleString()}</p>
-                                    <p className="text-[10px] text-[#9A7080] font-bold">2 months advance, 1 month deposit</p>
+                                    { !isTransient ? (
+                                        <p className="text-[10px] text-[#9A7080] font-bold">{advanceMonths} {advanceMonths === 1 ? "month" : "months"}, {depositMonths} {depositMonths === 1 ? "month" : "months"} deposit</p>
+                                    ) : ( <p className="text-[10px] text-[#9A7080] font-bold italic">One-time reservation fee</p> ) }
                                 </div>
-                                <div>
-                                    <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">Monthly Rent</p>
-                                    <p className="text-3xl font-black text-[#C9973A]">₱{selectedRoom?.room_rent?.toLocaleString()}</p>
-                                    <p className="text-[10px] text-[#9A7080] font-bold italic">Per 5th of the month</p>
-                                </div>
+                                { !isTransient ? (
+                                    <div>
+                                        <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">Monthly Rent</p>
+                                        <p className="text-3xl font-black text-[#C9973A]">₱{currentRoom?.rent?.toLocaleString()}</p>
+                                        <p className="text-[10px] text-[#9A7080] font-bold italic">Per month</p>
+                                    </div>
+                                ): 
+                                    <div>
+                                        <p className="text-[9px] font-bold text-[#C8B0B8] uppercase">Total Payment</p>
+                                        <p className="text-3xl font-black text-[#C9973A]">₱{totalStayCost.toLocaleString()}</p>
+                                    <p className="text-[10px] text-[#9A7080] font-bold italic">For {numberOfDays} {numberOfDays === 1 ? "day" : "days"}</p>
+                                    </div>}
                             </div>
                         </div>
 
@@ -472,6 +664,7 @@ export default function RoomApplicationModal({
                         <div className="flex justify-end gap-4 pt-6">
                             <Button variant="secondary" onClick={() => setStep("apply")} className="px-10 rounded-full">Back</Button>
                             <Button
+                                onClick={handleSubmit}
                                 variant="primary"
                                 size="lg"
                                 className={`px-16 rounded-full text-white transition-all ${declaration === "accept" && (!isTransient || paymentFile) ? 'bg-emerald-500' : 'bg-[#8C1533] opacity-50 grayscale'}`}

@@ -1,0 +1,191 @@
+// ─── HOW TO ADD A NEW DORM ────────────────────────────────────────────────────
+// 1. Coordinates  — Google Maps → right-click pin → copy lat/lng (6 decimal places)
+// 2. Photos       — drop .jpg / .png / .webp files into database/seed_data/images/
+//                   Filenames must be unique across ALL dorms (prefix with dorm slug,
+//                   e.g. "kamia_hall_front.jpg"). The seeder uploads them to B2.
+// 3. Add an entry to UPLB_DORMS below (TypeScript will catch missing required fields)
+// 4. Run: cd backend && node ace db:seed --files database/seeders/02_uplb_dorms_seeder.ts
+// 5. Verify the pin appears on /map
+//
+// To fix wrong data: delete the accommodation row in the DB, then re-run the seeder.
+// Or reset everything: node ace migration:fresh --seed
+//
+// Taken names (do NOT reuse — unique constraint in DB):
+//   "UBLE Residences", "White House", "One Silangan", "Men's Dorm",
+//   "ATI", "Scholar's Dorm", "One Sapphire Place"
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface RoomSeedData {
+  room_number: string                                    // max 5 chars
+  room_building: string                                  // max 20 chars
+  room_type: 'single' | 'double' | 'shared'
+  room_stay_type: 'transient' | 'non_transient'
+  room_capacity: number
+  room_current_occupancy: number
+  room_availability: 'available' | 'occupied' | 'maintenance'
+  room_rent: number                                      // PHP per month
+  tenant_restriction: 'coed' | 'non-coed'
+  room_size?: number                                     // sqm
+  advance_months?: number
+  deposit_months?: number
+  reservation_fee_type?: 'fixed' | 'percentage'
+  reservation_fee_value?: number
+  inclusions?: string[]                                  // room_tags type='inclusion', max 30 chars each
+  preferences?: string[]                                 // room_tags type='preference', max 30 chars each
+}
+
+export interface DormSeedData {
+  accommodation_name: string                             // IDEMPOTENCY KEY — max 50 chars
+  accommodation_location: string                         // human-readable address, max 150 chars
+  latitude: number                                       // decimal(9,6) from Google Maps
+  longitude: number
+  accommodation_type: 'on-campus' | 'off-campus' | 'partner_housing'
+  tenant_restriction: 'male-only' | 'female-only' | 'coed'
+  accommodation_capacity: number                         // total tenants
+  accommodation_size?: number                            // sqm of whole property
+  walking_distance?: number                              // minutes to UPLB gate
+  biking_distance?: number
+  driving_distance?: number
+  application_start_date?: string                        // 'YYYY-MM-DD'
+  application_end_date?: string
+  // Filenames of images in database/seeders/data/images/ (e.g. 'kamia_hall_front.jpg').
+  // First entry is the cover image. Filenames must be unique across ALL dorms.
+  images: string[]
+  tags?: string[]                                        // accommodation-level tags, max 30 chars each
+  rooms: RoomSeedData[]
+}
+
+export const UPLB_DORMS: DormSeedData[] = [
+  // Add real UPLB dorms here. Example shape:
+  //
+  // {
+  //   accommodation_name: 'Kamia Residence Hall',      // max 50 chars
+  //   accommodation_location: 'Kamia Rd, UPLB Campus, College, Laguna',
+  //   latitude: 14.166012,
+  //   longitude: 121.241543,
+  //   accommodation_type: 'on-campus',
+  //   tenant_restriction: 'female-only',
+  //   accommodation_capacity: 200,
+  //   walking_distance: 5,
+  //   biking_distance: 2,
+  //   driving_distance: 3,
+  //   application_start_date: '2026-06-01',
+  //   application_end_date: '2026-07-15',
+  //   images: [
+  //     'kamia_hall_front.jpg',    // file must exist in data/images/
+  //     'kamia_hall_lobby.jpg',
+  //   ],
+  //   tags: ['On-campus housing', '24/7 Security', 'Has canteen'],
+  //   rooms: [
+  //     {
+  //       room_number: '101',
+  //       room_building: 'Kamia Hall',
+  //       room_type: 'shared',
+  //       room_stay_type: 'non_transient',
+  //       room_capacity: 4,
+  //       room_current_occupancy: 0,
+  //       room_availability: 'available',
+  //       room_rent: 1800,
+  //       tenant_restriction: 'non-coed',
+  //       inclusions: ['Study desk', 'Locker', 'WiFi Ready'],
+  //     },
+  //   ],
+  // },
+
+  {
+    accommodation_name: 'Makiling Residence Hall',      // max 50 chars
+    accommodation_location: 'Felix O. Chinte, UPLB Campus, College, Laguna',
+    latitude: 14.152173,
+    longitude: 121.235081,
+    accommodation_type: 'on-campus',
+    tenant_restriction: 'female-only',
+    accommodation_capacity: 200,
+    walking_distance: 36,
+    biking_distance: 15,
+    driving_distance: 8,
+    application_start_date: '2026-06-01',
+    application_end_date: '2026-07-15',
+    images: [
+      'Makiling_Hall_entrance.jpg',    // file must exist in data/images/
+      'Makiling_Hall_inside.jpg',
+      'Makiling_Hall_inside2.jpg',
+      'Makiling_Hall_main.jpg',
+      'Makiling_Hall_side.jpg',
+    ],
+    tags: ['On-campus housing', '24/7 Security', 'Has canteen'],
+    rooms: [
+      {
+        room_number: '101',
+        room_building: 'Makiling Hall',
+        room_type: 'shared',
+        room_stay_type: 'non_transient',
+        room_capacity: 4,
+        room_current_occupancy: 0,
+        room_availability: 'available',
+        room_rent: 800,
+        tenant_restriction: 'non-coed',
+        inclusions: ['Study desk', 'Cabinet', 'WiFi Ready'],
+      },
+      {
+        room_number: '102',
+        room_building: 'Makiling Hall',
+        room_type: 'shared',
+        room_stay_type: 'non_transient',
+        room_capacity: 3,
+        room_current_occupancy: 0,
+        room_availability: 'available',
+        room_rent: 800,
+        tenant_restriction: 'non-coed',
+        inclusions: ['Study desk', 'Cabinet', 'WiFi Ready'],
+      },
+      {
+        room_number: '103',
+        room_building: 'Makiling Hall',
+        room_type: 'shared',
+        room_stay_type: 'non_transient',
+        room_capacity: 3,
+        room_current_occupancy: 0,
+        room_availability: 'available',
+        room_rent: 800,
+        tenant_restriction: 'non-coed',
+        inclusions: ['Study desk', 'Cabinet', 'WiFi Ready'],
+      },
+      {
+        room_number: '104',
+        room_building: 'Makiling Hall',
+        room_type: 'shared',
+        room_stay_type: 'non_transient',
+        room_capacity: 4,
+        room_current_occupancy: 0,
+        room_availability: 'available',
+        room_rent: 800,
+        tenant_restriction: 'non-coed',
+        inclusions: ['Study desk', 'Cabinet', 'WiFi Ready'],
+      },
+      {
+        room_number: '105',
+        room_building: 'Makiling Hall',
+        room_type: 'shared',
+        room_stay_type: 'non_transient',
+        room_capacity: 2,
+        room_current_occupancy: 0,
+        room_availability: 'available',
+        room_rent: 800,
+        tenant_restriction: 'non-coed',
+        inclusions: ['Study desk', 'Cabinet', 'WiFi Ready'],
+      },
+      {
+        room_number: '106',
+        room_building: 'Makiling Hall',
+        room_type: 'shared',
+        room_stay_type: 'non_transient',
+        room_capacity: 5,
+        room_current_occupancy: 0,
+        room_availability: 'available',
+        room_rent: 800,
+        tenant_restriction: 'non-coed',
+        inclusions: ['Study desk', 'Cabinet', 'WiFi Ready'],
+      },
+    ],
+  },
+]

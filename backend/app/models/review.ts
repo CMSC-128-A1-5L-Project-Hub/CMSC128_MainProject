@@ -2,6 +2,7 @@ import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Accommodation from '#models/accommodation'
 import Student from '#models/student'
+import { DateTime } from 'luxon'
 
 export default class Review extends BaseModel {
   static table = 'reviews'
@@ -20,6 +21,9 @@ export default class Review extends BaseModel {
 
   @column()
   declare content: string | null
+
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
 
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>

@@ -78,7 +78,7 @@ function getActiveId(pathname: string, role: string): string {
   if (role === "student") {
     if (pathname.startsWith("/student/billingdashboard")) return "documents";
     if (pathname.startsWith("/student/dashboard")) return "dashboard";
-    if (pathname.startsWith("/browse")) return "search";
+    if (pathname.startsWith("/student/browse")) return "search";
     if (pathname.startsWith("/student/applications")) return "applications";
     if (pathname.startsWith("/student/profile")) return "account";
     return "dashboard";

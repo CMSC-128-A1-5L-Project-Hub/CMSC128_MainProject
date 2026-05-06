@@ -94,8 +94,18 @@ export default class ApplicationsController {
     const user = auth.user!
     const student = await Student.findByOrFail('userId', user.id) // Get student_number
 
-    const { accommodationId, applicationRoomType, applicationStayType,
-            durationOfStayDays, preferredTags } = request.all()
+    const {
+      accommodationId,
+      roomId,
+      applicationRoomType,
+      applicationStayType,
+      durationOfStayDays,
+      preferredTags,
+      moveInDate,
+      moveOutDate,
+      reservationFee,
+      moveInFee,
+    } = request.all()
 
     // Conflict Prevention: Does the student already have an active stay?
     const activeStay = await Assignment.query()
@@ -114,10 +124,15 @@ export default class ApplicationsController {
     // Create the application
     const newApp = await Application.create({
       accommodationId,
+      roomId,
       studentNumber: student.studentNumber,
       applicationRoomType,
       applicationStayType,
       durationOfStayDays,
+      moveInDate,
+      moveOutDate,
+      reservationFee: applicationStayType === 'transient' ? reservationFee : null,
+      moveInFee: applicationStayType === 'non_transient' ? moveInFee : null,
       applicationStatus: initialStatus,
       preferredTags: preferredTags ?? null,
     })
@@ -203,7 +218,7 @@ export default class ApplicationsController {
     if (user.role === 'landlord') {
       const applications = await Application.query()
         .whereHas('accommodation', (q) => q.where('landlordId', user.id))
-        .where('applicationStatus', 'under_review')
+        .whereIn('applicationStatus', ['under_review', 'approved', 'waitlisted', 'confirmed'])
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
         .orderBy('applicationDate', 'asc')

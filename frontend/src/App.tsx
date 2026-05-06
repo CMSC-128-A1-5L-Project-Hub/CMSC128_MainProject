@@ -23,7 +23,6 @@ import LandlordDashboard from "./pages/landlord/Dashboard"
 import NotificationsPage from "./pages/shared/Notifications"
 import AdminDashboard from "./pages/admin/Dashboard"
 import ProfilePage from "./pages/student/ProfilePage"
-import FullRoomView from "./pages/student/FullRoomView"
 import RoomView from "./pages/student/RoomView"
 import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
@@ -44,6 +43,7 @@ function FullLandingPage() {
       <LandingPage />
       <AboutSection />
       <FeaturesSection />
+      <ResidenceCarousel />
       <UBLEFooter />
     </>
   );
@@ -59,7 +59,7 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/success" element={<AuthSuccess/>}/>
         <Route path="/map" element={<InteractiveMap />} />
-        <Route path="/accommodations/:id" element={<FullRoomView />} />
+        {/* <Route path="/accommodations/:id" element={<FullRoomView />} /> */}
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
@@ -74,7 +74,7 @@ function App() {
         <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/student/applications" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
         <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
-        <Route path="/student/roomview" element={<RoomView />} />
+        <Route path="/student/roomview/:id" element={<RoomView />} />
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>

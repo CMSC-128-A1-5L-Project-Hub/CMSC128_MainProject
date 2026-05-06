@@ -4,7 +4,8 @@ import Logo from "../../components/Logo"
 
 export default function SignIn() {
     const handleGoogleLogin = () => {
-        window.location.href="http://localhost:3333/auth/google/redirect"
+        const base = import.meta.env.VITE_API_URL || ''
+        window.location.href = `${base}/auth/google/redirect`
     }
 
     return(

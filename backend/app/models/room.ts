@@ -40,6 +40,22 @@ export default class Room extends BaseModel {
   @column()
   declare roomAvailability: 'available' | 'occupied' | 'maintenance'
 
+
+  @column()
+  declare advanceMonths: number
+
+  @column()
+  declare depositMonths: number
+
+  @column()
+  declare roomSize: number | null
+
+  @column()
+  declare reservationFeeType: 'fixed' | 'percentage' | null
+
+  @column()
+  declare reservationFeeValue: number | null
+
   @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
   declare accommodation: BelongsTo<typeof Accommodation>
 

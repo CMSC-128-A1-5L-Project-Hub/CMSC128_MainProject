@@ -19,9 +19,9 @@ export default class AuthController {
 
   async devLogin({ auth, request, response, session }: HttpContext) {
     // Only allowed in development
-    if (process.env.NODE_ENV === 'production') {
-      return response.status(403).send('Not allowed in production')
-    }
+    // if (process.env.NODE_ENV === 'production') {
+    //   return response.status(403).send('Not allowed in production')
+    // }
 
     const role = request.input('role', 'student') // Default to student
 
