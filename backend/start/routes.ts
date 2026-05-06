@@ -212,6 +212,6 @@ router
 // ====================================================================
 // DEV ROUTES
 // ====================================================================
-if (process.env.NODE_ENV === 'development') {
+// if (process.env.NODE_ENV === 'development') {
   router.get('/dev/login', [controllers.Auth, 'devLogin'])
-}
+// }
