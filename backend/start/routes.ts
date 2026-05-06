@@ -205,6 +205,7 @@ router
       router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
       router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
       router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
+      router.get('/manager/occupancy-history', [controllers.OccupancyRecords, 'history'])
   })
   .use(middleware.auth())
 

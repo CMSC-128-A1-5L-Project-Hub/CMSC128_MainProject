@@ -83,16 +83,16 @@ const managerProfile: ManagerProfile = {
 //         ]},
 // ]
 
-const historyRecords: HistoryRecord[] = [
-    { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
-      roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-in",  date: "Mar 14, 2026", time: "10:30 AM" },
-    { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
-      roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-in",  date: "Mar 14, 2026", time: "10:30 AM" },
-    { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
-      roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-out", date: "Mar 14, 2026", time: "10:30 AM" },
-    { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
-      roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-in",  date: "Mar 14, 2026", time: "10:30 AM" },
-]
+// const historyRecords: HistoryRecord[] = [
+//     { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
+//       roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-in",  date: "Mar 14, 2026", time: "10:30 AM" },
+//     { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
+//       roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-in",  date: "Mar 14, 2026", time: "10:30 AM" },
+//     { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
+//       roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-out", date: "Mar 14, 2026", time: "10:30 AM" },
+//     { tenant: { fullName: "Kayanne Reyes", email: "kmreyes@up.edu.ph", phoneNumber: "09123456789" },
+//       roomNumber: "6203", roomBuilding: "6", roomType: "double", action: "Move-in",  date: "Mar 14, 2026", time: "10:30 AM" },
+// ]
 
 const ROOMS_PER_PAGE = 3
 const HISTORY_PER_PAGE = 3
@@ -398,8 +398,7 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
     )
 }
 
-const OccupancyHistory = ({ records = historyRecords, className }: { records?: HistoryRecord[], className?: string }) => {
-    const [currentPage, setCurrentPage] = useState(1)
+const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord[], className?: string }) => {    const [currentPage, setCurrentPage] = useState(1)
     const [sortBy, setSortBy] = useState("Room Type")
     const [sortOpen, setSortOpen] = useState(false)
     const [search, setSearch] = useState("")
@@ -639,13 +638,18 @@ export default function OccupancyRecords() {
     const [rooms, setRooms] = useState<Room[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
+    const [historyRecords, setHistoryRecords] = useState<HistoryRecord[]>([])
 
     useEffect(() => {
-        const fetchRooms = async () => {
+        const fetchOccupancyData = async () => {
             try {
-                const response = await api.get("/manager/occupancy-records")
+                const [roomsResponse, historyResponse] = await Promise.all([
+                    api.get("/manager/occupancy-records"),
+                    api.get("/manager/occupancy-history"),
+                ])
 
-                setRooms(response.data)
+                setRooms(roomsResponse.data)
+                setHistoryRecords(historyResponse.data)
             } catch (err) {
                 console.error(err)
                 setError("Could not load occupancy records.")
@@ -654,7 +658,7 @@ export default function OccupancyRecords() {
             }
         }
 
-        fetchRooms()
+        fetchOccupancyData()
     }, [])
 
     return (
