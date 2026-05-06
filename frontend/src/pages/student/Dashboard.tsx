@@ -720,7 +720,7 @@ useEffect(() => {
     const fetchNotifications = async () => {
         try {
         const res = await api.get("/notifications");
-        console.log("notifications:", res.data);
+        // console.log("notifications:", res.data);
 
 
         const data = res.data;
@@ -777,8 +777,8 @@ useEffect(() => {
 
         setPendingApplicationsCount(pendingCount);
 
-        console.log("APPLICATIONS:", data);
-        console.log("PENDING COUNT:", pendingCount);
+        // console.log("APPLICATIONS:", data);
+        // console.log("PENDING COUNT:", pendingCount);
       } catch (error) {
         console.error("Failed to fetch applications:", error);
       } finally {
@@ -797,7 +797,7 @@ useEffect(() => {
     try {
       const res = await api.get('/recommended-accommodations')
       const data = res.data ?? []
-      console.log("RECOMMENDED DORMS:", data);
+      // console.log("RECOMMENDED DORMS:", data);
       setRecommendedDorms(data)
     } catch (error) {
       console.error('Failed to fetch recommended dorms:', error)
@@ -817,7 +817,7 @@ useEffect(() => {
       const res = await api.get("/my-fees");
       const fees = res.data.data ?? res.data ?? [];
 
-      console.log("BILLING:", fees);
+      // console.log("BILLING:", fees);
 
       if (!Array.isArray(fees) || fees.length === 0) {
         setBillingOverviewData(null);
