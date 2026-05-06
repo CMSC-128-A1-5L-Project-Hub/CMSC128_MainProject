@@ -587,20 +587,22 @@ function FilterForm({ onClose }: { onClose: () => void }) {
 
             {/* Price range */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
-            <div className="flex justify-between mb-3">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
-                    ₱{minPrice.toLocaleString()}
-                </span>
-                <span className="text-xs text-[#9A7080] self-center">to</span>
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
-                    ₱{maxPrice.toLocaleString()}
-                </span>
+            <div className="px-2">
+                <div className="flex justify-between mb-3">
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
+                        ₱{minPrice.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-[#9A7080] self-center">to</span>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
+                        ₱{maxPrice.toLocaleString()}
+                    </span>
+                </div>
+                <DualRangeSlider
+                    minVal={minPrice} maxVal={maxPrice}
+                    onMinChange={setMinPrice} onMaxChange={setMaxPrice}
+                    dataMin={0} dataMax={10000}
+                />
             </div>
-            <DualRangeSlider
-                minVal={minPrice} maxVal={maxPrice}
-                onMinChange={setMinPrice} onMaxChange={setMaxPrice}
-                dataMin={2500} dataMax={10000}
-            />
 
             <Divider />
 
