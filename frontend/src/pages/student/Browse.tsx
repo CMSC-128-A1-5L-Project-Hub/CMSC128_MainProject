@@ -35,12 +35,10 @@ type Dorm = {
    MAIN PAGE
 ══════════════════════════════════════════════════════════════════════════════ */
 export default function BrowsePage() {
-
-    /* ── state — all untouched ── */
     const [searchTerm, setSearchTerm] = useState("")
     const [activeFilter, setActiveFilter] = useState("All")
     const [onlyBookmarked, setOnlyBookmarked] = useState(false)
-    const [minPrice, setMinPrice] = useState(500) // converted to 500 for now. In the future min and max should be based on the lowest rent in the DB, same for max
+    const [minPrice, setMinPrice] = useState(500)
     const [maxPrice, setMaxPrice] = useState(7000)
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
@@ -56,7 +54,6 @@ export default function BrowsePage() {
 
     const navigate = useNavigate()
 
-    /* ── queries — untouched ── */
     const { data: accommodations = [], isError: accommodationsError } = useQuery({
         queryKey: ["accommodations", searchTerm, activeFilter],
         queryFn: async () => {
@@ -265,12 +262,12 @@ export default function BrowsePage() {
                     )}
 
                     {/* Body */}
-                    <div className="flex flex-col md:flex-row gap-4 px-6 pb-8 flex-1">
+                    <div className="flex flex-col md:flex-row gap-4 px-6 pb-8 flex-1 overflow-hidden">
 
-                        {/* ── LEFT: scrollable tile list ── */}
-                        <div className="flex flex-col w-full md:w-1/2 shrink-0">
+                        {/* ── LEFT ---*/}
+                        <div className="flex flex-col w-full md:w-1/2 shrink-0 min-h-0">
 
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center justify-between mb-3 shrink-0">
                                 <p className="text-[#1C0A11] font-semibold text-sm">
                                     {flatDorms.length > 0 ? (
                                         <>
@@ -281,7 +278,7 @@ export default function BrowsePage() {
                                 </p>
                             </div>
 
-                            <div className="flex flex-col gap-3 overflow-y-auto pr-1 max-h-[78vh]">
+                            <div className="flex flex-col gap-3 overflow-y-auto pr-1 min-h-0 flex-1 max-h-[60vh] md:max-h-[78vh]">
                                 {flatDorms.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center h-72 gap-3 text-[#9A7080]">
                                         <MapPin size={40} strokeWidth={1.3} />
@@ -303,7 +300,7 @@ export default function BrowsePage() {
                         </div>
 
                         {/* ── RIGHT: map ── */}
-                        <div className="flex flex-col w-full md:w-1/2 shrink-0 rounded-2xl overflow-hidden border border-[#E8D4DF] shadow-md min-h-[560px] relative z-50">
+                        <div className="flex flex-col w-full md:w-1/2 shrink-0 rounded-2xl overflow-hidden border border-[#E8D4DF] shadow-md h-[50vh] md:h-auto md:min-h-[560px] relative z-50">
                             <div className="flex items-center gap-2 px-5 py-4 bg-white border-b border-[#E8D4DF] shrink-0">
                                 <MapPin size={14} className="text-[#6B0F2B]" />
                                 <span className="text-[#1C0A11] font-semibold text-sm">Map view</span>
