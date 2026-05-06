@@ -145,36 +145,28 @@ export default function BrowsePage() {
             /* filters */
             if (!bookmarked && onlyBookmarked) 
             {
-                console.log("book", accommodationName)
                 continue
             }
-            if (Number(rating) < starRating || rating === "6")
+            if (Number(rating) < starRating)
             {
-                console.log("rating", accommodationName)
                 continue
             } 
             if (minimum < minPrice || maximum > maxPrice)
             {
-                console.log("proce", accommodationName)
                 continue
             } 
             if (dormType !== "All" && accommodationType !== dormType)
             {
-                console.log("domrtpe", accommodationName, dormType, accommodationType)
                 continue
             }
             if (roomType !== "All" && !roomTypes.has(roomType))
             {
-                console.log("roomtpe", accommodationName)
                 continue
             }
             if (trueTags.length !== 0) {
-                
-            
                 const hasTag = tempTags.some(t => trueTags.includes(t))
                 if (!hasTag)
                 {
-                    console.log("tags", accommodationName)
                     continue
                 } 
             }
@@ -183,7 +175,7 @@ export default function BrowsePage() {
             tempDorms.push({
                 name: accommodationName, subtitle: accommodationLocation,
                 meta: accommodationType, minPrice: minimum, maxPrice: maximum,
-                priceUnit: "/ month", rating, accommodationId: id,
+                priceUnit: "/ month", rating: rating == "6" ? "0" : rating, accommodationId: id,
                 tags: tempTags, bookmarked,
             })
 
@@ -192,7 +184,7 @@ export default function BrowsePage() {
                 accommodationType, accommodationCapacity, tenantRestriction,
                 latitude, longitude, minRent: minimum, maxRent: maximum,
                 walkingDistance, drivingDistance, bikingDistance,
-                rating, price: 500, maxPrice: maximum, minPrice: minimum,
+                rating: rating == "6" ? "0" : rating, price: 500, maxPrice: maximum, minPrice: minimum,
             })
         }
 
@@ -446,7 +438,7 @@ function DormTile({
                         {validRating && (
                             <div className="flex items-center gap-1">
                                 <Star size={12} fill="#C0934B" stroke="none" />
-                                <span className="text-[#C0934B] font-bold text-xs">{dorm.rating}</span>
+                                <span className="text-[#C0934B] font-bold text-xs">{dorm.rating == "0" ? "unrated" : dorm.rating}</span>
                             </div>
                         )}
                         <span className={`flex items-center gap-0.5 text-xs font-semibold transition-colors
@@ -520,7 +512,7 @@ function FilterForm({ onClose }: { onClose: () => void }) {
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
 
     return (
-        <div className="pb-0">
+        <div className="pb-4">
 
             {/* Saved only */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Show saved only</p>
@@ -630,10 +622,10 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                 ))}
             </div>
 
-            <div className="h-24" />
+            <Divider />
 
-            {/* Sticky footer */}
-            <div className="fixed bottom-0 right-0 w-full max-w-[420px] flex gap-3 px-7 py-4 bg-white border-t border-[#F0E4E9]">
+            {/* Buttons — inline, scrollable */}
+            <div className="flex gap-3 mb-8">
                 <button
                     onClick={resetAll}
                     className="flex-1 py-2.5 rounded-xl border border-[#E8D4DF] bg-white text-[#9A7080] text-sm font-semibold hover:bg-[#F5ECF0] transition-colors"
@@ -647,6 +639,7 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                     Apply filters
                 </button>
             </div>
+
         </div>
     )
 }
