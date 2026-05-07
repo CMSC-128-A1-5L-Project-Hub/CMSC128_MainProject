@@ -23,7 +23,7 @@ export default class InviteManagerController {
     }
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', user.id)
       .preload('landlord', (q) => q.preload('user'))
       .first()
@@ -59,7 +59,7 @@ export default class InviteManagerController {
       if (existingManager) {
         const alreadyAssigned = await Accommodation.query()
           .where('manager_id', existingUser.id)
-          .whereNot('accommodation_id', accommodation.id)
+          .whereNot('id', accommodation.id)
           .first()
 
         if (alreadyAssigned) {
