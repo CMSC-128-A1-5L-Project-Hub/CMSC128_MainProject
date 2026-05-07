@@ -12,7 +12,7 @@
 //
 // Taken names (do NOT reuse — unique constraint in DB):
 //   "UBLE Residences", "White House", "One Silangan", "Men's Dorm",
-//   "ATI", "Scholar's Dorm", "One Sapphire Place"
+//   "ATI-NTC Residence Hall", "Scholar's Dorm", "One Sapphire Place"
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface RoomSeedData {
@@ -651,78 +651,78 @@ const vetmed_residence_hall: DormSeedData = {
   ],
 }
 
-// const ati_ntc: DormSeedData = {
-//   accommodation_name: 'ATI NTC Residence Hall',
-//   accommodation_location:
-//     'ATI-NTC Compound, Lower Campus, UPLB, College, Los Baños, Laguna',
-//   latitude: 14.15673,
-//   longitude: 121.24149,
-//   accommodation_type: 'on-campus',
-//   tenant_restriction: 'female-only',
-//   accommodation_capacity: 120,
-//   walking_distance: 16,
-//   biking_distance: 6,
-//   driving_distance: 3,
-//   application_start_date: '2026-06-01',
-//   application_end_date: '2026-07-15',
-//   images: [
-//     'ATINTC_front.jpg',
-//     'ATINTC_room.jpg',
-//     'ATINTC_outside.jpg',
-//   ],
-//   tags: [
-//     'On-campus housing',
-//     'UP-owned',
-//     'Female-exclusive',
-//     'Subsidized rates',
-//     'Air-conditioned rooms',
-//     '24/7 Security',
-//   ],
-//   rooms: [
-//     {
-//       room_number: '101',
-//       room_building: 'ATI-NTC Hall',
-//       room_type: 'shared',
-//       room_stay_type: 'non_transient',
-//       room_capacity: 4,
-//       room_current_occupancy: 0,
-//       room_availability: 'available',
-//       room_rent: 800,
-//       tenant_restriction: 'non-coed',
-//       reservation_fee_type: 'fixed',
-//       reservation_fee_value: 800,
-//       inclusions: ['Study desk', 'Cabinet', 'Aircon', 'Private bath'],
-//     },
-//     {
-//       room_number: '102',
-//       room_building: 'ATI-NTC Hall',
-//       room_type: 'shared',
-//       room_stay_type: 'non_transient',
-//       room_capacity: 4,
-//       room_current_occupancy: 0,
-//       room_availability: 'available',
-//       room_rent: 800,
-//       tenant_restriction: 'non-coed',
-//       reservation_fee_type: 'fixed',
-//       reservation_fee_value: 800,
-//       inclusions: ['Study desk', 'Cabinet', 'Aircon', 'Private bath'],
-//     },
-//     {
-//       room_number: '201',
-//       room_building: 'ATI-NTC Hall',
-//       room_type: 'shared',
-//       room_stay_type: 'non_transient',
-//       room_capacity: 3,
-//       room_current_occupancy: 0,
-//       room_availability: 'available',
-//       room_rent: 800,
-//       tenant_restriction: 'non-coed',
-//       reservation_fee_type: 'fixed',
-//       reservation_fee_value: 800,
-//       inclusions: ['Study desk', 'Cabinet', 'Aircon', 'Private bath'],
-//     },
-//   ],
-// }
+const ati_ntc: DormSeedData = {
+  accommodation_name: 'ATI-NTC Residence Hall',
+  accommodation_location:
+    'ATI-NTC Compound, Lower Campus, UPLB, College, Los Baños, Laguna',
+  latitude: 14.156683,
+  longitude: 121.241341,
+  accommodation_type: 'on-campus',
+  tenant_restriction: 'male-only',
+  accommodation_capacity: 120,
+  walking_distance: 16,
+  biking_distance: 6,
+  driving_distance: 3,
+  application_start_date: '2026-06-01',
+  application_end_date: '2026-07-15',
+  images: [
+    'ATI_main.jpg',
+    'ATI_main2.jpg',
+    'ATI_entrance.jpg',
+    'ATI_inside.jpg',
+  ],
+  tags: [
+    'On-campus housing',
+    'UP-owned',
+    'Male-exclusive',
+    'Subsidized rates',
+    '24/7 Security',
+  ],
+  rooms: [
+    {
+      room_number: '401',
+      room_building: 'ATI-NTC Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 500,
+      inclusions: ['Study desk', 'Cabinet', 'Locker'],
+    },
+    {
+      room_number: '402',
+      room_building: 'ATI-NTC Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 500,
+      inclusions: ['Study desk', 'Cabinet', 'Locker'],
+    },
+    {
+      room_number: '403',
+      room_building: 'ATI-NTC Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 850,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 500,
+      inclusions: ['Study desk', 'Cabinet', 'Locker'],
+    },
+  ],
+}
 
 const new_dorm_residence_hall: DormSeedData = {
   accommodation_name: 'New Dormitory Residence Hall',
@@ -888,7 +888,7 @@ export const UPLB_DORMS: DormSeedData[] = [
   foreha,
   nfrh,
   vetmed_residence_hall,
-  //ati_ntc,
+  ati_ntc,
   new_dorm_residence_hall,
   international_house
 ]

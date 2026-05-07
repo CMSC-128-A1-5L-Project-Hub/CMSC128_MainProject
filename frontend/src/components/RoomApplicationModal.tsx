@@ -307,7 +307,7 @@ export default function RoomApplicationModal({
                         <div className="flex flex-col md:flex-row gap-6 items-start">
                             <div className="w-full md:w-[320px] h-[180px] rounded-3xl overflow-hidden shadow-sm flex-shrink-0">
                                 <img
-                                    src={accommodation?.images?.[0]?.image_path || "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&q=80&w=400"}
+                                    src={accommodation?.imageUrls?.[0] ?? accommodation?.primaryImageUrl ?? "/default-accommodation.png"}
                                     alt={accommodation?.accommodationName}
                                     className="w-full h-full object-cover"
                                 />

@@ -7,6 +7,7 @@ import Sidebar from "../../components/Sidebar";
 import GradientPillSelect from "../../components/DropDownGradient.tsx";
 
 import { api } from "../../api/axios";
+import defaultAccommodation from "@/assets/defaults/accommodation.png";
 
 
 //MapBox Imports
@@ -1392,7 +1393,7 @@ export default function RoomView() {
   const displayPhotos =
     accommodation.imageUrls?.length > 0
       ? accommodation.imageUrls
-      : ["/default-accommodation.png"];
+      : [defaultAccommodation];
 
 
   const today = new Date().toISOString().split("T")[0];

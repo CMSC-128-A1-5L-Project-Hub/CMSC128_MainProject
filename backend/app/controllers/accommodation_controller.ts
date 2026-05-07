@@ -685,10 +685,17 @@ async store({ request, auth, response }: HttpContext) {
         'accommodations.accommodation_size'
       )
       .select(db.raw('COALESCE(AVG(reviews.rating), 0) as average_rating'))
-      .select(db.raw('MIN(file_metadata.file_path) as primaryImageUrl'))
+      .select(db.raw('MIN(file_metadata.file_path) as primary_image_path'))
       .orderBy('average_rating', 'desc')
       .limit(5)
 
-    return response.ok(accommodations)
+    const data = await Promise.all(
+      accommodations.map(async (acc: any) => ({
+        ...acc,
+        primaryImageUrl: await signImageUrl(acc.primary_image_path),
+      }))
+    )
+
+    return response.ok(data)
   }
 }
