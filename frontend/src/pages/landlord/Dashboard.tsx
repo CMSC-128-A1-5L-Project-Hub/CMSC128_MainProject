@@ -119,7 +119,9 @@ export default function Dashboard() {
   const [editingDocs, setEditingDocs] = useState(false);
   const [docToDelete, setDocToDelete] = useState<number | null>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -184,14 +186,22 @@ export default function Dashboard() {
     mutationFn: ({
       applicationId,
       status,
+      rejectionReason,
     }: {
       applicationId: number;
       status: "approved" | "rejected";
-    }) => api.put(`/applications/${applicationId}/status`, { status }),
+      rejectionReason?: string;
+    }) =>
+      api.put(`/applications/${applicationId}/status`, {
+        status,
+        ...(status === "rejected" && { rejectionReason }),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
       setReviewModalOpen(false);
+      setRejectionModalOpen(false);
       setSelectedApp(null);
+      setRejectionReason("");
     },
   });
 
@@ -230,6 +240,26 @@ export default function Dashboard() {
   const handleCloseReview = () => {
     setReviewModalOpen(false);
     setSelectedApp(null);
+  };
+
+  const handleRejectClick = () => {
+    setRejectionModalOpen(true);
+    setReviewModalOpen(false);
+  };
+
+  const handleBackToReview = () => {
+    setRejectionModalOpen(false);
+    setReviewModalOpen(true);
+  };
+
+  const handleConfirmRejection = () => {
+    if (selectedApp) {
+      reviewAppMutation.mutate({
+        applicationId: selectedApp.id,
+        status: "rejected",
+        rejectionReason,
+      });
+    }
   };
 
   // ── Right panel (shared between mobile and desktop) ─────────────────────────
@@ -675,8 +705,8 @@ export default function Dashboard() {
           </div>
         </main>
 
-        {/* RIGHT PANEL */}
-        <aside className="hidden lg:flex w-[340px] shrink-0 border-l flex-col gap-4 overflow-y-auto mr-6">
+        {/* RIGHT PANEL - Updated width to w-[400px] */}
+        <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
           <RightPanel />
         </aside>
       </div>
@@ -795,14 +825,7 @@ export default function Dashboard() {
             <Button
               variant="secondary"
               size="md"
-              onClick={() =>
-                selectedApp &&
-                reviewAppMutation.mutate({
-                  applicationId: selectedApp.id,
-                  status: "rejected",
-                })
-              }
-              disabled={reviewAppMutation.isPending}
+              onClick={handleRejectClick}
             >
               Reject
             </Button>
@@ -878,6 +901,54 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* REJECTION REASON MODAL */}
+      <Modal
+        open={rejectionModalOpen}
+        onClose={() => {
+          setRejectionModalOpen(false);
+          setRejectionReason("");
+        }}
+        title="Rejection Reason"
+        eyebrow="Application Rejection"
+        footer={
+          <div className="flex gap-2 ml-auto">
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={handleBackToReview}
+            >
+              ← Back
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleConfirmRejection}
+              disabled={reviewAppMutation.isPending || !rejectionReason.trim()}
+            >
+              {reviewAppMutation.isPending ? "Processing…" : "Reject"}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Please provide a reason for rejecting this application. This will be
+            communicated to the applicant.
+          </p>
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              Rejection Reason
+            </label>
+            <textarea
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#8C1535] min-h-[120px] resize-none"
+              placeholder="Enter the reason for rejection..."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+            />
+          </div>
+        </div>
       </Modal>
     </div>
   );
