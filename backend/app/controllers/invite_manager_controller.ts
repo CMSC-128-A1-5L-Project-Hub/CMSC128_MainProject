@@ -36,55 +36,71 @@ export default class InviteManagerController {
       })
     }
 
-    if (accommodation.managerId) {
-      return response.badRequest({
-        status: 400,
-        error: 'Bad Request',
-        message: 'This accommodation already has a manager assigned.',
-      })
-    }
-
+    const previousManagerId = accommodation.managerId
     const landlordName = `${user.fname} ${user.lname}`
+
+    const notifyOutgoing = async () => {
+      if (!previousManagerId) return
+      const outgoing = await User.find(previousManagerId)
+      if (outgoing) {
+        await this.notificationService.sendManagerRemovedNotification(
+          outgoing,
+          accommodation.accommodationName
+        )
+      }
+    }
 
     const existingUser = await User.findBy('email', manager_email)
 
     if (existingUser) {
       const existingManager = await Manager.findBy('userId', existingUser.id)
 
-      if (!existingManager) {
-        return response.badRequest({
-          status: 400,
-          error: 'Bad Request',
-          message: 'This user exists but is not registered as a manager.',
+      // If the user is already a manager, swap immediately
+      if (existingManager) {
+        const alreadyAssigned = await Accommodation.query()
+          .where('manager_id', existingUser.id)
+          .whereNot('accommodation_id', accommodation.id)
+          .first()
+
+        if (alreadyAssigned) {
+          return response.badRequest({
+            status: 400,
+            error: 'Bad Request',
+            message: 'This manager is already assigned to another accommodation.',
+          })
+        }
+
+        accommodation.managerId = existingUser.id
+        accommodation.invitedManagerEmail = null
+        await accommodation.save()
+
+        await this.notificationService.sendManagerAssignmentEmailNotification(
+          existingUser,
+          accommodation.accommodationName
+        )
+        await notifyOutgoing()
+
+        return response.ok({
+          status: 200,
+          message: 'Manager assigned successfully.',
+          assigned: true,
         })
       }
 
-      const alreadyAssigned = await Accommodation.query()
-        .where('manager_id', existingUser.id)
-        .whereNot('accommodation_id', accommodation.id)
-        .first()
-
-      if (alreadyAssigned) {
-        return response.badRequest({
-          status: 400,
-          error: 'Bad Request',
-          message: 'This manager is already assigned to another accommodation.',
-        })
-      }
-
-      accommodation.managerId = existingUser.id
-      accommodation.invitedManagerEmail = null
+      // Existing user but not yet a manager — store invite, promote on next sign-in
+      accommodation.invitedManagerEmail = manager_email
       await accommodation.save()
 
-      await this.notificationService.sendManagerAssignmentEmailNotification(
-        existingUser,
-        accommodation.accommodationName
+      await this.notificationService.sendManagerInvitationEmail(
+        manager_email,
+        accommodation.accommodationName,
+        landlordName
       )
 
       return response.ok({
         status: 200,
-        message: 'Manager assigned successfully.',
-        assigned: true,
+        message: 'Invitation sent. User will be promoted to manager on next sign-in.',
+        assigned: false,
       })
     }
 
@@ -100,7 +116,7 @@ export default class InviteManagerController {
 
     return response.ok({
       status: 200,
-      message: 'Invitation sent. Manager will be auto-assigned upon registration.',
+      message: 'Invitation sent. Manager will be auto-assigned upon sign-in.',
       assigned: false,
     })
   }

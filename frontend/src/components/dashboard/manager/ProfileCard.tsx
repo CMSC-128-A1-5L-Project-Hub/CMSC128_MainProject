@@ -19,6 +19,8 @@ type ProfileCardProps = {
     status?: string
     onNotification?: () => void
     showReplaceButton?: boolean
+    accommodationId?: number
+    onManagerReplaced?: () => void
 }
 
 const CLR = {
@@ -39,10 +41,39 @@ export default function ProfileCard({
     status = "pending",
     onNotification,
     showReplaceButton = false,
+    accommodationId,
+    onManagerReplaced,
 }: ProfileCardProps) {
     const [reportOpen, setReportOpen] = useState(false)
     const [editModalOpen, setEditModalOpen] = useState(false)
     const [replacementEmail, setReplacementEmail] = useState("")
+    const [inviteSubmitting, setInviteSubmitting] = useState(false)
+    const [inviteError, setInviteError] = useState<string | null>(null)
+
+    const handleSendInvite = async () => {
+        if (!accommodationId) {
+            setInviteError("Missing accommodation context.")
+            return
+        }
+        if (!replacementEmail.trim()) {
+            setInviteError("Please enter an email.")
+            return
+        }
+        setInviteError(null)
+        setInviteSubmitting(true)
+        try {
+            await api.post(`/landlord/accommodations/${accommodationId}/invite-manager`, {
+                manager_email: replacementEmail.trim(),
+            })
+            setEditModalOpen(false)
+            setReplacementEmail("")
+            onManagerReplaced?.()
+        } catch (e: any) {
+            setInviteError(e?.response?.data?.message ?? "Failed to send invite.")
+        } finally {
+            setInviteSubmitting(false)
+        }
+    }
 
     const [notifOpen, setNotifOpen]         = useState(false)
     const [notifications, setNotifications] = useState<Notification[]>([])
@@ -83,7 +114,7 @@ export default function ProfileCard({
             {showReplaceButton && (
                 <Modal
                     open={editModalOpen}
-                    onClose={() => { setEditModalOpen(false); setReplacementEmail("") }}
+                    onClose={() => { setEditModalOpen(false); setReplacementEmail(""); setInviteError(null) }}
                     title="Replace Your Manager"
                     eyebrow="Manager Profile"
                     footer={
@@ -91,9 +122,10 @@ export default function ProfileCard({
                             variant="primary"
                             size="md"
                             className="ml-auto"
-                            onClick={() => { setEditModalOpen(false); setReplacementEmail("") }}
+                            onClick={handleSendInvite}
+                            disabled={inviteSubmitting}
                         >
-                            Send Invite
+                            {inviteSubmitting ? "Sending..." : "Send Invite"}
                         </Button>
                     }
                 >
@@ -105,9 +137,14 @@ export default function ProfileCard({
                             <input
                                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]"
                                 placeholder="email@example.com"
+                                type="email"
                                 value={replacementEmail}
                                 onChange={(e) => setReplacementEmail(e.target.value)}
+                                disabled={inviteSubmitting}
                             />
+                            {inviteError && (
+                                <p className="text-xs text-red-600 mt-2">{inviteError}</p>
+                            )}
                         </div>
                     </div>
                 </Modal>
