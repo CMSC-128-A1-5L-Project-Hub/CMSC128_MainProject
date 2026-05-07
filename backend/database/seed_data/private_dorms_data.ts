@@ -108,9 +108,7 @@ const ccp_hostel: DormSeedData = {
     biking_distance: 5,
     driving_distance: 3,
     images: [
-        'ccp_hostel_front.jpg',
         'ccp_hostel_room.jpg',
-        'ccp_hostel_common.jpg',
     ],
     tags: [
         'Private dorm',
