@@ -1485,9 +1485,7 @@ const westbrook_residences: DormSeedData = {
     biking_distance: 1,
     driving_distance: 1,
     images: [
-        'westbrook_front.jpg',
         'westbrook_room.jpg',
-        'westbrook_common.jpg',
         'westbrook_exterior.jpg',
     ],
     tags: [
