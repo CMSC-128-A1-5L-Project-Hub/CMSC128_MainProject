@@ -703,14 +703,14 @@ export default function Waitlist() {
 
             <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
                 <CustomHeader title="Waitlist" />
-                    <div className="flex-1 flex flex-col p-5 overflow-y-auto">
+                    <div className="flex-1 flex flex-col p-6 overflow-y-auto">
                         <main className="flex-1 flex flex-col gap-4">
                             <HeroBanner 
                                 greeting="Good Day"
                                 name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
                                 title="Check your waitlisted applicants"
                                 subtitle="We make it easy for you to track the accommodation  applications you manage. "
-                                type="full"
+                                type="mini"
                             />
 
                             <WaitlistHistory 

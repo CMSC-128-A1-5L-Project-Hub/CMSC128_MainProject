@@ -250,36 +250,24 @@ export default function BillingDashboard() {
                       onPay={(bill) => { setSelectedBill(bill); setPayOpen(true); }}
                     />
                   </div>
-                  <hr className="border-[#6B0F2B]/5 border-t-2"/>
-
-                  <div className='flex flex-nowrap justify-between'>
-                    <div className='flex justify-start items-center gap-2'>
-                      <div className='m-1 mt-4 lg:hidden'>
-                        <Dropdown
-                          title="No. of Items"
-                          items={[
-                            { label: "5", href: "" },
-                            { label: "10", href: "" },
-                            { label: "15", href: "" },
-                            { label: "20", href: "" },
-                          ]}
-                          direction='up'
-                          widthClass="w-29 lg:w-32"
-                          titleClass="text-[10px] lg:text-[12px]"
-                          selectedClass="text-[12px] lg:text-[14px]"
-                          onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                        />
+                  
+                  
+                  <div className={`${bills.length === 0 ? "hidden" : "flex"} flex-col`}>
+                    <hr className="border-[#6B0F2B]/5 border-t-2"/>
+                    <div className='flex flex-nowrap justify-between'>
+                      <div className='flex justify-start items-center gap-2'>
+                        <span className='text-[11px] text-[#9A7080] p-0 mt-2 m-0'>
+                          Showing {safeBills.length === 0 ? 0 : (currentPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}
+                        </span>
                       </div>
-                      <span className='text-[11px] text-[#9A7080] p-0 mt-2 m-0'>
-                        Showing {safeBills.length === 0 ? 0 : (currentPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center m-2 mt-6 text-sm text-[#9A7080]">
-                      <div className="flex gap-2 text-[12px] lg:text-[15px]">
-                        <Pagination totalPages={totalPages} currentPage={currentPage} onPageChange={setCurrentPage} buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8' />
+                      <div className="flex justify-between items-center m-2 mt-6 text-sm text-[#9A7080]">
+                        <div className="flex gap-2 text-[12px] lg:text-[15px]">
+                          <Pagination totalPages={totalPages} currentPage={currentPage} onPageChange={setCurrentPage} buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8' />
+                        </div>
                       </div>
                     </div>
                   </div>
+                  
                 </div>
               </div>
       </div>

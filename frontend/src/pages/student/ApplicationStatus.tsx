@@ -24,6 +24,7 @@ interface ApplicationStatusPageProps {
     userName?: string;
 }
 
+
 // Fetch from the API
 const fetchApplications = async (): Promise<Application[]> => {
     try {
@@ -103,12 +104,26 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
         cancelled: applications.filter(a => a.applicationStatus === 'cancelled').length,
     };
 
+    // const stats = [
+    //     { label: 'approved', count: counts.approved, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
+    //     { label: 'pending', count: counts.pending, from: '#C9973A', to: '#E8C37A', bg: '#FDF6EC', text: '#C9973A' },
+    //     { label: 'under review', count: counts.under_review, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
+    //     { label: 'rejected', count: counts.rejected, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
+    //     { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#e4f0f5', text: '#3A6AB7' },
+    // ];
+
     const stats = [
         { label: 'approved', count: counts.approved, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
-        { label: 'pending', count: counts.pending, from: '#C9973A', to: '#E8C37A', bg: '#FDF6EC', text: '#C9973A' },
-        { label: 'under review', count: counts.under_review, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
+
+        { label: 'pending', count: counts.pending, from: '#C9973A', to: '#E8C37A', bg: '#FEF8EE', text: '#C9973A' },
+
+        { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#F4F0FA', text: '#3A6AB7' },
+
+        { label: 'under review', count: counts.under_review, from: '#6B3AB7', to: '#9B6AE7', bg: '#F0F7F3', text: '#6B3AB7' },
+
+        { label: 'cancelled', count: counts.cancelled, from: '#AA2661', to: '#FDCAE0', bg: '#FAF0F7', text: '#AE2F67' },
+
         { label: 'rejected', count: counts.rejected, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
-        { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#e4f0f5', text: '#3A6AB7' },
     ];
 
     const trueTotal = applications.length;
@@ -133,7 +148,7 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
             <Sidebar role='student' />
             <div className = "flex flex-col overflow-hidden w-full">
                 <CustomHeader
-                    title="Application Dashboard"></CustomHeader>
+                    title="Applications"></CustomHeader>
                 <div className="flex-1 flex flex-col overflow-hidden gap-4 lg:gap-6 p-4 lg:p-6">
                     <div>
                         <HeroBanner
@@ -146,9 +161,9 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                     </div>
                     
 
-                    <StatsBanner stats={stats} total={trueTotal} />
+                    <StatsBanner stats={stats} total={trueTotal} cols={6}/>
 
-                    <div className="bg-white rounded-xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
+                    <div className="bg-white rounded-2xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
                         <div className='flex justify-between pb-2 lg:pb-4'>
                             <div>
                                 <h1 className='font-bold -mt-1'>Application History</h1>
@@ -185,13 +200,13 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                                     selectedClass="text-[12px] lg:text-[13px]"
                                     onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
                                 />
-                                <div className="flex items-center gap-2 lg:gap-3">
-                                    <SearchBar
-                                        value={searchQuery}
-                                        onChange={setSearchQuery}
-                                        onPageReset={() => setCurrentPage(1)}
-                                    />
-                                </div>
+                                
+                                <SearchBar
+                                    value={searchQuery}
+                                    onChange={setSearchQuery}
+                                    onPageReset={() => setCurrentPage(1)}
+                                />
+                                
                             </div>
                         </div>
 
@@ -210,8 +225,8 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                                 </div>
                             ) : applications.length === 0 ? (
                                 <div className="flex flex-col justify-center items-center h-full text-center">
-                                    <p className="text-gray-500 font-medium text-lg">No applications found</p>
-                                    <p className="text-gray-400 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
+                                    <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+                                    <p className="text-[#9A7080]/60 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
                                 </div>
                             ) : (
                                 <ApplicationTable
@@ -225,28 +240,31 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                                 />
                             )}
                         </div>
-                        <hr className=" border-[#6B0F2B]/5 border-t-2" />
 
-                        <div className='flex flex-nowrap justify-between'>
-                            <div className='flex justify-start flex-col gap-2'>
-                                <div className='flex flex-col items-start justify-start'>
-                                    <span className='text-[11px] lg:text-[13px] text-[#9A7080] p-0 mt-4 m-0'>
-                                        Showing {totalApps === 0 ? 0 : (currentPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}
-                                    </span>
+                        <div className={`${applications.length === 0 ? "hidden" : "flex"} flex-col`}>
+                            <hr className=" border-[#6B0F2B]/5 border-t-2" />
+                            <div className='flex flex-nowrap justify-between'>
+                                <div className='flex justify-start flex-col gap-2'>
+                                    <div className='flex flex-col items-start justify-start'>
+                                        <span className='text-[11px] lg:text-[13px] text-[#9A7080] p-0 mt-4 m-0'>
+                                            Showing {totalApps === 0 ? 0 : (currentPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="flex justify-between items-center m-2 mt-4 lg:mt-6 text-sm text-[#9A7080]">
-                                <div className={applications.length > 0 ? 'flex gap-2 text-[12px] lg:text-[15px]' : 'hidden'}>
-                                    <Pagination
-                                        totalPages={totalPages}
-                                        currentPage={currentPage}
-                                        onPageChange={setCurrentPage}
-                                        buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8'
-                                    />
+                                <div className="flex justify-between items-center m-2 mt-4 lg:mt-6 text-sm text-[#9A7080]">
+                                    <div className={applications.length > 0 ? 'flex gap-2 text-[12px] lg:text-[15px]' : 'hidden'}>
+                                        <Pagination
+                                            totalPages={totalPages}
+                                            currentPage={currentPage}
+                                            onPageChange={setCurrentPage}
+                                            buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8'
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        
                     </div>
 
                     {/* Modal */}

@@ -316,8 +316,8 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
 
     const segments = [
         { value: full,      color: "#3D0A1A" }, // dark maroon  - fully occupied
-        { value: partial,   color: "#C47A8A" }, // muted pink   - partially occupied
-        { value: available, color: "#9E2040" }, // maroon       - available
+        { value: partial,   color: "#9E2040" }, // maroon       - partially occupied
+        { value: available, color: "#C47A8A" }, // muted pink   - available
     ]
 
     //build stroke-dasharray offsets for each segment
@@ -378,8 +378,8 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
                 <div className="flex flex-col gap-3">
                     {[
                         { label: "Fully Occupied Rooms",    value: full,      color: "#3D0A1A" },
-                        { label: "Partially Occupied Rooms", value: partial,  color: "#C47A8A" },
-                        { label: "Available Rooms",          value: available, color: "#9E2040" },
+                        { label: "Partially Occupied Rooms", value: partial,  color: "#9E2040" },
+                        { label: "Available Rooms",          value: available, color: "#C47A8A" },
                     ].map((item, i) => (
                         <div key={i} className="flex items-start gap-2">
                             <span
@@ -681,9 +681,12 @@ export default function OccupancyRecords() {
                         />
                         
                         {loading && (
-                            <p className="text-sm text-[#9A7080]">
-                                Loading occupancy records...
-                            </p>
+                            <div className=" items-center justify-center w-full h-full flex">
+                                <p className="text-sm text-[#9A7080]">
+                                    Loading occupancy records...
+                                </p>
+                            </div>
+                            
                         )}
 
                         {error && (
