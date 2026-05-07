@@ -4,7 +4,8 @@ import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { UPLB } from '../constants/uplb'
 import DormCard from "./DormCardBrowse"
-import { GraduationCap, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
+import UPLBMarker from './UPLBMarker'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -55,8 +56,7 @@ export default function AccommodationMap({
     onCardClick,
     centeredAccommodation,
 }: AccommodationMapProps) {
-    const [selectedPin, setSelectedPin] = useState<AccommodationPin | null>(null) // Stores currently accommodation selected 
-    const [selectedUPLB, setSelectedUPLB] = useState(false) // IS UPLB marker selected?
+    const [selectedPin, setSelectedPin] = useState<AccommodationPin | null>(null) // Stores currently accommodation selected
     const [travelMode, setTravelMode] = useState<TravelMode>('walking') // Stores the transport type to compute the route
     const [routeGeoJSON, setRouteGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null) // Stores the route from MapBox 
     const [loadingRoute, setLoadingRoute] = useState(false) // Checks is we are loading a route
@@ -145,52 +145,7 @@ export default function AccommodationMap({
                 )}
 
                 {/* UPLB Pin */}
-                <Marker
-                    longitude={UPLB.longitude}
-                    latitude={UPLB.latitude}
-                    anchor="bottom"
-                    onClick={(e) => {
-                        e.originalEvent.stopPropagation()
-                        setSelectedUPLB(true)
-                        setSelectedPin(null)
-                    }}
-                >
-                    <div className="relative flex flex-col items-center w-fit">
-
-                        <div className="relative flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] shadow-md overflow-hidden z-10">
-
-                            <div
-                                className="absolute inset-0 z-0"
-                                style={{
-                                    background:
-                                        "linear-gradient(135deg, transparent 40%, rgba(42,4,16,0.55) 100%)",
-                                }}
-                            />
-
-                            <div className="relative flex items-center gap-2 z-10">
-                                <GraduationCap size={18} stroke="white" strokeWidth={1.5} />
-
-                                <div className="flex gap-1 items-center text-white">
-                                    <span className="text-base font-medium tracking-tight">
-                                        UPLB
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="w-0 h-0 border-l-[14px] border-r-[14px] border-t-[18px] border-l-transparent border-r-transparent border-t-[#9E2040] -mt-1 z-0" />
-
-                    </div>
-                </Marker>
-
-                {selectedUPLB && (
-                    <Popup longitude={UPLB.longitude} latitude={UPLB.latitude} anchor="top" onClose={() => setSelectedUPLB(false)} closeButton closeOnClick={false} maxWidth="220px" className="up-popup">
-                        <div style={{ fontFamily: 'sans-serif', padding: '4px' }}>
-                            <p style={{ fontWeight: 'bold', fontSize: '14px', margin: '0 0 4px 0' }}>🎓 {UPLB.name}</p>
-                            <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>University of the Philippines Los Baños</p>
-                        </div>
-                    </Popup>
-                )}
+                <UPLBMarker onSelect={() => setSelectedPin(null)} />
 
                 {/* Accommodation Pins */}
                 {accommodations.map((acc) => (

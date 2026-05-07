@@ -3,6 +3,7 @@ import Map, { Marker, Popup, NavigationControl, Source, Layer} from 'react-map-g
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { UPLB } from '../constants/uplb'
+import UPLBMarker from './UPLBMarker'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -109,6 +110,9 @@ export default function AccommodationMap({
         mapboxAccessToken={MAPBOX_TOKEN}
       >
         <NavigationControl position="top-right" />
+
+        {/* UPLB Pin */}
+        <UPLBMarker onSelect={() => setSelectedPin(null)} />
 
         {/* Route Line */}
         {routeGeoJSON && (

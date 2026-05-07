@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 
 import ApplicationsTable from "../../components/applications/ApplicationsTable";
 import ApplicationModals from "../../components/applications/ApplicationModals";
+import CustomHeader from '../../components/CustomHeader';
 
 const CLR = {
   dark: "#3D0718",
@@ -153,64 +154,7 @@ const mockApplications: ApplicationResponse[] = [
       },
     },
   },
-  {
-    id: 2,
-    accommodationId: 2,
-    studentNumber: "2021-54321",
-    applicationDate: "2026-03-14T11:15:00Z",
-    applicationRoomType: "Single Room",
-    applicationStayType: "Non-Transient",
-    applicationStatus: "pending",
-    durationOfStayDays: 60,
-    accommodation: {
-      id: 2,
-      landlordId: 1,
-      managerId: null,
-      accommodationName: "Building 1",
-      accommodationType: "Apartment",
-      accommodationLocation: "Campus",
-      latitude: null,
-      longitude: null,
-      accommodationCapacity: 50,
-      status: "active",
-      tenantRestriction: "none",
-      businessPermitId: 1,
-      primaryImageIndex: null,
-      applicationStartDate: null,
-      applicationEndDate: null,
-      walkingDistance: null,
-      bikingDistance: null,
-      drivingDistance: null,
-      invitedManagerEmail: null,
-    },
-    student: {
-      studentNumber: "2021-54321",
-      userId: 2,
-      phone: 9189876543,
-      college: "CAS",
-      degreeProgram: "BSIT",
-      gender: "Male",
-      yearLevel: "2nd Year",
-      emergencyContactName: null,
-      emergencyContactNumber: null,
-      enrollmentProofFileId: 1,
-      form5Renewal: false,
-      user: {
-        id: 2,
-        accountStatus: "active",
-        email: "b@test.com",
-        facebookAccount: null,
-        fname: "Brian",
-        mname: null,
-        lname: "Reyes",
-        suffix: null,
-        role: "student",
-        otpCode: null,
-        otpExpiresAt: null,
-        pfpFileId: null,
-      },
-    },
-  },
+  
 ];
 
 const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> = {
@@ -471,7 +415,7 @@ export default function ApplicationsPage() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#F6F2F4]">
+   <div className="flex h-screen overflow-hidden bg-[#F6F2F4]">
       <Sidebar 
         role="manager" 
         profile={{fullName: `${user?.fname} ${user?.lname}`,
@@ -486,29 +430,19 @@ export default function ApplicationsPage() {
         activePage={activePage}
         setActivePage={setActivePage}
       />
-        <main className="flex-1 min-w-0 overflow-x-hidden p-4 sm:p-6">
-        <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
-          <div
-            className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-1"
-            style={{
-              background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)",
-            }}
-          />
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <CustomHeader title="Applications" />
 
-          <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B] ml-1.5">
-            Applications
-          </h1>
-        </div>
-
-        <div className="mb-6">
-          <HeroBanner
-            greeting="Good Day"
-            name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-            title="Check your applicants"
-            subtitle="We make it easy for you to track the accommodation applications you manage."
-            type="full"
-          />
-        </div>
+          <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
+            <div className="mb-6">
+              <HeroBanner
+                greeting="Good Day"
+                name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
+                title="Check your applicants"
+                subtitle="We make it easy for you to track the accommodation applications you manage."
+                type="full"
+              />
+            </div>
 
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
@@ -549,6 +483,8 @@ export default function ApplicationsPage() {
             })}
           </div>
         </div>
+      
+      
 
         <ApplicationsTable
           filtered={filtered}
@@ -570,6 +506,7 @@ export default function ApplicationsPage() {
           onView={setSelectedApp}
         />
       </main>
+    </div>
 
       <ApplicationModals
         selectedApp={selectedApp}

@@ -15,7 +15,7 @@ export default class AuthController {
     protected provisioningService: ProvisioningService,
     protected notificationService: NotificationService,
     protected logService: LogService
-  ) {}
+  ) { }
 
   async devLogin({ auth, request, response, session }: HttpContext) {
     // Only allowed in development
@@ -34,7 +34,7 @@ export default class AuthController {
 
     // Manually log the user in
     await auth.use('web').login(user)
-    
+
     // Set the session role (matching your callback logic)
     session.put('role', user.role)
 
@@ -172,5 +172,45 @@ export default class AuthController {
     const serialized = user.serialize()
     serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
     return response.ok(serialized)
+  }
+
+  // ─── POST /me/profile-picture ────────────────────────────────────────────
+  async uploadProfilePicture({ auth, request, response }: HttpContext) {
+    const user = await User.query()
+      .where('id', auth.user!.id)
+      .preload('profilePicture')
+      .firstOrFail()
+
+    const file = request.file('profilePicture', {
+      size: '5mb',
+      extnames: ['jpg', 'jpeg', 'png', 'webp'],
+    })
+
+    if (!file) {
+      return response.badRequest({ message: 'No file uploaded.' })
+    }
+
+    if (!file.isValid) {
+      return response.badRequest({ message: file.errors[0]?.message ?? 'Invalid file.' })
+    }
+
+    const { uploadImage } = await import('#services/b2_services')
+    const filePath = await uploadImage(file, 'profiles')
+
+    const FileMetadata = (await import('#models/file_metadatum')).default
+
+    const meta = await FileMetadata.create({
+      fileName: file.clientName,
+      filePath,
+      fileType: 'image',
+    })
+
+    user.pfpFileId = meta.id
+    await user.save()
+
+    await user.load('profilePicture')
+    const profilePictureUrl = await signFileUrl(user.profilePicture)
+
+    return response.ok({ profilePictureUrl })
   }
 }

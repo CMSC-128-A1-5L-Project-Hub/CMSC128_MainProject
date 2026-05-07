@@ -31,3 +31,10 @@ export async function withPrimaryImageUrl(accommodation: Accommodation): Promise
   serialized.primaryImageUrl = await signImageUrl(primary?.file?.filePath)
   return serialized
 }
+
+export async function withAllImageUrls(serialized: any, accommodation: Accommodation): Promise<void> {
+  const signed = await Promise.all(
+    (accommodation.images ?? []).map((img) => signImageUrl(img.file?.filePath))
+  )
+  serialized.imageUrls = signed.filter(Boolean)
+}
