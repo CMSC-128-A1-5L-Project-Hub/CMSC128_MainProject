@@ -1350,8 +1350,6 @@ const koru_residences: DormSeedData = {
     application_end_date: '2026-09-30',
     images: [
         'koru_front.jpg',
-        'koru_room_single.jpg',
-        'koru_room_double.jpg',
         'koru_lounge.jpg',
     ],
     tags: [
