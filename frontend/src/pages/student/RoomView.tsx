@@ -475,20 +475,128 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
 }
 
 function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => void }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const openLightbox = (i: number) => setLightboxIndex(i);
+  const closeLightbox = () => setLightboxIndex(null);
+
+  const prev = () =>
+    setLightboxIndex((i) => (i === null ? 0 : (i - 1 + photos.length) % photos.length));
+  const next = () =>
+    setLightboxIndex((i) => (i === null ? 0 : (i + 1) % photos.length));
+
+  // Close lightbox on backdrop click, not on image click
+  const handleLightboxBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) closeLightbox();
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") prev();
+      else if (e.key === "ArrowRight") next();
+      else if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [lightboxIndex]);
+
   return (
-    <div className="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-auto p-5" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-base font-bold text-gray-900">All Photos</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-xl">✕</button>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {photos.map((src, i) => (
-            <img key={i} src={src} alt={`Photo ${i + 1}`} className="w-full h-44 object-cover rounded-xl" />
-          ))}
+    <>
+      {/* Grid modal */}
+      <div
+        className="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <div
+          className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-auto p-5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-base font-bold text-gray-900">All Photos</h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-xl">✕</button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {photos.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`Photo ${i + 1}`}
+                className="w-full h-44 object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => openLightbox(i)}
+              />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+
+      {lightboxIndex !== null && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[1000] flex items-center justify-center"
+          onClick={handleLightboxBackdrop}
+        >
+          {/* Close button */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl transition-colors"
+          >
+            ✕
+          </button>
+
+          {/* Counter */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/60 text-sm font-medium">
+            {lightboxIndex + 1} / {photos.length}
+          </div>
+
+          {/* Prev button */}
+          <button
+            onClick={prev}
+            className="absolute left-4 w-11 h-11 rounded-full flex items-center justify-center text-white transition-colors hover:bg-white/20"
+            style={{ background: CLR.mid }}
+          >
+            <span className="text-white text-xl font-bold pb-0.5 pr-0.5" style={{ lineHeight: 0 }}>{"<"}</span>
+          </button>
+
+          {/* Image */}
+          <img
+            src={photos[lightboxIndex]}
+            alt={`Photo ${lightboxIndex + 1}`}
+            className="max-h-[85vh] max-w-[80vw] object-contain rounded-xl select-none"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* Next button */}
+          <button
+            onClick={next}
+            className="absolute right-4 w-11 h-11 rounded-full flex items-center justify-center text-white transition-colors hover:bg-white/20"
+            style={{ background: CLR.mid }}
+          >
+            <span className="text-white text-xl font-bold pb-0.5 pl-0.5" style={{ lineHeight: 0 }}>{">"}</span>
+          </button>
+
+          {/* Thumbnail strip */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-3 py-2 bg-black/40 rounded-full overflow-x-auto max-w-[90vw]">
+            {photos.map((src, i) => (
+            <img
+              key={i}
+              src={src}
+              alt={`Thumb ${i + 1}`}
+              onClick={() => setLightboxIndex(i)}
+              className={`w-10 h-10 object-cover rounded-lg cursor-pointer flex-shrink-0 transition-all ${
+                i === lightboxIndex ? "opacity-100" : "opacity-50 hover:opacity-75"
+              }`}
+              style={
+                i === lightboxIndex
+                  ? { border: `2px solid ${CLR.mid}` }
+                  : { border: "2px solid transparent" }
+              }
+            />
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -1156,9 +1264,8 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
             </p>
             <StarRating rating={avgRating} size="md" />
             <p className="text-normal text-[15px] text-[#3D0718]">{reviews.length} Ratings</p>
-          </div>{/* ← closed here, not earlier */}
+          </div>
 
-          {/* Bar breakdown */}
           <div className="w-full mt-1 space-y-1.5">
             {[5, 4, 3, 2, 1].map((star) => {
               const count = reviews.filter((r) => Math.round(r.rating) === star).length;
@@ -1213,7 +1320,11 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
                   <span className="text-[15px] font-bold" style={{ color: CLR.gold }}>
                     {review.rating}
                   </span>
-                  <StarRating rating={review.rating} size="md" />
+                  <div className="ml-5">
+                    <StarRating rating={review.rating} size="md"/>
+
+                  </div>
+                  
                 </div>
               </div>
               {review.content && (
