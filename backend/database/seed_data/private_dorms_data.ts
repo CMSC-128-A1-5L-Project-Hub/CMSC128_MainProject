@@ -708,10 +708,8 @@ const marhaba_dormitory: DormSeedData = {
     biking_distance: 3,
     driving_distance: 2,
     images: [
-        'marhaba_front.jpg',
         'marhaba_room.jpg',
-        'marhaba_common.jpg',
-        'marhaba_bathroom.jpg',
+        'marhaba_room_2.jpg',
     ],
     tags: [
         'Private dorm',
