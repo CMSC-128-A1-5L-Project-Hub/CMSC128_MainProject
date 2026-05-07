@@ -8,7 +8,7 @@ import StatCard from "../../components/dashboard/landlord/rooms/dashboard/StatCa
 import SectionCard from "../../components/dashboard/landlord/rooms/dashboard/SectionCard";
 import CircleProgress from "../../components/dashboard/landlord/rooms/dashboard/CircleProgress";
 import Sidebar from "../../components/Sidebar";
-import ProfileCard from "../../components/dashboard/landlord/rooms/dashboard/ManagerCard";
+import ProfileCard from "../../components/dashboard/manager/ProfileCard";
 import PaymentList from "../../components/dashboard/landlord/rooms/dashboard/PaymentList";
 import ActivityLogs from "../../components/dashboard/landlord/rooms/dashboard/ActivityLogs";
 import ReportsPanel from "../../components/dashboard/landlord/rooms/dashboard/ReportsPanel";
@@ -268,14 +268,11 @@ export default function Dashboard() {
     <div className="flex flex-col gap-4">
       <ProfileCard
         status={managerStatus}
-        fullName={
-          manager
-            ? `${manager.user.fname} ${manager.user.lname}`
-            : undefined
-        }
+        fullName={manager ? `${manager.user.fname} ${manager.user.lname}` : undefined}
         role="Dorm Manager"
         phoneNumber={primaryPhone}
         email={manager?.user?.email}
+        showReplaceButton
       />
       <ApplicationPeriod
         initialStart={accommodation?.applicationStartDate}
