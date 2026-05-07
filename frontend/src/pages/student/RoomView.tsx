@@ -16,7 +16,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import ApplicationModals from "@/components/applications/ApplicationModals.tsx";
 import RoomApplicationModal from "@/components/RoomApplicationModal.tsx";
 import ShareModal from "@/components/ShareModal.tsx";
-//import ReportAccommodationModal from "@/components/RoomViewReportModal.tsx";
+import ReportAccommodationModal from "@/components/RoomViewReportModal.tsx";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const UPLB_COORDS = { longitude: 121.2436, latitude: 14.1654 }
@@ -1829,14 +1829,14 @@ export default function RoomView() {
                   onClose={() => setIsShareModalOpen(false)}
                   accommodationName={accommodation.accommodationName}
                 />
-{/* 
+
                 <ReportAccommodationModal
                   open={isReportModalOpen}
                   onClose={() => setIsReportModalOpen(false)}
                   reportType={reportType}
                   accommodationName={accommodation.accommodationName}
                   managerName={managerUser ? `${managerUser.fname} ${managerUser.lname}` : undefined}
-                /> */}
+                />
 
               </div>
 
