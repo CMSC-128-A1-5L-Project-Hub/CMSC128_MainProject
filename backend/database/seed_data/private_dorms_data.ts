@@ -452,7 +452,6 @@ const estellar_residences: DormSeedData = {
     images: [
         'estellar_front.jpg',
         'estellar_room_single.jpg',
-        'estellar_room_shared.jpg',
         'estellar_lobby.jpg',
     ],
     tags: [
