@@ -740,8 +740,6 @@ const new_dorm_residence_hall: DormSeedData = {
   application_end_date: '2026-07-15',
   images: [
     'NDRH_front.jpg',
-    'NDRH_room.jpg',
-    'NDRH_hallway.jpg',
   ],
   tags: [
     'On-campus housing',
