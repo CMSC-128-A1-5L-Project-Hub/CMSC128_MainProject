@@ -1639,7 +1639,7 @@ const holland_tulips: DormSeedData = {
     ],
     rooms: [
         {
-        room_number: 'HT-101',
+        room_number: 'HT101',
         room_building: 'Holland Tulips',
         room_type: 'single',
         room_stay_type: 'non_transient',
@@ -1656,7 +1656,7 @@ const holland_tulips: DormSeedData = {
         inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-        room_number: 'HT-102',
+        room_number: 'HT102',
         room_building: 'Holland Tulips',
         room_type: 'single',
         room_stay_type: 'non_transient',
@@ -1674,7 +1674,7 @@ const holland_tulips: DormSeedData = {
         preferences: ['Quiet room'],
         },
         {
-        room_number: 'HT-201',
+        room_number: 'HT201',
         room_building: 'Holland Tulips',
         room_type: 'double',
         room_stay_type: 'non_transient',
@@ -1691,7 +1691,7 @@ const holland_tulips: DormSeedData = {
         inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-        room_number: 'HT-202',
+        room_number: 'HT202',
         room_building: 'Holland Tulips',
         room_type: 'double',
         room_stay_type: 'non_transient',
@@ -1708,7 +1708,7 @@ const holland_tulips: DormSeedData = {
         inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-        room_number: 'HT-301',
+        room_number: 'HT301',
         room_building: 'Holland Tulips',
         room_type: 'shared',
         room_stay_type: 'non_transient',
@@ -1725,7 +1725,7 @@ const holland_tulips: DormSeedData = {
         inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-        room_number: 'HT-302',
+        room_number: 'HT302',
         room_building: 'Holland Tulips',
         room_type: 'shared',
         room_stay_type: 'non_transient',
