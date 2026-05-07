@@ -12,7 +12,7 @@ interface User {
 const ROLE_ROUTES: Record<string, string> = {
     student: '/student/dashboard',
     manager: '/manager/dashboard',
-    landlord: '/landlord/accommodations/:id',
+    landlord: '/landlord/manage-accommodation',
     super_admin: '/admin/dashboard',
 };
 
