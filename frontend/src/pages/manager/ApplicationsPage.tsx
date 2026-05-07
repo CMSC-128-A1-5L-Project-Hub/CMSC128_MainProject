@@ -235,7 +235,7 @@ export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activePage, setActivePage] = useState("applications");
-  const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");
+  const [sortBy, setSortBy] = useState("Date applied (Desc.)");
   const [currentPage, setCurrentPage] = useState(1);
 
   const [selectedApp, setSelectedApp] = useState<ApplicationResponse | null>(null);
@@ -287,9 +287,10 @@ export default function ApplicationsPage() {
     [applications]
   );
 
+  
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-
     const res = applications.filter((a: ApplicationResponse) => {
       const fullName = `${a.student.user.fname} ${a.student.user.lname}`.toLowerCase();
       return (
@@ -302,10 +303,13 @@ export default function ApplicationsPage() {
 
     return res.sort((a: ApplicationResponse, b: ApplicationResponse) => {
       const diff = new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime();
-      return sortBy === "latest" ? -diff : diff;
+      if (sortBy === "Date applied (Asc.)") return diff;
+      if (sortBy === "Date applied (Desc.)") return -diff;
+      if (sortBy === "Status") return a.applicationStatus.localeCompare(b.applicationStatus);
+      return -diff;
     });
   }, [search, sortBy, applications]);
-
+  
   const getAppStatus = (app: ApplicationResponse): Status => {
     return appStatuses[app.id] ?? app.applicationStatus;
   };

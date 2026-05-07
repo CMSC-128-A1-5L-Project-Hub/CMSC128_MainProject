@@ -54,10 +54,10 @@ const StatusBadge = ({
       style={{ background: cfg.bg, color: cfg.color }}
     >
       <span
-        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+        className="w-1.5 h-1.5 rounded-full flex-shrink-0 capitalize"
         style={{ background: cfg.dot }}
       />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {status.replaceAll("_", " ").charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
 };
@@ -205,7 +205,7 @@ export default function ApplicationsTable({
   filtered: any[];
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  sortBy: "latest" | "earliest";
+  sortBy: string;
   onSortChange: (value: string) => void;
   search: string;
   onSearchChange: (value: string) => void;
@@ -253,10 +253,8 @@ const handleCloseSearch = () => {
   const paginated = filtered.slice(startIndex, startIndex + rows);
   //pages to show 
   const getVisiblePages = () => {
-    const pages: number[] = [];
-
     if (totalPages <= 3) {
-      return pages;
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
     if (safePage === 1) return [1, 2, 3];
@@ -264,6 +262,7 @@ const handleCloseSearch = () => {
 
     return [safePage - 1, safePage, safePage + 1];
   };
+
   return (
     <div className="bg-white rounded-2xl h-full shadow-sm flex flex-col p-6 min-h-0">
     {/* HEADER */}
@@ -324,14 +323,18 @@ const handleCloseSearch = () => {
       </div>
     </div>
 
-      <div className="w-full overflow-x-auto pb-2">
-        <table className="w-full border-separate border-spacing-0">
+      <div className="w-full overflow-x-auto h-full">
+        <div className={`${filtered.length === 0 ? "flex" : "hidden"} flex-col justify-center items-center h-full text-center`}>
+            <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+            <p className="text-[#9A7080]/60 text-sm mt-1">When somebody submits an application, it will appear here</p>
+        </div>
+        <table className={`${filtered.length === 0 ? "hidden" : "table w-full" } border-separate border-spacing-0`}>
           <thead className="sticky z-20 top-0 rounded-t-lg bg-white border-y-2 border-[#6B0F2B]/5">
             <tr className="text-[#9A7080] text-[12px] lg:text-xs tracking-widest font-bold">
               {["Student", "Date Applied", "Time", "Facility", "Status", "Action"].map((col) => (
                 <th
                   key={col}
-                  className="uppercase p-2 text-left whitespace-nowrap border-y-2 border-[#6B0F2B]/5"
+                  className="uppercase p-1 text-left whitespace-nowrap border-y-2 border-[#6B0F2B]/5"
                 >
                   {col}
                 </th>
@@ -366,12 +369,12 @@ const handleCloseSearch = () => {
                   </div>
                 </td>
               </tr>
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-16 text-center">
-                  <p className="text-base italic text-gray-400">Nothing to see here</p>
-                </td>
-              </tr>
+            // ) : filtered.length === 0 ? (
+            //   <tr>
+            //     <td colSpan={6} className="py-16 text-center">
+            //       <p className="text-base italic text-gray-400">Nothing to see here</p>
+            //     </td>
+            //   </tr>
             ) : (
               paginated.map((app) => {
                 const initial = app.student.user.fname.charAt(0).toUpperCase();
@@ -454,7 +457,7 @@ const handleCloseSearch = () => {
       <div className={`${filtered.length === 0 ? "hidden" : "flex"} flex-col mt-auto`}>
         <hr className=" border-[#6B0F2B]/5 border-t-2" />
          <div className="flex items-center justify-between px-4 py-3">
-          <p className="text-xs text-[#9A7080]">
+          <p className="text-xs text-[#9A7080] mt-auto">
             {filtered.length === 0
               ? "No results"
               : `Showing ${startIndex + 1}–${Math.min(startIndex + rows, filtered.length)} of ${filtered.length}`}
