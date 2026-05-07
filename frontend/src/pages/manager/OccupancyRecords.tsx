@@ -672,13 +672,16 @@ export default function OccupancyRecords() {
                     title="Occupancy Records"></CustomHeader>
                 <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
                     <main className="flex-1 flex flex-col gap-4 lg:gap-6">
-                        <HeroBanner 
-                            greeting="Good Day"
-                            name={managerProfile.fullName}
-                            title="View occupancy records"
-                            subtitle="We make it easy for you to keep track of occupancy records"
-                            type="mini"
-                        />
+                        <div>
+                            <HeroBanner 
+                                greeting="Good Day"
+                                name={managerProfile.fullName}
+                                title="View occupancy records"
+                                subtitle="We make it easy for you to keep track of occupancy records"
+                                type="mini"
+                            />
+                        </div>
+                        
                         
                         {loading && (
                             <div className="flex flex-col items-center bg-white h-full w-full justify-center rounded-2xl text-center">
