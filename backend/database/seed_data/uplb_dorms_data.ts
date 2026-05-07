@@ -314,9 +314,6 @@ const womens_residence_hall: DormSeedData = {
   application_end_date: '2026-07-15',
   images: [
     'WRH_front.jpg',
-    'WRH_room.jpg',
-    'WRH_corridor.jpg',
-    'WRH_cafeteria.jpg',
   ],
   tags: [
     'On-campus housing',
