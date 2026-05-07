@@ -584,7 +584,6 @@ const vetmed_residence_hall: DormSeedData = {
   images: [
     'VMRH_front.jpg',
     'VMRH_room.jpg',
-    'VMRH_area.jpg',
   ],
   tags: [
     'On-campus housing',
