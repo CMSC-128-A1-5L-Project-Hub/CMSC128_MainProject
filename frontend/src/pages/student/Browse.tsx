@@ -7,6 +7,7 @@ import CustomHeader from '../../components/CustomHeader'
 import PriceRangeSlider from "../../components/PriceRangeSlider"
 import HeroBanner from "@/components/dashboard/HeroBanner"
 import Dropdown from "../../components/ApplicationStatus/Dropdown"
+import Pagination from "@/components/ApplicationStatus/Pagination"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../api/axios"
 
@@ -37,6 +38,8 @@ type Dorm = {
 /* ══════════════════════════════════════════════════════════════════════════════
    MAIN PAGE
 ══════════════════════════════════════════════════════════════════════════════ */
+const ITEMS_PER_PAGE = 4;
+
 export default function BrowsePage() {
     const [searchTerm, setSearchTerm] = useState("")
     const [activeFilter, setActiveFilter] = useState("All")
@@ -58,6 +61,7 @@ export default function BrowsePage() {
     })
     const [uniqueTags, setUniqueTags] = useState<string[]>([]);
     const [filterInEffect, setFilterInEffect] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate()
 
     const { data: accommodations = [], isError: accommodationsError, isSuccess } = useQuery({
@@ -94,6 +98,10 @@ export default function BrowsePage() {
     const [flatDorms, setFlatDorms] = useState<Dorm[]>([])
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([])
 
+    // Reset to first page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters]);
 
     useEffect(() => {
         if (!isSuccess || accommodations.length === 0) return
@@ -241,6 +249,11 @@ export default function BrowsePage() {
         setMapAccommodations(tempPins)
     }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters, studentNo, filterPanelOpen])
 
+    // Pagination logic
+    const totalPages = Math.ceil(flatDorms.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedDorms = flatDorms.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
     /* map URL params — untouched */
     const [searchParams] = useSearchParams()
     const centerId = searchParams.get("center")
@@ -338,7 +351,7 @@ export default function BrowsePage() {
                                         <p className="text-xs">Try adjusting the filters or search term</p>
                                     </div>
                                 ) : (
-                                    flatDorms.map(dorm => (
+                                    paginatedDorms.map(dorm => (
                                         <DormTile
                                             key={dorm.accommodationId}
                                             dorm={dorm}
@@ -349,6 +362,16 @@ export default function BrowsePage() {
                                     ))
                                 )}
                             </div>
+
+                            {totalPages > 1 && (
+                                <div className="pt-4 pb-2 flex justify-center shrink-0">
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={totalPages}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* ── RIGHT: map ── */}
