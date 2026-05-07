@@ -4,8 +4,8 @@ const scholars_dormitory: DormSeedData = {
     accommodation_name: "Scholar's Dormitory UPLB",
     accommodation_location:
         'G. Viado St., College, Los Baños, Laguna 4031',
-    latitude: 14.165800,
-    longitude: 121.239500,
+    latitude: 14.16016,
+    longitude: 121.24069,
     accommodation_type: 'off-campus',
     tenant_restriction: 'coed',
     accommodation_capacity: 80,
@@ -189,8 +189,8 @@ const arable_premier_residences: DormSeedData = {
     accommodation_name: 'Arable Premier Residences',
     accommodation_location:
         'Jose R. Velasco Ave., Batong Malake, Los Baños, Laguna 4031',
-    latitude: 14.169800,
-    longitude: 121.244200,
+    latitude: 14.16717,
+    longitude: 121.23805,
     accommodation_type: 'off-campus',
     tenant_restriction: 'coed',
     accommodation_capacity: 50,
@@ -347,8 +347,8 @@ const arable_premier_residences: DormSeedData = {
 //     accommodation_name: 'One Silangan Place',
 //     accommodation_location:
 //         'Silangan, near UPLB Main Gate, College, Los Baños, Laguna',
-//     latitude: 14.165200,
-//     longitude: 121.238000,
+//     latitude: 14.16814,
+//     longitude: 121.24384,
 //     accommodation_type: 'off-campus',
 //     tenant_restriction: 'coed',
 //     accommodation_capacity: 40,
@@ -439,8 +439,8 @@ const estellar_residences: DormSeedData = {
     accommodation_name: 'Estellar Residences',
     accommodation_location:
         'Jose R. Velasco Ave., Batong Malake, Los Baños, Laguna 4031',
-    latitude: 14.170100,
-    longitude: 121.244800,
+    latitude: 14.16361,
+    longitude: 121.25608,
     accommodation_type: 'off-campus',
     tenant_restriction: 'coed',
     accommodation_capacity: 60,
@@ -593,8 +593,8 @@ const zeta_dormitory: DormSeedData = {
     accommodation_name: 'Zeta Dormitory',
     accommodation_location:
         'Batong Malake, Los Baños, Laguna 4031',
-    latitude: 14.170600,
-    longitude: 121.245300,
+    latitude: 14.17048,
+    longitude: 121.24336,
     accommodation_type: 'off-campus',
     tenant_restriction: 'female-only',
     accommodation_capacity: 45,
@@ -699,8 +699,8 @@ const marhaba_dormitory: DormSeedData = {
     accommodation_name: 'Marhaba Dormitory',
     accommodation_location:
         'College, Los Baños, Laguna 4031',
-    latitude: 14.169400,
-    longitude: 121.243900,
+    latitude: 14.17119,
+    longitude: 121.24495,
     accommodation_type: 'off-campus',
     tenant_restriction: 'coed',
     accommodation_capacity: 50,
@@ -828,8 +828,8 @@ const reese_dormitory: DormSeedData = {
     accommodation_name: 'R.E.E.S.E. Dormitory',
     accommodation_location:
         'Batong Malake, beside UPLB, Los Baños, Laguna 4031',
-    latitude: 14.168900,
-    longitude: 121.243200,
+    latitude: 14.16865,
+    longitude: 121.24111,
     accommodation_type: 'off-campus',
     tenant_restriction: 'coed',
     accommodation_capacity: 55,
@@ -936,8 +936,8 @@ const mix_match_dormitory: DormSeedData = {
     accommodation_name: 'Mix-Match Dormitory',
     accommodation_location:
         'College, Los Baños, Laguna 4031',
-    latitude: 14.169000,
-    longitude: 121.244500,
+    latitude: 14.17306,
+    longitude: 121.24412,
     accommodation_type: 'off-campus',
     tenant_restriction: 'coed',
     accommodation_capacity: 40,
@@ -1050,8 +1050,8 @@ const riela_dormitory: DormSeedData = {
     accommodation_name: 'Riela Dormitory',
     accommodation_location:
         'College, Los Baños, Laguna 4031',
-    latitude: 14.168500,
-    longitude: 121.242800,
+    latitude: 14.17495,
+    longitude: 121.24275,
     accommodation_type: 'off-campus',
     tenant_restriction: 'female-only',
     accommodation_capacity: 35,
@@ -1143,8 +1143,8 @@ const bay_anne_dormitory: DormSeedData = {
     accommodation_name: 'Bay-Anne Dormitory',
     accommodation_location:
         'Anos, Los Baños, Laguna 4031',
-    latitude: 14.167200,
-    longitude: 121.241600,
+    latitude: 14.17058,
+    longitude: 121.24653,
     accommodation_type: 'off-campus',
     tenant_restriction: 'coed',
     accommodation_capacity: 40,
@@ -1246,8 +1246,8 @@ const rigors_dormitory: DormSeedData = {
     accommodation_name: "Rigor's Dormitory",
     accommodation_location:
         'College, Los Baños, Laguna 4031',
-    latitude: 14.168000,
-    longitude: 121.242200,
+    latitude: 14.16853,
+    longitude: 121.24489,
     accommodation_type: 'off-campus',
     tenant_restriction: 'male-only',
     accommodation_capacity: 30,
@@ -1338,8 +1338,8 @@ const koru_residences: DormSeedData = {
     accommodation_name: 'Koru Residences',
     accommodation_location:
         '10051-B Grove, Lopez Ave., Los Baños, Laguna 4030',
-    latitude: 14.168300,
-    longitude: 121.239800,
+    latitude: 14.16877,
+    longitude: 121.24390,
     accommodation_type: 'off-campus',
     tenant_restriction: 'female-only',
     accommodation_capacity: 30,
@@ -1476,8 +1476,8 @@ const westbrook_residences: DormSeedData = {
     accommodation_name: 'Westbrook Residences',
     accommodation_location:
         '10961 Jose R. Velasco Ave., College, Los Baños, Laguna 4031',
-    latitude: 14.169700,
-    longitude: 121.243500,
+    latitude: 14.16842,
+    longitude: 121.23889,
     accommodation_type: 'off-campus',
     tenant_restriction: 'coed',
     accommodation_capacity: 50,
@@ -1617,8 +1617,8 @@ const holland_tulips: DormSeedData = {
     accommodation_name: 'Holland Tulips Dormitory',
     accommodation_location:
         'Jose R. Velasco Ave., College, Los Baños, Laguna 4031',
-    latitude: 14.169950,
-    longitude: 121.241800,
+    latitude: 14.16913,
+    longitude: 121.23943,
     accommodation_type: 'off-campus',
     tenant_restriction: 'coed',
     accommodation_capacity: 40,
@@ -1639,7 +1639,7 @@ const holland_tulips: DormSeedData = {
     ],
     rooms: [
         {
-        room_number: 'HT-101',
+        room_number: 'HT101',
         room_building: 'Holland Tulips',
         room_type: 'single',
         room_stay_type: 'non_transient',
@@ -1656,7 +1656,7 @@ const holland_tulips: DormSeedData = {
         inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-        room_number: 'HT-102',
+        room_number: 'HT102',
         room_building: 'Holland Tulips',
         room_type: 'single',
         room_stay_type: 'non_transient',
@@ -1674,7 +1674,7 @@ const holland_tulips: DormSeedData = {
         preferences: ['Quiet room'],
         },
         {
-        room_number: 'HT-201',
+        room_number: 'HT201',
         room_building: 'Holland Tulips',
         room_type: 'double',
         room_stay_type: 'non_transient',
@@ -1691,7 +1691,7 @@ const holland_tulips: DormSeedData = {
         inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-        room_number: 'HT-202',
+        room_number: 'HT202',
         room_building: 'Holland Tulips',
         room_type: 'double',
         room_stay_type: 'non_transient',
@@ -1708,7 +1708,7 @@ const holland_tulips: DormSeedData = {
         inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-        room_number: 'HT-301',
+        room_number: 'HT301',
         room_building: 'Holland Tulips',
         room_type: 'shared',
         room_stay_type: 'non_transient',
@@ -1725,7 +1725,7 @@ const holland_tulips: DormSeedData = {
         inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-        room_number: 'HT-302',
+        room_number: 'HT302',
         room_building: 'Holland Tulips',
         room_type: 'shared',
         room_stay_type: 'non_transient',
