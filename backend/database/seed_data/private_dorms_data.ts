@@ -17,7 +17,6 @@ const scholars_dormitory: DormSeedData = {
     images: [
         'scholars_dorm_front.jpg',
         'scholars_dorm_room.jpg',
-        'scholars_dorm_common.jpg',
     ],
     tags: [
         'Private dorm',
