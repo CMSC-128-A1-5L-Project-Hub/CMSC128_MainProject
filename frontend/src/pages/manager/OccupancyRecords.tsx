@@ -681,18 +681,25 @@ export default function OccupancyRecords() {
                         />
                         
                         {loading && (
-                            <div className=" items-center justify-center w-full h-full flex">
-                                <p className="text-sm text-[#9A7080]">
-                                    Loading occupancy records...
+                            <div className="flex flex-col items-center bg-white h-full w-full justify-center rounded-2xl text-center">
+                                <div
+                                    className="animate-spin rounded-full h-8 w-8 border-b-2"
+                                    style={{ borderColor: "#9E2040" }}
+                                    />
+                                <p className="text-sm text-[#9A7080] mt-2">
+                                Loading occupancy records...
                                 </p>
                             </div>
                             
                         )}
 
                         {error && (
-                            <p className="text-sm text-red-600">
-                                {error}
-                            </p>
+                            <div className="w-full h-full bg-white items-center justify-center flex rounded-2xl">
+                                <p className="text-sm text-red-600">
+                                    {error}
+                                </p>
+                            </div>
+                            
                         )}
 
                         {!loading && !error && (

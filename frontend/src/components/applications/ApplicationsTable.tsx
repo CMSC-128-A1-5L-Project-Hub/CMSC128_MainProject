@@ -328,128 +328,107 @@ const handleCloseSearch = () => {
             <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
             <p className="text-[#9A7080]/60 text-sm mt-1">When somebody submits an application, it will appear here</p>
         </div>
-        <table className={`${filtered.length === 0 ? "hidden" : "table w-full" } border-separate border-spacing-0`}>
-          <thead className="sticky z-20 top-0 rounded-t-lg bg-white border-y-2 border-[#6B0F2B]/5">
-            <tr className="text-[#9A7080] text-[12px] lg:text-xs tracking-widest font-bold">
-              {["Student", "Date Applied", "Time", "Facility", "Status", "Action"].map((col) => (
-                <th
-                  key={col}
-                  className="uppercase p-1 text-left whitespace-nowrap border-y-2 border-[#6B0F2B]/5"
+        <div className="w-full overflow-x-auto h-full">
+          <div className="min-w-[900px]">
+            {/* Header */}
+            <div className="grid grid-cols-12 border-b-2 border-[#6B0F2B]/5">
+              {[
+                { label: "Student", span: 3 },
+                { label: "Date Applied", span: 2 },
+                { label: "Time", span: 2 },
+                { label: "Facility", span: 2 },
+                { label: "Status", span: 2 },
+                { label: "Action", span: 1 },
+              ].map(({ label, span }) => (
+                <p
+                  key={label}
+                  className={`col-span-${span} px-2 py-3 text-[#9A7080] text-[11px] font-bold uppercase tracking-widest whitespace-nowrap`}
                 >
-                  {col}
-                </th>
+                  {label}
+                </p>
               ))}
-            </tr>
-          </thead>
+            </div>
 
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={6} className="text-center py-16">
-                  <div className="flex flex-col items-center gap-2">
+            {/* Rows */}
+            <div className="flex flex-col divide-y divide-[#F5ECF0]">
+              {isLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center gap-2">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: clr.mid }} />
+                  <p className="text-sm text-[#9A7080]">Fetching applications...</p>
+                </div>
+              ) : isError ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                  <p className="text-sm text-red-500 font-medium">Fetching data failed</p>
+                  <button onClick={() => refetch()} className="mt-2 text-xs font-semibold text-[#9E2040] hover:underline">
+                    TRY AGAIN
+                  </button>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                  <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+                  <p className="text-[#9A7080]/60 text-sm mt-1">When somebody submits an application, it will appear here</p>
+                </div>
+              ) : (
+                paginated.map((app) => {
+                  const initial = app.student.user.fname.charAt(0).toUpperCase();
+                  return (
                     <div
-                      className="animate-spin rounded-full h-8 w-8 border-b-2"
-                      style={{ borderColor: clr.mid }}
-                    />
-                    <p className="text-gray-400 text-sm">Fetching applications...</p>
-                  </div>
-                </td>
-              </tr>
-            ) : isError ? (
-              <tr>
-                <td colSpan={6} className="py-16">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <p className="text-sm text-red-500 font-medium">Fetching data failed</p>
-                    <button
-                      onClick={() => refetch()}
-                      className="mt-2 text-xs font-semibold text-[#9E2040] hover:underline"
+                      key={`${app.id}-${startIndex}`}
+                      className="grid grid-cols-12 items-center py-3 hover:bg-[#FFF9FA] transition-colors"
                     >
-                      TRY AGAIN
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            // ) : filtered.length === 0 ? (
-            //   <tr>
-            //     <td colSpan={6} className="py-16 text-center">
-            //       <p className="text-base italic text-gray-400">Nothing to see here</p>
-            //     </td>
-            //   </tr>
-            ) : (
-              paginated.map((app) => {
-                const initial = app.student.user.fname.charAt(0).toUpperCase();
-
-                return (
-                  <tr
-                    key={`${app.id}-${startIndex}`}
-                    className="border-b border-gray-100 last:border-none"
-                    style={{ backgroundColor: "transparent" }}
-                  >
-                    <td className="px-2 py-2 flex flex-row items-center gap-2">
-                      <div
-                        aria-hidden="true"
-                        className="hidden lg:flex w-9 h-9 rounded-xl items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                      >
-                        {initial}
-                      </div>
-                      <div className="flex flex-col justify-center">
-                        <span className="block text-[13px] lg:text-sm font-semibold">
+                      {/* Student */}
+                      <div className="col-span-3 px-2 flex items-center gap-2">
+                        <div
+                          aria-hidden="true"
+                          className="hidden lg:flex w-9 h-9 rounded-xl items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                          style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                        >
+                          {initial}
+                        </div>
+                        <span className="text-[13px] lg:text-sm font-semibold">
                           {app.student.user.fname} {app.student.user.lname}
                         </span>
                       </div>
-                    </td>
 
-                    <td className="px-2 py-2">
-                      <span className="block text-[12px] lg:text-[13px]">
-                        {formatDate(app.applicationDate)}
-                      </span>
-                      <span className="block text-[11px] text-[#9A7080]">
-                        {getDaysAgo(app.applicationDate)} days ago
-                      </span>
-                    </td>
+                      {/* Date */}
+                      <div className="col-span-2 px-2">
+                        <span className="block text-[12px] lg:text-[13px]">{formatDate(app.applicationDate)}</span>
+                        <span className="block text-[11px] text-[#9A7080]">{getDaysAgo(app.applicationDate)} days ago</span>
+                      </div>
 
-                    <td className="px-2 py-2">
-                      <span className="block text-[12px] lg:text-[13px] text-gray-500">
-                        {formatTime(app.applicationDate)}
-                      </span>
-                    </td>
+                      {/* Time */}
+                      <div className="col-span-2 px-2">
+                        <span className="block text-[12px] lg:text-[13px] text-gray-500">{formatTime(app.applicationDate)}</span>
+                      </div>
 
-                    <td className="px-2 py-2">
-                      <span className="block text-[13px] lg:text-sm font-semibold capitalize">
-                        {app.accommodation.accommodationName}
-                      </span>
-                      <span className="block text-[#9A7080] -mt-0.5 text-[12px] capitalize">
-                        {app.applicationRoomType}
-                      </span>
-                    </td>
+                      {/* Facility */}
+                      <div className="col-span-2 px-2">
+                        <span className="block text-[13px] lg:text-sm font-semibold capitalize">{app.accommodation.accommodationName}</span>
+                        <span className="block text-[#9A7080] text-[12px] capitalize">{app.applicationRoomType}</span>
+                      </div>
 
-                    <td className="text-[11px] capitalize">
-                      <StatusBadge
-                        status={getAppStatus(app)}
-                        statusConfig={statusConfig}
-                      />
-                    </td>
+                      {/* Status */}
+                      <div className="col-span-2 px-2">
+                        <StatusBadge status={getAppStatus(app)} statusConfig={statusConfig} />
+                      </div>
 
-                    <td className="px-2 py-2 text-[12px] lg:text-[14px]">
-                      <button
-                        onClick={() => onView(app)}
-                        className="transition-transform duration-150 hover:-translate-y-px hover:scale-105 active:scale-95 text-sm px-4 py-1.5 rounded-xl font-medium"
-                        style={{
-                          color: clr.mid,
-                          background: "#F5ECF0",
-                          border: `1px solid ${clr.mid}20`,
-                        }}
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                      {/* Action */}
+                      <div className="col-span-1 px-2">
+                        <button
+                          onClick={() => onView(app)}
+                          className="transition-transform duration-150 hover:-translate-y-px hover:scale-105 active:scale-95 text-sm px-4 py-1.5 rounded-xl font-medium"
+                          style={{ color: clr.mid, background: "#F5ECF0", border: `1px solid ${clr.mid}20` }}
+                        >
+                          View
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
 

@@ -212,9 +212,13 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
 
                         <div className="overflow-auto flex-1 min-h-0 mt-1 rounded-t-lg">
                             {isLoading ? (
-                                <div className="flex justify-center items-center h-full">
-                                    <p className="text-gray-400 font-medium text-center animate-pulse">
-                                        Loading your applications...
+                                <div className="py-12 flex flex-col items-center justify-center text-center">
+                                    <div
+                                        className="animate-spin rounded-full h-8 w-8 border-b-2"
+                                        style={{ borderColor: "#9E2040" }}
+                                        />
+                                    <p className="text-sm text-[#9A7080] mt-2">
+                                    Fetching your applications...
                                     </p>
                                 </div>
                             ) : isError ? (

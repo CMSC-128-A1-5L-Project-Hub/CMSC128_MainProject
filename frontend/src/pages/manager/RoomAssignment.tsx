@@ -316,8 +316,14 @@ export default function RoomAssignment() {
   // Loading
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Loading…</p>
+      <div className="flex flex-col h-full w-full items-center justify-center text-center">
+          <div
+              className="animate-spin rounded-full h-8 w-8 border-b-2"
+              style={{ borderColor: "#9E2040" }}
+              />
+          <p className="text-sm text-[#9A7080] mt-2">
+          Fetching room assignments...
+          </p>
       </div>
     )
   }
