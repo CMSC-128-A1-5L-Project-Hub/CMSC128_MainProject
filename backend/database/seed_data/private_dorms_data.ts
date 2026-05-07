@@ -1153,8 +1153,6 @@ const bay_anne_dormitory: DormSeedData = {
     driving_distance: 3,
     images: [
         'bay_anne_front.jpg',
-        'bay_anne_room.jpg',
-        'bay_anne_outside.jpg',
     ],
     tags: [
         'Private dorm',
