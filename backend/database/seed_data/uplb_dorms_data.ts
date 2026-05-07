@@ -398,8 +398,97 @@ const womens_residence_hall: DormSeedData = {
   ],
 }
 
+const foreha: DormSeedData = {
+  accommodation_name: 'Forestry Residence Hall',
+  accommodation_location:
+    'Forestry Road, Upper Campus, UPLB, College, Los Baños, Laguna',
+  latitude: 14.161800,
+  longitude: 121.237500,
+  accommodation_type: 'on-campus',
+  tenant_restriction: 'female-only',
+  accommodation_capacity: 200,
+  walking_distance: 30,
+  biking_distance: 12,
+  driving_distance: 6,
+  application_start_date: '2026-06-01',
+  application_end_date: '2026-07-15',
+  images: [
+    'FOREHA_front.jpg',
+    'FOREHA_room.jpg',
+    'FOREHA_outside.jpg',
+  ],
+  tags: [
+    'On-campus housing',
+    'UP-owned',
+    'Female-exclusive',
+    'Near Forestry College',
+    'Subsidized rates',
+    '24/7 Security',
+  ],
+  rooms: [
+    {
+      room_number: '101',
+      room_building: 'Forestry Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+    },
+    {
+      room_number: '102',
+      room_building: 'Forestry Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+    },
+    {
+      room_number: '103',
+      room_building: 'Forestry Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 5,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+    },
+    {
+      room_number: '201',
+      room_building: 'Forestry Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+    },
+  ],
+}
+
 export const UPLB_DORMS: DormSeedData[] = [
   //call dorm data here
   makiling_residence_hall,
-  mens_residence_hall
+  mens_residence_hall,
+  womens_residence_hall,
+  foreha
 ]
