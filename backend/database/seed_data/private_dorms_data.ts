@@ -1256,8 +1256,6 @@ const rigors_dormitory: DormSeedData = {
     driving_distance: 2,
     images: [
         'rigors_front.jpg',
-        'rigors_room.jpg',
-        'rigors_outside.jpg',
     ],
     tags: [
         'Private dorm',
