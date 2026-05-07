@@ -6,6 +6,7 @@ import HeroBanner from "../../components/dashboard/HeroBanner"
 import Card from "../../components/ui/Card"
 import { useQuery } from "@tanstack/react-query";
 import { DateTime } from 'luxon'
+import CustomHeader from '../../components/CustomHeader';
 
 type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected";
 
@@ -103,7 +104,7 @@ const diffFromNow = (isoDate: string | DateTime | undefined | null): number => {
   return Math.trunc(days ?? 0)
 }
 
-const RECORDS_PER_PAGE = 5
+const RECORDS_PER_PAGE = 15
 type FilterType = "all" | "move-in" | "move-out"
 
 // initial for avatar 
@@ -141,7 +142,7 @@ export default function MoveinMoveout() {
             return res.data;
             },
         });
-
+    
     //TABLE 
     const MoveInMoveOutTable = ({ records = assignments }: { records?: AssignmentResponse[] }) => {
         //STATE 
@@ -264,121 +265,189 @@ export default function MoveinMoveout() {
                     </div>
 
                     {/* TABLE HEADER */}
-                        <div className="w-full overflow-x-auto">
-                            <div className="min-w-[900px]">
+                    <div className="w-full overflow-x-auto pb-2">
+                    <table className="min-w-[900px] w-full text-sm table-fixed">
+                        <thead>
+                        <tr className="border-b border-[#6B0F2B]/10">
+                            <th className="px-4 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+                            Students
+                            </th>
 
-                                {/* TABLE HEADER */}
-                                <div className="grid grid-cols-12 bg-gray-50 border-b border-[#F5ECF0] uppercase">
-                                <p className="col-span-3 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Students</p>
-                                <p className="col-span-2 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Room</p>
-                                <p className="col-span-3 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Room Type</p>
-                                <p className="col-span-3 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Date</p>
-                                <p className="col-span-1 px-4 py-3 text-[#9A7080] text-xs font-bold whitespace-nowrap">Type</p>
-                                </div>
-                    </div>
+                            <th className="px-3 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+                            Room
+                            </th>
 
+                            <th className="px-5 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+                            Room Type
+                            </th>
+
+                            <th className="px-[60px] py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+                            Date
+                            </th>
+
+                            <th className="px-8 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+                            Type
+                            </th>
+                        </tr>
+                        </thead>
                         {/* ROWS */}
-                        <div className="flex flex-col divide-y divide-[#F5ECF0]">
+                        <tbody className="divide-y divide-[#F5ECF0]">
                         {/* LOADING STATE */}
                         {isLoadingList && (
-                            <div className="py-10 flex flex-col items-center justify-center text-center">
-                            <div
-                                className="animate-spin rounded-full h-8 w-8 border-b-2"
-                                style={{ borderColor: "#9E2040" }}
-                                role="status"
-                            >
-                                <span className="sr-only">Loading...</span>
-                            </div>
+                            <tr>
+                            <td colSpan={5} className="py-10">
+                                <div className="flex flex-col items-center justify-center text-center">
+                                <div
+                                    className="animate-spin rounded-full h-8 w-8 border-b-2"
+                                    style={{ borderColor: "#9E2040" }}
+                                    role="status"
+                                >
+                                    <span className="sr-only">Loading...</span>
+                                </div>
 
-                            <p className="text-sm text-[#9A7080] mt-2">
-                                Fetching move-in and move-out history...
-                            </p>
-                            </div>
+                                <p className="text-sm text-[#9A7080] mt-2">
+                                    Fetching move-in and move-out history...
+                                </p>
+                                </div>
+                            </td>
+                            </tr>
                         )}
 
                         {/* ERROR STATE */}
                         {isErrorList && (
-                            <div className="py-10 text-center">
-                                <p className="text-sm text-red-600 font-medium">Failed to load data.</p>
-                                <button 
-                                    onClick={() => refetch()} 
-                                    className="mt-2 text-xs font-bold text-[#9E2040] hover:underline uppercase tracking-wider"
+                            <tr>
+                            <td colSpan={5} className="py-10 text-center">
+                                <p className="text-sm text-red-600 font-medium">
+                                Failed to load data.
+                                </p>
+
+                                <button
+                                onClick={() => refetch()}
+                                className="mt-2 text-xs font-bold text-[#9E2040] hover:underline uppercase tracking-wider"
                                 >
-                                    Try Again
+                                Try Again
                                 </button>
-                            </div>
+                            </td>
+                            </tr>
                         )}
 
                         {/* SUCCESS STATE */}
                         {!isLoadingList && !isErrorList && (
-                            paginated.length > 0 ? paginated.map((record, i) => {
+                            paginated.length > 0 ? (
+                            paginated.map((record, i) => {
                                 const diffMoveIn = diffFromNow(record.moveIn);
                                 const diffMoveOut = diffFromNow(record.expectedMoveOut);
                                 const isMoveIn = diffMoveIn <= 0;
 
                                 return (
-                                    <div
-                                        key={i}
-                                        className={`grid grid-cols-12 items-center transition
-                                            ${isMoveIn ? "" : "bg-[#FDF4F7]"}`}
-                                    >
-                                        {/* STUDENT */}
-                                        <div className="col-span-3 px-4 py-3 flex items-center gap-3">
-                                            <div
-                                                className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
-                                                style={avatarStyle(isMoveIn ? 'move-in' : 'move-out')}
-                                            >
-                                                {getInitial(record.student.user.lname)}
-                                            </div>
-                                            <p className="font-semibold text-sm text-[#1A0008]">
-                                                {record.student.user.fname} {record.student.user.lname}
-                                            </p>
+                                <tr
+                                    key={i}
+                                    className={`transition hover:bg-[#FFF9FA] ${
+                                    isMoveIn ? "" : "bg-[#FDF4F7]"
+                                    }`}
+                                >
+                                    {/* STUDENT */}
+                                    <td className="px-4 py-3">
+                                    <div className="flex items-center gap-3">
+                                        <div
+                                        className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
+                                        style={{
+                                            background:
+                                            "linear-gradient(135deg, #6B0F2B, #9E2040)",
+                                        }}
+                                        >
+                                        {getInitial(record.student.user.lname)}
                                         </div>
 
-                                        {/* ROOM */}
-                                        <div className="col-span-2 px-4 py-3 flex flex-col">
-                                            <span className="text-sm text-[#1A0008]">{record.room.roomNumber}</span>
-                                            <span className="text-xs text-[#9A7080]">{record.room.roomBuilding}</span>
-                                        </div>
-
-                                        {/* ROOM TYPE */}
-                                        <div className="col-span-3 px-4 py-3 flex flex-col">
-                                            <span className="text-sm text-[#1A0008] capitalize">
-                                                {record.room.roomStayType.replace('_', ' ')}
-                                            </span>
-                                            <span className="text-xs text-[#9A7080] capitalize">{record.room.roomType}</span>
-                                        </div>
-
-                                        {/* DATE */}
-                                        <div className="col-span-2 px-4 py-3 flex flex-col">
-                                            <span className="text-sm text-[#1A0008]">
-                                                {isMoveIn ? record.moveIn.toLocaleString() : record.expectedMoveOut.toLocaleString()}
-                                            </span>
-                                            <span className={`text-xs ${isMoveIn ? "text-[#9A7080]" : "text-[#9E2040]"}`}>
-                                                {isMoveIn 
-                                                    ? `${Math.abs(diffMoveIn)} days until move-in` 
-                                                    : `${diffMoveOut < 0 
-                                                        ? Math.abs(diffMoveOut) + ' days until move-out' 
-                                                        : Math.abs(diffMoveOut) + ' days since move-out'}`}
-                                            </span>
-                                        </div>
-
-                                        {/* MOVE TYPE */}
-                                        <div className="col-span-1 px-4 py-3">
-                                            <span className={`text-sm font-medium capitalize ${isMoveIn ? "text-[#1A0008]" : "text-[#9E2040]"}`}>
-                                                {isMoveIn ? "Move-in" : "Move-out"}
-                                            </span>
-                                        </div>
+                                        <p className="font-semibold text-sm text-[#1A0008]">
+                                        {record.student.user.fname}{" "}
+                                        {record.student.user.lname}
+                                        </p>
                                     </div>
+                                    </td>
+
+                                    {/* ROOM */}
+                                    <td className="px-4 py-3">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm text-[#1A0008]">
+                                        {record?.room.roomNumber}
+                                        </span>
+
+                                        <span className="text-xs text-[#9A7080]">
+                                        {record?.room.roomBuilding}
+                                        </span>
+                                    </div>
+                                    </td>
+
+                                    {/* ROOM TYPE */}
+                                    <td className="px-4 py-3">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm text-[#1A0008] capitalize">
+                                        {record.room.roomStayType.replace("_", " ")}
+                                        </span>
+
+                                        <span className="text-xs text-[#9A7080] capitalize">
+                                        {record.room.roomType}
+                                        </span>
+                                    </div>
+                                    </td>
+
+                                    {/* DATE */}
+                                    <td className="px-4 py-3">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm text-[#1A0008]">
+                                        {isMoveIn
+                                            ? record.moveIn.toLocaleString()
+                                            : record.expectedMoveOut.toLocaleString()}
+                                        </span>
+
+                                        <span
+                                        className={`text-xs ${
+                                            isMoveIn
+                                            ? "text-[#9A7080]"
+                                            : "text-[#9E2040]"
+                                        }`}
+                                        >
+                                        {isMoveIn
+                                            ? `${Math.abs(diffMoveIn)} days until move-in`
+                                            : `${
+                                                diffMoveOut < 0
+                                                ? Math.abs(diffMoveOut) +
+                                                    " days until move-out"
+                                                : Math.abs(diffMoveOut) +
+                                                    " days since move-out"
+                                            }`}
+                                        </span>
+                                    </div>
+                                    </td>
+
+                                    {/* MOVE TYPE */}
+                                    <td className="px-4 py-3">
+                                    <span
+                                        className={`text-sm font-medium capitalize ${
+                                        isMoveIn
+                                            ? "text-[#1A0008]"
+                                            : "text-[#9E2040]"
+                                        }`}
+                                    >
+                                        {isMoveIn ? "Move-in" : "Move-out"}
+                                    </span>
+                                    </td>
+                                </tr>
                                 );
-                            }) : (
-                            <div className="py-12 flex items-center justify-center">
-                            <p className="text-base italic text-gray-400">
-                                Nothing to see here
-                            </p>
-                            </div>                            )
+                            })
+                            ) : (
+                            <tr>
+                                <td colSpan={5} className="py-12 text-center">
+                                <p className="text-base italic text-gray-400">
+                                    Nothing to see here
+                                </p>
+                                </td>
+                            </tr>
+                            )
                         )}
-                    </div>
+                        </tbody>
+                        </table>
                     
 
                     {/* FOOTER */}
@@ -417,6 +486,7 @@ export default function MoveinMoveout() {
                     </div>
                  </div>
             </div>
+            
          </div>
         )
     }
@@ -426,29 +496,23 @@ export default function MoveinMoveout() {
             {/* SIDEBAR */}
             <Sidebar role="manager" profile={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname} />
             {/* CONTENT */}
-            <div className="flex-1 flex flex-col p-5 overflow-y-auto">
-                <div className="pl-10 lg:pl-0 flex flex-row border-b border-[#6B0F2B]/7 mb-2 pb-1">
-                    <div
-                        className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
-                        style={{ background: "linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)" }}
-                    />
-                    <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">
-                        Move in and Move out
-                    </h1>
-                </div>
-
-                <main className="flex-1 flex flex-col gap-4">
-                    <HeroBanner
-                        greeting="Good Day"
-                        name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-                        title="Check your move-in and move-out history"
-                        subtitle="We make it easy for you to track the accommodation applications you manage."
-                        type="full"
-                    />
+                <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+                    <CustomHeader title="Move in and Move out" />
+                
+                    <div className="flex-1 flex flex-col p-5 overflow-y-auto">
+                        <main className="flex-1 flex flex-col gap-4">
+                            <HeroBanner
+                                greeting="Good Day"
+                                name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
+                                title="Check your move-in and move-out history"
+                                subtitle="We make it easy for you to track the accommodation applications you manage."
+                                type="full"
+                            />
                     {/* TABLE */}
                     <MoveInMoveOutTable records={assignments} />
                 </main>
             </div>
         </div>
+     </div>
     )
 }

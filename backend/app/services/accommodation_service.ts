@@ -1,13 +1,14 @@
 import Accommodation from '#models/accommodation'
 import Room from '#models/room'
 import RoomTag from '#models/room_tag'
+import { signImageUrl } from '#services/image_service'
 
 
 export class AccommodationService {
   async getFilteredCatalog(filters: any = {}) {
     let query = Accommodation.query()
       .where('status', 'verified')
-      .preload('images')
+      .preload('images', (q) => q.preload('file'))
       .preload('tags')
       .preload('bookmarks')
       .preload('reviews')
@@ -126,6 +127,18 @@ export class AccommodationService {
       ;(acc as any).filteredRoomCount = filteredRooms.length
     }
 
-    return accommodations
+    // Sign primary image URL for each accommodation
+    const results = await Promise.all(
+      accommodations.map(async (acc) => {
+        const serialized = acc.serialize() as any
+        const primary = acc.images?.[acc.primaryImageIndex]
+        serialized.primaryImageUrl = await signImageUrl(primary?.file?.filePath)
+        serialized.pricing = (acc as any).pricing
+        serialized.filteredRoomCount = (acc as any).filteredRoomCount
+        return serialized
+      })
+    )
+
+    return results
   }
 }

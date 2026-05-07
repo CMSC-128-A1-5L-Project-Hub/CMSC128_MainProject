@@ -244,7 +244,7 @@ export default function StudentVerificationsPage() {
             ) : (
               <>
                 {/* TABLE */}
-                <div className="-mx-8">
+                <div className="-mx-6">
                   <table className="min-w-full border-collapse">
                     <thead className="bg-[#FFF7F9]">
                       <tr className="border-y border-[#F2D9DF]">

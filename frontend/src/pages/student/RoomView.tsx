@@ -1,3 +1,5 @@
+//https://uble.onrender.com
+
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
@@ -13,6 +15,8 @@ import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import ApplicationModals from "@/components/applications/ApplicationModals.tsx";
 import RoomApplicationModal from "@/components/RoomApplicationModal.tsx";
+import ShareModal from "@/components/ShareModal.tsx";
+//import ReportAccommodationModal from "@/components/RoomViewReportModal.tsx";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const UPLB_COORDS = { longitude: 121.2436, latitude: 14.1654 }
@@ -29,25 +33,7 @@ const CLR = {
   gold: "#C9973A",
   goldLt: "#E8C37A",
 } as const;
-//todo: configure file paths images, from db 
-//will check pa 
-const BASE_URL = import.meta.env.VITE_API_URL ?? '';
-function assetUrl(filePath: string) { return `${BASE_URL}${filePath}`; }
-
 const GRID_COLS = "grid grid-cols-1 lg:grid-cols-[1.75fr_1fr] gap-3";
-
-interface FileMetadata {
-  id: number;
-  file_name: string;
-  file_path: string; 
-  file_type: "image" | "document";
-}
-
-interface AccomImage {
-  accommodation_id: number;
-  image_file_id: number;
-  file: FileMetadata; 
-}
 
 interface AccomID {
   accomodation_id: number;
@@ -70,7 +56,7 @@ interface Manager {
     lname: string;
     email: string;
     phone?: string;
-    pfp_file?: FileMetadata;
+    pfpUrl?: string;
   };
 }
 
@@ -94,7 +80,6 @@ interface Room{
 interface ReviewUser {
   fname: string;
   lname: string;
-  pfp_file?: FileMetadata;
 }
 
 interface Review{
@@ -117,7 +102,8 @@ interface Accommodation {
   tenant_restriction: "coed" | "male-only" | "female-only";
   application_start_date: string;
   application_end_date: string;
-  images: AccomImage[];
+  imageUrls: string[];
+  primaryImageUrl?: string;
   tags: AccomTag[];
   rooms: Room[];
   reviews: Review[];
@@ -1335,9 +1321,14 @@ export default function RoomView() {
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStart, setSelectedStart] = useState<any>(null);
   const [selectedEnd, setSelectedEnd] = useState<any>(null);
+
+  const [reportType, setReportType] = useState<"dorm" | "manager">("dorm")
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
   // const [isFavorited, setIsFavorited] = useState(false);
@@ -1399,8 +1390,8 @@ export default function RoomView() {
   //   ];
 
   const displayPhotos =
-    accommodation.images?.length > 0
-      ? accommodation.images.map((img) => assetUrl(img.file.file_path))
+    accommodation.imageUrls?.length > 0
+      ? accommodation.imageUrls
       : ["/default-accommodation.png"];
 
   
@@ -1621,17 +1612,19 @@ export default function RoomView() {
                       Favorite
                     </span>
                 </button> */}
-                <button className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2">
-                  <IconShare /> 
-                    <span className="hidden md:inline text-sm font-semibold">
-                      Share
-                    </span>
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
+                >
+                <IconShare />
+                  <span className="hidden md:inline text-sm font-semibold">Share</span>
                 </button>
-                <button className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2" >
+                <button
+                  onClick={() => { setReportType("dorm"); setIsReportModalOpen(true) }}
+                  className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
+                >
                   <IconReport />
-                    <span className="hidden md:inline text-sm font-semibold">
-                      Report
-                    </span>
+                  <span className="hidden md:inline text-sm font-semibold">Report</span>
                 </button>
               </div>
             </div>
@@ -1743,22 +1736,40 @@ export default function RoomView() {
 
                 {/* Dates */}
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Duration of Stay:</p>
-                <div className="mb-4">
-                  <div className="mt-2">
-                    <ApplicationPeriod
-                      onPeriodChange={(start, end) => {
-                        setSelectedStart(start);
-                        setSelectedEnd(end);
-                      }}
-                    />
+                {isTransient ? (
+                  <ApplicationPeriod
+                    onPeriodChange={(start, end) => {
+                      setSelectedStart(start);
+                      setSelectedEnd(end);
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center gap-3 mt-2 mb-8">
+                    <div className="flex-1">
+                      <p className="text-[11px] font-bold text-[#6B0F2B]">
+                        {selectedStart
+                          ? `${MONTHS_SHORT[selectedStart.month]} ${selectedStart.day}, ${selectedStart.year}`
+                          : "—"}
+                      </p>
+                      <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-In</span>
+                    </div>
+                    <span className="text-[#D4B0BA] text-[10px] font-bold uppercase mb-4">to</span>
+                    <div className="flex-1">
+                      <p className="text-[11px] font-bold text-[#6B0F2B]">
+                        {selectedEnd
+                          ? `${MONTHS_SHORT[selectedEnd.month]} ${selectedEnd.day}, ${selectedEnd.year}`
+                          : "—"}
+                      </p>
+                      <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-Out</span>
+                    </div>
                   </div>
-                </div>
+                )}
 
               {manager && (
                 <div className="border border-[#F0E8EC] rounded-2xl p-4 flex flex-col items-center gap-1.5 mb-4">
                   <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mb-1"
-                    style={{ background: managerUser?.pfp_file ? `url(${assetUrl(managerUser.pfp_file.file_path)}) center/cover` : CLR.mid }}>
-                    {!managerUser?.pfp_file && `${managerUser?.fname[0]}${managerUser?.lname[0]}`}
+                    style={{ background: managerUser?.pfpUrl ? `url(${managerUser.pfpUrl}) center/cover` : CLR.mid }}>
+                    {!managerUser?.pfpUrl && `${managerUser?.fname[0]}${managerUser?.lname[0]}`}
                   </div>
                   <div className="w-full h-[2px] bg-[#F0E8EC] mt-2 mx-4"></div>
 
@@ -1774,9 +1785,14 @@ export default function RoomView() {
                     <IconMail /> {managerUser?.email}
                   </p>
                   <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
-                    <button className="flex items-center gap-1 text-xs text-[#9A7080] hover:text-[#8C1535] background-[#9A7080]" ><IconShare /> Share</button>
-                    <span className="text-gray-200">|</span>
-                    <button className="flex items-center gap-1 text-xs text-[#9A7080] hover:text-[#8C1535]"><IconReport /> Report</button>
+                    <button
+                      onClick={() => { setReportType("manager"); setIsReportModalOpen(true) }}
+                      className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
+                    >
+                      <IconReport />
+                      <span className="hidden md:inline text-sm font-semibold">Report</span>
+                    </button>
+
                   </div>
                 </div>
               )}
@@ -1807,6 +1823,20 @@ export default function RoomView() {
                   selectedArrangement={selectedArrangement}
                   setSelectedArrangement={setSelectedArrangement}
                 />
+
+                <ShareModal
+                  open={isShareModalOpen}
+                  onClose={() => setIsShareModalOpen(false)}
+                  accommodationName={accommodation.accommodationName}
+                />
+{/* 
+                <ReportAccommodationModal
+                  open={isReportModalOpen}
+                  onClose={() => setIsReportModalOpen(false)}
+                  reportType={reportType}
+                  accommodationName={accommodation.accommodationName}
+                  managerName={managerUser ? `${managerUser.fname} ${managerUser.lname}` : undefined}
+                /> */}
 
               </div>
 

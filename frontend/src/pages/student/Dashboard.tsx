@@ -540,7 +540,7 @@ interface DesktopProfilePanelProps {
 }
 
 const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePanelProps) => (
-  <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4]">
+  <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4] overflow-y-auto h-screen">
     {/* Top Gradient  */}
     <div
       className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-[...]"
@@ -613,7 +613,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
           <div key={item.label}>
             <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
             {"green" in item && item.green ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#3FA36C] bg-[#5E5A4D] text-[#A8F0B8] text-green-700"> 
                 {item.value}
               </span>
             ) : (
@@ -720,7 +720,7 @@ useEffect(() => {
     const fetchNotifications = async () => {
         try {
         const res = await api.get("/notifications");
-        console.log("notifications:", res.data);
+        // console.log("notifications:", res.data);
 
 
         const data = res.data;
@@ -777,8 +777,8 @@ useEffect(() => {
 
         setPendingApplicationsCount(pendingCount);
 
-        console.log("APPLICATIONS:", data);
-        console.log("PENDING COUNT:", pendingCount);
+        // console.log("APPLICATIONS:", data);
+        // console.log("PENDING COUNT:", pendingCount);
       } catch (error) {
         console.error("Failed to fetch applications:", error);
       } finally {
@@ -797,7 +797,7 @@ useEffect(() => {
     try {
       const res = await api.get('/recommended-accommodations')
       const data = res.data ?? []
-      console.log("RECOMMENDED DORMS:", data);
+      // console.log("RECOMMENDED DORMS:", data);
       setRecommendedDorms(data)
     } catch (error) {
       console.error('Failed to fetch recommended dorms:', error)
@@ -817,7 +817,7 @@ useEffect(() => {
       const res = await api.get("/my-fees");
       const fees = res.data.data ?? res.data ?? [];
 
-      console.log("BILLING:", fees);
+      // console.log("BILLING:", fees);
 
       if (!Array.isArray(fees) || fees.length === 0) {
         setBillingOverviewData(null);
@@ -946,19 +946,10 @@ if (isUserLoading) {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-5 pb-3 lg:pt-7 lg:pb-2 sticky top-0 z-30 bg-[#F6F2F4]">
-          <div className="flex items-center gap-3">
-            <div className="hidden lg:flex items-center gap-2">
-              <div className="w-1 h-6 rounded-full" style={{ background: CLR.mid }} />
-            </div>
-            
-            <h1 className="font-serif italic text-2xl lg:text-4xl font-bold text-gray-900">Dashboard</h1>
+        <div className="flex-1 overflow-y-auto px-4 lg:px-6 pt-0 pb-4 lg:pb-5 space-y-4 lg:space-y-5">
+          <div className="-mx-4 lg:-mx-6">
+            <CustomHeader title="Dashboard" />
           </div>
-        </header> */}
-
-        <CustomHeader
-          title="Dashboard"></CustomHeader>
-        <div className="flex-1 overflow-y-auto px-4 lg:px-6 lg:pt-6 py-4 lg:py-5 space-y-4 lg:space-y-5">
           <div
             className="relative rounded-2xl overflow-hidden flex items-center min-h-[140px] sm:min-h-[176px]"
             style={{ background: `linear-gradient(135deg, ${CLR.dark} 0%, ${CLR.accent} 60%, ${CLR.mid} 100%)` }}
@@ -984,7 +975,7 @@ if (isUserLoading) {
             <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-3">
               <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
               <button className="text-sm font-semibold hover:underline flex items-center gap-1" style={{ color: CLR.mid }}>
-                View all <IconChevronRight />
+                View all  →
               </button>
             </div>
 
@@ -995,7 +986,7 @@ if (isUserLoading) {
                     {["DORM", "TYPE", "APPLIED", "LOCATION", "STATUS", "ACTION"].map((h) => (
                       <th
                         key={h}
-                        className="px-4 sm:px-6 py-2.5 text-left text-[10px] font-bold tracking-widest text-gray-400 uppercase whitespace-nowrap"
+                        className="px-4 sm:px-6 py-2.5 text-left text-[10px] font-bold tracking-widest text-[#A06B7C] uppercase whitespace-nowrap"
                       >
                         {h}
                       </th>
@@ -1008,12 +999,12 @@ if (isUserLoading) {
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center gap-2.5">
                           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" style={{ background: CLR.mid }} />
-                          <span className="font-medium text-gray-800 whitespace-nowrap">{app.accommodation?.accommodationName}</span>
+                          <span className="font-medium text-[#2A0410] whitespace-nowrap">{app.accommodation?.accommodationName}</span>
                         </div>
                       </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{formatStayType(app.applicationStayType)}</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{formatDate(app.applicationDate)}</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 whitespace-nowrap">{capitalize(app.accommodation?.accommodationType)}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">{formatStayType(app.applicationStayType)}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">{formatDate(app.applicationDate)}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">{capitalize(app.accommodation?.accommodationType)}</td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                          <StatusBadge status={
                           app.applicationStatus === "approved"
@@ -1061,6 +1052,14 @@ if (isUserLoading) {
                       <button
                         key={dorm.id}
                         type="button"
+                        onClick={() => {
+                          const id = dorm.id ?? dorm.accommodationId ?? dorm.accommodation_id
+
+                          // console.log("RECOMMENDED DORM CLICKED:", dorm)
+                          // console.log("NAVIGATING TO ID:", id)
+
+                          navigate(`/student/roomview/${id}`)
+                        }}
                         className="min-w-[280px] max-w-[280px] text-left flex-shrink-0 rounded-[24px] border border-[#EFE5E8] bg-white shadow-[0_8px_18px_rgba(61,7,24,0.06)] overflow-hidden transition hover:-translate-y-0.5 snap-start"
                       >
                       <div className="px-4 pt-4 pb-4">
@@ -1161,14 +1160,14 @@ if (isUserLoading) {
                   ))
                 )}
               </div>
-              <button
+              {/* <button
                 type="button"
                 onClick={scrollRecommendedRight}
                 className="hidden md:flex w-14 h-14 rounded-full text-white items-center justify-center shadow-[0_10px_24px_rgba(61,7,24,0.18)] flex-shrink-0"
                 style={{ background: `linear-gradient(135deg, ${CLR.accent} 0%, ${CLR.mid} 100%)` }}
               >
                 <IconArrowNext className="w-5 h-5" />
-              </button>
+              </button> */}
               </div>
 
               
@@ -1177,11 +1176,14 @@ if (isUserLoading) {
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-[22px] shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
               <div className="rounded-xl overflow-hidden flex-1 min-h-[220px] sm:min-h-[260px] relative">
                 <div className="absolute inset-0">
-                  <AccommodationMap
-                    accommodations={dashboardMapAccommodations}
-                    centeredAccommodation={dashboardMapAccommodations[0]}
-                    onCardClick={(acc) => navigate(`/accommodations/${acc.accommodationId}`)}
-                  />
+                 <AccommodationMap
+                  accommodations={dashboardMapAccommodations}
+                  centeredAccommodation={dashboardMapAccommodations[0]}
+                  onCardClick={(acc) => {
+                    // console.log("ACC CLICKED:", acc)
+                    navigate(`/student/roomview/${acc.accommodationId}`)
+                  }}
+                />
                 </div>
               </div>
 

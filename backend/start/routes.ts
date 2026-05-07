@@ -205,6 +205,7 @@ router
       router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
       router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
       router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
+      router.get('/manager/occupancy-history', [controllers.OccupancyRecords, 'history'])
   })
   .use(middleware.auth())
 
@@ -212,6 +213,6 @@ router
 // ====================================================================
 // DEV ROUTES
 // ====================================================================
-if (process.env.NODE_ENV === 'development') {
+// if (process.env.NODE_ENV === 'development') {
   router.get('/dev/login', [controllers.Auth, 'devLogin'])
-}
+// }
