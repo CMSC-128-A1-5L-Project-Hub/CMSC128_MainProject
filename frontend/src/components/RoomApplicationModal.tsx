@@ -99,8 +99,8 @@ export default function RoomApplicationModal({
                     setMoveOutDate(formattedEnd);
                 }
             } else {
-                if (displayStart) setMoveInDate(displayStart);
-                if (displayEnd) setMoveOutDate(displayEnd);
+                setMoveInDate("");
+                setMoveOutDate("");
             }
         }
     }, [open, initialStart, initialEnd, displayStart, displayEnd, isTransient]);
@@ -157,8 +157,8 @@ export default function RoomApplicationModal({
                 durationOfStayDays: isTransient ? numberOfDays : null,
                 preferredTags:
                     selectedPreferences.length > 0 ? selectedPreferences : null,
-                moveInDate,
-                moveOutDate,
+                moveInDate: isTransient ? moveInDate : null,
+                moveOutDate: isTransient ? moveOutDate : null,
                 reservationFee: isTransient ? reservationFee : null,
                 moveInFee: !isTransient ? moveInFee : null,
             };
