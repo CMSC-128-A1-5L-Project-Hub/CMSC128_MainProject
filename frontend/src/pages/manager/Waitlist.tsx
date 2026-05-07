@@ -616,7 +616,7 @@ export default function Waitlist() {
 
                         {/* DATE SUBMITTED */}
                         <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                            {new Date(record.applicationDate).toLocaleDateString()}
+                            {isNaN(new Date(record.applicationDate).getTime()) ? "TBA" : new Date(record.applicationDate).toLocaleDateString()}
                         </p>
 
                         <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
