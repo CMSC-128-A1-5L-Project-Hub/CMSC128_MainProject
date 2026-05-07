@@ -5,6 +5,7 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 
 export default class AdminSeeder extends BaseSeeder {
   async run() {
+    //super admins
     await User.firstOrCreate(
       { email: 'jacarlos2@up.edu.ph' },
       {
@@ -60,6 +61,7 @@ export default class AdminSeeder extends BaseSeeder {
       }
     )
 
+    //document placeholders for students
     const placeholderFile = await FileMetadata.firstOrCreate(
       { fileName: 'enroll_placeholder_carlsjohsua.pdf' },
       {
@@ -87,6 +89,7 @@ export default class AdminSeeder extends BaseSeeder {
       }
     )
 
+    //student users
     const joshuaUser = await User.firstOrCreate(
       { email: 'carlsjohsua@gmail.com' },
       {
@@ -103,6 +106,16 @@ export default class AdminSeeder extends BaseSeeder {
         fname: 'Clarence',
         lname: 'Bernardino',
         email: 'clarencebernardino645@gmail.com',
+        role: 'student',
+      }
+    )
+
+    const lieslUser = await User.firstOrCreate(
+      { email: 'lschan1@up.edu.ph' },
+      {
+        fname: 'Liesl',
+        lname: 'Chan',
+        email: 'lschan1@up.edu.ph',
         role: 'student',
       }
     )
@@ -128,16 +141,6 @@ export default class AdminSeeder extends BaseSeeder {
         college: 'CAS',
         degreeProgram: 'BS Computer Science',
         gender: 'Male',
-      }
-    )
-
-    const lieslUser = await User.firstOrCreate(
-      { email: 'lschan1@up.edu.ph' },
-      {
-        fname: 'Liesl',
-        lname: 'Chan',
-        email: 'lschan1@up.edu.ph',
-        role: 'student',
       }
     )
 
