@@ -20,6 +20,7 @@ export default class ProvisioningService {
       user.fname = profile.fname
       user.lname = profile.lname ?? ''
       await user.save()
+      await this.applyPendingManagerInvite(user)
       return user
     }
 
@@ -31,29 +32,34 @@ export default class ProvisioningService {
       pfpFileId: defaultPfp.id,
     })
 
-    // Check if this email was invited to manage an accommodation
+    await this.applyPendingManagerInvite(user)
+
+    return user
+  }
+
+  private async applyPendingManagerInvite(user: User) {
     const pendingAccommodation = await Accommodation.query()
-      .where('invited_manager_email', profile.email)
+      .where('invited_manager_email', user.email)
       .first()
 
-    if (pendingAccommodation) {
-      // Auto-activate as manager — no admin approval needed
+    if (!pendingAccommodation) return
+
+    if (user.role !== 'manager') {
       user.role = 'manager'
       user.accountStatus = 'active'
       await user.save()
+    }
 
-      // Create Manager record
+    const existingManager = await Manager.findBy('userId', user.id)
+    if (!existingManager) {
       await Manager.create({
         userId: user.id,
         managerStatus: 'active',
       })
-
-      // Link to accommodation and clear the invite
-      pendingAccommodation.managerId = user.id
-      pendingAccommodation.invitedManagerEmail = null
-      await pendingAccommodation.save()
     }
 
-    return user
+    pendingAccommodation.managerId = user.id
+    pendingAccommodation.invitedManagerEmail = null
+    await pendingAccommodation.save()
   }
 }

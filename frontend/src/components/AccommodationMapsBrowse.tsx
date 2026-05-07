@@ -187,7 +187,7 @@ export default function AccommodationMap({
 
                                             <div className="flex gap-1 items-center text-white">
                                                 <span className="text-sm font-bold tracking-tight">
-                                                    {acc.rating}
+                                                    {acc.rating == "0" ? "" : acc.rating}
                                                 </span>
                                                 <span className="text-sm font-medium tracking-tight">
                                                     {acc.accommodationName}

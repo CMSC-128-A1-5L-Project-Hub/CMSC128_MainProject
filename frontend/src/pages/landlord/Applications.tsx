@@ -11,6 +11,7 @@ interface HeroContent {
     title: string;
     subtitle: string;
 }
+import { api } from "../../api/axios";
 
 const CLR = {
   dark: "#3D0718",
@@ -215,33 +216,36 @@ export default function Applications() {
   const { data: appsData = [], isLoading } = useQuery<Application[]>({
     queryKey: ["landlord-applications"],
     queryFn: async () => {
-      const res = await fetch("/api/applications/incoming"); 
-      if (!res.ok) throw new Error("Failed to fetch applications");
-      const json = await res.json();
-      
-      return json.map((app: any) => {
-        const user = app.student?.user;
-        return {
-          id: app.id,
-          student: user ? `${user.fname} ${user.lname}` : "Unknown Applicant",
-          email: user?.email || "No email provided",
-          date: new Date(app.applicationDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-          reviewed: app.reviewedAt ? new Date(app.reviewedAt).toLocaleDateString("en-US") : "---",
-          status: mapStatus(app.applicationStatus),
-          type: app.applicationStayType,
-          remark: app.rejectionReason,
-          originalData: app 
-        };
-      });
+      try {
+        const res = await api.get("/applications/incoming");
+        const json = res.data;
+        
+        return json.map((app: any) => {
+          const user = app.student?.user;
+          return {
+            id: app.id,
+            student: user ? `${user.fname} ${user.lname}` : "Unknown Applicant",
+            email: user?.email || "No email provided",
+            date: new Date(app.applicationDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+            reviewed: app.reviewedAt ? new Date(app.reviewedAt).toLocaleDateString("en-US") : "---",
+            status: mapStatus(app.applicationStatus),
+            type: app.applicationStayType,
+            remark: app.rejectionReason,
+            originalData: app 
+          };
+        });
+      } catch (error: any) {
+         if (error.response?.status === 404) return [];
+         throw new Error("Failed to fetch applications");
+      }
     },
   });
 
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
-      const res = await fetch("/api/me");
-      if (!res.ok) throw new Error("Failed to fetch user");
-      return res.json();
+      const res = await api.get("/me");
+      return res.data;
     },
   });
 
@@ -251,35 +255,26 @@ export default function Applications() {
     queryFn: async () => {
       if (!selectedApp?.originalData?.accommodationId) return [];
       
-      const res = await fetch(`/api/accommodations/${selectedApp.originalData.accommodationId}/rooms`);
-      if (!res.ok) throw new Error("Failed to fetch rooms");
-      
-      return res.json();
+      const res = await api.get(`/accommodations/${selectedApp.originalData.accommodationId}/rooms`);
+      return res.data;
     },
-    // only fetch if an app is selected and we actually need to show the room UI
     enabled: !!selectedApp?.originalData?.accommodationId && (selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted"),
   });
 
   // setup Mutations for approving or rejecting
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, action, reason }: { id: number; action: "approve" | "reject"; reason?: string }) => {
-      const res = await fetch(`/api/applications/${id}/review`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+      try {
+        const res = await api.patch(`/applications/${id}/review`, { 
           action: action, 
           rejection_reason: reason 
-        }),
-      });
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to update application status");
+        });
+        return res.data;
+      } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to update application status");
       }
-      return res.json();
     },
     onSuccess: () => {
-      // refresh the application list after a successful mutation
       queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
       setViewModalOpen(false);
       setRemark("");
@@ -310,6 +305,19 @@ export default function Applications() {
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const paginated = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const accommodationNames = useMemo(() => {
+    if (!appsData || appsData.length === 0) return "your accommodations";
+    
+    // create a Set to get unique names, just in case the landlord manages multiple buildings
+    const names = new Set(
+      appsData
+        .map(app => app.originalData?.accommodation?.accommodationName)
+        .filter(Boolean)
+    );
+    
+    if (names.size === 0) return "your accommodations";
+    return Array.from(names).join(" & ");
+  }, [appsData]);
 
   const handleView = (app: Application) => {
     setSelectedApp(app);
@@ -349,22 +357,17 @@ export default function Applications() {
   // setup Mutation for assigning a room (at the moment, landlord can only accept and reject, not assign rooms)
   const assignRoomMutation = useMutation({
     mutationFn: async ({ roomId, applicationId, moveIn, expectedMoveOut }: { roomId: string | number; applicationId: number; moveIn: string; expectedMoveOut: string }) => {
-      const res = await fetch("/api/assignments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      try {
+        const res = await api.post("/assignments", {
           roomId: roomId,
           applicationId: applicationId,
           moveIn: moveIn,
           expectedMoveOut: expectedMoveOut
-        }),
-      });
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to assign room");
+        });
+        return res.data;
+      } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to assign room");
       }
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });

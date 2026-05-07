@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { X } from "lucide-react";
-
+import { setLandlordSidebarContext } from "../../components/Sidebar";
 import HeroBanner from "../../components/dashboard/HeroBanner";
 import StatCard from "../../components/dashboard/landlord/rooms/dashboard/StatCard";
 import SectionCard from "../../components/dashboard/landlord/rooms/dashboard/SectionCard";
 import CircleProgress from "../../components/dashboard/landlord/rooms/dashboard/CircleProgress";
 import Sidebar from "../../components/Sidebar";
-import ProfileCard from "../../components/dashboard/landlord/rooms/dashboard/ManagerCard";
+import ProfileCard from "../../components/dashboard/manager/ProfileCard";
 import PaymentList from "../../components/dashboard/landlord/rooms/dashboard/PaymentList";
 import ActivityLogs from "../../components/dashboard/landlord/rooms/dashboard/ActivityLogs";
 import ReportsPanel from "../../components/dashboard/landlord/rooms/dashboard/ReportsPanel";
@@ -119,12 +119,17 @@ export default function Dashboard() {
   const [editingDocs, setEditingDocs] = useState(false);
   const [docToDelete, setDocToDelete] = useState<number | null>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-
   const user = useUserStore((s) => s.user);
 
+  // wag niyo galawin toh
+  useEffect(() => {
+    setLandlordSidebarContext("full");
+  }, []);
   // ── Queries ─────────────────────────────────────────────────────────────────
 
   const { data: accommodations = [], isSuccess: accLoaded } = useQuery<
@@ -184,14 +189,22 @@ export default function Dashboard() {
     mutationFn: ({
       applicationId,
       status,
+      rejectionReason,
     }: {
       applicationId: number;
       status: "approved" | "rejected";
-    }) => api.put(`/applications/${applicationId}/status`, { status }),
+      rejectionReason?: string;
+    }) =>
+      api.put(`/applications/${applicationId}/status`, {
+        status,
+        ...(status === "rejected" && { rejectionReason }),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
       setReviewModalOpen(false);
+      setRejectionModalOpen(false);
       setSelectedApp(null);
+      setRejectionReason("");
     },
   });
 
@@ -232,20 +245,39 @@ export default function Dashboard() {
     setSelectedApp(null);
   };
 
+  const handleRejectClick = () => {
+    setRejectionModalOpen(true);
+    setReviewModalOpen(false);
+  };
+
+  const handleBackToReview = () => {
+    setRejectionModalOpen(false);
+    setReviewModalOpen(true);
+  };
+
+  const handleConfirmRejection = () => {
+    if (selectedApp) {
+      reviewAppMutation.mutate({
+        applicationId: selectedApp.id,
+        status: "rejected",
+        rejectionReason,
+      });
+    }
+  };
+
   // ── Right panel (shared between mobile and desktop) ─────────────────────────
 
   const RightPanel = () => (
     <div className="flex flex-col gap-4">
       <ProfileCard
         status={managerStatus}
-        fullName={
-          manager
-            ? `${manager.user.fname} ${manager.user.lname}`
-            : undefined
-        }
+        fullName={manager ? `${manager.user.fname} ${manager.user.lname}` : undefined}
         role="Dorm Manager"
         phoneNumber={primaryPhone}
         email={manager?.user?.email}
+        showReplaceButton
+        accommodationId={accommodationId}
+        onManagerReplaced={() => queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] })}
       />
       <ApplicationPeriod
         initialStart={accommodation?.applicationStartDate}
@@ -621,7 +653,6 @@ export default function Dashboard() {
                         </p>
                       ) : (
                         rooms.map((r) => {
-                          // Map status to user‑friendly labels
                           let statusText = r.roomAvailability;
                           if (r.roomAvailability === "available")
                             statusText = "Available";
@@ -676,7 +707,7 @@ export default function Dashboard() {
         </main>
 
         {/* RIGHT PANEL */}
-        <aside className="hidden lg:flex w-[340px] shrink-0 border-l flex-col gap-4 overflow-y-auto mr-6">
+        <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
           <RightPanel />
         </aside>
       </div>
@@ -795,14 +826,7 @@ export default function Dashboard() {
             <Button
               variant="secondary"
               size="md"
-              onClick={() =>
-                selectedApp &&
-                reviewAppMutation.mutate({
-                  applicationId: selectedApp.id,
-                  status: "rejected",
-                })
-              }
-              disabled={reviewAppMutation.isPending}
+              onClick={handleRejectClick}
             >
               Reject
             </Button>
@@ -878,6 +902,54 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* REJECTION REASON MODAL */}
+      <Modal
+        open={rejectionModalOpen}
+        onClose={() => {
+          setRejectionModalOpen(false);
+          setRejectionReason("");
+        }}
+        title="Rejection Reason"
+        eyebrow="Application Rejection"
+        footer={
+          <div className="flex gap-2 ml-auto">
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={handleBackToReview}
+            >
+              ← Back
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleConfirmRejection}
+              disabled={reviewAppMutation.isPending || !rejectionReason.trim()}
+            >
+              {reviewAppMutation.isPending ? "Processing…" : "Reject"}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Please provide a reason for rejecting this application. This will be
+            communicated to the applicant.
+          </p>
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              Rejection Reason
+            </label>
+            <textarea
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#8C1535] min-h-[120px] resize-none"
+              placeholder="Enter the reason for rejection..."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+            />
+          </div>
+        </div>
       </Modal>
     </div>
   );

@@ -9,6 +9,7 @@ import CustomHeader from '../../components/CustomHeader';
 import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
 import SearchBar from '../../components/SearchBar';
 import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
+import { api } from "../../api/axios";
 
 // define the status type locally
 export type ApplicationStatus = "pending" | "under_review" | "approved" | "rejected" | "waitlisted" | "cancelled" | "confirmed";
@@ -28,46 +29,43 @@ interface ApplicationStatusPageProps {
 // Fetch from the API
 const fetchApplications = async (): Promise<Application[]> => {
     try {
-        const res = await fetch("/api/applications/my-applications");
+        const res = await api.get("/applications/my-applications");
         
-        // if the server explicitly says "Not Found" (404), return an empty array
-        if (res.status === 404) {
-            return [];
-        }
-
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        
-        // check if the response is actually JSON before parsing
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-            // if it's an HTML error page from the server, treat as empty or handle accordingly
-            console.error("Received non-JSON response");
-            return [];
-        }
-
-        const body = await res.json();
+        const body = res.data;
         return body.data ?? body;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Fetch applications error:", error);
-        throw error; // let react query catch this to trigger isError
+        // If the server explicitly says "Not Found" (404), return an empty array
+        if (error.response && error.response.status === 404) {
+            return [];
+        }
+        
+        throw error;
     }
 };
 
 // Main component
 export default function ApplicationStatusPage({ userName = "Student" }: ApplicationStatusPageProps) {
-    const heroContent: HeroContent = {
-        name: userName,
-        greeting: "Good Day",
-        title: "Check your application status",
-        subtitle: "We make it easy for you to track the accommodations you've applied for",
-    };
-
+    
     const [sortBy, setSortBy] = useState("Date applied (Asc.)");
     const [searchQuery, setSearchQuery] = useState("");
     const [viewOpen, setViewOpen] = useState(false);
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+
+    const { data: currentUser } = useQuery({
+        queryKey: ["current-user"],
+        queryFn: async () => {
+            const res = await api.get("/me");
+            return res.data;
+        },
+    });
+
+    const heroContent: HeroContent = {
+        name: currentUser?.fname || userName,
+        greeting: "Good Day",
+        title: "Check your application status",
+        subtitle: "We make it easy for you to track the accommodations you've applied for",
+    };
 
     // Data fetching - using the real API
     const { data: applications = [], isLoading, isError } = useQuery({

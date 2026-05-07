@@ -430,6 +430,7 @@ export default class ApplicationsController {
     }
 
     app.slotConfirmedAt = DateTime.now()
+    app.applicationStatus = 'confirmed'
     await app.save()
 
     await LogService.record(user.id, 'application', app.id, 'STUDENT_CONFIRMED_SLOT')

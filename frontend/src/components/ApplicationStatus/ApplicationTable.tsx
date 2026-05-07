@@ -14,6 +14,7 @@ const rowStyles: Record<string, { bg: string; text: string }> = {
     rejected:     { bg: '#6B0F2B', text: '#9A7080' },
     waitlisted:   { bg: '#EFF4FF', text: '#000000' },
     cancelled:    { bg: '#F0F0F0', text: '#888888' },
+    confirmed:    { bg: '#1A7A4A', text: '#000000' },
 }
 
 function timeAgo(date: Date) {

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
 import DonutStatCard from '../../components/dashboard/DonutStatCard'
@@ -12,13 +12,6 @@ import AvailableRooms from '../../components/dashboard/manager/AvailableRooms'
 import OccupiedRooms from '../../components/dashboard/manager/OccupiedRooms'
 import CustomHeader from '../../components/CustomHeader';
 import ReportModal from '../../components/ReportModal'
-import NotificationPanel, {
-  MOCK_NOTIFICATIONS,
-  type Notification,
-} from '../../components/NotificationPanel'
-import notif_icon from '../../assets/icons/notif_icon.svg'
-import report_icon from '../../assets/icons/report.svg'
-
 import {
   useProfile,
   useIncomingApps,
@@ -41,17 +34,6 @@ export default function Dashboard() {
   const refreshDashboard = useRefreshDashboard()
 
   const [reportOpen, setReportOpen] = useState(false)
-  const [notifOpen, setNotifOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
-  const notifWrapperRef = useRef<HTMLDivElement>(null)
-
-  const unreadCount = notifications.filter((n) => !n.read).length
-  const markAllRead = () =>
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  const markOneRead = (id: number) =>
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
 
   if (profileLoading) {
     return (

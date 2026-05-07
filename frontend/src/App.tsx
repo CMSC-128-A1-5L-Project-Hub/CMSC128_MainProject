@@ -59,7 +59,6 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/success" element={<AuthSuccess/>}/>
         <Route path="/map" element={<InteractiveMap />} />
-        {/* <Route path="/accommodations/:id" element={<FullRoomView />} /> */}
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
@@ -86,8 +85,10 @@ function App() {
         <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
 
         {/* ── Landlord routes ── */}
-        <Route path="/landlord/accommodations/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
+        {/* Manage Accommodation (landing page for landlords) */}
         <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
+        {/* Individual Accommodation Dashboard */}
+        <Route path="/landlord/accommodation/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
         <Route path="/landlord/fees" element={<ProtectedRoute><FeesPage /></ProtectedRoute>} />
         <Route path="/landlord/profile" element={<ProtectedRoute><LandlordProfile /></ProtectedRoute>} />
@@ -97,6 +98,7 @@ function App() {
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/student-verifications" element={<ProtectedRoute> <StudentVerificationsPage /> </ProtectedRoute>} />
         <Route path="/admin/landlord-verifications" element={<ProtectedRoute> <LandlordVerificationsPage /> </ProtectedRoute>} />
+        
         {/* ── Catch-all: 404 ── */}
         <Route path="*" element={<NotFound />} />
       </Routes>

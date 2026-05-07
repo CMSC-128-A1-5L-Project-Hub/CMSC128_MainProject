@@ -24,7 +24,6 @@ interface ProfileData {
 export default function LandlordProfile() {
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
-
     const [editing, setEditing] = useState(false);
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
@@ -55,7 +54,6 @@ export default function LandlordProfile() {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Create a temporary local URL for the image
             const imageUrl = URL.createObjectURL(file);
             setTempImage(imageUrl);
         }
@@ -124,7 +122,7 @@ export default function LandlordProfile() {
 
     return (
         <div className="min-h-screen bg-[#FAF6F2] text-[#2A1F1A] lg:flex">
-            <Sidebar role="landlord" />
+            <Sidebar />
 
             <div className="flex-1">
                 <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
@@ -152,7 +150,6 @@ export default function LandlordProfile() {
 
                                         <div className="relative flex items-center justify-center h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px] w-full">
 
-                                            {/* Hidden File Input */}
                                             <input
                                                 type="file"
                                                 ref={fileInputRef}
@@ -169,7 +166,6 @@ export default function LandlordProfile() {
                                                 <img src={Camera} alt="" className="h-6 w-6 sm:h-7 sm:w-7" />
                                             </button>
 
-                                            {/* Image Preview or Initials */}
                                             {tempImage ? (
                                                 <img
                                                     src={tempImage}
@@ -185,7 +181,6 @@ export default function LandlordProfile() {
                                             )}
                                         </div>
 
-                                        {/* Mobile-only right of photo */}
                                         <div className="min-w-0 lg:hidden">
                                             <p className="mb-1 text-[10px] font-semibold tracking-wider text-[#A88993] md:text-xs">
                                                 FULL NAME

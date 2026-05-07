@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
+import AccommodationTag from '#models/accommodation_tag'
 import Student from '#models/student'
 import AccommodationImage from '#models/accommodation_image'
 import FileMetadata from '#models/file_metadatum'
@@ -198,11 +199,10 @@ async store({ request, auth, response }: HttpContext) {
   const startTime = Date.now()
   console.log('=== STORE START ===')
   const landlordId = auth.user!.id
-  console.log('landlordId:', landlordId)
 
   const landlord = await Landlord.query()
-  .where('user_id', landlordId)
-  .first()
+    .where('user_id', landlordId)
+    .first()
 
   if (!landlord) {
     return response.forbidden({
@@ -222,10 +222,10 @@ async store({ request, auth, response }: HttpContext) {
     latitude,
     longitude,
     primary_image_index,
+    tags, //extract tags array from body
   } = request.body()
 
-  console.log('body:', { accommodation_name, accommodation_location, accommodation_type, accommodation_capacity, tenant_restriction, latitude, longitude })
-
+  // Basic field validation (unchanged)
   if (
     !accommodation_name ||
     !accommodation_location ||
@@ -243,22 +243,21 @@ async store({ request, auth, response }: HttpContext) {
   }
 
   const capacity = Number(accommodation_capacity)
-    if (isNaN(capacity) || capacity < 1 || capacity > 10000) {
-      return response.badRequest({
-        status: 400,
-        error: 'Validation Error',
-        message: 'Accommodation capacity must be between 1 and 10,000',
-      })
-}
+  if (isNaN(capacity) || capacity < 1 || capacity > 10000) {
+    return response.badRequest({
+      status: 400,
+      error: 'Validation Error',
+      message: 'Accommodation capacity must be between 1 and 10,000',
+    })
+  }
 
-  console.log(`[${Date.now() - startTime}ms] Validation passed`)
+  // Optional validation for tags: ensure it's an array of strings
+  const tagList = Array.isArray(tags) ? tags.filter(t => typeof t === 'string' && t.trim().length > 0) : []
 
   const businessPermitFile = request.file('business_permit', {
     extnames: ['pdf', 'jpg', 'jpeg', 'png'],
     size: '5mb',
   })
-
-  console.log('businessPermitFile:', businessPermitFile?.clientName)
 
   if (!businessPermitFile) {
     return response.badRequest({
@@ -274,10 +273,6 @@ async store({ request, auth, response }: HttpContext) {
   })
 
   const MAX_IMAGES = 10
-
-
-  console.log('images count:', images?.length)
-
   if (!images || images.length === 0) {
     return response.badRequest({
       status: 400,
@@ -292,10 +287,9 @@ async store({ request, auth, response }: HttpContext) {
       error: 'Validation Error',
       message: `You can only upload a maximum of ${MAX_IMAGES} images.`,
     })
-}
+  }
 
   const validImages = images.filter((img) => img.isValid && img.tmpPath)
-
   if (validImages.length === 0) {
     return response.badRequest({
       status: 400,
@@ -305,7 +299,6 @@ async store({ request, auth, response }: HttpContext) {
   }
 
   const primaryIndex = Number(primary_image_index ?? 0)
-
   if (isNaN(primaryIndex) || primaryIndex < 0 || primaryIndex >= validImages.length) {
     return response.badRequest({
       status: 400,
@@ -314,18 +307,14 @@ async store({ request, auth, response }: HttpContext) {
     })
   }
 
-  console.log(`[${Date.now() - startTime}ms] Starting distance calculation`)
   const { walkingMinutes, drivingMinutes, cyclingMinutes } =
     await DistanceService.calculate(Number(latitude), Number(longitude))
-  console.log(`[${Date.now() - startTime}ms] Distance calculated:`, { walkingMinutes, drivingMinutes, cyclingMinutes })
 
   const trx = await db.transaction()
 
   try {
-    console.log(`[${Date.now() - startTime}ms] Starting permit upload`)
+    // Upload business permit
     const permitUrl = await uploadImage(businessPermitFile, 'business_permits')
-    console.log(`[${Date.now() - startTime}ms] Permit uploaded:`, permitUrl)
-
     const permitMeta = await FileMetadata.create(
       {
         fileName: businessPermitFile.clientName ?? 'permit.pdf',
@@ -334,8 +323,8 @@ async store({ request, auth, response }: HttpContext) {
       },
       { client: trx }
     )
-    console.log(`[${Date.now() - startTime}ms] Permit meta created, id:`, permitMeta.id)
 
+    // Create accommodation
     const accommodation = await Accommodation.create(
       {
         landlordId,
@@ -358,14 +347,22 @@ async store({ request, auth, response }: HttpContext) {
       },
       { client: trx }
     )
-    console.log(`[${Date.now() - startTime}ms] Accommodation created, id:`, accommodation.id)
 
-    console.log(`[${Date.now() - startTime}ms] Starting parallel image uploads (${validImages.length} images)`)
+    // ─── NEW: Save accommodation tags ────────────────────────────
+    if (tagList.length > 0) {
+      await AccommodationTag.createMany(
+        tagList.map(tagDetail => ({
+          accommodationId: accommodation.id,
+          tagDetail,
+        })),
+        { client: trx }
+      )
+    }
 
+    // Upload images and create file records (unchanged)
     const fileUrls = await Promise.all(
       validImages.map((img) => uploadImage(img, `accommodations/${accommodation.id}`))
     )
-    console.log(`[${Date.now() - startTime}ms] All images uploaded to B2`)
 
     for (let i = 0; i < validImages.length; i++) {
       const fileMeta = await FileMetadata.create(
@@ -385,7 +382,6 @@ async store({ request, auth, response }: HttpContext) {
         { client: trx }
       )
     }
-    console.log(`[${Date.now() - startTime}ms] Image metadata saved to DB`)
 
     await trx.commit()
     console.log(`[${Date.now() - startTime}ms] === TOTAL TIME: ${Date.now() - startTime}ms ===`)
@@ -689,10 +685,17 @@ async store({ request, auth, response }: HttpContext) {
         'accommodations.accommodation_size'
       )
       .select(db.raw('COALESCE(AVG(reviews.rating), 0) as average_rating'))
-      .select(db.raw('MIN(file_metadata.file_path) as primaryImageUrl'))
+      .select(db.raw('MIN(file_metadata.file_path) as primary_image_path'))
       .orderBy('average_rating', 'desc')
       .limit(5)
 
-    return response.ok(accommodations)
+    const data = await Promise.all(
+      accommodations.map(async (acc: any) => ({
+        ...acc,
+        primaryImageUrl: await signImageUrl(acc.primary_image_path),
+      }))
+    )
+
+    return response.ok(data)
   }
 }

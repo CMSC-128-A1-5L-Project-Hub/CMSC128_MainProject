@@ -39,6 +39,7 @@ router
     // ─── SUCCESSFUL LOGIN/SIGNUP ───
     router.get('/me', [controllers.Auth, 'me'])
     router.put('/me', [controllers.Auth, 'updateMe'])
+    router.post('/me/profile-picture', [controllers.Auth, 'uploadProfilePicture']).use(uploadThrottle)
     router.post('/logout', [controllers.Auth, 'logout'])
 
     // ─── USER ONBOARDING ───
