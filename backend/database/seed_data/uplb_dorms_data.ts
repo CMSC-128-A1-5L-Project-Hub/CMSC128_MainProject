@@ -731,6 +731,93 @@ const ati_ntc: DormSeedData = {
   ],
 }
 
+const new_dorm_residence_hall: DormSeedData = {
+  accommodation_name: 'New Dormitory Residence Hall',
+  accommodation_location:
+    'Lower Campus, UPLB, College, Los Baños, Laguna 4031',
+  latitude: 14.166900,
+  longitude: 121.242100,
+  accommodation_type: 'on-campus',
+  tenant_restriction: 'female-only',
+  accommodation_capacity: 200,
+  walking_distance: 17,
+  biking_distance: 7,
+  driving_distance: 4,
+  application_start_date: '2026-06-01',
+  application_end_date: '2026-07-15',
+  images: [
+    'NDRH_front.jpg',
+    'NDRH_room.jpg',
+    'NDRH_hallway.jpg',
+  ],
+  tags: [
+    'On-campus housing',
+    'UP-owned',
+    'Female-exclusive',
+    'Subsidized rates',
+    '24/7 Security',
+    'Newer facility',
+  ],
+  rooms: [
+    {
+      room_number: '101',
+      room_building: 'New Dorm Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC_WIFI,
+    },
+    {
+      room_number: '102',
+      room_building: 'New Dorm Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC_WIFI,
+    },
+    {
+      room_number: '201',
+      room_building: 'New Dorm Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC_WIFI,
+    },
+    {
+      room_number: '202',
+      room_building: 'New Dorm Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 3,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC_WIFI,
+    },
+  ],
+}
+
 export const UPLB_DORMS: DormSeedData[] = [
   //call dorm data here
   makiling_residence_hall,
@@ -739,5 +826,6 @@ export const UPLB_DORMS: DormSeedData[] = [
   foreha,
   nfrh,
   vetmed_residence_hall,
-  ati_ntc
+  ati_ntc,
+  new_dorm_residence_hall
 ]
