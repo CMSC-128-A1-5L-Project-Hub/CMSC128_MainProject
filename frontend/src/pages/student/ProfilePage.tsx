@@ -11,15 +11,19 @@
   Endpoints this page talks to:
     GET  /api/me               - pulls current user + student record
     PUT  /api/me               - saves editable fields
+    POST /api/me/profile-picture - uploads profile picture
     GET  /api/my-stay/history  - all past and current dorm assignments
 */
 
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { create } from "zustand";
+import { useRef, useState } from "react";
 import { api } from "../../api/axios";
 import Sidebar from "../../components/Sidebar";
-import { useUserStore } from '../../stores/useUserStore'
+import { useUserStore } from '../../stores/useUserStore';
+import femalePfp from "../../assets/defaults/female-pfp.png";
+import malePfp from "../../assets/defaults/male-pfp.png";
 
 const CLR = {
   dark:   "#3D0718",
@@ -131,6 +135,15 @@ async function fetchHistory(): Promise<AccommodationHistoryItem[]> {
 
 async function updateMe(form: ProfileEditFields): Promise<UserProfile> {
   const res = await api.put("/me", form);
+  return res.data;
+}
+
+async function uploadProfilePicture(file: File): Promise<{ profilePictureUrl: string }> {
+  const form = new FormData();
+  form.append("profilePicture", file);
+  const res = await api.post("/me/profile-picture", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return res.data;
 }
 
@@ -518,7 +531,10 @@ export default function ProfilePage() {
 
   const { isEditing, showHistory, form, setIsEditing, setShowHistory, setForm, patchForm } =
     useProfileStore();
-  const { setUser } = useUserStore()
+  const { setUser } = useUserStore();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pfpUploading, setPfpUploading] = useState(false);
 
   // ── Queries ────────────────────────────────────────────────────────────────
 
@@ -536,19 +552,27 @@ export default function ProfilePage() {
     queryFn: fetchHistory,
   });
 
-  // ── Mutation ───────────────────────────────────────────────────────────────
+  // ── Mutations ──────────────────────────────────────────────────────────────
 
   const saveMutation = useMutation({
     mutationFn: updateMe,
     onSuccess: (updatedProfile) => {
-      qc.invalidateQueries({ queryKey: ['me'] })
-      setUser(updatedProfile)   // ← add this line
-      setIsEditing(false)
+      qc.invalidateQueries({ queryKey: ['me'] });
+      setUser(updatedProfile);
+      setIsEditing(false);
     },
     onError: (err: any) => {
-      alert(err?.response?.data?.message ?? 'Failed to save profile.')
+      alert(err?.response?.data?.message ?? 'Failed to save profile.');
     },
-  })
+  });
+
+  const pfpMutation = useMutation({
+    mutationFn: uploadProfilePicture,
+    onMutate: () => setPfpUploading(true),
+    onSettled: () => setPfpUploading(false),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['me'] }),
+    onError: (err: any) => alert(err?.response?.data?.message ?? 'Failed to upload photo.'),
+  });
 
   // ── Derived values ─────────────────────────────────────────────────────────
 
@@ -566,9 +590,6 @@ export default function ProfilePage() {
         status: profile.accountStatus,
       }
     : undefined;
-
-
-
 
   // ── Loading / error states ─────────────────────────────────────────────────
 
@@ -627,6 +648,8 @@ export default function ProfilePage() {
     );
   }
 
+  const defaultPfp = profile.student?.gender?.toLowerCase() === "female" ? femalePfp : malePfp;
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -659,69 +682,60 @@ export default function ProfilePage() {
         >
           {/* ── Left column: avatar, photo/docs, verified badge ── */}
           <div style={{ width: 200, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+
+            {/* Avatar — clickable to upload */}
             <div
               style={{
                 width: "100%",
                 aspectRatio: "1",
                 borderRadius: 14,
-                background: "linear-gradient(135deg, #fce4ec, #f8bbd0)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative",
                 overflow: "hidden",
+                position: "relative",
+                cursor: pfpUploading ? "not-allowed" : "pointer",
               }}
+              onClick={() => !pfpUploading && fileInputRef.current?.click()}
+              title="Click to change photo"
             >
-              {profile.profilePictureUrl ? (
-                <img
-                  src={profile.profilePictureUrl}
-                  alt="Profile"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
+              <img
+                src={profile.profilePictureUrl || defaultPfp}
+                  onError={(e) => { e.currentTarget.src = defaultPfp; }}
+                alt="Profile"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+
+              {/* Overlay shown while uploading */}
+              {pfpUploading && (
                 <div
                   style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: "50%",
-                    background: CLR.mid,
+                    position: "absolute",
+                    inset: 0,
+                    background: "rgba(61,7,24,0.55)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#fff",
-                    fontSize: 28,
-                    fontWeight: 700,
                   }}
                 >
-                  {initials(profile)}
+                  <span style={{ color: "#fff", fontSize: 12, fontWeight: 600 }}>Uploading...</span>
                 </div>
               )}
-              <button
-                style={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  background: "rgba(255,255,255,0.85)",
-                  border: `1px solid ${CLR.goldLt}`,
-                  borderRadius: "50%",
-                  width: 28,
-                  height: 28,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 11,
-                  color: CLR.mid,
-                  fontWeight: 700,
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) pfpMutation.mutate(file);
+                  e.target.value = "";
                 }}
-                title="Change photo"
-              >
-                cam
-              </button>
+              />
             </div>
 
             <div style={{ display: "flex", gap: 8 }}>
               <button
+                onClick={() => !pfpUploading && fileInputRef.current?.click()}
+                disabled={pfpUploading}
                 style={{
                   flex: 1,
                   padding: "6px 0",
@@ -730,11 +744,12 @@ export default function ProfilePage() {
                   borderRadius: 8,
                   background: "#fff",
                   color: CLR.mid,
-                  cursor: "pointer",
+                  cursor: pfpUploading ? "not-allowed" : "pointer",
                   fontWeight: 600,
+                  opacity: pfpUploading ? 0.6 : 1,
                 }}
               >
-                PHOTO
+                {pfpUploading ? "UPLOADING..." : "PHOTO"}
               </button>
               <button
                 style={{
