@@ -498,8 +498,6 @@ const nfrh: DormSeedData = {
   application_end_date: '2026-07-15',
   images: [
     'NFRH_front.jpg',
-    'NFRH_room.jpg',
-    'NFRH_outside.jpg',
   ],
   tags: [
     'On-campus housing',
