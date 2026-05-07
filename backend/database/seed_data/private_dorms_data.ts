@@ -604,7 +604,7 @@ const zeta_dormitory: DormSeedData = {
     images: [
         'zeta_dorm_front.jpg',
         'zeta_dorm_room.jpg',
-        'zeta_dorm_common.jpg',
+        'zeta_dorm_room_sharing.jpg',
     ],
     tags: [
         'Private dorm',
