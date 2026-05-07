@@ -186,7 +186,7 @@ export default function MapPage() {
                     {isLoading ? 'Loading...' : `${filtered.length} of ${accommodations.length} shown`}
                   </p>
                   <button 
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate(-1)}
                   className='mt-4 p-0 flex items-center text-white text-xs hover:underline hover:scale-105 transition-all'>
                     ← Back
                   </button>
