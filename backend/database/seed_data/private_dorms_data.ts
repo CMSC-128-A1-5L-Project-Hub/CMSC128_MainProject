@@ -1628,7 +1628,6 @@ const holland_tulips: DormSeedData = {
     images: [
         'holland_tulips_front.jpg',
         'holland_tulips_room.jpg',
-        'holland_tulips_outside.jpg',
     ],
     tags: [
         'Private dorm',
