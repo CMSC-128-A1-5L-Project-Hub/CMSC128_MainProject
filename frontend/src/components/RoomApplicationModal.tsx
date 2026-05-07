@@ -532,9 +532,9 @@ export default function RoomApplicationModal({
                             </Card>
 
                             <div className="flex flex-col items-end gap-2 pt-4">
-                                {(uploadedFiles.length < requiredDocsCount || !moveInDate || !moveOutDate) && (
+                                {(uploadedFiles.length < requiredDocsCount || (isTransient && (!moveInDate || !moveOutDate))) && (
                                     <p className="text-[10px] font-bold text-[#6B0F2B]">
-                                        {!moveInDate || !moveOutDate
+                                        {isTransient && (!moveInDate || !moveOutDate)
                                             ? "Please select stay dates to proceed."
                                             : `Please upload all ${requiredDocsCount} required documents to proceed.`}
                                     </p>
@@ -544,7 +544,7 @@ export default function RoomApplicationModal({
                                     size="lg"
                                     className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
                                     onClick={() => setStep("verify")}
-                                    disabled={uploadedFiles.length < requiredDocsCount || !moveInDate || !moveOutDate}
+                                    disabled={uploadedFiles.length < requiredDocsCount || (isTransient && (!moveInDate || !moveOutDate))}
                                 >
                                     Submit
                                 </Button>
