@@ -345,8 +345,99 @@ const arable_premier_residences: DormSeedData = {
     ],
 }
 
+// commented out for now (name taken)
+// const one_silangan: DormSeedData = {
+//     accommodation_name: 'One Silangan Place',
+//     accommodation_location:
+//         'Silangan, near UPLB Main Gate, College, Los Baños, Laguna',
+//     latitude: 14.165200,
+//     longitude: 121.238000,
+//     accommodation_type: 'off-campus',
+//     tenant_restriction: 'coed',
+//     accommodation_capacity: 40,
+//     walking_distance: 6,
+//     biking_distance: 3,
+//     driving_distance: 2,
+//     images: [
+//         'one_silangan_front.jpg',
+//         'one_silangan_room_ac.jpg',
+//         'one_silangan_room_fan.jpg',
+//     ],
+//     tags: [
+//         'Private dorm',
+//         'Near main gate',
+//         'Aircon & fan rooms',
+//         'Daily rates available',
+//         'Group rates available',
+//     ],
+//     rooms: [
+//         {
+//         room_number: 'AC-1',
+//         room_building: 'Silangan Place',
+//         room_type: 'single',
+//         room_stay_type: 'non_transient',
+//         room_capacity: 1,
+//         room_current_occupancy: 0,
+//         room_availability: 'available',
+//         room_rent: 5000,
+//         tenant_restriction: 'coed',
+//         advance_months: 1,
+//         deposit_months: 1,
+//         reservation_fee_type: 'fixed',
+//         reservation_fee_value: 500,
+//         inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk'],
+//         preferences: ['Window view'],
+//         },
+//         {
+//         room_number: 'AC-2',
+//         room_building: 'Silangan Place',
+//         room_type: 'double',
+//         room_stay_type: 'non_transient',
+//         room_capacity: 2,
+//         room_current_occupancy: 1,
+//         room_availability: 'available',
+//         room_rent: 3500,
+//         tenant_restriction: 'non-coed',
+//         advance_months: 1,
+//         deposit_months: 1,
+//         reservation_fee_type: 'fixed',
+//         reservation_fee_value: 500,
+//         inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk'],
+//         },
+//         {
+//         room_number: 'FAN1',
+//         room_building: 'Silangan Place',
+//         room_type: 'single',
+//         room_stay_type: 'non_transient',
+//         room_capacity: 1,
+//         room_current_occupancy: 0,
+//         room_availability: 'available',
+//         room_rent: 3500,
+//         tenant_restriction: 'coed',
+//         advance_months: 1,
+//         deposit_months: 1,
+//         reservation_fee_type: 'fixed',
+//         reservation_fee_value: 500,
+//         inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk'],
+//         },
+//         {
+//         room_number: 'GRP1',
+//         room_building: 'Silangan Place',
+//         room_type: 'shared',
+//         room_stay_type: 'transient',
+//         room_capacity: 7,
+//         room_current_occupancy: 0,
+//         room_availability: 'available',
+//         room_rent: 14000, // group rate ~₱2,000/room/day × 7 nights equiv
+//         tenant_restriction: 'coed',
+//         inclusions: ['Aircon', 'WiFi', 'Cabinet'],
+//         },
+//     ],  
+// }
+
 export const PRIVATE_DORMS: DormSeedData[] = [
     scholars_dormitory,
     ccp_hostel,
-    arable_premier_residences
+    arable_premier_residences,
+    //one_silangan
 ]
