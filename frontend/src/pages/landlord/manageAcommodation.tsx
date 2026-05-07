@@ -9,6 +9,8 @@ import { api } from "../../api/axios";
 import { useNavigate } from 'react-router-dom';
 import defaultAccommodationImage from '../../assets/defaults/accommodation.png';
 import Sidebar from "../../components/Sidebar";
+import { setLandlordSidebarContext } from "../../components/Sidebar";
+
 
 // ─── Accommodation Card ───────────────────────────────────────────────────────
 const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) => {
@@ -31,7 +33,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
         <Button
           className={`mt-4 w-full ${isUnderReview ? "opacity-50 cursor-not-allowed" : ""}`}
           disabled={isUnderReview}
-          onClick={() => navigate(`/landlord/dashboard?id=${accommodation.id}`)}
+          onClick={() => navigate(`/landlord/accommodation/${accommodation.id}`)}
         >
           Manage →
         </Button>
@@ -320,6 +322,10 @@ const ManageAccommodationDashboard: React.FC = () => {
   const [step, setStep] = useState(1);
   const reset = useAccommodationFormStore((s) => s.reset);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setLandlordSidebarContext("minimal");
+  }, []);
 
   // ─── Fetch current user ───────────────────────────────────────────────────
   const { data: user, isLoading, isError } = useQuery({

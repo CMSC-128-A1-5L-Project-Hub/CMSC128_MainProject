@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { X } from "lucide-react";
-
+import { setLandlordSidebarContext } from "../../components/Sidebar";
 import HeroBanner from "../../components/dashboard/HeroBanner";
 import StatCard from "../../components/dashboard/landlord/rooms/dashboard/StatCard";
 import SectionCard from "../../components/dashboard/landlord/rooms/dashboard/SectionCard";
@@ -123,10 +123,13 @@ export default function Dashboard() {
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-
+  const { id } = useParams<{ id: string }>();
   const user = useUserStore((s) => s.user);
 
+  // wag niyo galawin toh
+  useEffect(() => {
+    setLandlordSidebarContext("full");
+  }, []);
   // ── Queries ─────────────────────────────────────────────────────────────────
 
   const { data: accommodations = [], isSuccess: accLoaded } = useQuery<
@@ -136,13 +139,13 @@ export default function Dashboard() {
     queryFn: () => api.get("/landlord/accommodations").then((r) => r.data ?? []),
   });
 
-  const accommodationId = searchParams.get("id") ? Number(searchParams.get("id")) : undefined;
+  const accommodationId = id ? Number(id) : undefined;
   const accommodation =
     accommodations.find((a) => a.id === accommodationId) ?? null;
 
   useEffect(() => {
     if (accLoaded && !accommodation) {
-      navigate("/landlord/manage-accommodation", { replace: true });
+      navigate("/landlord/dashboard", { replace: true });
     }
   }, [accLoaded, accommodation, navigate]);
 
@@ -299,7 +302,7 @@ export default function Dashboard() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => navigate("/landlord/manage-accommodation")}
+                onClick={() => navigate("/landlord/dashboard")}
               >
                 ← Back
               </Button>
