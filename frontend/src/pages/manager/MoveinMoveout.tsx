@@ -208,7 +208,7 @@ export default function MoveinMoveout() {
         // }
 
         return (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 h-full">
                 {/* FILTER BUTTONS */}
                 <div className="bg-white p-1 rounded-xl inline-flex gap-1 w-fit">
                     {(["all", "move-in", "move-out"] as FilterType[]).map(f => (
@@ -227,7 +227,7 @@ export default function MoveinMoveout() {
                 </div>
                 
 
-               <div className="bg-white rounded-2xl shadow-sm p-6 border overflow-hidden">
+               <div className="bg-white rounded-2xl shadow-sm p-6 border overflow-hidden h-full">
                     {/*HEADER (TITLE + SERACG */}
                     <div className="flex items-start justify-between">
                         <div className="flex flex-col gap-1">
@@ -279,8 +279,12 @@ export default function MoveinMoveout() {
                         </div>
                         
                     </div>
-                    <div className="w-full overflow-x-auto">
-                        <table className="min-w-[900px] w-full border-b-2 mt-4 border-[#F5ECF0]">
+                    <div className={`${records.length === 0 && !isLoadingList ?  "items-center justify-center" : ""} w-full overflow-x-auto h-full flex flex-col`}>
+                        <div className={`${records.length === 0 && !isLoadingList ? "flex flex-col" : "hidden" }  justify-center items-center text-center`}>
+                            <p className="text-[#9A7080] font-medium text-lg">No tenants found</p>
+                            <p className="text-[#9A7080]/60 text-sm mt-1">When tenants are assigned rooms, they will appear here</p>
+                        </div>
+                        <table className={`${records.length === 0 && !isLoadingList ? "hidden" : "table"} min-w-[900px] w-full border-b-2 mt-4 border-[#F5ECF0]`}>
                             <thead>
                             <tr className="border-y-2 border-[#6B0F2B]/5">
                                 {["Students", "Room", "Room Type", "Date", "Type"].map((h, i) => (
@@ -386,11 +390,12 @@ export default function MoveinMoveout() {
                                 )
                                 })
                             ) : (
-                                <tr>
-                                <td colSpan={5} className="py-6 text-center text-sm text-[#9A7080]">
-                                    No records found.
-                                </td>
-                                </tr>
+                                // <tr>
+                                // <td colSpan={5} className="py-6 text-center text-sm text-[#9A7080]">
+                                //     No records found.
+                                // </td>
+                                // </tr>
+                                <div></div>
                             )}
                             </tbody>
                         </table>
@@ -401,7 +406,7 @@ export default function MoveinMoveout() {
                     <div className="flex items-center justify-between mt-4 ">
                         <p className="text-xs text-[#9A7080]">
                         {sorted.length === 0
-                            ? "No results"
+                            ? ""
                             : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, sorted.length)} of ${sorted.length}`}
                         </p>
                         <div className="flex items-center gap-1">
@@ -474,7 +479,7 @@ export default function MoveinMoveout() {
                             type="mini"
                         />
                         {/* TABLE */}
-                        <MoveInMoveOutTable records={assignments} />
+                        <MoveInMoveOutTable records={[]} />
                     </main>
                 </div>
             </div>

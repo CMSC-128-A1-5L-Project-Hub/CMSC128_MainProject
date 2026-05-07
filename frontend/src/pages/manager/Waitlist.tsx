@@ -473,7 +473,7 @@ export default function Waitlist() {
           )}
       </Modal>
 
-        <div className={`bg-white rounded-2xl p-4 lg:p-6 shadow-sm border overflow-hidden ${className ?? ""}`}>
+        <div className={`bg-white rounded-2xl p-4 lg:p-6 shadow-sm border h-full verflow-hidden ${className ?? ""}`}>
             {/* Header row */}
             <div className="flex items-center justify-between">
               {/* LEFT: grouped */}
@@ -573,94 +573,91 @@ export default function Waitlist() {
         </div>
     </div>
 
-    {/* HEADER -- TABLE  */}
-    <div className="w-full overflow-x-auto">
-        <div className={`${waitlistRecords.length === 0 && !isLoadingList ? "flex flex-col" : "hidden" }  justify-center items-center h-full text-center`}>
-            <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
-            <p className="text-[#9A7080]/60 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
+    <div className={`${records.length === 0 && !isLoadingList ? "items-center justify-center" : ""} w-full overflow-x-auto h-full flex flex-col`}>
+        <div className={`${records.length === 0 && !isLoadingList ? "flex flex-col" : "hidden" }  justify-center items-center flex-1 text-center`}>
+            <p className="text-[#9A7080] font-medium text-lg">No waitlisted applicants found</p>
+            <p className="text-[#9A7080]/60 text-sm mt-1">When applicants are waitlisted, they will appear here</p>
         </div>
-        <table className={`min-w-[900px] w-full mt-4`}>
+        <table className={`${records.length === 0 && !isLoadingList ? "hidden" : "table" } min-w-[900px] w-full mt-4`}>
             <thead>
-            <tr className="border-[#6B0F2B]/5 border-y-2">
-                {["Students", "Date", "Time Submitted", "Preferred Facility", "Room Type", "Action"].map((h, i) => (
-                <th
-                    key={h}
-                    className={`text-[#9A7080] text-xs font-bold tracking-widest uppercase py-2 ${i === 0 ? "text-left pl-1" : "text-center"}`}
-                >
-                    {h}
-                </th>
-                ))}
-            </tr>
-            </thead>
-            <tbody style={{ borderTop: "none" }}>
-            {isLoadingList ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                <tr key={`skeleton-${i}`} className="animate-pulse">
-                    <td className="py-3 pl-1">
-                    <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-xl bg-gray-200" />
-                        <div className="h-4 w-20 bg-gray-200 rounded" />
-                    </div>
-                    </td>
-                    <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
-                    <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
-                    <td className="py-3 text-center"><div className="h-4 w-20 bg-gray-100 rounded mx-auto" /></td>
-                    <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
-                    <td className="py-3 text-center"><div className="h-8 w-16 bg-gray-200 rounded mx-auto" /></td>
+                <tr className="border-[#6B0F2B]/5 border-y-2">
+                    {["Students", "Date", "Time Submitted", "Preferred Facility", "Room Type", "Action"].map((h, i) => (
+                    <th
+                        key={h}
+                        className={`text-[#9A7080] text-xs font-bold tracking-widest uppercase py-2 ${i === 0 ? "text-left pl-1" : "text-center"}`}
+                    >
+                        {h}
+                    </th>
+                    ))}
                 </tr>
-                ))
-            ) : isErrorList ? (
-                <tr>
-                <td colSpan={6} className="py-10 text-center">
-                    <p className="text-sm text-red-500 mb-2">Failed to load applications.</p>
-                    <Button size="sm" onClick={() => refetch()}>Retry</Button>
-                </td>
-                </tr>
-            ) : paginated.length > 0 ? (
-                paginated.map((record, i) => (
-                <tr key={record.id || i} className="hover:bg-[#FFF9FA] transition-colors">
-                    <td className="py-3 pl-1">
-                    <div className="flex items-center gap-2">
-                        <div
-                            className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                            >
-                            {record.student.user.fname[0]}
+                </thead>
+                <tbody style={{ borderTop: "none" }}>
+                {isLoadingList ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={`skeleton-${i}`} className="animate-pulse">
+                        <td className="py-3 pl-1">
+                        <div className="flex items-center gap-2">
+                            <div className="w-9 h-9 rounded-xl bg-gray-200" />
+                            <div className="h-4 w-20 bg-gray-200 rounded" />
                         </div>
-                        <div>
-                            <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
-                                {record.student.user.fname} {record.student.user.lname}
-                            </p>
-                            <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
+                        </td>
+                        <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
+                        <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
+                        <td className="py-3 text-center"><div className="h-4 w-20 bg-gray-100 rounded mx-auto" /></td>
+                        <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
+                        <td className="py-3 text-center"><div className="h-8 w-16 bg-gray-200 rounded mx-auto" /></td>
+                    </tr>
+                    ))
+                ) : isErrorList ? (
+                    <tr>
+                    <td colSpan={6} className="py-10 text-center">
+                        <p className="text-sm text-red-500 mb-2">Failed to load applications.</p>
+                        <Button size="sm" onClick={() => refetch()}>Retry</Button>
+                    </td>
+                    </tr>
+                ) : paginated.length > 0 ? (
+                    paginated.map((record, i) => (
+                    <tr key={record.id || i} className="hover:bg-[#FFF9FA] transition-colors">
+                        <td className="py-3 pl-1">
+                        <div className="flex items-center gap-2">
+                            <div
+                                className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                                style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                                >
+                                {record.student.user.fname[0]}
+                            </div>
+                            <div>
+                                <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
+                                    {record.student.user.fname} {record.student.user.lname}
+                                </p>
+                                <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
+                            </div>
                         </div>
-                    </div>
-                    </td>
-                    <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                    {new Date(record.applicationDate).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
-                    {DateTime.fromISO(record.applicationDate).setZone('utc', { keepLocalTime: true }).toFormat('h:mm a')}
-                    </td>
-                    <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                    {record.assignment?.room?.roomBuilding || "N/A"}
-                    </td>
-                    <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
-                    {record.assignment?.room?.roomType || record.applicationRoomType}
-                    </td>
-                    <td className="py-3 text-center">
-                    <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
-                        View
-                    </Button>
-                    </td>
-                </tr>
-                ))
-            ) : (
-                <div></div>
-            )}
-            </tbody>
-        </table>
-        </div>
-
+                        </td>
+                        <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                        {new Date(record.applicationDate).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
+                        {DateTime.fromISO(record.applicationDate).setZone('utc', { keepLocalTime: true }).toFormat('h:mm a')}
+                        </td>
+                        <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                        {record.assignment?.room?.roomBuilding || "N/A"}
+                        </td>
+                        <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
+                        {record.assignment?.room?.roomType || record.applicationRoomType}
+                        </td>
+                        <td className="py-3 text-center">
+                        <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
+                            View
+                        </Button>
+                        </td>
+                    </tr>
+                    ))
+                ) : (
+                    <div></div>
+                )}
+                </tbody>
+            </table>
             {/* FOOTER */}
             <div className={`${waitlistRecords.length === 0 ? "hidden" : "flex flex-col"} mt-auto`}>
                 <hr className=" border-[#6B0F2B]/5 border-t-2" />
@@ -697,6 +694,9 @@ export default function Waitlist() {
                     </div>
                 </div>
             </div>
+        </div>
+
+            
             
         </div>
       </>
@@ -727,7 +727,7 @@ export default function Waitlist() {
                         
 
                         <WaitlistHistory 
-                            records={waitlistRecords}
+                            records={[]}
                         />
                     </main>
                 </div>
