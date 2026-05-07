@@ -1219,7 +1219,7 @@ if (isUserLoading) {
                 </div>
 
                 <button
-                  onClick={() => navigate("/browse")}
+                  onClick={() => navigate("/map")}
                   className="w-full text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-sm"
                   style={{ background: CLR.mid }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = CLR.dark)}
