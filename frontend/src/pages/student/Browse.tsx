@@ -31,7 +31,7 @@ type Dorm = {
     name: string; subtitle: string; meta: string
     minPrice: number; maxPrice: number; priceUnit: string
     rating: string; accommodationId: number; tags: string[]
-    bookmarked?: boolean
+    bookmarked?: boolean; primaryImageUrl: string;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -114,11 +114,11 @@ export default function BrowsePage() {
                 tagSet.add(el.tagDetail);
             });
         })
-        
+
         const tags = Array.from(tagSet)
         const tagObject = Object.fromEntries(
             tags.map(tag => [tag, false])
-          );
+        );
         setFilters(tagObject)
         setMinPrice(min)
         setMaxPrice(max)
@@ -145,7 +145,7 @@ export default function BrowsePage() {
                 id, accommodationName, accommodationLocation, accommodationType,
                 accommodationCapacity, tenantRestriction, latitude, longitude,
                 walkingDistance, drivingDistance, bikingDistance,
-                rooms, reviews, bookmarks, tags,
+                rooms, reviews, bookmarks, tags, primaryImageUrl
             } = accommodations[i]
 
 
@@ -225,7 +225,7 @@ export default function BrowsePage() {
                 name: accommodationName, subtitle: accommodationLocation,
                 meta: accommodationType, minPrice: minimum, maxPrice: maximum,
                 priceUnit: "/ month", rating: rating == "6" ? "0" : rating, accommodationId: id,
-                tags: tempTags, bookmarked,
+                tags: tempTags, bookmarked, primaryImageUrl
             })
 
             tempPins.push({
@@ -428,13 +428,12 @@ function DormTile({
                 }`}
         >
             {/* Thumbnail */}
-            <div className="relative w-40 shrink-0 bg-gradient-to-br from-[#6B0F2B] to-[#B5344F] flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 grid grid-cols-3 gap-px opacity-[0.15] p-1.5">
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} className="bg-white rounded-sm" />
-                    ))}
-                </div>
-                <MapPin size={20} className="text-white/50 relative z-10" strokeWidth={1.4} />
+            <div className="relative w-40 shrink-0 overflow-hidden">
+                <img
+                    src={dorm.primaryImageUrl}
+                    alt={dorm.name}
+                    className="w-full h-full object-cover"
+                />
             </div>
 
             {/* Content */}
@@ -540,7 +539,7 @@ function SearchBar() {
 /* ══════════════════════════════════════════════════════════════════════════════
    FILTER FORM
 ══════════════════════════════════════════════════════════════════════════════ */
-function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters:{ [key: string]: boolean }}) {
+function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters: { [key: string]: boolean } }) {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
     const {
@@ -552,7 +551,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
 
     const originalFilters = Object.fromEntries(
         Object.keys(origFilters).map((key) => [key, false])
-      ) as Record<string, boolean>;
+    ) as Record<string, boolean>;
 
     const resetAll = () => {
         setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
