@@ -302,8 +302,8 @@ const womens_residence_hall: DormSeedData = {
   accommodation_name: "Women's Residence Hall",
   accommodation_location:
     'Lower Campus, UPLB, College, Los Baños, Laguna 4031',
-  latitude: 14.166650,
-  longitude: 121.241200,
+  latitude: 14.16269,
+  longitude: 121.24031,
   accommodation_type: 'on-campus',
   tenant_restriction: 'female-only',
   accommodation_capacity: 250,
@@ -399,8 +399,8 @@ const foreha: DormSeedData = {
   accommodation_name: 'Forestry Residence Hall',
   accommodation_location:
     'Forestry Road, Upper Campus, UPLB, College, Los Baños, Laguna',
-  latitude: 14.161800,
-  longitude: 121.237500,
+  latitude: 14.15283,
+  longitude: 121.23476,
   accommodation_type: 'on-campus',
   tenant_restriction: 'female-only',
   accommodation_capacity: 200,
@@ -486,8 +486,8 @@ const nfrh: DormSeedData = {
   accommodation_name: 'New Forestry Residence Hall',
   accommodation_location:
     'Forestry Road, Upper Campus, UPLB, College, Los Baños, Laguna',
-  latitude: 14.161200,
-  longitude: 121.237000,
+  latitude: 14.15298,
+  longitude: 121.23441,
   accommodation_type: 'on-campus',
   tenant_restriction: 'male-only',
   accommodation_capacity: 180,
@@ -571,8 +571,8 @@ const vetmed_residence_hall: DormSeedData = {
   accommodation_name: 'VetMed Residence Hall',
   accommodation_location:
     'College of Veterinary Medicine, Lower Campus, UPLB, College, Los Baños, Laguna',
-  latitude: 14.168100,
-  longitude: 121.243500,
+  latitude: 14.16156,
+  longitude: 121.24021,
   accommodation_type: 'on-campus',
   tenant_restriction: 'female-only',
   accommodation_capacity: 150,
@@ -655,8 +655,8 @@ const vetmed_residence_hall: DormSeedData = {
 //   accommodation_name: 'ATI NTC Residence Hall',
 //   accommodation_location:
 //     'ATI-NTC Compound, Lower Campus, UPLB, College, Los Baños, Laguna',
-//   latitude: 14.167400,
-//   longitude: 121.240600,
+//   latitude: 14.15673,
+//   longitude: 121.24149,
 //   accommodation_type: 'on-campus',
 //   tenant_restriction: 'female-only',
 //   accommodation_capacity: 120,
@@ -728,8 +728,8 @@ const new_dorm_residence_hall: DormSeedData = {
   accommodation_name: 'New Dormitory Residence Hall',
   accommodation_location:
     'Lower Campus, UPLB, College, Los Baños, Laguna 4031',
-  latitude: 14.166900,
-  longitude: 121.242100,
+  latitude: 14.15626,
+  longitude: 121.24104,
   accommodation_type: 'on-campus',
   tenant_restriction: 'female-only',
   accommodation_capacity: 200,
@@ -813,8 +813,8 @@ const international_house: DormSeedData = {
   accommodation_name: 'International House Residence Hall',
   accommodation_location:
     'Int\'l House Road, Lower Campus, UPLB, College, Los Baños, Laguna',
-  latitude: 14.167800,
-  longitude: 121.240000,
+  latitude: 14.16432,
+  longitude: 121.23980,
   accommodation_type: 'on-campus',
   tenant_restriction: 'coed', // Lingap scholars M/F; international students
   accommodation_capacity: 100,
