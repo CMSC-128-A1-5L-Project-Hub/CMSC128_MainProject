@@ -203,7 +203,7 @@ const arable_premier_residences: DormSeedData = {
         'arable_front.jpg',
         'arable_room_single.jpg',
         'arable_room_double.jpg',
-        'arable_bathroom.jpg',
+        'arable_room_shared.jpg',
     ],
     tags: [
         'Private dorm',
