@@ -818,6 +818,80 @@ const new_dorm_residence_hall: DormSeedData = {
   ],
 }
 
+const international_house: DormSeedData = {
+  accommodation_name: 'International House Residence Hall',
+  accommodation_location:
+    'Int\'l House Road, Lower Campus, UPLB, College, Los Baños, Laguna',
+  latitude: 14.167800,
+  longitude: 121.240000,
+  accommodation_type: 'on-campus',
+  tenant_restriction: 'coed', // Lingap scholars M/F; international students
+  accommodation_capacity: 100,
+  walking_distance: 15,
+  biking_distance: 6,
+  driving_distance: 3,
+  application_start_date: '2026-06-01',
+  application_end_date: '2026-07-15',
+  images: [
+    'IH_front.jpg',
+    'IH_room.jpg',
+    'IH_lounge.jpg',
+    'IH_outside.jpg',
+  ],
+  tags: [
+    'On-campus housing',
+    'UP-owned',
+    'International students',
+    'Lingap Scholars',
+    'Subsidized rates',
+    '24/7 Security',
+  ],
+  rooms: [
+    {
+      room_number: '101',
+      room_building: 'Int\'l House',
+      room_type: 'double',
+      room_stay_type: 'non_transient',
+      room_capacity: 2,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC_WIFI,
+    },
+    {
+      room_number: '102',
+      room_building: 'Int\'l House',
+      room_type: 'double',
+      room_stay_type: 'non_transient',
+      room_capacity: 2,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC_WIFI,
+    },
+    {
+      room_number: '201',
+      room_building: 'Int\'l House',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC_WIFI,
+    },
+  ],
+}
+
 export const UPLB_DORMS: DormSeedData[] = [
   //call dorm data here
   makiling_residence_hall,
@@ -827,5 +901,6 @@ export const UPLB_DORMS: DormSeedData[] = [
   nfrh,
   vetmed_residence_hall,
   ati_ntc,
-  new_dorm_residence_hall
+  new_dorm_residence_hall,
+  international_house
 ]
