@@ -1,22 +1,22 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Modal from "../../components/Modal";
 import Button from "../../components/Button";
-import Sidebar from "../../components/Sidebar";
 import LocationPickerMap from "../../components/LocationPickerMap";
 import { useAccommodationFormStore } from "../../stores/useAccommodationFormStore";
 import { Upload, Paperclip } from "lucide-react";
 import { api } from "../../api/axios";
-import { useNavigate } from 'react-router-dom'
-import defaultAccommodationImage from '../../assets/defaults/accommodation.png'
+import { useNavigate } from 'react-router-dom';
+import defaultAccommodationImage from '../../assets/defaults/accommodation.png';
+import Sidebar from "../../components/Sidebar";
 
 // ─── Accommodation Card ───────────────────────────────────────────────────────
 const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) => {
-  const navigate = useNavigate()
-  const status = accommodation.status
-  const isUnderReview = status !== 'verified'
+  const navigate = useNavigate();
+  const status = accommodation.status;
+  const isUnderReview = status !== 'verified';
 
-  const primaryImage = accommodation.primaryImageUrl ?? defaultAccommodationImage
+  const primaryImage = accommodation.primaryImageUrl ?? defaultAccommodationImage;
 
   return (
     <div className="relative rounded-2xl shadow-md bg-white overflow-hidden group">
@@ -31,7 +31,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
         <Button
           className={`mt-4 w-full ${isUnderReview ? "opacity-50 cursor-not-allowed" : ""}`}
           disabled={isUnderReview}
-          onClick={() => navigate(`/landlord/accommodations/${accommodation.id}`)}
+          onClick={() => navigate(`/landlord/dashboard?id=${accommodation.id}`)}
         >
           Manage →
         </Button>
@@ -365,7 +365,7 @@ const ManageAccommodationDashboard: React.FC = () => {
   return (
     <div className="flex flex-col lg:flex-row bg-[#f5f5f5] min-h-screen">
       <Sidebar
-        role={user?.role ?? 'landlord'}
+        role="landlord-manage"
         profile={{
           fullName: `${user?.fname ?? ''} ${user?.lname ?? ''}`.trim(),
           shortName: user?.fname ?? '',

@@ -1,23 +1,24 @@
 import notif_icon from "../../../assets/icons/notif_icon.svg"
 import report_icon from "../../../assets/icons/report.svg"
+import edit_icon from "../../../assets/icons/edit.svg"
 import default_pfp from "../../../assets/defaults/female-pfp.png"
 
 import { useState, useRef, useEffect } from "react"
+import Modal from "../../Modal"
+import Button from "../../Button"
 import ReportModal from "../../ReportModal"
-import NotificationPanel, {
-    MOCK_NOTIFICATIONS,
-    type Notification,
-} from "../../NotificationPanel"
-
+import NotificationPanel, { type Notification } from "../../NotificationPanel"
+import { api } from "../../../api/axios"
 
 type ProfileCardProps = {
-    fullName: string
-    role: string
-    email: string
-    phoneNumber: string
-    dormitory: string
-    status: string
+    fullName?: string
+    role?: string
+    email?: string
+    phoneNumber?: string
+    dormitory?: string
+    status?: string
     onNotification?: () => void
+    showReplaceButton?: boolean
 }
 
 const CLR = {
@@ -35,25 +36,82 @@ export default function ProfileCard({
     email,
     phoneNumber,
     dormitory,
-    status,
+    status = "pending",
     onNotification,
+    showReplaceButton = false,
 }: ProfileCardProps) {
-    //Report state
     const [reportOpen, setReportOpen] = useState(false)
+    const [editModalOpen, setEditModalOpen] = useState(false)
+    const [replacementEmail, setReplacementEmail] = useState("")
 
-    //Notif state
     const [notifOpen, setNotifOpen]         = useState(false)
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
+    const [notifications, setNotifications] = useState<Notification[]>([])
     const notifWrapperRef                   = useRef<HTMLDivElement>(null)
 
+    useEffect(() => {
+        api.get('/notifications').then(({ data }) => {
+            setNotifications(
+                data.map((n: any) => ({
+                    id: n.id,
+                    type: n.notificationType,
+                    message: n.notificationContent,
+                    time: new Date(n.notificationTimestamp).toLocaleString(),
+                    read: n.readStatus === 'read',
+                }))
+            )
+        }).catch(console.error)
+    }, [])
+
     const unreadCount = notifications.filter((n) => !n.read).length
-    const markAllRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-    const markOneRead = (id: number) =>
+    const markAllRead = () => {
+        notifications
+            .filter((n) => !n.read)
+            .forEach((n) => api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error))
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    }
+    const markOneRead = (id: number) => {
         setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+        api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
+    }
+
+    const isActive = status === "assigned" || status === "active" || status === "Active"
 
     return (
         <>
             <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
+
+            {showReplaceButton && (
+                <Modal
+                    open={editModalOpen}
+                    onClose={() => { setEditModalOpen(false); setReplacementEmail("") }}
+                    title="Replace Your Manager"
+                    eyebrow="Manager Profile"
+                    footer={
+                        <Button
+                            variant="primary"
+                            size="md"
+                            className="ml-auto"
+                            onClick={() => { setEditModalOpen(false); setReplacementEmail("") }}
+                        >
+                            Send Invite
+                        </Button>
+                    }
+                >
+                    <div className="flex flex-col gap-4">
+                        <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                                Invite using their Google Account
+                            </p>
+                            <input
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]"
+                                placeholder="email@example.com"
+                                value={replacementEmail}
+                                onChange={(e) => setReplacementEmail(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </Modal>
+            )}
 
             <div
                 className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-lg"
@@ -69,20 +127,37 @@ export default function ProfileCard({
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
                         <span className="text-sm font-bold tracking-widest uppercase text-white/75">
-                            My Profile
+                            {showReplaceButton ? "Manager Profile" : "My Profile"}
                         </span>
 
                         <div className="flex flex-row gap-2">
                             {/* Report button */}
                             <button
                                 onClick={() => setReportOpen(true)}
-                                className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden 
+                                className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
                                         transition-all duration-150
                                         bg-white/10 hover:bg-white/20 active:bg-white/30
                                         hover:-translate-y-1 active:translate-y-0 active:scale-95"
                             >
                                 <img src={report_icon} alt="Report" className="w-full h-full object-contain scale-[2.5]" />
                             </button>
+
+                            {/* Replace manager button */}
+                            {showReplaceButton && (
+                                <button
+                                    onClick={() => setEditModalOpen(true)}
+                                    className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
+                                            transition-all duration-150
+                                            bg-white/10 hover:bg-white/20 active:bg-white/30
+                                            hover:-translate-y-1 active:translate-y-0 active:scale-95"
+                                >
+                                    <img
+                                        src={edit_icon}
+                                        alt="Replace manager"
+                                        className="w-full h-full object-contain scale-[2.5] brightness-0 invert"
+                                    />
+                                </button>
+                            )}
 
                             {/* Notification button + panel */}
                             <div ref={notifWrapperRef} className="relative">
@@ -91,7 +166,7 @@ export default function ProfileCard({
                                         setNotifOpen((prev) => !prev)
                                         onNotification?.()
                                     }}
-                                    className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden 
+                                    className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
                                             transition-all duration-150
                                             bg-white/10 hover:bg-white/20 active:bg-white/30
                                             hover:-translate-y-1 active:translate-y-0 active:scale-95"
@@ -144,28 +219,26 @@ export default function ProfileCard({
 
                     {/* Footer details */}
                     <div className="mt-6 grid grid-cols-2 gap-4">
-                        {[
-                            { label: "Dormitory", value: dormitory },
-                            { label: "Status",    value: status    },
-                        ].map((item) => (
-                            <div key={item.label} className={item.label === "Status" ? "flex flex-col items-center" : ""}>
-                                <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5 uppercase tracking-wider">
-                                    {item.label}
-                                </p>
-                                {item.label === "Status" ? (
-                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold capitalize
-                                        ${item.value.toLowerCase() === "active"
-                                            ? "bg-[#2D7A4A]/35 text-[#6FD49A] border border-[#2D7A4A]/50"
-                                            : "bg-[#7A2D2D]/35 text-[#D46F6F] border border-[#7A2D2D]/70"
-                                        }`}
-                                    >
-                                        {item.value}
-                                    </span>
-                                ) : (
-                                    <p className="text-white text-[14px] font-bold leading-tight">{item.value}</p>
-                                )}
-                            </div>
-                        ))}
+                        <div>
+                            <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5 uppercase tracking-wider">
+                                Dormitory
+                            </p>
+                            <p className="text-white text-[14px] font-bold leading-tight">{dormitory}</p>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5 uppercase tracking-wider">
+                                Status
+                            </p>
+                            <span
+                                className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold capitalize
+                                    ${isActive
+                                        ? "bg-[#2D7A4A]/35 text-[#6FD49A] border border-[#2D7A4A]/50"
+                                        : "bg-[#7A2D2D]/35 text-[#D46F6F] border border-[#7A2D2D]/70"
+                                    }`}
+                            >
+                                {isActive ? "Active" : status ?? "Pending"}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,37 +1,48 @@
 import { useEffect, useState } from "react";
-import Map, { Marker, Popup, NavigationControl, Source, Layer} from 'react-map-gl'
+import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl'
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { UPLB } from '../constants/uplb'
+import UPLBMarker from './UPLBMarker'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
+export interface AccommodationReview {
+  id: number;
+  accommodation_id: number;
+  student_number: string;
+  rating: number;
+  content: string | null;
+  createdAt?: string;
+}
+
 export interface AccommodationPin {
-    accommodationId: number
-    accommodationName: string
-    accommodationLocation: string
-    accommodationType: 'on-campus' | 'off-campus' | 'partner_housing'
-    accommodationCapacity: number
-    tenantRestriction: 'male-only' | 'female-only' | 'coed'
-    latitude: number
-    longitude: number
-    minRent: number
-    maxRent: number
-    walkingDistance: number // in minutes
-    drivingDistance: number // in minutes
-    bikingDistance: number // in minutes
-    stayType?: 'transient' | 'non_transient' | 'both'
-    imageUrl?: string
-    rating?: number
-    amenities?: string[]
+  accommodationId: number
+  accommodationName: string
+  accommodationLocation: string
+  accommodationType: 'on-campus' | 'off-campus' | 'partner_housing'
+  accommodationCapacity: number
+  tenantRestriction: 'male-only' | 'female-only' | 'coed'
+  latitude: number
+  longitude: number
+  minRent: number
+  maxRent: number
+  walkingDistance: number // in minutes
+  drivingDistance: number // in minutes
+  bikingDistance: number // in minutes
+  stayType?: 'transient' | 'non_transient' | 'both'
+  imageUrl?: string
+  rating?: number
+  amenities?: string[]
+  reviews?: AccommodationReview[]
 }
 
 type TravelMode = 'walking' | 'driving' | 'cycling'
 
 interface AccommodationMapProps {
-    accommodations: AccommodationPin[]
-    onCardClick: (accommodation: AccommodationPin) => void
-    centeredAccommodation?: AccommodationPin | null
+  accommodations: AccommodationPin[]
+  onCardClick: (accommodation: AccommodationPin) => void
+  centeredAccommodation?: AccommodationPin | null
 }
 
 const routeLayerStyle = (mode: TravelMode): LayerProps => ({
@@ -44,6 +55,13 @@ const routeLayerStyle = (mode: TravelMode): LayerProps => ({
     'line-opacity': 0.85,
   },
 })
+
+function getAvgRating(pin: AccommodationPin): number {
+  const reviews = pin.reviews
+  if (reviews && reviews.length > 0)
+    return reviews.reduce((sum, review) => sum + Number(review.rating ?? 0), 0) / reviews.length
+  return pin.rating ?? 0
+}
 
 export default function AccommodationMap({
   accommodations,
@@ -109,6 +127,9 @@ export default function AccommodationMap({
         mapboxAccessToken={MAPBOX_TOKEN}
       >
         <NavigationControl position="top-right" />
+
+        {/* UPLB Pin */}
+        <UPLBMarker onSelect={() => setSelectedPin(null)} />
 
         {/* Route Line */}
         {routeGeoJSON && (
@@ -176,7 +197,7 @@ export default function AccommodationMap({
                       <svg
                         key={i}
                         viewBox="0 0 24 24"
-                        fill={i < Math.floor(selectedPin.rating ?? 0) ? '#C69C3B' : '#E5E7EB'}
+                        fill={i < Math.floor(getAvgRating(selectedPin)) ? '#C69C3B' : '#E5E7EB'}
                         className="w-3.5 h-3.5"
                       >
                         <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
@@ -184,7 +205,7 @@ export default function AccommodationMap({
                     ))}
                   </div>
                   <span className="text-xs text-gray-500 font-medium">
-                    {selectedPin.rating ? selectedPin.rating.toFixed(1) : 'No rating'}
+                    {getAvgRating(selectedPin) > 0 ? getAvgRating(selectedPin).toFixed(1) : 'No rating'}
                   </span>
                 </div>
 
@@ -198,8 +219,8 @@ export default function AccommodationMap({
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   {selectedPin.amenities && selectedPin.amenities.length > 0
                     ? selectedPin.amenities.map(tag => (
-                        <span key={tag} className="bg-[#F5EBEB] text-[#710A2B] text-[11px] px-3 py-1 rounded-full font-medium">{tag}</span>
-                      ))
+                      <span key={tag} className="bg-[#F5EBEB] text-[#710A2B] text-[11px] px-3 py-1 rounded-full font-medium">{tag}</span>
+                    ))
                     : <span className="text-[11px] text-gray-400">🚶 {selectedPin.walkingDistance} min walk to campus</span>
                   }
                 </div>
@@ -216,6 +237,7 @@ export default function AccommodationMap({
         {/* Accommodation Pins */}
         {accommodations.map((acc) => {
           const isSelected = selectedPin?.accommodationId === acc.accommodationId
+          const accAvgRating = getAvgRating(acc)
           return (
             <Marker
               key={acc.accommodationId}
@@ -240,10 +262,10 @@ export default function AccommodationMap({
                 <div className={`h-auto min-w-[70px] px-3 py-1.5 rounded-full flex flex-row items-center justify-center gap-1.5 shadow-lg border ${isSelected ? 'bg-[#6B0F2B] border-white' : 'bg-[#801831] border-white/20'}`}>
                   <div className="flex items-center gap-1">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                      <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192L12 .587z"/>
+                      <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192L12 .587z" />
                     </svg>
                     <span className="text-white text-[10px] font-medium leading-none">
-                      {acc.rating?.toFixed(1) ?? '—'}
+                      {accAvgRating > 0 ? accAvgRating.toFixed(1) : '—'}
                     </span>
                   </div>
                   <div className="w-[1px] h-3 bg-white/30" />
