@@ -45,17 +45,26 @@ const fetchApplications = async (): Promise<Application[]> => {
 
 // Main component
 export default function ApplicationStatusPage({ userName = "Student" }: ApplicationStatusPageProps) {
-    const heroContent: HeroContent = {
-        name: userName,
-        greeting: "Good Day",
-        title: "Check your application status",
-        subtitle: "We make it easy for you to track the accommodations you've applied for",
-    };
-
+    
     const [sortBy, setSortBy] = useState("Date applied (Asc.)");
     const [searchQuery, setSearchQuery] = useState("");
     const [viewOpen, setViewOpen] = useState(false);
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+
+    const { data: currentUser } = useQuery({
+        queryKey: ["current-user"],
+        queryFn: async () => {
+            const res = await api.get("/me");
+            return res.data;
+        },
+    });
+
+    const heroContent: HeroContent = {
+        name: currentUser?.fname || userName,
+        greeting: "Good Day",
+        title: "Check your application status",
+        subtitle: "We make it easy for you to track the accommodations you've applied for",
+    };
 
     // Data fetching - using the real API
     const { data: applications = [], isLoading, isError } = useQuery({

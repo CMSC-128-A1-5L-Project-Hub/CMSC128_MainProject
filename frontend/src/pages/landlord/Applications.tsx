@@ -296,6 +296,19 @@ export default function Applications() {
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const paginated = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const accommodationNames = useMemo(() => {
+    if (!appsData || appsData.length === 0) return "your accommodations";
+    
+    // create a Set to get unique names, just in case the landlord manages multiple buildings
+    const names = new Set(
+      appsData
+        .map(app => app.originalData?.accommodation?.accommodationName)
+        .filter(Boolean)
+    );
+    
+    if (names.size === 0) return "your accommodations";
+    return Array.from(names).join(" & ");
+  }, [appsData]);
 
   const handleView = (app: Application) => {
     setSelectedApp(app);
@@ -416,9 +429,15 @@ export default function Applications() {
         </div>
 
         <div className="rounded-2xl p-6 mb-6 text-white" style={{ background: `linear-gradient(135deg, ${CLR.dark}, ${CLR.accent})` }}>
-          <p className="text-[10px] md:text-xs uppercase tracking-widest opacity-70">Good Day, {currentUser?.fname ?? "Landlord"}</p>
-          <h2 className="text-xl md:text-2xl font-bold mt-1">Check your applicants for Narra Residences</h2>
-          <p className="text-xs md:text-sm opacity-70 mt-1">We make it easy for you to track the accommodation applications you manage.</p>
+          <p className="text-[10px] md:text-xs uppercase tracking-widest opacity-70">
+            Good Day, {currentUser?.fname ?? "Landlord"}
+          </p>
+          <h2 className="text-xl md:text-2xl font-bold mt-1">
+            Check your applicants for {accommodationNames}
+          </h2>
+          <p className="text-xs md:text-sm opacity-70 mt-1">
+            We make it easy for you to track the accommodation applications you manage.
+          </p>
         </div>
 
         <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm mb-6">
