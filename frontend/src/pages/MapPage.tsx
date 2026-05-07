@@ -48,6 +48,9 @@ const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
       imageUrl: acc.primaryImageUrl ?? undefined,
       reviews,
       rating,
+      amenities: (acc.tags ?? [])
+        .map((t: any) => t.tagDetail ?? t.tag_detail)
+        .filter(Boolean),
     } satisfies AccommodationPin
   })
 }
@@ -77,8 +80,12 @@ export default function MapPage() {
   // ─── Local UI state ────────────────────────────────────────────────────────
   const [minRating, setMinRating] = useState(0)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [availableTags, setAvailableTags] = useState(['WiFi', 'Furnished', 'Air-con', 'Laundry', 'Study-Friendly', 'Transient'])
+  const [showAllTags, setShowAllTags] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+
+  const availableTags = useMemo(() => {
+    return [...new Set(accommodations.flatMap((acc) => acc.amenities ?? []))]
+  }, [accommodations])
 
   // Staged: filters only apply to map when "Apply Filters" is clicked
   const [appliedFilters, setAppliedFilters] = useState({
@@ -384,7 +391,7 @@ export default function MapPage() {
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {availableTags.map(tag => (
+                    {(showAllTags ? availableTags : availableTags.slice(0, 10)).map(tag => (
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag)}
@@ -399,6 +406,15 @@ export default function MapPage() {
                       </button>
                     ))}
                   </div>
+                  {availableTags.length > 10 && (
+                    <button
+                      onClick={() => setShowAllTags(prev => !prev)}
+                      className="text-[10px] font-bold text-[#710A2B] hover:underline"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    >
+                      {showAllTags ? 'See less ↑' : `See all ${availableTags.length} ↓`}
+                    </button>
+                  )}
                 </div>
               </div>
 
