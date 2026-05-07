@@ -3,19 +3,21 @@ import User from '#models/user'
 import FileMetadata from '#models/file_metadatum'
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { UPLB_DORMS } from '../seed_data/uplb_dorms_data.js'
+import { PRIVATE_DORMS } from '#database/seed_data/private_dorms_data'
 import { uploadImageFromLocalPath } from '#services/b2_services'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const IMAGES_DIR = join(__dirname, '..', 'seed_data', 'images')
+const ALL_DORMS = [...UPLB_DORMS, ...PRIVATE_DORMS]
 
 export default class UplbDormsSeeder extends BaseSeeder {
   async run() {
     // Reuse the UBLE landlord seeded by 01_uble_landlord_seeder.ts.
     const landlordUser = await User.findByOrFail('email', 'uble.ics.uplb@gmail.com')
 
-    for (const dorm of UPLB_DORMS) {
+    for (const dorm of ALL_DORMS) {
       // Idempotency guard — accommodation_name has a UNIQUE constraint so this
       // also serves as the natural DB-level fence on re-runs.
       const existing = await db
