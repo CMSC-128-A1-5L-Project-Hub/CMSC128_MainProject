@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { X } from "lucide-react";
 
 import HeroBanner from "../../components/dashboard/HeroBanner";
@@ -123,7 +123,7 @@ export default function Dashboard() {
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
 
   const user = useUserStore((s) => s.user);
 
@@ -136,13 +136,13 @@ export default function Dashboard() {
     queryFn: () => api.get("/landlord/accommodations").then((r) => r.data ?? []),
   });
 
-  const accommodationId = id ? Number(id) : undefined;
+  const accommodationId = searchParams.get("id") ? Number(searchParams.get("id")) : undefined;
   const accommodation =
     accommodations.find((a) => a.id === accommodationId) ?? null;
 
   useEffect(() => {
     if (accLoaded && !accommodation) {
-      navigate("/landlord/dashboard", { replace: true });
+      navigate("/landlord/manage-accommodation", { replace: true });
     }
   }, [accLoaded, accommodation, navigate]);
 
@@ -302,7 +302,7 @@ export default function Dashboard() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => navigate("/landlord/dashboard")}
+                onClick={() => navigate("/landlord/manage-accommodation")}
               >
                 ← Back
               </Button>
@@ -651,7 +651,6 @@ export default function Dashboard() {
                         </p>
                       ) : (
                         rooms.map((r) => {
-                          // Map status to user‑friendly labels
                           let statusText = r.roomAvailability;
                           if (r.roomAvailability === "available")
                             statusText = "Available";
@@ -705,7 +704,7 @@ export default function Dashboard() {
           </div>
         </main>
 
-        {/* RIGHT PANEL - Updated width to w-[400px] */}
+        {/* RIGHT PANEL */}
         <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
           <RightPanel />
         </aside>
