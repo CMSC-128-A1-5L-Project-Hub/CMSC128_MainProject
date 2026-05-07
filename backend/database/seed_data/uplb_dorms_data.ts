@@ -573,11 +573,97 @@ const nfrh: DormSeedData = {
   ],
 }
 
+const vetmed_residence_hall: DormSeedData = {
+  accommodation_name: 'VetMed Residence Hall',
+  accommodation_location:
+    'College of Veterinary Medicine, Lower Campus, UPLB, College, Los Baños, Laguna',
+  latitude: 14.168100,
+  longitude: 121.243500,
+  accommodation_type: 'on-campus',
+  tenant_restriction: 'female-only',
+  accommodation_capacity: 150,
+  walking_distance: 20,
+  biking_distance: 8,
+  driving_distance: 4,
+  application_start_date: '2026-06-01',
+  application_end_date: '2026-07-15',
+  images: [
+    'VMRH_front.jpg',
+    'VMRH_room.jpg',
+    'VMRH_area.jpg',
+  ],
+  tags: [
+    'On-campus housing',
+    'UP-owned',
+    'Female-exclusive',
+    'Near Vet Med College',
+    'Subsidized rates',
+    '24/7 Security',
+  ],
+  rooms: [
+    {
+      room_number: '101',
+      room_building: 'VetMed Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+    },
+    {
+      room_number: '102',
+      room_building: 'VetMed Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+    },
+    {
+      room_number: '201',
+      room_building: 'VetMed Hall',
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 3,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+    },
+    {
+      room_number: 'T-01',
+      room_building: 'VetMed Hall',
+      room_type: 'shared',
+      room_stay_type: 'transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 12000,
+      tenant_restriction: 'non-coed',
+      inclusions: ['Study desk', 'Cabinet'],
+    },
+  ],
+}
+
 export const UPLB_DORMS: DormSeedData[] = [
   //call dorm data here
   makiling_residence_hall,
   mens_residence_hall,
   womens_residence_hall,
   foreha,
-  nfrh
+  nfrh,
+  vetmed_residence_hall
 ]
