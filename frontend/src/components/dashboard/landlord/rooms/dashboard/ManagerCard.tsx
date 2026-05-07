@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { api } from "../../../../../api/axios";
 import Modal from "../../../../Modal";
 import Button from "../../../../Button";
 import notif_icon from "../../../../../assets/icons/notif_icon.svg";
@@ -8,7 +9,6 @@ import report_icon from "../../../../../assets/icons/report.svg"; // Import repo
 // Layout components
 import ReportModal from "../../../../ReportModal"; // Import ReportModal
 import NotificationPanel, {
-    MOCK_NOTIFICATIONS,
     type Notification,
 } from "../../../../../components/NotificationPanel"
 
@@ -42,13 +42,34 @@ export default function ProfileCard({
 
   // Notification state logic
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const notifWrapperRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    api.get('/notifications').then(({ data }) => {
+      setNotifications(
+        data.map((n: any) => ({
+          id: n.id,
+          type: n.notificationType,
+          message: n.notificationContent,
+          time: new Date(n.notificationTimestamp).toLocaleString(),
+          read: n.readStatus === 'read',
+        }))
+      );
+    }).catch(console.error);
+  }, []);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
-  const markAllRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  const markOneRead = (id: number) =>
+  const markAllRead = () => {
+    notifications
+      .filter((n) => !n.read)
+      .forEach((n) => api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+  const markOneRead = (id: number) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error);
+  };
 
   const CLR = {
     dark: "#3D0718",
