@@ -55,6 +55,14 @@ export interface DormSeedData {
   rooms: RoomSeedData[]
 }
 
+/*
+    Based from OSH data -> room inclusions
+*/
+const OSH_BASIC = ["Study desk", "Cabinet", "Laundry Area"]
+const OSH_BASIC_WIFI = ["Study desk", "Cabinet", "Laundry Area", "WiFi Ready"]
+
+
+
 // Add real UPLB dorms here. Example shape:
 // const kamia_residence_hall: DormSeedData = 
 // {
@@ -187,6 +195,107 @@ const makiling_residence_hall: DormSeedData = {
       inclusions: ['Study desk', 'Cabinet', 'WiFi Ready'],
     },
   ]
+}
+
+const mens_residence_hall: DormSeedData = {
+  accommodation_name: "Men's Residence Hall",
+  accommodation_location:
+    'Lope K. Santos Ave., Lower Campus, UPLB, College, Los Baños, Laguna',
+  latitude: 14.166200,
+  longitude: 121.241800,
+  accommodation_type: 'on-campus',
+  tenant_restriction: 'male-only',
+  accommodation_capacity: 300,
+  walking_distance: 18,
+  biking_distance: 7,
+  driving_distance: 4,
+  application_start_date: '2026-06-01',
+  application_end_date: '2026-07-15',
+  images: [
+    'MRH_front.jpg',
+    'MRH_room.jpg',
+    'MRH_corridor.jpg',
+    'MRH_common.jpg',
+  ],
+  tags: [
+    'On-campus housing',
+    'UP-owned',
+    '24/7 Security',
+    'Laundry facilities',
+    'Canteen on-site',
+    'Subsidized rates',
+  ],
+  rooms: [
+    {
+      room_number: '101',
+      room_building: "Men's Hall",
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+      preferences: ['Ground floor'],
+    },
+    {
+      room_number: '102',
+      room_building: "Men's Hall",
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+    },
+    {
+      room_number: '201',
+      room_building: "Men's Hall",
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+    },
+    {
+      room_number: '202',
+      room_building: "Men's Hall",
+      room_type: 'shared',
+      room_stay_type: 'non_transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 800,
+      tenant_restriction: 'non-coed',
+      reservation_fee_type: 'fixed',
+      reservation_fee_value: 800,
+      inclusions: OSH_BASIC,
+    },
+    {
+      room_number: 'T-01',
+      room_building: "Men's Hall",
+      room_type: 'shared',
+      room_stay_type: 'transient',
+      room_capacity: 4,
+      room_current_occupancy: 0,
+      room_availability: 'available',
+      room_rent: 12000, // ₱400/day × ~30 days equivalent
+      tenant_restriction: 'non-coed',
+      inclusions: ['Study desk', 'Cabinet'],
+    },
+  ],
 }
 
 export const UPLB_DORMS: DormSeedData[] = [
