@@ -245,26 +245,36 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                             )}
                         </div>
 
-                        <div className={`${applications.length === 0 ? "hidden" : "flex"} flex-col`}>
-                            <hr className=" border-[#6B0F2B]/5 border-t-2" />
-                            <div className='flex flex-nowrap justify-between'>
-                                <div className='flex justify-start flex-col gap-2'>
-                                    <div className='flex flex-col items-start justify-start'>
-                                        <span className='text-[11px] lg:text-[13px] text-[#9A7080] p-0 mt-4 m-0'>
-                                            Showing {totalApps === 0 ? 0 : (currentPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-between items-center m-2 mt-4 lg:mt-6 text-sm text-[#9A7080]">
-                                    <div className={applications.length > 0 ? 'flex gap-2 text-[12px] lg:text-[15px]' : 'hidden'}>
-                                        <Pagination
-                                            totalPages={totalPages}
-                                            currentPage={currentPage}
-                                            onPageChange={setCurrentPage}
-                                            buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8'
-                                        />
-                                    </div>
+                        <div className={`${applications.length === 0 ? "hidden" : "flex flex-col"}`}>
+                            <hr className="border-[#6B0F2B]/5 border-t-2" />
+                            <div className="flex items-center justify-between mt-3">
+                                <p className="text-xs text-[#9A7080]">
+                                    {totalApps === 0
+                                        ? "No results"
+                                        : `Showing ${(currentPage - 1) * ROWS_PER_PAGE + 1}–${Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of ${totalApps}`}
+                                </p>
+                                <div className="flex items-center justify-center gap-1 mt-3 mb-2">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            onClick={() => setCurrentPage(page)}
+                                            className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
+                                                ${currentPage === page
+                                                    ? "text-white"
+                                                    : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"}`}
+                                            style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                    {currentPage < totalPages && (
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                            className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                                        >
+                                            {">"}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

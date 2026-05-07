@@ -17,11 +17,10 @@ export default function StatsBanner({ stats, total, cols = 5 }: StatsBannerProps
     return (
         <div className="bg-white p-6 rounded-2xl shrink-0">
             <div
-                className="grid grid-cols-2 gap-4"
-                style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+                className="grid grid-cols-2 lg:grid-cols-6 gap-4"
                 >
                 {stats.map((stat, i) => (
-                    <div key={stat.label} className={i === 0 ? "col-span-2 lg:col-span-1" : "col-span-1"}>
+                    <div key={stat.label}>
                         <span className="block uppercase font-bold text-[11px] lg:text-[11px] tracking-widest" style={{ color: stat.text }}>
                             {stat.label}
                         </span>
