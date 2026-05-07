@@ -391,7 +391,7 @@ export default function BrowsePage() {
                                 X
                             </button>
                         </div>
-                        <FilterForm onClose={() => {
+                        <FilterForm origFilters={filters} onClose={() => {
                             setFilterInEffect(true)
                             setFilterPanelOpen(false)
                         }} />
@@ -540,7 +540,7 @@ function SearchBar() {
 /* ══════════════════════════════════════════════════════════════════════════════
    FILTER FORM
 ══════════════════════════════════════════════════════════════════════════════ */
-function FilterForm({ onClose }: { onClose: () => void }) {
+function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters:{ [key: string]: boolean }}) {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
     const {
@@ -550,11 +550,9 @@ function FilterForm({ onClose }: { onClose: () => void }) {
         setFilterInEffect, setOrigMin, setOrigMax
     } = context
 
-    const originalFilters: { [key: string]: boolean } = {
-        "Near campus": false, "Pet friendly": false, "Near establishments": false,
-        "Air-conditioned rooms": false, "Has study area": false,
-        "24/7 security": false, "Has curfew": false, "Has canteen": false,
-    }
+    const originalFilters = Object.fromEntries(
+        Object.keys(origFilters).map((key) => [key, false])
+      ) as Record<string, boolean>;
 
     const resetAll = () => {
         setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
