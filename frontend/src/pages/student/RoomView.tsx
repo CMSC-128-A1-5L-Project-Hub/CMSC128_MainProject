@@ -476,7 +476,7 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
 
 function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-auto p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-base font-bold text-gray-900">All Photos</h2>
