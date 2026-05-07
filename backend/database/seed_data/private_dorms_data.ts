@@ -1059,9 +1059,8 @@ const riela_dormitory: DormSeedData = {
     biking_distance: 3,
     driving_distance: 2,
     images: [
-        'riela_front.jpg',
+        'riela_bathroom.jpg',
         'riela_room.jpg',
-        'riela_common_area.jpg',
     ],
     tags: [
         'Private dorm',
