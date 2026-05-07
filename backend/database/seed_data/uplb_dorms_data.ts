@@ -412,7 +412,6 @@ const foreha: DormSeedData = {
   images: [
     'FOREHA_front.jpg',
     'FOREHA_room.jpg',
-    'FOREHA_outside.jpg',
   ],
   tags: [
     'On-campus housing',
