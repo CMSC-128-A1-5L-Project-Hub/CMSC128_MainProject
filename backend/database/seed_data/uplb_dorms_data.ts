@@ -825,9 +825,6 @@ const international_house: DormSeedData = {
   application_end_date: '2026-07-15',
   images: [
     'IH_front.jpg',
-    'IH_room.jpg',
-    'IH_lounge.jpg',
-    'IH_outside.jpg',
   ],
   tags: [
     'On-campus housing',
