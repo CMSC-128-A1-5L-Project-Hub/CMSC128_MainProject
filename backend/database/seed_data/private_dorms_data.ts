@@ -837,9 +837,7 @@ const reese_dormitory: DormSeedData = {
     biking_distance: 1,
     driving_distance: 1,
     images: [
-        'reese_dorm_front.jpg',
-        'reese_dorm_room.jpg',
-        'reese_dorm_outside.jpg',
+        'reese_front.jpg',
     ],
     tags: [
         'Private dorm',
