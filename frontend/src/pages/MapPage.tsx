@@ -384,19 +384,6 @@ export default function MapPage() {
                         {tag}
                       </button>
                     ))}
-                    <button
-                      onClick={() => {
-                        const newTag = prompt('Enter a feature:')
-                        if (newTag?.trim()) {
-                          if (!availableTags.includes(newTag.trim())) setAvailableTags(prev => [...prev, newTag.trim()])
-                          toggleTag(newTag.trim())
-                        }
-                      }}
-                      className="px-3 py-1.5 border border-dashed border-gray-300 text-gray-400 text-[10px] font-bold rounded-full hover:border-[#710A2B]"
-                      style={{ cursor: 'pointer' }}
-                    >
-                      + Add more
-                    </button>
                   </div>
                 </div>
               </div>
