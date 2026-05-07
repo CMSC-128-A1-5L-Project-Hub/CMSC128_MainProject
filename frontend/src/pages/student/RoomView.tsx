@@ -16,7 +16,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import ApplicationModals from "@/components/applications/ApplicationModals.tsx";
 import RoomApplicationModal from "@/components/RoomApplicationModal.tsx";
 import ShareModal from "@/components/ShareModal.tsx";
-//import ReportAccommodationModal from "@/components/RoomViewReportModal.tsx";
+import ReportAccommodationModal from "@/components/RoomViewReportModal.tsx";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const UPLB_COORDS = { longitude: 121.2436, latitude: 14.1654 }
@@ -61,7 +61,7 @@ interface Manager {
 }
 
 //accommodation_id: getAccom("Scholar's Dorm"), room_number: '502', room_type: 'shared', room_stay_type: 'non_transient', room_capacity: 3, room_current_occupancy: 2, room_building: 'Building C', room_rent: 6000.00, tenant_restriction: 'coed', room_availability: 'available'
-interface Room{
+interface Room {
   id: number;
   accommodation_id: number;
   room_number: string;
@@ -82,7 +82,7 @@ interface ReviewUser {
   lname: string;
 }
 
-interface Review{
+interface Review {
   id: number;
   accommodation_id: number;
   student_number: string;
@@ -141,7 +141,7 @@ const IconPlus = () => (
 
 const IconBack = () => (
   <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M4 10L3.29289 10.7071L2.58579 10L3.29289 9.29289L4 10ZM21 18C21 18.5523 20.5523 19 20 19C19.4477 19 19 18.5523 19 18L21 18ZM8.29289 15.7071L3.29289 10.7071L4.70711 9.29289L9.70711 14.2929L8.29289 15.7071ZM3.29289 9.29289L8.29289 4.29289L9.70711 5.70711L4.70711 10.7071L3.29289 9.29289ZM4 9L14 9L14 11L4 11L4 9ZM21 16L21 18L19 18L19 16L21 16ZM14 9C17.866 9 21 12.134 21 16L19 16C19 13.2386 16.7614 11 14 11L14 9Z" fill="#33363F"/>
+    <path d="M4 10L3.29289 10.7071L2.58579 10L3.29289 9.29289L4 10ZM21 18C21 18.5523 20.5523 19 20 19C19.4477 19 19 18.5523 19 18L21 18ZM8.29289 15.7071L3.29289 10.7071L4.70711 9.29289L9.70711 14.2929L8.29289 15.7071ZM3.29289 9.29289L8.29289 4.29289L9.70711 5.70711L4.70711 10.7071L3.29289 9.29289ZM4 9L14 9L14 11L4 11L4 9ZM21 16L21 18L19 18L19 16L21 16ZM14 9C17.866 9 21 12.134 21 16L19 16C19 13.2386 16.7614 11 14 11L14 9Z" fill="#33363F" />
   </svg>
 )
 
@@ -152,7 +152,7 @@ const IconHeart = ({ filled }: { filled: boolean }) => (
 );
 
 const IconShare = () => (
-  <svg width="24px" height="24px" fill={CLR.mid} stroke={CLR.mid}  strokeWidth={2} viewBox="0 0 24 24">
+  <svg width="24px" height="24px" fill={CLR.mid} stroke={CLR.mid} strokeWidth={2} viewBox="0 0 24 24">
     <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
   </svg>
@@ -160,20 +160,20 @@ const IconShare = () => (
 
 const IconReport = () => (
   <svg width="24px" height="24px" fill={CLR.mid} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path fillRule="evenodd" d="M16,2 C16.2652165,2 16.5195704,2.10535684 16.7071068,2.29289322 L21.7071068,7.29289322 C21.8946432,7.4804296 22,7.73478351 22,8 L22,15 C22,15.2339365 21.9179838,15.4604694 21.7682213,15.6401844 L16.7682213,21.6401844 C16.5782275,21.868177 16.2967798,22 16,22 L8,22 C7.73478351,22 7.4804296,21.8946432 7.29289322,21.7071068 L2.29289322,16.7071068 C2.10535684,16.5195704 2,16.2652165 2,16 L2,8 C2,7.73478351 2.10535684,7.4804296 2.29289322,7.29289322 L7.29289322,2.29289322 C7.4804296,2.10535684 7.73478351,2 8,2 L16,2 Z M15.5857864,4 L8.41421356,4 L4,8.41421356 L4,15.5857864 L8.41421356,20 L15.5316251,20 L20,14.6379501 L20,8.41421356 L15.5857864,4 Z M12,16 C12.5522847,16 13,16.4477153 13,17 C13,17.5522847 12.5522847,18 12,18 C11.4477153,18 11,17.5522847 11,17 C11,16.4477153 11.4477153,16 12,16 Z M12,6 C12.5522847,6 13,6.44771525 13,7 L13,13 C13,13.5522847 12.5522847,14 12,14 C11.4477153,14 11,13.5522847 11,13 L11,7 C11,6.44771525 11.4477153,6 12,6 Z"/>
+    <path fillRule="evenodd" d="M16,2 C16.2652165,2 16.5195704,2.10535684 16.7071068,2.29289322 L21.7071068,7.29289322 C21.8946432,7.4804296 22,7.73478351 22,8 L22,15 C22,15.2339365 21.9179838,15.4604694 21.7682213,15.6401844 L16.7682213,21.6401844 C16.5782275,21.868177 16.2967798,22 16,22 L8,22 C7.73478351,22 7.4804296,21.8946432 7.29289322,21.7071068 L2.29289322,16.7071068 C2.10535684,16.5195704 2,16.2652165 2,16 L2,8 C2,7.73478351 2.10535684,7.4804296 2.29289322,7.29289322 L7.29289322,2.29289322 C7.4804296,2.10535684 7.73478351,2 8,2 L16,2 Z M15.5857864,4 L8.41421356,4 L4,8.41421356 L4,15.5857864 L8.41421356,20 L15.5316251,20 L20,14.6379501 L20,8.41421356 L15.5857864,4 Z M12,16 C12.5522847,16 13,16.4477153 13,17 C13,17.5522847 12.5522847,18 12,18 C11.4477153,18 11,17.5522847 11,17 C11,16.4477153 11.4477153,16 12,16 Z M12,6 C12.5522847,6 13,6.44771525 13,7 L13,13 C13,13.5522847 12.5522847,14 12,14 C11.4477153,14 11,13.5522847 11,13 L11,7 C11,6.44771525 11.4477153,6 12,6 Z" />
   </svg>
 )
 
 const IconBolt = () => (
-  <svg width="24px" fill={CLR.mid} height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.168 8H13l.806-4.835A1 1 0 0 0 12.819 2H7.667a1 1 0 0 0-.986.835l-1.667 10A1 1 0 0 0 6 14h4v8l8.01-12.459A1 1 0 0 0 17.168 8z"/></svg>
+  <svg width="24px" fill={CLR.mid} height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.168 8H13l.806-4.835A1 1 0 0 0 12.819 2H7.667a1 1 0 0 0-.986.835l-1.667 10A1 1 0 0 0 6 14h4v8l8.01-12.459A1 1 0 0 0 17.168 8z" /></svg>
 )
 
 const IconDroplet = () => (
-  <svg width="24.2px" height="24.2px" viewBox="0 0 24.2 24.2" fill={CLR.mid} xmlns="http://www.w3.org/2000/svg"><g data-name="Layer 2"><g data-name="droplet"><rect x=".1" y=".1" width="24" height="24" transform="rotate(.48 11.987 11.887)" opacity="0"/><path d="M12 21.1a7.4 7.4 0 0 1-5.28-2.28 7.73 7.73 0 0 1 .1-10.77l4.64-4.65a.94.94 0 0 1 .71-.3 1 1 0 0 1 .71.31l4.56 4.72a7.73 7.73 0 0 1-.09 10.77A7.33 7.33 0 0 1 12 21.1z"/></g></g></svg>
+  <svg width="24.2px" height="24.2px" viewBox="0 0 24.2 24.2" fill={CLR.mid} xmlns="http://www.w3.org/2000/svg"><g data-name="Layer 2"><g data-name="droplet"><rect x=".1" y=".1" width="24" height="24" transform="rotate(.48 11.987 11.887)" opacity="0" /><path d="M12 21.1a7.4 7.4 0 0 1-5.28-2.28 7.73 7.73 0 0 1 .1-10.77l4.64-4.65a.94.94 0 0 1 .71-.3 1 1 0 0 1 .71.31l4.56 4.72a7.73 7.73 0 0 1-.09 10.77A7.33 7.33 0 0 1 12 21.1z" /></g></g></svg>
 )
 
 const IconWifi = () => (
-<svg fill={CLR.mid}  width="24px" height="24px" viewBox="0 -5 34 34" xmlns="http://www.w3.org/2000/svg"><path d="m16.807 0c-.014 0-.029 0-.045 0-6.19 0-11.82 2.4-16.01 6.319l.013-.012-.765.713 3.862 3.826.72-.66c3.201-2.952 7.494-4.763 12.21-4.763s9.009 1.81 12.222 4.774l-.012-.011.72.66 3.862-3.826-.765-.713c-4.169-3.907-9.791-6.307-15.974-6.307-.014 0-.027 0-.041 0h.002z"/><path d="m27.405 12.03c-2.783-2.531-6.498-4.08-10.575-4.08-.002 0-.005 0-.007 0h-.667l-.007.015c-3.847.159-7.313 1.674-9.958 4.076l.013-.012-.787.713 3.893 3.855.72-.63c1.791-1.606 4.171-2.587 6.78-2.587s4.989.982 6.79 2.596l-.01-.008.72.63 3.893-3.854z"/><path d="m16.815 24 5.475-5.415-.87-.713c-1.188-.938-2.708-1.505-4.359-1.505-.089 0-.178.002-.266.005h.013c-.02 0-.043 0-.066 0-1.712 0-3.293.563-4.567 1.515l.02-.014-.862.713.795.787 3.96 3.915z"/></svg>
+  <svg fill={CLR.mid} width="24px" height="24px" viewBox="0 -5 34 34" xmlns="http://www.w3.org/2000/svg"><path d="m16.807 0c-.014 0-.029 0-.045 0-6.19 0-11.82 2.4-16.01 6.319l.013-.012-.765.713 3.862 3.826.72-.66c3.201-2.952 7.494-4.763 12.21-4.763s9.009 1.81 12.222 4.774l-.012-.011.72.66 3.862-3.826-.765-.713c-4.169-3.907-9.791-6.307-15.974-6.307-.014 0-.027 0-.041 0h.002z" /><path d="m27.405 12.03c-2.783-2.531-6.498-4.08-10.575-4.08-.002 0-.005 0-.007 0h-.667l-.007.015c-3.847.159-7.313 1.674-9.958 4.076l.013-.012-.787.713 3.893 3.855.72-.63c1.791-1.606 4.171-2.587 6.78-2.587s4.989.982 6.79 2.596l-.01-.008.72.63 3.893-3.854z" /><path d="m16.815 24 5.475-5.415-.87-.713c-1.188-.938-2.708-1.505-4.359-1.505-.089 0-.178.002-.266.005h.013c-.02 0-.043 0-.066 0-1.712 0-3.293.563-4.567 1.515l.02-.014-.862.713.795.787 3.96 3.915z" /></svg>
 )
 
 const IconPhone = () => (
@@ -219,7 +219,7 @@ const StarRating = ({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
           key={i}
           width={dim}
           height={dim}
-          fill= "currentColor"
+          fill="currentColor"
           viewBox="0 0 20 20"
           //gold star
           style={{ color: i < Math.round(rating) ? CLR.gold : "#E5E7EB" }}
@@ -232,9 +232,9 @@ const StarRating = ({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
 };
 
 type DateVal = { year: number; month: number; day: number } | null;
-const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const MONTHS_FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const DAYS = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MIN_YEAR = new Date().getFullYear();
 const MAX_YEAR = MIN_YEAR + 5;
 
@@ -242,13 +242,13 @@ const toJS = (v: DateVal) => (v ? new Date(v.year, v.month, v.day) : null);
 const same = (a: DateVal, b: DateVal) =>
   !!a && !!b && a.year === b.year && a.month === b.month && a.day === b.day;
 function getDaysInMonth(y: number, m: number) { return new Date(y, m + 1, 0).getDate(); }
-function getFirstDay(y: number, m: number)    { return new Date(y, m, 1).getDay(); }
+function getFirstDay(y: number, m: number) { return new Date(y, m, 1).getDay(); }
 
 function MiniCalendar({ start, end, onStartChange, onEndChange, selecting, setSelecting }: any) {
-  const today   = new Date();
-  const [viewYear,  setViewYear]  = useState(start?.year  ?? today.getFullYear());
+  const today = new Date();
+  const [viewYear, setViewYear] = useState(start?.year ?? today.getFullYear());
   const [viewMonth, setViewMonth] = useState(start?.month ?? today.getMonth());
-  const [hovering,  setHovering]  = useState<DateVal>(null);
+  const [hovering, setHovering] = useState<DateVal>(null);
 
   const monthOptions = MONTHS_FULL.map((m, i) => ({
     value: String(i) as string,
@@ -260,21 +260,21 @@ function MiniCalendar({ start, end, onStartChange, onEndChange, selecting, setSe
     .map(y => ({ value: String(y), label: String(y) }));
 
   const handleClick = (day: number) => {
-    const clicked     = { year: viewYear, month: viewMonth, day };
+    const clicked = { year: viewYear, month: viewMonth, day };
     const clickedDate = new Date(viewYear, viewMonth, day);
     if (selecting === "start") {
       onStartChange(clicked); onEndChange(null); setSelecting("end");
     } else {
       const s = toJS(start);
       if (s && clickedDate < s) { onStartChange(clicked); onEndChange(null); }
-      else                      { onEndChange(clicked); setSelecting("start"); }
+      else { onEndChange(clicked); setSelecting("start"); }
     }
   };
 
   const effectiveEnd = end ?? (selecting === "end" && hovering ? hovering : null);
-  const daysInMonth  = getDaysInMonth(viewYear, viewMonth);
-  const firstDay     = getFirstDay(viewYear, viewMonth);
-  const cells        = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+  const daysInMonth = getDaysInMonth(viewYear, viewMonth);
+  const firstDay = getFirstDay(viewYear, viewMonth);
+  const cells = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
 
   return (
     <div >
@@ -311,9 +311,9 @@ function MiniCalendar({ start, end, onStartChange, onEndChange, selecting, setSe
       <div className="grid grid-cols-7 gap-y-1">
         {cells.map((day, i) => {
           if (!day) return <div key={i} className="h-8" />;
-          const date    = { year: viewYear, month: viewMonth, day };
+          const date = { year: viewYear, month: viewMonth, day };
           const isStart = same(start, date);
-          const isEnd   = same(effectiveEnd, date);
+          const isEnd = same(effectiveEnd, date);
           const inRange = start && effectiveEnd && (() => {
             const t = new Date(viewYear, viewMonth, day).getTime();
             const s = toJS(start)!.getTime();
@@ -329,14 +329,14 @@ function MiniCalendar({ start, end, onStartChange, onEndChange, selecting, setSe
               onMouseLeave={() => setHovering(null)}>
               {inRange && <div className="absolute inset-y-1 left-0 right-0 bg-[#6B0F2B]/10" />}
               {isStart && effectiveEnd && !same(start, effectiveEnd) && <div className="absolute inset-y-1 left-1/2 right-0 bg-[#6B0F2B]/10" />}
-              {isEnd   && start       && !same(start, effectiveEnd) && <div className="absolute inset-y-1 left-0 right-1/2 bg-[#6B0F2B]/10" />}
+              {isEnd && start && !same(start, effectiveEnd) && <div className="absolute inset-y-1 left-0 right-1/2 bg-[#6B0F2B]/10" />}
               <button disabled={!!disabled} onClick={() => handleClick(day)}
                 className={[
                   "relative z-10 w-7 h-7 flex items-center justify-center text-xs font-semibold rounded-full transition",
                   isStart || isEnd ? "bg-[#6B0F2B] text-white"
-                    : inRange     ? "text-[#6B0F2B]"
-                    : disabled    ? "text-gray-200 cursor-not-allowed"
-                    : "text-gray-600 hover:bg-[#6B0F2B]/10 hover:text-[#6B0F2B]",
+                    : inRange ? "text-[#6B0F2B]"
+                      : disabled ? "text-gray-200 cursor-not-allowed"
+                        : "text-gray-600 hover:bg-[#6B0F2B]/10 hover:text-[#6B0F2B]",
                 ].join(" ")}>
                 {day}
               </button>
@@ -350,11 +350,11 @@ function MiniCalendar({ start, end, onStartChange, onEndChange, selecting, setSe
 
 function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, end: any) => void }) {
   const [savedStart, setSavedStart] = useState<DateVal>(null);
-  const [savedEnd,   setSavedEnd]   = useState<DateVal>(null);
+  const [savedEnd, setSavedEnd] = useState<DateVal>(null);
   const [draftStart, setDraftStart] = useState<DateVal>(null);
-  const [draftEnd,   setDraftEnd]   = useState<DateVal>(null);
-  const [editing,    setEditing]    = useState(true);
-  const [selecting,  setSelecting]  = useState<"start" | "end">("start");
+  const [draftEnd, setDraftEnd] = useState<DateVal>(null);
+  const [editing, setEditing] = useState(true);
+  const [selecting, setSelecting] = useState<"start" | "end">("start");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -378,8 +378,8 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
     onPeriodChange(draftStart, draftEnd);
   };
 
-  const isSet     = !!savedStart && !!savedEnd;
-  const canSave   = !!draftStart && !!draftEnd;
+  const isSet = !!savedStart && !!savedEnd;
+  const canSave = !!draftStart && !!draftEnd;
   const totalDays = isSet
     ? Math.round((toJS(savedEnd)!.getTime() - toJS(savedStart)!.getTime()) / 86400000) + 1
     : null;
@@ -392,13 +392,13 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
           <div className="flex items-center justify-between px-4 pt-3 pb-2">
             <div className="flex items-center gap-2">
               <svg className="w-3 h-3 text-white/60" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
               </svg>
               <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest"></span>
             </div>
             <button onClick={openEdit} className="group flex items-center gap-1 text-[10px] font-bold text-white/70 hover:text-white transition">
               <svg className="w-3 h-3 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               Edit
             </button>
@@ -411,7 +411,7 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
             </div>
             <div className="flex items-center justify-center px-2">
               <svg className="w-3.5 h-3.5 text-white/40" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </div>
             <div className="flex-1 bg-white/10 rounded-xl px-3 py-2">
@@ -430,7 +430,7 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
           <div className="grid grid-cols-2 gap-2">
             {([
               { label: "Start Date", val: draftStart, key: "start" as const },
-              { label: "End Date",   val: draftEnd,   key: "end"   as const },
+              { label: "End Date", val: draftEnd, key: "end" as const },
             ]).map(({ label, val, key }) => (
               <button key={key} onClick={() => setSelecting(key)}
                 className={["p-2 rounded-xl text-left transition border-2",
@@ -455,7 +455,7 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
               disabled={!isSet}
               className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-[12px] font-semibold text-gray-600 hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
               Cancel
             </button>
@@ -463,7 +463,7 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
               className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold text-white transition disabled:opacity-40"
               style={{ background: "linear-gradient(135deg, #3D0718, #6B0F2B)" }}>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               Save Period
             </button>
@@ -517,32 +517,32 @@ function FeaturesTab({ accommodation, rooms, accommodationTags, roomInclusions, 
   return (
     <div className="space-y-5 mt-14">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start mt-16">
-        <GradientPillSelect 
-          label="Tenant Preference" 
-          value={selectedTenantRestriction} 
+        <GradientPillSelect
+          label="Tenant Preference"
+          value={selectedTenantRestriction}
           onChange={setselectedTenantRestriction}
-          width = "w-full sm:w-44"
+          width="w-full sm:w-44"
           labelSize="text-[18px]"
-          optionSize = "text-[15px]"
-          options={tenantRestriction.filter(Boolean).map((st) => ({ value: st, label: st.charAt(0).toUpperCase() + st.slice(1) }))} 
+          optionSize="text-[15px]"
+          options={tenantRestriction.filter(Boolean).map((st) => ({ value: st, label: st.charAt(0).toUpperCase() + st.slice(1) }))}
         />
 
-        <GradientPillSelect 
-          label="Stay Type" 
-          value={selectedStayType} 
+        <GradientPillSelect
+          label="Stay Type"
+          value={selectedStayType}
           onChange={setSelectedStayType}
-          width = "w-full sm:w-44"
+          width="w-full sm:w-44"
           labelSize="text-[18px]"
-          optionSize = "text-[15px]"
+          optionSize="text-[15px]"
           options={stayTypes.filter(Boolean).map((st) => ({ value: st, label: st === "non_transient" ? "Non-Transient" : "Transient" }))} />
 
-        <GradientPillSelect 
-          label="Arrangement" 
-          value={selectedArrangement} 
+        <GradientPillSelect
+          label="Arrangement"
+          value={selectedArrangement}
           onChange={setSelectedArrangement}
-          width = "w-full sm:w-44"
+          width="w-full sm:w-44"
           labelSize="text-[18px]"
-          optionSize = "text-[15px]"
+          optionSize="text-[15px]"
           options={arrangements.filter(Boolean).map((a) => ({ value: a, label: a.charAt(0).toUpperCase() + a.slice(1) }))} />
       </div>
       <div className="w-full h-[2px] bg-gray-200 mt-5"></div>
@@ -568,82 +568,82 @@ function FeaturesTab({ accommodation, rooms, accommodationTags, roomInclusions, 
                   {tag}
                 </span>
               ))}
-              
-             {commonPreferences.map((pref: string) => (
-              <span
-                key={`common-${pref}`}
-                className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full"
-                style={{ background: CLR.mid }}
-              >
-                {pref}
-              </span>
-            ))}
+
+              {commonPreferences.map((pref: string) => (
+                <span
+                  key={`common-${pref}`}
+                  className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full"
+                  style={{ background: CLR.mid }}
+                >
+                  {pref}
+                </span>
+              ))}
             </div>
           </>
         )}
 
         <div className="flex flex-wrap gap-2 min-h-[36px]">
-        {selectedPreferences.map((pref: string) => (
-          <button
-            key={`pref-${pref}`}
-            onClick={() =>
-              setSelectedPreferences((prev) => prev.filter((p) => p !== pref))
-            }
-            className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full transition-opacity hover:opacity-80"
-            style={{ background: CLR.mid }}
-            title="Click to remove"
-          >
-            {pref}
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        ))}
+          {selectedPreferences.map((pref: string) => (
+            <button
+              key={`pref-${pref}`}
+              onClick={() =>
+                setSelectedPreferences((prev) => prev.filter((p) => p !== pref))
+              }
+              className="flex items-center gap-1.5 text-white font-sans text-[15px] font-medium px-4 py-1.5 rounded-full transition-opacity hover:opacity-80"
+              style={{ background: CLR.mid }}
+              title="Click to remove"
+            >
+              {pref}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          ))}
 
-        {commonPreferences.length === 0 &&
-          accommodationTags.length === 0 &&
-          selectedPreferences.length === 0 && (
-            <p className="text-[12px] text-[#8C1535] italic">No amenities selected</p>
-          )}
-      </div>
-
-      {optionalPreferences.filter((p) => !selectedPreferences.includes(p)).length > 0 && (
-        <div className="mt-4">
-          <div className="flex-1 h-px bg-gray-200"></div>
-
-          <p className="text-[12px] text-[#8C1535] italic mt-5">
-            Click to add
-          </p>
-
-          <div className="flex flex-wrap gap-2 mt-5">
-            {optionalPreferences
-              .filter((p) => !selectedPreferences.includes(p))
-              .map((pref: string) => (
-                <button
-                  key={`removed-${pref}`}
-                  onClick={() =>
-                    setSelectedPreferences((prev) => [...prev, pref])
-                  }
-                  className="flex items-center gap-1.5 font-sans text-[15px] font-medium px-4 py-1.5 rounded-full border-2 border-dashed transition-colors hover:border-solid"
-                  style={{
-                    color: CLR.mid,
-                    borderColor: CLR.subtext,
-                    background: "transparent",
-                  }}
-                  title="Click to add amenity of choice."
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={CLR.mid} strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
-                  {pref}
-                </button>
-              ))}
-          </div>
+          {commonPreferences.length === 0 &&
+            accommodationTags.length === 0 &&
+            selectedPreferences.length === 0 && (
+              <p className="text-[12px] text-[#8C1535] italic">No amenities selected</p>
+            )}
         </div>
-      )}
+
+        {optionalPreferences.filter((p) => !selectedPreferences.includes(p)).length > 0 && (
+          <div className="mt-4">
+            <div className="flex-1 h-px bg-gray-200"></div>
+
+            <p className="text-[12px] text-[#8C1535] italic mt-5">
+              Click to add
+            </p>
+
+            <div className="flex flex-wrap gap-2 mt-5">
+              {optionalPreferences
+                .filter((p) => !selectedPreferences.includes(p))
+                .map((pref: string) => (
+                  <button
+                    key={`removed-${pref}`}
+                    onClick={() =>
+                      setSelectedPreferences((prev) => [...prev, pref])
+                    }
+                    className="flex items-center gap-1.5 font-sans text-[15px] font-medium px-4 py-1.5 rounded-full border-2 border-dashed transition-colors hover:border-solid"
+                    style={{
+                      color: CLR.mid,
+                      borderColor: CLR.subtext,
+                      background: "transparent",
+                    }}
+                    title="Click to add amenity of choice."
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={CLR.mid} strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    {pref}
+                  </button>
+                ))}
+            </div>
+          </div>
+        )}
 
       </div>
-      
+
     </div>
   );
 }
@@ -680,7 +680,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   //Place suggestions
   const [suggestions, setSuggestions] = useState<{ label: string; lat: number; lng: number }[]>([])
   //The actual destination the user sets.
-  const [selectedDest, setSelectedDest] = useState<{ label: String; lat: number; lng: number} | null >(null)
+  const [selectedDest, setSelectedDest] = useState<{ label: String; lat: number; lng: number } | null>(null)
 
   //Show suggestion bar
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -689,13 +689,13 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const [durations, setDurations] = useState<{ driving: number | null; walking: number | null}>({
+  const [durations, setDurations] = useState<{ driving: number | null; walking: number | null }>({
     driving: null,
     walking: null,
   })
 
   const accomLat = accommodation.latitude
-  const accomLng = accommodation.longitude 
+  const accomLng = accommodation.longitude
 
   const hasValidCoordinates =
     !Number.isNaN(accomLat) && !Number.isNaN(accomLng)
@@ -735,17 +735,17 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
     }, 350)
   }
 
-  const selectSuggestion = (s: {label: string; lat: number; lng: number}) => {
-    setSelectedDest(s)  
-    setSearchQuery(s.label) 
-    setSuggestions([]) 
-    setShowSuggestions(false) 
+  const selectSuggestion = (s: { label: string; lat: number; lng: number }) => {
+    setSelectedDest(s)
+    setSearchQuery(s.label)
+    setSuggestions([])
+    setShowSuggestions(false)
   }
 
   //Data for modes:
   const fetchModes = async (destLang: number, destLat: number) => {
     setLoadingRoute(true)
-    setPreviewed(true) 
+    setPreviewed(true)
 
     try {
       const origin = `${accomLng},${accomLat}`
@@ -753,7 +753,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
       const [driveRes, walkRes] = await Promise.all([
         fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),
-        fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),        
+        fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${origin};${destination}?geometries=geojson&access_token=${MAPBOX_TOKEN}`),
       ])
 
       const [driveData, walkData] = await Promise.all([driveRes.json(), walkRes.json()])
@@ -777,7 +777,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
           }],
         })
       }
-    } catch(err) {
+    } catch (err) {
       console.error('Route fetch failed:', err)
     } finally {
       setLoadingRoute(false)
@@ -790,7 +790,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
     setLoadingRoute(true)
 
-    try{
+    try {
       const origin = `${accomLng},${accomLat}`
       const destination = `${selectedDest.lng},${selectedDest.lat}`
 
@@ -805,7 +805,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
           features: [{ type: 'Feature', geometry: data.routes[0].geometry, properties: {} }],
         })
       }
-    } catch (err) {console.error(err)}
+    } catch (err) { console.error(err) }
     finally { setLoadingRoute(false) }
   }
 
@@ -818,90 +818,90 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   }
 
   return (
-      <div
-        className="mt-4"
-        style={{
-          height: 460,
-          position: 'relative',
-          borderRadius: 16,
-          overflow: 'hidden'
+    <div
+      className="mt-4"
+      style={{
+        height: 460,
+        position: 'relative',
+        borderRadius: 16,
+        overflow: 'hidden'
+      }}
+    >
+      <Map
+        initialViewState={{
+          longitude: accomLng,
+          latitude: accomLat,
+          zoom: 15,
+          pitch: 40,
+          bearing: 0
         }}
+        style={{ width: '100%', height: '100%' }}
+        mapStyle="mapbox://styles/mapbox/standard"
+        mapboxAccessToken={MAPBOX_TOKEN}
       >
-        <Map
-          initialViewState={{
-            longitude: accomLng,
-            latitude: accomLat,
-            zoom: 15,
-            pitch: 40,
-            bearing: 0
-          }}
-          style={{ width: '100%', height: '100%' }}
-          mapStyle="mapbox://styles/mapbox/standard"
-          mapboxAccessToken={MAPBOX_TOKEN}
-        >
-          <NavigationControl position="top-right" />
+        <NavigationControl position="top-right" />
 
-          {/* Route line */}
+        {/* Route line */}
 
-          {routeGeoJSON && (
-            <Source id="route" type="geojson" data={routeGeoJSON}>
-              <Layer {...routeLayerStyle(travelMode)}/>
-            </Source>
-          )}
+        {routeGeoJSON && (
+          <Source id="route" type="geojson" data={routeGeoJSON}>
+            <Layer {...routeLayerStyle(travelMode)} />
+          </Source>
+        )}
 
-          {/*Accomdation pin */}
-          <Marker longitude={accomLng} latitude={accomLat} anchor="bottom">
+        {/*Accomdation pin */}
+        <Marker longitude={accomLng} latitude={accomLat} anchor="bottom">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div
+              style={{
+                background: CLR.mid,
+                borderRadius: '50%',
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 18,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+              }}
+            >
+              🏠
+            </div>
+            <div
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: `8px solid ${CLR.mid}`,
+              }}
+            />
+          </div>
+        </Marker>
+
+        {/* Destination*/}
+        {previewed && selectedDest && (
+          <Marker longitude={selectedDest.lng} latitude={selectedDest.lat} anchor="bottom">
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div
-                style={{
-                  background: CLR.mid,
-                  borderRadius: '50%',
-                  width: 36,
-                  height: 36,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 18,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-                }}
-              >
-                🏠
-              </div>
-              <div
-                style={{
-                  width: 0,
-                  height: 0,
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderTop: `8px solid ${CLR.mid}`,
-                }}
-              />
+              <div style={{
+                background: CLR.mid, borderRadius: '50%', width: 36, height: 36,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '2px solid white', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+              }}>📍</div>
+              <div style={{
+                width: 0, height: 0,
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: `8px solid ${CLR.mid}`,
+              }} />
             </div>
           </Marker>
-
-          {/* Destination*/}
-          {previewed && selectedDest && (
-            <Marker longitude={selectedDest.lng} latitude={selectedDest.lat} anchor="bottom">
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{
-                  background: CLR.mid, borderRadius: '50%', width: 36, height: 36,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '2px solid white', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-                }}>📍</div>
-                <div style={{
-                  width: 0, height: 0,
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderTop: `8px solid ${CLR.mid}`,
-                }} />
-              </div>
-            </Marker>
-          )}
-        </Map>
+        )}
+      </Map>
 
       {!cardCollapsed && (
         <div style={{
-          position: 'absolute', top: 35, left: 16, 
+          position: 'absolute', top: 35, left: 16,
           background: 'white', borderRadius: 20,
           padding: '16px 18px 18px',
           boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
@@ -910,7 +910,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
         }}>
 
           <div style={{
-            position: 'absolute', top: -18, left: 16, 
+            position: 'absolute', top: -18, left: 16,
             background: CLR.dark, borderRadius: '50%',
             width: 40, height: 40,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -948,9 +948,9 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
               <input
                 type="text"
                 placeholder="Search any destination..."
-                value={searchQuery}    
-                onChange={e => handleSearch(e.target.value)} 
-                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)} 
+                value={searchQuery}
+                onChange={e => handleSearch(e.target.value)}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
 
                 style={{
@@ -967,20 +967,20 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
                   position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                   width: 14, height: 14,
                   border: `2px solid ${CLR.mid}`,
-                  borderTopColor: 'transparent', 
+                  borderTopColor: 'transparent',
                   borderRadius: '50%',
-                  animation: 'spin 0.7s linear infinite', 
+                  animation: 'spin 0.7s linear infinite',
                 }} />
               )}
 
               {/*Suggestion dropdown*/}
               {showSuggestions && suggestions.length > 0 && (
                 <div style={{
-                  position: 'absolute', top: '110%', left: 0, right: 0, 
+                  position: 'absolute', top: '110%', left: 0, right: 0,
                   background: 'white', borderRadius: 12,
                   boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-                  zIndex: 30, 
-                  overflow: 'hidden', 
+                  zIndex: 30,
+                  overflow: 'hidden',
                 }}>
                   {suggestions.map((s, i) => (
                     <div
@@ -1016,13 +1016,13 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
                 <button onClick={() => switchMode('driving')} style={{
                   background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                   fontSize: 13,
-                  fontWeight: travelMode === 'driving' ? 700 : 400, 
-                  color: travelMode === 'driving' ? CLR.mid : '#9CA3AF', 
+                  fontWeight: travelMode === 'driving' ? 700 : 400,
+                  color: travelMode === 'driving' ? CLR.mid : '#9CA3AF',
                 }}>
                   {durations.driving !== null ? `${durations.driving} min` : '—'}
                 </button>
 
-                <span style={{ flex: 1 }} /> 
+                <span style={{ flex: 1 }} />
 
                 <button onClick={() => switchMode('walking')} style={{
                   background: 'none', border: 'none', padding: 0, cursor: 'pointer',
@@ -1059,7 +1059,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
                     transition: 'width 0.3s ease',
                   }} />
                 </div>
-              </div>              
+              </div>
             </div>
           )}
 
@@ -1073,7 +1073,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
                 background: !selectedDest
                   ? '#E5E7EB'
                   : loadingRoute
-                    ? CLR.mid + 'aa' 
+                    ? CLR.mid + 'aa'
                     : `linear-gradient(135deg, ${CLR.dark}, ${CLR.mid})`,
                 color: !selectedDest ? '#9CA3AF' : 'white',
                 border: 'none', borderRadius: 999,
@@ -1105,8 +1105,8 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
 
 
-      </div>
-    
+    </div>
+
   )
 }
 
@@ -1232,20 +1232,20 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
 function RequirementsTab() {
   const [downloaded, setDownloaded] = useState<Set<number>>(new Set());
 
-  return(
+  return (
     <div className="space y-4 font-sans mt-4">
       <div>
         <p className="text-[15px] font-bold text-[#6B0F2B] mt-3">
           Please download and fill-up the necessary files before filing for an application.
         </p>
         <p className="text-[12px] text-gray-500 mt-1 flex items-start gap-1">
-            <span className="mt-0.5">ⓘ</span>
-            <span>
-              To help manage your accommodation, assigned dormitory personnel may also be able to view your login
-              information. Files and credentials are only used for housing and administrative support. See our data privacy
-              clause.
-              {/*<button className="font-semibold underline text-[#6B0F2B] mt-1">here</button>.*/}
-            </span>
+          <span className="mt-0.5">ⓘ</span>
+          <span>
+            To help manage your accommodation, assigned dormitory personnel may also be able to view your login
+            information. Files and credentials are only used for housing and administrative support. See our data privacy
+            clause.
+            {/*<button className="font-semibold underline text-[#6B0F2B] mt-1">here</button>.*/}
+          </span>
         </p>
       </div>
       {/*https://tailwindcss.com/docs/table-layout*/}
@@ -1264,7 +1264,7 @@ function RequirementsTab() {
               const isDownloaded = downloaded.has(req.id);
               const hasAttachment = req.size !== "—";
 
-              return(
+              return (
                 <tr key={req.id} className="bg-white hover:bg-[#FDF8FA] transition-colors">
                   <td className="px-4 py-3 text-[11px] font-medium text-[#3D0718]">{req.name}</td>
                   <td className="px-4 py-3 text-[11px] text-gray-500">{req.size}</td>
@@ -1281,7 +1281,7 @@ function RequirementsTab() {
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
-                            Downloaded 
+                            Downloaded
                           </>
                         ) : (
                           <>
@@ -1381,7 +1381,7 @@ export default function RoomView() {
     return <p>Accommodation not found.</p>;
   }
 
-  
+
   // const displayPhotos = [
   //     "https://scontent.fmnl17-2.fna.fbcdn.net/v/t39.30808-6/470222608_983930173757933_998118782445933365_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=2a1932&_nc_ohc=ZFZK7m7SOa0Q7kNvwGOPvqH&_nc_oc=AdqDd-9KAVigCK_3EWtYSiKPI3LQcUVYJnrsKNS8FkAFYu_F7R1kEigwCaFZR-vRmV0&_nc_zt=23&_nc_ht=scontent.fmnl17-2.fna&_nc_gid=r4rDrZ-9ks0O0mnDt0AqYw&_nc_ss=7a3a8&oh=00_Af2gqklSV4YC1rlAVLymw3a5pkNBSRrBaSnbwKxtYMPVLQ&oe=69E8489C",
   //     "https://scontent.fmnl17-1.fna.fbcdn.net/v/t1.6435-9/66008036_487367045400857_1488351947843960832_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=f798df&_nc_ohc=ElHr-WrKZYcQ7kNvwFwvO8u&_nc_oc=Adpjp6BtjtcqZipKB0kvZwUKfdfmdA8FthjEjzcTTLJr_QrG8CJ_ziH_ueBWDhIj5m0&_nc_zt=23&_nc_ht=scontent.fmnl17-1.fna&_nc_gid=ohCc0hgO7ItkIo1D4h39dg&_nc_ss=7a3a8&oh=00_Af3SRsAoAaRLisofJivkX9TI-NV5f32-PPjLFNVUdbIgQw&oe=6A09DE9E",
@@ -1394,7 +1394,7 @@ export default function RoomView() {
       ? accommodation.imageUrls
       : ["/default-accommodation.png"];
 
-  
+
   const today = new Date().toISOString().split("T")[0];
   const manager = accommodation.manager;
   const managerUser = manager?.user;
@@ -1417,7 +1417,7 @@ export default function RoomView() {
     tags: r.tags ?? [],
     size: r.roomSize ?? r.room_size,
     reservationFeeType: r.reservationFeeType ?? r.reservation_fee_type,
-  reservationFeeValue: r.reservationFeeValue ?? r.reservation_fee_value,
+    reservationFeeValue: r.reservationFeeValue ?? r.reservation_fee_value,
   }));
 
   const baseMatchingRooms = normalizedRooms.filter((room) => {
@@ -1440,13 +1440,13 @@ export default function RoomView() {
   const selectedRoom =
     matchingRooms.length > 0
       ? matchingRooms.reduce((cheapest, room) =>
-          Number(room.rent) < Number(cheapest.rent) ? room : cheapest
-        )
+        Number(room.rent) < Number(cheapest.rent) ? room : cheapest
+      )
       : baseMatchingRooms.length > 0
-      ? baseMatchingRooms.reduce((cheapest, room) =>
+        ? baseMatchingRooms.reduce((cheapest, room) =>
           Number(room.rent) < Number(cheapest.rent) ? room : cheapest
         )
-      : null;
+        : null;
 
   const availablePreferences = [
     ...new Set(
@@ -1491,11 +1491,11 @@ export default function RoomView() {
   //       )
   //     : null;
 
-  const accommodationTags  =
+  const accommodationTags =
     accommodation.tags
       ?.map((tag: any) => tag.tagDetail ?? tag.tag_detail)
       .filter(Boolean) ?? [];
-  
+
   const selectedRoomTags = selectedRoom?.tags ?? [];
 
   const roomInclusions = selectedRoomTags
@@ -1509,18 +1509,18 @@ export default function RoomView() {
   const avgRating =
     reviews.length > 0
       ? reviews.reduce((sum, review) => sum + Number(review.rating ?? 0), 0) /
-        reviews.length
+      reviews.length
       : 0;
 
-  const tabs: {key: TabKey; label:string}[] = [
-    { key: "Features", label: "Features"},
+  const tabs: { key: TabKey; label: string }[] = [
+    { key: "Features", label: "Features" },
     { key: "Location", label: "Location" },
-    { key: "Reviews", label: "Reviews"},
-    { key: "Requirements", label: "Requirements"},
+    { key: "Reviews", label: "Reviews" },
+    { key: "Requirements", label: "Requirements" },
   ];
 
   const hasFilters =
-      hasSelectedRoomFilters || selectedPreferences.length > 0;
+    hasSelectedRoomFilters || selectedPreferences.length > 0;
 
   // const displayPrice = hasFilters
   //     ? cheapestMatchingRoom?.rent
@@ -1539,11 +1539,11 @@ export default function RoomView() {
       : reservationFeeType === "fixed"
         ? reservationFeeValue
         : 0;
-    
+
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
-      <Sidebar role="student"/>
+      <Sidebar role="student" />
 
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
 
@@ -1562,15 +1562,24 @@ export default function RoomView() {
           {/* Main image — col 1 */}
           <div className="relative overflow-hidden rounded-2xl" style={{ height: 300 }}>
             <img src={displayPhotos[current]} alt="Main room" className="w-full h-full object-cover" />
-            <button onClick={() => setCurrent((c) => (c - 1 + displayPhotos.length) % displayPhotos.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-md"
-              style={{ background: CLR.mid }}>
-              <MdChevronLeft size={22} color="#fff" />
+            <button
+              onClick={() => setCurrent((c) => (c - 1 + displayPhotos.length) % displayPhotos.length)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-[999] transition-all hover:scale-110 active:scale-95"
+              style={{ background: CLR.mid }}
+            >
+              <span className="text-white text-xl font-bold pb-1 pr-0.5" style={{ lineHeight: 0 }}>
+                {"<"}
+              </span>
             </button>
-            <button onClick={() => setCurrent((c) => (c + 1) % displayPhotos.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-md"
-              style={{ background: CLR.mid }}>
-              <MdChevronRight size={22} color="#fff" />
+
+            <button
+              onClick={() => setCurrent((c) => (c + 1) % displayPhotos.length)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-[999] transition-all hover:scale-110 active:scale-95"
+              style={{ background: CLR.mid }}
+            >
+              <span className="text-white text-xl font-bold pb-1 pl-0.5" style={{ lineHeight: 0 }}>
+                {">"}
+              </span>
             </button>
           </div>
 
@@ -1598,7 +1607,7 @@ export default function RoomView() {
           </div>
 
           {/* Conent row */}
-          
+
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mt-3">
             <div className="flex items-center gap-0 flex-wrap mb-2">
               <StarRating rating={avgRating} size="md" />
@@ -1616,7 +1625,7 @@ export default function RoomView() {
                   onClick={() => setIsShareModalOpen(true)}
                   className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
                 >
-                <IconShare />
+                  <IconShare />
                   <span className="hidden md:inline text-sm font-semibold">Share</span>
                 </button>
                 <button
@@ -1628,67 +1637,66 @@ export default function RoomView() {
                 </button>
               </div>
             </div>
-          <h1 className="text-[30px] font-bold text-gray-900 mb-1">{accommodation.accommodationName}</h1>
-          <p className="text-[15px] font-semibold text-[#6B0F2B]" >{accommodation.accommodationLocation}</p>
-          <p className="text-[18px] text-[#9A7080]">
-            {selectedRoom?.size != null ? Number(selectedRoom.size).toFixed(1) : "—"}{" "} m² · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-          </p>          
-          {/* Tabs*/ }
-          <div className="flex overflow-x-auto sm:justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-none">
-            {tabs.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setselectedTab(t.key)}
-                className={`flex-shrink-0 sm:flex-1 flex flex-col items-center px-4 py-2.5 text-[15px] sm:text-[18px] font-semibold transition-colors whitespace-nowrap ${
-                  selectedTab === t.key ? "text-[#6B0F2B]" : "text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                <span className="relative">
-                  {t.label}
-                  {selectedTab === t.key && (
-                    <span
-                      className="absolute -bottom-3 left-0 w-full h-[5px] rounded-full"
-                      style={{ background: "linear-gradient(90deg, #9A7080, #6B0F2B)" }}
-                    />
-                  )}
-                </span>
-              </button>
-            ))}
-          </div>
+            <h1 className="text-[30px] font-bold text-gray-900 mb-1">{accommodation.accommodationName}</h1>
+            <p className="text-[15px] font-semibold text-[#6B0F2B]" >{accommodation.accommodationLocation}</p>
+            <p className="text-[18px] text-[#9A7080]">
+              {selectedRoom?.size != null ? Number(selectedRoom.size).toFixed(1) : "—"}{" "} m² · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+            </p>
+            {/* Tabs*/}
+            <div className="flex overflow-x-auto sm:justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-none">
+              {tabs.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setselectedTab(t.key)}
+                  className={`flex-shrink-0 sm:flex-1 flex flex-col items-center px-4 py-2.5 text-[15px] sm:text-[18px] font-semibold transition-colors whitespace-nowrap ${selectedTab === t.key ? "text-[#6B0F2B]" : "text-gray-400 hover:text-gray-600"
+                    }`}
+                >
+                  <span className="relative">
+                    {t.label}
+                    {selectedTab === t.key && (
+                      <span
+                        className="absolute -bottom-3 left-0 w-full h-[5px] rounded-full"
+                        style={{ background: "linear-gradient(90deg, #9A7080, #6B0F2B)" }}
+                      />
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-        {selectedTab === "Features" && (
-          <FeaturesTab
-            accommodation={accommodation}
-            rooms={normalizedRooms}
-            accommodationTags={accommodationTags}
-            roomInclusions={roomInclusions}
-            roomPreferences={availablePreferences}
-            commonPreferences={commonPreferences}
-            optionalPreferences={optionalPreferences}
-            selectedPreferences={selectedPreferences}
-            setSelectedPreferences={setSelectedPreferences}
-            selectedTenantRestriction={selectedTenantRestriction}
-            setselectedTenantRestriction={(v) => {
-              setselectedTenantRestriction(v);
-              setHasSelectedRoomFilters(true);
-            }}
-            selectedStayType={selectedStayType}
-            setSelectedStayType={(v) => {
-              setSelectedStayType(v);
-              setHasSelectedRoomFilters(true);
-            }}
-            selectedArrangement={selectedArrangement}
-            setSelectedArrangement={(v) => {
-              setSelectedArrangement(v);
-              setHasSelectedRoomFilters(true);
-            }}
-          />
-        )}
-        {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={avgRating} />}
-        {selectedTab === "Requirements" && <RequirementsTab />}
-        {selectedTab === 'Location' && <LocationTab accommodation={accommodation} />}
- 
-        </div>
+            {selectedTab === "Features" && (
+              <FeaturesTab
+                accommodation={accommodation}
+                rooms={normalizedRooms}
+                accommodationTags={accommodationTags}
+                roomInclusions={roomInclusions}
+                roomPreferences={availablePreferences}
+                commonPreferences={commonPreferences}
+                optionalPreferences={optionalPreferences}
+                selectedPreferences={selectedPreferences}
+                setSelectedPreferences={setSelectedPreferences}
+                selectedTenantRestriction={selectedTenantRestriction}
+                setselectedTenantRestriction={(v) => {
+                  setselectedTenantRestriction(v);
+                  setHasSelectedRoomFilters(true);
+                }}
+                selectedStayType={selectedStayType}
+                setSelectedStayType={(v) => {
+                  setSelectedStayType(v);
+                  setHasSelectedRoomFilters(true);
+                }}
+                selectedArrangement={selectedArrangement}
+                setSelectedArrangement={(v) => {
+                  setSelectedArrangement(v);
+                  setHasSelectedRoomFilters(true);
+                }}
+              />
+            )}
+            {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={avgRating} />}
+            {selectedTab === "Requirements" && <RequirementsTab />}
+            {selectedTab === 'Location' && <LocationTab accommodation={accommodation} />}
+
+          </div>
 
           <div className="mt-3 font-sans">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -1703,7 +1711,7 @@ export default function RoomView() {
                   </span>
                   {!isTransient ? (
                     <span className="text-[21px] font-normal text-[#9A7080]"> / month</span>
-                  ) : ( <span className="text-[21px] font-normal text-[#9A7080]"> / day </span> )}
+                  ) : (<span className="text-[21px] font-normal text-[#9A7080]"> / day </span>)}
                 </div>
                 <div className="w-full h-[6px] bg-gray-200 mt-2"></div>
                 {/* <p className="text-[15px] font-normal text-[#000000] mt-2">2 months advance, 1 month deposit</p> */}
@@ -1725,7 +1733,7 @@ export default function RoomView() {
                 <div className="flex gap-4 mb-4 mt-2">
                   {roomInclusions.length > 0 ? (
                     roomInclusions.map((inc: string) => (
-                      <span key={inc} className="flex items-center gap-1.5 text-sm font-medium text-[white] bg-[#6B0F2B] px-3 py-1 rounded-full"> 
+                      <span key={inc} className="flex items-center gap-1.5 text-sm font-medium text-[white] bg-[#6B0F2B] px-3 py-1 rounded-full">
                         {inc}
                       </span>
                     ))
@@ -1765,39 +1773,39 @@ export default function RoomView() {
                   </div>
                 )}
 
-              {manager && (
-                <div className="border border-[#F0E8EC] rounded-2xl p-4 flex flex-col items-center gap-1.5 mb-4">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mb-1"
-                    style={{ background: managerUser?.pfpUrl ? `url(${managerUser.pfpUrl}) center/cover` : CLR.mid }}>
-                    {!managerUser?.pfpUrl && `${managerUser?.fname[0]}${managerUser?.lname[0]}`}
+                {manager && (
+                  <div className="border border-[#F0E8EC] rounded-2xl p-4 flex flex-col items-center gap-1.5 mb-4">
+                    <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mb-1"
+                      style={{ background: managerUser?.pfpUrl ? `url(${managerUser.pfpUrl}) center/cover` : CLR.mid }}>
+                      {!managerUser?.pfpUrl && `${managerUser?.fname[0]}${managerUser?.lname[0]}`}
+                    </div>
+                    <div className="w-full h-[2px] bg-[#F0E8EC] mt-2 mx-4"></div>
+
+                    <p className="font-bold text-[#000000] text-[16px] flex items-center gap-1.5">
+                      {managerUser?.fname} {managerUser?.lname} <IconVerified />
+                    </p>
+
+                    <p className="text-[11px] font-semibold text-[#848484] mb-1">Dorm Manager</p>
+                    <p className="flex items-center gap-1.5 text-xs text-[#848484]">
+                      <IconPhone /> (+63){managerUser?.phone?.slice(1) ?? "XXX XXX XXXX"}
+                    </p>
+                    <p className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <IconMail /> {managerUser?.email}
+                    </p>
+                    <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
+                      <button
+                        onClick={() => { setReportType("manager"); setIsReportModalOpen(true) }}
+                        className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
+                      >
+                        <IconReport />
+                        <span className="hidden md:inline text-sm font-semibold">Report</span>
+                      </button>
+
+                    </div>
                   </div>
-                  <div className="w-full h-[2px] bg-[#F0E8EC] mt-2 mx-4"></div>
+                )}
 
-                  <p className="font-bold text-[#000000] text-[16px] flex items-center gap-1.5">
-                    {managerUser?.fname} {managerUser?.lname} <IconVerified />
-                  </p>
-
-                  <p className="text-[11px] font-semibold text-[#848484] mb-1">Dorm Manager</p>
-                  <p className="flex items-center gap-1.5 text-xs text-[#848484]">
-                    <IconPhone /> (+63){managerUser?.phone?.slice(1) ?? "XXX XXX XXXX"}
-                  </p>
-                  <p className="flex items-center gap-1.5 text-xs text-gray-500">
-                    <IconMail /> {managerUser?.email}
-                  </p>
-                  <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
-                    <button
-                      onClick={() => { setReportType("manager"); setIsReportModalOpen(true) }}
-                      className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
-                    >
-                      <IconReport />
-                      <span className="hidden md:inline text-sm font-semibold">Report</span>
-                    </button>
-
-                  </div>
-                </div>
-              )}
-
-               {/* Apply */}
+                {/* Apply */}
                 <button
                   onClick={() => setIsModalOpen(true)}
                   className="w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors"
@@ -1815,6 +1823,12 @@ export default function RoomView() {
                   rooms={normalizedRooms}
                   initialStart={selectedStart}
                   initialEnd={selectedEnd}
+                  displayStart={selectedStart
+                    ? `${MONTHS_SHORT[selectedStart.month]} ${selectedStart.day}, ${selectedStart.year}`
+                    : "—"}
+                  displayEnd={selectedEnd
+                    ? `${MONTHS_SHORT[selectedEnd.month]} ${selectedEnd.day}, ${selectedEnd.year}`
+                    : "—"}
                   accommodationTags={accommodationTags}
                   selectedPreferences={selectedPreferences}
                   setSelectedPreferences={setSelectedPreferences}
@@ -1829,26 +1843,26 @@ export default function RoomView() {
                   onClose={() => setIsShareModalOpen(false)}
                   accommodationName={accommodation.accommodationName}
                 />
-{/* 
+
                 <ReportAccommodationModal
                   open={isReportModalOpen}
                   onClose={() => setIsReportModalOpen(false)}
                   reportType={reportType}
                   accommodationName={accommodation.accommodationName}
                   managerName={managerUser ? `${managerUser.fname} ${managerUser.lname}` : undefined}
-                /> */}
+                />
 
               </div>
 
             </div>
           </div>
-      </div>
+        </div>
 
 
       </main>
-        {showAllPhotos && (
-          <AllPhotosModal photos={displayPhotos} onClose={() => setShowAllPhotosModal(false)} />
-        )}
+      {showAllPhotos && (
+        <AllPhotosModal photos={displayPhotos} onClose={() => setShowAllPhotosModal(false)} />
+      )}
     </div>
   );
 }
