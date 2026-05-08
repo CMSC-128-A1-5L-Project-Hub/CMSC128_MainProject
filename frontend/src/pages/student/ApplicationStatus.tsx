@@ -9,6 +9,7 @@ import CustomHeader from '../../components/CustomHeader';
 import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
 import SearchBar from '../../components/SearchBar';
 import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
+import { api } from "../../api/axios";
 
 // define the status type locally
 export type ApplicationStatus = "pending" | "under_review" | "approved" | "rejected" | "waitlisted" | "cancelled" | "confirmed";
@@ -24,49 +25,47 @@ interface ApplicationStatusPageProps {
     userName?: string;
 }
 
+
 // Fetch from the API
 const fetchApplications = async (): Promise<Application[]> => {
     try {
-        const res = await fetch("/api/applications/my-applications");
+        const res = await api.get("/applications/my-applications");
         
-        // if the server explicitly says "Not Found" (404), return an empty array
-        if (res.status === 404) {
-            return [];
-        }
-
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        
-        // check if the response is actually JSON before parsing
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-            // if it's an HTML error page from the server, treat as empty or handle accordingly
-            console.error("Received non-JSON response");
-            return [];
-        }
-
-        const body = await res.json();
+        const body = res.data;
         return body.data ?? body;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Fetch applications error:", error);
-        throw error; // let react query catch this to trigger isError
+        // If the server explicitly says "Not Found" (404), return an empty array
+        if (error.response && error.response.status === 404) {
+            return [];
+        }
+        
+        throw error;
     }
 };
 
 // Main component
 export default function ApplicationStatusPage({ userName = "Student" }: ApplicationStatusPageProps) {
-    const heroContent: HeroContent = {
-        name: userName,
-        greeting: "Good Day",
-        title: "Check your application status",
-        subtitle: "We make it easy for you to track the accommodations you've applied for",
-    };
-
+    
     const [sortBy, setSortBy] = useState("Date applied (Asc.)");
     const [searchQuery, setSearchQuery] = useState("");
     const [viewOpen, setViewOpen] = useState(false);
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+
+    const { data: currentUser } = useQuery({
+        queryKey: ["current-user"],
+        queryFn: async () => {
+            const res = await api.get("/me");
+            return res.data;
+        },
+    });
+
+    const heroContent: HeroContent = {
+        name: currentUser?.fname || userName,
+        greeting: "Good Day",
+        title: "Check your application status",
+        subtitle: "We make it easy for you to track the accommodations you've applied for",
+    };
 
     // Data fetching - using the real API
     const { data: applications = [], isLoading, isError } = useQuery({
@@ -103,12 +102,26 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
         cancelled: applications.filter(a => a.applicationStatus === 'cancelled').length,
     };
 
+    // const stats = [
+    //     { label: 'approved', count: counts.approved, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
+    //     { label: 'pending', count: counts.pending, from: '#C9973A', to: '#E8C37A', bg: '#FDF6EC', text: '#C9973A' },
+    //     { label: 'under review', count: counts.under_review, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
+    //     { label: 'rejected', count: counts.rejected, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
+    //     { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#e4f0f5', text: '#3A6AB7' },
+    // ];
+
     const stats = [
         { label: 'approved', count: counts.approved, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
-        { label: 'pending', count: counts.pending, from: '#C9973A', to: '#E8C37A', bg: '#FDF6EC', text: '#C9973A' },
-        { label: 'under review', count: counts.under_review, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
+
+        { label: 'pending', count: counts.pending, from: '#C9973A', to: '#E8C37A', bg: '#FEF8EE', text: '#C9973A' },
+
+        { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#F4F0FA', text: '#3A6AB7' },
+
+        { label: 'under review', count: counts.under_review, from: '#6B3AB7', to: '#9B6AE7', bg: '#F0F7F3', text: '#6B3AB7' },
+
+        { label: 'cancelled', count: counts.cancelled, from: '#AA2661', to: '#FDCAE0', bg: '#FAF0F7', text: '#AE2F67' },
+
         { label: 'rejected', count: counts.rejected, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
-        { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#e4f0f5', text: '#3A6AB7' },
     ];
 
     const trueTotal = applications.length;
@@ -133,7 +146,7 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
             <Sidebar role='student' />
             <div className = "flex flex-col overflow-hidden w-full">
                 <CustomHeader
-                    title="Application Dashboard"></CustomHeader>
+                    title="Applications"></CustomHeader>
                 <div className="flex-1 flex flex-col overflow-hidden gap-4 lg:gap-6 p-4 lg:p-6">
                     <div>
                         <HeroBanner
@@ -146,9 +159,9 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                     </div>
                     
 
-                    <StatsBanner stats={stats} total={trueTotal} />
+                    <StatsBanner stats={stats} total={trueTotal} cols={6}/>
 
-                    <div className="bg-white rounded-xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
+                    <div className="bg-white rounded-2xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
                         <div className='flex justify-between pb-2 lg:pb-4'>
                             <div>
                                 <h1 className='font-bold -mt-1'>Application History</h1>
@@ -185,21 +198,25 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                                     selectedClass="text-[12px] lg:text-[13px]"
                                     onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
                                 />
-                                <div className="flex items-center gap-2 lg:gap-3">
-                                    <SearchBar
-                                        value={searchQuery}
-                                        onChange={setSearchQuery}
-                                        onPageReset={() => setCurrentPage(1)}
-                                    />
-                                </div>
+                                
+                                <SearchBar
+                                    value={searchQuery}
+                                    onChange={setSearchQuery}
+                                    onPageReset={() => setCurrentPage(1)}
+                                />
+                                
                             </div>
                         </div>
 
                         <div className="overflow-auto flex-1 min-h-0 mt-1 rounded-t-lg">
                             {isLoading ? (
-                                <div className="flex justify-center items-center h-full">
-                                    <p className="text-gray-400 font-medium text-center animate-pulse">
-                                        Loading your applications...
+                                <div className="py-12 flex flex-col items-center justify-center text-center">
+                                    <div
+                                        className="animate-spin rounded-full h-8 w-8 border-b-2"
+                                        style={{ borderColor: "#9E2040" }}
+                                        />
+                                    <p className="text-sm text-[#9A7080] mt-2">
+                                    Fetching your applications...
                                     </p>
                                 </div>
                             ) : isError ? (
@@ -210,8 +227,8 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                                 </div>
                             ) : applications.length === 0 ? (
                                 <div className="flex flex-col justify-center items-center h-full text-center">
-                                    <p className="text-gray-500 font-medium text-lg">No applications found</p>
-                                    <p className="text-gray-400 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
+                                    <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+                                    <p className="text-[#9A7080]/60 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
                                 </div>
                             ) : (
                                 <ApplicationTable
@@ -225,28 +242,41 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                                 />
                             )}
                         </div>
-                        <hr className=" border-[#6B0F2B]/5 border-t-2" />
 
-                        <div className='flex flex-nowrap justify-between'>
-                            <div className='flex justify-start flex-col gap-2'>
-                                <div className='flex flex-col items-start justify-start'>
-                                    <span className='text-[11px] lg:text-[13px] text-[#9A7080] p-0 mt-4 m-0'>
-                                        Showing {totalApps === 0 ? 0 : (currentPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of {totalApps}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-between items-center m-2 mt-4 lg:mt-6 text-sm text-[#9A7080]">
-                                <div className={applications.length > 0 ? 'flex gap-2 text-[12px] lg:text-[15px]' : 'hidden'}>
-                                    <Pagination
-                                        totalPages={totalPages}
-                                        currentPage={currentPage}
-                                        onPageChange={setCurrentPage}
-                                        buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8'
-                                    />
+                        <div className={`${applications.length === 0 ? "hidden" : "flex flex-col"}`}>
+                            <hr className="border-[#6B0F2B]/5 border-t-2" />
+                            <div className="flex items-center justify-between mt-3">
+                                <p className="text-xs text-[#9A7080]">
+                                    {totalApps === 0
+                                        ? "No results"
+                                        : `Showing ${(currentPage - 1) * ROWS_PER_PAGE + 1}–${Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of ${totalApps}`}
+                                </p>
+                                <div className="flex items-center justify-center gap-1 mt-3 mb-2">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            onClick={() => setCurrentPage(page)}
+                                            className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
+                                                ${currentPage === page
+                                                    ? "text-white"
+                                                    : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"}`}
+                                            style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                    {currentPage < totalPages && (
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                            className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                                        >
+                                            {">"}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
+                        
                     </div>
 
                     {/* Modal */}

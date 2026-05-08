@@ -274,8 +274,8 @@ export default class NotificationService {
         <p>${landlordName} has invited you to become the manager of
           <strong>${accommodationName}</strong> on UBLE Housing.</p>
         <p>To accept this invitation, please register using this email address:</p>
-        <p><a href='http://localhost:5173/register'>Click here to register</a></p>
-        <p>Once your account is set up, you will automatically be assigned
+        <p><a href='http://localhost:5173/auth/signin'>Click here to sign in</a></p>
+        <p>Once you sign in with this email, you will automatically be assigned
           to ${accommodationName}.</p>
         <br/>
         <p>UBLE Housing</p>

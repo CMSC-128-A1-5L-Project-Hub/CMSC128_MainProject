@@ -154,88 +154,42 @@ const heroContent: HeroContent = {
   newNotificationsToday: 3,
 };
 
-const dashboardMapAccommodations: AccommodationPin[] = [
-  {
-    accommodationId: 1,
-    accommodationName: "Kamia Residence",
-    accommodationLocation: "UPLB Campus, Los Baños, Laguna",
-    accommodationType: "on-campus",
-    accommodationCapacity: 50,
-    tenantRestriction: "female-only",
-    latitude: 14.1672,
-    longitude: 121.2430,
-    minRent: 3200,
-    maxRent: 3200,
-    price: 3200,    
-    minPrice: 3200,  
-    maxPrice: 3200,  
-    walkingDistance: 3,
-    drivingDistance: 2,
-    bikingDistance: 2,
-    stayType: "transient",
-    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-  {
-    accommodationId: 2,
-    accommodationName: "Narra Residence",
-    accommodationLocation: "Off-campus, Los Baños, Laguna",
-    accommodationType: "off-campus",
-    accommodationCapacity: 30,
-    tenantRestriction: "coed",
-    latitude: 14.1690,
-    longitude: 121.2455,
-    minRent: 8500,
-    maxRent: 8500,
-    price: 3200,    
-    minPrice: 3200,  
-    maxPrice: 3200,  
-    walkingDistance: 8,
-    drivingDistance: 4,
-    bikingDistance: 5,
-    stayType: "non_transient",
-    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-  {
-    accommodationId: 3,
-    accommodationName: "Molave Dorm",
-    accommodationLocation: "On-campus, Los Baños, Laguna",
-    accommodationType: "on-campus",
-    accommodationCapacity: 40,
-    tenantRestriction: "male-only",
-    latitude: 14.1658,
-    longitude: 121.2418,
-    minRent: 5000,
-    maxRent: 5000,
-    price: 3200,     
-    minPrice: 3200,  
-    maxPrice: 3200,  
-    walkingDistance: 5,
-    drivingDistance: 3,
-    bikingDistance: 3,
-    stayType: "non_transient",
-    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-  {
-    accommodationId: 4,
-    accommodationName: "Acacia Suites",
-    accommodationLocation: "Near Gate 1, Los Baños, Laguna",
-    accommodationType: "off-campus",
-    accommodationCapacity: 20,
-    tenantRestriction: "coed",
-    latitude: 14.1645,
-    longitude: 121.2400,
-    minRent: 4200,
-    maxRent: 4200,
-    price: 3200,     
-    minPrice: 3200,   
-    maxPrice: 3200,   
-    walkingDistance: 10,
-    drivingDistance: 6,
-    bikingDistance: 7,
-    stayType: "transient",
-    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
-  },
-];
+const toAccommodationPin = (acc: any): AccommodationPin => {
+  let minRent = -1
+  let maxRent = -1
+  ;(acc.rooms ?? []).forEach((r: any) => {
+    const rent = Number(r.roomRent ?? r.room_rent ?? 0)
+    if (minRent === -1 || rent < minRent) minRent = rent
+    if (maxRent === -1 || rent > maxRent) maxRent = rent
+  })
+  if (minRent === -1) minRent = 0
+  if (maxRent === -1) maxRent = 0
+
+  let rating = "6"
+  ;(acc.reviews ?? []).forEach((rv: any) => {
+    if (Number(rv.rating) < Number(rating)) rating = Number(rv.rating).toFixed(1)
+  })
+
+  return {
+    accommodationId: acc.id,
+    accommodationName: acc.accommodationName,
+    accommodationLocation: acc.accommodationLocation,
+    accommodationType: acc.accommodationType,
+    accommodationCapacity: acc.accommodationCapacity,
+    tenantRestriction: acc.tenantRestriction,
+    latitude: Number(acc.latitude),
+    longitude: Number(acc.longitude),
+    minRent,
+    maxRent,
+    walkingDistance: Number(acc.walkingDistance ?? 0),
+    drivingDistance: Number(acc.drivingDistance ?? 0),
+    bikingDistance: Number(acc.bikingDistance ?? 0),
+    rating: rating === "6" ? "0" : rating,
+    price: minRent,
+    minPrice: minRent,
+    maxPrice: maxRent,
+  }
+}
 
 
 // const billingStatements: BillingStatement[] = [
@@ -645,6 +599,7 @@ export default function Dashboard() {
   const [applicationsLoading, setApplicationsLoading] = useState(true);
   const [recommendedDorms, setRecommendedDorms] = useState<any[]>([]);
   const [recommendedLoading, setRecommendedLoading] = useState(true);
+  const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([]);
   const [billingOverviewData, setBillingOverviewData] = useState<BillingOverview | null>(null);
   const [billingStatementsData, setBillingStatementsData] = useState<BillingStatement[]>([]);
   const [billingLoading, setBillingLoading] = useState(true);
@@ -810,6 +765,22 @@ useEffect(() => {
 }, [])
 // ---------------------------------
 
+// Map accommodations fetch -----------------
+useEffect(() => {
+  const fetchMapAccommodations = async () => {
+    try {
+      const res = await api.get('/accommodations')
+      const list = Array.isArray(res.data) ? res.data : []
+      setMapAccommodations(list.map(toAccommodationPin))
+    } catch (error) {
+      console.error('Failed to fetch map accommodations:', error)
+      setMapAccommodations([])
+    }
+  }
+  fetchMapAccommodations()
+}, [])
+// ---------------------------------
+
 // Billing info fetch---------------------------------
 useEffect(() => {
   const fetchBilling = async () => {
@@ -938,6 +909,14 @@ if (isUserLoading) {
 
 
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
+
+  const filteredMapAccommodations = mapAccommodations.filter((a) => {
+    if (activeFilter === "All") return true;
+    if (activeFilter === "On-Campus") return a.accommodationType === "on-campus";
+    if (activeFilter === "Off-Campus") return a.accommodationType === "off-campus";
+    if (activeFilter === "UPLB Partner") return a.accommodationType === "partner_housing";
+    return true;
+  });
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
@@ -1177,10 +1156,9 @@ if (isUserLoading) {
               <div className="rounded-xl overflow-hidden flex-1 min-h-[220px] sm:min-h-[260px] relative">
                 <div className="absolute inset-0">
                  <AccommodationMap
-                  accommodations={dashboardMapAccommodations}
-                  centeredAccommodation={dashboardMapAccommodations[0]}
+                  accommodations={filteredMapAccommodations}
+                  centeredAccommodation={filteredMapAccommodations[0] ?? null}
                   onCardClick={(acc) => {
-                    // console.log("ACC CLICKED:", acc)
                     navigate(`/student/roomview/${acc.accommodationId}`)
                   }}
                 />

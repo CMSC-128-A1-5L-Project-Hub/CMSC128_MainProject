@@ -16,7 +16,7 @@ export default class ManagerHandoverController {
     const user = auth.user!
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', user.id)
       .preload('manager', (q) => q.preload('user'))
       .first()
@@ -87,7 +87,7 @@ export default class ManagerHandoverController {
     const user = auth.user!
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', user.id)
       .preload('manager', (q) => q.preload('user'))
       .first()
@@ -131,7 +131,7 @@ export default class ManagerHandoverController {
       // Check new manager is not already assigned to another accommodation
       const alreadyAssigned = await Accommodation.query()
         .where('manager_id', new_manager_id)
-        .whereNot('accommodation_id', accommodation.id)
+        .whereNot('id', accommodation.id)
         .first()
 
       if (alreadyAssigned) {
@@ -210,7 +210,7 @@ export default class ManagerHandoverController {
     const user = auth.user!
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', user.id)
       .preload('manager', (q) => q.preload('user'))
       .first()
