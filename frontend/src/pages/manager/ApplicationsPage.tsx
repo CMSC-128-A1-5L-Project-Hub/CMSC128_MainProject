@@ -235,7 +235,7 @@ export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activePage, setActivePage] = useState("applications");
-  const [sortBy, setSortBy] = useState("Date applied (Desc.)");
+  const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");
   const [currentPage, setCurrentPage] = useState(1);
 
   const [selectedApp, setSelectedApp] = useState<ApplicationResponse | null>(null);
@@ -303,8 +303,8 @@ export default function ApplicationsPage() {
 
     return res.sort((a: ApplicationResponse, b: ApplicationResponse) => {
       const diff = new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime();
-      if (sortBy === "Date applied (Asc.)") return diff;
-      if (sortBy === "Date applied (Desc.)") return -diff;
+      if (sortBy === "earliest") return diff;
+      if (sortBy === "latest") return -diff;
       if (sortBy === "Status") return a.applicationStatus.localeCompare(b.applicationStatus);
       return -diff;
     });

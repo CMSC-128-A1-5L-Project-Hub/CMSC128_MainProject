@@ -120,7 +120,6 @@ const SORT_OPTS = [
   { value: "Date", label: "Date" },
   { value: "Room Type", label: "Room Type" },
   { value: "Room No.", label: "Room No." },
-  { value: "Action", label: "Action" },
 ]
 
 const FilterSelect = ({
@@ -231,26 +230,41 @@ export default function Waitlist() {
     const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: WaitlistedResponse[], className?: string }) => {
     const [selectedRecord, setSelectedRecord] = useState<WaitlistedResponse | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
-    const [sortBy, setSortBy] = useState("Date")
+    const [sortBy, setSortBy] = useState<string>("Date")
     
     const [search, setSearch] = useState("")
 
     // FILTER
     const filtered = useMemo(() => {
-        const q = search.toLowerCase()
-        return records.filter(r =>
-            r.student.user.fname.toLowerCase().includes(q) ||
-            r.student.user.lname.toLowerCase().includes(q) ||
-            r.assignment.room.roomBuilding.toLowerCase().includes(q) ||
-            r.assignment.room.roomType.toLowerCase().includes(q)
-        )
-    }, [records, search])
+    const q = search.toLowerCase();
+
+    return records.filter((r) => {
+        const fname = r.student?.user?.fname?.toLowerCase() ?? "";
+        const lname = r.student?.user?.lname?.toLowerCase() ?? "";
+        const building = r.assignment?.room?.roomBuilding?.toLowerCase() ?? "";
+        const roomType = r.assignment?.room?.roomType?.toLowerCase() ?? "";
+
+        return (
+            fname.includes(q) ||
+            lname.includes(q) ||
+            building.includes(q) ||
+            roomType.includes(q)
+        );
+    });
+}, [records, search]);
 
     //SORT
     const sorted = useMemo(() => {
         return [...filtered].sort((a, b) => {
-            if (sortBy === "Room Type") return a.assignment.room.roomType.localeCompare(b.assignment.room.roomType)
-            if (sortBy === "accommodation.building") return a.assignment.room.roomBuilding.localeCompare(b.assignment.room.roomBuilding)
+
+            const aRoomType = a.assignment?.room?.roomType ?? "";
+            const bRoomType = b.assignment?.room?.roomType ?? "";
+
+            const aBuilding = a.assignment?.room?.roomBuilding ?? "";
+            const bBuilding = b.assignment?.room?.roomBuilding ?? "";
+            
+            if (sortBy === "Room Type") return aRoomType.localeCompare(bRoomType)
+            if (sortBy === "accommodation.building") return aBuilding.localeCompare(bBuilding)
             if (sortBy === "Date") return new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime()
             return 0
         })
@@ -271,14 +285,14 @@ export default function Waitlist() {
     }, [])
 
     const handleOpenSearch = () => {
-    setSortOpen(false)
-    setMode("search")
-    setTimeout(() => searchInputRef.current?.focus(), 50)
+        setSortOpen(false)
+        setMode("search")
+        setTimeout(() => searchInputRef.current?.focus(), 50)
     }
 
     const handleCloseSearch = () => {
-    setMode("both")
-    setSearch("")
+        setMode("both")
+        setSearch("")
     }
 
     const totalPages = Math.ceil(sorted.length / HISTORY_PER_PAGE)
