@@ -221,7 +221,7 @@ export default function Waitlist() {
         isError: isErrorList,
         refetch,
     } = useQuery({
-        queryKey: ["list"],
+        queryKey: ["waitlisted"],
         queryFn: async () => {
         const res = await api.get("/applications/view-all-waitlisted");
         return res.data;
@@ -607,11 +607,17 @@ export default function Waitlist() {
                         <div className="col-span-2 px-4 flex items-center gap-2">
                             <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
                                 style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                {getInitials(record.student.user.fname)}
+                                {record?.student?.user?.fname ? 
+                                    getInitials(record.student.user.fname) :
+                                    "U"
+                                }
                             </div>
                             <div>
                                 <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
-                                    {record.student.user.fname} {record.student.user.lname}
+                                    {record?.student?.user?.fname && record?.student?.user?.lname ?
+                                        `${record.student.user.fname} ${record.student.user.lname}` :
+                                        "Loading name..."
+                                    }
                                 </p>
                                 <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
                             </div>
@@ -619,11 +625,23 @@ export default function Waitlist() {
 
                         {/* DATE SUBMITTED */}
                         <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                            {isNaN(new Date(record.applicationDate).getTime()) ? "TBA" : new Date(record.applicationDate).toLocaleDateString()}
+                            {!record?.applicationDate ?
+                                "Loading date..." :
+                                isNaN(new Date(record.applicationDate).getTime()) ?
+                                    "TBA" :
+                                    new Date(record.applicationDate).toLocaleDateString()
+                            }
                         </p>
 
                         <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
-                            {DateTime.fromISO(record.applicationDate).setZone('utc', { keepLocalTime: true }).toFormat('h:mm a')}
+                            {!record?.applicationDate ?
+                                "Loading Time..." :
+                                isNaN(DateTime.fromISO(record.applicationDate).toMillis()) ?
+                                    "TBA" :
+                                    DateTime.fromISO(record.applicationDate)
+                                        .setZone('utc', { keepLocalTime: true })
+                                        .toFormat('h:mm a')
+                            }
                         </p>
 
                         <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
@@ -631,7 +649,7 @@ export default function Waitlist() {
                         </p>
 
                         <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
-                            {record.assignment?.room?.roomType || record.applicationRoomType}
+                            {record.assignment?.room?.roomType || record.applicationRoomType || "N/A"}
                         </p>
 
                         {/* ACTION */}

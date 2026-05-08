@@ -136,11 +136,12 @@ export default function MoveinMoveout() {
             isError: isErrorList,
             refetch,
         } = useQuery({
-            queryKey: ["list"],
+            queryKey: ["moveInMoveOutlist"],
             queryFn: async () => {
             const res = await api.get("/view-all-assignments");
             return res.data;
             },
+            placeholderData: (prev) => prev,
         });
     
     //TABLE 
@@ -158,6 +159,9 @@ export default function MoveinMoveout() {
             : "Move in and Move out History"
 
         //FILTER AND SEARCH
+
+        const safeRecords = records ?? []
+
         const filtered = useMemo(() => {
             const q = search.toLowerCase()
             return records.filter(r => {
@@ -173,7 +177,7 @@ export default function MoveinMoveout() {
                     r.room.roomType.toLowerCase().includes(q)
                 return matchesFilter && matchesSearch
             })
-        }, [records, search, filter])
+        }, [safeRecords, search, filter])
 
         //PAGES 
         const totalPages = Math.ceil(filtered.length / RECORDS_PER_PAGE)
@@ -356,12 +360,17 @@ export default function MoveinMoveout() {
                                             "linear-gradient(135deg, #6B0F2B, #9E2040)",
                                         }}
                                         >
-                                        {getInitial(record.student.user.lname)}
+                                        {record?.student?.user?.lname ?
+                                            getInitial(record.student.user.lname) || "U" :
+                                            "U"
+                                        }
                                         </div>
 
                                         <p className="font-semibold text-sm text-[#1A0008]">
-                                        {record.student.user.fname}{" "}
-                                        {record.student.user.lname}
+                                        {record?.student?.user?.fname && record?.student?.user?.lname ?
+                                            `${record.student.user.fname} ${record.student.user.lname}` :
+                                            "Loading name..."
+                                        }
                                         </p>
                                     </div>
                                     </td>
@@ -370,11 +379,11 @@ export default function MoveinMoveout() {
                                     <td className="px-4 py-3">
                                     <div className="flex flex-col">
                                         <span className="text-sm text-[#1A0008]">
-                                        {record?.room.roomNumber}
+                                        {record?.room?.roomNumber ?? "Failed to Fetch"}
                                         </span>
 
                                         <span className="text-xs text-[#9A7080]">
-                                        {record?.room.roomBuilding}
+                                        {record?.room?.roomBuilding ?? "Failed to Fetch"}
                                         </span>
                                     </div>
                                     </td>
@@ -383,11 +392,14 @@ export default function MoveinMoveout() {
                                     <td className="px-4 py-3">
                                     <div className="flex flex-col">
                                         <span className="text-sm text-[#1A0008] capitalize">
-                                        {record.room.roomStayType.replace("_", " ")}
+                                        {record?.room?.roomStayType ?
+                                            record.room.roomStayType.replace("_", " ") :
+                                            "Failed to Fetch"
+                                        }
                                         </span>
 
                                         <span className="text-xs text-[#9A7080] capitalize">
-                                        {record.room.roomType}
+                                        {record?.room?.roomType ?? "Failed to Fetch"}
                                         </span>
                                     </div>
                                     </td>
@@ -396,9 +408,15 @@ export default function MoveinMoveout() {
                                     <td className="px-4 py-3">
                                     <div className="flex flex-col">
                                         <span className="text-sm text-[#1A0008]">
-                                        {isMoveIn
-                                            ? record.moveIn.toLocaleString()
-                                            : record.expectedMoveOut.toLocaleString()}
+                                        {isMoveIn ?
+                                            (record?.moveIn ?
+                                            record.moveIn.toLocaleString() :
+                                            "Failed to Fetch")
+                                                : 
+                                            (record?.expectedMoveOut ?
+                                            record.expectedMoveOut.toLocaleString() :
+                                            "Failed to Fetch")
+                                        }
                                         </span>
 
                                         <span

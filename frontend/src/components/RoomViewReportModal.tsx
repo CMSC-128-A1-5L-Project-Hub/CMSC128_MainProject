@@ -2,6 +2,7 @@
 import { useState } from "react"
 import Modal from "./Modal"
 import Button from "./Button"
+import FormSelect from "./SignUpForm/shared/FormSelect"
 import GradientPillSelect from "./DropDownGradient"
 
 type ReportType = "dorm" | "manager"
@@ -78,8 +79,8 @@ export default function ReportAccommodationModal({
       open={open}
       onClose={handleClose}
       title={title}
-      maxWidth={600}
-      maxHeight={800}
+      maxWidth={520}
+      maxHeight={520}
       footer={
         <div className="flex flex-row justify-end w-full">
           <Button variant="reddishPink" onClick={handleSubmit}>Submit Report</Button>
@@ -88,15 +89,15 @@ export default function ReportAccommodationModal({
     >
       <div className="flex flex-col gap-5 py-1">
         {/* Subject pill */}
-        <div className="flex items-center gap-2 bg-[#6B0F2B] border border-[#F0E8EC] rounded-xl px-4 py-2.5">
-          <svg className="w-5 h-5 flex-shrink-0 text-[#F0E8EC]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <div className="flex items-center gap-2 bg-[#F7EFF2] border border-[#F0E8EC] rounded-xl px-4 py-2.5">
+          <svg className="w-3.5 h-3.5 flex-shrink-0 text-[#6B0F2B]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             {reportType === "dorm" ? (
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 12L12 3l9 9M4 10v10a1 1 0 001 1h5v-6h4v6h5a1 1 0 001-1V10" />
             ) : (
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             )}
           </svg>
-          <p className="text-[15px] font-semibold text-[#F0E8EC] truncate font-sans">
+          <p className="text-[12px] font-semibold text-[#3D0718] truncate">
             {reportType === "dorm" ? "Accommodation: " : "Manager: "}
             <span className="font-bold">{subjectLabel}</span>
           </p>
@@ -104,23 +105,25 @@ export default function ReportAccommodationModal({
 
         {/* Reason dropdown */}
         <GradientPillSelect
-          label="Reason for Report"
-          options={reasonOptions}
-          value={form.reason as any}
-          onChange={(v) => {
+        label="Reason for Report"
+        options={reasonOptions}
+        value={form.reason as any}
+        onChange={(v) => {
             setForm({ ...form, reason: v })
             setErrors({ ...errors, reason: false })
-          }}
-          width="w-full"
-          labelSize="text-[11px]"
-          optionSize="text-[13px]"
+        }}
+        width="w-full"
+        labelSize="text-[11px]"
+        optionSize="text-[13px]"
         />
         {errors.reason && (
-          <p className="text-red-500 text-[10px] mt-1">This field is required</p>
+        <p className="text-red-500 text-[10px] mt-1">This field is required</p>
         )}
+
         {/* Details */}
+
         <div>
-          <label className={`block text-[11px] font-semibold tracking-widest uppercase mb-1.5
+          <label className={`block text-[11px] font-bold tracking-widest text-[#9A7080] mb-1.5
             ${errors.details ? "text-red-500" : "text-[#6B4050]"}`}>
             Additional Details
           </label>

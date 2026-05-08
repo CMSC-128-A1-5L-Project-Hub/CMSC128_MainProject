@@ -9,16 +9,7 @@ import CustomHeader from '../../components/CustomHeader';
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import SearchBar from '../../components/SearchBar';
 import { api } from "../../api/axios"
-
-
-interface ManagerProfile {
-    fullName: string
-    shortName: string
-    email: string
-    phoneNumber: string
-    status: string
-    dormitory: string
-}
+import { useProfile } from "../../../hooks/useDashboardQueries"
 
 interface Room {
     id: number
@@ -45,15 +36,6 @@ interface HistoryRecord {
     action: "Move-in" | "Move-out"
     date: string
     time: string
-}
-
-const managerProfile: ManagerProfile = {
-    fullName: "Dal Cadsawan",
-    shortName: "Dal",
-    email: "ddcadsawan@up.edu.ph",
-    phoneNumber: "+63 912 345 6789",
-    status: "Active",
-    dormitory: "Narra Residences"
 }
 
 // const Rooms: Room[] = [
@@ -635,6 +617,9 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
 }
 
 export default function OccupancyRecords() {
+    const { data: profile } = useProfile()
+    const fullName = profile ? `${profile.fname} ${profile.lname}` : ''
+
     const [rooms, setRooms] = useState<Room[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
@@ -666,15 +651,15 @@ export default function OccupancyRecords() {
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
-            <Sidebar role="manager" profile={managerProfile}/>
+            <Sidebar role="manager" profile={profile as any}/>
             <div className = "flex flex-col flex-1 min-w-0">
                 <CustomHeader
                     title="Occupancy Records"></CustomHeader>
                 <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
                     <main className="flex-1 flex flex-col gap-4 lg:gap-6">
-                        <HeroBanner 
+                        <HeroBanner
                             greeting="Good Day"
-                            name={managerProfile.fullName}
+                            name={fullName}
                             title="View occupancy records"
                             subtitle="We make it easy for you to keep track of occupancy records"
                             type="mini"

@@ -5,7 +5,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import AccommodationMap, { type AccommodationPin } from '../components/AccommodationMaps'
+import AccommodationMap, { type AccommodationPin, type AccommodationReview } from '../components/AccommodationMaps'
 import { api } from '../api/axios'
 
 const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
@@ -18,6 +18,18 @@ const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
     const stayTypes = [...new Set<string>((acc.rooms ?? []).map((r: any) => r.roomStayType))]
     const stayType =
       stayTypes.length >= 2 ? 'both' : (stayTypes[0] as 'transient' | 'non_transient') ?? 'both'
+    const reviews = (acc.reviews ?? []).map((r: any) => ({
+      id: r.id,
+      accommodation_id: r.accommodation_id ?? acc.id,
+      student_number: r.student_number ?? '',
+      rating: Number(r.rating ?? 0),
+      content: r.content ?? null,
+      createdAt: r.createdAt,
+    }))
+    const rating =
+      reviews.length > 0
+        ? reviews.reduce((sum: number, r: AccommodationReview) => sum + r.rating, 0) / reviews.length
+        : undefined
     return {
       accommodationId: acc.id,
       accommodationName: acc.accommodationName,
@@ -34,6 +46,8 @@ const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
       maxRent: rents.length ? Math.max(...rents) : 0,
       stayType,
       imageUrl: acc.primaryImageUrl ?? undefined,
+      reviews,
+      rating,
     } satisfies AccommodationPin
   })
 }
@@ -172,7 +186,7 @@ export default function MapPage() {
                     {isLoading ? 'Loading...' : `${filtered.length} of ${accommodations.length} shown`}
                   </p>
                   <button 
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate(-1)}
                   className='mt-4 p-0 flex items-center text-white text-xs hover:underline hover:scale-105 transition-all'>
                     ← Back
                   </button>
@@ -384,19 +398,6 @@ export default function MapPage() {
                         {tag}
                       </button>
                     ))}
-                    <button
-                      onClick={() => {
-                        const newTag = prompt('Enter a feature:')
-                        if (newTag?.trim()) {
-                          if (!availableTags.includes(newTag.trim())) setAvailableTags(prev => [...prev, newTag.trim()])
-                          toggleTag(newTag.trim())
-                        }
-                      }}
-                      className="px-3 py-1.5 border border-dashed border-gray-300 text-gray-400 text-[10px] font-bold rounded-full hover:border-[#710A2B]"
-                      style={{ cursor: 'pointer' }}
-                    >
-                      + Add more
-                    </button>
                   </div>
                 </div>
               </div>

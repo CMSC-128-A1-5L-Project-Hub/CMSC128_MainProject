@@ -9,6 +9,7 @@ import Photo1 from "../../assets/images/forManager.png";
 import Photo2 from "../../assets/images/phone.png";
 import Photo3 from "../../assets/images/sample_dorm.jpg";
 import RightArrow from "../../assets/icons/right-arrow.svg";
+import { api } from "../../api/axios";
 
 export interface Application {
     id: number;
@@ -51,10 +52,9 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const { data: accomData, isLoading } = useQuery({
     queryKey: ["accommodation", application?.accommodationId],
     queryFn: async () => {
-      const res = await fetch(`/api/accommodations/${application?.accommodationId}`);
-      if (!res.ok) throw new Error("Failed to fetch accommodation details");
-      const json = await res.json();
-      return json.data;
+      // Use api.get instead of native fetch
+      const res = await api.get(`/accommodations/${application?.accommodationId}`);
+      return res.data.data ?? res.data;
     },
     enabled: !!application?.accommodationId && open,
   });
@@ -71,32 +71,20 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       // If approved or waitlisted, we must "decline" the slot so the waitlist service runs
       if (application.applicationStatus === "approved" || application.applicationStatus === "waitlisted") {
         console.log(`[Cancel Flow] Status is ${application.applicationStatus}. Routing to POST /confirm with action: 'decline'`);
-        res = await fetch(`/api/applications/${application.id}/confirm`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "decline" }),
+        res = await api.post(`/applications/${application.id}/confirm`, {
+          action: "decline"
         });
       } 
       // If pending or under review, we just do a standard cancellation
       else {
         console.log(`[Cancel Flow] Status is ${application.applicationStatus}. Routing to PATCH /cancel`);
-        res = await fetch(`/api/applications/${application.id}`, {
-          method: "PATCH",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "cancelled" }),
+        res = await api.patch(`/applications/${application.id}`, {
+          status: "cancelled"
         });
       }
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        console.error("[Cancel Flow] Backend rejected the request:", res.status, errData);
-        throw new Error(errData.message || "Failed to cancel application");
-      }
-
-      const data = await res.json();
-      console.log("[Cancel Flow] Success!", data);
-      return data;
+      console.log("[Cancel Flow] Success!", res.data);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
@@ -105,7 +93,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
     },
     onError: (error: any) => {
       console.error("Cancel error caught in UI:", error);
-      alert(error.message || "Could not cancel application. Please try again.");
+      alert(error.response?.data?.message || error.message || "Could not cancel application. Please try again.");
     },
   });
 
@@ -116,20 +104,10 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       
       console.log(`[Accept Flow] Attempting to confirm slot for application ${application.id}`);
 
-      const res = await fetch(`/api/applications/${application.id}/confirm-slot`, {
-        method: "POST", 
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await api.post(`/applications/${application.id}/confirm-slot`);
       
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        console.error("[Accept Flow] Backend rejected the request:", res.status, errData);
-        throw new Error(errData.message || "Failed to confirm slot");
-      }
-
-      const data = await res.json();
-      console.log("[Accept Flow] Success!", data);
-      return data;
+      console.log("[Accept Flow] Success!", res.data);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
@@ -138,7 +116,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
     },
     onError: (error: any) => {
       console.error("Accept error caught in UI:", error);
-      alert(error.message || "Could not confirm slot. Please try again.");
+      alert(error.response?.data?.message || error.message || "Could not confirm slot. Please try again.");
     },
   });
 

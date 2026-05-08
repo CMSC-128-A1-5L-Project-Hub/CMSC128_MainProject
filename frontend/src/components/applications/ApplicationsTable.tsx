@@ -44,7 +44,18 @@ const StatusBadge = ({
   status: any;
   statusConfig: Record<string, { color: string; bg: string; dot: string }>;
 }) => {
-  const cfg = statusConfig[status];
+  const fallbackConfig = {
+    color: "#6B7280",
+    bg: "#F3F4F6",
+    dot: "#9CA3AF",
+  };
+
+  const cfg = statusConfig?.[status] ?? fallbackConfig;
+
+  const displayStatus =
+    typeof status === "string" && status.length > 0
+      ? status.charAt(0).toUpperCase() + status.slice(1)
+      : "Loading...";
 
   return (
     <span
@@ -55,7 +66,7 @@ const StatusBadge = ({
         className="w-1.5 h-1.5 rounded-full flex-shrink-0"
         style={{ background: cfg.dot }}
       />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
     </span>
   );
 };
@@ -407,8 +418,6 @@ const handleCloseSearch = () => {
               </tr>
             ) : (
               paginated.map((app) => {
-                const initial = app.student.user.fname.charAt(0).toUpperCase();
-
                 return (
                   <tr
                     key={`${app.id}-${startIndex}`}
@@ -421,30 +430,53 @@ const handleCloseSearch = () => {
                           className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
                           style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
                         >
-                          {initial}
+                          {app?.student?.user?.fname?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium truncate">
-                            {app.student.user.fname} {app.student.user.lname}
+                            {app?.student?.user?.fname && app?.student?.user?.lname ?
+                            `${app.student.user.fname} ${app.student.user.lname}` :
+                              "Loading name..."}
                           </p>
                         </div>
                       </div>
                     </td>
 
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                      <p>{formatDate(app.applicationDate)}</p>
-                      <p className="text-xs text-gray-400">
-                        {getDaysAgo(app.applicationDate)} days ago
-                      </p>
+                      {app?.applicationDate ? (
+                        <>
+                          <p>{formatDate(app.applicationDate)}</p>
+                          <p className="text-xs text-gray-400">
+                            {getDaysAgo(app.applicationDate)} days ago
+                          </p>
+                        </>
+                      ) : (
+                        <p>Loading date...</p>
+                      )}
                     </td>
 
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                      {formatTime(app.applicationDate)}
+                      {app?.applicationDate ?
+                        formatTime(app.applicationDate) :
+                        'Loading Time...'
+                      }
                     </td>
 
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <p className="font-medium">{app.accommodation.accommodationName}</p>
-                      <p className="text-xs text-gray-400">{app.applicationRoomType}</p>
+                      {app?.accommodation ? (
+                        <>
+                          <p className="font-medium">
+                            {app.accommodation.accommodationName}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {app.applicationRoomType}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="font-medium text-gray-400">
+                          Loading facility...
+                        </p>
+                      )}
                     </td>
 
                     <td className="px-4 py-3">

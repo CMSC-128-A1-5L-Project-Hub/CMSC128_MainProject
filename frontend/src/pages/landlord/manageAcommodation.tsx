@@ -1,22 +1,48 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Modal from "../../components/Modal";
 import Button from "../../components/Button";
-import Sidebar from "../../components/Sidebar";
 import LocationPickerMap from "../../components/LocationPickerMap";
 import { useAccommodationFormStore } from "../../stores/useAccommodationFormStore";
 import { Upload, Paperclip } from "lucide-react";
 import { api } from "../../api/axios";
-import { useNavigate } from 'react-router-dom'
-import defaultAccommodationImage from '../../assets/defaults/accommodation.png'
+import { useNavigate } from 'react-router-dom';
+import defaultAccommodationImage from '../../assets/defaults/accommodation.png';
+import Sidebar from "../../components/Sidebar";
+import { setLandlordSidebarContext } from "../../components/Sidebar";
+
+// ─── Common Accommodation‑Wide Amenities ──────────────────────────────────────
+const AMENITIES_OPTIONS = [
+  "WiFi",
+  "Air Conditioning",
+  "Kitchen",
+  "Laundry",
+  "Study Area",
+  "Parking",
+  "24/7 Security",
+  "CCTV",
+  "Furnished",
+  "Balcony",
+  "Pet Friendly",
+  "Water Dispenser",
+  "Cable TV",
+  "Elevator",
+  "Backup Generator",
+  "Swimming Pool",
+  "Gym",
+  "Garden / Courtyard",
+  "Reception / Lobby",
+  "Room Cleaning Service",
+  "In‑room Bathroom",
+];
 
 // ─── Accommodation Card ───────────────────────────────────────────────────────
 const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) => {
-  const navigate = useNavigate()
-  const status = accommodation.status
-  const isUnderReview = status !== 'verified'
+  const navigate = useNavigate();
+  const status = accommodation.status;
+  const isUnderReview = status !== 'verified';
 
-  const primaryImage = accommodation.primaryImageUrl ?? defaultAccommodationImage
+  const primaryImage = accommodation.primaryImageUrl ?? defaultAccommodationImage;
 
   return (
     <div className="relative rounded-2xl shadow-md bg-white overflow-hidden group">
@@ -31,7 +57,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
         <Button
           className={`mt-4 w-full ${isUnderReview ? "opacity-50 cursor-not-allowed" : ""}`}
           disabled={isUnderReview}
-          onClick={() => navigate(`/landlord/accommodations/${accommodation.id}`)}
+          onClick={() => navigate(`/landlord/accommodation/${accommodation.id}`)}
         >
           Manage →
         </Button>
@@ -58,8 +84,16 @@ const AddCard: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   </div>
 );
 
-// ─── STEP 1: Details + Location ───────────────────────────────────────────────
-const StepOne = ({ onNext }: { onNext: () => void }) => {
+// ─── STEP 1: Details + Location + Amenities ─────────────────────────────────
+const StepOne = ({
+  onNext,
+  amenities,
+  setAmenities,
+}: {
+  onNext: () => void;
+  amenities: string[];
+  setAmenities: (a: string[]) => void;
+}) => {
   const {
     accommodationName,
     accommodationType,
@@ -84,6 +118,14 @@ const StepOne = ({ onNext }: { onNext: () => void }) => {
     }
     setErrors((e) => ({ ...e, businessPermit: "" }));
     setBusinessPermit(file);
+  };
+
+  const toggleAmenity = (amenity: string) => {
+    setAmenities(
+      amenities.includes(amenity)
+        ? amenities.filter((a) => a !== amenity)
+        : [...amenities, amenity]
+    );
   };
 
   const validate = () => {
@@ -169,6 +211,32 @@ const StepOne = ({ onNext }: { onNext: () => void }) => {
         </div>
       </div>
 
+      {/* ─── Amenities Selection ─────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">AMENITIES</label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {AMENITIES_OPTIONS.map((amenity) => (
+            <label
+              key={amenity}
+              className={`flex items-center gap-2 text-sm px-3 py-2 rounded-xl border cursor-pointer transition
+                ${
+                  amenities.includes(amenity)
+                    ? "border-[#7a001f] bg-[#7a001f]/10 text-[#7a001f]"
+                    : "border-[#e5cfd4] text-gray-600 hover:bg-[#faf3f5]"
+                }`}
+            >
+              <input
+                type="checkbox"
+                checked={amenities.includes(amenity)}
+                onChange={() => toggleAmenity(amenity)}
+                className="accent-[#7a001f] w-4 h-4"
+              />
+              {amenity}
+            </label>
+          ))}
+        </div>
+      </div>
+
       <div className="flex flex-col gap-1">
         <label className="text-[10px] font-semibold tracking-wide text-[#7a001f]">BUSINESS PERMIT</label>
         <div
@@ -219,7 +287,15 @@ const StepOne = ({ onNext }: { onNext: () => void }) => {
 };
 
 // ─── STEP 2: Images + Submit ──────────────────────────────────────────────────
-const StepTwo = ({ onBack, onClose }: { onBack: () => void; onClose: () => void }) => {
+const StepTwo = ({
+  onBack,
+  onClose,
+  amenities,
+}: {
+  onBack: () => void;
+  onClose: () => void;
+  amenities: string[];
+}) => {
   const {
     images, imagePreviews, primaryImageIndex,
     accommodationName, accommodationType, accommodationLocation,
@@ -233,7 +309,8 @@ const StepTwo = ({ onBack, onClose }: { onBack: () => void; onClose: () => void 
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      if (images.length === 0) throw new Error("At least one image is required.");
+      // Require at least 4 images
+      if (images.length < 4) throw new Error("At least 4 images are required.");
 
       const formData = new FormData();
       formData.append("accommodation_name", accommodationName);
@@ -246,6 +323,9 @@ const StepTwo = ({ onBack, onClose }: { onBack: () => void; onClose: () => void 
       formData.append("primary_image_index", String(primaryImageIndex));
       if (businessPermit) formData.append("business_permit", businessPermit);
       images.forEach((img) => formData.append("images", img));
+
+      // Attach selected amenities as tags[]
+      amenities.forEach((tag) => formData.append("tags[]", tag));
 
       const res = await api.post("/landlord/accommodations", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -296,12 +376,12 @@ const StepTwo = ({ onBack, onClose }: { onBack: () => void; onClose: () => void 
         </div>
       </div>
 
-      {images.length === 0 && <p className="text-xs text-red-500">At least one image is required.</p>}
+      {images.length < 4 && <p className="text-xs text-red-500">At least 4 images are required.</p>}
       {submitError && <p className="text-xs text-red-500 text-center">{submitError}</p>}
 
       <div className="flex justify-between gap-4">
         <Button onClick={onBack} variant="secondary" size="md" disabled={isPending}>← Back</Button>
-        <Button onClick={() => mutate()} variant="primary" size="md" disabled={isPending || images.length === 0}>
+        <Button onClick={() => mutate()} variant="primary" size="md" disabled={isPending || images.length < 4}>
           {isPending ? (
             <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -318,8 +398,13 @@ const StepTwo = ({ onBack, onClose }: { onBack: () => void; onClose: () => void 
 const ManageAccommodationDashboard: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
+  const [amenities, setAmenities] = useState<string[]>([]);  // lifted state for amenities
   const reset = useAccommodationFormStore((s) => s.reset);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setLandlordSidebarContext("minimal");
+  }, []);
 
   // ─── Fetch current user ───────────────────────────────────────────────────
   const { data: user, isLoading, isError } = useQuery({
@@ -350,12 +435,14 @@ const ManageAccommodationDashboard: React.FC = () => {
   const handleClose = () => {
     setOpen(false);
     setStep(1);
+    setAmenities([]); // reset amenities when closing modal
   };
 
   const handleSuccessClose = () => {
     setOpen(false);
     setStep(1);
     reset();
+    setAmenities([]); // clear amenities after success
     refetch();
   };
 
@@ -365,7 +452,7 @@ const ManageAccommodationDashboard: React.FC = () => {
   return (
     <div className="flex flex-col lg:flex-row bg-[#f5f5f5] min-h-screen">
       <Sidebar
-        role={user?.role ?? 'landlord'}
+        role="landlord-manage"
         profile={{
           fullName: `${user?.fname ?? ''} ${user?.lname ?? ''}`.trim(),
           shortName: user?.fname ?? '',
@@ -404,7 +491,19 @@ const ManageAccommodationDashboard: React.FC = () => {
         eyebrow={step === 1 ? "FILL IN THE DETAILS" : "ADD PHOTOS"}
         maxWidth={560}
       >
-        {step === 1 ? <StepOne onNext={() => setStep(2)} /> : <StepTwo onBack={() => setStep(1)} onClose={handleSuccessClose} />}
+        {step === 1 ? (
+          <StepOne
+            onNext={() => setStep(2)}
+            amenities={amenities}
+            setAmenities={setAmenities}
+          />
+        ) : (
+          <StepTwo
+            onBack={() => setStep(1)}
+            onClose={handleSuccessClose}
+            amenities={amenities}
+          />
+        )}
       </Modal>
     </div>
   );
