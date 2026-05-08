@@ -4,15 +4,21 @@ import FormSelect from "../shared/FormSelect";
 import FileUpload from "../shared/FileUpload";
 import Button from "../../Button";
 
+import { degreePrograms } from "../DegreePrograms";
+
 export default function AcademicDetails({ data, setData, nextStep, prevStep }: any) {
     const [errors, setErrors] = useState<Record<string,string>>({})
 
     const handleChange = (e: any) => {
-        setData({
-            ...data,
-            [e.target.name]: e.target.value
-        })
+        const updated: any = {...data, [e.target.name]: e.target.value}
+
+        if (e.target.name === "college") updated.course = ""
+        setData(updated)
     }
+
+    const degprogOptions = degreePrograms
+        .filter(d => d.college === data.college)
+        .map(d => ({ label: d.degree_program, value: d.degree_program}))
 
     const handleNext = () => {
         const newErrors: Record<string,string> = {}
@@ -72,16 +78,13 @@ export default function AcademicDetails({ data, setData, nextStep, prevStep }: a
                 error={errors.college}
             />
 
-            {/* In progress, ang dami ba naman (iffilter ko na lang to based sa selected college) */}
             <FormSelect 
                 label="Course"
                 name="course"
                 value={data.course}
                 defaultSelect="Select course"
                 onChange={handleChange}
-                options={[
-                    {label: "Test", value: "test"}
-                ]}
+                options={degprogOptions}
                 className="col-span-6"
                 error={errors.course}
             />
