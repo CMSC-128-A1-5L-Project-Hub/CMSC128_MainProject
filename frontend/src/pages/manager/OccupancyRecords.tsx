@@ -298,8 +298,8 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
 
     const segments = [
         { value: full,      color: "#3D0A1A" }, // dark maroon  - fully occupied
-        { value: partial,   color: "#C47A8A" }, // muted pink   - partially occupied
-        { value: available, color: "#9E2040" }, // maroon       - available
+        { value: partial,   color: "#9E2040" }, // maroon       - partially occupied
+        { value: available, color: "#C47A8A" }, // muted pink   - available
     ]
 
     //build stroke-dasharray offsets for each segment
@@ -360,8 +360,8 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
                 <div className="flex flex-col gap-3">
                     {[
                         { label: "Fully Occupied Rooms",    value: full,      color: "#3D0A1A" },
-                        { label: "Partially Occupied Rooms", value: partial,  color: "#C47A8A" },
-                        { label: "Available Rooms",          value: available, color: "#9E2040" },
+                        { label: "Partially Occupied Rooms", value: partial,  color: "#9E2040" },
+                        { label: "Available Rooms",          value: available, color: "#C47A8A" },
                     ].map((item, i) => (
                         <div key={i} className="flex items-start gap-2">
                             <span
@@ -657,24 +657,37 @@ export default function OccupancyRecords() {
                     title="Occupancy Records"></CustomHeader>
                 <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
                     <main className="flex-1 flex flex-col gap-4 lg:gap-6">
-                        <HeroBanner
-                            greeting="Good Day"
-                            name={fullName}
-                            title="View occupancy records"
-                            subtitle="We make it easy for you to keep track of occupancy records"
-                            type="mini"
-                        />
+                        <div>
+                            <HeroBanner 
+                                greeting="Good Day"
+                                name={fullName}
+                                title="View occupancy records"
+                                subtitle="We make it easy for you to keep track of occupancy records"
+                                type="mini"
+                            />
+                        </div>
+                        
                         
                         {loading && (
-                            <p className="text-sm text-[#9A7080]">
+                            <div className="flex flex-col items-center bg-white h-full w-full justify-center rounded-2xl text-center">
+                                <div
+                                    className="animate-spin rounded-full h-8 w-8 border-b-2"
+                                    style={{ borderColor: "#9E2040" }}
+                                    />
+                                <p className="text-sm text-[#9A7080] mt-2">
                                 Loading occupancy records...
-                            </p>
+                                </p>
+                            </div>
+                            
                         )}
 
                         {error && (
-                            <p className="text-sm text-red-600">
-                                {error}
-                            </p>
+                            <div className="w-full h-full bg-white items-center justify-center flex rounded-2xl">
+                                <p className="text-sm text-red-600">
+                                    {error}
+                                </p>
+                            </div>
+                            
                         )}
 
                         {!loading && !error && (

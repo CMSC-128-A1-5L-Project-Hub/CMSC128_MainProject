@@ -277,7 +277,7 @@ export default function BrowsePage() {
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
             searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax
         }}>
-            <div className="flex flex-row w-full min-h-screen bg-[#FDF8FA]">
+            <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
 
                 {/* Sidebar */}
                 <div className="relative z-[9999]">
