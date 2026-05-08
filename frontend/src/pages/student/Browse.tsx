@@ -22,7 +22,7 @@ type FilterContextType = {
     searching: string; setSearching: (v: string) => void
     filters: { [key: string]: boolean }; setFilters: (v: { [key: string]: boolean }) => void
     setFilterPanelOpen: (v: boolean) => void
-    origMin: number; origMax: number;
+    origMin: number; origMax: number; setOrigMin: (v: number) => void; setOrigMax: (v: number) => void;
     setFilterInEffect: (v: boolean) => void;
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
@@ -32,7 +32,7 @@ type Dorm = {
     name: string; subtitle: string; meta: string
     minPrice: number; maxPrice: number; priceUnit: string
     rating: string; accommodationId: number; tags: string[]
-    bookmarked?: boolean
+    bookmarked?: boolean; primaryImageUrl: string;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -47,7 +47,7 @@ export default function BrowsePage() {
     const [minPrice, setMinPrice] = useState(500)
     const [maxPrice, setMaxPrice] = useState(7000)
     const [origMin, setOrigMin] = useState(800)
-    const [origMax, setOrigMax] = useState(12000)
+    const [origMax, setOrigMax] = useState(7000)
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
     const [starRating, setStarRating] = useState(3)
@@ -59,11 +59,12 @@ export default function BrowsePage() {
         "Air-conditioned rooms": false, "Has study area": false,
         "24/7 security": false, "Has curfew": false, "Has canteen": false,
     })
+    const [uniqueTags, setUniqueTags] = useState<string[]>([]);
     const [filterInEffect, setFilterInEffect] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate()
 
-    const { data: accommodations = [], isError: accommodationsError } = useQuery({
+    const { data: accommodations = [], isError: accommodationsError, isSuccess } = useQuery({
         queryKey: ["accommodations", searchTerm, activeFilter],
         queryFn: async () => {
             const params: Record<string, any> = {}
@@ -102,35 +103,37 @@ export default function BrowsePage() {
         setCurrentPage(1);
     }, [dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters]);
 
-    // for finding the minimum and maximum price
     useEffect(() => {
-        let min = -1;
-        let max = -1;
+        if (!isSuccess || accommodations.length === 0) return
 
-        for (let i = 0; i < accommodations.length; i++) {
-            const { rooms } = accommodations[i]
+        let min = Infinity
+        let max = -Infinity
+        const tagSet = new Set<string>();
 
+        accommodations.forEach(({ rooms, tags }) => {
             rooms.forEach((el: { roomRent: number }) => {
                 const rent = Number(el.roomRent)
-                if (min === -1 || rent < min) {
-                    min = rent;
-                }
 
-                if (max === -1 || rent > max) {
-                    max = rent;
-                }
+                if (rent < min) min = rent
+                if (rent > max) max = rent
             })
-        }
 
-        if (min !== -1 && max !== -1) {
-            setMinPrice(min)
-            setMaxPrice(max)
-            setOrigMin(min);
-            setOrigMax(max);
+            tags.forEach((el: { tagDetail: string }) => {
+                tagSet.add(el.tagDetail);
+            });
+        })
 
-            console.log(min, max, "yowzers", accommodations.length)
-        }
-    }, [accommodations]);
+        const tags = Array.from(tagSet)
+        const tagObject = Object.fromEntries(
+            tags.map(tag => [tag, false])
+        );
+        setFilters(tagObject)
+        setMinPrice(min)
+        setMaxPrice(max)
+        setOrigMin(min)
+        setOrigMax(max)
+
+    }, [isSuccess, accommodations])
 
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
@@ -143,14 +146,16 @@ export default function BrowsePage() {
         console.log("yahooo")
         console.log(accommodations)
         setFilterInEffect(false);
+
         for (let i = 0; i < accommodations.length; i++) {
             console.log(i)
             const {
                 id, accommodationName, accommodationLocation, accommodationType,
                 accommodationCapacity, tenantRestriction, latitude, longitude,
                 walkingDistance, drivingDistance, bikingDistance,
-                rooms, reviews, bookmarks, tags,
+                rooms, reviews, bookmarks, tags, primaryImageUrl
             } = accommodations[i]
+
 
             let minimum = -1, maximum = -1
             const roomTypes = new Set<string>()
@@ -166,11 +171,9 @@ export default function BrowsePage() {
                 roomTypes.add(el.roomType)
                 const rent = Number(el.roomRent)
                 if (minimum === -1) {
-                    console.log("minimum -1", rent)
                     minimum = rent
                 }
                 if (maximum === -1) {
-                    console.log("maximum -1")
                     maximum = rent
                 }
                 if (rent < minimum) minimum = rent
@@ -189,7 +192,6 @@ export default function BrowsePage() {
             /* search match */
             const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
             if (!nameMatch) {
-                console.log(accommodationName, "not matched")
                 continue
             }
 
@@ -215,7 +217,7 @@ export default function BrowsePage() {
                 continue
             }
             if (trueTags.length !== 0) {
-                const hasTag = tempTags.some(t => trueTags.includes(t))
+                const hasTag = trueTags.every(t => tempTags.includes(t))
                 if (!hasTag) {
                     console.log(accommodationName, "not matched tags")
                     continue
@@ -226,7 +228,7 @@ export default function BrowsePage() {
                 name: accommodationName, subtitle: accommodationLocation,
                 meta: accommodationType, minPrice: minimum, maxPrice: maximum,
                 priceUnit: "/ month", rating: rating == "6" ? "0" : rating, accommodationId: id,
-                tags: tempTags, bookmarked,
+                tags: tempTags, bookmarked, primaryImageUrl
             })
 
             tempPins.push({
@@ -268,7 +270,7 @@ export default function BrowsePage() {
         <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
-            searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect
+            searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax
         }}>
             <div className="flex flex-row w-full min-h-screen bg-[#FDF8FA]">
 
@@ -417,10 +419,10 @@ export default function BrowsePage() {
                                 onClick={() => setFilterPanelOpen(false)}
                                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#F5ECF0] text-[#6B0F2B] hover:bg-[#E8D4DF] transition-colors"
                             >
-                                <X size={15} />
+                                X
                             </button>
                         </div>
-                        <FilterForm onClose={() => {
+                        <FilterForm origFilters={filters} onClose={() => {
                             setFilterInEffect(true)
                             setFilterPanelOpen(false)
                         }} />
@@ -456,13 +458,12 @@ function DormTile({
                 }`}
         >
             {/* Thumbnail */}
-            <div className="relative w-full sm:w-32 md:w-36 shrink-0 sm:min-h-full bg-gradient-to-br from-[#6B0F2B] to-[#B5344F] flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 grid grid-cols-3 gap-px opacity-[0.15] p-1.5">
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} className="bg-white rounded-sm" />
-                    ))}
-                </div>
-                <MapPin size={22} className="text-white/50 relative z-10" strokeWidth={1.4} />
+            <div className="relative w-40 shrink-0 overflow-hidden">
+                <img
+                    src={dorm.primaryImageUrl}
+                    alt={dorm.name}
+                    className="w-full h-full object-cover"
+                />
             </div>
 
             {/* Content */}
@@ -570,36 +571,37 @@ function SearchBar() {
 /* ══════════════════════════════════════════════════════════════════════════════
    FILTER FORM
 ══════════════════════════════════════════════════════════════════════════════ */
-function FilterForm({ onClose }: { onClose: () => void }) {
+function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters: { [key: string]: boolean } }) {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
     const {
         dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
         roomType, setRoomType, starRating, setStarRating,
         onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen, origMin, origMax,
-        setFilterInEffect
+        setFilterInEffect, setOrigMin, setOrigMax
     } = context
 
-    const originalFilters: { [key: string]: boolean } = {
-        "Near campus": false, "Pet friendly": false, "Near establishments": false,
-        "Air-conditioned rooms": false, "Has study area": false,
-        "24/7 security": false, "Has curfew": false, "Has canteen": false,
-    }
+    const originalFilters = Object.fromEntries(
+        Object.keys(origFilters).map((key) => [key, false])
+    ) as Record<string, boolean>;
 
     const resetAll = () => {
         setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
         setDormType("All"); setRoomType("All"); setMinPrice(origMin); setMaxPrice(origMax);
-        setFilterPanelOpen(false); setFilterInEffect(true)
+        setFilterPanelOpen(false); setFilterInEffect(true);
+        setSliderResetKey(prev => prev + 1);
     }
 
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
-
-    const [range, setRange] = useState({min: 0, max: 100});
+    const [sliderResetKey, setSliderResetKey] = useState(0);
+    const [minimumOrig, setMinimumOrig] = useState(origMin);
+    const [maximumOrig, setMaximumOrig] = useState(origMax);
+    const [range, setRange] = useState({ min: 0, max: 100 });
     const handleRangeChange = (value: { min: number; max: number }) => {
         setRange(value);
         setMinPrice(value.min)
         setMaxPrice(value.max)
-      };
+    };
 
     return (
         <div className="pb-4">
@@ -626,7 +628,7 @@ function FilterForm({ onClose }: { onClose: () => void }) {
             <Dropdown
                 title="Dorm type"
                 items={[
-                    { label: "All Types", href: "" },
+                    { label: "All", href: "" },
                     { label: "on-campus", href: "" },
                     { label: "off-campus", href: "" },
                     { label: "partner-housing", href: "" },
@@ -678,7 +680,14 @@ function FilterForm({ onClose }: { onClose: () => void }) {
             {/* Price range */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
             <div className="px-2">
-                <PriceRangeSlider min={origMin} max={origMax} onChange={handleRangeChange}></PriceRangeSlider>
+
+                {/* <DualRangeSlider
+                    minVal={minPrice} maxVal={maxPrice}
+                    onMinChange={setMinPrice} onMaxChange={setMaxPrice}
+                    dataMin={origMin} dataMax={origMax}
+                /> */}
+                <PriceRangeSlider key={sliderResetKey} min={minimumOrig} max={maximumOrig} onChange={handleRangeChange}></PriceRangeSlider>
+
             </div>
 
             <Divider />
@@ -722,3 +731,50 @@ function FilterForm({ onClose }: { onClose: () => void }) {
         </div>
     )
 }
+
+function DualRangeSlider({
+    minVal, maxVal, onMinChange, onMaxChange, dataMin, dataMax,
+}: {
+    minVal: number; maxVal: number
+    onMinChange: (v: number) => void; onMaxChange: (v: number) => void
+    dataMin: number; dataMax: number
+}) {
+    const STEP = 100
+    const range = dataMax - dataMin
+    const minPct = ((minVal - dataMin) / range) * 100
+    const maxPct = ((maxVal - dataMin) / range) * 100
+
+    return (
+        <div className="relative w-full h-8">
+            {/* Track */}
+            <div className="absolute top-1/2 left-0 right-0 h-1.5 rounded-full bg-[#EDE4E9] -translate-y-1/2" />
+            {/* Fill */}
+            <div
+                className="absolute top-1/2 h-1.5 rounded-full -translate-y-1/2"
+                style={{
+                    left: `${minPct}%`,
+                    width: `${maxPct - minPct}%`,
+                    background: "linear-gradient(90deg,#6B0F2B,#B5344F)",
+                }}
+            />
+            {/* Min thumb */}
+            <input type="range" min={dataMin} max={dataMax} step={STEP} value={minVal}
+                onChange={e => onMinChange(Number(e.target.value))}
+                className="absolute top-1/2 left-0 w-full h-8 -translate-y-1/2 opacity-0 cursor-pointer z-10" />
+            {/* Max thumb */}
+            <input type="range" min={dataMin} max={dataMax} step={STEP} value={maxVal}
+                onChange={e => onMaxChange(Number(e.target.value))}
+                className="absolute top-1/2 left-0 w-full h-8 -translate-y-1/2 opacity-0 cursor-pointer z-10" />
+            {/* Visual knobs */}
+            {[minPct, maxPct].map((pct, i) => (
+                <div key={i}
+                    className="absolute top-1/2 w-5 h-5 rounded-full bg-white border-[2.5px] border-[#6B0F2B] shadow-md pointer-events-none z-[5]"
+                    style={{ left: `${pct}%`, transform: "translate(-50%, -50%)" }}
+                />
+            ))}
+        </div>
+    )
+}
+
+
+
