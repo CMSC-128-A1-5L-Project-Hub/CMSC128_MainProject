@@ -276,6 +276,8 @@ export default function Dashboard() {
         phoneNumber={primaryPhone}
         email={manager?.user?.email}
         showReplaceButton
+        accommodationId={accommodationId}
+        onManagerReplaced={() => queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] })}
       />
       <ApplicationPeriod
         initialStart={accommodation?.applicationStartDate}

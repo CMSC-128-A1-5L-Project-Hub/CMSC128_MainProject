@@ -1,5 +1,7 @@
 import React from "react";
 import { DateTime } from 'luxon';
+import Dropdown from "../ApplicationStatus/Dropdown";
+import SearchBar from "../SearchBar";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -63,7 +65,7 @@ const StatusBadge = ({
       style={{ background: cfg.bg, color: cfg.color }}
     >
       <span
-        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+        className="w-1.5 h-1.5 rounded-full flex-shrink-0 capitalize"
         style={{ background: cfg.dot }}
       />
       {displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
@@ -75,79 +77,79 @@ const SORT_OPTS = [
   { value: "latest", label: "Latest First" },
   { value: "earliest", label: "Earliest First" },
 ];
-//======================== DROPDOWN FULTER ========================
-const FilterSelect = ({
-  value,
-  onChange,
-  compact,
-  onToggle, 
-  sortOpen,
-  setSortOpen,
-}: {
-  value: "latest" | "earliest";
-  onChange: (v: string) => void;
-  compact?: boolean;
-  onToggle?: () => void;
-  sortOpen: boolean;
-  setSortOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
-  const selected = SORT_OPTS.find((o) => o.value === value)?.label;
+// //======================== DROPDOWN FULTER ========================
+// const FilterSelect = ({
+//   value,
+//   onChange,
+//   compact,
+//   onToggle, 
+//   sortOpen,
+//   setSortOpen,
+// }: {
+//   value: "latest" | "earliest";
+//   onChange: (v: string) => void;
+//   compact?: boolean;
+//   onToggle?: () => void;
+//   sortOpen: boolean;
+//   setSortOpen: React.Dispatch<React.SetStateAction<boolean>>;
+// }) => {
+//   const selected = SORT_OPTS.find((o) => o.value === value)?.label;
 
-  return (
-    <div className="relative">
-      <button
-        onClick={() => {
-          if (compact) {
-            onToggle?.();
-            setSortOpen(false);
-          } else {
-            setSortOpen((o) => !o);
-          }
-        }}
-          className={`flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition ${
-            compact ? "w-10 justify-center" : "w-[140px]"
-          }`}
-      >
-        {compact ? (
-          <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-          </svg>
-        ) : (
-          <>
-            <span className="flex flex-col text-left">
-              <span className="text-[9px] uppercase text-[#9A7080] font-bold leading-none">Sort By</span>
-              <span className="text-[#1A0008] font-medium text-xs">{selected}</span>
-            </span>
-            <svg className="ml-auto w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </>
-        )}
-      </button>
+//   return (
+//     <div className="relative">
+//       <button
+//         onClick={() => {
+//           if (compact) {
+//             onToggle?.();
+//             setSortOpen(false);
+//           } else {
+//             setSortOpen((o) => !o);
+//           }
+//         }}
+//           className={`flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition ${
+//             compact ? "w-10 justify-center" : "w-[140px]"
+//           }`}
+//       >
+//         {compact ? (
+//           <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+//           </svg>
+//         ) : (
+//           <>
+//             <span className="flex flex-col text-left">
+//               <span className="text-[9px] uppercase text-[#9A7080] font-bold leading-none">Sort By</span>
+//               <span className="text-[#1A0008] font-medium text-xs">{selected}</span>
+//             </span>
+//             <svg className="ml-auto w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+//             </svg>
+//           </>
+//         )}
+//       </button>
 
-      {sortOpen && (
-        <div className="absolute z-10 top-full mt-1 right-0 bg-white border border-[#E8D5DC] rounded-xl shadow-md overflow-hidden w-full">
-          {SORT_OPTS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => {
-                onChange(opt.value);
-                setSortOpen(false);
-              }}
-              className={`w-full text-left px-4 py-2 text-xs hover:bg-[#F5ECF0] transition ${
-                value === opt.value
-                  ? "text-[#6B0F2B] font-semibold"
-                  : "text-[#1A0008]"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+//       {sortOpen && (
+//         <div className="absolute z-10 top-full mt-1 right-0 bg-white border border-[#E8D5DC] rounded-xl shadow-md overflow-hidden w-full">
+//           {SORT_OPTS.map((opt) => (
+//             <button
+//               key={opt.value}
+//               onClick={() => {
+//                 onChange(opt.value);
+//                 setSortOpen(false);
+//               }}
+//               className={`w-full text-left px-4 py-2 text-xs hover:bg-[#F5ECF0] transition ${
+//                 value === opt.value
+//                   ? "text-[#6B0F2B] font-semibold"
+//                   : "text-[#1A0008]"
+//               }`}
+//             >
+//               {opt.label}
+//             </button>
+//           ))}
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
 
 // ======================== PAGE BUTTON ========================
 const PageBtn = ({
@@ -214,7 +216,7 @@ export default function ApplicationsTable({
   filtered: any[];
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  sortBy: "latest" | "earliest";
+  sortBy: string;
   onSortChange: (value: string) => void;
   search: string;
   onSearchChange: (value: string) => void;
@@ -255,16 +257,15 @@ const handleCloseSearch = () => {
 };
 
   // for pages 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const [rows, setRows] = React.useState(6); 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / rows));
   const safePage = Math.min(currentPage, totalPages);
-  const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
-  const paginated = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const startIndex = (safePage - 1) * rows;
+  const paginated = filtered.slice(startIndex, startIndex + rows);
   //pages to show 
   const getVisiblePages = () => {
-    const pages: number[] = [];
-
     if (totalPages <= 3) {
-      return pages;
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
     if (safePage === 1) return [1, 2, 3];
@@ -272,134 +273,119 @@ const handleCloseSearch = () => {
 
     return [safePage - 1, safePage, safePage + 1];
   };
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+    <div className="bg-white rounded-2xl h-full shadow-sm flex flex-col p-6 min-h-0">
     {/* HEADER */}
-      <div className="flex items-center justify-between gap-4 p-4 border-b">
-        <div className="shrink-0">
-          <h2 className="text-sm md:text-lg font-semibold tracking-tight text-black">
-            Application History
-          </h2>
-          <p className="text-xs text-gray-400">{filtered.length} total applications</p>
-        </div>
+      <div className="flex justify-between pb-2 lg:pb-4 gap-2 flex-wrap">
+      {/* Title */}
+      <div>
+        <h1 className="font-bold -mt-1">Application History</h1>
+        <p className="italic text-[11px] lg:text-[12px]">{filtered.length} total applications</p>
+      </div>
 
-       <div className="flex items-center gap-2 ml-auto">
-        {/* SORT BY */}
-        <FilterSelect
-          value={sortBy}
-          onChange={(v) => {
-            onSortChange(v);
-            setMode("both"); //minimizes search after choosing sort
-          }}
-          compact={isMobile && mode === "search"}
-          onToggle={() => {
-            setSortOpen(false);
-            setMode("both"); //minimizes search when sort is clicked
+      {/* Controls */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Items per page — desktop only */}
+        <div className="hidden lg:block">
+          <Dropdown
+            title="No. of Items"
+            items={[
+              { label: "5", href: "" },
+              { label: "10", href: "" },
+              { label: "15", href: "" },
+              { label: "20", href: "" },
+            ]}
+            direction="down"
+            widthClass="w-29 lg:w-32"
+            titleClass="text-[10px] lg:text-[11px]"
+            selectedClass="text-[12px] lg:text-[13px]"
+            onSelect={(label) => {
+              setRows(parseInt(label, 10));
+              setCurrentPage(1);
             }}
-          sortOpen={sortOpen}
-          setSortOpen={setSortOpen}
-          
-        />
-      {/* SEARCH ICON */}
-      <button
-      onClick={handleOpenSearch}
-      className={`${mode === "search" ? "hidden" : "flex"} sm:hidden items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition`}
-      aria-label="Open search"
-      >
-      <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-      </button>
-
-      {/* SEARCH INPUT */}
-      <div className={`relative ${mode === "search" ? "flex" : "hidden"} sm:flex w-full sm:w-[120px]`}>
-        <svg
-          className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A36F82]"
-          fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input
-          ref={searchInputRef}
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onFocus={() => {
-            setSortOpen(false);
-            setMode("search");
-          }}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full min-w-0 h-10 border border-[#E8D5DC] rounded-xl pl-8 pr-7 text-sm bg-white text-[#3D0718] placeholder:text-[#C7A7B3] focus:outline-none focus:bg-[#F5ECF0] transition-all duration-200"
-        />
-        {/* Close - mobile view  */}
-        <button
-          onClick={handleCloseSearch}
-          className="absolute right-2 top-1/2 -translate-y-1/2 sm:hidden text-[#9A7080] hover:text-[#6B0F2B]"
-          aria-label="Close search"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
+          />
         </div>
+
+        {/* Sort */}
+        <Dropdown
+          title="Sort by"
+          items={[
+            { label: "Date applied (Asc.)", href: "" },
+            { label: "Date applied (Desc.)", href: "" },
+            { label: "Status", href: "" },
+          ]}
+          direction="down"
+          widthClass="w-32 lg:w-44"
+          titleClass="text-[10px] lg:text-[11px]"
+          selectedClass="text-[12px] lg:text-[13px]"
+          onSelect={(label) => {
+            onSortChange(label);
+            setCurrentPage(1);
+          }}
+        />
+
+        {/* Search */}
+        <SearchBar
+          value={search}
+          onChange={onSearchChange}
+          onPageReset={() => setCurrentPage(1)}
+        />
       </div>
+    </div>
 
-      <div className="w-full overflow-x-auto pb-2">
-      
-       <table className="min-w-[900px] w-full text-sm table-fixed">
-          <thead>
-          <tr className="border-b border-[#6B0F2B]/10">
-            <th className="px-4 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-              Student
-            </th>
+      <div className="w-full overflow-x-auto h-full">
+        <div className={`${filtered.length === 0 ? "flex" : "hidden"} flex-col justify-center items-center h-full text-center`}>
+            <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+            <p className="text-[#9A7080]/60 text-sm mt-1">When somebody submits an application, it will appear here</p>
+        </div>
+        <div className="w-full overflow-x-auto h-full">
+          <div className="min-w-[900px]">
+            {/* Header */}
+            <div className="grid grid-cols-12 border-b-2 border-[#6B0F2B]/5">
+              {[
+                { label: "Student", span: 3 },
+                { label: "Date Applied", span: 2 },
+                { label: "Time", span: 2 },
+                { label: "Facility", span: 2 },
+                { label: "Status", span: 2 },
+                { label: "Action", span: 1 },
+              ].map(({ label, span }) => (
+                <p
+                  key={label}
+                  className={`col-span-${span} px-2 py-3 text-[#9A7080] text-[11px] font-bold uppercase tracking-widest whitespace-nowrap`}
+                >
+                  {label}
+                </p>
+              ))}
+            </div>
 
-            <th className="px-2 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-              Date Applied
-            </th>
-
-            <th className="px-5 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-              Time
-            </th>
-
-            <th className="px-4 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-              Facility
-            </th>
-
-            <th className="px-7 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-              Status
-            </th>
-
-            <th className="px-2 py-1 p-1 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-              Action
-            </th>
-          </tr>
-          </thead>
-
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={6} className="text-center py-16">
-                  <div className="flex flex-col items-center gap-2">
+            {/* Rows */}
+            <div className="flex flex-col divide-y divide-[#F5ECF0]">
+              {isLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center gap-2">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: clr.mid }} />
+                  <p className="text-sm text-[#9A7080]">Fetching applications...</p>
+                </div>
+              ) : isError ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                  <p className="text-sm text-red-500 font-medium">Fetching data failed</p>
+                  <button onClick={() => refetch()} className="mt-2 text-xs font-semibold text-[#9E2040] hover:underline">
+                    TRY AGAIN
+                  </button>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                  <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+                  <p className="text-[#9A7080]/60 text-sm mt-1">When somebody submits an application, it will appear here</p>
+                </div>
+              ) : (
+                paginated.map((app) => {
+                  const initial = app.student.user.fname.charAt(0).toUpperCase();
+                  return (
                     <div
-                      className="animate-spin rounded-full h-8 w-8 border-b-2"
-                      style={{ borderColor: clr.mid }}
-                    />
-                    <p className="text-gray-400 text-sm">Fetching applications...</p>
-                  </div>
-                </td>
-              </tr>
-            ) : isError ? (
-              <tr>
-                <td colSpan={6} className="py-16">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <p className="text-sm text-red-500 font-medium">
-                      Fetching data failed
-                    </p>
-                    <button
-                      onClick={() => refetch()}
-                      className="mt-2 text-xs font-semibold text-[#9E2040] hover:underline"
+                      key={`${app.id}-${startIndex}`}
+                      className="grid grid-cols-12 items-center py-3 hover:bg-[#FFF9FA] transition-colors"
                     >
                       TRY AGAIN
                     </button>
@@ -427,7 +413,7 @@ const handleCloseSearch = () => {
                       <div className="flex items-center gap-3">
                         <div
                           aria-hidden="true"
-                          className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                          className="hidden lg:flex w-9 h-9 rounded-xl items-center justify-center text-white font-bold text-sm flex-shrink-0"
                           style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
                         >
                           {app?.student?.user?.fname?.charAt(0)?.toUpperCase() || 'U'}
@@ -507,28 +493,95 @@ const handleCloseSearch = () => {
         </table>
       </div>
 
-      <div className="flex items-center justify-between px-4 py-3 border-t">
-        <p className="text-xs text-gray-400">
-          {filtered.length === 0
-            ? "No results"
-            : `Showing ${startIndex + 1}–${Math.min(
-                startIndex + ITEMS_PER_PAGE,
-                filtered.length
-              )} of ${filtered.length}`}
-        </p>
-        <div className="flex items-center gap-1.5">
-          {getVisiblePages().map((page) => (
-            <PageBtn
-              key={page}
-              active={safePage === page}
-              onClick={() => setCurrentPage(page)}
-              clr={clr}
-            >
-              {page}
-            </PageBtn>
-          ))}
+
+      
+      <div className={`${filtered.length === 0 ? "hidden" : "flex"} flex-col mt-auto`}>
+        <hr className=" border-[#6B0F2B]/5 border-t-2" />
+         <div className="flex items-center justify-between px-4 py-3">
+          <p className="text-xs text-[#9A7080] mt-auto">
+            {filtered.length === 0
+              ? "No results"
+              : `Showing ${startIndex + 1}–${Math.min(startIndex + rows, filtered.length)} of ${filtered.length}`}
+          </p>
+          <div className="flex items-center gap-1.5">
+            {getVisiblePages().map((page) => (
+              <PageBtn
+                key={page}
+                active={safePage === page}
+                onClick={() => setCurrentPage(page)}
+                clr={clr}
+              >
+                {page}
+              </PageBtn>
+            ))}
+          </div>
         </div>
       </div>
+      
     </div>
   );
 }
+
+
+
+// <div className="flex items-center gap-2 ml-auto">
+//         {/* SORT BY */}
+//         <FilterSelect
+//           value={sortBy}
+//           onChange={(v) => {
+//             onSortChange(v);
+//             setMode("both"); //minimizes search after choosing sort
+//           }}
+//           compact={isMobile && mode === "search"}
+//           onToggle={() => {
+//             setSortOpen(false);
+//             setMode("both"); //minimizes search when sort is clicked
+//             }}
+//           sortOpen={sortOpen}
+//           setSortOpen={setSortOpen}
+          
+//         />
+//       {/* SEARCH ICON */}
+//       <button
+//       onClick={handleOpenSearch}
+//       className={`${mode === "search" ? "hidden" : "flex"} sm:hidden items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition`}
+//       aria-label="Open search"
+//       >
+//       <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
+//       </svg>
+//       </button>
+
+//       {/* SEARCH INPUT */}
+//       <div className={`relative ${mode === "search" ? "flex" : "hidden"} sm:flex w-full sm:w-[120px]`}>
+//         <svg
+//           className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A36F82]"
+//           fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"
+//         >
+//           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
+//         </svg>
+//         <input
+//           ref={searchInputRef}
+//           type="text"
+//           placeholder="Search..."
+//           value={search}
+//           onFocus={() => {
+//             setSortOpen(false);
+//             setMode("search");
+//           }}
+//           onChange={(e) => onSearchChange(e.target.value)}
+//           className="w-full min-w-0 h-10 border border-[#E8D5DC] rounded-xl pl-8 pr-7 text-sm bg-white text-[#3D0718] placeholder:text-[#C7A7B3] focus:outline-none focus:bg-[#F5ECF0] transition-all duration-200"
+//         />
+//         {/* Close - mobile view  */}
+//         <button
+//           onClick={handleCloseSearch}
+//           className="absolute right-2 top-1/2 -translate-y-1/2 sm:hidden text-[#9A7080] hover:text-[#6B0F2B]"
+//           aria-label="Close search"
+//         >
+//           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+//             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+//           </svg>
+//         </button>
+//       </div>
+
+//         </div>

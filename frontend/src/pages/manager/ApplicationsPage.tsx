@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import ApplicationsTable from "../../components/applications/ApplicationsTable";
 import ApplicationModals from "../../components/applications/ApplicationModals";
 import CustomHeader from '../../components/CustomHeader';
+import StatsBanner from "@/components/ApplicationStatus/StatsBanner";
 
 const CLR = {
   dark: "#3D0718",
@@ -234,7 +235,7 @@ export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activePage, setActivePage] = useState("applications");
-  const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");
+  const [sortBy, setSortBy] = useState("Date applied (Desc.)");
   const [currentPage, setCurrentPage] = useState(1);
 
   const [selectedApp, setSelectedApp] = useState<ApplicationResponse | null>(null);
@@ -286,9 +287,10 @@ export default function ApplicationsPage() {
     [applications]
   );
 
+  
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-
     const res = applications.filter((a: ApplicationResponse) => {
       const fullName = `${a.student.user.fname} ${a.student.user.lname}`.toLowerCase();
       return (
@@ -301,10 +303,13 @@ export default function ApplicationsPage() {
 
     return res.sort((a: ApplicationResponse, b: ApplicationResponse) => {
       const diff = new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime();
-      return sortBy === "latest" ? -diff : diff;
+      if (sortBy === "Date applied (Asc.)") return diff;
+      if (sortBy === "Date applied (Desc.)") return -diff;
+      if (sortBy === "Status") return a.applicationStatus.localeCompare(b.applicationStatus);
+      return -diff;
     });
   }, [search, sortBy, applications]);
-
+  
   const getAppStatus = (app: ApplicationResponse): Status => {
     return appStatuses[app.id] ?? app.applicationStatus;
   };
@@ -414,6 +419,34 @@ export default function ApplicationsPage() {
     },
   ];
 
+    //   const stats2 = [
+    //     { label: 'approved', count: counts.approved || 0, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
+
+    //     { label: 'pending', count: counts.pending || 0, from: '#C9973A', to: '#E8C37A', bg: '#FEF8EE', text: '#C9973A' },
+
+    //     { label: 'waitlisted', count: counts.waitlisted || 0, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
+
+    //     { label: 'under review', count: counts.under_review || 0, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
+
+    //     { label: 'cancelled', count: counts.cancelled || 0, from: '#AA2661', to: '#FDCAE0', bg: '#FAF0F7', text: '#AE2F67' },
+
+    //     { label: 'rejected', count: counts.rejected || 0, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
+    // ];
+
+    const stats2 = [
+        { label: 'approved', count: counts.approved || 0, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
+
+        { label: 'pending', count: counts.pending || 0, from: '#C9973A', to: '#E8C37A', bg: '#FEF8EE', text: '#C9973A' },
+
+        { label: 'waitlisted', count: counts.waitlisted || 0, from: '#3A6AB7', to: '#7cd3f2', bg: '#F4F0FA', text: '#3A6AB7' },
+
+        { label: 'under review', count: counts.under_review || 0, from: '#6B3AB7', to: '#9B6AE7', bg: '#F0F7F3', text: '#6B3AB7' },
+
+        { label: 'cancelled', count: counts.cancelled || 0, from: '#AA2661', to: '#FDCAE0', bg: '#FAF0F7', text: '#AE2F67' },
+
+        { label: 'rejected', count: counts.rejected || 0, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
+    ];
+
   return (
    <div className="flex h-screen overflow-hidden bg-[#F6F2F4]">
       <Sidebar 
@@ -433,18 +466,20 @@ export default function ApplicationsPage() {
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <CustomHeader title="Applications" />
 
-          <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
-            <div className="mb-6">
+          <main className="flex flex-col flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 gap-6 sm:p-6">
+            <div>
               <HeroBanner
                 greeting="Good Day"
                 name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
                 title="Check your applicants"
                 subtitle="We make it easy for you to track the accommodation applications you manage."
-                type="full"
+                type="mini"
               />
             </div>
 
-        <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
+        <StatsBanner stats={stats2} total={total} cols={6}/>
+
+        {/* <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
             {stats.map((s) => {
               const pct = total ? Math.round((s.value / total) * 100) : 0;
@@ -482,7 +517,7 @@ export default function ApplicationsPage() {
               );
             })}
           </div>
-        </div>
+        </div> */}
       
       
 

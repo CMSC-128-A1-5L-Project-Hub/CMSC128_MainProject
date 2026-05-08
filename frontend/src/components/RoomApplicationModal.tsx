@@ -307,7 +307,7 @@ export default function RoomApplicationModal({
                         <div className="flex flex-col md:flex-row gap-6 items-start">
                             <div className="w-full md:w-[320px] h-[180px] rounded-3xl overflow-hidden shadow-sm flex-shrink-0">
                                 <img
-                                    src={accommodation?.images?.[0]?.image_path || "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&q=80&w=400"}
+                                    src={accommodation?.imageUrls?.[0] ?? accommodation?.primaryImageUrl ?? "/default-accommodation.png"}
                                     alt={accommodation?.accommodationName}
                                     className="w-full h-full object-cover"
                                 />
@@ -532,9 +532,9 @@ export default function RoomApplicationModal({
                             </Card>
 
                             <div className="flex flex-col items-end gap-2 pt-4">
-                                {(uploadedFiles.length < requiredDocsCount || !moveInDate || !moveOutDate) && (
+                                {(uploadedFiles.length < requiredDocsCount || (isTransient && (!moveInDate || !moveOutDate))) && (
                                     <p className="text-[10px] font-bold text-[#6B0F2B]">
-                                        {!moveInDate || !moveOutDate
+                                        {isTransient && (!moveInDate || !moveOutDate)
                                             ? "Please select stay dates to proceed."
                                             : `Please upload all ${requiredDocsCount} required documents to proceed.`}
                                     </p>
@@ -544,7 +544,7 @@ export default function RoomApplicationModal({
                                     size="lg"
                                     className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
                                     onClick={() => setStep("verify")}
-                                    disabled={uploadedFiles.length < requiredDocsCount || !moveInDate || !moveOutDate}
+                                    disabled={uploadedFiles.length < requiredDocsCount || (isTransient && (!moveInDate || !moveOutDate))}
                                 >
                                     Submit
                                 </Button>
