@@ -223,7 +223,7 @@ export default function Waitlist() {
         isError: isErrorList,
         refetch,
     } = useQuery({
-        queryKey: ["list"],
+        queryKey: ["waitlisted"],
         queryFn: async () => {
         const res = await api.get("/applications/view-all-waitlisted");
         return res.data;
@@ -586,88 +586,76 @@ export default function Waitlist() {
                         key={h}
                         className={`text-[#9A7080] text-xs font-bold tracking-widest uppercase py-2 ${i === 0 ? "text-left pl-1" : "text-center"}`}
                     >
-                        {h}
-                    </th>
-                    ))}
-                </tr>
-                </thead>
-                <tbody style={{ borderTop: "none" }}>
-                {isLoadingList ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={`skeleton-${i}`} className="animate-pulse">
-                        <td className="py-3 pl-1">
-                        <div className="flex items-center gap-2">
-                            <div className="w-9 h-9 rounded-xl bg-gray-200" />
-                            <div className="h-4 w-20 bg-gray-200 rounded" />
-                        </div>
-                        </td>
-                        <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
-                        <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
-                        <td className="py-3 text-center"><div className="h-4 w-20 bg-gray-100 rounded mx-auto" /></td>
-                        <td className="py-3 text-center"><div className="h-4 w-16 bg-gray-100 rounded mx-auto" /></td>
-                        <td className="py-3 text-center"><div className="h-8 w-16 bg-gray-200 rounded mx-auto" /></td>
-                    </tr>
-                    ))
-                ) : isErrorList ? (
-                    <tr>
-                    <td colSpan={6} className="py-10 text-center">
-                        <p className="text-sm text-red-500 mb-2">Failed to load applications.</p>
-                        <Button size="sm" onClick={() => refetch()}>Retry</Button>
-                    </td>
-                    </tr>
-                ) : paginated.length > 0 ? (
-                    paginated.map((record, i) => (
-                    <tr key={record.id || i} className="hover:bg-[#FFF9FA] transition-colors">
-                        <td className="py-3 pl-1">
-                        <div className="flex items-center gap-2">
-                            <div
-                                className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                                style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                                >
-                                {record.student.user.fname[0]}
+                        TRY AGAIN
+                    </button>
+                    </div>
+            ) : paginated.length > 0 ? (
+                /* DATA STATE */
+                paginated.map((record, i) => (
+                    <div key={record.id || i} className="grid grid-cols-12 items-center py-3 hover:bg-[#FFF9FA] transition-colors">
+                        
+                        {/* STUDENT INFO */}
+                        <div className="col-span-2 px-4 flex items-center gap-2">
+                            <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                                style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                                {record?.student?.user?.fname ? 
+                                    getInitials(record.student.user.fname) :
+                                    "U"
+                                }
                             </div>
                             <div>
                                 <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
-                                    {record.student.user.fname} {record.student.user.lname}
+                                    {record?.student?.user?.fname && record?.student?.user?.lname ?
+                                        `${record.student.user.fname} ${record.student.user.lname}` :
+                                        "Loading name..."
+                                    }
                                 </p>
                                 <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
                             </div>
                         </div>
-                        </td>
-                        <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                        {new Date(record.applicationDate).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
-                        {DateTime.fromISO(record.applicationDate).setZone('utc', { keepLocalTime: true }).toFormat('h:mm a')}
-                        </td>
-                        <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                        {record.assignment?.room?.roomBuilding || "N/A"}
-                        </td>
-                        <td className="py-3 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
-                        {record.assignment?.room?.roomType || record.applicationRoomType}
-                        </td>
-                        <td className="py-3 text-center">
-                        <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
-                            View
-                        </Button>
-                        </td>
-                    </tr>
-                    ))
-                ) : (
-                    <div></div>
-                )}
-                </tbody>
-            </table>
-            {/* FOOTER */}
-            <div className={`${waitlistRecords.length === 0 ? "hidden" : "flex flex-col"} mt-auto`}>
-                <hr className=" border-[#6B0F2B]/5 border-t-2" />
-                <div className="flex items-center justify-between mt-3 ">
-                    <p className="text-xs text-[#9A7080]">
-                    {filtered.length === 0
-                        ? ""
-                        : `Showing ${startIndex + 1}
-                            –${Math.min(startIndex + itemsPerPage, filtered.length)} 
-                            of ${filtered.length}`}
+
+                        {/* DATE SUBMITTED */}
+                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                            {!record?.applicationDate ?
+                                "Loading date..." :
+                                isNaN(new Date(record.applicationDate).getTime()) ?
+                                    "TBA" :
+                                    new Date(record.applicationDate).toLocaleDateString()
+                            }
+                        </p>
+
+                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
+                            {!record?.applicationDate ?
+                                "Loading Time..." :
+                                isNaN(DateTime.fromISO(record.applicationDate).toMillis()) ?
+                                    "TBA" :
+                                    DateTime.fromISO(record.applicationDate)
+                                        .setZone('utc', { keepLocalTime: true })
+                                        .toFormat('h:mm a')
+                            }
+                        </p>
+
+                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                            {record.assignment?.room?.roomBuilding || "N/A"}
+                        </p>
+
+                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
+                            {record.assignment?.room?.roomType || record.applicationRoomType || "N/A"}
+                        </p>
+
+                        {/* ACTION */}
+                        <div className="col-span-2 flex justify-center">
+                            <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
+                                View
+                            </Button>
+                        </div>
+                    </div>
+                ))
+            ) : (
+                /* EMPTY STATE */
+                <div className="py-12 flex items-center justify-center text-center">
+                    <p className="text-base italic text-gray-400">
+                        Nothing to see here
                     </p>
                     <div className="flex items-center justify-center gap-1">
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (

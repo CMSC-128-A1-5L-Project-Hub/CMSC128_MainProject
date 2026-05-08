@@ -46,7 +46,18 @@ const StatusBadge = ({
   status: any;
   statusConfig: Record<string, { color: string; bg: string; dot: string }>;
 }) => {
-  const cfg = statusConfig[status];
+  const fallbackConfig = {
+    color: "#6B7280",
+    bg: "#F3F4F6",
+    dot: "#9CA3AF",
+  };
+
+  const cfg = statusConfig?.[status] ?? fallbackConfig;
+
+  const displayStatus =
+    typeof status === "string" && status.length > 0
+      ? status.charAt(0).toUpperCase() + status.slice(1)
+      : "Loading...";
 
   return (
     <span
@@ -57,7 +68,7 @@ const StatusBadge = ({
         className="w-1.5 h-1.5 rounded-full flex-shrink-0 capitalize"
         style={{ background: cfg.dot }}
       />
-      {status.replaceAll("_", " ").charAt(0).toUpperCase() + status.slice(1)}
+      {displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
     </span>
   );
 };
@@ -376,59 +387,110 @@ const handleCloseSearch = () => {
                       key={`${app.id}-${startIndex}`}
                       className="grid grid-cols-12 items-center py-3 hover:bg-[#FFF9FA] transition-colors"
                     >
-                      {/* Student */}
-                      <div className="col-span-3 px-2 flex items-center gap-2">
+                      TRY AGAIN
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              // - no data from DB
+              // - no search results
+              <tr>
+                <td colSpan={6} className="py-16 text-center">
+                  <p className="text-base italic text-gray-400">
+                    Nothing to see here
+                  </p>
+                </td>
+              </tr>
+            ) : (
+              paginated.map((app) => {
+                return (
+                  <tr
+                    key={`${app.id}-${startIndex}`}
+                    className="border-t hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
                         <div
                           aria-hidden="true"
                           className="hidden lg:flex w-9 h-9 rounded-xl items-center justify-center text-white font-bold text-sm flex-shrink-0"
                           style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
                         >
-                          {initial}
+                          {app?.student?.user?.fname?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
-                        <span className="text-[13px] lg:text-sm font-semibold">
-                          {app.student.user.fname} {app.student.user.lname}
-                        </span>
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">
+                            {app?.student?.user?.fname && app?.student?.user?.lname ?
+                            `${app.student.user.fname} ${app.student.user.lname}` :
+                              "Loading name..."}
+                          </p>
+                        </div>
                       </div>
+                    </td>
 
-                      {/* Date */}
-                      <div className="col-span-2 px-2">
-                        <span className="block text-[12px] lg:text-[13px]">{formatDate(app.applicationDate)}</span>
-                        <span className="block text-[11px] text-[#9A7080]">{getDaysAgo(app.applicationDate)} days ago</span>
-                      </div>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                      {app?.applicationDate ? (
+                        <>
+                          <p>{formatDate(app.applicationDate)}</p>
+                          <p className="text-xs text-gray-400">
+                            {getDaysAgo(app.applicationDate)} days ago
+                          </p>
+                        </>
+                      ) : (
+                        <p>Loading date...</p>
+                      )}
+                    </td>
 
-                      {/* Time */}
-                      <div className="col-span-2 px-2">
-                        <span className="block text-[12px] lg:text-[13px] text-gray-500">{formatTime(app.applicationDate)}</span>
-                      </div>
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                      {app?.applicationDate ?
+                        formatTime(app.applicationDate) :
+                        'Loading Time...'
+                      }
+                    </td>
 
-                      {/* Facility */}
-                      <div className="col-span-2 px-2">
-                        <span className="block text-[13px] lg:text-sm font-semibold capitalize">{app.accommodation.accommodationName}</span>
-                        <span className="block text-[#9A7080] text-[12px] capitalize">{app.applicationRoomType}</span>
-                      </div>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {app?.accommodation ? (
+                        <>
+                          <p className="font-medium">
+                            {app.accommodation.accommodationName}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {app.applicationRoomType}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="font-medium text-gray-400">
+                          Loading facility...
+                        </p>
+                      )}
+                    </td>
 
-                      {/* Status */}
-                      <div className="col-span-2 px-2">
-                        <StatusBadge status={getAppStatus(app)} statusConfig={statusConfig} />
-                      </div>
+                    <td className="px-4 py-3">
+                      <StatusBadge
+                        status={getAppStatus(app)}
+                        statusConfig={statusConfig}
+                      />
+                    </td>
 
-                      {/* Action */}
-                      <div className="col-span-1 px-2">
-                        <button
-                          onClick={() => onView(app)}
-                          className="transition-transform duration-150 hover:-translate-y-px hover:scale-105 active:scale-95 text-sm px-4 py-1.5 rounded-xl font-medium"
-                          style={{ color: clr.mid, background: "#F5ECF0", border: `1px solid ${clr.mid}20` }}
-                        >
-                          View
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => onView(app)}
+                        className="text-sm px-4 py-1.5 rounded-xl font-medium transition-colors hover:opacity-80"
+                        style={{
+                          color: clr.mid,
+                          background: "#F5ECF0",
+                          border: `1px solid ${clr.mid}20`,
+                        }}
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
 
 

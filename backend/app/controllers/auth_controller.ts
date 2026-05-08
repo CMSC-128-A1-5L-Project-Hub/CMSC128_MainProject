@@ -8,6 +8,7 @@ import LogService from '#services/log_service'
 import User from '#models/user'
 import { signFileUrl } from '#services/image_service'
 import PhoneNumber from '#models/phone_number'
+import Accommodation from '#models/accommodation'
 
 @inject()
 export default class AuthController {
@@ -25,10 +26,21 @@ export default class AuthController {
 
     const role = request.input('role', 'student') // Default to student
 
-    // Find a user with this role, or just pick the first one available
-    const user = await User.query().where('role', role).first()
+    let user
+
+    if (role == 'manager'){
+      const accomodation = await Accommodation.query().whereNotNull('managerId').first()
+      // console.log(accomodation)
+      user = await User.query().where('id', accomodation!.managerId!).first()
+    }else{
+      // Find a user with this role, or just pick the first one available
+      user = await User.query().where('role', role).first()
+    }
+
+    // user = await User.query().where('role', role).first()
 
     if (!user) {
+      
       return response.status(404).send(`No user found with role: ${role}. Please seed your DB.`)
     }
 

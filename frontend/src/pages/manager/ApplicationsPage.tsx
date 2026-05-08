@@ -265,7 +265,7 @@ export default function ApplicationsPage() {
     isError: isErrorList,
     refetch,
   } = useQuery({
-    queryKey: ["list"],
+    queryKey: ["applicationList"],
     queryFn: async () => {
       const res = await api.get("/applications/view-applicants");
       return res.data;

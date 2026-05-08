@@ -313,21 +313,6 @@ export default function RoomAssignment() {
   // const [sortOpen, setSortOpen] = useState(false)
   const [search, setSearch] = useState("")
 
-  // Loading
-  if (isLoading) {
-    return (
-      <div className="flex flex-col h-full w-full items-center justify-center text-center">
-          <div
-              className="animate-spin rounded-full h-8 w-8 border-b-2"
-              style={{ borderColor: "#9E2040" }}
-              />
-          <p className="text-sm text-[#9A7080] mt-2">
-          Fetching room assignments...
-          </p>
-      </div>
-    )
-  }
-
   // Transform approved apps and merge with assignments
   const transformedApproved = approvedApps.map(transformApp)
   const allAssignments: AssignmentItem[] = transformedApproved.map((app) =>
@@ -376,6 +361,15 @@ export default function RoomAssignment() {
   // const totalPages = Math.ceil(sortedAssignments.length / ASSIGNMENTS_PER_PAGE)
   // const startIndex = (currentPage - 1) * ASSIGNMENTS_PER_PAGE
   // const paginatedAssignments = sortedAssignments.slice(startIndex, startIndex + ASSIGNMENTS_PER_PAGE)
+
+  // Loading
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p>Loading…</p>
+      </div>
+    )
+  }
 
   // pagination calc
   const totalPages = Math.ceil(sortedAssignments.length / itemsPerPage)

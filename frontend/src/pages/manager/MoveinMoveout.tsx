@@ -92,7 +92,9 @@ export interface AssignmentResponse {
   room: Room 
 }
 
-const diffFromNow = (isoDate: string | DateTime): number => {
+const diffFromNow = (isoDate: string | DateTime | undefined | null): number => {
+  if (!isoDate) return 0
+
   const target = typeof isoDate === 'string' 
     ? DateTime.fromISO(isoDate) 
     : isoDate
@@ -137,11 +139,12 @@ export default function MoveinMoveout() {
             isError: isErrorList,
             refetch,
         } = useQuery({
-            queryKey: ["list"],
+            queryKey: ["moveInMoveOutlist"],
             queryFn: async () => {
             const res = await api.get("/view-all-assignments");
             return res.data;
             },
+            placeholderData: (prev) => prev,
         });
 
     //TABLE 
@@ -166,6 +169,9 @@ export default function MoveinMoveout() {
         }
 
         //FILTER AND SEARCH
+
+        const safeRecords = records ?? []
+
         const filtered = useMemo(() => {
             const q = search.toLowerCase()
             return records.filter(r => {
@@ -181,7 +187,7 @@ export default function MoveinMoveout() {
                     r.room.roomType.toLowerCase().includes(q)
                 return matchesFilter && matchesSearch
             })
-        }, [records, search, filter])
+        }, [safeRecords, search, filter])
 
         const sorted = useMemo(() => {
             return [...filtered].sort((a, b) => {
@@ -334,50 +340,88 @@ export default function MoveinMoveout() {
                                     <td className="py-3 pl-3">
                                         <div className="flex items-center gap-3">
                                         <div
-                                            className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                                            style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                                            >
-                                            {record.student.user.fname[0]}
+                                        className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
+                                        style={{
+                                            background:
+                                            "linear-gradient(135deg, #6B0F2B, #9E2040)",
+                                        }}
+                                        >
+                                        {record?.student?.user?.lname ?
+                                            getInitial(record.student.user.lname) || "U" :
+                                            "U"
+                                        }
                                         </div>
                                         <p className="font-semibold text-sm text-[#1A0008]">
-                                            {record.student.user.fname} {record.student.user.lname}
+                                        {record?.student?.user?.fname && record?.student?.user?.lname ?
+                                            `${record.student.user.fname} ${record.student.user.lname}` :
+                                            "Loading name..."
+                                        }
                                         </p>
                                         </div>
                                     </td>
 
-                                    {/* Room */}
-                                    <td className="py-3 pl-3">
-                                        <div className="leading-none">
-                                            <span className="text-sm text-[#1A0008] block">{record.room.roomNumber}</span>
-                                            <span className="text-xs text-[#9A7080]">{record.room.roomBuilding}</span>
-                                        </div>
+                                    {/* ROOM */}
+                                    <td className="px-4 py-3">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm text-[#1A0008]">
+                                        {record?.room?.roomNumber ?? "Failed to Fetch"}
+                                        </span>
+
+                                        <span className="text-xs text-[#9A7080]">
+                                        {record?.room?.roomBuilding ?? "Failed to Fetch"}
+                                        </span>
+                                    </div>
                                     </td>
 
-                                    {/* Room Type */}
-                                    <td className="py-3 pl-3">
-                                        <div className="flex flex-col leading-none">
-                                            <span className="text-sm text-[#1A0008] capitalize block">
-                                            {record.room.roomStayType.replace('_', ' ')}
-                                            </span>
-                                            <span className="text-xs text-[#9A7080] capitalize">{record.room.roomType}</span>
-                                        </div>
-                                        
+                                    {/* ROOM TYPE */}
+                                    <td className="px-4 py-3">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm text-[#1A0008] capitalize">
+                                        {record?.room?.roomStayType ?
+                                            record.room.roomStayType.replace("_", " ") :
+                                            "Failed to Fetch"
+                                        }
+                                        </span>
+
+                                        <span className="text-xs text-[#9A7080] capitalize">
+                                        {record?.room?.roomType ?? "Failed to Fetch"}
+                                        </span>
+                                    </div>
                                     </td>
 
-                                    {/* Date */}
-                                    <td className="py-3 pl-3">
-                                        <div className="leading-none">
-                                            <span className="text-sm text-[#1A0008] block">
-                                            {isMoveIn ? record.moveIn.toLocaleString() : record.expectedMoveOut.toLocaleString()}
-                                            </span>
-                                            <span className={`text-xs ${isMoveIn ? "text-[#9A7080]" : "text-[#9E2040]"}`}>
-                                            {isMoveIn
-                                                ? `${Math.abs(diffMoveIn)} days until move-in`
-                                                : diffMoveOut < 0
-                                                ? `${Math.abs(diffMoveOut)} days until move-out`
-                                                : `${Math.abs(diffMoveOut)} days since move-out`}
-                                            </span>
-                                        </div>
+                                    {/* DATE */}
+                                    <td className="px-4 py-3">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm text-[#1A0008]">
+                                        {isMoveIn ?
+                                            (record?.moveIn ?
+                                            record.moveIn.toLocaleString() :
+                                            "Failed to Fetch")
+                                                : 
+                                            (record?.expectedMoveOut ?
+                                            record.expectedMoveOut.toLocaleString() :
+                                            "Failed to Fetch")
+                                        }
+                                        </span>
+
+                                        <span
+                                        className={`text-xs ${
+                                            isMoveIn
+                                            ? "text-[#9A7080]"
+                                            : "text-[#9E2040]"
+                                        }`}
+                                        >
+                                        {isMoveIn
+                                            ? `${Math.abs(diffMoveIn)} days until move-in`
+                                            : `${
+                                                diffMoveOut < 0
+                                                ? Math.abs(diffMoveOut) +
+                                                    " days until move-out"
+                                                : Math.abs(diffMoveOut) +
+                                                    " days since move-out"
+                                            }`}
+                                        </span>
+                                    </div>
                                     </td>
 
                                     {/* Type */}
