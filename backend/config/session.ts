@@ -50,7 +50,6 @@ const sessionConfig = defineConfig({
      * Changed sameSite to non if app is in production
      */
     sameSite: app.inProduction ? 'none' : 'lax',
-    partitioned: true, // For firefox
   },
 
   /**
