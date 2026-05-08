@@ -587,8 +587,6 @@ export default function Waitlist() {
                         className={`text-[#9A7080] text-xs font-bold tracking-widest uppercase py-2 ${i === 0 ? "text-left pl-1" : "text-center"}`}
                     >
                         TRY AGAIN
-                    </button>
-                    </div>
             ) : paginated.length > 0 ? (
                 /* DATA STATE */
                 paginated.map((record, i) => (
