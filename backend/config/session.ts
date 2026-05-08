@@ -35,6 +35,8 @@ const sessionConfig = defineConfig({
      */
     path: '/',
 
+    partitioned: true,
+
     /**
      * Prevent JavaScript access to the cookie in the browser.
      */
