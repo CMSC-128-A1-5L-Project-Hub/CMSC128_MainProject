@@ -36,6 +36,7 @@ import LandlordProfile from './pages/landlord/LandlordProfile'
 import Applications from "./pages/landlord/Applications"
 import StudentVerificationsPage from "./pages/admin/StudentVerificationsPage"
 import LandlordVerificationsPage from "./pages/admin/LandlordVerificationsPage"
+import UbleLoader from "./pages/shared/LoadingPage"
 
 function FullLandingPage() {
   return (
@@ -59,6 +60,7 @@ function App() {
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/success" element={<AuthSuccess/>}/>
         <Route path="/map" element={<InteractiveMap />} />
+        <Route path="/loader" element = {<UbleLoader />} />
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
