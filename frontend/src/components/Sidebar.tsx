@@ -164,9 +164,10 @@ function getActiveId(pathname: string, role: string): string {
       if (pathname.startsWith("/landlord/profile")) return "account";
       return "dashboard";
 
-    case "landlord-manage":
-      if (pathname.startsWith("/landlord/profile")) return "account";
-      return "";
+      case "landlord-manage":
+        if (pathname.startsWith("/landlord/dashboard")) return "dashboard";
+        if (pathname.startsWith("/landlord/profile")) return "account";
+        return "";
 
     default:
       return "dashboard";
@@ -423,7 +424,12 @@ const DesktopSidebar = ({
             <button
               onClick={() => onNavigate(item.path)}
               aria-label={item.label}
-              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 text-white/75 hover:bg-white/10 hover:text-white"
+              className={clsx(
+              "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200",
+              active === item.id
+                ? "bg-white/20 text-white shadow-[0_2px_6px_rgba(0,0,0,0.4)]"
+                : "text-white/75 hover:bg-white/10 hover:text-white"
+            )}
             >
               <IconWrapper>{item.icon}</IconWrapper>
             </button>
@@ -491,7 +497,9 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         ];
 
       case "landlord-manage":
-        return [];
+        return [
+          { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/landlord/dashboard" },
+        ];
 
       default:
         return [];
