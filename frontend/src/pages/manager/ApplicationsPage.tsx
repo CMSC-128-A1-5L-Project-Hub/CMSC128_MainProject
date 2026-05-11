@@ -678,7 +678,7 @@ export default function ApplicationsPage() {
               <div>
                 <hr className="border-[#6B0F2B]/10 border-t" />
                 <div className="flex items-center justify-between mt-3">
-                  <p className="text-xs text-[#9A7080]">
+                  <p className="text-xs my-auto text-[#9A7080]">
                     {`Showing ${startIndex + 1}–${Math.min(startIndex + rows, localFiltered.length)} of ${localFiltered.length}`}
                   </p>
                   <Pagination

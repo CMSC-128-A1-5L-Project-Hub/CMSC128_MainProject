@@ -965,7 +965,7 @@ if (isUserLoading) {
                     {["DORM", "TYPE", "APPLIED", "LOCATION", "STATUS", "ACTION"].map((h) => (
                       <th
                         key={h}
-                        className="px-4 sm:px-6 py-2 text-left text-[#9A7080] text-[12px] tracking-widest font-bold uppercase whitespace-nowrap"
+                        className="px-4 text-left text-[#9A7080] text-[12px] tracking-widest font-bold uppercase whitespace-nowrap"
                       >
                         {h}
                       </th>
