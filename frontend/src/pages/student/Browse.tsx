@@ -458,7 +458,7 @@ function DormTile({
                 }`}
         >
             {/* Thumbnail */}
-            <div className="relative w-40 shrink-0 overflow-hidden">
+            <div className="relative w-full h-36 sm:w-40 sm:h-auto shrink-0 overflow-hidden">
                 <img
                     src={dorm.primaryImageUrl}
                     alt={dorm.name}
