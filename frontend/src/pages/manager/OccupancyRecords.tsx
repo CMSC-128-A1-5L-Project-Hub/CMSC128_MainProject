@@ -190,18 +190,23 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
             className={className}
             children={
                 <div className="">
-                    <h2 className="text-[#1A0008] font-bold text-base">
-                        Room Occupancy Details
-                    </h2>
+                    <div className="flex flex-col">
+                        <h2 className="text-[#1A0008] font-bold text-base">
+                            Room Occupancy Details
+                        </h2>
+                        <p className="italic text-[11px] lg:text-[12px]">{rooms.length} total rooms</p>
+                    </div>
+                    
+
                     <div className="overflow-x-auto">
                         <table className="w-full mt-3">
                             <thead className="tracking-widest">
-                                <tr className="border-y-2 border-[#6B0F2B]/5 uppercase">
-                                    <th className="text-[#9A7080] text-[11px] font-bold p-1 pr-8 whitespace-nowrap text-left w-44">Room No.</th>
-                                    <th className="text-[#9A7080] text-[11px] font-bold truncate p-1 pr-8 text-left w-[30%]">Room Type</th>
-                                    <th className="text-[#9A7080] text-[11px] font-bold p-1 pr-8 text-left w-[30%]">Capacity</th>
-                                    <th className="hidden lg:table-cell text-[#9A7080] text-[11px] font-bold p-1 pr-8 text-left w-[15%]">Status</th>
-                                    <th className="text-[#9A7080] text-[11px] font-bold p-1 pr-8 text-left w-[30%]">Action</th>
+                                <tr className="border-y p-2 border-[#6B0F2B]/10 uppercase">
+                                    <th className="text-[#9A7080] text-[12px] font-bold p-2 pr-8 whitespace-nowrap text-left w-[30%]">Room No.</th>
+                                    <th className="text-[#9A7080] text-[12px] font-bold truncate p-2 pr-8 text-left w-[15%]">Room Type</th>
+                                    <th className="text-[#9A7080] text-[12px] font-bold p-2 pr-8 text-left w-[15%]">Capacity</th>
+                                    <th className="hidden lg:table-cell text-[#9A7080] text-[12px] font-bold p-2 pr-8 text-left w-[20%]">Status</th>
+                                    <th className="text-[#9A7080] text-[12px] font-bold p-2 pr-8 text-left w-[20%]">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -210,17 +215,17 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                     const status = getStatus(room)
                                     return (
                                     <tr key={i}>
-                                        <td className="p-1 py-2">
+                                        <td className="p-2 py-2">
                                             <p className="font-bold text-sm text-[#1A0008]">Room {room.roomNumber}</p>
                                             <p className="text-[10px] lg:text-xs text-[#9A7080]">Building {room.roomBuilding}</p>
                                         </td>
-                                        <td className="p-1 py-2 text-left text-sm text-[#1A0008] capitalize">
+                                        <td className="p-2 py-2 text-left text-sm text-[#1A0008] capitalize">
                                         {room.roomType}
                                         </td>
-                                        <td className="p-1 py-2 text-left text-sm text-[#1A0008]">
+                                        <td className="p-2 py-2 text-left text-sm text-[#1A0008]">
                                         {room.roomCurrentOccupancy}/{room.roomCapacity}
                                         </td>
-                                        <td className="hidden lg:table-cell p-1 py-2 text-left">
+                                        <td className="hidden lg:table-cell p-2 py-2 text-left">
                                             <span className={`inline-flex items-center justify-center gap-1 text-xs px-3 py-2 rounded-full font-bold ${
                                                 status === "Full" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"
                                             }`}>
@@ -228,7 +233,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                                                 {status}
                                             </span>
                                         </td>
-                                        <td className="p-1 py-2 text-left">
+                                        <td className="p-2 py-2 text-left">
                                             <Button variant="reddishPink" size="sm" className="px-6" onClick={() => openModal(room)}>
                                                 View
                                             </Button>
@@ -246,35 +251,39 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
                     </div>
 
                     {rooms.length > 0 && (
-                        <div className="flex items-center justify-between mt-3">
-                            <p className="text-xs text-[#9A7080]">
-                            Showing {startIndex + 1}–{Math.min(startIndex + ROOMS_PER_PAGE, rooms.length)} of {rooms.length} records
-                            </p>
-                            <div className="flex items-center justify-center gap-1">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                <button
-                                key={page}
-                                onClick={() => setCurrentPage(page)}
-                                className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center ${
-                                    currentPage === page
-                                    ? "text-white"
-                                    : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"
-                                }`}
-                                style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
-                                >
-                                {page}
-                                </button>
-                            ))}
-                            {currentPage < totalPages && (
-                                <button
-                                onClick={() => setCurrentPage(p => p + 1)}
-                                className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
-                                >
-                                {">"}
-                                </button>
-                            )}
+                        <div className="flex flex-col">
+                            <hr className="border-[#6B0F2B]/10 border-t" />
+                            <div className="flex items-center justify-between mt-3">
+                                <p className="text-xs text-[#9A7080]">
+                                    Showing {startIndex + 1}–{Math.min(startIndex + ROOMS_PER_PAGE, rooms.length)} of {rooms.length} records
+                                </p>
+                                <div className="flex items-center justify-center gap-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                    <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center ${
+                                        currentPage === page
+                                        ? "text-white"
+                                        : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"
+                                    }`}
+                                    style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
+                                    >
+                                    {page}
+                                    </button>
+                                ))}
+                                {currentPage < totalPages && (
+                                    <button
+                                    onClick={() => setCurrentPage(p => p + 1)}
+                                    className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                                    >
+                                    {">"}
+                                    </button>
+                                )}
+                                </div>
                             </div>
                         </div>
+                        
                     )}
                 </div>
             }
@@ -430,9 +439,13 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
         <Card className="overflow-x-auto">
             {/* Header row */}
             <div className="flex items-center justify-between gap-3 flex-wrap">
-                <h2 className="text-[#1A0008] font-bold text-base">
-                    Occupancy History
-                </h2>
+                <div className="flex flex-col my-auto">
+                    <h2 className="text-[#1A0008] font-bold text-base">
+                        Occupancy History
+                    </h2>
+                    <p className="italic text-[11px] lg:text-[12px]">{records.length} total occupants</p>
+                </div>
+                
                 <div className="flex items-center gap-2 ml-auto">
                     {/* Sort dropdown */}
                     <div className='hidden lg:block'>
@@ -467,48 +480,6 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
                             setCurrentPage(1)
                         }}
                         />
-                    {/* <div className="relative">
-                        <button
-                            onClick={() => setSortOpen(o => !o)}
-                            className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 text-sm bg-white hover:bg-[#F5ECF0] transition min-w-[140px]"
-                        >
-                            <span className="flex flex-col text-left">
-                                <span className="text-[9px] uppercase text-[#9A7080] font-bold leading-none">Sort By</span>
-                                <span className="text-[#1A0008] font-medium text-sm">{sortBy}</span>
-                            </span>
-                            <svg className="ml-auto w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                        {sortOpen && (
-                            <div className="absolute z-10 top-full mt-1 right-0 bg-white border border-[#E8D5DC] rounded-xl shadow-md overflow-hidden w-full">
-                                {SORT_OPTS.map(opt => (
-                                    <button
-                                        key={opt}
-                                        onClick={() => handleSort(opt)}
-                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F5ECF0] transition
-                                            ${sortBy === opt ? "text-[#6B0F2B] font-semibold" : "text-[#1A0008]"}`}
-                                    >
-                                        {opt}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div> */}
-
-                    {/* Search */}
-                    {/* <div className="flex items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 py-2 bg-white">
-                        <svg className="w-4 h-4 text-[#9A7080] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Search records..."
-                            value={search}
-                            onChange={handleSearch}
-                            className="text-sm outline-none bg-transparent text-[#1A0008] placeholder-[#C4A4B0] w-36"
-                        />
-                    </div> */}
                     <SearchBar
                         value={search}
                         onChange={(query) => {
@@ -521,62 +492,63 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
 
             {/* Table header */}
             <div className="overflow-x-auto ">
-                <table className="w-full mt-4">
+                <table className={`${records.length === 0 ? "hidden" : "table" } w-full mt-4`}>
                     <thead className="tracking-widest">
-                        <tr className="border-[#6B0F2B]/5 border-y-2 uppercase">
-                        <th className="text-[#9A7080] text-[11px] font-bold p-1 pr-16 text-left">Students</th>
-                        <th className="text-[#9A7080] truncate text-[11px] font-bold p-1 pr-12 text-left">Room No.</th>
-                        <th className="hidden lg:table-cell text-[#9A7080] text-[11px] font-bold pr-20 text-left">Building No.</th>
-                        <th className="hidden lg:table-cell text-[#9A7080] text-[11px]  font-bold pr-8 text-left">Room Type</th>
-                        <th className="text-[#9A7080] text-[11px] font-bold pr-16 text-left">Action</th>
-                        <th className="text-[#9A7080] text-[11px] font-bold pr-12 text-left">
+                        <tr className="border-[#6B0F2B]/10 border-y p-2 uppercase">
+                        <th className="text-[#9A7080] text-[12px] font-bold p-2 pr-16 text-left">Students</th>
+                        <th className="text-[#9A7080] truncate text-[12px] font-bold p-2 pr-12 text-left">Room No.</th>
+                        <th className="hidden lg:table-cell text-[#9A7080] text-[12px] font-bold pr-20 text-left">Building No.</th>
+                        <th className="hidden lg:table-cell text-[#9A7080] text-[12px]  font-bold pr-8 text-left">Room Type</th>
+                        <th className="text-[#9A7080] text-[12px] font-bold pr-16 text-left">Action</th>
+                        <th className="text-[#9A7080] text-[12px] font-bold pr-12 text-left">
                             <span className="inline-flex items-center justify-center gap-1">
-                            Date
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
+                                Date
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
                             </span>
                         </th>
                         </tr>
                     </thead>
                     <tbody>
                         {paginated.length > 0 ? paginated.map((record, i) => (
-                        <tr key={i}>
-                            <td className="py-3 p-1">
-                            <div className="flex items-center gap-2">
-                                <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                                    style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                {getInitials(record.tenant.fullName)}
+                            <tr key={i}>
+                                <td className="py-3 p-1">
+                                <div className="flex items-center gap-2">
+                                    <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                                    {getInitials(record.tenant.fullName)}
+                                    </div>
+                                    <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">{record.tenant.fullName}</p>
                                 </div>
-                                <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">{record.tenant.fullName}</p>
-                            </div>
-                            </td>
-                            <td className="py-3 p-1 text-left text-[12px] lg:text-sm text-[#1A0008]">
-                            Room {record.roomNumber}
-                            </td>
-                            <td className="hidden lg:table-cell py-3 p-1 text-left text-sm text-[#1A0008]">
-                            Building {record.roomBuilding}
-                            </td>
-                            <td className="hidden lg:table-cell py-3 p-1 text-left text-sm text-[#1A0008] capitalize">
-                            {record.roomType}
-                            </td>
-                            <td className="py-3 p-1">
-                            <span className={`inline-flex items-center justify-center gap-1 text-[10px] lg:text-xs px-3 py-2 rounded-full font-bold ${
-                                record.action === "Move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"
-                            }`}>
-                                <span className={`w-2 h-2 rounded-full ${record.action === "Move-out" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}`} />
-                                {record.action}
-                            </span>
-                            </td>
-                            <td className="py-3 p-1">
-                            <p className="text-[11px] lg:text-sm text-[#1A0008]">{record.date}</p>
-                            <p className="text-[8px] lg:text-[10px] text-[#9A7080]">{record.time}</p>
-                            </td>
-                        </tr>
-                        )) : (
-                        <tr>
-                            <td colSpan={6} className="text-sm text-[#9A7080] py-6">No records found.</td>
-                        </tr>
+                                </td>
+                                <td className="py-3 p-1 text-left text-[12px] lg:text-sm text-[#1A0008]">
+                                    Room {record.roomNumber}
+                                </td>
+                                <td className="hidden lg:table-cell py-3 p-1 text-left text-sm text-[#1A0008]">
+                                    Building {record.roomBuilding}
+                                </td>
+                                <td className="hidden lg:table-cell py-3 p-1 text-left text-sm text-[#1A0008] capitalize">
+                                    {record.roomType}
+                                </td>
+                                <td className="py-3 p-1">
+                                    <span className={`inline-flex items-center justify-center gap-1 text-[10px] lg:text-xs px-3 py-2 rounded-full font-bold ${
+                                        record.action === "Move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"
+                                    }`}>
+                                        <span className={`w-2 h-2 rounded-full ${record.action === "Move-out" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}`} />
+                                        {record.action}
+                                    </span>
+                                </td>
+                                <td className="py-3 p-1">
+                                    <p className="text-[11px] lg:text-sm text-[#1A0008]">{record.date}</p>
+                                    <p className="text-[8px] lg:text-[10px] text-[#9A7080]">{record.time}</p>
+                                </td>
+                            </tr>
+                            )) : (
+                            <div></div>
+                                // <tr>
+                            //     <td colSpan={6} className="text-sm text-[#9A7080] py-6">No records found.</td>
+                            // </tr>
                         )}
                     </tbody>
                 </table>
@@ -584,7 +556,11 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
             
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#F5ECF0]">
+            <div className="flex flex-col justify-center items-center h-full  text-center">
+                <p className="text-[#9A7080] font-medium text-lg">No occupants found</p>
+                <p className="text-[#9A7080]/60 text-sm mt-1">When an applicant gets accepted, they will appear here</p>
+            </div>
+            <div className={`${records.length === 0 ? "hidden" : "flex"} items-center justify-between mt-3 pt-2 border-t border-[#F5ECF0]`}>
                 <p className="text-xs text-[#9A7080]">
                     Showing {sorted.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + itemsPerPage, sorted.length)} of {sorted.length} records
                 </p>
