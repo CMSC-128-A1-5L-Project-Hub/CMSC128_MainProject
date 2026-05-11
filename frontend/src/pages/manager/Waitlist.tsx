@@ -213,6 +213,7 @@ export default function Waitlist() {
     const [selectedRecord, setSelectedRecord] = useState<WaitlistedResponse | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
     const [sortBy, setSortBy] = useState("Date")
+    const [itemsPerPage, setItemsPerPage] = useState(HISTORY_PER_PAGE)
     
     const [search, setSearch] = useState("")
 
@@ -262,9 +263,9 @@ export default function Waitlist() {
     setSearch("")
     }
 
-    const totalPages = Math.ceil(sorted.length / HISTORY_PER_PAGE)
-    const startIndex = (currentPage - 1) * HISTORY_PER_PAGE
-    const paginated = sorted.slice(startIndex, startIndex + HISTORY_PER_PAGE)
+    const totalPages = Math.ceil(sorted.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const paginated = sorted.slice(startIndex, startIndex + itemsPerPage)
 
     const handleSort = (option: string) => {
         setSortBy(option)
@@ -603,10 +604,7 @@ export default function Waitlist() {
                 <p className="text-xs text-[#9A7080]">
                 {filtered.length === 0
                     ? "No results"
-                    : `Showing ${startIndex + 1}–${Math.min(
-                        startIndex + HISTORY_PER_PAGE,
-                        filtered.length
-                    )} of ${filtered.length}`}
+                    : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, filtered.length)} of ${filtered.length}`}
                 </p>
                 <div className="flex items-center justify-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
