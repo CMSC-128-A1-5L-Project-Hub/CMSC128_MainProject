@@ -951,21 +951,21 @@ if (isUserLoading) {
           </div>
 
           <div className="bg-white rounded-[22px] shadow-sm border border-gray-100 overflow-hidden">
-            <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-3">
+            <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
               <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
-              <button className="text-sm font-semibold hover:underline flex items-center gap-1" style={{ color: CLR.mid }}>
-                View all  →
+              <button className="text-sm font-bold hover:underline my-auto flex items-center gap-1" style={{ color: CLR.mid }}>
+                View all <IconChevronRight className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[540px]">
+            <div className="overflow-x-auto p-4">
+              <table className="w-full text-sm min-w-[540px] border-b-2 border-gray-100">
                 <thead>
-                  <tr className="border-t border-gray-100">
+                  <tr className="border-y-2 border-gray-100">
                     {["DORM", "TYPE", "APPLIED", "LOCATION", "STATUS", "ACTION"].map((h) => (
                       <th
                         key={h}
-                        className="px-4 sm:px-6 py-2.5 text-left text-[10px] font-bold tracking-widest text-[#A06B7C] uppercase whitespace-nowrap"
+                        className="px-4 sm:px-6 py-2 text-left text-[11px] font-bold tracking-widest text-[#A06B7C] uppercase whitespace-nowrap"
                       >
                         {h}
                       </th>
@@ -1008,9 +1008,9 @@ if (isUserLoading) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="sm:col-span-1 lg:col-span-3 bg-white rounded-[28px] shadow-[0_10px_24px_rgba(61,7,24,0.12)] border border-[#EFE5E8] p-6">
               <div className="flex items-center justify-between pb-4 border-b border-[#F1E5EA]">
-                <h3 className="font-bold text-[#1B2233] text-[15px]">Recommended</h3>
+                <h3 className="font-bold text-[#1B2233] text-base">Recommended</h3>
                 <button
-                  className="text-[14px] font-semibold flex items-center gap-1"
+                  className="text-[14px] font-bold flex items-center gap-1"
                   style={{ color: CLR.mid }}
                 >
                   View all <IconChevronRight className="w-4 h-4" />

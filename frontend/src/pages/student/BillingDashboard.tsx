@@ -200,7 +200,7 @@ export default function BillingDashboard() {
 
                 <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl p-6">
                   <div className='flex flex-row justify-between'>
-                    <div>
+                    <div className='my-auto'>
                       <p className='font-bold'>Billing History</p>
                       <p className='italic text-[11px] lg:text-[12px]'>{safeBills.length} total bills</p>
                     </div>
@@ -262,7 +262,11 @@ export default function BillingDashboard() {
                       </div>
                       <div className="flex justify-between items-center m-2 mt-6 text-sm text-[#9A7080]">
                         <div className="flex gap-2 text-[12px] lg:text-[15px]">
-                          <Pagination totalPages={totalPages} currentPage={currentPage} onPageChange={setCurrentPage} buttonSize='w-6 h-6 p-0 lg:w-8 lg:h-8' />
+                          <Pagination
+                            totalPages={totalPages}
+                            currentPage={currentPage}
+                            onPageChange={setCurrentPage}
+                          />
                         </div>
                       </div>
                     </div>

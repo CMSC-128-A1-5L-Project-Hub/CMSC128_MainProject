@@ -272,7 +272,7 @@ export default function BrowsePage() {
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
             searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax
         }}>
-            <div className="flex flex-row w-full min-h-screen bg-[#FDF8FA]">
+            <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
 
                 {/* Sidebar */}
                 <div className="relative z-[9999]">
@@ -370,7 +370,7 @@ export default function BrowsePage() {
 
                                     {/* Fixed pagination */}
                                     {totalPages > 1 && (
-                                        <div className="pt-6 pb-2 flex justify-center shrink-0 bg-[#FDF8FA]">
+                                        <div className="pt-6 pb-2 flex justify-center shrink-0 bg-[#F6F2F4]">
                                             <Pagination
                                                 currentPage={currentPage}
                                                 totalPages={totalPages}
@@ -608,7 +608,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
 
             {/* Saved only */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Show saved only</p>
-            <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-[#F0E4E9] bg-[#FDF8FA]">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-[#F0E4E9] bg-[#F6F2F4]">
                 <div>
                     <p className="text-[#1C0A11] font-semibold text-sm mb-0.5">Saved Rooms</p>
                     <p className="text-[#9A7080] text-xs">Show only bookmarked dorms</p>
