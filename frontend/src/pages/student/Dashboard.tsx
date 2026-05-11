@@ -959,13 +959,13 @@ if (isUserLoading) {
             </div>
 
             <div className="overflow-x-auto p-4">
-              <table className="w-full text-sm min-w-[540px] border-b-2 border-gray-100">
+              <table className="w-full text-sm min-w-[540px] border-b -mt-1 border-[#6B0F2B]/10">
                 <thead>
-                  <tr className="border-y-2 border-gray-100">
+                  <tr className="border-y border-[#6B0F2B]/10">
                     {["DORM", "TYPE", "APPLIED", "LOCATION", "STATUS", "ACTION"].map((h) => (
                       <th
                         key={h}
-                        className="px-4 sm:px-6 py-2 text-left text-[11px] font-bold tracking-widest text-[#A06B7C] uppercase whitespace-nowrap"
+                        className="px-4 sm:px-6 py-2 text-left text-[#9A7080] text-[12px] tracking-widest font-bold uppercase whitespace-nowrap"
                       >
                         {h}
                       </th>

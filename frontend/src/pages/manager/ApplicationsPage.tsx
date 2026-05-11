@@ -15,6 +15,7 @@ import Pagination from "@/components/ApplicationStatus/Pagination";
 
 import StylizedStatus from "@/components/BillingDashboard/StylizedStatus";
 import { DateTime } from 'luxon';
+import Button from "@/components/Button";
 
 const rowStyles: Record<string, { bg: string; text: string }> = {
   approved:     { bg: '#1A7A4A', text: '#000000' },
@@ -597,7 +598,7 @@ export default function ApplicationsPage() {
                         { label: "Status", className: "w-[15%]" },
                         { label: "Action", className: "w-[10%] text-center" },
                       ].map(col => (
-                        <th key={col.label} className={`uppercase p-2 text-left whitespace-nowrap border-y border-[#6B0F2B]/10 ${col.className}`}>
+                        <th key={col.label} className={`uppercase p-1.5 text-left whitespace-nowrap border-y border-[#6B0F2B]/10 ${col.className}`}>
                           {col.label}
                         </th>
                       ))}
@@ -612,7 +613,7 @@ export default function ApplicationsPage() {
                           color: rowStyles[app.applicationStatus]?.text ?? '#888',
                         }}
                       >
-                        <td className="px-4 py-3">
+                        <td className="p-2">
                           <div className="flex items-center gap-3">
                             <div
                               className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
@@ -629,7 +630,7 @@ export default function ApplicationsPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-2 py-3 text-gray-600 whitespace-nowrap">
+                        <td className="p-2 text-gray-600 whitespace-nowrap">
                           {app?.applicationDate ? (
                             <>
                               <span className="block text-[12px] lg:text-[14px]">
@@ -641,10 +642,10 @@ export default function ApplicationsPage() {
                             </>
                           ) : <p>Loading date...</p>}
                         </td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                        <td className="p-2 text-gray-500 whitespace-nowrap">
                           {app?.applicationDate ? formatTime(app.applicationDate) : 'Loading...'}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="p-2 whitespace-nowrap">
                           {app?.accommodation ? (
                             <>
                               <p className="font-medium">{app.accommodation.accommodationName}</p>
@@ -652,17 +653,18 @@ export default function ApplicationsPage() {
                             </>
                           ) : <p className="text-gray-400">Loading...</p>}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="p-2">
                           <StylizedStatus status={app.applicationStatus} />
                         </td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            onClick={() => setSelectedApp(app)}
-                            className="text-sm px-4 py-1.5 rounded-xl font-medium transition-colors hover:opacity-80"
-                            style={{ color: CLR.mid, background: "#F5ECF0", border: `1px solid ${CLR.mid}20` }}
-                          >
-                            View
-                          </button>
+                        <td className="p-2 text-center">
+                          <Button
+                              variant="reddishPink"
+                              size="sm"
+                              fullWidth={false}
+                              isLoading={false}
+                              onClick={() => setSelectedApp(app)}>
+                              View
+                          </Button>
                         </td>
                       </tr>
                     ))}
