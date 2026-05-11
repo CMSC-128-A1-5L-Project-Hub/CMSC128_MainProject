@@ -244,7 +244,7 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                         </div>
 
                         <div className={`${applications.length === 0 ? "hidden" : "flex flex-col"}`}>
-                            <hr className="border-[#6B0F2B]/5 border-t-2" />
+                            <hr className="border-[#6B0F2B]/10 border-t" />
                             <div className="flex items-center justify-between mt-3">
                                 <p className="text-xs text-[#9A7080]">
                                     {totalApps === 0

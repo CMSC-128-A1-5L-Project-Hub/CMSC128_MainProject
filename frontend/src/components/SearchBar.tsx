@@ -24,7 +24,6 @@ export default function SearchBar({value, onChange, onPageReset} : SearchBarProp
 
     const handleBlur = () => {
         setSearchOpen(false)
-        onChange('')
     }
 
     return (
@@ -45,7 +44,7 @@ export default function SearchBar({value, onChange, onPageReset} : SearchBarProp
             {searchOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center lg:hidden">
                     <div className="bg-white rounded-2xl p-4 w-[80%] shadow-xl">
-                        <div className="flex items-center w-full gap-2 border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] px-2">
+                        <div className="flex items-center w-full gap-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] px-2">
                             <SearchIcon />
                             <input autoFocus type="text" placeholder="Search dormitory, status, type..." value={value}
                                 onChange={handleChange} className="text-[12px] py-2 outline-none w-full" />

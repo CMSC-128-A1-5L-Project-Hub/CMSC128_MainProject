@@ -1,7 +1,21 @@
 import React from "react";
 import { DateTime } from 'luxon';
+import Dropdown from "../ApplicationStatus/Dropdown";
+import SearchBar from "../SearchBar";
+import StylizedStatus from "../BillingDashboard/StylizedStatus";
+import Pagination from "../ApplicationStatus/Pagination";
 
 const ITEMS_PER_PAGE = 6;
+
+const rowStyles: Record<string, { bg: string; text: string }> = {
+  approved:     { bg: '#1A7A4A', text: '#000000' },
+  pending:      { bg: '#FFFFFF', text: '#000000' },
+  under_review: { bg: '#6B3AB7', text: '#000000' },
+  rejected:     { bg: '#6B0F2B', text: '#9A7080' },
+  waitlisted:   { bg: '#EFF4FF', text: '#000000' },
+  cancelled:    { bg: '#F0F0F0', text: '#888888' },
+  confirmed:    { bg: '#1A7A4A', text: '#000000' },
+}
 
 // ======================== DATE AND TIME ========================
 function formatDate(dateString: string) {
@@ -149,60 +163,13 @@ const FilterSelect = ({
   );
 };
 
-// ======================== PAGE BUTTON ========================
-const PageBtn = ({
-  active,
-  disabled,
-  onClick,
-  children,
-  clr,
-}: {
-  active?: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  clr: any;
-}) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-semibold transition-all"
-    style={
-      active
-        ? {
-            background: `linear-gradient(135deg,${clr.dark}, ${clr.mid})`,
-            color: "#fff",
-            boxShadow: "0 4px 12px rgba(107,15,43,0.35)",
-          }
-        : disabled
-        ? {
-            background: "#fff",
-            border: "1.5px solid #ede8ea",
-            color: "#d8cdd1",
-            cursor: "not-allowed",
-          }
-        : {
-            background: "#fff",
-            border: "1.5px solid #ede8ea",
-            color: clr.mid,
-          }
-    }
-  >
-    {children}
-  </button>
-);
-
-
 // ======================== MAIN COMPONENT ========================
 export default function ApplicationsTable({
 
   filtered,
   currentPage,
   setCurrentPage,
-  sortBy,
   onSortChange,
-  search,
-  onSearchChange,
   isLoading,
   isError,
   refetch,
@@ -214,10 +181,7 @@ export default function ApplicationsTable({
   filtered: any[];
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  sortBy: "latest" | "earliest";
   onSortChange: (value: string) => void;
-  search: string;
-  onSearchChange: (value: string) => void;
   isLoading: boolean;
   isError: boolean;
   refetch: () => void;
@@ -227,151 +191,56 @@ export default function ApplicationsTable({
   onView: (app: any) => void;
 }) {
 
-const [mode, setMode] = React.useState<"both" | "search" | "sort">("both");
-const [sortOpen, setSortOpen] = React.useState(false);
-const searchInputRef = React.useRef<HTMLInputElement>(null);
-
-const [isMobile, setIsMobile] = React.useState(false);
-
-React.useEffect(() => {
-  const checkScreen = () => setIsMobile(window.innerWidth < 640);
-
-  checkScreen();
-  window.addEventListener("resize", checkScreen);
-
-  return () => window.removeEventListener("resize", checkScreen);
-}, []);
-
-
-const handleOpenSearch = () => {
-  setSortOpen(false)
-  setMode("search");
-  setTimeout(() => searchInputRef.current?.focus(), 50);
-};
-
-const handleCloseSearch = () => {
-  setMode("both");
-  onSearchChange("");
-};
-
   // for pages 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-  const safePage = Math.min(currentPage, totalPages);
-  const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
-  const paginated = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  //pages to show 
-  const getVisiblePages = () => {
-    const pages: number[] = [];
+  const [rows, setRows] = React.useState(ITEMS_PER_PAGE);
+  const [searchQuery, setSearchQuery] = React.useState("");
 
-    if (totalPages <= 3) {
-      return pages;
-    }
+  const localFiltered = searchQuery.trim()
+  ? filtered.filter((app) => {
+      const q = searchQuery.toLowerCase();
+      return (
+        app?.student?.user?.fname?.toLowerCase().includes(q) ||
+        app?.student?.user?.lname?.toLowerCase().includes(q) ||
+        app?.accommodation?.accommodationName?.toLowerCase().includes(q) ||
+        app?.applicationRoomType?.toLowerCase().includes(q)
+      );
+    })
+  : filtered;
 
-    if (safePage === 1) return [1, 2, 3];
-    if (safePage === totalPages) return [totalPages - 2, totalPages - 1, totalPages];
+const totalPages = Math.max(1, Math.ceil(localFiltered.length / rows));
+const safePage = Math.min(currentPage, totalPages);
+const startIndex = (safePage - 1) * rows;
+const paginated = localFiltered.slice(startIndex, startIndex + rows);
 
-    return [safePage - 1, safePage, safePage + 1];
-  };
   return (
-    <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
-    {/* HEADER */}
-      <div className="flex items-center justify-between gap-4 p-4 border-b">
-        <div className="shrink-0">
-          <h2 className="text-sm md:text-lg font-semibold tracking-tight text-black">
-            Application History
-          </h2>
-          <p className="text-xs text-gray-400">{filtered.length} total applications</p>
-        </div>
+    <div className="bg-white rounded-2xl shadow-sm p-6 overflow-hidden">
 
-       <div className="flex items-center gap-2 ml-auto">
-        {/* SORT BY */}
-        <FilterSelect
-          value={sortBy}
-          onChange={(v) => {
-            onSortChange(v);
-            setMode("both"); //minimizes search after choosing sort
-          }}
-          compact={isMobile && mode === "search"}
-          onToggle={() => {
-            setSortOpen(false);
-            setMode("both"); //minimizes search when sort is clicked
-            }}
-          sortOpen={sortOpen}
-          setSortOpen={setSortOpen}
-          
-        />
-      {/* SEARCH ICON */}
-      <button
-      onClick={handleOpenSearch}
-      className={`${mode === "search" ? "hidden" : "flex"} sm:hidden items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition`}
-      aria-label="Open search"
-      >
-      <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-      </button>
-
-      {/* SEARCH INPUT */}
-      <div className={`relative ${mode === "search" ? "flex" : "hidden"} sm:flex w-full sm:w-[120px]`}>
-        <svg
-          className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A36F82]"
-          fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input
-          ref={searchInputRef}
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onFocus={() => {
-            setSortOpen(false);
-            setMode("search");
-          }}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full min-w-0 h-10 border border-[#E8D5DC] rounded-xl pl-8 pr-7 text-sm bg-white text-[#3D0718] placeholder:text-[#C7A7B3] focus:outline-none focus:bg-[#F5ECF0] transition-all duration-200"
-        />
-        {/* Close - mobile view  */}
-        <button
-          onClick={handleCloseSearch}
-          className="absolute right-2 top-1/2 -translate-y-1/2 sm:hidden text-[#9A7080] hover:text-[#6B0F2B]"
-          aria-label="Close search"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-        </div>
-      </div>
-
-      <div className="w-full overflow-x-auto pb-2">
+      <div className="w-full h-full overflow-x-auto overflow-y-auto mt-5">
       
        <table className="min-w-[900px] w-full text-sm table-fixed">
           <thead>
-          <tr className="border-b border-[#6B0F2B]/10">
-            <th className="px-4 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+          <tr className="border-y border-[#6B0F2B]/10">
+            <th className="px-4 py-1 text-left text-[#9A7080] text-[12px] font-bold uppercase tracking-widest whitespace-nowrap">
               Student
             </th>
 
-            <th className="px-2 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+            <th className="px-2 py-1 p-1 text-left text-[#9A7080] text-[12px] font-bold uppercase tracking-widest whitespace-nowrap">
               Date Applied
             </th>
 
-            <th className="px-5 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+            <th className="px-5 py-1 p-1 text-left text-[#9A7080] text-[12px] font-bold uppercase tracking-widest whitespace-nowrap">
               Time
             </th>
 
-            <th className="px-4 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+            <th className="px-4 py-1 p-1 text-left text-[#9A7080] text-[12px] font-bold uppercase tracking-widest whitespace-nowrap">
               Facility
             </th>
 
-            <th className="px-7 py-1 p-1 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+            <th className="px-7 py-1 p-1 text-left text-[#9A7080] text-[12px] font-bold uppercase tracking-widest whitespace-nowrap">
               Status
             </th>
 
-            <th className="px-2 py-1 p-1 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+            <th className="px-2 py-1 p-1 text-center text-[#9A7080] text-[12px] font-bold uppercase tracking-widest whitespace-nowrap">
               Action
             </th>
           </tr>
@@ -406,22 +275,21 @@ const handleCloseSearch = () => {
                   </div>
                 </td>
               </tr>
-            ) : filtered.length === 0 ? (
-              // - no data from DB
-              // - no search results
-              <tr>
-                <td colSpan={6} className="py-16 text-center">
-                  <p className="text-base italic text-gray-400">
-                    Nothing to see here
-                  </p>
-                </td>
-              </tr>
-            ) : (
+            ) : localFiltered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-16 text-center">
+                    <p className="text-base italic text-gray-400">Nothing to see here</p>
+                  </td>
+                </tr>
+              ) : (
               paginated.map((app) => {
                 return (
                   <tr
                     key={`${app.id}-${startIndex}`}
-                    className="border-t hover:bg-gray-50 transition-colors"
+                    style={{
+                      backgroundColor: (rowStyles[app.applicationStatus]?.bg ?? '#888') + '0D',
+                      color: rowStyles[app.applicationStatus]?.text ?? '#888',
+                    }}
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -480,10 +348,7 @@ const handleCloseSearch = () => {
                     </td>
 
                     <td className="px-4 py-3">
-                      <StatusBadge
-                        status={getAppStatus(app)}
-                        statusConfig={statusConfig}
-                      />
+                      <StylizedStatus status={app.applicationStatus} />
                     </td>
 
                     <td className="px-4 py-3 text-center">
@@ -507,28 +372,18 @@ const handleCloseSearch = () => {
         </table>
       </div>
 
-      <div className="flex items-center justify-between px-4 py-3 border-t">
-        <p className="text-xs text-gray-400">
-          {filtered.length === 0
-            ? "No results"
-            : `Showing ${startIndex + 1}–${Math.min(
-                startIndex + ITEMS_PER_PAGE,
-                filtered.length
-              )} of ${filtered.length}`}
-        </p>
-        <div className="flex items-center gap-1.5">
-          {getVisiblePages().map((page) => (
-            <PageBtn
-              key={page}
-              active={safePage === page}
-              onClick={() => setCurrentPage(page)}
-              clr={clr}
-            >
-              {page}
-            </PageBtn>
-          ))}
+      {localFiltered.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t border-[#6B0F2B]/10">
+          <p className="text-xs text-[#9A7080]">
+            {`Showing ${startIndex + 1}–${Math.min(startIndex + rows, localFiltered.length)} of ${localFiltered.length}`}
+          </p>
+          <Pagination
+            totalPages={totalPages}
+            currentPage={safePage}
+            onPageChange={setCurrentPage}
+          />
         </div>
-      </div>
+      )}
     </div>
   );
 }
