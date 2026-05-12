@@ -10,6 +10,7 @@ import Dropdown from "../../components/ApplicationStatus/Dropdown"
 import Pagination from "@/components/ApplicationStatus/Pagination"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../api/axios"
+import UbleLoader from "../shared/LoadingPage"
 
 /* ─── Context ──────────────────────────────────────────────────────────────── */
 type FilterContextType = {
@@ -64,7 +65,7 @@ export default function BrowsePage() {
     const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate()
 
-    const { data: accommodations = [], isError: accommodationsError, isSuccess } = useQuery({
+    const { data: accommodations = [], isError: accommodationsError, isSuccess, isLoading: accLoading } = useQuery({
         queryKey: ["accommodations", searchTerm, activeFilter],
         queryFn: async () => {
             const params: Record<string, any> = {}
@@ -79,6 +80,9 @@ export default function BrowsePage() {
             setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
+        staleTime: 60_000,
+        gcTime: 5 * 60_000,
+        placeholderData: (prev: any) => prev,
     })
 
     const { data: user, isError } = useQuery({
@@ -266,6 +270,10 @@ export default function BrowsePage() {
     /* ══════════════════════════════════════════════════════════════════════════
        RENDER
     ══════════════════════════════════════════════════════════════════════════ */
+    if (accLoading && accommodations.length === 0) {
+        return <UbleLoader />
+    }
+
     return (
         <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
@@ -285,6 +293,8 @@ export default function BrowsePage() {
 
                     {/* Scrollable content */}
                     <div className="flex-1 overflow-y-auto">
+
+                        
                         {/* Hero */}
                         <div className="w-full px-4 sm:px-6 pt-6 pb-2">
                             <HeroBanner

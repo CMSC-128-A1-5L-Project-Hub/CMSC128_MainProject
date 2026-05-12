@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/axios';
+import UbleLoader from './LoadingPage';
 
 interface User {
     id: number;
@@ -36,9 +37,5 @@ export default function AuthSuccess() {
         fetchUserAndRedirect();
     }, [navigate]);
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <p className="text-gray-500 font-medium animate-pulse">Authenticating...</p>
-        </div>
-    );
+    return null
 }

@@ -12,6 +12,7 @@ import AvailableRooms from '../../components/dashboard/manager/AvailableRooms'
 import OccupiedRooms from '../../components/dashboard/manager/OccupiedRooms'
 import CustomHeader from '../../components/CustomHeader';
 import ReportModal from '../../components/ReportModal'
+import UbleLoader from '../shared/LoadingPage'
 import {
   useProfile,
   useIncomingApps,
@@ -36,11 +37,7 @@ export default function Dashboard() {
   const [reportOpen, setReportOpen] = useState(false)
 
   if (profileLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#F5EEF0]">
-        <p className="text-[#6B0F2B] text-lg font-semibold">Loading dashboard…</p>
-      </div>
-    )
+      return null
   }
 
   const transformedIncoming = incomingApps.map(transformApp)

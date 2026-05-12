@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import Sidebar from "../../components/Sidebar";
 import Modal from "../../components/Modal";
 import CustomHeader from '../../components/CustomHeader';
+import UbleLoader from "../shared/LoadingPage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import HeroBanner from "@/components/dashboard/HeroBanner";
 
@@ -526,7 +527,11 @@ export default function Applications() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {isLoading ? (
-                    <tr><td colSpan={5} className="text-center py-16 text-gray-400">Loading applications...</td></tr>
+                    <tr>
+                      <td colSpan={5} className="text-center py-16">
+                        <UbleLoader />
+                      </td>
+                    </tr>
                   ) : paginated.length === 0 ? (
                     <tr><td colSpan={5} className="text-center py-16 text-gray-400">No applications found.</td></tr>
                   ) : (
