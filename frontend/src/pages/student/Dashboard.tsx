@@ -345,10 +345,11 @@ const StarRating = ({ rating }: { rating: number }) => (
 interface BillingSectionProps {
   overview: BillingOverview;
   statements: BillingStatement[];
+  navigate: any;
 }
 
 
-const BillingSection = ({ overview, statements }: BillingSectionProps) => (
+const BillingSection = ({ overview, statements, navigate }: BillingSectionProps) => (
   <div className="space-y-5">
     <div className="flex items-start justify-between gap-3">
       {/* LEFT SIDE */}
@@ -523,6 +524,8 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
       </div>
 
       <button
+        type="button"
+        onClick={() => navigate('/student/billingdashboard')}
         className="w-full mt-5 text-[15px] font-semibold hover:underline flex items-center justify-center gap-1"
         style={{ color: CLR.mid }}
       >
@@ -537,9 +540,10 @@ interface DesktopProfilePanelProps {
   profile: StudentProfile;
   billing: BillingOverview;
   statements: BillingStatement[];
+  navigate: any;
 }
 
-const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePanelProps) => (
+const DesktopProfilePanel = ({ profile, billing, statements, navigate }: DesktopProfilePanelProps) => (
   <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4] overflow-y-auto h-screen">
     {/* Top Gradient  */}
     <div
@@ -625,7 +629,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
     </div>
     </div>
     <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
-      <BillingSection overview={billing} statements={statements} />
+      <BillingSection overview={billing} statements={statements} navigate={navigate} />
     </div>
   </aside>
 );
@@ -1221,6 +1225,7 @@ if (!profile || !user || user.role !== "student") {
               <BillingSection
                 overview={billingOverviewData ?? emptyBilling}
                 statements={billingStatementsData}
+                navigate={navigate}
               />
             ) : (
               <div className="bg-white rounded-2xl p-4">
@@ -1235,6 +1240,7 @@ if (!profile || !user || user.role !== "student") {
         profile={profile}
         billing={billingOverviewData ?? emptyBilling}
         statements={billingStatementsData}
+        navigate={navigate}
       />
     </div>
   );
