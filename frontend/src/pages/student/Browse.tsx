@@ -6,11 +6,11 @@ import Sidebar from "../../components/Sidebar"
 import CustomHeader from '../../components/CustomHeader'
 import PriceRangeSlider from "../../components/PriceRangeSlider"
 import HeroBanner from "@/components/dashboard/HeroBanner"
-import Dropdown from "../../components/ApplicationStatus/Dropdown"
 import Pagination from "@/components/ApplicationStatus/Pagination"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../api/axios"
 import UbleLoader from "../shared/LoadingPage"
+import defaultAccommodation from "../../assets/defaults/accommodation.png";
 
 /* ─── Context ──────────────────────────────────────────────────────────────── */
 type FilterContextType = {
@@ -144,7 +144,9 @@ export default function BrowsePage() {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
         console.log("searching for: ", searching)
-        if (!filterInEffect && !setSearched) {
+        console.log(filterInEffect, searched, "outside")
+        if (!filterInEffect && !searched) {
+            console.log(filterInEffect, searched)
             return
         }
 
@@ -200,29 +202,23 @@ export default function BrowsePage() {
 
             /* filters */
             if (!bookmarked && onlyBookmarked) {
-                console.log(accommodationName, "not matched book")
                 continue
             }
             if (Number(rating) < starRating) {
-                console.log(accommodationName, "not matched rate")
                 continue
             }
             if (minimum < minPrice || maximum > maxPrice) {
-                console.log(accommodationName, "not matched price", minimum, minPrice, maximum, maxPrice)
                 continue
             }
-            if (dormType !== "All" && accommodationType !== dormType) {
-                console.log(accommodationName, "not dormtype")
+            if (dormType !== "All" && accommodationType !== dormType.toLowerCase()) {
                 continue
             }
-            if (roomType !== "All" && !roomTypes.has(roomType)) {
-                console.log(accommodationName, "not matched room")
+            if (roomType !== "All" && !roomTypes.has(roomType.toLowerCase())) {
                 continue
             }
             if (trueTags.length !== 0) {
                 const hasTag = trueTags.every(t => tempTags.includes(t))
                 if (!hasTag) {
-                    console.log(accommodationName, "not matched tags")
                     continue
                 }
             }
@@ -454,6 +450,7 @@ function DormTile({
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
+    
 
     return (
         <div
@@ -472,6 +469,9 @@ function DormTile({
                     src={dorm.primaryImageUrl}
                     alt={dorm.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                        e.currentTarget.src = defaultAccommodation;
+                      }}
                 />
             </div>
 
@@ -564,17 +564,13 @@ function SearchBar() {
                 placeholder="Search dormitory name…"
                 className="flex-1 text-sm text-[#1C0A11] placeholder-[#C8B0B8] outline-none bg-transparent"
                 autoComplete="off"
-            />
-            <button
-                onClick={() => {
+                onChange={() => {
                     const input = document.getElementById("search-bar") as HTMLInputElement
                     setSearching(input.value.trim().toLowerCase())
                     setSearched(true)
                 }}
-                className="bg-[#6B0F2B] hover:bg-[#8A1C3D] text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition-colors shrink-0"
-            >
-                Search
-            </button>
+            />
+       
         </div>
     )
 }
@@ -592,6 +588,12 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
         setFilterInEffect, setOrigMin, setOrigMax
     } = context
 
+
+    const [openDormCabinet, setDormCabinet] = useState(false)
+    const [openRoomCabinet, setRoomCabinet] = useState(false)
+    const [selectedDorm, setSelectedDorm] = useState("All")
+    const [selectedRoom, setSelectedRoom] = useState("All")
+
     const originalFilters = Object.fromEntries(
         Object.keys(origFilters).map((key) => [key, false])
     ) as Record<string, boolean>;
@@ -599,8 +601,8 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
     const resetAll = () => {
         setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
         setDormType("All"); setRoomType("All"); setMinPrice(origMin); setMaxPrice(origMax);
-        setFilterPanelOpen(false); setFilterInEffect(true);
-        setSliderResetKey(prev => prev + 1);
+        setFilterPanelOpen(false); setFilterInEffect(true); setSliderResetKey(prev => prev + 1);
+        setSelectedDorm("All"); setSelectedRoom("All");
     }
 
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
@@ -628,7 +630,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
                     className={`relative w-11 h-6 rounded-full border-none transition-colors duration-200 ${onlyBookmarked ? "bg-[#6B0F2B]" : "bg-[#E8D4DF]"}`}
                     onClick={() => setOnlyBookmarked(!onlyBookmarked)}
                 >
-                    <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${onlyBookmarked ? "translate-x-[22px]" : "translate-x-[2px]"}`} />
+                    <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${onlyBookmarked ? "translate-x-[2px]" : "translate-x-[-19px]"}`} />
                 </button>
             </div>
 
@@ -640,14 +642,19 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
                 title="Dorm type"
                 items={[
                     { label: "All", href: "" },
-                    { label: "on-campus", href: "" },
-                    { label: "off-campus", href: "" },
-                    { label: "partner-housing", href: "" },
+                    { label: "On-campus", href: "" },
+                    { label: "Off-campus", href: "" },
+                    { label: "Partner-housing", href: "" },
                 ]}
                 onSelect={setDormType}
                 showTitle={false} direction="down"
                 widthClass="w-full" titleClass="text-[10px] lg:text-[11px]"
                 selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
+                setOpen={setDormCabinet}
+                setClose={setRoomCabinet}
+                open={openDormCabinet}
+                setSelected={setSelectedDorm}
+                selected={selectedDorm}
             />
 
             <Divider />
@@ -658,14 +665,19 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
                 title="Room type"
                 items={[
                     { label: "All", href: "" },
-                    { label: "single", href: "" },
-                    { label: "double", href: "" },
-                    { label: "shared", href: "" },
+                    { label: "Single", href: "" },
+                    { label: "Double", href: "" },
+                    { label: "Shared", href: "" },
                 ]}
                 onSelect={setRoomType}
                 showTitle={false} direction="down"
                 widthClass="w-full" titleClass="text-[10px] lg:text-[11px]"
                 selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
+                setOpen={setRoomCabinet}
+                setClose={setDormCabinet}
+                open={openRoomCabinet}
+                setSelected={setSelectedRoom}
+                selected={selectedRoom}
             />
 
             <Divider />
@@ -743,49 +755,72 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
     )
 }
 
-function DualRangeSlider({
-    minVal, maxVal, onMinChange, onMaxChange, dataMin, dataMax,
-}: {
-    minVal: number; maxVal: number
-    onMinChange: (v: number) => void; onMaxChange: (v: number) => void
-    dataMin: number; dataMax: number
-}) {
-    const STEP = 100
-    const range = dataMax - dataMin
-    const minPct = ((minVal - dataMin) / range) * 100
-    const maxPct = ((maxVal - dataMin) / range) * 100
-
+interface DropdownProps {
+    title: string;
+    items: { label: string; href: string }[];
+    onSelect?: (label: string) => void;
+    direction?: "up" | "down";
+    widthClass?: string;
+    titleClass?: string;
+    selectedClass?: string;
+    showTitle?: boolean;
+    setOpen: (label: boolean) => void;
+    setClose: (label: boolean) => void;
+    selected: string;
+    setSelected: (label: string) => void;
+    open: boolean;
+  }
+  
+  function Dropdown({ showTitle = true, title, items, onSelect, direction = "down", widthClass = "w-32", titleClass = "text-[10px]", selectedClass = "text-[12px]", setOpen, setClose, open, setSelected, selected }: DropdownProps) {
+    
+    const [isMobile, setIsMobile] = useState(false);
+  
+    useEffect(() => {
+      const check = () => setIsMobile(window.innerWidth < 1024);
+      check();
+      window.addEventListener('resize', check);
+      return () => window.removeEventListener('resize', check);
+    }, []);
+  
     return (
-        <div className="relative w-full h-8">
-            {/* Track */}
-            <div className="absolute top-1/2 left-0 right-0 h-1.5 rounded-full bg-[#EDE4E9] -translate-y-1/2" />
-            {/* Fill */}
-            <div
-                className="absolute top-1/2 h-1.5 rounded-full -translate-y-1/2"
-                style={{
-                    left: `${minPct}%`,
-                    width: `${maxPct - minPct}%`,
-                    background: "linear-gradient(90deg,#6B0F2B,#B5344F)",
-                }}
-            />
-            {/* Min thumb */}
-            <input type="range" min={dataMin} max={dataMax} step={STEP} value={minVal}
-                onChange={e => onMinChange(Number(e.target.value))}
-                className="absolute top-1/2 left-0 w-full h-8 -translate-y-1/2 opacity-0 cursor-pointer z-10" />
-            {/* Max thumb */}
-            <input type="range" min={dataMin} max={dataMax} step={STEP} value={maxVal}
-                onChange={e => onMaxChange(Number(e.target.value))}
-                className="absolute top-1/2 left-0 w-full h-8 -translate-y-1/2 opacity-0 cursor-pointer z-10" />
-            {/* Visual knobs */}
-            {[minPct, maxPct].map((pct, i) => (
-                <div key={i}
-                    className="absolute top-1/2 w-5 h-5 rounded-full bg-white border-[2.5px] border-[#6B0F2B] shadow-md pointer-events-none z-[5]"
-                    style={{ left: `${pct}%`, transform: "translate(-50%, -50%)" }}
-                />
-            ))}
-        </div>
-    )
-}
-
-
-
+      <div className="relative h-12">
+        <button
+          onClick={() => {
+            setClose(false)
+            setOpen(!open)}}
+          type="button"
+          className={`h-full px-2 py-1 border-2 lg:border-3 border-[#6B0F2B] border-opacity-10 bg-white rounded-[8.8px] flex items-center justify-between gap-4 ${widthClass}`}
+        >
+          <div className="flex flex-col items-start overflow-hidden w-full">
+            <span className={showTitle ? `${titleClass} text-[#9A7080] uppercase` : 'hidden'}>{title}</span>
+            <span className={`${selectedClass} font-medium text-gray-800 truncate w-full`}>{selected}</span>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 9-7 7-7-7"/>
+          </svg>
+        </button>
+  
+        {open && (
+          <div className={`absolute mt-1 bg-white w-full border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-30 ${
+            direction === "up" ? "bottom-full mb-1" : "top-full mt-1" }`}>
+            <ul className="p-2 text-sm">
+              {items.map((item) => (
+                <li key={item.label}>
+                  <a
+                    onClick={() => { 
+                      setSelected(item.label); 
+                      setOpen(false); 
+                      onSelect?.(item.label);
+                    }}
+                    className="text-[12px] block p-2 justify-start hover:bg-[#6B0F2B] hover:text-white transition-all rounded w-50"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
+  }
