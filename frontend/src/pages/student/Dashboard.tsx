@@ -1011,6 +1011,8 @@ if (!profile || !user || user.role !== "student") {
               <div className="flex items-center justify-between pb-4 border-b border-[#F1E5EA]">
                 <h3 className="font-bold text-[#1B2233] text-base">Recommended</h3>
                 <button
+                  type="button"
+                  onClick={() => navigate('/student/browse')}
                   className="text-[14px] font-bold flex items-center gap-1"
                   style={{ color: CLR.mid }}
                 >
