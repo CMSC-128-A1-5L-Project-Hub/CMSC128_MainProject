@@ -41,8 +41,11 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
   const navigate = useNavigate();
   const status = accommodation.status;
   const isUnderReview = status !== 'verified';
+  const [imgError, setImgError] = useState(false);
 
-  const primaryImage = accommodation.primaryImageUrl ?? defaultAccommodationImage;
+  const primaryImage = !imgError && accommodation.primaryImageUrl 
+    ? accommodation.primaryImageUrl 
+    : defaultAccommodationImage;
 
   return (
     <div className="relative rounded-2xl shadow-md bg-white overflow-hidden group">
@@ -50,6 +53,8 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
         src={primaryImage}
         className={`w-full h-32 object-cover ${isUnderReview ? "group-hover:blur-[2px] transition-all duration-300" : ""}`}
         alt="Accommodation"
+        onError={() => setImgError(true)}
+        crossOrigin="anonymous"
       />
       <div className="p-4">
         <h3 className="text-sm font-semibold">{accommodation.accommodationName}</h3>
