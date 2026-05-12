@@ -1,3 +1,5 @@
+import { FileMetadataSeedData } from "./users.ts"
+
 // ─── HOW TO ADD A NEW DORM ────────────────────────────────────────────────────
 // 1. Coordinates  — Google Maps → right-click pin → copy lat/lng (6 decimal places)
 // 2. Photos       — drop .jpg / .png / .webp files into database/seed_data/images/
@@ -61,7 +63,19 @@ export interface DormSeedData {
 const OSH_BASIC = ["Study desk", "Cabinet", "Laundry Area"]
 const OSH_BASIC_WIFI = ["Study desk", "Cabinet", "Laundry Area", "WiFi Ready"]
 
+/*
+  HELPERS
+*/
 
+export const makeBusinessPermit = (dormName: string): FileMetadataSeedData => {
+  const slug = dormName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+
+  return {
+    fileName: `business_permit_${slug}.pdf`,
+    filePath: `/uploads/documents/business_permit_${slug}.pdf`,
+    fileType: 'document'
+  }
+}
 
 // Add real UPLB dorms here. Example shape:
 // const kamia_residence_hall: DormSeedData = 
