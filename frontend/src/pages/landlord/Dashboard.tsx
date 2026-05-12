@@ -275,6 +275,7 @@ export default function Dashboard() {
         role="Dorm Manager"
         phoneNumber={primaryPhone}
         email={manager?.user?.email}
+        dormitory={accommodation?.accommodationName ?? 'Loading...'}
         showReplaceButton
         accommodationId={accommodationId}
         onManagerReplaced={() => queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] })}
