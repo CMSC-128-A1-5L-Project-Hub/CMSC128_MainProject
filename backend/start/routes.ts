@@ -85,6 +85,8 @@ router
         router.post('/transient-bookings', [controllers.TransientBooking, 'store'])
         router.post('/transient-bookings/:id/proof', [controllers.TransientBooking, 'uploadProof'])
         router.get('/transient-bookings', [controllers.TransientBooking, 'myBookings'])
+        router.post('/issue-reports', [controllers.IssueReports, 'store'])
+        
     }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
