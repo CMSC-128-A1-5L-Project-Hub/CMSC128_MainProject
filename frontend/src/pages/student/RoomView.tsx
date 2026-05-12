@@ -1442,6 +1442,8 @@ export default function RoomView() {
   const [reportType, setReportType] = useState<"dorm" | "manager">("dorm")
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
+  const [reportOpen, setReportOpen] = useState(false)
+
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
   // const [isFavorited, setIsFavorited] = useState(false);
   // const [moveIn, setMoveIn] = useState("");
@@ -1741,11 +1743,12 @@ export default function RoomView() {
                   <span className="hidden md:inline text-sm font-semibold">Share</span>
                 </button>
                 <button
-                  onClick={() => { setReportType("dorm"); setIsReportModalOpen(true) }}
-                  className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
+                  onClick={() => {
+                    setReportType("dorm")
+                    setReportOpen(true)
+                  }}
                 >
                   <IconReport />
-                  <span className="hidden md:inline text-sm font-semibold">Report</span>
                 </button>
               </div>
             </div>
@@ -1906,7 +1909,10 @@ export default function RoomView() {
                     </p>
                     <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
                       <button
-                        onClick={() => { setReportType("manager"); setIsReportModalOpen(true) }}
+                        onClick={() => {
+                          setReportType("manager")
+                          setReportOpen(true)
+                        }}
                         className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
                       >
                         <IconReport />
@@ -1957,13 +1963,21 @@ export default function RoomView() {
                 />
 
                 <ReportAccommodationModal
-                  open={isReportModalOpen}
-                  onClose={() => setIsReportModalOpen(false)}
+                  open={reportOpen}
+                  onClose={() => setReportOpen(false)}
                   reportType={reportType}
+                  reportableId={
+                    reportType === "dorm"
+                      ? accommodation.id
+                      : accommodation.manager.userId
+                  }
                   accommodationName={accommodation.accommodationName}
-                  managerName={managerUser ? `${managerUser.fname} ${managerUser.lname}` : undefined}
+                  managerName={
+                    accommodation.manager?.user
+                      ? `${accommodation.manager.user.fname} ${accommodation.manager.user.lname}`
+                      : undefined
+                  }
                 />
-
               </div>
 
             </div>
