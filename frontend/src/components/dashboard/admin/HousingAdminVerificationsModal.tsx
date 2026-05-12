@@ -6,6 +6,7 @@ type Props = {
   selectedItem: any | null
   verifyingUserId: number | null
   onApprove: (userId: number) => void
+  onReject: (userId: number) => void
 }
 
 function InfoRow({
@@ -42,6 +43,7 @@ export default function HousingAdminVerificationModal({
   selectedItem,
   verifyingUserId,
   onApprove,
+  onReject,
 }: Props) {
   const user = selectedItem?.user
 
@@ -70,7 +72,23 @@ export default function HousingAdminVerificationModal({
   }
 
   const modalFooter = (
-    <div className="w-full">
+  <div className="w-full grid grid-cols-2 gap-3">
+      {/* Reject */}
+      {/* Reject */}
+    <button
+      onClick={() => onReject(user.id)}
+      disabled={isVerifying}
+      className="py-2.5 rounded-xl text-[12px] font-bold tracking-[0.10em] uppercase transition-all duration-200 hover:brightness-105 active:scale-[0.98] disabled:opacity-60"
+      style={{
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        background: "#fff",
+        color: "#8C1535",
+        border: "1px solid rgba(140,21,53,0.25)",
+      }}
+      >
+      Reject
+    </button>
+      {/* Approve */}
       <button
         onClick={() => onApprove(user.id)}
         disabled={isVerifying}
