@@ -9,6 +9,7 @@ import CustomHeader from '../../components/CustomHeader';
 import UbleLoader from "../shared/LoadingPage";
 
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
+import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
 
 
 // Helpers
@@ -345,10 +346,11 @@ const StarRating = ({ rating }: { rating: number }) => (
 interface BillingSectionProps {
   overview: BillingOverview;
   statements: BillingStatement[];
+  navigate: any;
 }
 
 
-const BillingSection = ({ overview, statements }: BillingSectionProps) => (
+const BillingSection = ({ overview, statements, navigate }: BillingSectionProps) => (
   <div className="space-y-5">
     <div className="flex items-start justify-between gap-3">
       {/* LEFT SIDE */}
@@ -523,6 +525,8 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
       </div>
 
       <button
+        type="button"
+        onClick={() => navigate('/student/billingdashboard')}
         className="w-full mt-5 text-[15px] font-semibold hover:underline flex items-center justify-center gap-1"
         style={{ color: CLR.mid }}
       >
@@ -537,9 +541,29 @@ interface DesktopProfilePanelProps {
   profile: StudentProfile;
   billing: BillingOverview;
   statements: BillingStatement[];
+  navigate: any;
+  notifOpen: boolean;
+  setNotifOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  notifications: Notification[];
+  unreadCount: number;
+  markAllRead: () => void;
+  markOneRead: (id: number) => void;
+  notifWrapperRef: React.RefObject<HTMLDivElement| null>;
 }
 
-const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePanelProps) => (
+const DesktopProfilePanel = ({
+  profile,
+  billing,
+  statements,
+  navigate,
+  notifOpen,
+  setNotifOpen,
+  notifications,
+  unreadCount,
+  markAllRead,
+  markOneRead,
+  notifWrapperRef,
+}: DesktopProfilePanelProps) => (
   <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4] overflow-y-auto h-screen">
     {/* Top Gradient  */}
     <div
@@ -557,7 +581,10 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
       <div className="flex items-center justify-between mb-6">
         <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
 
-       <button
+       <div ref={notifWrapperRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setNotifOpen((prev) => !prev)}
           className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
           style={{ background: "rgba(255,255,255,0.08)" }}
         >
@@ -567,11 +594,24 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
             className="w-full h-full object-contain scale-[2.5]"
           />
 
-          <span
-            className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
-            style={{ background: CLR.gold }}
-          />
+          {unreadCount > 0 && (
+            <span
+              className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
+              style={{ background: CLR.gold }}
+            />
+          )}
         </button>
+
+        <NotificationPanel
+          open={notifOpen}
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onMarkAllRead={markAllRead}
+          onMarkOneRead={markOneRead}
+          onClose={() => setNotifOpen(false)}
+          wrapperRef={notifWrapperRef}
+        />
+      </div>
       </div>
       {/* Profile Content */}
       <div className="flex items-center gap-4">
@@ -625,7 +665,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
     </div>
     </div>
     <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
-      <BillingSection overview={billing} statements={statements} />
+      <BillingSection overview={billing} statements={statements} navigate={navigate} />
     </div>
   </aside>
 );
@@ -648,7 +688,47 @@ export default function Dashboard() {
   const [billingOverviewData, setBillingOverviewData] = useState<BillingOverview | null>(null);
   const [billingStatementsData, setBillingStatementsData] = useState<BillingStatement[]>([]);
   const [billingLoading, setBillingLoading] = useState(true);
+  const [dashboardMapAccommodations, setDashboardMapAccommodations] = useState<AccommodationPin[]>([])
+  const [mapFilter, setMapFilter] = useState("All")
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const notifWrapperRef = useRef<HTMLDivElement>(null)
 
+  useEffect(() => {
+    api.get('/notifications')
+      .then(({ data }) => {
+        setNotifications(
+          data.map((n: any) => ({
+            id: n.id,
+            type: n.notificationType,
+            message: n.notificationContent,
+            time: new Date(n.notificationTimestamp).toLocaleString(),
+            read: n.readStatus === 'read',
+          }))
+        )
+      })
+      .catch(console.error)
+  }, [])
+
+  const unreadCount = notifications.filter((n) => !n.read).length
+
+  const markAllRead = () => {
+    notifications
+      .filter((n) => !n.read)
+      .forEach((n) =>
+        api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
+      )
+
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
+
+  const markOneRead = (id: number) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    )
+
+    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
+  }
     
   const {
     data: user,
@@ -670,6 +750,17 @@ export default function Dashboard() {
       behavior: "smooth",
     });
   };
+
+  const filteredDashboardMapAccommodations =
+  activeFilter === "All"
+    ? dashboardMapAccommodations
+    : dashboardMapAccommodations.filter((acc) => {
+        if (activeFilter === "On-Campus") return acc.accommodationType === "on-campus"
+        if (activeFilter === "Off-Campus") return acc.accommodationType === "off-campus"
+        if (activeFilter === "UPLB Partner") return acc.accommodationType === "partner_housing"
+        return true
+      })
+
   // Profile and authentication -------------------
   useEffect(() => {
   const fetchProfile = async () => {
@@ -904,6 +995,50 @@ useEffect(() => {
 }, []);
 // ---------------------------------
 
+// --------- Map accommodations fetch (for map pins) ----------------
+useEffect(() => {
+  const fetchMapAccommodations = async () => {
+    try {
+      const res = await api.get("/accommodations")
+      const accommodations = Array.isArray(res.data) ? res.data : []
+
+      const pins: AccommodationPin[] = accommodations.map((acc: any) => {
+        const rents = acc.rooms?.map((r: any) => Number(r.roomRent)) ?? []
+        const minRent = rents.length ? Math.min(...rents) : 0
+        const maxRent = rents.length ? Math.max(...rents) : 0
+
+        return {
+          accommodationId: acc.id,
+          accommodationName: acc.accommodationName,
+          accommodationLocation: acc.accommodationLocation,
+          accommodationType: acc.accommodationType,
+          accommodationCapacity: acc.accommodationCapacity,
+          tenantRestriction: acc.tenantRestriction,
+          latitude: acc.latitude,
+          longitude: acc.longitude,
+          minRent,
+          maxRent,
+          price: minRent,
+          minPrice: minRent,
+          maxPrice: maxRent,
+          walkingDistance: acc.walkingDistance,
+          drivingDistance: acc.drivingDistance,
+          bikingDistance: acc.bikingDistance,
+          rating: "0",
+          imageUrl: acc.primaryImageUrl,
+        }
+      })
+
+      setDashboardMapAccommodations(pins)
+    } catch (error) {
+      console.error("Failed to fetch map accommodations:", error)
+    }
+  }
+
+  fetchMapAccommodations()
+}, [])
+// ---------------------------------
+
 const isLoading = profileLoading || isUserLoading
 
 if (isLoading) {
@@ -954,9 +1089,14 @@ if (!profile || !user || user.role !== "student") {
           <div className="bg-white rounded-[22px] shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
               <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
-              <button className="text-sm font-bold hover:underline my-auto flex items-center gap-1" style={{ color: CLR.mid }}>
-                View all <IconChevronRight className="w-4 h-4" />
-              </button>
+             <button
+              type="button"
+              onClick={() => navigate('/student/applications')}
+              className="text-sm font-bold hover:underline my-auto flex items-center gap-1"
+              style={{ color: CLR.mid }}
+            >
+              View all <IconChevronRight className="w-4 h-4" />
+            </button>
             </div>
 
             <div className="overflow-x-auto p-4">
@@ -1011,6 +1151,8 @@ if (!profile || !user || user.role !== "student") {
               <div className="flex items-center justify-between pb-4 border-b border-[#F1E5EA]">
                 <h3 className="font-bold text-[#1B2233] text-base">Recommended</h3>
                 <button
+                  type="button"
+                  onClick={() => navigate('/student/browse')}
                   className="text-[14px] font-bold flex items-center gap-1"
                   style={{ color: CLR.mid }}
                 >
@@ -1154,17 +1296,12 @@ if (!profile || !user || user.role !== "student") {
             </div>
 
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-[22px] shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
-              <div className="rounded-xl overflow-hidden flex-1 min-h-[220px] sm:min-h-[260px] relative">
-                <div className="absolute inset-0">
-                 <AccommodationMap
-                  accommodations={dashboardMapAccommodations}
-                  centeredAccommodation={dashboardMapAccommodations[0]}
-                  onCardClick={(acc) => {
-                    // console.log("ACC CLICKED:", acc)
-                    navigate(`/student/roomview/${acc.accommodationId}`)
-                  }}
+              <div className="h-[320px] rounded-2xl overflow-hidden">
+                <AccommodationMap
+                  accommodations={filteredDashboardMapAccommodations}
+                  centeredAccommodation={null}
+                  onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
                 />
-                </div>
               </div>
 
               <div>
@@ -1173,11 +1310,17 @@ if (!profile || !user || user.role !== "student") {
                 </p>
 
                 <div className="relative mb-3">
-                  <select className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition">
-                    <option>All Types</option>
-                    <option>Transient</option>
-                    <option>Non-transient</option>
+                  <select
+                    value={activeFilter}
+                    onChange={(e) => setActiveFilter(e.target.value)}
+                    className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition"
+                  >
+                    <option value="All">All Types</option>
+                    <option value="On-Campus">On-Campus</option>
+                    <option value="Off-Campus">Off-Campus</option>
+                    <option value="UPLB Partner">UPLB Partner</option>
                   </select>
+
                   <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 </div>
 
@@ -1185,6 +1328,7 @@ if (!profile || !user || user.role !== "student") {
                   {mapFilters.map((f) => (
                     <button
                       key={f}
+                      type="button"
                       onClick={() => setActiveFilter(f)}
                       className="px-2.5 py-1 rounded-full text-xs font-semibold transition-all"
                       style={
@@ -1199,7 +1343,8 @@ if (!profile || !user || user.role !== "student") {
                 </div>
 
                 <button
-                  onClick={() => navigate("/map")}
+                  type="button"
+                  onClick={() => navigate("/student/browse")}
                   className="w-full text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-sm"
                   style={{ background: CLR.mid }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = CLR.dark)}
@@ -1219,6 +1364,7 @@ if (!profile || !user || user.role !== "student") {
               <BillingSection
                 overview={billingOverviewData ?? emptyBilling}
                 statements={billingStatementsData}
+                navigate={navigate}
               />
             ) : (
               <div className="bg-white rounded-2xl p-4">
@@ -1233,6 +1379,14 @@ if (!profile || !user || user.role !== "student") {
         profile={profile}
         billing={billingOverviewData ?? emptyBilling}
         statements={billingStatementsData}
+        navigate={navigate}
+        notifOpen={notifOpen}
+        setNotifOpen={setNotifOpen}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        markAllRead={markAllRead}
+        markOneRead={markOneRead}
+        notifWrapperRef={notifWrapperRef}
       />
     </div>
   );
