@@ -12,6 +12,9 @@ interface HeroContent {
     subtitle: string;
 }
 import { api } from "../../api/axios";
+import StatsBanner from "@/components/ApplicationStatus/StatsBanner";
+import Dropdown from "@/components/ApplicationStatus/Dropdown";
+import SearchBar from "@/components/SearchBar";
 
 const CLR = {
   dark: "#3D0718",
@@ -301,10 +304,17 @@ export default function Applications() {
     });
   }, [appsData, activeTab, search, sortBy]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const [itemsPerPage, setItemsPerPage] = useState(6)
+
+  const SORT_OPTS = [
+    { value: "latest", label: "Latest" },
+    { value: "earliest", label: "Earliest" },
+  ]
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
-  const paginated = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginated = filtered.slice(startIndex, startIndex + itemsPerPage)
   const accommodationNames = useMemo(() => {
     if (!appsData || appsData.length === 0) return "your accommodations";
     
@@ -404,10 +414,38 @@ export default function Applications() {
   };
 
   const stats = [
-    { label: "Under Review", color: "linear-gradient(135deg, #C9973A, #E8C37A)", text: "#C9973A", light_bg: "#FEF8EE", value: counts["Under Review"] || 0 },
-    { label: "Accepted", color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)", text: "#1A7A4A", light_bg: "#F0F7F3", value: counts.Accepted || 0 },
-    { label: "Waitlisted", color: "linear-gradient(135deg, #6B3AB7, #9B6AE7)", text: "#6B3AB7", light_bg: "#F4F0FA", value: counts.Waitlisted || 0 },
-    { label: "Rejected", color: "linear-gradient(135deg, #AA2661, #FDCAE0)", text: "#AE2F67", light_bg: "#FAF0F7", value: counts.Rejected || 0 },
+    { 
+      label: "Under Review", 
+      count: counts["Under Review"] || 0,
+      from: "#C9973A",
+      to: "#E8C37A",
+      bg: "#FEF8EE",
+      text: "#C9973A",
+    },
+    { 
+      label: "Accepted", 
+      count: counts.Accepted || 0,
+      from: "#1A7A4A",
+      to: "#2D9A5F",
+      bg: "#F0F7F3",
+      text: "#1A7A4A",
+    },
+    { 
+      label: "Waitlisted", 
+      count: counts.Waitlisted || 0,
+      from: "#6B3AB7",
+      to: "#9B6AE7",
+      bg: "#F4F0FA",
+      text: "#6B3AB7",
+    },
+    { 
+      label: "Rejected", 
+      count: counts.Rejected || 0,
+      from: "#AA2661",
+      to: "#FDCAE0",
+      bg: "#FAF0F7",
+      text: "#AE2F67",
+    },
   ];
 
   const getVisiblePages = () => {
@@ -430,6 +468,8 @@ export default function Applications() {
         subtitle: "We make it easy for you to track the accommodation applications you manage",
     };
 
+
+
   return (
     <div className="flex h-screen bg-[#F5EEF0]">
       <Sidebar role="landlord" />
@@ -437,117 +477,132 @@ export default function Applications() {
       <div className="flex flex-col w-full h-full">
         <CustomHeader
             title="Applications"></CustomHeader>
-        <main className="flex-1 p-4 flex-col md:p-6 overflow-y-auto">  
-          {/* <div className="flex items-center gap-3 mb-4">
-            <button onClick={() => setDrawerOpen(true)} className="lg:hidden p-1" aria-label="Open menu" style={{ color: CLR.mid }}>
-              <IconMenu />
-            </button>
-            <div className="hidden lg:block w-1 h-6 rounded-full" style={{ background: CLR.mid }} />
-            <h1 className="font-serif italic text-[24px] lg:text-[34px] font-semibold text-gray-900 tracking-tight">Applications</h1>
-          </div> */}
-
-          {/* <div className="rounded-2xl p-6 mb-6 text-white" style={{ background: `linear-gradient(135deg, ${CLR.dark}, ${CLR.accent})` }}>
-            <p className="text-[10px] md:text-xs uppercase tracking-widest opacity-70">Good Day, {currentUser?.fname ?? "Landlord"}</p>
-            <h2 className="text-xl md:text-2xl font-bold mt-1">Check your applicants for Narra Residences</h2>
-            <p className="text-xs md:text-sm opacity-70 mt-1">We make it easy for you to track the accommodation applications you manage.</p>
-          </div> */}
-
-          <div className="mb-6">
+        <main className="flex-1 flex-col p-6 space-y-6 overflow-y-auto">  
             <HeroBanner
                 greeting={heroContent.greeting}
                 name={heroContent.name}
                 title={heroContent.title}
                 subtitle={heroContent.subtitle}
-                type="full"
+                type="mini"
             />
-          </div>
-          
 
-          <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {stats.map((s) => {
-                const pct = total ? Math.round((s.value / total) * 100) : 0;
-                return (
-                  <div key={s.label}>
-                    <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: s.text }}>{s.label}</p>
-                    <div className="flex items-center gap-3">
-                      <div className="relative flex items-center h-7 md:h-8 rounded-full overflow-hidden w-full" style={{ background: s.light_bg }}>
-                        <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, minWidth: "20px", background: s.color }} />
-                        <span className="relative z-10 text-white text-[9px] md:text-[10px] font-bold px-3 whitespace-nowrap">{s.value} / {total}</span>
-                      </div>
-                      <span className="text-xs font-semibold text-gray-400">{pct}%</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <StatsBanner
+            stats={stats}
+            total={total}
+            cols={4}>
 
-          <div className="mb-6 flex justify-between items-center">
+          </StatsBanner>
+
+          <div className="flex justify-between items-center">
             <FilterTabs active={activeTab} setActive={setActiveTab} />
           </div>
 
-          <div className="bg-white rounded-3xl border shadow-sm mt-6 overflow-hidden">
-            <div className="flex flex-col md:flex-row md:items-end gap-4 p-4 md:p-6 border-b">
-              <div className="shrink-0">
-                <h2 className="text-sm md:text-lg font-semibold tracking-tight text-black">{activeTab} History</h2>
-                <p className="text-[0.7rem] md:text-xs text-gray-400">{filtered.length} total applications</p>
+          <div className="bg-white rounded-2xl p-6 space-y-6 overflow-hidden">
+            <div className="flex flex-row items-center">
+              <div>
+                <h2 className="text-[16px] font-bold text-black">{activeTab} History</h2>
+                <p className="text-[12px] italic">{filtered.length} total applications</p>
               </div>
               <div className="flex items-end gap-3 md:ml-auto w-full md:w-auto">
-                <FilterSelect 
-                  label="Sort By" 
-                  value={sortBy} 
-                  onChange={(v: any) => setSortBy(v)} 
-                  options={[{ value: "latest", label: "Latest" }, { value: "earliest", label: "Earliest" }]} 
-                />
-                <div className="flex flex-col gap-0.5 md:gap-1 flex-1 min-w-0 md:w-56">
-                  <label className="text-[0.5rem] md:text-[10px] font-bold uppercase tracking-widest text-gray-400">Search</label>
-                  <input 
-                    type="text" 
-                    placeholder="Search name..." 
-                    value={search} 
-                    onChange={(e) => setSearch(e.target.value)} 
-                    className="w-full border border-gray-200 rounded-lg md:rounded-xl px-2 py-1 md:px-3 md:py-2 text-[0.7rem] md:text-sm focus:outline-none focus:border-[#6B0F2B]" 
+                <div className='hidden lg:block'>
+                  <Dropdown
+                      title="No. of Items"
+                      items={[
+                          { label: "5", href: "" },
+                          { label: "10", href: "" },
+                          { label: "15", href: "" },
+                          { label: "20", href: "" },
+                      ]}
+                      direction='down'
+                      widthClass="w-29 lg:w-32"
+                      titleClass="text-[10px] lg:text-[11px]"
+                      selectedClass="text-[12px] lg:text-[13px]"
+                      onSelect={(label) => {
+                          setItemsPerPage(Number(label))
+                          setCurrentPage(1)
+                      }}
                   />
-                </div>
+              </div>
+              
+              <Dropdown
+                title="Sort By"
+                items={SORT_OPTS.map(opt => ({ label: opt.label, href: "" }))}
+                direction='down'
+                widthClass="w-29 lg:w-32"
+                titleClass="text-[10px] lg:text-[11px]"
+                selectedClass="text-[12px] lg:text-[13px] block"
+                onSelect={(label) => {
+                  setSortBy(label === "Latest" ? "latest" : "earliest")
+                  setCurrentPage(1)
+                }}
+              />
+              <SearchBar
+                  value={search}
+                  onChange={(query) => {
+                      setSearch(query)
+                      }}
+                  onPageReset={() => setCurrentPage(1)}
+              />
               </div>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[600px]">
-                <thead>
-                  <tr className="text-left text-[10px] md:text-xs uppercase tracking-wide bg-gray-50/50" style={{ color: CLR.mid }}>
-                    <th className="px-6 py-4 font-bold">Student</th>
-                    <th className="px-4 py-4 font-bold">Date Applied</th>
-                    <th className="px-4 py-4 font-bold">Reviewed on</th>
-                    <th className="px-4 py-4 font-bold">Status</th>
-                    <th className="px-4 py-4 font-bold text-center">Action</th>
+              <table className="w-full lg:table-fixed border-separate border-spacing-0">
+                <thead className="sticky z-20 top-0 bg-white border-y border-[#6B0F2B]/5">
+                  <tr className="text-[#9A7080] text-[12px] lg:text-xs tracking-widest font-bold">
+                    {[
+                      { label: "Student",     className: "w-[30%]" },
+                      { label: "Date Applied",className: "w-[20%]" },
+                      { label: "Reviewed on", className: "w-[20%]" },
+                      { label: "Status",      className: "w-[15%]" },
+                      { label: "Action",      className: "w-[15%] text-center" },
+                    ].map(col => (
+                      <th
+                        key={col.label}
+                        className={`uppercase p-2 px-4 text-left whitespace-nowrap border-y border-[#6B0F2B]/10 ${col.className}`}
+                      >
+                        {col.label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody>
                   {isLoading ? (
                     <tr><td colSpan={5} className="text-center py-16 text-gray-400">Loading applications...</td></tr>
                   ) : paginated.length === 0 ? (
                     <tr><td colSpan={5} className="text-center py-16 text-gray-400">No applications found.</td></tr>
                   ) : (
                     paginated.map((app) => (
-                      <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-4">
+                      <tr key={app.id} className="hover:bg-gray-50 transition-all">
+                        <td className="px-4 py-2">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs md:text-sm flex-shrink-0" style={{ background: CLR.avatars[app.id % CLR.avatars.length] }}>{app.student.charAt(0)}</div>
-                            <span className="font-semibold text-gray-900 truncate max-w-[120px] md:max-w-none">{app.student}</span>
+                            <div
+                              className="hidden lg:flex w-8 h-8 rounded-xl items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                              style={{ background: CLR.avatars[app.id % CLR.avatars.length] }}
+                            >
+                              {app.student.charAt(0)}
+                            </div>
+                            <span className="font-semibold text-[13px] lg:text-[15px] truncate max-w-[180px]">
+                              {app.student}
+                            </span>
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-gray-600">
-                          <p className="font-medium text-xs md:text-sm">{app.date}</p>
-                          <p className="text-[9px] md:text-[10px] text-gray-400 font-medium mt-0.5"><DaysAgo targetDate={app.date} /></p>
+                        <td className="px-4 py-2">
+                          <span className="block text-[12px] lg:text-[14px]">{app.date}</span>
+                          <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">
+                            <DaysAgo targetDate={app.date} />
+                          </span>
                         </td>
-                        <td className="px-4 py-4 text-gray-500 text-xs md:text-sm font-medium">{app.reviewed}</td>
-                        <td className="px-4 py-4"><StatusBadge status={app.status} /></td>
-                        <td className="px-4 py-4 text-center">
-                          <button 
-                            onClick={() => handleView(app)} 
-                            className="text-[11px] md:text-sm px-3 md:px-4 py-1.5 rounded-lg md:rounded-xl font-bold transition-all" 
+                        <td className="px-4 py-2 text-[12px] lg:text-[14px] text-gray-500">
+                          {app.reviewed}
+                        </td>
+                        <td className="px-4 py-2">
+                          <StatusBadge status={app.status} />
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <button
+                            onClick={() => handleView(app)}
+                            className="text-[11px] lg:text-sm px-3 lg:px-4 py-1.5 rounded-lg lg:rounded-xl font-bold transition-all"
                             style={{ color: CLR.mid, background: "#F5ECF0", border: `1px solid ${CLR.mid}15` }}
                           >
                             View
@@ -559,10 +614,9 @@ export default function Applications() {
                 </tbody>
               </table>
             </div>
-
             <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50/30">
               <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">
-                {filtered.length === 0 ? "No results" : `Showing ${startIndex + 1}–${Math.min(startIndex + ITEMS_PER_PAGE, filtered.length)} of ${filtered.length}`}
+                {filtered.length === 0 ? "No results" : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, filtered.length)} of ${filtered.length}`}
               </p>
               <div className="flex items-center gap-1.5">
                 {getVisiblePages().map((page) => (
