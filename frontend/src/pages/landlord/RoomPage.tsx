@@ -274,7 +274,7 @@ export default function RoomsPage() {
           <CustomHeader title={"Manage Rooms"} />
         <main className="flex-1 overflow-y-auto p-8 space-y-6">
           <HeroBanner
-            greeting="Manage Inventory"
+            greeting="Manage Your Rooms"
             name="Landlord"
             title="Accommodation Room Control"
             subtitle="Monitor occupancy, manage billing, and update room availability."
