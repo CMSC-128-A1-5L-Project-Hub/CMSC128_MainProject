@@ -4,7 +4,7 @@ import Landlord from "#models/landlord";
 import Manager from "#models/manager";
 import FileMetadata from "#models/file_metadatum";
 import { BaseSeeder } from "@adonisjs/lucid/seeders";
-import { makeEnrollmentProof, SuperAdmins, Users, Landlords, Managers, Students } from "#database/seed_data/users";
+import { makeEnrollmentProof, SuperAdmins, Users, Landlords, Managers } from "#database/seed_data/users";
 import { FakeUsers, FakeStudents } from "#database/seed_data/fake_students";
 
 /*
@@ -14,7 +14,6 @@ import { FakeUsers, FakeStudents } from "#database/seed_data/fake_students";
 
 // includes both A1-5L profiles and fake students
 const ALL_USERS = [...Users, ...FakeUsers]
-const ALL_STUDENTS = [...Students, ...FakeStudents]
 
 export default class UserSeeder extends BaseSeeder {
     async run() {
@@ -49,7 +48,7 @@ export default class UserSeeder extends BaseSeeder {
 
         // 5. Students
         // Use Students instead of ALL_STUDENTS if fake students won't be included
-        for (const student of ALL_STUDENTS) {
+        for (const student of FakeStudents) {
             const user = await User.findByOrFail('email', student.email)
 
             // create fake enrollment proof
