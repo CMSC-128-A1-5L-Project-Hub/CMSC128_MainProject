@@ -10,6 +10,7 @@ import Pagination from "@/components/ApplicationStatus/Pagination"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../api/axios"
 import UbleLoader from "../shared/LoadingPage"
+import defaultAccommodation from "../../assets/defaults/accommodation.png";
 
 /* ─── Context ──────────────────────────────────────────────────────────────── */
 type FilterContextType = {
@@ -449,6 +450,7 @@ function DormTile({
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
+    
 
     return (
         <div
@@ -467,6 +469,9 @@ function DormTile({
                     src={dorm.primaryImageUrl}
                     alt={dorm.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                        e.currentTarget.src = defaultAccommodation;
+                      }}
                 />
             </div>
 
