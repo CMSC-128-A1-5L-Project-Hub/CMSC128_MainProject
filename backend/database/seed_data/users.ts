@@ -28,7 +28,7 @@ export interface StudentSeedData {
 */
 
 //for fake enrollment proofs
-const makeEnrollmentProof = (user: UserSeedData) => {
+export const makeEnrollmentProof = (user: UserSeedData) => {
     const slug = user.email.split('@')[0]
 
     return {
