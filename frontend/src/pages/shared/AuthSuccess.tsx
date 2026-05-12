@@ -8,6 +8,7 @@ interface User {
     email: string;
     role: 'unassigned' | 'student' | 'manager' | 'landlord' | 'super_admin';
     accountStatus: 'pending' | 'active' | 'suspended' | 'initial';
+    manager?: { managerStatus?: 'active' | 'inactive' } | null;
 }
 
 const ROLE_ROUTES: Record<string, string> = {
@@ -26,6 +27,7 @@ export default function AuthSuccess() {
                 const user = (await api.get<User>('/me')).data;
                 let route: string;
                 if (user.accountStatus === 'pending') route = '/pending-verification';
+                else if (user.role === 'manager' && user.manager?.managerStatus !== 'active') route = '/auth/signup/manager';
                 else if (user.role === 'unassigned') route = '/auth/role';
                 else route = ROLE_ROUTES[user.role] ?? '/auth/signin';
                 navigate(route, { replace: true });

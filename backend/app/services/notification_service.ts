@@ -1,6 +1,7 @@
 // app/services/notification_service.ts
 import { inject } from '@adonisjs/core'
 import mail from '@adonisjs/mail/services/main'
+import env from '#start/env'
 import User from '#models/user'
 
 @inject()
@@ -266,6 +267,7 @@ export default class NotificationService {
     accommodationName: string,
     landlordName: string
   ) {
+    const signInUrl = `${env.get('FRONTEND_URL') ?? 'http://localhost:5173'}/auth/signin`
     await this.send(
       email,
       `You have been invited to manage ${accommodationName} on UBLE`,
@@ -274,9 +276,9 @@ export default class NotificationService {
         <p>${landlordName} has invited you to become the manager of
           <strong>${accommodationName}</strong> on UBLE Housing.</p>
         <p>To accept this invitation, please register using this email address:</p>
-        <p><a href='http://localhost:5173/auth/signin'>Click here to sign in</a></p>
-        <p>Once you sign in with this email, you will automatically be assigned
-          to ${accommodationName}.</p>
+        <p><a href='${signInUrl}'>Click here to sign in</a></p>
+        <p>Once you sign in with this email, you will be guided through a short
+          setup and then automatically assigned to ${accommodationName}.</p>
         <br/>
         <p>UBLE Housing</p>
       `

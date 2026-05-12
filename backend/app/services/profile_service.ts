@@ -2,12 +2,13 @@ import User from '#models/user'
 import Student from '#models/student'
 import Landlord from '#models/landlord'
 // import Accommodation from '#models/accommodation'
-// import Manager from '#models/manager'
+import Manager from '#models/manager'
 import FileMetadata from '#models/file_metadatum'
 import Document from '#models/document'
 import SysVariables from '#models/sys_variable'
 import drive from '@adonisjs/drive/services/main'
 import db from '@adonisjs/lucid/services/db'
+import { DateTime } from 'luxon'
 
 export default class ProfileService {
   async setupProfile(user: User, validatedData: any) {
@@ -169,6 +170,35 @@ export default class ProfileService {
       return {
         landlord: landlord.serialize(),
         uploadedFiles: uploadedPermitUrls,
+      }
+    }
+
+    // ==========================================
+    // SCENARIO C: THE USER IS A MANAGER
+    // Manager onboarding is invite-driven; the landlord's invite is
+    // sufficient vouching, so we auto-activate on form completion
+    // (no admin review).
+    // ==========================================
+    else if (validatedData.role === 'manager') {
+      const manager = await db.transaction(async (trx) => {
+        user.useTransaction(trx)
+        user.accountStatus = 'active'
+        await user.save()
+
+        const managerRow = await Manager.findBy('userId', user.id)
+        if (!managerRow) {
+          throw new Error('Manager row missing for invited user during setup')
+        }
+        managerRow.useTransaction(trx)
+        managerRow.managerStatus = 'active'
+        managerRow.verifiedAt = DateTime.now()
+        await managerRow.save()
+
+        return managerRow
+      })
+
+      return {
+        manager: manager.serialize(),
       }
     }
   }
