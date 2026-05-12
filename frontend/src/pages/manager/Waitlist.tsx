@@ -20,6 +20,8 @@ import {
 import { api } from "../../api/axios"
 import { useQuery } from "@tanstack/react-query"
 import { DateTime } from "luxon"
+import Dropdown from "@/components/ApplicationStatus/Dropdown"
+import SearchBar from "@/components/SearchBar"
 
 type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected";
 
@@ -176,27 +178,6 @@ const FilterSelect = ({
           </>
         )}
       </button>
-
-      {sortOpen && (
-        <div className="absolute z-10 top-full mt-1 right-0 bg-white border border-[#E8D5DC] rounded-xl shadow-md overflow-hidden w-full">
-          {SORT_OPTS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => {
-                onChange(opt.value);
-                setSortOpen(false);
-              }}
-              className={`w-full text-left px-4 py-2 text-xs hover:bg-[#F5ECF0] transition ${
-                value === opt.value
-                  ? "text-[#6B0F2B] font-semibold"
-                  : "text-[#1A0008]"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
@@ -230,7 +211,8 @@ export default function Waitlist() {
     const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: WaitlistedResponse[], className?: string }) => {
     const [selectedRecord, setSelectedRecord] = useState<WaitlistedResponse | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
-    const [sortBy, setSortBy] = useState<string>("Date")
+    const [sortBy, setSortBy] = useState("Date")
+    const [itemsPerPage, setItemsPerPage] = useState(HISTORY_PER_PAGE)
     
     const [search, setSearch] = useState("")
 
@@ -295,9 +277,9 @@ export default function Waitlist() {
         setSearch("")
     }
 
-    const totalPages = Math.ceil(sorted.length / HISTORY_PER_PAGE)
-    const startIndex = (currentPage - 1) * HISTORY_PER_PAGE
-    const paginated = sorted.slice(startIndex, startIndex + HISTORY_PER_PAGE)
+    const totalPages = Math.ceil(sorted.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const paginated = sorted.slice(startIndex, startIndex + itemsPerPage)
 
     const handleSort = (option: string) => {
         setSortBy(option)
@@ -481,220 +463,162 @@ export default function Waitlist() {
           )}
       </Modal>
 
-        <div className={`bg-white rounded-2xl shadow-sm border overflow-hidden ${className ?? ""}`}>
+        <div className={`bg-white rounded-2xl p-6 shadow-sm flex flex-col h-full overflow-hidden ${className ?? ""}`}>
             {/* Header row */}
-            <div className="flex items-center justify-between gap-4 p-4 border-b">
+            <div className="flex items-center justify-between">
               {/* LEFT: grouped */}
               <div className="flex flex-col gap-1 shrink-0">
                   <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg whitespace-nowrap">
                       Waitlist History
                   </h2>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-black italic -mt-1">
                       {filtered.length} total applications
                   </p>
               </div>
-            
-            {/* RIGHT: filters */}
-            <div className="flex items-center gap-2 ml-auto">
-            {/* SORT BY */}
-            <FilterSelect
-            value={sortBy}
-            onChange={(v) => {
-                handleSort(v)
-                setMode("both")
-            }}
-            compact={isMobile && mode === "search"}
-            onToggle={() => {
-                setSortOpen(false)
-                setMode("both")
-            }}
-            sortOpen={sortOpen}
-            setSortOpen={setSortOpen}
-            />
 
-            {/* SEARCH ICON - mobile only */}
-            <button
-            onClick={handleOpenSearch}
-            className={`${mode === "search" ? "hidden" : "flex"} sm:hidden items-center gap-2 border border-[#E8D5DC] rounded-xl px-3 h-10 text-sm bg-white hover:bg-[#F5ECF0] transition`}
-            aria-label="Open search"
-            >
-            <svg className="w-4 h-4 text-[#9A7080]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            </button>
-
-            {/* SEARCH INPUT */}
-            <div className={`relative ${mode === "search" ? "flex" : "hidden"} sm:flex w-full sm:w-[120px]`}>
-                <svg
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A36F82]"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                viewBox="0 0 24 24"
-                >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-
-                <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search..."
-                value={search}
-                onChange={handleSearch}
-                className="w-full min-w-0 h-10 border border-[#E8D5DC] rounded-xl pl-8 pr-7 text-sm bg-white text-[#3D0718] placeholder:text-[#C7A7B3] focus:outline-none focus:bg-[#F5ECF0] transition-all duration-200"
-                />
-
-                <button
-                onClick={handleCloseSearch}
-                className="absolute right-2 top-1/2 -translate-y-1/2 sm:hidden text-[#9A7080] hover:text-[#6B0F2B]"
-                aria-label="Close search"
-                >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                </button>
-            </div>
-            </div>
-            </div>
-
-    {/* HEADER -- TABLE  */}
-    <div className="w-full overflow-x-auto">
-    <div className="min-w-[900px]">
-    <div className="grid grid-cols-12 border-b border-[#6B0F2B]/10">
-    <p className="col-span-2 px-4 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-        Students
-    </p>
-
-    <p className="col-span-2 px-2 py-3 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1 whitespace-nowrap">
-        Date
-    </p>
-
-    <p className="col-span-2 px-2 py-3 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1 whitespace-nowrap">
-        Time Submitted
-    </p>
-
-    <p className="col-span-2 px-2 py-3 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1 whitespace-nowrap">
-        Preferred Facility
-    </p>
-
-    <p className="col-span-2 px-2 py-3 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1 whitespace-nowrap">
-        Room Type
-    </p>
-
-    <p className="col-span-2 px-2 py-3 text-center text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1 whitespace-nowrap">
-        Action
-    </p>
-    </div>
-
-        {/* ROWS */}
-        <div className="flex flex-col divide-y divide-[#F5ECF0]">
-            {/* LOADING STATE */}
-            {isLoadingList ? (
-                <div className="py-12 flex flex-col items-center justify-center text-center">
-                    <div
-                        className="animate-spin rounded-full h-8 w-8 border-b-2"
-                        style={{ borderColor: "#9E2040" }}
-                        />
-                    <p className="text-sm text-[#9A7080] mt-2">
-                    Fetching waitlisted applications...
-                    </p>
+              <div className="flex flex-row gap-2">
+                <div className='hidden lg:block'>
+                    <Dropdown
+                        title="No. of Items"
+                        items={[
+                            { label: "5", href: "" },
+                            { label: "10", href: "" },
+                            { label: "15", href: "" },
+                            { label: "20", href: "" },
+                        ]}
+                        direction='down'
+                        widthClass="w-29 lg:w-32"
+                        titleClass="text-[10px] lg:text-[11px]"
+                        selectedClass="text-[12px] lg:text-[13px]"
+                        onSelect={(label) => {
+                            setItemsPerPage(Number(label))
+                            setCurrentPage(1)
+                        }}
+                    />
                 </div>
-            ) : isErrorList ? (
-                /* ERROR STATE */
-                <div className="py-12 flex flex-col items-center justify-center text-center">
-                    <p className="text-sm text-red-500 font-medium">
-                        Failed to load data.
-                    </p>
-                    <button
-                        onClick={() => refetch()}
-                        className="mt-2 text-xs font-semibold text-[#9E2040] hover:underline"
-                    >
-                        TRY AGAIN
-                    </button>
-                    </div>
-            ) : paginated.length > 0 ? (
-                /* DATA STATE */
-                paginated.map((record, i) => (
-                    <div key={record.id || i} className="grid grid-cols-12 items-center py-3 hover:bg-[#FFF9FA] transition-colors">
-                        
-                        {/* STUDENT INFO */}
-                        <div className="col-span-2 px-4 flex items-center gap-2">
-                            <div className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                                style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                {record?.student?.user?.fname ? 
-                                    getInitials(record.student.user.fname) :
-                                    "U"
-                                }
-                            </div>
-                            <div>
-                                <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
-                                    {record?.student?.user?.fname && record?.student?.user?.lname ?
-                                        `${record.student.user.fname} ${record.student.user.lname}` :
-                                        "Loading name..."
-                                    }
-                                </p>
-                                <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
-                            </div>
+                
+                <Dropdown
+                    title="Sort By"
+                    items={SORT_OPTS.map(opt => ({
+                        label: opt.label,
+                        href: ""
+                    }))}
+                    direction='down'
+                    widthClass="w-29 lg:w-32"
+                    titleClass="text-[10px] lg:text-[11px]"
+                    selectedClass="text-[12px] lg:text-[13px] block"
+                    onSelect={(label) => {
+                        setSortBy(label)
+                        setCurrentPage(1)
+                    }}
+                    />
+                <SearchBar
+                    value={search}
+                    onChange={(query) => {
+                        setSearch(query)
+                        }}
+                    onPageReset={() => setCurrentPage(1)}
+                />
+              </div>
+            </div>
+
+            {/* TABLE  */}
+            <div className="w-full overflow-x-auto mt-5">
+                <div className="h-full w-full overflow-y-auto overflow-x-auto">
+                    {paginated.length === 0 && !isLoadingList && !isErrorList ? null : (
+                        <table className="w-full text-sm table-fixed">
+                        <thead className="sticky top-0 border-y border-[#6B0F2B]/10">
+                            <tr className="text-[#9A7080] text-[12px] font-bold uppercase tracking-widest">
+                            <th className="w-[16.66%] px-2 py-2 text-left whitespace-nowrap">Students</th>
+                            <th className="w-[16.66%] px-2 py-2 text-center whitespace-nowrap">Date</th>
+                            <th className="w-[16.66%] px-2 py-2 text-center whitespace-nowrap">Time Submitted</th>
+                            <th className="w-[16.66%] px-2 py-2 text-center whitespace-nowrap">Preferred Facility</th>
+                            <th className="w-[16.66%] px-2 py-2 text-center whitespace-nowrap">Room Type</th>
+                            <th className="w-[16.66%] px-2 py-2 text-center whitespace-nowrap">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody className="">
+                            {isLoadingList ? (
+                            <tr>
+                                <td colSpan={6} className="py-12 text-center">
+                                <div className="flex flex-col items-center justify-center gap-2">
+                                    <div className="animate-spin rounded-full h-8 w-8" style={{ borderColor: "#9E2040" }} />
+                                    <p className="text-sm text-[#9A7080]">Fetching waitlisted applications...</p>
+                                </div>
+                                </td>
+                            </tr>
+                            ) : isErrorList ? (
+                            <tr>
+                                <td colSpan={6} className="py-12 text-center">
+                                <p className="text-sm text-red-500 font-medium">Failed to load data.</p>
+                                <button onClick={() => refetch()} className="mt-2 text-xs font-semibold text-[#9E2040] hover:underline">
+                                    TRY AGAIN
+                                </button>
+                                </td>
+                            </tr>
+                            ) : (
+                            paginated.map((record, i) => (
+                                <tr key={record.id || i} className="hover:bg-[#FFF9FA] transition-colors">
+                                <td className="px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                    <div
+                                        className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                                    >
+                                        {record?.student?.user?.fname ? getInitials(record.student.user.fname) : "U"}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-[12px] truncate lg:text-sm text-[#1A0008]">
+                                        {record?.student?.user?.fname && record?.student?.user?.lname
+                                            ? `${record.student.user.fname} ${record.student.user.lname}`
+                                            : "Loading name..."}
+                                        </p>
+                                        <p className="text-[10px] text-[#9A7080] lg:hidden">{record.student.studentNumber}</p>
+                                    </div>
+                                    </div>
+                                </td>
+                                <td className="px-2 py-3 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                                    {!record?.applicationDate ? "Loading date..."
+                                    : isNaN(new Date(record.applicationDate).getTime()) ? "TBA"
+                                    : new Date(record.applicationDate).toLocaleDateString()}
+                                </td>
+                                <td className="px-2 py-3 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
+                                    {!record?.applicationDate ? "Loading Time..."
+                                    : isNaN(DateTime.fromISO(record.applicationDate).toMillis()) ? "TBA"
+                                    : DateTime.fromISO(record.applicationDate).setZone('utc', { keepLocalTime: true }).toFormat('h:mm a')}
+                                </td>
+                                <td className="px-2 py-3 text-center text-[12px] lg:text-sm text-[#1A0008]">
+                                    {record.assignment?.room?.roomBuilding || "N/A"}
+                                </td>
+                                <td className="px-2 py-3 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
+                                    {record.assignment?.room?.roomType || record.applicationRoomType || "N/A"}
+                                </td>
+                                <td className="px-2 py-3 text-center">
+                                    <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
+                                    View
+                                    </Button>
+                                </td>
+                                </tr>
+                            ))
+                            )}
+                        </tbody>
+                    </table>
+                )}
+
+                    {/* Empty state outside the table */}
+                    {!isLoadingList && !isErrorList && paginated.length === 0 && (
+                        <div className="py-12 flex items-center justify-center text-center">
+                        <p className="text-base italic text-gray-400">Nothing to see here</p>
                         </div>
+                    )}
+                </div>
+            </div>
 
-                        {/* DATE SUBMITTED */}
-                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                            {!record?.applicationDate ?
-                                "Loading date..." :
-                                isNaN(new Date(record.applicationDate).getTime()) ?
-                                    "TBA" :
-                                    new Date(record.applicationDate).toLocaleDateString()
-                            }
-                        </p>
-
-                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] font-medium">
-                            {!record?.applicationDate ?
-                                "Loading Time..." :
-                                isNaN(DateTime.fromISO(record.applicationDate).toMillis()) ?
-                                    "TBA" :
-                                    DateTime.fromISO(record.applicationDate)
-                                        .setZone('utc', { keepLocalTime: true })
-                                        .toFormat('h:mm a')
-                            }
-                        </p>
-
-                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008]">
-                            {record.assignment?.room?.roomBuilding || "N/A"}
-                        </p>
-
-                        <p className="col-span-2 text-center text-[12px] lg:text-sm text-[#1A0008] capitalize">
-                            {record.assignment?.room?.roomType || record.applicationRoomType || "N/A"}
-                        </p>
-
-                        {/* ACTION */}
-                        <div className="col-span-2 flex justify-center">
-                            <Button variant="reddishPink" size="sm" className="px-6" onClick={() => setSelectedRecord(record)}>
-                                View
-                            </Button>
-                        </div>
-                    </div>
-                ))
-            ) : (
-                /* EMPTY STATE */
-                <div className="py-12 flex items-center justify-center text-center">
-                    <p className="text-base italic text-gray-400">
-                        Nothing to see here
-                    </p>
-                    </div>
-            )}
-        </div>
-        </div>
-    </div>
-
-            {/* FOOTER */}
-            <div className="flex items-center justify-between px-4 py-3 border-t border-[#F5ECF0]">
+            <div className="flex items-center justify-between px-4 py-3 mt-auto border-[#6B0F2B]/10 border-t">
                 <p className="text-xs text-[#9A7080]">
                 {filtered.length === 0
                     ? "No results"
-                    : `Showing ${startIndex + 1}–${Math.min(
-                        startIndex + HISTORY_PER_PAGE,
-                        filtered.length
-                    )} of ${filtered.length}`}
+                    : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, filtered.length)} of ${filtered.length}`}
                 </p>
                 <div className="flex items-center justify-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -735,15 +659,18 @@ export default function Waitlist() {
 
             <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
                 <CustomHeader title="Waitlist" />
-                    <div className="flex-1 flex flex-col p-5 overflow-y-auto">
-                        <main className="flex-1 flex flex-col gap-4">
-                            <HeroBanner 
-                                greeting="Good Day"
-                                name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-                                title="Check your waitlisted applicants"
-                                subtitle="We make it easy for you to track the accommodation  applications you manage. "
-                                type="full"
-                            />
+                    <div className="flex-1 flex flex-col p-6 overflow-y-auto">
+                        <main className="flex-1 flex flex-col gap-6">
+                            <div>       
+                                <HeroBanner 
+                                    greeting="Good Day"
+                                    name={isLoadingUser ? "Loading..." :isErrorUser ? "Error Loading Name" : user?.fname}
+                                    title="Check your waitlisted applicants"
+                                    subtitle="We make it easy for you to track the accommodation  applications you manage. "
+                                    type="mini"
+                                />
+                            </div>
+                            
 
                             <WaitlistHistory 
                                 records={waitlistRecords}

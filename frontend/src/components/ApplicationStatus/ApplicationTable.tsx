@@ -28,7 +28,7 @@ export default function ApplicationTable({ applications, onView }: ApplicationTa
     return (
         <div className="overflow-x-auto w-full">
             <table className="w-full lg:table-fixed border-separate border-spacing-0">
-                <thead className='sticky z-20 top-0 rounded-t-lg bg-white border-y-2 border-[#6B0F2B]/5'>
+                <thead className='sticky z-20 top-0 rounded-t-lg bg-white border-y border-[#6B0F2B]/5'>
                     <tr className="text-[#9A7080] text-[12px] lg:text-xs tracking-widest font-bold">
                         {[
                             { label: 'dormitory', className: 'w-[35%]' },
@@ -37,7 +37,7 @@ export default function ApplicationTable({ applications, onView }: ApplicationTa
                             { label: 'remarks', className: 'w-[25%]' },
                             { label: 'action', className: 'w-[10%]' },
                         ].map(col => (
-                            <th key={col.label} className={`uppercase p-2 text-left whitespace-nowrap border-y-2 border-[#6B0F2B]/5 ${col.className}`}>
+                            <th key={col.label} className={`uppercase p-2 text-left whitespace-nowrap border-y border-[#6B0F2B]/10 ${col.className}`}>
                                 {col.label}
                             </th>
                         ))}
@@ -48,7 +48,8 @@ export default function ApplicationTable({ applications, onView }: ApplicationTa
                         const applicationDate = new Date(app.applicationDate);
                         return (
                             <tr key={index}
-                                style={{
+                            className="hover:bg-gray-50 transition-all"    
+                            style={{
                                     backgroundColor: (rowStyles[app.applicationStatus]?.bg ?? '#888') + '0D',
                                     color: rowStyles[app.applicationStatus]?.text ?? '#888',
                                 }}>

@@ -289,8 +289,8 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
             {/* render the deadline only if it exists */}
             {application.slotConfirmDeadline && (
               <div>
-                <p className="text-[10px] text-[#8C1535] uppercase font-bold mb-1">Confirm By</p>
-                <p className="font-bold text-[#8C1535]">
+                <p className="text-[11px] text-[#8C1535] uppercase font-bold mb-1">Confirm By</p>
+                <p className="font-bold -mt-1.5 text-[#8C1535]">
                   {new Date(application.slotConfirmDeadline).toLocaleString("en-US", { 
                     month: "short", 
                     day: "numeric", 

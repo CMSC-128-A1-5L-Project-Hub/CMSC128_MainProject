@@ -1657,10 +1657,10 @@ export default function RoomView() {
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
       <Sidebar role="student" />
 
-      <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 overflow-y-auto p-6">
 
         <button onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-sm font-semibold mb-3 hover:underline"
+          className="flex items-center gap-1.5 text-md font-semibold mb-3 hover:underline"
           style={{ color: CLR.mid }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5M12 5l-7 7 7 7" />
@@ -1669,7 +1669,7 @@ export default function RoomView() {
         </button>
 
         {/* Content grid */}
-        <div className={`grid ${GRID_COLS} gap-3`}>
+        <div className={`grid ${GRID_COLS} gap-6`}>
 
           {/* Main image — col 1 */}
           <div className="relative overflow-hidden rounded-2xl" style={{ height: 300 }}>
@@ -1718,10 +1718,10 @@ export default function RoomView() {
             </div>
           </div>
 
-          {/* Conent row */}
+          {/* Content row */}
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mt-3">
-            <div className="flex items-center gap-0 flex-wrap mb-2">
+          <div className="bg-white rounded-2xl shadow-sm p-6 px-8">
+            <div className="flex items-center gap-2 flex-wrap mb-2">
               <StarRating rating={avgRating} size="md" />
               <span className="text-[15px] font- text-[#9A7080] font-semibold mr-5">
                 {avgRating.toFixed(1)} ({accommodation.reviews.length})
@@ -1760,7 +1760,7 @@ export default function RoomView() {
                 <button
                   key={t.key}
                   onClick={() => setselectedTab(t.key)}
-                  className={`flex-shrink-0 sm:flex-1 flex flex-col items-center px-4 py-2.5 text-[15px] sm:text-[18px] font-semibold transition-colors whitespace-nowrap ${selectedTab === t.key ? "text-[#6B0F2B]" : "text-gray-400 hover:text-gray-600"
+                  className={`flex-shrink-0 sm:flex-1 flex flex-col items-center px-4 py-2.5 text-[15px] sm:text-[18px] font-semibold transition-colors whitespace-nowrap ${selectedTab === t.key ? "text-[#6B0F2B]" : "text-[#9A7080] hover:text-[#805364]"
                     }`}
                 >
                   <span className="relative">
@@ -1810,8 +1810,8 @@ export default function RoomView() {
 
           </div>
 
-          <div className="mt-3 font-sans">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <div className="font-sans">
+            <div className="bg-white rounded-2xl shadow-sm py-6 mb-4">
               {/* Price */}
               <div className="mx-9">
                 <div className="mb-1">
@@ -1842,10 +1842,10 @@ export default function RoomView() {
 
                 {/* Inclusions */}
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Inclusions:</p>
-                <div className="flex gap-4 mb-4 mt-2">
+                <div className="flex gap-2 mb-4 mt-2">
                   {roomInclusions.length > 0 ? (
                     roomInclusions.map((inc: string) => (
-                      <span key={inc} className="flex items-center gap-1.5 text-sm font-medium text-[white] bg-[#6B0F2B] px-3 py-1 rounded-full">
+                      <span key={inc} className="flex items-center gap-1.5 text-sm font-medium text-[white] bg-[#6B0F2B] truncate px-3 py-1 rounded-full">
                         {inc}
                       </span>
                     ))
@@ -1871,16 +1871,16 @@ export default function RoomView() {
                           ? `${MONTHS_SHORT[selectedStart.month]} ${selectedStart.day}, ${selectedStart.year}`
                           : "—"}
                       </p>
-                      <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-In</span>
+                      <span className="text-[11px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-In</span>
                     </div>
-                    <span className="text-[#D4B0BA] text-[10px] font-bold uppercase mb-4">to</span>
+                    <span className="text-[#D4B0BA] text-[12px] font-bold uppercase mb-4">to</span>
                     <div className="flex-1">
                       <p className="text-[11px] font-bold text-[#6B0F2B]">
                         {selectedEnd
                           ? `${MONTHS_SHORT[selectedEnd.month]} ${selectedEnd.day}, ${selectedEnd.year}`
                           : "—"}
                       </p>
-                      <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-Out</span>
+                      <span className="text-[11px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-Out</span>
                     </div>
                   </div>
                 )}
@@ -1898,7 +1898,7 @@ export default function RoomView() {
                     </p>
 
                     <p className="text-[11px] font-semibold text-[#848484] mb-1">Dorm Manager</p>
-                    <p className="flex items-center gap-1.5 text-xs text-[#848484]">
+                    <p className="flex items-center gap-1.5 -mt-1 text-xs text-[#848484]">
                       <IconPhone /> (+63){managerUser?.phone?.slice(1) ?? "XXX XXX XXXX"}
                     </p>
                     <p className="flex items-center gap-1.5 text-xs text-gray-500">

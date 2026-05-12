@@ -13,19 +13,27 @@ interface StatsBannerProps {
     cols?: number;
 }
 
+const colClass: Record<number, string> = {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-2 lg:grid-cols-4",
+    5: "grid-cols-2 lg:grid-cols-5",
+    6: "grid-cols-2 lg:grid-cols-6",
+}
+
+
 export default function StatsBanner({ stats, total, cols = 5 }: StatsBannerProps){
     return (
         <div className="bg-white p-6 rounded-2xl shrink-0">
-            <div
-                className="grid grid-cols-2 lg:grid-cols-6 gap-4"
-                >
+            <div className={`grid gap-4 ${colClass[cols] ?? "grid-cols-2"}`}>
                 {stats.map((stat, i) => (
                     <div key={stat.label}>
                         <span className="block uppercase font-bold text-[11px] lg:text-[11px] tracking-widest" style={{ color: stat.text }}>
                             {stat.label}
                         </span>
                         <div className="flex flex-grow items-center gap-3 mt-1">
-                            <div className="flex-1 rounded-full h-5 lg:h-7" style={{ backgroundColor: stat.bg }}>
+                            <div className="flex-1 transition-all rounded-full h-5 lg:h-7" style={{ backgroundColor: stat.bg }}>
                                 <div
                                     className="lg:h-7 h-5 rounded-full flex items-center justify-left pl-2"
                                     style={{
