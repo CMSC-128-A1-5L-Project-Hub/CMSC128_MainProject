@@ -958,9 +958,14 @@ if (!profile || !user || user.role !== "student") {
           <div className="bg-white rounded-[22px] shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
               <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
-              <button className="text-sm font-bold hover:underline my-auto flex items-center gap-1" style={{ color: CLR.mid }}>
-                View all <IconChevronRight className="w-4 h-4" />
-              </button>
+             <button
+              type="button"
+              onClick={() => navigate('/student/applications')}
+              className="text-sm font-bold hover:underline my-auto flex items-center gap-1"
+              style={{ color: CLR.mid }}
+            >
+              View all <IconChevronRight className="w-4 h-4" />
+            </button>
             </div>
 
             <div className="overflow-x-auto p-4">
