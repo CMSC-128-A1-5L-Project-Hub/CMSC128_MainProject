@@ -131,6 +131,7 @@ export default function HousingAdminVerifications({
         selectedItem={selectedItem}
         verifyingUserId={verifyingUserId}
         onApprove={handleApprove}
+        onReject={handleApprove}
       />
     </Card>
   )

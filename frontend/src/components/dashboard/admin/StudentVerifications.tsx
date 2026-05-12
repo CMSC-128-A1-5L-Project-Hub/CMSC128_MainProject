@@ -1,7 +1,7 @@
 import { useState } from "react"
 import Card from "@/components/ui/Card"
-import Modal from "@/components/Modal"
 import { useNavigate } from "react-router-dom"
+import StudentVerificationModal from "./StudentVerificationsModal"
 
 type StudentVerificationsProps = {
   students: any[]
@@ -170,109 +170,14 @@ export default function StudentVerifications({
       </Card>
 
       {/* ── Review modal ──────────────────────────────────────────────────── */}
-      <Modal
+      <StudentVerificationModal
         open={modalOpen}
         onClose={handleClose}
-        title="Review Application"
-        eyebrow="Pending Verification"
-        maxWidth={520}
-        footer={modalFooter}
-      >
-        {user && (
-          <div className="space-y-4">
-            {/* Profile strip */}
-            <div
-              className="flex items-center gap-4 p-4 rounded-2xl"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(140,21,53,0.06) 0%, rgba(61,7,24,0.04) 100%)",
-                border: "1px solid rgba(140,21,53,0.10)",
-              }}
-            >
-              <div
-                className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-[20px] font-extrabold text-white"
-                style={{
-                  background: "linear-gradient(135deg, #8C1535 0%, #3D0718 100%)",
-                  boxShadow: "0 4px 16px rgba(140,21,53,0.35)",
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                }}
-              >
-                {initials}
-              </div>
-              <div className="min-w-0">
-                <p
-                  className="text-[17px] font-extrabold text-[#1A0A10] leading-tight truncate"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                >
-                  {fullName}
-                </p>
-                <p
-                  className="text-[12px] text-[#9E2040] font-medium truncate mt-0.5"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                >
-                  {user.email}
-                </p>
-                <span
-                  className="inline-flex items-center gap-1.5 mt-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-[0.12em] uppercase"
-                  style={{
-                    background: "rgba(140,21,53,0.10)",
-                    color: "#8C1535",
-                    border: "1px solid rgba(140,21,53,0.20)",
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#8C1535]" />
-                  Student
-                </span>
-              </div>
-            </div>
-
-            {/* Details grid */}
-            <div
-              className="grid grid-cols-2 gap-x-6 gap-y-4 p-4 rounded-2xl"
-              style={{
-                background: "#FAFAFA",
-                border: "1px solid rgba(26,10,15,0.07)",
-              }}
-            >
-              <InfoRow label="Student ID"       value={user.studentId} />
-              <InfoRow label="Course / Program" value={user.course} />
-              <InfoRow label="Year Level"       value={user.year} />
-              <InfoRow label="Contact Number"   value={user.phone} />
-              <div className="col-span-2">
-                <InfoRow label="Address" value={user.address} />
-              </div>
-              <div className="col-span-2">
-                <InfoRow label="Application Date" value={formatDate(user.createdAt)} />
-              </div>
-            </div>
-
-            {/* Submitted ID image — only when available */}
-            {user.idImageUrl && (
-              <div
-                className="rounded-2xl overflow-hidden"
-                style={{ border: "1px solid rgba(140,21,53,0.12)" }}
-              >
-                <p
-                  className="px-4 py-2 text-[9px] font-bold tracking-[0.18em] uppercase text-[#9E2040]"
-                  style={{
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    background: "rgba(140,21,53,0.05)",
-                    borderBottom: "1px solid rgba(140,21,53,0.08)",
-                  }}
-                >
-                  Submitted ID
-                </p>
-                <img
-                  src={user.idImageUrl}
-                  alt="Student ID"
-                  className="w-full object-cover max-h-48"
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </Modal>
+        selectedItem={selectedItem}
+        verifyingUserId={verifyingUserId}
+        onApprove={handleApprove}
+        onReject={handleApprove}
+      />
     </>
   )
 }
