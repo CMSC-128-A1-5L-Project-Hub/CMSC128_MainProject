@@ -75,6 +75,24 @@ function capitalizeFirst(s: string): "Single" | "Double" | "Shared" {
   return (s.charAt(0).toUpperCase() + s.slice(1)) as "Single" | "Double" | "Shared";
 }
 
+function mapOccupant(a: any): Tenant | null {
+  const student = a.student
+  const user = student?.user
+  if (!user) return null
+  const fullName = [user.fname, user.mname, user.lname, user.suffix]
+    .filter((p: string | null | undefined) => p && String(p).trim() !== "")
+    .join(" ")
+  const phones = user.phoneNumbers ?? []
+  const primaryPhone = phones.find((p: any) => p.isPrimary) ?? phones[0]
+  return {
+    id: user.id,
+    name: fullName || student.studentNumber,
+    email: user.email,
+    phone: primaryPhone?.contactNumber,
+    degree: student.degreeProgram,
+  }
+}
+
 function mapRoom(r: any): Room {
   return {
     id: r.id,
@@ -83,7 +101,7 @@ function mapRoom(r: any): Room {
     type: capitalizeFirst(r.roomType),
     capacity: r.roomCapacity,
     price: Number(r.roomRent),
-    occupants: [],
+    occupants: ((r.assignments ?? []).map(mapOccupant).filter(Boolean)) as Tenant[],
     currentOccupancy: r.roomCurrentOccupancy,
     availability: r.roomAvailability,
     tags: (r.tags ?? []).map((t: any) => ({ name: t.tagDetail, type: "inclusion" as const })),
