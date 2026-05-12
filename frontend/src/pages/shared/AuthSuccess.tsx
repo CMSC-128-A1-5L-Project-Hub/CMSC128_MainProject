@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/axios';
+import UbleLoader from './LoadingPage';
 
 interface User {
     id: number;
     email: string;
     role: 'unassigned' | 'student' | 'manager' | 'landlord' | 'super_admin';
-    account_status: 'pending' | 'active' | 'suspended' | 'initial';
+    accountStatus: 'pending' | 'active' | 'suspended' | 'initial';
 }
 
 const ROLE_ROUTES: Record<string, string> = {
@@ -24,7 +25,7 @@ export default function AuthSuccess() {
             try {
                 const user = (await api.get<User>('/me')).data;
                 let route: string;
-                if (user.account_status === 'pending') route = '/pending-verification';
+                if (user.accountStatus === 'pending') route = '/pending-verification';
                 else if (user.role === 'unassigned') route = '/auth/role';
                 else route = ROLE_ROUTES[user.role] ?? '/auth/signin';
                 navigate(route, { replace: true });
@@ -36,9 +37,5 @@ export default function AuthSuccess() {
         fetchUserAndRedirect();
     }, [navigate]);
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <p className="text-gray-500 font-medium animate-pulse">Authenticating...</p>
-        </div>
-    );
+    return null
 }
