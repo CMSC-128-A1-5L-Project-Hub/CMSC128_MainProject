@@ -107,13 +107,13 @@ export default function MapPage() {
     } else {
       params.set(key, String(value))
     }
-    setSearchParams(params)
+    setSearchParams(params, { replace: true })
   }
 
   const resetFilters = () => {
     const params = new URLSearchParams()
     if (centerId) params.set('center', centerId)
-    setSearchParams(params)
+    setSearchParams(params, { replace: true })
     setMinRating(0)
     setSelectedTags([])
     setAppliedFilters({ type: 'all', restriction: 'all', minRent: DEFAULT_MIN_RENT, maxRent: DEFAULT_MAX_RENT, maxWalk: 60, minCapacity: 0, stayType: 'all', rating: 0, tags: [] })
