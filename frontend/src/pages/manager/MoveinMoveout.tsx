@@ -155,7 +155,7 @@ export default function MoveinMoveout() {
         const [search, setSearch] = useState("")
 
         const [itemsPerPage, setItemsPerPage] = useState(5)
-        const [sortBy, setSortBy] = useState("Date")
+        const [sortBy, setSortBy] = useState<string>("Date")
 
         const SORT_OPTS = [
         { value: "Date", label: "Date" },
@@ -164,8 +164,8 @@ export default function MoveinMoveout() {
         ]
 
         const handleSort = (option: string) => {
-        setSortBy(option)
-        setCurrentPage(1)
+            setSortBy(option)
+            setCurrentPage(1)
         }
 
         //FILTER AND SEARCH
@@ -173,30 +173,81 @@ export default function MoveinMoveout() {
         const safeRecords = records ?? []
 
         const filtered = useMemo(() => {
-            const q = search.toLowerCase()
-            return records.filter(r => {
+            const q = search.toLowerCase();
+
+            return safeRecords.filter((r) => {
+                const moveIn = r.moveIn;
+
                 const matchesFilter =
                     filter === "all" ||
-                    (filter === "move-in" && diffFromNow(r.moveIn) <= 0) ||
-                    (filter === "move-out" && diffFromNow(r.moveIn) > 0)
+                    (filter === "move-in" &&
+                        moveIn &&
+                        diffFromNow(moveIn) <= 0) ||
+                    (filter === "move-out" &&
+                        moveIn &&
+                        diffFromNow(moveIn) > 0);
+
+                const lname =
+                    r.student?.user?.lname?.toLowerCase() ?? "";
+
+                const fname =
+                    r.student?.user?.fname?.toLowerCase() ?? "";
+
+                const building =
+                    r.room?.roomBuilding?.toLowerCase() ?? "";
+
+                const roomNumber =
+                    r.room?.roomNumber?.toLowerCase() ?? "";
+
+                const roomType =
+                    r.room?.roomType?.toLowerCase() ?? "";
+
                 const matchesSearch =
-                    r.student?.user.lname.toLowerCase().includes(q) ||
-                    r.student?.user.fname.toLowerCase().includes(q) ||
-                    r.room.roomBuilding.toLowerCase().includes(q) ||
-                    r.room.roomNumber.toLowerCase().includes(q) ||
-                    r.room.roomType.toLowerCase().includes(q)
-                return matchesFilter && matchesSearch
-            })
-        }, [safeRecords, search, filter])
+                    lname.includes(q) ||
+                    fname.includes(q) ||
+                    building.includes(q) ||
+                    roomNumber.includes(q) ||
+                    roomType.includes(q);
+
+                return matchesFilter && matchesSearch;
+            });
+        }, [safeRecords, search, filter]);
 
         const sorted = useMemo(() => {
             return [...filtered].sort((a, b) => {
-                if (sortBy === "Room Type") return a.room.roomType.localeCompare(b.room.roomType)
-                if (sortBy === "Building") return a.room.roomBuilding.localeCompare(b.room.roomBuilding)
-                if (sortBy === "Date") return new Date(a.moveIn as string).getTime() - new Date(b.moveIn as string).getTime()
-                return 0
-            })
-            }, [filtered, sortBy])
+                const aRoomType = a.room?.roomType ?? "";
+                const bRoomType = b.room?.roomType ?? "";
+
+                const aBuilding = a.room?.roomBuilding ?? "";
+                const bBuilding = b.room?.roomBuilding ?? "";
+
+                const aMoveIn = a.moveIn
+                    ? typeof a.moveIn === "string"
+                        ? new Date(a.moveIn).getTime()
+                        : a.moveIn.toMillis()
+                    : 0;
+
+                const bMoveIn = b.moveIn
+                    ? typeof b.moveIn === "string"
+                        ? new Date(b.moveIn).getTime()
+                        : b.moveIn.toMillis()
+                    : 0;
+
+                if (sortBy === "Room Type") {
+                    return aRoomType.localeCompare(bRoomType);
+                }
+
+                if (sortBy === "Building") {
+                    return aBuilding.localeCompare(bBuilding);
+                }
+
+                if (sortBy === "Date") {
+                    return aMoveIn - bMoveIn;
+                }
+
+                return 0;
+            });
+        }, [filtered, sortBy]);
 
         //PAGES 
         const totalPages = Math.ceil(sorted.length / itemsPerPage)
