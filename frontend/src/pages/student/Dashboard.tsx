@@ -652,6 +652,8 @@ export default function Dashboard() {
   const [billingOverviewData, setBillingOverviewData] = useState<BillingOverview | null>(null);
   const [billingStatementsData, setBillingStatementsData] = useState<BillingStatement[]>([]);
   const [billingLoading, setBillingLoading] = useState(true);
+  const [dashboardMapAccommodations, setDashboardMapAccommodations] = useState<AccommodationPin[]>([])
+  const [mapFilter, setMapFilter] = useState("All")
 
     
   const {
@@ -674,6 +676,17 @@ export default function Dashboard() {
       behavior: "smooth",
     });
   };
+
+  const filteredDashboardMapAccommodations =
+  activeFilter === "All"
+    ? dashboardMapAccommodations
+    : dashboardMapAccommodations.filter((acc) => {
+        if (activeFilter === "On-Campus") return acc.accommodationType === "on-campus"
+        if (activeFilter === "Off-Campus") return acc.accommodationType === "off-campus"
+        if (activeFilter === "UPLB Partner") return acc.accommodationType === "partner_housing"
+        return true
+      })
+
   // Profile and authentication -------------------
   useEffect(() => {
   const fetchProfile = async () => {
@@ -906,6 +919,50 @@ useEffect(() => {
 
   fetchBilling();
 }, []);
+// ---------------------------------
+
+// --------- Map accommodations fetch (for map pins) ----------------
+useEffect(() => {
+  const fetchMapAccommodations = async () => {
+    try {
+      const res = await api.get("/accommodations")
+      const accommodations = Array.isArray(res.data) ? res.data : []
+
+      const pins: AccommodationPin[] = accommodations.map((acc: any) => {
+        const rents = acc.rooms?.map((r: any) => Number(r.roomRent)) ?? []
+        const minRent = rents.length ? Math.min(...rents) : 0
+        const maxRent = rents.length ? Math.max(...rents) : 0
+
+        return {
+          accommodationId: acc.id,
+          accommodationName: acc.accommodationName,
+          accommodationLocation: acc.accommodationLocation,
+          accommodationType: acc.accommodationType,
+          accommodationCapacity: acc.accommodationCapacity,
+          tenantRestriction: acc.tenantRestriction,
+          latitude: acc.latitude,
+          longitude: acc.longitude,
+          minRent,
+          maxRent,
+          price: minRent,
+          minPrice: minRent,
+          maxPrice: maxRent,
+          walkingDistance: acc.walkingDistance,
+          drivingDistance: acc.drivingDistance,
+          bikingDistance: acc.bikingDistance,
+          rating: "0",
+          imageUrl: acc.primaryImageUrl,
+        }
+      })
+
+      setDashboardMapAccommodations(pins)
+    } catch (error) {
+      console.error("Failed to fetch map accommodations:", error)
+    }
+  }
+
+  fetchMapAccommodations()
+}, [])
 // ---------------------------------
 
 const isLoading = profileLoading || isUserLoading
@@ -1165,17 +1222,12 @@ if (!profile || !user || user.role !== "student") {
             </div>
 
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-[22px] shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
-              <div className="rounded-xl overflow-hidden flex-1 min-h-[220px] sm:min-h-[260px] relative">
-                <div className="absolute inset-0">
-                 <AccommodationMap
-                  accommodations={dashboardMapAccommodations}
-                  centeredAccommodation={dashboardMapAccommodations[0]}
-                  onCardClick={(acc) => {
-                    // console.log("ACC CLICKED:", acc)
-                    navigate(`/student/roomview/${acc.accommodationId}`)
-                  }}
+              <div className="h-[320px] rounded-2xl overflow-hidden">
+                <AccommodationMap
+                  accommodations={filteredDashboardMapAccommodations}
+                  centeredAccommodation={null}
+                  onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
                 />
-                </div>
               </div>
 
               <div>
@@ -1184,11 +1236,17 @@ if (!profile || !user || user.role !== "student") {
                 </p>
 
                 <div className="relative mb-3">
-                  <select className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition">
-                    <option>All Types</option>
-                    <option>Transient</option>
-                    <option>Non-transient</option>
+                  <select
+                    value={activeFilter}
+                    onChange={(e) => setActiveFilter(e.target.value)}
+                    className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition"
+                  >
+                    <option value="All">All Types</option>
+                    <option value="On-Campus">On-Campus</option>
+                    <option value="Off-Campus">Off-Campus</option>
+                    <option value="UPLB Partner">UPLB Partner</option>
                   </select>
+
                   <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 </div>
 
@@ -1196,6 +1254,7 @@ if (!profile || !user || user.role !== "student") {
                   {mapFilters.map((f) => (
                     <button
                       key={f}
+                      type="button"
                       onClick={() => setActiveFilter(f)}
                       className="px-2.5 py-1 rounded-full text-xs font-semibold transition-all"
                       style={
@@ -1210,7 +1269,8 @@ if (!profile || !user || user.role !== "student") {
                 </div>
 
                 <button
-                  onClick={() => navigate("/map")}
+                  type="button"
+                  onClick={() => navigate("/student/browse")}
                   className="w-full text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-sm"
                   style={{ background: CLR.mid }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = CLR.dark)}
