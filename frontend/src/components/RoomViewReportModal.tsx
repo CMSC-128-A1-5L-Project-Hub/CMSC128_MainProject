@@ -4,6 +4,7 @@ import Modal from "./Modal"
 import Button from "./Button"
 import FormSelect from "./SignUpForm/shared/FormSelect"
 import GradientPillSelect from "./DropDownGradient"
+import { api } from "../api/axios"
 
 type ReportType = "dorm" | "manager"
 
@@ -13,27 +14,28 @@ type ReportForm = {
 }
 
 const DORM_REASONS = [
-  "Inaccurate listing information",
-  "Unsafe or unhealthy conditions",
-  "Fraudulent listing",
-  "Inappropriate photos",
-  "Unavailable but listed as available",
-  "Other",
+  { label: "Inaccurate listing information", value: "inaccurate_listing" },
+  { label: "Unsafe or unhealthy conditions", value: "unsafe" },
+  { label: "Fraudulent listing", value: "fraudulent_listing" },
+  { label: "Inappropriate photos", value: "inappropriate_photos" },
+  { label: "Unavailable but listed as available", value: "unavailable" },
+  { label: "Other", value: "other" },
 ]
 
 const MANAGER_REASONS = [
-  "Unprofessional behavior",
-  "Harassment or discrimination",
-  "Unresponsive to concerns",
-  "Fraudulent activity",
-  "Violation of housing policies",
-  "Other",
+  { label: "Unprofessional behavior", value: "unprofessional_behavior" },
+  { label: "Harassment or discrimination", value: "harassment" },
+  { label: "Unresponsive to concerns", value: "unresponsive" },
+  { label: "Fraudulent activity", value: "fraudulent_activity" },
+  { label: "Violation of housing policies", value: "violation_of_policies" },
+  { label: "Other", value: "other" },
 ]
 
 type ReportAccommodationModalProps = {
   open: boolean
   onClose: () => void
   reportType: ReportType
+  reportableId: number
   accommodationName?: string
   managerName?: string
 }
@@ -42,15 +44,15 @@ export default function ReportAccommodationModal({
   open,
   onClose,
   reportType,
+  reportableId,
   accommodationName,
   managerName,
 }: ReportAccommodationModalProps) {
   const [form, setForm] = useState<ReportForm>({ reason: "", details: "" })
   const [errors, setErrors] = useState({ reason: false, details: false })
 
-  const reasons = reportType === "dorm" ? DORM_REASONS : MANAGER_REASONS
-  const reasonOptions = reasons.map((r) => ({ label: r, value: r }))
-
+  const reasonOptions = reportType === "dorm" ? DORM_REASONS : MANAGER_REASONS
+  
   const subjectLabel = reportType === "dorm"
     ? accommodationName ?? "this accommodation"
     : managerName ?? "this manager"
@@ -63,15 +65,32 @@ export default function ReportAccommodationModal({
     setErrors({ reason: false, details: false })
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors = {
-      reason:  !form.reason,
+      reason: !form.reason,
       details: !form.details.trim(),
     }
+
     setErrors(newErrors)
+
     if (Object.values(newErrors).some(Boolean)) return
-    console.log("Report submitted:", { reportType, ...form })
-    handleClose()
+
+    try {
+      await api.post('/issue-reports', {
+        reportableType: reportType === 'dorm'
+          ? 'accommodation'
+          : 'manager',
+
+        reportableId,
+
+        reason: form.reason,
+        additionalDetails: form.details,
+      })
+
+      handleClose()
+    } catch (error) {
+      console.error('Failed to submit report:', error)
+    }
   }
 
   return (
