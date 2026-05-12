@@ -57,6 +57,12 @@ export const SuperAdmins: UserSeedData[] = [
         lname: 'Administrator',
         role: 'super_admin'
     },
+    {
+        email: 'windee0109@gmail.com',
+        fname: 'System',
+        lname: 'Administrator',
+        role: 'super_admin'
+    },
 ]
 
 export const Users: UserSeedData[] = [
