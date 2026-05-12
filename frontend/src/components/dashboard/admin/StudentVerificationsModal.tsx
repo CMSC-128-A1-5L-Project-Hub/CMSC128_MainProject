@@ -46,6 +46,9 @@ export default function StudentVerificationModal({
   onReject
 }: Props) {
   const user = selectedItem?.user
+  const student = selectedItem?.profileDetails
+
+  console.log("selectedItem:", selectedItem)
 
   if (!user) return null
 
@@ -170,28 +173,29 @@ export default function StudentVerificationModal({
             border: "1px solid rgba(26,10,15,0.07)",
           }}
         >
-          <InfoRow label="Student ID" value={user.studentId} />
+          <InfoRow label="Student ID" value={student.studentNumber} />
 
           <InfoRow
-            label="Course / Program"
-            value={user.course}
+            label="Degree Program"
+            value={student.degreeProgram}
           />
 
-          <InfoRow label="Year Level" value={user.year} />
+          <InfoRow label="Year Level" value={student?.yearLevel} />
 
-          <InfoRow
+          {/* <InfoRow
             label="Contact Number"
-            value={user.phone}
-          />
+            value={student.phoneNumber}
+          /> */}
+          <InfoRow label="Gender" value={student?.gender} />
 
           <div className="col-span-2">
-            <InfoRow label="Address" value={user.address} />
+            <InfoRow label="College" value={student.college?.toUpperCase()} />
           </div>
 
           <div className="col-span-2">
             <InfoRow
               label="Application Date"
-              value={formatDate(user.createdAt)}
+              value={formatDate(user?.submittedAt)}
             />
           </div>
         </div>
