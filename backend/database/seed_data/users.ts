@@ -50,7 +50,13 @@ export const SuperAdmins: UserSeedData[] = [
         fname: 'System',
         lname: 'Administrator',
         role: 'super_admin'
-    }
+    },
+    {
+        email: 'ddcadsawan@up.edu.ph',
+        fname: 'System',
+        lname: 'Administrator',
+        role: 'super_admin'
+    },
 ]
 
 export const Users: UserSeedData[] = [
@@ -71,12 +77,6 @@ export const Users: UserSeedData[] = [
         fname: 'Princess Ann',
         lname: 'Cacot',
         role: 'student'
-    },
-    {
-        email: 'ddcadsawan@up.edu.ph',
-        fname: 'Dalton Ken',
-        lname: 'Cadsawan',
-        role: 'landlord'
     },
     {
         email: 'jecamba@up.edu.ph',
@@ -166,8 +166,42 @@ export const Users: UserSeedData[] = [
         email: 'eavillamor@up.edu.ph',
         fname: 'Enzo Paolo Joaquin',
         lname: 'Villamor',
+        role: 'student'
+    },
+
+    /*
+        Special accounts
+    */
+    {
+        email: 'kndxyl@gmail.com',
+        fname: 'Kendal',
+        lname: 'Diaz',
+        role: 'student'
+    },
+    {
+        email: 'daltoncadsawan4@gmail.com',
+        fname: 'Dalton Ken',
+        lname: 'Cadsawan',
+        role: 'landlord'
+    },
+    {
+        email: 'cadsawan.daltonken.0116@gmail.com',
+        fname: 'Dalton Ken',
+        lname: 'Cadsawan',
         role: 'manager'
-    }
+    },
+    {
+        email: 'yuuhhhmimi@gmail.com',
+        fname: 'Marcus Naethan',
+        lname: 'Reyes',
+        role: 'manager'
+    },
+    {
+        email: 'marcusnaethan@gmail.com',
+        fname: 'Marcus Naethan',
+        lname: 'Reyes',
+        role: 'student'
+    },
 ]
 
 export const Landlords: LandlordSeedData[] = [
@@ -176,7 +210,7 @@ export const Landlords: LandlordSeedData[] = [
         tin: '123-456-789-012'
     },
     {
-        email: 'ddcadsawan@up.edu.ph',
+        email: 'daltoncadsawan4@gmail.com',
         tin: '234-567-890-123'
     },
     {
@@ -187,25 +221,32 @@ export const Landlords: LandlordSeedData[] = [
         email: 'jssison5@up.edu.ph',
         tin: '456-789-012-345'
     },
-    
 ]
 
 export const Managers: ManagerSeedData[] = [
     {
         email: 'kabahay@up.edu.ph',
-        managerStatus: 'active'
+        managerStatus: 'inactive'
     },
     {
         email: 'gmcustodio1@up.edu.ph',
-        managerStatus: 'active'
+        managerStatus: 'inactive'
     },
     {
         email: 'vcgonzales@up.edu.ph',
-        managerStatus: 'active'
+        managerStatus: 'inactive'
     },
     {
         email: 'eavillamor@up.edu.ph',
         managerStatus: 'active'
+    },
+    {
+        email: 'cadsawan.daltonken.0116@gmail.com',
+        managerStatus: 'inactive'
+    },
+    {
+        email: 'yuuhhhmimi@gmail.com',
+        managerStatus: 'inactive'
     },
 ]
 
@@ -276,6 +317,13 @@ export const Students: StudentSeedData[] = [
     {
         email: 'svuntalan1@up.edu.ph',
         studentNumber: '2023-15432',
+        college: 'cas',
+        degreeProgram: 'BS Computer Science',
+        gender: 'female'
+    },
+    {
+        email: 'kndxyl@gmail.com',
+        studentNumber: '2023-05432',
         college: 'cas',
         degreeProgram: 'BS Computer Science',
         gender: 'female'
