@@ -50,11 +50,9 @@ export default class InviteManagerController {
     accommodation.invitedManagerEmail = manager_email
     await accommodation.save()
 
-    await this.notificationService.sendManagerInvitationEmail(
-      manager_email,
-      accommodation.accommodationName,
-      landlordName
-    )
+    this.notificationService
+      .sendManagerInvitationEmail(manager_email, accommodation.accommodationName, landlordName)
+      .catch((err) => console.error('Manager invitation email failed:', err))
 
     return response.ok({
       status: 200,
