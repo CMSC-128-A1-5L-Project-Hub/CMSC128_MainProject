@@ -3,7 +3,7 @@ import vine from '@vinejs/vine'
 export const setupProfileValidator = vine.compile(
   vine.object({
     // Determine the role being applied for
-    role: vine.enum(['student', 'landlord']),
+    role: vine.enum(['student', 'landlord', 'manager']),
 
     // ==========================================
     // STUDENT SPECIFIC FIELDS

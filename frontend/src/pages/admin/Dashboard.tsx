@@ -12,6 +12,7 @@ import HousingAdminVerifications from "@/components/dashboard/admin/HousingAdmin
 import PendingAccommodations from "@/components/dashboard/admin/PendingAccommodations"
 import SystemSettings from "@/components/dashboard/admin/SystemSettings"
 import ActivityLogs from "@/components/dashboard/admin/ActivityLogs"
+import UbleLoader from "../shared/LoadingPage"
 
 const AdminDashboard = () => {
   const queryClient = useQueryClient()
@@ -241,11 +242,7 @@ const AdminDashboard = () => {
   }, [settings])
 
   if (isUserLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-[#F9F4F5]">
-        <p className="text-sm text-[#6B0F2B]">Loading...</p>
-      </div>
-    )
+      return <UbleLoader />
   }
 
   if (!user || (user.role !== "manager" && user.role !== "super_admin")) {

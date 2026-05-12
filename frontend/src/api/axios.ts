@@ -1,11 +1,18 @@
 import axios from 'axios'
 
+export function resolveApiBaseUrl(): string {
+  const raw = import.meta.env.VITE_API_URL
+  if (import.meta.env.PROD && raw && /^https?:\/\/(localhost|127\.0\.0\.1)/i.test(raw)) {
+    return '/api'
+  }
+  return raw ?? '/api'
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? '/api',
+  baseURL: resolveApiBaseUrl(),
   withCredentials: true,
 })
 
-// Redirect to landing page on 401 (not logged in) or 403 (wrong role)
 api.interceptors.response.use(
   (response) => response,
   (error) => {

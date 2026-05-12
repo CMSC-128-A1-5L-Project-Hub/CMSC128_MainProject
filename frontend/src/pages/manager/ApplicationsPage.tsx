@@ -267,7 +267,7 @@ export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activePage, setActivePage] = useState("applications");
-  const [sortBy, setSortBy] = useState("Date applied (Desc.)");
+  const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");
   const [currentPage, setCurrentPage] = useState(1);
 
   const [selectedApp, setSelectedApp] = useState<ApplicationResponse | null>(null);
@@ -334,11 +334,10 @@ export default function ApplicationsPage() {
     });
 
     return res.sort((a: ApplicationResponse, b: ApplicationResponse) => {
-      const diff = new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime();
-      if (sortBy === "Date applied (Asc.)") return diff;
-      if (sortBy === "Date applied (Desc.)") return -diff;
-      if (sortBy === "Status") return a.applicationStatus.localeCompare(b.applicationStatus);
-      return -diff;
+        const diff = new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime();
+        if (sortBy === "earliest") return diff;
+        if (sortBy === "latest") return -diff;
+        return -diff;
     });
   }, [search, sortBy, applications]);
   
@@ -402,8 +401,10 @@ export default function ApplicationsPage() {
   };
 
   const handleSort = (value: string) => {
-    setSortBy(value as "latest" | "earliest");
-    setCurrentPage(1);
+      if (value === "latest" || value === "earliest") {
+          setSortBy(value);
+          setCurrentPage(1);
+      }
   };
 
   const stats = [
@@ -487,17 +488,24 @@ export default function ApplicationsPage() {
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * rows;
   const paginated = localFiltered.slice(startIndex, startIndex + rows);
+    if (isLoadingUser) {
+    return null  // ProtectedRoute already shows loader, just be blank
+    }
+
+    if (isErrorUser || !user) {
+        return null  // Will redirect via ProtectedRoute
+    }
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4]">
       <Sidebar 
-        role="manager" 
-        profile={{
-          fullName: `${user?.fname} ${user?.lname}`,
-          shortName: `${user?.fname}`,
-          email: `${user?.email}`,
-          status: `${user?.manager?.managerStatus}`
-        }} 
+          role="manager" 
+          profile={{
+              fullName: user ? `${user.fname} ${user.lname}` : 'Loading...',
+              shortName: user?.fname || '...',
+              email: user?.email || '...',
+              status: user?.manager?.managerStatus || '...'
+          }} 
       />
       <DrawerNav
         open={drawerOpen}

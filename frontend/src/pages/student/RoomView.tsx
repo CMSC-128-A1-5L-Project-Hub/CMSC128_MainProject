@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
 import GradientPillSelect from "../../components/DropDownGradient.tsx";
-
+import UbleLoader from "../shared/LoadingPage.tsx";
 import { api } from "../../api/axios";
 import defaultAccommodation from "@/assets/defaults/accommodation.png";
 
@@ -1486,7 +1486,7 @@ export default function RoomView() {
   }, [selectedTenantRestriction, selectedStayType, selectedArrangement]);
 
   if (loading) {
-    return <p>Loading accommodation...</p>;
+      return <UbleLoader />
   }
 
   if (!accommodation) {

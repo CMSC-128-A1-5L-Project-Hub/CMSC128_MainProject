@@ -11,6 +11,7 @@ import SearchBar from '../../components/SearchBar';
 import { useFees } from '../../../hooks/useBillingQueries';
 import { useProfile } from '../../../hooks/useDashboardQueries';
 import CustomHeader from '../../components/CustomHeader';
+import UbleLoader from '../shared/LoadingPage';
 
 // ── Types ──────────────────────────────────────────────────────
 export interface Bill {
@@ -113,11 +114,7 @@ export default function BillingDashboard() {
   const [payOpen, setPayOpen] = useState(false);
 
   if (billsLoading || profileLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#F5EEF0]">
-        <p className="text-[#6B0F2B] text-lg font-semibold">Loading billing…</p>
-      </div>
-    )
+      return <UbleLoader />
   }
 
   if (isError) {

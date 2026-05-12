@@ -1,10 +1,11 @@
 import touch from "../../assets/images/touch.png"
 import { Link } from "react-router-dom"
 import Logo from "../../components/Logo"
+import { resolveApiBaseUrl } from "../../api/axios"
 
 export default function SignUp() {
     const handleGoogleSignUp = () => {
-        const base = import.meta.env.VITE_API_URL || ''
+        const base = resolveApiBaseUrl()
         window.location.href = `${base}/auth/google/redirect`
     }
 

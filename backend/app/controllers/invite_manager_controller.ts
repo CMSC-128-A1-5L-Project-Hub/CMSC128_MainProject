@@ -1,7 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
 import User from '#models/user'
-import Manager from '#models/manager'
 import NotificationService from '#services/notification_service'
 import { inject } from '@adonisjs/core'
 
@@ -36,75 +35,18 @@ export default class InviteManagerController {
       })
     }
 
-    const previousManagerId = accommodation.managerId
     const landlordName = `${user.fname} ${user.lname}`
 
-    const notifyOutgoing = async () => {
-      if (!previousManagerId) return
-      const outgoing = await User.find(previousManagerId)
-      if (outgoing) {
-        await this.notificationService.sendManagerRemovedNotification(
-          outgoing,
-          accommodation.accommodationName
-        )
-      }
-    }
-
     const existingUser = await User.findBy('email', manager_email)
-
     if (existingUser) {
-      const existingManager = await Manager.findBy('userId', existingUser.id)
-
-      // If the user is already a manager, swap immediately
-      if (existingManager) {
-        const alreadyAssigned = await Accommodation.query()
-          .where('manager_id', existingUser.id)
-          .whereNot('id', accommodation.id)
-          .first()
-
-        if (alreadyAssigned) {
-          return response.badRequest({
-            status: 400,
-            error: 'Bad Request',
-            message: 'This manager is already assigned to another accommodation.',
-          })
-        }
-
-        accommodation.managerId = existingUser.id
-        accommodation.invitedManagerEmail = null
-        await accommodation.save()
-
-        await this.notificationService.sendManagerAssignmentEmailNotification(
-          existingUser,
-          accommodation.accommodationName
-        )
-        await notifyOutgoing()
-
-        return response.ok({
-          status: 200,
-          message: 'Manager assigned successfully.',
-          assigned: true,
-        })
-      }
-
-      // Existing user but not yet a manager — store invite, promote on next sign-in
-      accommodation.invitedManagerEmail = manager_email
-      await accommodation.save()
-
-      await this.notificationService.sendManagerInvitationEmail(
-        manager_email,
-        accommodation.accommodationName,
-        landlordName
-      )
-
-      return response.ok({
-        status: 200,
-        message: 'Invitation sent. User will be promoted to manager on next sign-in.',
-        assigned: false,
+      return response.badRequest({
+        status: 400,
+        error: 'Bad Request',
+        message:
+          'This account is already registered under a different role. Please use a fresh email.',
       })
     }
 
-    // Email not registered — store invite and send email
     accommodation.invitedManagerEmail = manager_email
     await accommodation.save()
 

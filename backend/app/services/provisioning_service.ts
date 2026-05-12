@@ -2,8 +2,11 @@ import User from '#models/user'
 import FileMetadata from '#models/file_metadatum'
 import Manager from '#models/manager'
 import Accommodation from '#models/accommodation'
+import NotificationService from '#services/notification_service'
 
 export default class ProvisioningService {
+  private notificationService = new NotificationService()
+
   public async provision(profile: { email: string; fname: string; lname?: string }) {
     const defaultPfp = await FileMetadata.firstOrCreate(
       { filePath: 'defaults/default_pfp.png' },
@@ -44,9 +47,13 @@ export default class ProvisioningService {
 
     if (!pendingAccommodation) return
 
+    const outgoingManagerId = pendingAccommodation.managerId
+
     if (user.role !== 'manager') {
       user.role = 'manager'
-      user.accountStatus = 'active'
+      // accountStatus stays null until the manager completes setup (/setup),
+      // at which point ProfileService flips it to 'active'. The pending-setup
+      // signal is Manager.managerStatus === 'inactive' (see AuthSuccess).
       await user.save()
     }
 
@@ -54,12 +61,22 @@ export default class ProvisioningService {
     if (!existingManager) {
       await Manager.create({
         userId: user.id,
-        managerStatus: 'active',
+        managerStatus: 'inactive',
       })
     }
 
     pendingAccommodation.managerId = user.id
     pendingAccommodation.invitedManagerEmail = null
     await pendingAccommodation.save()
+
+    if (outgoingManagerId && outgoingManagerId !== user.id) {
+      const outgoing = await User.find(outgoingManagerId)
+      if (outgoing) {
+        await this.notificationService.sendManagerRemovedNotification(
+          outgoing,
+          pendingAccommodation.accommodationName
+        )
+      }
+    }
   }
 }

@@ -10,6 +10,7 @@ import Dropdown from "../../components/ApplicationStatus/Dropdown"
 import Pagination from "@/components/ApplicationStatus/Pagination"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../api/axios"
+import UbleLoader from "../shared/LoadingPage"
 
 /* ─── Context ──────────────────────────────────────────────────────────────── */
 type FilterContextType = {
@@ -23,7 +24,7 @@ type FilterContextType = {
     filters: { [key: string]: boolean }; setFilters: (v: { [key: string]: boolean }) => void
     setFilterPanelOpen: (v: boolean) => void
     origMin: number; origMax: number; setOrigMin: (v: number) => void; setOrigMax: (v: number) => void;
-    setFilterInEffect: (v: boolean) => void;
+    setFilterInEffect: (v: boolean) => void; setSearched: (v: boolean) => void;
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
@@ -62,9 +63,10 @@ export default function BrowsePage() {
     const [uniqueTags, setUniqueTags] = useState<string[]>([]);
     const [filterInEffect, setFilterInEffect] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+    const [searched, setSearched] = useState(false);
     const navigate = useNavigate()
 
-    const { data: accommodations = [], isError: accommodationsError, isSuccess } = useQuery({
+    const { data: accommodations = [], isError: accommodationsError, isSuccess, isLoading: accLoading } = useQuery({
         queryKey: ["accommodations", searchTerm, activeFilter],
         queryFn: async () => {
             const params: Record<string, any> = {}
@@ -79,6 +81,9 @@ export default function BrowsePage() {
             setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
+        staleTime: 60_000,
+        gcTime: 5 * 60_000,
+        placeholderData: (prev: any) => prev,
     })
 
     const { data: user, isError } = useQuery({
@@ -138,17 +143,15 @@ export default function BrowsePage() {
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
-        if (!filterInEffect) {
-            console.log("broken", filterInEffect)
+        console.log("searching for: ", searching)
+        if (!filterInEffect && !setSearched) {
             return
         }
 
-        console.log("yahooo")
-        console.log(accommodations)
         setFilterInEffect(false);
+        setSearched(false)
 
         for (let i = 0; i < accommodations.length; i++) {
-            console.log(i)
             const {
                 id, accommodationName, accommodationLocation, accommodationType,
                 accommodationCapacity, tenantRestriction, latitude, longitude,
@@ -266,11 +269,15 @@ export default function BrowsePage() {
     /* ══════════════════════════════════════════════════════════════════════════
        RENDER
     ══════════════════════════════════════════════════════════════════════════ */
+    if (accLoading && accommodations.length === 0) {
+        return <UbleLoader />
+    }
+
     return (
         <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
-            searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax
+            searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched
         }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
 
@@ -285,6 +292,8 @@ export default function BrowsePage() {
 
                     {/* Scrollable content */}
                     <div className="flex-1 overflow-y-auto">
+
+                        
                         {/* Hero */}
                         <div className="w-full px-4 sm:px-6 pt-6 pb-2">
                             <HeroBanner
@@ -542,7 +551,7 @@ function DormTile({
 function SearchBar() {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
-    const { setSearching } = context
+    const { setSearching, setSearched } = context
 
     return (
         <div className="flex-1 flex items-center gap-2 bg-white rounded-xl border border-[#E8D4DF] px-3.5 py-2 shadow-sm focus-within:border-[#6B0F2B] focus-within:ring-2 focus-within:ring-[#6B0F2B]/10 transition-all">
@@ -554,11 +563,13 @@ function SearchBar() {
                 type="text"
                 placeholder="Search dormitory name…"
                 className="flex-1 text-sm text-[#1C0A11] placeholder-[#C8B0B8] outline-none bg-transparent"
+                autoComplete="off"
             />
             <button
                 onClick={() => {
                     const input = document.getElementById("search-bar") as HTMLInputElement
                     setSearching(input.value.trim().toLowerCase())
+                    setSearched(true)
                 }}
                 className="bg-[#6B0F2B] hover:bg-[#8A1C3D] text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition-colors shrink-0"
             >

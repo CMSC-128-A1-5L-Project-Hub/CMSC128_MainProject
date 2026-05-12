@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Navigate } from "react-router-dom"
 import { api } from "../api/axios"
 import { useUserStore } from "../stores/useUserStore"
+import UbleLoader from "@/pages/shared/LoadingPage"
 
 interface Props {
   children: React.ReactNode
@@ -27,7 +28,8 @@ export default function ProtectedRoute({ children }: Props) {
       .catch(() => setStatus("unauth"))
   }, [setUser])
 
-  if (status === "loading") return null   // blank while checking — no flash
+  if (status === "loading") return <UbleLoader />
+
   if (status === "unauth") return <Navigate to="/" replace />
   return <>{children}</>
 }
