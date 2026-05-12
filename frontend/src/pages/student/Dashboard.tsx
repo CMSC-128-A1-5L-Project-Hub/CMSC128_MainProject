@@ -9,6 +9,7 @@ import CustomHeader from '../../components/CustomHeader';
 import UbleLoader from "../shared/LoadingPage";
 
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
+import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
 
 
 // Helpers
@@ -541,9 +542,28 @@ interface DesktopProfilePanelProps {
   billing: BillingOverview;
   statements: BillingStatement[];
   navigate: any;
+  notifOpen: boolean;
+  setNotifOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  notifications: Notification[];
+  unreadCount: number;
+  markAllRead: () => void;
+  markOneRead: (id: number) => void;
+  notifWrapperRef: React.RefObject<HTMLDivElement| null>;
 }
 
-const DesktopProfilePanel = ({ profile, billing, statements, navigate }: DesktopProfilePanelProps) => (
+const DesktopProfilePanel = ({
+  profile,
+  billing,
+  statements,
+  navigate,
+  notifOpen,
+  setNotifOpen,
+  notifications,
+  unreadCount,
+  markAllRead,
+  markOneRead,
+  notifWrapperRef,
+}: DesktopProfilePanelProps) => (
   <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4] overflow-y-auto h-screen">
     {/* Top Gradient  */}
     <div
@@ -561,7 +581,10 @@ const DesktopProfilePanel = ({ profile, billing, statements, navigate }: Desktop
       <div className="flex items-center justify-between mb-6">
         <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
 
-       <button
+       <div ref={notifWrapperRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setNotifOpen((prev) => !prev)}
           className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
           style={{ background: "rgba(255,255,255,0.08)" }}
         >
@@ -571,11 +594,24 @@ const DesktopProfilePanel = ({ profile, billing, statements, navigate }: Desktop
             className="w-full h-full object-contain scale-[2.5]"
           />
 
-          <span
-            className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
-            style={{ background: CLR.gold }}
-          />
+          {unreadCount > 0 && (
+            <span
+              className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
+              style={{ background: CLR.gold }}
+            />
+          )}
         </button>
+
+        <NotificationPanel
+          open={notifOpen}
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onMarkAllRead={markAllRead}
+          onMarkOneRead={markOneRead}
+          onClose={() => setNotifOpen(false)}
+          wrapperRef={notifWrapperRef}
+        />
+      </div>
       </div>
       {/* Profile Content */}
       <div className="flex items-center gap-4">
@@ -654,7 +690,45 @@ export default function Dashboard() {
   const [billingLoading, setBillingLoading] = useState(true);
   const [dashboardMapAccommodations, setDashboardMapAccommodations] = useState<AccommodationPin[]>([])
   const [mapFilter, setMapFilter] = useState("All")
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const notifWrapperRef = useRef<HTMLDivElement>(null)
 
+  useEffect(() => {
+    api.get('/notifications')
+      .then(({ data }) => {
+        setNotifications(
+          data.map((n: any) => ({
+            id: n.id,
+            type: n.notificationType,
+            message: n.notificationContent,
+            time: new Date(n.notificationTimestamp).toLocaleString(),
+            read: n.readStatus === 'read',
+          }))
+        )
+      })
+      .catch(console.error)
+  }, [])
+
+  const unreadCount = notifications.filter((n) => !n.read).length
+
+  const markAllRead = () => {
+    notifications
+      .filter((n) => !n.read)
+      .forEach((n) =>
+        api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
+      )
+
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
+
+  const markOneRead = (id: number) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    )
+
+    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
+  }
     
   const {
     data: user,
@@ -1306,6 +1380,13 @@ if (!profile || !user || user.role !== "student") {
         billing={billingOverviewData ?? emptyBilling}
         statements={billingStatementsData}
         navigate={navigate}
+        notifOpen={notifOpen}
+        setNotifOpen={setNotifOpen}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        markAllRead={markAllRead}
+        markOneRead={markOneRead}
+        notifWrapperRef={notifWrapperRef}
       />
     </div>
   );
