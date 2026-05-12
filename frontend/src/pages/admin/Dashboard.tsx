@@ -361,12 +361,12 @@ const AdminDashboard = () => {
               students={studentPending}
               isLoading={isPendingLoading}
               verifyingUserId={verifyingUserId}
-              onApprove={(userId) =>
-                verifyUserMutation.mutate({
+              onApprove={async (userId) => {
+                await verifyUserMutation.mutateAsync({
                   userId,
                   roleToAssign: "student",
                 })
-              }
+              }}
             />
             {/* HOUSING ADMIN VERIFICATIONS */}
             <HousingAdminVerifications

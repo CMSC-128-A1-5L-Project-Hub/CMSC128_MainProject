@@ -7,7 +7,7 @@ type StudentVerificationsProps = {
   students: any[]
   isLoading: boolean
   verifyingUserId: number | null
-  onApprove: (userId: number) => void
+  onApprove: (userId: number) => Promise<void>
 }
 
 function InfoRow({ label, value }: { label: string; value?: string | number | null }) {
@@ -59,8 +59,8 @@ export default function StudentVerifications({
     setTimeout(() => setSelectedItem(null), 350)
   }
 
-  const handleApprove = (userId: number) => {
-    onApprove(userId)
+  const handleApprove = async (userId: number) => {
+    await onApprove(userId)
     handleClose()
   }
 

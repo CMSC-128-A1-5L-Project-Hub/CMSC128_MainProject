@@ -353,9 +353,13 @@ export default function StudentVerificationsPage() {
         onClose={handleCloseModal}
         selectedItem={selectedItem}
         verifyingUserId={verifyingUserId}
-        onApprove={(userId) => verifyUserMutation.mutate(userId)}
-        onReject={(userId) => {
-          console.log("Reject student:", userId)
+        onApprove={async (userId) => {
+          await verifyUserMutation.mutateAsync(userId)
+          handleCloseModal()
+        }}
+        onReject={async (userId) => {
+          await verifyUserMutation.mutateAsync(userId)
+          handleCloseModal()  
         }}
       />
     </div>

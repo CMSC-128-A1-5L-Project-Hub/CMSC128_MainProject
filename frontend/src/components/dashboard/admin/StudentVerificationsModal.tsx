@@ -5,8 +5,8 @@ type Props = {
   onClose: () => void
   selectedItem: any | null
   verifyingUserId: number | null
-  onApprove: (userId: number) => void
-  onReject: (userId: number) => void
+  onApprove: (userId: number) => Promise<void>
+  onReject: (userId: number) => Promise<void>
 }
 
 function InfoRow({
