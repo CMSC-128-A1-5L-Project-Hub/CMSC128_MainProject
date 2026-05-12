@@ -556,7 +556,7 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
             
 
             {/* Footer */}
-            <div className="flex flex-col justify-center items-center h-full  text-center">
+            <div className={`${records.length === 0 ? "flex flex-col" : "hidden"} justify-center items-center h-full  text-center`}>
                 <p className="text-[#9A7080] font-medium text-lg">No occupants found</p>
                 <p className="text-[#9A7080]/60 text-sm mt-1">When an applicant gets accepted, they will appear here</p>
             </div>
