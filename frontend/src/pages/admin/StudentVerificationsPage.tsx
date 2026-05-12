@@ -303,7 +303,7 @@ export default function StudentVerificationsPage() {
                           </td>
 
                           <td className="px-8 py-5 text-sm text-[#A06B7C]">
-                            {formatAppliedDate(item.user.createdAt)}
+                            {formatAppliedDate(item.user.submittedAt)}
                           </td>
 
                           <td className="px-8 py-5 text-sm text-gray-600">

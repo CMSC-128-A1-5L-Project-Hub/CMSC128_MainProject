@@ -74,6 +74,8 @@ export default function StudentVerifications({
     .toUpperCase()
   const isVerifying = user ? verifyingUserId === user.id : false
 
+  // console.log("pending students:", students)
+
   const modalFooter = (
     <div className="flex items-center gap-3 w-full">
       <button
@@ -149,7 +151,7 @@ export default function StudentVerifications({
                       </div>
                     </td>
                     <td className="py-4 text-sm text-[#A06B7C]">
-                      {formatDate(item.user.createdAt)}
+                      {formatDate(item.user.submittedAt)}
                     </td>
                     <td className="py-4 text-center">
                       {/* ← only change: onClick opens modal instead of approving directly */}
