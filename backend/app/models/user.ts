@@ -46,6 +46,9 @@ export default class User extends BaseModel {
   @column.dateTime()
   declare otpExpiresAt: DateTime | null
 
+  @column.dateTime()
+  declare submittedAt: DateTime | null
+
   @belongsTo(() => FileMetadata, { foreignKey: 'pfpFileId' })
   declare profilePicture: BelongsTo<typeof FileMetadata>
 
