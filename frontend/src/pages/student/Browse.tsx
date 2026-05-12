@@ -584,8 +584,10 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
     } = context
 
 
-    const [openDormCabinet, setDormCabinet] = useState(false);
-    const [openRoomCabinet, setRoomCabinet] = useState(false);
+    const [openDormCabinet, setDormCabinet] = useState(false)
+    const [openRoomCabinet, setRoomCabinet] = useState(false)
+    const [selectedDorm, setSelectedDorm] = useState("All")
+    const [selectedRoom, setSelectedRoom] = useState("All")
 
     const originalFilters = Object.fromEntries(
         Object.keys(origFilters).map((key) => [key, false])
@@ -594,8 +596,8 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
     const resetAll = () => {
         setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
         setDormType("All"); setRoomType("All"); setMinPrice(origMin); setMaxPrice(origMax);
-        setFilterPanelOpen(false); setFilterInEffect(true);
-        setSliderResetKey(prev => prev + 1);
+        setFilterPanelOpen(false); setFilterInEffect(true); setSliderResetKey(prev => prev + 1);
+        setSelectedDorm("All"); setSelectedRoom("All");
     }
 
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
@@ -623,7 +625,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
                     className={`relative w-11 h-6 rounded-full border-none transition-colors duration-200 ${onlyBookmarked ? "bg-[#6B0F2B]" : "bg-[#E8D4DF]"}`}
                     onClick={() => setOnlyBookmarked(!onlyBookmarked)}
                 >
-                    <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${onlyBookmarked ? "translate-x-[22px]" : "translate-x-[2px]"}`} />
+                    <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${onlyBookmarked ? "translate-x-[2px]" : "translate-x-[-19px]"}`} />
                 </button>
             </div>
 
@@ -646,6 +648,8 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
                 setOpen={setDormCabinet}
                 setClose={setRoomCabinet}
                 open={openDormCabinet}
+                setSelected={setSelectedDorm}
+                selected={selectedDorm}
             />
 
             <Divider />
@@ -667,6 +671,8 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
                 setOpen={setRoomCabinet}
                 setClose={setDormCabinet}
                 open={openRoomCabinet}
+                setSelected={setSelectedRoom}
+                selected={selectedRoom}
             />
 
             <Divider />
@@ -755,11 +761,13 @@ interface DropdownProps {
     showTitle?: boolean;
     setOpen: (label: boolean) => void;
     setClose: (label: boolean) => void;
+    selected: string;
+    setSelected: (label: string) => void;
     open: boolean;
   }
   
-  function Dropdown({ showTitle = true, title, items, onSelect, direction = "down", widthClass = "w-32", titleClass = "text-[10px]", selectedClass = "text-[12px]", setOpen, setClose, open }: DropdownProps) {
-    const [selected, setSelected] = useState(items[0].label);
+  function Dropdown({ showTitle = true, title, items, onSelect, direction = "down", widthClass = "w-32", titleClass = "text-[10px]", selectedClass = "text-[12px]", setOpen, setClose, open, setSelected, selected }: DropdownProps) {
+    
     const [isMobile, setIsMobile] = useState(false);
   
     useEffect(() => {
