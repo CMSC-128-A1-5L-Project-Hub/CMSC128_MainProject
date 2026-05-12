@@ -492,11 +492,11 @@ export default function RoomApplicationModal({
                             </div>
 
                             <Card className="bg-[#FAF7F8] border-[#F2D9DF] p-6 flex flex-col lg:flex-row gap-6 rounded-3xl min-h-[160px]">
-                                <input type="file" hidden ref={fileInputRef} onChange={handleFileSelect} multiple />
+                                <input type="file" hidden ref={fileInputRef} onChange={handleFileSelect} multiple accept=".pdf" />
                                 <div onClick={() => fileInputRef.current?.click()} className="flex-1 border-2 border-dashed border-[#D4B0BA] rounded-2xl p-6 flex flex-col items-center justify-center text-center bg-white hover:bg-[#FFFDFE] cursor-pointer transition-all">
                                     <IoCloudUploadOutline className="text-[#6B0F2B] mb-2" size={28} />
                                     <p className="text-sm font-black text-[#1A0008]">Upload Files</p>
-                                    <p className="text-[9px] text-[#C8B0B8] uppercase font-bold">PDF, JPG or PNG • Max 5MB</p>
+                                    <p className="text-[9px] text-[#C8B0B8] uppercase font-bold">PDF • Max 5MB</p>
                                 </div>
 
                                 <div className="flex-[1.5] space-y-2 max-h-[150px] overflow-y-auto pr-2">
