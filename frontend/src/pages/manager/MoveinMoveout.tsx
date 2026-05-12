@@ -12,6 +12,25 @@ import { DateTime } from 'luxon'
 
 type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected";
 
+const CLR = {
+  dark: "#3D0718",
+  mid: "#6B0F2B",
+  accent: "#8C1535",
+  gold: "#C9973A",
+  avatars: [
+    "#6B0F2B",
+    "#8C1535",
+    "#3D0718",
+    "#b45309",
+    "#15803d",
+    "#7c3aed",
+    "#1d4ed8",
+    "#0f766e",
+    "#92400e",
+    "#065f46",
+  ],
+} as const;
+
 interface User {
   id: number;
   accountStatus: string | null;
@@ -305,14 +324,10 @@ export default function MoveinMoveout() {
                             </thead>
                             <tbody>
                             {isLoadingList ? (
-                                <tr>
-                                <td colSpan={5} className="py-10 text-center">
-                                    <div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-[#9E2040] rounded-full" role="status">
-                                    <span className="sr-only">Loading...</span>
-                                    </div>
-                                    <p className="text-sm text-[#9A7080]">Fetching assignments...</p>
-                                </td>
-                                </tr>
+                                <div className="py-12 flex flex-col items-center justify-center text-center w-full h-full">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: CLR.mid }} />
+                                    <p className="text-sm text-[#9A7080] mt-2">Fetching applications...</p>
+                                </div>
                             ) : isErrorList ? (
                                 <tr>
                                 <td colSpan={5} className="py-10 text-center">
