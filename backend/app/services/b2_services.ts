@@ -70,7 +70,7 @@ export async function uploadImageFromLocalPath(
 
   const exists = await drive.use('s3').exists(b2Key)
   if (exists) {
-    return await drive.use('s3').getUrl(b2Key)
+    return await drive.use('s3').getSignedUrl(b2Key, { expiresIn: '5 hours' })
   }
 
   const buffer = readFileSync(localPath)

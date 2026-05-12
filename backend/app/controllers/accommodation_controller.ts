@@ -575,20 +575,21 @@ async store({ request, auth, response }: HttpContext) {
       })
     }
   }
-  async landlordIndex({ auth, response }: HttpContext) {
-    const landlordId = auth.user!.id
+async landlordIndex({ auth, response }: HttpContext) {
+  const landlordId = auth.user!.id
+  const accommodations = await Accommodation.query()
+    .where('landlord_id', landlordId)
+    .preload('images', (q) => q.preload('file'))
+    .preload('tags')
+    .preload('manager', (q) => q.preload('user', (q2) => q2.preload('phoneNumbers')))
 
-    const accommodations = await Accommodation.query()
-      .where('landlord_id', landlordId)
-      .preload('images', (q) => q.preload('file'))
-      .preload('tags')
-      .preload('manager', (q) => q.preload('user', (q2) => q2.preload('phoneNumbers')))
-
-    // attach a signed primaryImageUrl to each accommodation
-    const data = await Promise.all(accommodations.map(withPrimaryImageUrl))
-
-    return response.ok(data)
-  }
+  const data = await Promise.all(accommodations.map(withPrimaryImageUrl))
+  
+  // Temporary debug
+  console.log('primaryImageUrls:', data.map(d => d.primaryImageUrl))
+  
+  return response.ok(data)
+}
 
   // ─── GET /api/v1/accommodations/:id/export-documents ─────────────────────
   // Role: Manager | Landlord
