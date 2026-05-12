@@ -23,12 +23,18 @@ export interface StudentSeedData {
     gender: string
 }
 
+export interface FileMetadataSeedData {
+    fileName: string
+    filePath: string
+    fileType: 'document' | 'image' | undefined
+}
+
 /*
     HELPERS
 */
 
 //for fake enrollment proofs
-export const makeEnrollmentProof = (user: UserSeedData) => {
+export const makeEnrollmentProof = (user: UserSeedData): FileMetadataSeedData => {
     const slug = user.email.split('@')[0]
 
     return {
