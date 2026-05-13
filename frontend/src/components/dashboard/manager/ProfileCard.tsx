@@ -130,7 +130,7 @@ export default function ProfileCard({
                     footer={
                         <div className="flex flex-row justify-end w-full">
                             <Button
-                                variant="reddishPink"
+                                variant="primary"
                                 size="md"
                                 onClick={handleSendInvite}
                                 disabled={inviteSubmitting}

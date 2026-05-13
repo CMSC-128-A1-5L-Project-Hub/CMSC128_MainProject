@@ -503,7 +503,7 @@ export default function Dashboard() {
                                   onClick={() => setDocToDelete(i)}
                                   className="w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition shrink-0"
                                 >
-                                  <X size={8} strokeWidth={3} color="white" />
+                                  <span className="text-white text-[10px] font-bold leading-none">✕</span>
                                 </button>
                               )}
                             </span>
