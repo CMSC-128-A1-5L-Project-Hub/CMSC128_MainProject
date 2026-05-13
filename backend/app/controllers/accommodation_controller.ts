@@ -674,7 +674,7 @@ async landlordIndex({ auth, response }: HttpContext) {
       .leftJoin('accommodation_images', 'accommodations.id', 'accommodation_images.accommodation_id')
       .leftJoin('file_metadata', 'accommodation_images.image_file_id', 'file_metadata.id')
       .where('accommodations.status', 'verified')
-      .whereNotNull('accommodations.manager_id')
+      // .whereNotNull('accommodations.manager_id')
       .whereIn('accommodations.tenant_restriction', allowedRestrictions)
       .groupBy('accommodations.id')
       .select(
