@@ -57,7 +57,7 @@ export default class AdminVerificationsController {
 
     user.role = 'unassigned'
     user.accountStatus = 'rejected'
-    user.submittedAt = null
+    // user.submittedAt = null
 
     await user.save()
 
