@@ -7,6 +7,7 @@ import uplbLogo from "../../assets/logos/uplb.png";
 import casLogo from "../../assets/logos/cas.png";
 import icsLogo from "../../assets/logos/ics.png";
 import { useNavigate } from "react-router-dom";
+import { api } from "../../api/axios"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const NAV_LINKS  = ["HOME", "ABOUT", "FEATURES", "RECOMMENDED", "SUPPORT"] as const;
@@ -507,17 +508,22 @@ export default function LandingPage() {
 
   // Fetch semester from backend
   useEffect(() => {
-    fetch("/api/v1/sys-variables", { credentials: "include" })
-      .then(res => res.json())
-      .then(data => {
-        if (data?.data) {
-          const sem = data.data.currentSemester;
-          const sy = data.data.currentSy;
-          const semMap: Record<string, string> = { first_sem: "1st Semester", second_sem: "2nd Semester", midyear: "Midyear" };
-          setSemesterLabel(`Now Accepting Applications · ${semMap[sem] ?? sem} AY ${sy}`);
+    const fetchSystemSettings = async () => {
+      try {
+        const res = await api.get("/settings");
+        const data = res.data;
+
+        if (data?.currentSemester && data?.currentSy) {
+          setSemesterLabel(
+            `Now Accepting Applications · ${data.currentSemester} AY ${data.currentSy}`
+          );
         }
-      })
-      .catch(() => {});
+      } catch (error) {
+        console.error("Failed to fetch system settings:", error);
+      }
+    };
+
+    fetchSystemSettings();
   }, []);
 
   useEffect(() => {
