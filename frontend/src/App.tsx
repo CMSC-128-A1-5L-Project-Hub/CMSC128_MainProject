@@ -26,6 +26,7 @@ import ProfilePage from "./pages/student/ProfilePage"
 import RoomView from "./pages/student/RoomView"
 import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
+import DevLogin from "./pages/shared/DevLogin"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
 import Waitlist from "./pages/manager/Waitlist"
@@ -59,6 +60,7 @@ function App() {
         <Route path="/auth/signin" element={<SignIn/>}/>
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/success" element={<AuthSuccess/>}/>
+        <Route path="/dev/login" element={<DevLogin/>}/>
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/loader" element = {<UbleLoader />} />
 

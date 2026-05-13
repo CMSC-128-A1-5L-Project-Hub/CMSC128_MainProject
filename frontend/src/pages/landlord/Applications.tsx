@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Modal from "../../components/Modal";
 import CustomHeader from '../../components/CustomHeader';
@@ -16,6 +17,13 @@ import { api } from "../../api/axios";
 import StatsBanner from "@/components/ApplicationStatus/StatsBanner";
 import Dropdown from "@/components/ApplicationStatus/Dropdown";
 import SearchBar from "@/components/SearchBar";
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good Morning";
+  if (h < 18) return "Good Afternoon";
+  return "Good Evening";
+}
 
 const CLR = {
   dark: "#3D0718",
@@ -202,7 +210,8 @@ const DrawerNav = ({ open, onClose, activePage, setActivePage }: any) => (
 
 export default function Applications() {
   const queryClient = useQueryClient();
-
+  const [searchParams] = useSearchParams();
+  const targetAccId = searchParams.get("accId");
   const [activeTab, setActiveTab] = useState("Application");
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -244,6 +253,15 @@ export default function Applications() {
       }
     },
   });
+
+  // filter the raw API data by the accommodation ID in the URL if it exists
+  const scopedAppsData = useMemo(() => {
+    if (!targetAccId) return appsData; // if no ID in URL, show everything
+    
+    return appsData.filter(
+      (app) => String(app.originalData?.accommodationId) === targetAccId
+    );
+  }, [appsData, targetAccId]);
 
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
@@ -288,14 +306,14 @@ export default function Applications() {
     }
   });
 
-  const total = appsData.length;
-  const counts = appsData.reduce((acc, a) => {
+  const total = scopedAppsData.length;
+  const counts = scopedAppsData.reduce((acc, a) => {
     acc[a.status] = (acc[a.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
   const filtered = useMemo(() => {
-    let list = activeTab === "Application" ? appsData : appsData.filter(a => a.status === "Waitlisted");
+    let list = activeTab === "Application" ? scopedAppsData : scopedAppsData.filter(a => a.status === "Waitlisted");
     const q = search.toLowerCase();
     const res = list.filter((a) => a.student.toLowerCase().includes(q));
     return res.sort((a, b) => {
@@ -303,7 +321,21 @@ export default function Applications() {
       const timeB = new Date(b.date).getTime();
       return sortBy === "latest" ? timeB - timeA : timeA - timeB;
     });
-  }, [appsData, activeTab, search, sortBy]);
+  }, [scopedAppsData, activeTab, search, sortBy]);
+
+  const accommodationNames = useMemo(() => {
+    if (!scopedAppsData || scopedAppsData.length === 0) return "your accommodations";
+    
+    // create a Set to get unique names, just in case the landlord manages multiple buildings
+    const names = new Set(
+      appsData
+        .map(app => app.originalData?.accommodation?.accommodationName)
+        .filter(Boolean)
+    );
+    
+    if (names.size === 0) return "your accommodations";
+    return Array.from(names).join(" & ");
+  }, [scopedAppsData]);
 
   const [itemsPerPage, setItemsPerPage] = useState(6)
 
@@ -316,19 +348,6 @@ export default function Applications() {
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const paginated = filtered.slice(startIndex, startIndex + itemsPerPage)
-  const accommodationNames = useMemo(() => {
-    if (!appsData || appsData.length === 0) return "your accommodations";
-    
-    // create a Set to get unique names, just in case the landlord manages multiple buildings
-    const names = new Set(
-      appsData
-        .map(app => app.originalData?.accommodation?.accommodationName)
-        .filter(Boolean)
-    );
-    
-    if (names.size === 0) return "your accommodations";
-    return Array.from(names).join(" & ");
-  }, [appsData]);
 
   const handleView = (app: Application) => {
     setSelectedApp(app);
@@ -464,8 +483,8 @@ export default function Applications() {
 
   const heroContent: HeroContent = {
         name: currentUser?.fname,
-        greeting: "Good Day",
-        title: "Check your applicants for Narra Residences",
+        greeting: greeting(),
+        title: `Check your applicants for ${accommodationNames}`,
         subtitle: "We make it easy for you to track the accommodation applications you manage",
     };
 

@@ -107,26 +107,38 @@ export default function ProfileCard({
 
     const isActive = status === "assigned" || status === "active" || status === "Active"
 
+    const handleCloseEditModal = () => {
+        setEditModalOpen(false)
+        setReplacementEmail("")
+        setInviteError(null)
+    }
+
     return (
         <>
-            <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
+            {/* ReportModal - only when NOT in landlord dashboard */}
+            {!showReplaceButton && (
+                <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
+            )}
 
+            {/* Replace Manager Modal */}
             {showReplaceButton && (
                 <Modal
                     open={editModalOpen}
-                    onClose={() => { setEditModalOpen(false); setReplacementEmail(""); setInviteError(null) }}
+                    onClose={handleCloseEditModal}
                     title="Replace Your Manager"
                     eyebrow="Manager Profile"
                     footer={
-                        <Button
-                            variant="primary"
-                            size="md"
-                            className="ml-auto"
-                            onClick={handleSendInvite}
-                            disabled={inviteSubmitting}
-                        >
-                            {inviteSubmitting ? "Sending..." : "Send Invite"}
-                        </Button>
+                        <div className="flex flex-row justify-end w-full">
+                            <Button
+                                variant="primary"
+                                size="md"
+                                onClick={handleSendInvite}
+                                disabled={inviteSubmitting}
+                                type="button"
+                            >
+                                {inviteSubmitting ? "Sending..." : "Send Invite"}
+                            </Button>
+                        </div>
                     }
                 >
                     <div className="flex flex-col gap-4">
@@ -135,7 +147,7 @@ export default function ProfileCard({
                                 Invite using their Google Account
                             </p>
                             <input
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]"
+                                className="w-full border border-[#6B0F2B3E] rounded-xl px-4 py-2.5 text-sm outline-none transition focus:border-[#8C1535] focus:ring-2 focus:ring-[#8C1535]/30"
                                 placeholder="email@example.com"
                                 type="email"
                                 value={replacementEmail}
@@ -154,7 +166,6 @@ export default function ProfileCard({
                 className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-lg"
                 style={{ background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)` }}
             >
-                {/* Top bar overlay */}
                 <div
                     className="absolute top-0 left-0 w-full h-[79px] pointer-events-none"
                     style={{ background: "linear-gradient(90deg, #7A0C23 0%, #A61C3C 100%)" }}
@@ -168,18 +179,20 @@ export default function ProfileCard({
                         </span>
 
                         <div className="flex flex-row gap-2">
-                            {/* Report button */}
-                            <button
-                                onClick={() => setReportOpen(true)}
-                                className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
-                                        transition-all duration-150
-                                        bg-white/10 hover:bg-white/20 active:bg-white/30
-                                        hover:-translate-y-1 active:translate-y-0 active:scale-95"
-                            >
-                                <img src={report_icon} alt="Report" className="w-full h-full object-contain scale-[2.5]" />
-                            </button>
+                            {/* Report button - only when NOT in landlord dashboard */}
+                            {!showReplaceButton && (
+                                <button
+                                    onClick={() => setReportOpen(true)}
+                                    className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
+                                            transition-all duration-150
+                                            bg-white/10 hover:bg-white/20 active:bg-white/30
+                                            hover:-translate-y-1 active:translate-y-0 active:scale-95"
+                                >
+                                    <img src={report_icon} alt="Report" className="w-full h-full object-contain scale-[2.5]" />
+                                </button>
+                            )}
 
-                            {/* Replace manager button */}
+                            {/* Replace manager button - only when in landlord dashboard */}
                             {showReplaceButton && (
                                 <button
                                     onClick={() => setEditModalOpen(true)}
@@ -196,7 +209,7 @@ export default function ProfileCard({
                                 </button>
                             )}
 
-                            {/* Notification button + panel */}
+                            {/* Notification button */}
                             <div ref={notifWrapperRef} className="relative">
                                 <button
                                     onClick={() => {

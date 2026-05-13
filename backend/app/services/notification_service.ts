@@ -267,7 +267,7 @@ export default class NotificationService {
     accommodationName: string,
     landlordName: string
   ) {
-    const signInUrl = `${env.get('FRONTEND_URL') ?? 'http://localhost:5173'}/auth/signin`
+    const signInUrl = `${env.get('FRONTEND_URL') ?? 'http://localhost:5173'}/api/auth/google/redirect`
     await this.send(
       email,
       `You have been invited to manage ${accommodationName} on UBLE`,

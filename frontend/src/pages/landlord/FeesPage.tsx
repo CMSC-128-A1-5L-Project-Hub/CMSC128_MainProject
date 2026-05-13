@@ -180,7 +180,7 @@ export default function FeesPage() {
     `${f.fname} ${f.lname}`.toLowerCase().includes(search.toLowerCase())
   )
 
-  const fullName = user ? `${user.fname} ${user.lname}` : ''
+  const fullName = user ? user.fname : ''
 
   return (
     <div className="flex min-h-screen bg-[#f5f0f1]">

@@ -4,8 +4,10 @@ import RoomService from '#services/room_service'
 import { createRoomValidator, updateRoomValidator } from '#validators/room'
 import Room from '#models/room'
 import Accommodation from '#models/accommodation'
+import RoomIssue from '#models/room_issue'
 import LogService from '#services/log_service'
 import NotificationService from '#services/notification_service'
+import { DateTime } from 'luxon'
 
 @inject()
 export default class RoomsController {
@@ -106,6 +108,15 @@ export default class RoomsController {
       `Manager reported issue for room ${room.roomNumber} (building ${room.roomBuilding}): ${issueDetails}`
     )
 
+    const reporterRole: 'student' | 'manager' = user.role === 'student' ? 'student' : 'manager'
+    await RoomIssue.create({
+      roomId: room.id,
+      reporterId: user.id,
+      reporterRole,
+      issueDetails,
+      status: 'open',
+    })
+
     await room.load('accommodation', (q) =>
       q.preload('landlord', (l) => l.preload('user'))
     )
@@ -123,5 +134,60 @@ export default class RoomsController {
     }
 
     return response.ok({ message: 'Issue reported successfully' })
+  }
+
+  // ─── LANDLORD: LIST OPEN ROOM ISSUES ───
+  // GET /landlord/room-issues
+  async listIssues({ auth, response }: HttpContext) {
+    const user = auth.user!
+    const accommodations = await Accommodation.query().where('landlordId', user.id)
+    const accIds = accommodations.map((a) => a.id)
+    if (accIds.length === 0) return response.ok([])
+
+    const rooms = await Room.query().whereIn('accommodationId', accIds)
+    const roomIds = rooms.map((r) => r.id)
+    if (roomIds.length === 0) return response.ok([])
+
+    const issues = await RoomIssue.query()
+      .whereIn('roomId', roomIds)
+      .where('status', 'open')
+      .preload('room', (q) => q.preload('accommodation'))
+      .preload('reporter')
+      .orderBy('createdAt', 'desc')
+
+    return response.ok(issues)
+  }
+
+  // ─── LANDLORD: RESOLVE A ROOM ISSUE ───
+  // PATCH /room-issues/:id/resolve
+  async resolveIssue({ auth, params, response }: HttpContext) {
+    const user = auth.user!
+    const issue = await RoomIssue.query()
+      .where('id', params.id)
+      .preload('room', (q) => q.preload('accommodation'))
+      .firstOrFail()
+
+    if (issue.room.accommodation.landlordId !== user.id) {
+      return response.forbidden({ message: 'You do not own this accommodation' })
+    }
+
+    if (issue.status === 'resolved') {
+      return response.badRequest({ message: 'Issue already resolved' })
+    }
+
+    issue.status = 'resolved'
+    issue.resolvedBy = user.id
+    issue.resolvedAt = DateTime.now()
+    await issue.save()
+
+    await LogService.record(
+      user.id,
+      'room',
+      issue.roomId,
+      'ROOM_ISSUE_RESOLVED',
+      `Landlord resolved issue ${issue.id} for room ${issue.room.roomNumber}`
+    )
+
+    return response.ok(issue)
   }
 }
