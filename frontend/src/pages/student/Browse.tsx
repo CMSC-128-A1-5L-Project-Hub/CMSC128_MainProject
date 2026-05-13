@@ -94,7 +94,7 @@ export default function BrowsePage() {
         },
     })
 
-    const name = user ? `${user.fname} ${user.lname}` : ""
+    const name = user ? `${user.fname}` : ""
     const studentNo = user?.student?.studentNumber ?? ""
 
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
