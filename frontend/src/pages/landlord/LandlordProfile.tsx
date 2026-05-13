@@ -121,7 +121,7 @@ export default function LandlordProfile() {
     }
 
     return (
-        <div className="min-h-screen bg-[#FAF6F2] text-[#2A1F1A] lg:flex">
+        <div className="min-h-screen bg-[#F5EEF0] text-[#2A1F1A] lg:flex">
             <Sidebar />
 
             <div className="flex-1">
