@@ -117,6 +117,18 @@ export default class ApplicationsController {
     if (activeStay) {
       return response.conflict({ message: 'You already have an active housing assignment.' })
     }
+    
+    // prevent exact duplicates applications
+    const existingApplication = await Application.query()
+      .where('studentNumber', student.studentNumber)
+      .where('accommodationId', accommodationId)
+      // We block it if they are already in any of these active phases:
+      .whereIn('applicationStatus', ['pending', 'under_review', 'approved', 'waitlisted', 'confirmed'])
+      .first()
+
+    if (existingApplication) {
+      return response.conflict({ message: 'You already have an active application for this accommodation.' })
+    }
 
     // Transient applications skip the manager step and land in the landlord's queue
     // for downpayment verification. Non-transient follow the normal pending → manager flow.
