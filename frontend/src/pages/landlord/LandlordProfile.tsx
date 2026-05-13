@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/axios";
 
 import Sidebar from "../../components/Sidebar";
+import NotificationPanel, { type Notification } from "../../components/NotificationPanel";
 
 import Bell from "../../assets/icons/bell_icon.svg?react";
 import Camera from "../../assets/icons/camera.svg";
@@ -27,9 +28,12 @@ export default function LandlordProfile() {
     const [editing, setEditing] = useState(false);
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
-
-    // Local state for the temporary image preview
     const [tempImage, setTempImage] = useState<string | null>(null);
+
+    // Notification states
+    const [notifOpen, setNotifOpen] = useState(false);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const notifWrapperRef = useRef<HTMLDivElement>(null);
 
     const { data: user, isError } = useQuery({
         queryKey: ["me"],
@@ -96,6 +100,35 @@ export default function LandlordProfile() {
         fetchProfile();
     }, []);
 
+    // Fetch notifications
+    useEffect(() => {
+        api.get('/notifications').then(({ data }) => {
+            setNotifications(
+                data.map((n: any) => ({
+                    id: n.id,
+                    type: n.notificationType,
+                    message: n.notificationContent,
+                    time: new Date(n.notificationTimestamp).toLocaleString(),
+                    read: n.readStatus === 'read',
+                }))
+            )
+        }).catch(console.error)
+    }, []);
+
+    const unreadCount = notifications.filter((n) => !n.read).length;
+
+    const markAllRead = () => {
+        notifications.filter((n) => !n.read).forEach((n) =>
+            api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
+        )
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    };
+
+    const markOneRead = (id: number) => {
+        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+        api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
+    };
+
     useEffect(() => {
         if (isError) navigate("/auth/signin");
     }, [isError, navigate]);
@@ -133,9 +166,30 @@ export default function LandlordProfile() {
                                 Profile
                             </h1>
                         </div>
-                        <button aria-label="Notifications">
-                            <Bell className="h-10 w-10 text-[#3D0718]" />
-                        </button>
+                        
+                        {/* Notification bell */}
+                        <div className="relative" ref={notifWrapperRef}>
+                            <button
+                                aria-label="Notifications"
+                                onClick={() => setNotifOpen((prev) => !prev)}
+                            >
+                                <Bell className="h-10 w-10 text-[#3D0718] hover:text-[#8C1535] transition-colors" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#8C1535] text-white text-[9px] font-bold flex items-center justify-center border-2 border-white">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </button>
+                            <NotificationPanel
+                                open={notifOpen}
+                                notifications={notifications}
+                                unreadCount={unreadCount}
+                                onMarkAllRead={markAllRead}
+                                onMarkOneRead={markOneRead}
+                                onClose={() => setNotifOpen(false)}
+                                wrapperRef={notifWrapperRef}
+                            />
+                        </div>
                     </div>
                 </header>
 
