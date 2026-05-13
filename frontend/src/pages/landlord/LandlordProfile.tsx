@@ -11,6 +11,7 @@ import Camera from "../../assets/icons/camera.svg";
 import Pencil from "../../assets/icons/edit.svg";
 import FileUp from "../../assets/icons/upload.svg";
 import Save from "../../assets/icons/save.svg";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface ProfileData {
     fullName: string;
@@ -18,8 +19,7 @@ interface ProfileData {
     facebook: string;
     phone: string;
     altPhone: string;
-    accommodation: string;
-    accommodationType: string;
+    accommodations: { name: string; type: string }[];
 }
 
 export default function LandlordProfile() {
@@ -29,8 +29,8 @@ export default function LandlordProfile() {
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
     const [tempImage, setTempImage] = useState<string | null>(null);
+    const [showAllDorms, setShowAllDorms] = useState(false);
 
-    // Notification states
     const [notifOpen, setNotifOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const notifWrapperRef = useRef<HTMLDivElement>(null);
@@ -80,16 +80,23 @@ export default function LandlordProfile() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const res = await api.get("/landlord/profile");
-                const data = res.data;
+                const [profileRes, accRes] = await Promise.all([
+                    api.get("/landlord/profile"),
+                    api.get("/landlord/accommodations"),
+                ]);
+                const data = profileRes.data;
+                const accData = (accRes.data ?? []).filter((a: any) => a.status !== 'rejected');
+
                 setProfile({
                     fullName: data.fullName ?? "NONE",
                     email: data.email ?? "NONE",
                     facebook: data.facebook ?? "NONE",
                     phone: data.phone ?? "NONE",
                     altPhone: data.altPhone ?? "NONE",
-                    accommodation: data.accommodation ?? "No accommodation yet",
-                    accommodationType: data.accommodationType ?? "",
+                    accommodations: accData.map((a: any) => ({
+                        name: a.accommodationName ?? "Unnamed",
+                        type: a.accommodationType ?? "",
+                    })),
                 });
             } catch (error) {
                 console.error("Failed to fetch profile:", error);
@@ -100,7 +107,6 @@ export default function LandlordProfile() {
         fetchProfile();
     }, []);
 
-    // Fetch notifications
     useEffect(() => {
         api.get('/notifications').then(({ data }) => {
             setNotifications(
@@ -153,6 +159,9 @@ export default function LandlordProfile() {
         );
     }
 
+    const displayedDorms = showAllDorms ? profile.accommodations : profile.accommodations.slice(0, 3);
+    const hasMore = profile.accommodations.length > 3;
+
     return (
         <div className="min-h-screen bg-[#F5EEF0] text-[#2A1F1A] lg:flex">
             <Sidebar />
@@ -166,8 +175,7 @@ export default function LandlordProfile() {
                                 Profile
                             </h1>
                         </div>
-                        
-                        {/* Notification bell */}
+
                         <div className="relative" ref={notifWrapperRef}>
                             <button
                                 aria-label="Notifications"
@@ -201,17 +209,8 @@ export default function LandlordProfile() {
                                 {/* LEFT COLUMN */}
                                 <div className="w-full lg:w-[280px] lg:shrink-0">
                                     <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-4 md:grid-cols-[170px_minmax(0,1fr)] lg:block">
-
                                         <div className="relative flex items-center justify-center h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px] w-full">
-
-                                            <input
-                                                type="file"
-                                                ref={fileInputRef}
-                                                className="hidden"
-                                                accept="image/*"
-                                                onChange={handleImageUpload}
-                                            />
-
+                                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
                                             <button
                                                 aria-label="Change photo"
                                                 onClick={() => fileInputRef.current?.click()}
@@ -219,13 +218,8 @@ export default function LandlordProfile() {
                                             >
                                                 <img src={Camera} alt="" className="h-6 w-6 sm:h-7 sm:w-7" />
                                             </button>
-
                                             {tempImage ? (
-                                                <img
-                                                    src={tempImage}
-                                                    alt="Profile"
-                                                    className="h-full w-full object-cover"
-                                                />
+                                                <img src={tempImage} alt="Profile" className="h-full w-full object-cover" />
                                             ) : (
                                                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#5A0B21] flex items-center justify-center shadow-md">
                                                     <span className="text-white text-2xl sm:text-3xl font-bold tracking-tighter">
@@ -236,23 +230,14 @@ export default function LandlordProfile() {
                                         </div>
 
                                         <div className="min-w-0 lg:hidden">
-                                            <p className="mb-1 text-[10px] font-semibold tracking-wider text-[#A88993] md:text-xs">
-                                                FULL NAME
-                                            </p>
-                                            <p className="text-2xl font-bold text-[#2A1F1A]">
-                                                {profile.fullName}
-                                            </p>
-
+                                            <p className="mb-1 text-[10px] font-semibold tracking-wider text-[#A88993] md:text-xs">FULL NAME</p>
+                                            <p className="text-2xl font-bold text-[#2A1F1A]">{profile.fullName}</p>
                                             <div className="mt-3">
                                                 <button
                                                     onClick={editing ? saveProfile : () => setEditing(true)}
                                                     className="inline-flex items-center gap-2 rounded-xl border border-[#D9BBC4] px-4 py-2 text-sm font-semibold text-[#A04E66]"
                                                 >
-                                                    <img
-                                                        src={editing ? Save : Pencil}
-                                                        alt=""
-                                                        className="h-4 w-4"
-                                                    />
+                                                    <img src={editing ? Save : Pencil} alt="" className="h-4 w-4" />
                                                     {editing ? "SAVE" : "EDIT PROFILE"}
                                                 </button>
                                             </div>
@@ -266,24 +251,15 @@ export default function LandlordProfile() {
                                         >
                                             <img src={Camera} alt="" className="h-5 w-5 shrink-0" />
                                             <div className="leading-tight">
-                                                <p className="text-[11px] font-bold tracking-wider text-[#A04E66]">
-                                                    PHOTO
-                                                </p>
-                                                <p className="text-[10px] text-[#C3AAB3]">
-                                                    JPG/PNG • 5MB
-                                                </p>
+                                                <p className="text-[11px] font-bold tracking-wider text-[#A04E66]">PHOTO</p>
+                                                <p className="text-[10px] text-[#C3AAB3]">JPG/PNG • 5MB</p>
                                             </div>
                                         </button>
-
                                         <button className="flex min-h-[76px] items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E6CAD3] px-3 py-3 text-left hover:bg-[#FBF5F7] transition-colors">
                                             <img src={FileUp} alt="" className="h-5 w-5 shrink-0" />
                                             <div className="leading-tight">
-                                                <p className="text-[11px] font-bold tracking-wider text-[#A04E66]">
-                                                    DOCUMENTS
-                                                </p>
-                                                <p className="text-[10px] text-[#C3AAB3]">
-                                                    Valid ID • PDF/JPG
-                                                </p>
+                                                <p className="text-[11px] font-bold tracking-wider text-[#A04E66]">DOCUMENTS</p>
+                                                <p className="text-[10px] text-[#C3AAB3]">Valid ID • PDF/JPG</p>
                                             </div>
                                         </button>
                                     </div>
@@ -293,71 +269,55 @@ export default function LandlordProfile() {
                                 <div className="min-w-0 flex-1">
                                     <div className="hidden lg:flex lg:items-start lg:justify-between lg:gap-6">
                                         <div className="min-w-0">
-                                            <p className="mb-1 text-xs font-semibold tracking-wider text-[#A88993]">
-                                                FULL NAME
-                                            </p>
-                                            <p className="text-[3rem] font-bold leading-none text-[#2A1F1A]">
-                                                {profile.fullName}
-                                            </p>
+                                            <p className="mb-1 text-xs font-semibold tracking-wider text-[#A88993]">FULL NAME</p>
+                                            <p className="text-[3rem] font-bold leading-none text-[#2A1F1A]">{profile.fullName}</p>
                                         </div>
-
                                         <button
                                             onClick={editing ? saveProfile : () => setEditing(true)}
                                             className="inline-flex items-center gap-2 rounded-xl border border-[#A04E66] px-5 py-3 text-sm font-semibold text-[#A04E66] hover:bg-[#A04E66] hover:text-white transition-all"
                                         >
-                                            <img
-                                                src={editing ? Save : Pencil}
-                                                alt=""
-                                                className="h-4 w-4"
-                                            />
+                                            <img src={editing ? Save : Pencil} alt="" className="h-4 w-4" />
                                             {editing ? "SAVE" : "EDIT PROFILE"}
                                         </button>
                                     </div>
 
                                     <div className="mt-5 hidden grid-cols-1 gap-x-10 gap-y-5 md:grid-cols-2 lg:mt-6 lg:grid">
-                                        <Field
-                                            label="UP MAIL"
-                                            value={profile.email}
-                                            editing={false}
-                                            onChange={() => { }}
-                                        />
-                                        <Field
-                                            label="FACEBOOK LINK"
-                                            value={profile.facebook}
-                                            editing={editing}
-                                            onChange={(v) => update("facebook", v)}
-                                        />
-                                        <Field
-                                            label="PHONE NUMBER"
-                                            value={profile.phone}
-                                            editing={editing}
-                                            onChange={(v) => update("phone", v)}
-                                        />
-                                        <Field
-                                            label="2ND PHONE NUMBER"
-                                            value={profile.altPhone}
-                                            editing={editing}
-                                            onChange={(v) => update("altPhone", v)}
-                                        />
+                                        <Field label="UP MAIL" value={profile.email} editing={false} onChange={() => { }} />
+                                        <Field label="FACEBOOK LINK" value={profile.facebook} editing={editing} onChange={(v) => update("facebook", v)} />
+                                        <Field label="PHONE NUMBER" value={profile.phone} editing={editing} onChange={(v) => update("phone", v)} />
+                                        <Field label="2ND PHONE NUMBER" value={profile.altPhone} editing={editing} onChange={(v) => update("altPhone", v)} />
                                     </div>
 
-                                    <div className="mt-6 hidden border-t border-[#EADFD3] pt-6 lg:grid">
+                                    {/* ACCOMMODATIONS */}
+                                    <div className="mt-6 hidden border-t border-[#EADFD3] pt-6 lg:block">
                                         <p className="mb-3 text-sm font-semibold tracking-wide text-[#A88993]">
-                                            ACCOMMODATION
+                                            ACCOMMODATIONS ({profile.accommodations.length})
                                         </p>
-                                        <div className="flex items-center gap-3 rounded-2xl border border-[#EADFD3] bg-[#F8EFF2] px-4 py-4">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8C1535] text-sm font-bold text-white">
-                                                {profile.accommodation?.charAt(0) || "A"}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="truncate font-semibold text-[#2A1F1A]">
-                                                    {profile.accommodation}
-                                                </p>
-                                                <p className="text-xs text-[#A88993] capitalize">
-                                                    {profile.accommodationType}
-                                                </p>
-                                            </div>
+                                        <div className="space-y-2">
+                                            {displayedDorms.map((acc, i) => (
+                                                <div key={i} className="flex items-center gap-3 rounded-2xl border border-[#EADFD3] bg-[#F8EFF2] px-4 py-4">
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8C1535] text-sm font-bold text-white">
+                                                        {acc.name?.charAt(0) || "A"}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="truncate font-semibold text-[#2A1F1A]">{acc.name}</p>
+                                                        <p className="text-xs text-[#A88993] capitalize">{acc.type?.replace(/_/g, ' ') || "N/A"}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
+                                        {hasMore && (
+                                            <button
+                                                onClick={() => setShowAllDorms(!showAllDorms)}
+                                                className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-[#8C1535] hover:text-[#6B0F2B] transition-colors"
+                                            >
+                                                {showAllDorms ? (
+                                                    <>Show Less <ChevronUp size={14} /></>
+                                                ) : (
+                                                    <>Show All ({profile.accommodations.length}) <ChevronDown size={14} /></>
+                                                )}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -365,49 +325,41 @@ export default function LandlordProfile() {
                             {/* Mobile-only lower info */}
                             <div className="mt-6 lg:hidden">
                                 <div className="grid grid-cols-1 gap-x-8 gap-y-5 border-t border-[#F0E3E8] pt-5 md:grid-cols-2">
-                                    <Field
-                                        label="UP MAIL"
-                                        value={profile.email}
-                                        editing={false}
-                                        onChange={() => { }}
-                                    />
-                                    <Field
-                                        label="FACEBOOK LINK"
-                                        value={profile.facebook}
-                                        editing={editing}
-                                        onChange={(v) => update("facebook", v)}
-                                    />
-                                    <Field
-                                        label="PHONE NUMBER"
-                                        value={profile.phone}
-                                        editing={editing}
-                                        onChange={(v) => update("phone", v)}
-                                    />
-                                    <Field
-                                        label="2ND PHONE NUMBER"
-                                        value={profile.altPhone}
-                                        editing={editing}
-                                        onChange={(v) => update("altPhone", v)}
-                                    />
+                                    <Field label="UP MAIL" value={profile.email} editing={false} onChange={() => { }} />
+                                    <Field label="FACEBOOK LINK" value={profile.facebook} editing={editing} onChange={(v) => update("facebook", v)} />
+                                    <Field label="PHONE NUMBER" value={profile.phone} editing={editing} onChange={(v) => update("phone", v)} />
+                                    <Field label="2ND PHONE NUMBER" value={profile.altPhone} editing={editing} onChange={(v) => update("altPhone", v)} />
                                 </div>
 
                                 <div className="mt-6 border-t border-[#EADFD3] pt-6">
                                     <p className="mb-3 text-sm font-semibold tracking-wide text-[#A88993]">
-                                        ACCOMMODATION
+                                        ACCOMMODATIONS ({profile.accommodations.length})
                                     </p>
-                                    <div className="flex items-center gap-3 rounded-2xl border border-[#EADFD3] bg-[#F8EFF2] px-4 py-4">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8C1535] text-sm font-bold text-white">
-                                            {profile.accommodation?.charAt(0) || "A"}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="truncate font-semibold text-[#2A1F1A]">
-                                                {profile.accommodation}
-                                            </p>
-                                            <p className="text-xs text-[#A88993] capitalize">
-                                                {profile.accommodationType}
-                                            </p>
-                                        </div>
+                                    <div className="space-y-2">
+                                        {displayedDorms.map((acc, i) => (
+                                            <div key={i} className="flex items-center gap-3 rounded-2xl border border-[#EADFD3] bg-[#F8EFF2] px-4 py-4">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8C1535] text-sm font-bold text-white">
+                                                    {acc.name?.charAt(0) || "A"}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="truncate font-semibold text-[#2A1F1A]">{acc.name}</p>
+                                                    <p className="text-xs text-[#A88993] capitalize">{acc.type?.replace(/_/g, ' ') || "N/A"}</p>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
+                                    {hasMore && (
+                                        <button
+                                            onClick={() => setShowAllDorms(!showAllDorms)}
+                                            className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-[#8C1535] hover:text-[#6B0F2B] transition-colors"
+                                        >
+                                            {showAllDorms ? (
+                                                <>Show Less <ChevronUp size={14} /></>
+                                            ) : (
+                                                <>Show All ({profile.accommodations.length}) <ChevronDown size={14} /></>
+                                            )}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -428,15 +380,9 @@ interface FieldProps {
 function Field({ label, value, editing, onChange }: FieldProps) {
     return (
         <div className="min-w-0">
-            <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-[#A88993]">
-                {label}
-            </p>
+            <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-[#A88993]">{label}</p>
             {editing ? (
-                <input
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    className="w-full rounded-xl border border-[#E6CAD3] bg-[#FBF5F7] px-3 py-2 text-sm text-[#2A1F1A] outline-none focus:border-[#A04E66]"
-                />
+                <input value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-[#E6CAD3] bg-[#FBF5F7] px-3 py-2 text-sm text-[#2A1F1A] outline-none focus:border-[#A04E66]" />
             ) : (
                 <div className="text-[15px] text-[#4A3940]">{value}</div>
             )}
