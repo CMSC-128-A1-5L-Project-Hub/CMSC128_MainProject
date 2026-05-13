@@ -398,13 +398,17 @@ const AdminDashboard = () => {
             <HousingAdminVerifications
               admins={housingAdminPending}
               isLoading={isPendingLoading}
-              verifyingUserId={processingUserId}
-              onApprove={(userId) =>
-                verifyUserMutation.mutate({
+              processingUserId={processingUserId}
+              processingAction={processingAction}
+              onApprove={async (userId) => {
+                await verifyUserMutation.mutateAsync({
                   userId,
                   roleToAssign: "landlord",
                 })
-              }
+              }}
+              onReject={async (userId) => {
+                await rejectUserMutation.mutateAsync(userId)
+              }}
             />
           </section>
           {/* PENDING ACCOMMODATION APPROVAL */}

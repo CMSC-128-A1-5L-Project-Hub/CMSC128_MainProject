@@ -7,15 +7,19 @@ import HousingAdminVerificationModal from "./HousingAdminVerificationsModal"
 type HousingAdminVerificationsProps = {
   admins: any[]
   isLoading: boolean
-  verifyingUserId: number | null
-  onApprove: (userId: number) => void
+  processingUserId: number | null
+  processingAction: "approve" | "reject" | null
+  onApprove: (userId: number) => Promise<void>
+  onReject: (userId: number) => Promise<void>
 }
 
 export default function HousingAdminVerifications({
   admins,
   isLoading,
-  verifyingUserId,
+  processingUserId,
+  processingAction,
   onApprove,
+  onReject,
 }: HousingAdminVerificationsProps) {
   const formatAppliedDate = (timestamp?: string) => {
     if (!timestamp) return "N/A"
@@ -46,13 +50,13 @@ export default function HousingAdminVerifications({
     }, 350)
   }
 
-  const handleApprove = (userId: number) => {
-    onApprove(userId)
+  const handleApprove = async (userId: number) => {
+    await onApprove(userId)
     handleClose()
   }
 
-  const handleReject = (userId: number) => {
-    // Implementation for rejecting the user
+  const handleReject = async (userId: number) => {
+    await onReject(userId)
     handleClose()
   }
 
@@ -119,12 +123,10 @@ export default function HousingAdminVerifications({
                   <td className="py-4 text-center">
                     <button
                       onClick={() => handleReview(item)}
-                      disabled={verifyingUserId === item.user.id}
+                      disabled={processingUserId === item.user.id}
                       className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-4 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF] disabled:opacity-60"
                     >
-                      {verifyingUserId === item.user.id
-                        ? "Approving..."
-                        : "Review"}
+                      {processingUserId === item.user.id ? "Processing..." : "Review"}
                     </button>
                   </td>
                 </tr>
@@ -138,9 +140,10 @@ export default function HousingAdminVerifications({
         open={modalOpen}
         onClose={handleClose}
         selectedItem={selectedItem}
-        verifyingUserId={verifyingUserId}
+        verifyingUserId={processingUserId}
+        processingAction={processingAction}
         onApprove={handleApprove}
-        onReject={handleApprove}
+        onReject={handleReject}
       />
     </Card>
   )
