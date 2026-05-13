@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
 import GradientPillSelect from "../../components/DropDownGradient.tsx";
@@ -1429,6 +1430,26 @@ function RequirementsTab() {
 export default function RoomView() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const currentAccommodationId = Number(id);
+
+  const { data: myApplications = [] } = useQuery({
+    queryKey: ["student-applications"],
+    queryFn: async () => {
+      try {
+        const res = await api.get("/applications/my-applications");
+        return res.data;
+      } catch (error: any) {
+        if (error.response?.status === 404) return [];
+        throw error;
+      }
+    }
+  });
+
+  const hasAlreadyApplied = myApplications.some(
+    (app: any) => 
+      app.accommodationId === currentAccommodationId && 
+      ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
+  );
 
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1920,11 +1941,15 @@ export default function RoomView() {
                 {/* Apply */}
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors"
-                  style={{ background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = CLR.mid)}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = CLR.dark)}>
-                  Apply for Occupancy
+                  disabled={hasAlreadyApplied}
+                  className={`w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors ${
+                    hasAlreadyApplied ? "bg-gray-400 cursor-not-allowed" : "shadow-md"
+                  }`}
+                  style={hasAlreadyApplied ? {} : { background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
+                  onMouseEnter={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = CLR.mid)}
+                  onMouseLeave={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = "linear-gradient(135deg, #2D0511, #9A1F3E)")}
+                >
+                  {hasAlreadyApplied ? "Already Applied" : "Apply for Occupancy"}
                 </button>
 
                 <RoomApplicationModal

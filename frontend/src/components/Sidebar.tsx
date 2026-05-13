@@ -492,7 +492,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         return [
           { id: "dashboard",   label: "Dashboard",                 icon: <DashboardIcon />,           path: accId ? `/landlord/accommodation/${accId}` : "/landlord/dashboard" },
           { id: "room",        label: "Rooms",                     icon: <RoomIcon />,                path: "/landlord/rooms" },
-          { id: "application", label: "Applications & Waitlisted", icon: <LandlordApplicationIcon />, path: "/landlord/applications" },
+          { id: "application", label: "Applications & Waitlisted", icon: <LandlordApplicationIcon />, path: accId ? `/landlord/applications?accId=${accId}` : "/landlord/applications" },
           { id: "fees",        label: "Fees",                      icon: <FeesIcon />,                path: "/landlord/fees" },
         ];
 

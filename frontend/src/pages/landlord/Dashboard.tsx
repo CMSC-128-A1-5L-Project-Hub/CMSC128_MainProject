@@ -603,7 +603,7 @@ export default function Dashboard() {
                   </SectionCard>
 
                   {/* WAITLISTED */}
-                  <SectionCard title="Waitlisted" action="View all →">
+                  <SectionCard title="Waitlisted" action="View all →" onAction={() => navigate(accommodationId ? `/landlord/applications?accId=${accommodationId}` : "/landlord/applications")}>
                     <div className="overflow-x-auto">
                       <div className="min-w-[500px] xl:min-w-0">
                         <div className="flex items-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
@@ -624,6 +624,13 @@ export default function Dashboard() {
                     </div>
                   </SectionCard>
                 </div>
+
+                {/* APPLICATIONS UNDER REVIEW */}
+                <SectionCard
+                  title="Applications Under Review"
+                  action="View all →"
+                  onAction={() => navigate(accommodationId ? `/landlord/applications?accId=${accommodationId}` : "/landlord/applications")} // <-- Add this!
+                ></SectionCard>
 
                 {/* ROOMS TABLE */}
                 <SectionCard title="Rooms" action="Manage →">
