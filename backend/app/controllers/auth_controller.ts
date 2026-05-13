@@ -19,41 +19,41 @@ export default class AuthController {
   ) { }
 
   async devLogin({ auth, request, response, session }: HttpContext) {
-    // Only allowed in development
-    // if (process.env.NODE_ENV === 'production') {
+    // if (env.get('NODE_ENV') === 'production') {
     //   return response.status(403).send('Not allowed in production')
     // }
 
-    const role = request.input('role', 'student') // Default to student
+    const role = request.input('role', 'student')
 
     let user
-
-    if (role == 'manager'){
-      const accomodation = await Accommodation.query().whereNotNull('managerId').first()
-      // console.log(accomodation)
-      user = await User.query().where('id', accomodation!.managerId!).first()
-    }else{
-      // Find a user with this role, or just pick the first one available
+    if (role === 'manager') {
+      const accommodation = await Accommodation.query().whereNotNull('managerId').first()
+      if (!accommodation) {
+        return response.status(404).send('No accommodation with an assigned manager found. Please seed your DB.')
+      }
+      user = await User.query().where('id', accommodation.managerId!).first()
+    } else if (role === 'student') {
+      user = await User.query()
+        .where('role', 'student')
+        .whereHas('student', (q) => q)
+        .first()
+    } else {
       user = await User.query().where('role', role).first()
     }
 
-    // user = await User.query().where('role', role).first()
-
     if (!user) {
-      
       return response.status(404).send(`No user found with role: ${role}. Please seed your DB.`)
     }
 
-    // Manually log the user in
-    await auth.use('web').login(user)
+    session.clear()
+    session.regenerate()
 
-    // Set the session role (matching your callback logic)
+    await auth.use('web').login(user)
     session.put('role', user.role)
 
-    // Log the activity
     await LogService.logAuthActivity(user, 'logged_in')
 
-    return response.redirect(`${env.get('FRONTEND_URL')}/auth/success`)
+    return response.ok({ id: user.id, role: user.role })
   }
 
   // STEP 1: Redirect user to Google login screen
