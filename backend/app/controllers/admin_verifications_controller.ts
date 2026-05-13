@@ -12,7 +12,9 @@ export default class AdminVerificationsController {
   // Gets all users waiting for Admin approval
   async index({ response }: HttpContext) {
     // 1. Find all users who are still 'unassigned'
-    const users = await User.query().where('role', 'unassigned')
+    const users = await User.query()
+      .where('role', 'unassigned')
+      .where('account_status', 'pending')
 
     const pendingUsers = []
 
@@ -48,5 +50,20 @@ export default class AdminVerificationsController {
     await this.notificationService.sendAccountApprovedEmail(user, roleToAssign)
 
     return response.ok(user)
+  }
+
+  async reject({ params, response }: HttpContext) {
+    const user = await User.findOrFail(params.userId)
+
+    user.role = 'unassigned'
+    user.accountStatus = 'rejected'
+    user.submittedAt = null
+
+    await user.save()
+
+    return response.ok({
+      message: 'User verification rejected',
+      user,
+    })
   }
 }
