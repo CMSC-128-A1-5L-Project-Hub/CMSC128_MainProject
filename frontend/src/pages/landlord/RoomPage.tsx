@@ -33,6 +33,7 @@ import { api } from "../../api/axios";
 /* ================= TYPES ================= */
 export interface Tenant {
   id: number;
+  assignmentId: number;
   name: string;
   email?: string;
   phone?: string;
@@ -86,6 +87,7 @@ function mapOccupant(a: any): Tenant | null {
   const primaryPhone = phones.find((p: any) => p.isPrimary) ?? phones[0]
   return {
     id: user.id,
+    assignmentId: a.id,
     name: fullName || student.studentNumber,
     email: user.email,
     phone: primaryPhone?.contactNumber,
@@ -247,12 +249,11 @@ export default function RoomsPage() {
     closeModal();
   };
 
-  const reassignTenant = (tenant: Tenant, fromRoom: Room, toRoom: Room) => {
-    setRooms(rooms.map(room => {
-      if (room.id === fromRoom.id) return { ...room, occupants: room.occupants.filter(t => t.id !== tenant.id) };
-      if (room.id === toRoom.id) return { ...room, occupants: [...room.occupants, tenant] };
-      return room;
-    }));
+  const reassignTenant = async (tenant: Tenant, _fromRoom: Room, toRoom: Room) => {
+    if (!selectedAccomId) return;
+    await api.patch(`/assignments/${tenant.assignmentId}/transfer`, { targetRoomId: toRoom.id });
+    const res = await api.get(`/accommodations/${selectedAccomId}/rooms`);
+    setRooms((res.data ?? []).map(mapRoom));
     closeModal();
   };
 

@@ -155,6 +155,7 @@ router
         router.get('/view-assignments', [controllers.Assignments, 'viewAssignments'])
         router.post('/assignments', [controllers.Assignments, 'store'])
         router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
+        router.patch('/assignments/:id/transfer', [controllers.Assignments, 'transfer'])
 
         // Payment Verification
         router.get('/payments/pending', [controllers.Payments, 'pending'])
