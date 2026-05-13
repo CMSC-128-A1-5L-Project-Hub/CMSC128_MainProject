@@ -105,6 +105,11 @@ router
 
         // ─── FEES (CREATED BY LANDLORD) ───
         router.post('/fees', [controllers.Fees, 'store'])
+        router.post('/landlord/fees/bulk', [controllers.Fees, 'bulkStore'])
+
+        // ─── ROOM ISSUES (LANDLORD VIEW + RESOLVE) ───
+        router.get('/landlord/room-issues', [controllers.Rooms, 'listIssues'])
+        router.patch('/room-issues/:id/resolve', [controllers.Rooms, 'resolveIssue'])
 
         // Manager Handover
         router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])

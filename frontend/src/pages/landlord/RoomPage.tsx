@@ -95,6 +95,24 @@ function mapOccupant(a: any): Tenant | null {
   }
 }
 
+function mapIssue(i: any): RoomIssue {
+  const reporter = i.reporter ?? {};
+  const reporterName = [reporter.fname, reporter.lname]
+    .filter((p: string | null | undefined) => p && String(p).trim() !== "")
+    .join(" ");
+  const room = i.room ?? {};
+  return {
+    id: i.id,
+    roomId: i.roomId ?? i.room_id ?? room.id,
+    roomName: room.roomNumber ?? room.room_number ?? "",
+    building: room.roomBuilding ?? room.room_building ?? "",
+    reportedBy: reporterName || "Unknown",
+    reportedByRole: (i.reporterRole ?? i.reporter_role) as "student" | "manager",
+    issueDetails: i.issueDetails ?? i.issue_details ?? "",
+    reportedAt: (i.createdAt ?? i.created_at ?? "").toString().slice(0, 10),
+  };
+}
+
 function mapRoom(r: any): Room {
   return {
     id: r.id,
@@ -114,28 +132,7 @@ function mapRoom(r: any): Room {
 
 export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [reportedIssues, setReportedIssues] = useState<RoomIssue[]>([
-    {
-      id: 1,
-      roomId: 1,
-      roomName: "Sunrise Suite",
-      building: "Main Hall",
-      reportedBy: "Kayanne Reyes",
-      reportedByRole: "student",
-      issueDetails: "Air conditioning unit is not working properly. Room gets very warm in the afternoon.",
-      reportedAt: "2025-04-28",
-    },
-    {
-      id: 2,
-      roomId: 3,
-      roomName: "Cozy Nook",
-      building: "West Wing",
-      reportedBy: "Manager Name",
-      reportedByRole: "manager",
-      issueDetails: "Water leak from ceiling during heavy rain. Needs immediate attention.",
-      reportedAt: "2025-04-27",
-    },
-  ]);
+  const [reportedIssues, setReportedIssues] = useState<RoomIssue[]>([]);
   const [loading, setLoading] = useState(true);
   const [accommodations, setAccommodations] = useState<{ id: number; accommodationName: string }[]>([]);
   const [selectedAccomId, setSelectedAccomId] = useState<number | null>(null);
@@ -159,6 +156,13 @@ export default function RoomsPage() {
       const list = res.data ?? [];
       setAccommodations(list);
       if (list.length > 0) setSelectedAccomId(list[0].id);
+    });
+  }, []);
+
+  // ─── FETCH REPORTED ISSUES ON MOUNT ───
+  useEffect(() => {
+    api.get("/landlord/room-issues").then((res) => {
+      setReportedIssues((res.data ?? []).map(mapIssue));
     });
   }, []);
 
@@ -212,7 +216,8 @@ export default function RoomsPage() {
     setCurrentPage(1);
   };
 
-  const dismissIssue = (issueId: number) => {
+  const dismissIssue = async (issueId: number) => {
+    await api.patch(`/room-issues/${issueId}/resolve`);
     setReportedIssues(prev => prev.filter(issue => issue.id !== issueId));
   };
 
@@ -257,15 +262,22 @@ export default function RoomsPage() {
     closeModal();
   };
 
-  const generateBilling = (billingData: {
+  const generateBilling = async (billingData: {
     tenantId: number | "all";
     month: string;
     year: string;
     amount: number;
     allowInstallments: boolean;
   }) => {
-    console.log("Billing data:", billingData);
-    return Promise.resolve();
+    if (!selectedRoom) return;
+    await api.post("/landlord/fees/bulk", {
+      roomId: selectedRoom.id,
+      tenantId: billingData.tenantId,
+      month: parseInt(billingData.month, 10),
+      year: parseInt(billingData.year, 10),
+      amount: billingData.amount,
+      allowInstallments: billingData.allowInstallments,
+    });
   };
 
   return (
