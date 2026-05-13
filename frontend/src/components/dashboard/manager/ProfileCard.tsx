@@ -115,8 +115,12 @@ export default function ProfileCard({
 
     return (
         <>
-            <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
+            {/* ReportModal - only when NOT in landlord dashboard */}
+            {!showReplaceButton && (
+                <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
+            )}
 
+            {/* Replace Manager Modal */}
             {showReplaceButton && (
                 <Modal
                     open={editModalOpen}
@@ -162,7 +166,6 @@ export default function ProfileCard({
                 className="relative rounded-b-[30px] px-7 pt-6 pb-6 shadow-lg"
                 style={{ background: `linear-gradient(145deg, ${CLR.dark} 0%, ${CLR.mid} 60%, ${CLR.accent} 100%)` }}
             >
-                {/* Top bar overlay */}
                 <div
                     className="absolute top-0 left-0 w-full h-[79px] pointer-events-none"
                     style={{ background: "linear-gradient(90deg, #7A0C23 0%, #A61C3C 100%)" }}
@@ -176,18 +179,20 @@ export default function ProfileCard({
                         </span>
 
                         <div className="flex flex-row gap-2">
-                            {/* Report button */}
-                            <button
-                                onClick={() => setReportOpen(true)}
-                                className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
-                                        transition-all duration-150
-                                        bg-white/10 hover:bg-white/20 active:bg-white/30
-                                        hover:-translate-y-1 active:translate-y-0 active:scale-95"
-                            >
-                                <img src={report_icon} alt="Report" className="w-full h-full object-contain scale-[2.5]" />
-                            </button>
+                            {/* Report button - only when NOT in landlord dashboard */}
+                            {!showReplaceButton && (
+                                <button
+                                    onClick={() => setReportOpen(true)}
+                                    className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
+                                            transition-all duration-150
+                                            bg-white/10 hover:bg-white/20 active:bg-white/30
+                                            hover:-translate-y-1 active:translate-y-0 active:scale-95"
+                                >
+                                    <img src={report_icon} alt="Report" className="w-full h-full object-contain scale-[2.5]" />
+                                </button>
+                            )}
 
-                            {/* Replace manager button */}
+                            {/* Replace manager button - only when in landlord dashboard */}
                             {showReplaceButton && (
                                 <button
                                     onClick={() => setEditModalOpen(true)}
@@ -204,7 +209,7 @@ export default function ProfileCard({
                                 </button>
                             )}
 
-                            {/* Notification button + panel */}
+                            {/* Notification button */}
                             <div ref={notifWrapperRef} className="relative">
                                 <button
                                     onClick={() => {
