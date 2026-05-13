@@ -24,34 +24,51 @@ export function Modal({
   title,
   eyebrow,
   maxWidth = 560,
-  maxHeight= 560,
+  maxHeight = 560,
   footer,
 }: ModalProps) {
   const [mounted, setMounted] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   // Mount check (for Next.js / SSR)
   useEffect(() => setMounted(true), []);
 
+  // Handle animation timing
+  useEffect(() => {
+    if (open) {
+      setShouldRender(true);
+      setTimeout(() => setIsAnimating(true), 10);
+    } else {
+      setIsAnimating(false);
+      setTimeout(() => setShouldRender(false), 300);
+    }
+  }, [open]);
+
   // Lock scroll
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
     return () => {
       document.body.style.overflow = "";
     };
   }, [open]);
 
-  if (!mounted) return null;
+  if (!mounted || !shouldRender) return null;
 
   const content = (
     <>
       {/* BACKDROP */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 z-[9998] bg-[rgba(10,2,6,0.72)] transition-all duration-300
+        className={`fixed inset-0 z-[9998] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
           ${
-            open
-              ? "opacity-100 backdrop-blur-[8px]"
-              : "opacity-0 backdrop-blur-0 pointer-events-none"
+            isAnimating
+              ? "opacity-100 backdrop-blur-[8px] bg-[rgba(10,2,6,0.72)]"
+              : "opacity-0 backdrop-blur-0 bg-[rgba(10,2,6,0)] pointer-events-none"
           }
         `}
       />
@@ -61,8 +78,8 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.target === e.currentTarget && onClose()}
-        className={`fixed inset-0 z-[9999] flex items-center justify-center p-5
-          ${open ? "pointer-events-auto" : "pointer-events-none"}
+        className={`fixed inset-0 z-[9999] flex items-center justify-center p-5 transition-all duration-300
+          ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}
         `}
       >
         {/* CARD */}
@@ -70,27 +87,17 @@ export function Modal({
           style={{
             width: "100%",
             maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
-            maxHeight: typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight, //added this
-            overflowY: "auto",
-            display:"flex",
+            maxHeight: typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight,
+            display: "flex",
             flexDirection: "column",
             background: "#fff",
             borderRadius: 24,
             overflow: "hidden",
-            boxShadow:
-              "0 40px 100px rgba(26,10,15,0.55), 0 8px 32px rgba(26,10,15,0.25)",
-            opacity:   open ? 1 : 0,
-            transform: open ? "translateY(0) scale(1)" : "translateY(32px) scale(0.95)",
-            transition:
-              "opacity 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1)",
+            boxShadow: "0 40px 100px rgba(26,10,15,0.55), 0 8px 32px rgba(26,10,15,0.25)",
+            transition: "opacity 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1)",
+            opacity: isAnimating ? 1 : 0,
+            transform: isAnimating ? "translateY(0) scale(1)" : "translateY(32px) scale(0.95)",
           }}
-          className={` w-full bg-white rounded-[24px] overflow-hidden shadow-[0_40px_100px_rgba(26,10,15,0.55),0_8px_32px_rgba(26,10,15,0.25)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
-            ${
-              open
-                ? "opacity-100 translate-y-0 scale-100"
-                : "opacity-0 translate-y-8 scale-95"
-            }
-          `}
         >
           {/* HEADER */}
           {(title || eyebrow) && (
@@ -111,8 +118,8 @@ export function Modal({
                 )}
                 {title && (
                   <h2
-                  className="text-[22px] font-extrabold tracking-[0.06em] uppercase text-white leading-none font-['Plus_Jakarta_Sans']"  
-                  style={{
+                    className="text-[22px] font-extrabold tracking-[0.06em] uppercase text-white leading-none font-['Plus_Jakarta_Sans']"  
+                    style={{
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
                       fontSize: "clamp(16px, 2vw, 22px)",
                       fontWeight: 800,
@@ -129,29 +136,29 @@ export function Modal({
 
               {/* CLOSE BUTTON */}
               <button
-                  onClick={onClose}
-                  aria-label="Close modal"
-                  className="
-                      absolute top-4 right-4 z-20
-                      w-9 h-9 rounded-full
-                      flex items-center justify-center flex-shrink-0
-                      bg-white/15 border border-white/30
-                      text-white
-                      transition-all duration-200
-                      hover:bg-white/30 hover:scale-110
-                  "
+                onClick={onClose}
+                aria-label="Close modal"
+                className="
+                  absolute top-4 right-4 z-20
+                  w-9 h-9 rounded-full
+                  flex items-center justify-center flex-shrink-0
+                  bg-white/15 border border-white/30
+                  text-white
+                  transition-all duration-200
+                  hover:bg-white/30 hover:scale-110
+                "
               >
-                  ✕
+                ✕
               </button>
             </div>
           )}
 
           {/* ── Body ── */}
           <div
-            className="px-7 py-6 max-h-[52vh] overflow-y-auto flex-1 min-h-0"
+            className="flex-1 min-h-0"
             style={{
               padding: "24px 28px",
-              maxHeight: "70vh",
+              maxHeight: "calc(70vh - 120px)",
               overflowY: "auto",
               position: "relative",
             }}

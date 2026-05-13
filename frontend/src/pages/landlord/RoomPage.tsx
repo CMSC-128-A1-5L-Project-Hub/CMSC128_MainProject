@@ -21,6 +21,7 @@ import {
   Tag,
   AlertTriangle,
   CheckCircle,
+  Filter,
 } from "lucide-react";
 import RoomCard from "../../components/dashboard/landlord/rooms/RoomCard";
 import AddRoomModal from "../../components/dashboard/landlord/rooms/AddRoomModal";
@@ -145,6 +146,7 @@ export default function RoomsPage() {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedStayType, setSelectedStayType] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Pagination
   const [itemsPerPage, setItemsPerPage] = useState<number>(8);
@@ -284,8 +286,8 @@ export default function RoomsPage() {
     <div className="flex h-screen overflow-hidden bg-[#FBF9FA] font-sans">
       <Sidebar role="landlord" />
       <div className="flex flex-col w-full">
-          <CustomHeader title={"Manage Rooms"} />
-        <main className="flex-1 overflow-y-auto p-8 space-y-6">
+        <CustomHeader title={"Manage Rooms"} />
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
           <HeroBanner
             greeting="Manage Your Rooms"
             name="Landlord"
@@ -294,9 +296,10 @@ export default function RoomsPage() {
             type="mini"
           />
 
-          {/* CONTROL BAR */}
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 max-w-md">
+          {/* CONTROL BAR - Mobile Optimized */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search Bar */}
+            <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input 
                 type="text" 
@@ -307,7 +310,8 @@ export default function RoomsPage() {
               />
             </div>
             
-            <div className="flex items-center gap-2">
+            {/* Desktop Filters */}
+            <div className="hidden sm:flex items-center gap-2">
               <select value={selectedType} onChange={(e) => handleFilterChange("type", e.target.value)}
                 className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-500 hover:border-[#8C1535]/30 transition-all outline-none shadow-sm">
                 <option value="all">All Types</option>
@@ -321,6 +325,12 @@ export default function RoomsPage() {
                 <option value="non_transient">Non-Transient</option>
                 <option value="transient">Transient</option>
               </select>
+              <select value={selectedStatus} onChange={(e) => handleFilterChange("status", e.target.value)}
+                className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-500 hover:border-[#8C1535]/30 transition-all outline-none shadow-sm">
+                <option value="all">All Status</option>
+                <option value="available">Available</option>
+                <option value="full">Full</option>
+              </select>
               {hasActiveFilters && (
                 <button onClick={clearAllFilters}
                   className="text-xs font-bold text-[#8C1535] px-4 py-2.5 hover:bg-[#8C1535]/5 rounded-xl transition-all flex items-center gap-2">
@@ -329,22 +339,81 @@ export default function RoomsPage() {
               )}
             </div>
 
+            {/* Mobile Filter Button */}
+            <div className="flex gap-2 sm:hidden">
+              <button
+                onClick={() => setShowMobileFilters(!showMobileFilters)}
+                className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-600 flex items-center justify-center gap-2"
+              >
+                <Filter size={14} />
+                Filters {hasActiveFilters && `(${Object.values({selectedType, selectedStayType, selectedStatus}).filter(v => v !== "all").length + (searchQuery ? 1 : 0)})`}
+              </button>
+              <button onClick={() => openModal("add")}
+                className="bg-[#8C1535] hover:bg-[#6B0F2B] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-[#8C1535]/20 text-sm">
+                <Plus size={18} /> <span className="hidden sm:inline">Add Room</span>
+                <span className="sm:hidden">Add</span>
+              </button>
+            </div>
+
+            {/* Desktop Add Button */}
             <button onClick={() => openModal("add")}
-              className="bg-[#8C1535] hover:bg-[#6B0F2B] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-[#8C1535]/20 text-sm">
+              className="hidden sm:flex bg-[#8C1535] hover:bg-[#6B0F2B] text-white px-6 py-2.5 rounded-xl font-bold items-center gap-2 transition-all shadow-lg shadow-[#8C1535]/20 text-sm">
               <Plus size={18} /> <span>Add Room</span>
             </button>
           </div>
 
+          {/* Mobile Filter Panel */}
+          {showMobileFilters && (
+            <div className="sm:hidden bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-600">Room Type</label>
+                <select value={selectedType} onChange={(e) => handleFilterChange("type", e.target.value)}
+                  className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm w-full">
+                  <option value="all">All Types</option>
+                  <option value="Single">Single</option>
+                  <option value="Double">Double</option>
+                  <option value="Shared">Shared</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-600">Stay Type</label>
+                <select value={selectedStayType} onChange={(e) => handleFilterChange("stayType", e.target.value)}
+                  className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm w-full">
+                  <option value="all">All Stay Types</option>
+                  <option value="non_transient">Non-Transient</option>
+                  <option value="transient">Transient</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-600">Status</label>
+                <select value={selectedStatus} onChange={(e) => handleFilterChange("status", e.target.value)}
+                  className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm w-full">
+                  <option value="all">All Status</option>
+                  <option value="available">Available</option>
+                  <option value="full">Full</option>
+                </select>
+              </div>
+              {hasActiveFilters && (
+                <button onClick={() => { clearAllFilters(); setShowMobileFilters(false); }}
+                  className="w-full text-xs font-bold text-[#8C1535] py-2 hover:bg-[#8C1535]/5 rounded-lg transition-all flex items-center justify-center gap-2">
+                  <X size={14} /> Clear All Filters
+                </button>
+              )}
+            </div>
+          )}
+
           {/* REPORTED ISSUES */}
           {reportedIssues.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle size={18} className="text-red-500" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800">Reported Room Issues</h3>
-                  <p className="text-[10px] text-gray-400">{reportedIssues.length} issue{reportedIssues.length > 1 ? 's' : ''} reported</p>
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5">
+              <div className="flex items-start sm:items-center gap-3 mb-4 flex-col sm:flex-row">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle size={18} className="text-red-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-800">Reported Room Issues</h3>
+                    <p className="text-[10px] text-gray-400">{reportedIssues.length} issue{reportedIssues.length > 1 ? 's' : ''} reported</p>
+                  </div>
                 </div>
               </div>
               <div className="space-y-2">
@@ -353,9 +422,9 @@ export default function RoomsPage() {
                     key={issue.id}
                     className="p-3 rounded-lg border border-gray-100 hover:border-[#8C1535]/20 transition-colors"
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5">
+                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
                           <h4 className="text-sm font-bold text-gray-800">{issue.roomName}</h4>
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">
                             {issue.building}
@@ -368,8 +437,8 @@ export default function RoomsPage() {
                             by {issue.reportedByRole}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mb-1.5">{issue.issueDetails}</p>
-                        <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                        <p className="text-xs text-gray-500 mb-1.5 break-words">{issue.issueDetails}</p>
+                        <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-400">
                           <span>{issue.reportedBy}</span>
                           <span>•</span>
                           <span>{issue.reportedAt}</span>
@@ -377,7 +446,7 @@ export default function RoomsPage() {
                       </div>
                       <button
                         onClick={() => dismissIssue(issue.id)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg text-[11px] font-bold transition-colors flex-shrink-0"
+                        className="flex items-center justify-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg text-[11px] font-bold transition-colors flex-shrink-0"
                       >
                         <CheckCircle size={13} />
                         Resolve
@@ -389,12 +458,12 @@ export default function RoomsPage() {
             </div>
           )}
 
-          {/* ROOMS GRID */}
+          {/* ROOMS GRID - Responsive */}
           {loading ? (
             <div className="flex items-center justify-center py-20 text-gray-400 text-sm font-bold uppercase tracking-widest">Loading Inventory...</div>
           ) : filteredRooms.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
                 {paginatedRooms.map((room) => (
                   <RoomCard
                     key={room.id}
@@ -405,26 +474,28 @@ export default function RoomsPage() {
                   />
                 ))}
               </div>
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-500 font-medium">
+              
+              {/* Pagination Controls - Responsive */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                  <span className="text-sm text-gray-500 font-medium text-center sm:text-left">
                     <strong className="text-gray-700">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredRooms.length)}</strong> of <strong>{filteredRooms.length}</strong> rooms
                   </span>
                   <select value={itemsPerPage} onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                    className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-bold bg-white">
-                    <option value={4}>4</option>
-                    <option value={8}>8</option>
-                    <option value={12}>12</option>
-                    <option value={16}>16</option>
+                    className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-bold bg-white w-full sm:w-auto">
+                    <option value={4}>Show 4</option>
+                    <option value={8}>Show 8</option>
+                    <option value={12}>Show 12</option>
+                    <option value={16}>Show 16</option>
                   </select>
                 </div>
                 {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mb-5">
-                <Search size={32} className="text-gray-300" />
+            <div className="flex flex-col items-center justify-center py-12 sm:py-20 text-center px-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-2xl flex items-center justify-center mb-4 sm:mb-5">
+                <Search size={28} className="text-gray-300 sm:size-8" />
               </div>
               <h3 className="text-base font-bold text-gray-600 mb-1.5">No rooms found</h3>
               <p className="text-sm text-gray-400 max-w-md mb-4">
