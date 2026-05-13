@@ -324,7 +324,7 @@ export default function Dashboard() {
                     } awaiting your review`
                   : "Everything is up to date"
               }
-              name={user ? `${user.fname} ${user.lname}` : ""}
+              name={user ? user.fname : ""}
               type="full"
             />
 

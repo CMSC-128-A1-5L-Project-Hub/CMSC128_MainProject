@@ -18,6 +18,13 @@ import StatsBanner from "@/components/ApplicationStatus/StatsBanner";
 import Dropdown from "@/components/ApplicationStatus/Dropdown";
 import SearchBar from "@/components/SearchBar";
 
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good Morning";
+  if (h < 18) return "Good Afternoon";
+  return "Good Evening";
+}
+
 const CLR = {
   dark: "#3D0718",
   mid: "#6B0F2B",
@@ -476,7 +483,7 @@ export default function Applications() {
 
   const heroContent: HeroContent = {
         name: currentUser?.fname,
-        greeting: "Good Day",
+        greeting: greeting(),
         title: `Check your applicants for ${accommodationNames}`,
         subtitle: "We make it easy for you to track the accommodation applications you manage",
     };

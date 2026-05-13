@@ -30,6 +30,7 @@ import ManageRoomModal from "../../components/dashboard/landlord/rooms/ManageRoo
 import BillingModal from "../../components/dashboard/landlord/rooms/BillingModal";
 import Pagination from "../../components/dashboard/landlord/rooms/Pagination";
 import { api } from "../../api/axios";
+import { useUserStore } from "../../stores/useUserStore";
 
 /* ================= TYPES ================= */
 export interface Tenant {
@@ -73,6 +74,13 @@ export interface RoomIssue {
 }
 
 /* ================= HELPERS ================= */
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good Morning";
+  if (h < 18) return "Good Afternoon";
+  return "Good Evening";
+}
+
 function capitalizeFirst(s: string): "Single" | "Double" | "Shared" {
   return (s.charAt(0).toUpperCase() + s.slice(1)) as "Single" | "Double" | "Shared";
 }
@@ -132,6 +140,7 @@ function mapRoom(r: any): Room {
 }
 
 export default function RoomsPage() {
+  const { user } = useUserStore();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [reportedIssues, setReportedIssues] = useState<RoomIssue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -289,8 +298,8 @@ export default function RoomsPage() {
         <CustomHeader title={"Manage Rooms"} />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
           <HeroBanner
-            greeting="Manage Your Rooms"
-            name="Landlord"
+            greeting={greeting()}
+            name={user ? user.fname : ""}
             title="Accommodation Room Control"
             subtitle="Monitor occupancy, manage billing, and update room availability."
             type="mini"
