@@ -27,6 +27,10 @@ router.group(() => {
   router.get('/accommodations', [controllers.Accommodation, 'index'])
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
   router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
+
+  // Landing Page
+  router.get('/settings', [controllers.AdminSettings, 'index'])
+  .as('public_settings.index')
 })
 
 /*
