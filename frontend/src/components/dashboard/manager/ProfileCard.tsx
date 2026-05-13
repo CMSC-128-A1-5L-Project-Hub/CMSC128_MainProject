@@ -107,6 +107,12 @@ export default function ProfileCard({
 
     const isActive = status === "assigned" || status === "active" || status === "Active"
 
+    const handleCloseEditModal = () => {
+        setEditModalOpen(false)
+        setReplacementEmail("")
+        setInviteError(null)
+    }
+
     return (
         <>
             <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
@@ -114,19 +120,21 @@ export default function ProfileCard({
             {showReplaceButton && (
                 <Modal
                     open={editModalOpen}
-                    onClose={() => { setEditModalOpen(false); setReplacementEmail(""); setInviteError(null) }}
+                    onClose={handleCloseEditModal}
                     title="Replace Your Manager"
                     eyebrow="Manager Profile"
                     footer={
-                        <Button
-                            variant="primary"
-                            size="md"
-                            className="ml-auto"
-                            onClick={handleSendInvite}
-                            disabled={inviteSubmitting}
-                        >
-                            {inviteSubmitting ? "Sending..." : "Send Invite"}
-                        </Button>
+                        <div className="flex flex-row justify-end w-full">
+                            <Button
+                                variant="reddishPink"
+                                size="md"
+                                onClick={handleSendInvite}
+                                disabled={inviteSubmitting}
+                                type="button"
+                            >
+                                {inviteSubmitting ? "Sending..." : "Send Invite"}
+                            </Button>
+                        </div>
                     }
                 >
                     <div className="flex flex-col gap-4">
@@ -135,7 +143,7 @@ export default function ProfileCard({
                                 Invite using their Google Account
                             </p>
                             <input
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]"
+                                className="w-full border border-[#6B0F2B3E] rounded-xl px-4 py-2.5 text-sm outline-none transition focus:border-[#8C1535] focus:ring-2 focus:ring-[#8C1535]/30"
                                 placeholder="email@example.com"
                                 type="email"
                                 value={replacementEmail}
