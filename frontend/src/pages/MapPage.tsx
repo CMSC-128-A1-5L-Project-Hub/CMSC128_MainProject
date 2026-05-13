@@ -7,6 +7,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import AccommodationMap, { type AccommodationPin, type AccommodationReview } from '../components/AccommodationMaps'
 import { api } from '../api/axios'
+import { useUserStore } from '../stores/useUserStore'
 
 const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
   const res = await api.get('/accommodations')
@@ -58,6 +59,8 @@ const DEFAULT_MAX_RENT = 15000
 export default function MapPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+
+  const user = useUserStore((s) => s.user)
 
   const { data: accommodations = [], isLoading, isError } = useQuery({
     queryKey: ['accommodations'],
@@ -213,8 +216,8 @@ export default function MapPage() {
                   />
                 </div>
 
-                {/* Favorites toggle (UI only) */}
-                <div className="max-md:col-span-2 space-y-2">
+                {/* Favorites toggle (UI only) — hidden for guests */}
+                {user && <div className="max-md:col-span-2 space-y-2">
                   <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Show Favorites Only</label>
                   <div className="h-[46px] flex items-center justify-between p-3 bg-[#FDF7F8] rounded-2xl border border-[#F5EBEB]">
                     <div className="flex items-center gap-3">
@@ -230,7 +233,7 @@ export default function MapPage() {
                       <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#710A2B]/20 peer-checked:after:bg-[#710A2B]" />
                     </label>
                   </div>
-                </div>
+                </div>}
 
                 {/* Dorm Type */}
                 <div className="max-md:col-span-1 space-y-2">
