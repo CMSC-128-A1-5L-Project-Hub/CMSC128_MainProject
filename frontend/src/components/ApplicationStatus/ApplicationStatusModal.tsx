@@ -87,7 +87,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["student-applications"] });
       onClose(); 
       setCancelConfirmation("");
     },
@@ -110,7 +110,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["student-applications"] });
       onClose(); 
       setCancelConfirmation("");
     },
