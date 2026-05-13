@@ -183,6 +183,7 @@ router
         // User Verifications
         router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
         router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
+        router.patch('/admin/users/:userId/reject', [controllers.AdminVerifications, 'reject'])
 
         // System Settings (Academic Year & Semester Updates)
         router.get('/admin/settings', [controllers.AdminSettings, 'index'])
