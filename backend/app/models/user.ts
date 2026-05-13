@@ -38,7 +38,7 @@ export default class User extends BaseModel {
   declare role: 'student' | 'landlord' | 'manager' | 'unassigned' | 'super_admin'
 
   @column()
-  declare accountStatus: 'pending' | 'active' | 'suspended' | null
+  declare accountStatus: 'pending' | 'active' | 'suspended' | 'rejected' | null
 
   @column()
   declare otpCode: string | null
