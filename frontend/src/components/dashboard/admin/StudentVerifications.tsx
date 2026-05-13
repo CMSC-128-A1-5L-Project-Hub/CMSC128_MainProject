@@ -6,8 +6,10 @@ import StudentVerificationModal from "./StudentVerificationsModal"
 type StudentVerificationsProps = {
   students: any[]
   isLoading: boolean
-  verifyingUserId: number | null
+  processingUserId: number | null
+  processingAction: "approve" | "reject" | null
   onApprove: (userId: number) => Promise<void>
+  onReject: (userId: number) => Promise<void>
 }
 
 function InfoRow({ label, value }: { label: string; value?: string | number | null }) {
@@ -32,8 +34,10 @@ function InfoRow({ label, value }: { label: string; value?: string | number | nu
 export default function StudentVerifications({
   students,
   isLoading,
-  verifyingUserId,
+  processingUserId,
+  processingAction,
   onApprove,
+  onReject,
 }: StudentVerificationsProps) {
   const navigate = useNavigate()
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
@@ -64,6 +68,11 @@ export default function StudentVerifications({
     handleClose()
   }
 
+  const handleReject = async (userId: number) => {
+    await onReject(userId)
+    handleClose()
+  }
+
   const user = selectedItem?.user
   const fullName = user ? `${user.fname ?? ""} ${user.lname ?? ""}`.trim() : ""
   const initials = fullName
@@ -72,7 +81,7 @@ export default function StudentVerifications({
     .slice(0, 2)
     .join("")
     .toUpperCase()
-  const isVerifying = user ? verifyingUserId === user.id : false
+  const isProcessing = user ? processingUserId === user.id : false
 
   // console.log("pending students:", students)
 
@@ -80,7 +89,7 @@ export default function StudentVerifications({
     <div className="flex items-center gap-3 w-full">
       <button
         onClick={() => user && handleApprove(user.id)}
-        disabled={isVerifying}
+        disabled={isProcessing}
         className="flex-[2] py-2.5 rounded-xl text-[12px] font-bold tracking-[0.10em] uppercase transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
         style={{
           fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -89,7 +98,7 @@ export default function StudentVerifications({
           boxShadow: "0 4px 14px rgba(140,21,53,0.35)",
         }}
       >
-        {isVerifying ? (
+        {isProcessing ? (
           <span className="flex items-center justify-center gap-2">
             <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" />
             Approving…
@@ -157,10 +166,10 @@ export default function StudentVerifications({
                       {/* ← only change: onClick opens modal instead of approving directly */}
                       <button
                         onClick={() => handleReview(item)}
-                        disabled={verifyingUserId === item.user.id}
+                        disabled={processingUserId === item.user.id}
                         className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-4 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF] disabled:opacity-60"
                       >
-                        {verifyingUserId === item.user.id ? "Approving..." : "Review"}
+                        {processingUserId === item.user.id ? "Processing..." : "Review"}
                       </button>
                     </td>
                   </tr>
@@ -176,9 +185,10 @@ export default function StudentVerifications({
         open={modalOpen}
         onClose={handleClose}
         selectedItem={selectedItem}
-        verifyingUserId={verifyingUserId}
+        verifyingUserId={processingUserId}
+        processingAction={processingAction}
         onApprove={handleApprove}
-        onReject={handleApprove}
+        onReject={handleReject}
       />
     </>
   )

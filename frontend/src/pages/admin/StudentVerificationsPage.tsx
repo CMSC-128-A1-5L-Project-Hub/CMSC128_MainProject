@@ -12,7 +12,8 @@ export default function StudentVerificationsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const [verifyingUserId, setVerifyingUserId] = useState<number | null>(null)
+  const [processingUserId, setProcessingUserId] = useState<number | null>(null)
+  const [processingAction, setProcessingAction] = useState<"approve" | "reject" | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [sortOrder, setSortOrder] = useState("latest")
   const [isSortOpen, setIsSortOpen] = useState(false)
@@ -42,7 +43,8 @@ export default function StudentVerificationsPage() {
 
   const verifyUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      setVerifyingUserId(userId)
+      setProcessingUserId(userId)
+      setProcessingAction("approve")
 
       const res = await api.patch(`/admin/users/${userId}/verify`, {
         roleToAssign: "student",
@@ -55,7 +57,26 @@ export default function StudentVerificationsPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
     },
     onSettled: () => {
-      setVerifyingUserId(null)
+      setProcessingUserId(null)
+      setProcessingAction(null)
+    },
+  })
+
+  const rejectUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      setProcessingUserId(userId)
+      setProcessingAction("reject")
+
+      const res = await api.patch(`/admin/users/${userId}/reject`)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
+    },
+    onSettled: () => {
+      setProcessingUserId(null)
+      setProcessingAction(null)
     },
   })
 
@@ -352,14 +373,15 @@ export default function StudentVerificationsPage() {
         open={isModalOpen}
         onClose={handleCloseModal}
         selectedItem={selectedItem}
-        verifyingUserId={verifyingUserId}
+        verifyingUserId={processingUserId}
+        processingAction={processingAction}
         onApprove={async (userId) => {
           await verifyUserMutation.mutateAsync(userId)
           handleCloseModal()
         }}
         onReject={async (userId) => {
-          await verifyUserMutation.mutateAsync(userId)
-          handleCloseModal()  
+          await rejectUserMutation.mutateAsync(userId)
+          handleCloseModal()
         }}
       />
     </div>

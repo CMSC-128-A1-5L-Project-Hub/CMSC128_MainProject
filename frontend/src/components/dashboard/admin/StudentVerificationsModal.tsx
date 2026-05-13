@@ -5,6 +5,7 @@ type Props = {
   onClose: () => void
   selectedItem: any | null
   verifyingUserId: number | null
+  processingAction: "approve" | "reject" | null
   onApprove: (userId: number) => Promise<void>
   onReject: (userId: number) => Promise<void>
 }
@@ -42,6 +43,7 @@ export default function StudentVerificationModal({
   onClose,
   selectedItem,
   verifyingUserId,
+  processingAction,
   onApprove,
   onReject
 }: Props) {
@@ -62,7 +64,9 @@ export default function StudentVerificationModal({
     .join("")
     .toUpperCase()
 
-  const isVerifying = verifyingUserId === user.id
+  const isProcessing = verifyingUserId === user.id
+  const isApproving = isProcessing && processingAction === "approve"
+  const isRejecting = isProcessing && processingAction === "reject"
 
   const formatDate = (timestamp?: string) => {
     if (!timestamp) return "N/A"
@@ -78,22 +82,29 @@ export default function StudentVerificationModal({
     <div className="w-full grid grid-cols-2 gap-3">
       {/* Reject */}
       <button
-      onClick={() => onReject(user.id)}
-      disabled={isVerifying}
-      className="py-2.5 rounded-xl text-[12px] font-bold tracking-[0.10em] uppercase transition-all duration-200 hover:brightness-105 active:scale-[0.98] disabled:opacity-60"
-      style={{
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
-        background: "#fff",
-        color: "#8C1535",
-        border: "1px solid rgba(140,21,53,0.25)",
-      }}
+        onClick={() => onReject(user.id)}
+        disabled={isProcessing}
+        className="py-2.5 rounded-xl text-[12px] font-bold tracking-[0.10em] uppercase transition-all duration-200 hover:brightness-105 active:scale-[0.98] disabled:opacity-60"
+        style={{
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          background: "#fff",
+          color: "#8C1535",
+          border: "1px solid rgba(140,21,53,0.25)",
+        }}
       >
-      Reject
-    </button>
+        {isRejecting ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-[#8C1535]/30 border-t-[#8C1535] animate-spin" />
+            Rejecting…
+          </span>
+        ) : (
+          "Reject"
+        )}
+      </button>
       {/* Approve */}
       <button
         onClick={() => onApprove(user.id)}
-        disabled={isVerifying}
+        disabled={isProcessing}
         className="w-full py-2.5 rounded-xl text-[12px] font-bold tracking-[0.10em] uppercase transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
         style={{
           fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -103,7 +114,7 @@ export default function StudentVerificationModal({
           boxShadow: "0 4px 14px rgba(140,21,53,0.35)",
         }}
       >
-        {isVerifying ? (
+        {isApproving ? (
           <span className="flex items-center justify-center gap-2">
             <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" />
             Approving…
