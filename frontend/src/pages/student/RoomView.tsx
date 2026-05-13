@@ -34,7 +34,7 @@ const CLR = {
   gold: "#C9973A",
   goldLt: "#E8C37A",
 } as const;
-const GRID_COLS = "grid grid-cols-1 lg:grid-cols-[1.75fr_1fr] gap-3";
+const GRID_COLS = "grid grid-cols-1 lg:grid-cols-[minmax(0,_1.75fr)_minmax(0,_1fr)] gap-3";
 
 interface AccomID {
   accomodation_id: number;
@@ -1443,9 +1443,9 @@ export default function RoomView() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
-  // const [isFavorited, setIsFavorited] = useState(false);
-  // const [moveIn, setMoveIn] = useState("");
-  // const [moveOut, setMoveOut] = useState("");
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [moveIn, setMoveIn] = useState("");
+  const [moveOut, setMoveOut] = useState("");
   const [current, setCurrent] = useState(0);
   const [showAllPhotos, setShowAllPhotosModal] = useState(false);
 
@@ -1676,7 +1676,7 @@ export default function RoomView() {
             <img src={displayPhotos[current]} alt="Main room" className="w-full h-full object-cover" />
             <button
               onClick={() => setCurrent((c) => (c - 1 + displayPhotos.length) % displayPhotos.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-[999] transition-all hover:scale-110 active:scale-95"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-10 transition-all hover:scale-110 active:scale-95"
               style={{ background: CLR.mid }}
             >
               <span className="text-white text-xl font-bold pb-1 pr-0.5" style={{ lineHeight: 0 }}>
@@ -1686,7 +1686,7 @@ export default function RoomView() {
 
             <button
               onClick={() => setCurrent((c) => (c + 1) % displayPhotos.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-[999] transition-all hover:scale-110 active:scale-95"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-10 transition-all hover:scale-110 active:scale-95"
               style={{ background: CLR.mid }}
             >
               <span className="text-white text-xl font-bold pb-1 pl-0.5" style={{ lineHeight: 0 }}>
@@ -1727,12 +1727,12 @@ export default function RoomView() {
                 {avgRating.toFixed(1)} ({accommodation.reviews.length})
               </span>
               <div className="ml-auto flex items-center gap-1">
-                {/* <button onClick={() => setIsFavorited((f) => !f)} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
+                <button onClick={() => setIsFavorited((f) => !f)} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
                   <IconHeart filled={isFavorited} />
                     <span className="hidden md:inline text-sm font-semibold">
                       Favorite
                     </span>
-                </button> */}
+                </button>
                 <button
                   onClick={() => setIsShareModalOpen(true)}
                   className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
