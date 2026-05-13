@@ -30,16 +30,12 @@ interface ApplicationStatusPageProps {
 const fetchApplications = async (): Promise<Application[]> => {
     try {
         const res = await api.get("/applications/my-applications");
-        
-        const body = res.data;
-        return body.data ?? body;
+        return res.data; // return res.data directly, just like Dashboard.tsx does!
     } catch (error: any) {
         console.error("Fetch applications error:", error);
-        // If the server explicitly says "Not Found" (404), return an empty array
-        if (error.response && error.response.status === 404) {
+        if (error.response?.status === 404) {
             return [];
         }
-        
         throw error;
     }
 };
@@ -69,7 +65,7 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
 
     // Data fetching - using the real API
     const { data: applications = [], isLoading, isError } = useQuery({
-        queryKey: ["applications"],
+        queryKey: ["student-applications"],
         queryFn: fetchApplications,
     });
 
