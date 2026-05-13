@@ -51,6 +51,11 @@ export default function HousingAdminVerifications({
     handleClose()
   }
 
+  const handleReject = (userId: number) => {
+    // Implementation for rejecting the user
+    handleClose()
+  }
+
   return (
     <Card className="shadow-sm rounded-2xl border border-[#F2D9DF] bg-white p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -90,7 +95,10 @@ export default function HousingAdminVerifications({
             </thead>
 
             <tbody>
-              {admins.slice(0, 5).map((item: any) => (
+              {admins.slice(0, 5).map((item: any) => {
+                console.log("im here")
+                console.log("housing admin item:", item)
+                return (
                 <tr key={item.user.id}>
                   <td className="py-4">
                     <div className="flex items-center gap-4">
@@ -105,7 +113,7 @@ export default function HousingAdminVerifications({
                   </td>
 
                   <td className="py-4 text-sm text-[#A06B7C]">
-                    {formatAppliedDate(item.appliedAt)}
+                    {formatAppliedDate(item.user.submittedAt)}
                   </td>
 
                   <td className="py-4 text-center">
@@ -120,7 +128,8 @@ export default function HousingAdminVerifications({
                     </button>
                   </td>
                 </tr>
-              ))}
+              )
+      })}
             </tbody>
           </table>
         </div>
