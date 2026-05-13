@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../api/axios";
 
 import Sidebar from "../../components/Sidebar";
@@ -24,6 +24,7 @@ interface ProfileData {
 
 export default function LandlordProfile() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [editing, setEditing] = useState(false);
     const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -40,6 +41,20 @@ export default function LandlordProfile() {
         queryFn: async () => {
             const res = await api.get("/me");
             return res.data;
+        },
+    });
+
+    const uploadPfpMutation = useMutation({
+        mutationFn: async (file: File) => {
+            const formData = new FormData();
+            formData.append("profilePicture", file);
+            const res = await api.post("/me/profile-picture", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["me"] });
         },
     });
 
@@ -60,6 +75,7 @@ export default function LandlordProfile() {
         if (file) {
             const imageUrl = URL.createObjectURL(file);
             setTempImage(imageUrl);
+            uploadPfpMutation.mutate(file);
         }
     };
 
@@ -218,8 +234,8 @@ export default function LandlordProfile() {
                                             >
                                                 <img src={Camera} alt="" className="h-6 w-6 sm:h-7 sm:w-7" />
                                             </button>
-                                            {tempImage ? (
-                                                <img src={tempImage} alt="Profile" className="h-full w-full object-cover" />
+                                            {tempImage || user?.profilePictureUrl ? (
+                                                <img src={tempImage || user?.profilePictureUrl} alt="Profile" className="h-full w-full object-cover" />
                                             ) : (
                                                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#5A0B21] flex items-center justify-center shadow-md">
                                                     <span className="text-white text-2xl sm:text-3xl font-bold tracking-tighter">
@@ -322,7 +338,7 @@ export default function LandlordProfile() {
                                 </div>
                             </div>
 
-                            {/* Mobile-only lower info */}
+                            {/* Mobile-only */}
                             <div className="mt-6 lg:hidden">
                                 <div className="grid grid-cols-1 gap-x-8 gap-y-5 border-t border-[#F0E3E8] pt-5 md:grid-cols-2">
                                     <Field label="UP MAIL" value={profile.email} editing={false} onChange={() => { }} />
