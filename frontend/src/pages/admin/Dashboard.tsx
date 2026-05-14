@@ -291,14 +291,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-[#F9F4F5]">
-      <Sidebar
-        role="super_admin"
-        profile={{
-          fullName: `${user?.fname ?? ""} ${user?.lname ?? ""}`.trim(),
-          shortName: user?.fname ?? "",
-          email: user?.email ?? "",
-        }}
-      />
 
       <main className="flex-1 p-5 lg:p-8 mt-12 lg:mt-0 overflow-x-hidden">
         <div className="space-y-6">
