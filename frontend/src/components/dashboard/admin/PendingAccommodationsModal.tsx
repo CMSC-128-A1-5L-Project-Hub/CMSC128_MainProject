@@ -44,6 +44,11 @@ export default function AccommodationVerificationModal({
 
   if(!selectedItem) return null
 
+  const capitalize = (text?: string) =>
+    text
+        ? text.charAt(0).toUpperCase() + text.slice(1)
+        : "—"
+
   const isProcessing =
     verifyingAccommodationId === selectedItem.id
 
@@ -111,32 +116,49 @@ export default function AccommodationVerificationModal({
         </div>
 
         <div
-          className="grid grid-cols-2 gap-5 p-4 rounded-2xl bg-[#FAFAFA]"
-          style={{
-            border:"1px solid rgba(26,10,15,.07)"
-          }}
-        >
-          <InfoRow
-            label="Accommodation Type"
-            value={selectedItem.accommodationType}
-          />
-
-          <InfoRow
-            label="Capacity"
-            value={selectedItem.capacity}
-          />
-
-          <InfoRow
-            label="Tenant Restriction"
-            value={selectedItem.tenantRestriction}
-          />
-
-          <div className="col-span-2">
+            className="grid grid-cols-2 gap-5 p-4 rounded-2xl bg-[#FAFAFA]"
+            style={{
+                border:"1px solid rgba(26,10,15,.07)"
+            }}
+            >
+            
             <InfoRow
-              label="Address"
-              value={selectedItem.accommodationLocation}
+                label="Landlord"
+                value={
+                    selectedItem.landlord?.user
+                    ? `${selectedItem.landlord.user.fname} ${selectedItem.landlord.user.lname}`
+                    : "—"
+                }
             />
-          </div>
+            
+            <InfoRow
+                label="Capacity"
+                value={selectedItem.capacity}
+            />
+
+            <InfoRow
+                label="Accommodation Type"
+                value={capitalize(selectedItem.accommodationType)}
+            />
+            
+            <InfoRow
+                label="Tenant Restriction"
+                value={capitalize(selectedItem.tenantRestriction)}
+            />
+
+            <div className="col-span-2">
+                <InfoRow
+                label="Address"
+                value={selectedItem.accommodationLocation}
+                />
+            </div>
+
+            <div className="col-span-2">
+                <InfoRow
+                label="Business Permit"
+                value= "BUSINESS PERMIT" // ewan aba
+                />
+            </div>
         </div>
 
         {permit?.url && (
