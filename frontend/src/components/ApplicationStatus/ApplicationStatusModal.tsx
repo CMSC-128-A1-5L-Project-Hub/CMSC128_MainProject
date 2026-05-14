@@ -147,6 +147,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
 
   // We disable Accept if: not approved, deadline passed, or user is typing CANCEL
   const canAccept = isApproved && !hasDeadlinePassed && cancelConfirmation !== "CANCEL";
+  const canCancel = !["rejected", "cancelled"].includes(application.applicationStatus);
 
   // Modal footer with confirmation input and buttons
   const modalFooter = (
@@ -160,6 +161,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
           value={cancelConfirmation}
           onChange={(e) => setCancelConfirmation(e.target.value)}
           placeholder="CANCEL"
+          disabled={!canCancel}
           className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#8C1535]"
         />
       </div>
@@ -184,12 +186,12 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
           {/* CANCEL BUTTON */}
           <button
             className={`px-6 py-2 rounded-full font-bold text-sm  ${
-              cancelConfirmation === "CANCEL" && !cancelMutation.isPending
+              cancelConfirmation === "CANCEL" && !cancelMutation.isPending && canCancel
                 ? " bg-gradient-to-br from-[#F3C9D9] to-[#3D2E2E] border-0 hover:-translate-y-px hover:scale-105 active:scale-95 text-white cursor-pointer transition-all"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
             onClick={() => cancelConfirmation === "CANCEL" && cancelMutation.mutate()}
-            disabled={cancelConfirmation !== "CANCEL" || cancelMutation.isPending}
+            disabled={cancelConfirmation !== "CANCEL" || cancelMutation.isPending || !canCancel}
           >
             {cancelMutation.isPending ? "Cancelling..." : "Cancel"}
           </button>
