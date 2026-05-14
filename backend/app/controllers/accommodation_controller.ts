@@ -699,4 +699,37 @@ async landlordIndex({ auth, response }: HttpContext) {
 
     return response.ok(data)
   }
+
+  async topRated({ response }: HttpContext) {
+    const accommodations = await db
+      .from('accommodations')
+      .leftJoin('reviews', 'accommodations.id', 'reviews.accommodation_id')
+      .leftJoin('rooms', 'accommodations.id', 'rooms.accommodation_id')
+      .leftJoin('accommodation_tags', 'accommodations.id', 'accommodation_tags.accommodation_id')
+      .where('accommodations.status', 'verified')
+      .groupBy('accommodations.id')
+      .select(
+        'accommodations.id',
+        'accommodations.accommodation_name',
+        'accommodations.accommodation_location',
+        'accommodations.accommodation_type'
+      )
+      .select(db.raw('COALESCE(AVG(reviews.rating), 0) as average_rating'))
+      .select(db.raw('COALESCE(MIN(rooms.room_rent), 0) as starting_price'))
+      .select(db.raw('GROUP_CONCAT(DISTINCT accommodation_tags.tag_detail) as tags'))
+      .orderBy('average_rating', 'desc')
+      .limit(5)
+
+    const data = accommodations.map((acc: any) => ({
+      id: acc.id,
+      name: acc.accommodation_name,
+      subtitle: acc.accommodation_location,
+      meta: acc.accommodation_type,
+      price: Number(acc.starting_price ?? 0),
+      rating: Number(Number(acc.average_rating ?? 0).toFixed(1)),
+      chips: acc.tags ? acc.tags.split(',').slice(0, 3) : [],
+    }))
+
+    return response.ok(data)
+  }
 }
