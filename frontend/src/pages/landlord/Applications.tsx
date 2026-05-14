@@ -686,26 +686,7 @@ export default function Applications() {
             }
           >
             {selectedApp && (
-              <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-                <div className="bg-[#F7F3F5] rounded-2xl border border-[#6B0F2B]/10 p-4 md:p-5">
-                  <div className="mb-4">
-                    <p className="text-[16px] font-bold text-gray-900">{selectedApp.student}</p>
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Date Applied: {selectedApp.date}</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-[13px]">
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Applicant Details</p>
-                      <p className="font-bold text-gray-800">{selectedApp.email}</p>
-                      <p className="text-[11px] text-gray-500 font-medium">Data from original object can go here</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Occupancy Details</p>
-                      <p className="font-bold text-gray-800">{selectedApp.type ? selectedApp.type.replace('_', ' ') : 'N/A'}</p>
-                      <p className="text-[11px] text-gray-500 font-medium">Based on durationOfStayDays</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="space-y-4 pr-1">
 
                 {(selectedApp.status === "Under Review" || selectedApp.status === "Rejected") && (
                   <div className="space-y-1.5">
