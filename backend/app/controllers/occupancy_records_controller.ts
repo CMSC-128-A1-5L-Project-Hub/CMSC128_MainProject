@@ -134,4 +134,37 @@ export default class OccupancyRecordsController {
 
     return response.ok(data)
   }
+
+  async publicDormOccupancy({ response }: HttpContext) {
+    const accommodations = await Accommodation.query()
+      .preload('rooms')
+      .limit(4)
+
+    const data = accommodations.map((accommodation) => {
+      const rooms = accommodation.rooms ?? []
+
+      const totalCapacity = rooms.reduce(
+        (sum, room) => sum + Number(room.roomCapacity ?? 0),
+        0
+      )
+
+      const currentOccupancy = rooms.reduce(
+        (sum, room) => sum + Number(room.roomCurrentOccupancy ?? 0),
+        0
+      )
+
+      const occupancyRate =
+        totalCapacity > 0
+          ? Math.round((currentOccupancy / totalCapacity) * 100)
+          : 0
+
+      return {
+        id: accommodation.id,
+        name: accommodation.accommodationName,
+        occupancyRate,
+      }
+    })
+
+    return response.ok(data)
+  }
 }
