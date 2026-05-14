@@ -1114,33 +1114,69 @@ if (!profile || !user || user.role !== "student") {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {applications.map((app:any) => (
-                    <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-4 sm:px-6 py-3 sm:py-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" style={{ background: CLR.mid }} />
-                          <span className="font-medium text-[#2A0410] whitespace-nowrap">{app.accommodation?.accommodationName}</span>
+                  {applications.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="px-6 py-10 text-center text-gray-500"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <p className="text-[#9A7080] font-medium">
+                            No current applications
+                          </p>
+                          <p className="text-[#9A7080]/60 text-sm mt-1">
+                            Browse accommodations and apply to get started.
+                          </p>
                         </div>
                       </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">{formatStayType(app.applicationStayType)}</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">{formatDate(app.applicationDate)}</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">{capitalize(app.accommodation?.accommodationType)}</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4">
-                         <StatusBadge status={
-                          app.applicationStatus === "approved"
-                            ? "Approved"
-                            : app.applicationStatus === "pending"
-                            ? "Pending"
-                            : "In Review"
-                        } />
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4">
-                        <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                          <IconMoreHorizontal />
-                        </button>
-                      </td>
                     </tr>
-                  ))}
+                  ) : (
+                    applications.map((app: any) => (
+                      <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-4 sm:px-6 py-3 sm:py-4">
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0"
+                              style={{ background: CLR.mid }}
+                            />
+                            <span className="font-medium text-[#2A0410] whitespace-nowrap">
+                              {app.accommodation?.accommodationName}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                          {formatStayType(app.applicationStayType)}
+                        </td>
+
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                          {formatDate(app.applicationDate)}
+                        </td>
+
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                          {capitalize(app.accommodation?.accommodationType)}
+                        </td>
+
+                        <td className="px-4 sm:px-6 py-3 sm:py-4">
+                          <StatusBadge
+                            status={
+                              app.applicationStatus === "approved"
+                                ? "Approved"
+                                : app.applicationStatus === "pending"
+                                ? "Pending"
+                                : "In Review"
+                            }
+                          />
+                        </td>
+
+                        <td className="px-4 sm:px-6 py-3 sm:py-4">
+                          <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                            <IconMoreHorizontal />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
