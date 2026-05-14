@@ -786,4 +786,46 @@ async landlordIndex({ auth, response }: HttpContext) {
 
     return response.ok({ message: 'Document requirement removed.' })
   }
+
+  // Top 5 dorms by average rating, regardless of tenant restriction (for landing page)
+  async topRated({ response }: HttpContext) {
+    const accommodations = await db
+      .from('accommodations')
+      .leftJoin('reviews', 'accommodations.id', 'reviews.accommodation_id')
+      .leftJoin('rooms', 'accommodations.id', 'rooms.accommodation_id')
+      .leftJoin('accommodation_tags', 'accommodations.id', 'accommodation_tags.accommodation_id')
+      .leftJoin('accommodation_images', 'accommodations.id', 'accommodation_images.accommodation_id')
+      .leftJoin('file_metadata', 'accommodation_images.image_file_id', 'file_metadata.id')
+      .where('accommodations.status', 'verified')
+      .groupBy('accommodations.id')
+      .select(
+        'accommodations.id',
+        'accommodations.accommodation_name',
+        'accommodations.accommodation_location',
+        'accommodations.accommodation_type'
+      )
+      .select(db.raw('COALESCE(AVG(reviews.rating), 0) as average_rating'))
+      .select(db.raw('COALESCE(MIN(rooms.room_rent), 0) as starting_price'))
+      .select(db.raw('GROUP_CONCAT(DISTINCT accommodation_tags.tag_detail) as tags'))
+      .select(db.raw('MIN(file_metadata.file_path) as primary_image_path'))
+      .orderBy('average_rating', 'desc')
+      .limit(5)
+
+    const data = await Promise.all(
+      accommodations.map(async (acc: any) => ({
+        id: acc.id,
+        name: acc.accommodation_name,
+        subtitle: acc.accommodation_location,
+        meta: acc.accommodation_type,
+        price: Number(acc.starting_price ?? 0),
+        rating: Number(Number(acc.average_rating ?? 0).toFixed(1)),
+        chips: acc.tags ? acc.tags.split(',').slice(0, 3) : [],
+        primaryImageUrl: acc.primary_image_path
+          ? await signImageUrl(acc.primary_image_path)
+          : null,
+      }))
+    )
+
+    return response.ok(data)
+  }
 }

@@ -23,11 +23,25 @@ router.group(() => {
   router.get('/auth/google/redirect', [controllers.Auth, 'redirect'])
   router.get('/auth/google/callback', [controllers.Auth, 'callback'])
 
+  router.get('/accommodations/top-rated', [controllers.Accommodation, 'topRated'])
+
   // Map Viewer Data
   router.get('/accommodations', [controllers.Accommodation, 'index'])
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
   router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
   router.get('/accommodations/:id/document-requirements', [controllers.Accommodation, 'listDocumentRequirements'])
+
+  // Landing Page
+  router.get('/settings', [controllers.AdminSettings, 'index'])
+  .as('public_settings.index')
+
+  router.get('/rooms/available/count', [controllers.Rooms, 'countAvailableRooms'])
+  .as('public_rooms_available_count')
+
+  router.get('/occupancy/dorms', [controllers.OccupancyRecords, 'publicDormOccupancy'])
+
+  router.post('/support/contact', [controllers.Supports, 'contact'])
+  
 })
 
 /*
