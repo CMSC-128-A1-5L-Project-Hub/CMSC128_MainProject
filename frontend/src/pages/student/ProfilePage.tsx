@@ -59,7 +59,7 @@ interface ProfileEditFields {
   emergencyContactNumber: string;
   emergencyContactName: string;
   classification: string;
-  yearLevel: string; // Added to interface
+  yearLevel: string; 
 }
 
 // ─── Zustand Store ───────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ const useProfileStore = create<ProfileEditStore>((set) => ({
     emergencyContactNumber: '',
     emergencyContactName: '',
     classification: '',
-    yearLevel: '', // Initialize in store
+    yearLevel: '',
   },
   setIsEditing: (v: boolean) => set({ isEditing: v }),
   setShowHistory: (v: boolean) => set({ showHistory: v }),
@@ -122,18 +122,20 @@ export default function ProfilePage() {
         emergencyContactName: profile.student?.emergencyContactName || "",
         emergencyContactNumber: profile.student?.emergencyContactNumber || "",
         classification: profile.student?.classification || "Undergraduate",
-        yearLevel: profile.student?.yearLevel || "", // Map yearLevel to form
+        yearLevel: profile.student?.yearLevel || "",
       });
     }
   }, [profile, setForm]);
 
+  // FIXED SAVE MUTATION: Uses the "Manager/Original" payload structure
   const saveMutation = useMutation({
     mutationFn: async (updatedForm: ProfileEditFields) => {
-      // Re-constructing the payload to match the backend's expected nested structure
       const payload = {
         mname: updatedForm.mname,
         facebookAccount: updatedForm.facebookAccount,
+        // Backend needs phone numbers as an array
         phoneNumbers: [{ contactNumber: updatedForm.primaryPhone, isPrimary: true }],
+        // Backend needs student data nested
         student: {
           classification: updatedForm.classification,
           yearLevel: updatedForm.yearLevel,
@@ -147,6 +149,10 @@ export default function ProfilePage() {
       qc.invalidateQueries({ queryKey: ["me"] });
       setUser(data);
       setIsEditing(false);
+    },
+    onError: (err) => {
+      console.error("Save Error:", err);
+      alert("Save failed. Check console.");
     }
   });
 
@@ -164,7 +170,6 @@ export default function ProfilePage() {
 
   const currentDorm = history.find((h: AccommodationHistoryItem) => !h.actualMoveOut);
   const defaultPfp = profile.student?.gender?.toLowerCase() === "female" ? femalePfp : malePfp;
-  
   const verifyDate = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
   return (
@@ -184,7 +189,7 @@ export default function ProfilePage() {
             <div className="p-6 md:p-10 lg:p-14">
               <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
                 
-                {/* LEFT: Dashed Photo/Doc Boxes */}
+                {/* LEFT: Photos */}
                 <div className="w-full lg:w-[320px] lg:shrink-0">
                   <div className="relative aspect-square overflow-hidden rounded-[35px] bg-[#F9EBEE] border border-[#F2F2F2]">
                     <img src={profile.profilePictureUrl || defaultPfp} className="h-full w-full object-cover" alt="Profile" />
@@ -224,10 +229,11 @@ export default function ProfilePage() {
                     </div>
                     <button 
                       onClick={() => isEditing ? saveMutation.mutate(form) : setIsEditing(true)}
-                      className="inline-flex items-center gap-3 rounded-2xl border border-[#E6CAD3] px-8 py-3 text-sm font-bold text-[#2A1F1A] shadow-sm hover:bg-[#8C1535] hover:text-white transition-all group"
+                      disabled={saveMutation.isPending}
+                      className="inline-flex items-center gap-3 rounded-2xl border border-[#E6CAD3] px-8 py-3 text-sm font-bold text-[#2A1F1A] shadow-sm hover:bg-[#8C1535] hover:text-white transition-all group disabled:opacity-50"
                     >
                       <img src={isEditing ? Save : Pencil} className="h-4 w-4 group-hover:invert" alt="" />
-                      {isEditing ? "SAVE PROFILE" : "EDIT PROFILE"}
+                      {saveMutation.isPending ? "SAVING..." : isEditing ? "SAVE PROFILE" : "EDIT PROFILE"}
                     </button>
                   </div>
 
@@ -245,13 +251,17 @@ export default function ProfilePage() {
                     <Field label="Gender" value={profile.student?.gender} readOnly isCaps />
 
                     <Field label="Emergency Contact" value={form.emergencyContactName} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactName: v})} />
+                    
+                    {/* FIXED: Classification is editable and capitalized */}
                     <Field label="Classification" value={form.classification} editing={isEditing} isCaps onChange={(v: string) => setForm({...form, classification: v})} />
 
                     <Field label="Emergency Contact #" value={form.emergencyContactNumber} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactNumber: v})} />
+                    
+                    {/* FIXED: Year Level is now editable and capitalized */}
                     <Field label="Year Level" value={form.yearLevel} editing={isEditing} isCaps onChange={(v: string) => setForm({...form, yearLevel: v})} />
                   </div>
 
-                  {/* Current Dorm - Manager Style */}
+                  {/* Current Dorm */}
                   <div className="mt-14 border-t border-[#F2F2F2] pt-10">
                     <p className="mb-5 text-[10px] font-extrabold tracking-widest text-[#A88993] uppercase">Current Dorm</p>
                     <div className="flex items-center gap-6 rounded-3xl border border-[#EADFD3] bg-[#F8EFF2] p-5">
