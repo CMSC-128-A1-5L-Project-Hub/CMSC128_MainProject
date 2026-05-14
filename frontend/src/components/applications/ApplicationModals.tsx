@@ -27,7 +27,7 @@ const StatusBadge = ({
       style={{ background: cfg.bg, color: cfg.color }}
     >
       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
     </span>
   );
 };
