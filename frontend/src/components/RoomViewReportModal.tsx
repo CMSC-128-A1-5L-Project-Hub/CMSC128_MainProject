@@ -38,6 +38,8 @@ type ReportAccommodationModalProps = {
   reportableId: number
   accommodationName?: string
   managerName?: string
+  onSuccess?: () => void
+  onError?: () => void
 }
 
 export default function ReportAccommodationModal({
@@ -47,9 +49,12 @@ export default function ReportAccommodationModal({
   reportableId,
   accommodationName,
   managerName,
+  onSuccess,
+  onError
 }: ReportAccommodationModalProps) {
   const [form, setForm] = useState<ReportForm>({ reason: "", details: "" })
   const [errors, setErrors] = useState({ reason: false, details: false })
+  const [submitting, setSubmitting] = useState(false)
 
   const reasonOptions = reportType === "dorm" ? DORM_REASONS : MANAGER_REASONS
   
@@ -75,6 +80,9 @@ export default function ReportAccommodationModal({
 
     if (Object.values(newErrors).some(Boolean)) return
 
+    setSubmitting(true)
+
+
     try {
       await api.post('/issue-reports', {
         reportableType: reportType === 'dorm'
@@ -88,8 +96,12 @@ export default function ReportAccommodationModal({
       })
 
       handleClose()
+      onSuccess?.()
     } catch (error) {
       console.error('Failed to submit report:', error)
+      onError?.()
+    } finally {
+      setSubmitting(false)
     }
   }
 

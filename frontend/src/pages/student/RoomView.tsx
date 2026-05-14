@@ -19,6 +19,7 @@ import ApplicationModals from "@/components/applications/ApplicationModals.tsx";
 import RoomApplicationModal from "@/components/RoomApplicationModal.tsx";
 import ShareModal from "@/components/ShareModal.tsx";
 import ReportAccommodationModal from "@/components/RoomViewReportModal.tsx";
+import Toast from "@/components/Toast"
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const UPLB_COORDS = { longitude: 121.2436, latitude: 14.1654 }
@@ -201,6 +202,7 @@ const IconVerified = () => (
 );
 
 type TabKey = "Features" | "Location" | "Reviews" | "Requirements";
+
 
 
 const StarRating = ({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) => {
@@ -1478,6 +1480,9 @@ export default function RoomView() {
   const [selectedArrangement, setSelectedArrangement] = useState<Room["room_type"]>("single");
   const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
   const [hasSelectedRoomFilters, setHasSelectedRoomFilters] = useState(false);
+  const [toast, setToast] = useState<{
+  show: boolean; type: "success" | "error"; title: string; message?: string
+  }>({ show: false, type: "success", title: "" })
 
   useEffect(() => {
     const fetchAccommodation = async () => {
@@ -1662,6 +1667,7 @@ export default function RoomView() {
   //     : accommodation.pricing?.overallStartingPrice ??
   //       accommodation.cheapestRoomOverall;
 
+
   const isTransient = selectedRoom?.stay === "transient";
 
   const reservationFeeType = selectedRoom?.reservationFeeType;
@@ -1751,20 +1757,24 @@ export default function RoomView() {
               </span>
               <div className="ml-auto flex items-center gap-1">
                 <button onClick={async () => {
-                  try {
-                    const response = await api.put(
-                      `/accommodations/${accommodation.id}/bookmark`,
-                      {
-                        studentNumber: studentNo,
-                        favorite: !isFavorited
-                      }
-                    )
 
-                    console.log("Bookmarked:", response.data)
+                  try {
+                    await api.put(`/accommodations/${accommodation.id}/bookmark`, {
+                      studentNumber: studentNo,
+                      favorite: !isFavorited
+                    })
+                    setIsFavorited((f) => !f)
+                    setToast({
+                      show: true,
+                      type: "success",
+                      title: isFavorited ? "Removed from favorites" : "Added to favorites!",
+                      message: isFavorited ? undefined : `${accommodation.accommodationName} has been saved.`
+                    })
                   } catch (error) {
-                    console.error("error: ", error)
+                    setToast({ show: true, type: "error", title: "Something went wrong", message: "Please try again." })
                   }
-                  setIsFavorited((f) => !f)
+
+
                 }} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
                   <IconHeart filled={isFavorited} />
                   <span className="hidden md:inline text-sm font-semibold">
@@ -2021,6 +2031,28 @@ export default function RoomView() {
                       ? `${accommodation.manager.user.fname} ${accommodation.manager.user.lname}`
                       : undefined
                   }
+                  onSuccess={() => setToast({
+                    show: true,
+                    type: "success",
+                    title: "Report submitted",
+                    message: reportType === "dorm"
+                      ? `Your report on ${accommodation.accommodationName} has been sent.`
+                      : `Your report on the manager has been sent.`
+                  })}
+                  onError={() => setToast({
+                    show: true,
+                    type: "error",
+                    title: "Report failed",
+                    message: "Something went wrong. Please try again."
+                  })}
+                />
+
+                <Toast
+                  type={toast.type}
+                  title={toast.title}
+                  message={toast.message}
+                  show={toast.show}
+                  onClose={() => setToast(prev => ({ ...prev, show: false }))}
                 />
               </div>
 
@@ -2033,6 +2065,8 @@ export default function RoomView() {
       {showAllPhotos && (
         <AllPhotosModal photos={displayPhotos} onClose={() => setShowAllPhotosModal(false)} />
       )}
+
+
     </div>
   );
 }
