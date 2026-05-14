@@ -388,6 +388,8 @@ export default function AboutSection() {
           <div className="original-grid-layout" style={{ display: "grid", gridTemplateColumns: "220px 280px 220px", gap: 16, alignItems: "end" }}>
             <motion.div style={{ y: yColA as any }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
               <DormCard
+                  image={featuredDorm?.primaryImageUrl}
+                  imageName={featuredDorm?.name ?? "Featured Dorm"}
                   name={featuredDorm?.name ?? "Featured Dorm"}
                   subtitle={featuredDorm?.subtitle ?? ""}
                   meta={
