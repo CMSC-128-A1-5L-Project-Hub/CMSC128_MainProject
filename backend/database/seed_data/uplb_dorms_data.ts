@@ -273,9 +273,9 @@ const mens_residence_hall: DormSeedData = {
   application_end_date: '2026-07-15',
   images: [
     'MRH_front.jpg',
-    'MRH_room.jpg',
-    'MRH_corridor.jpg',
-    'MRH_common.jpg',
+    'MRH_room3.jpg',
+    'MRH_entrance.jpg',
+    'MRH_kitchen.jpg',
   ],
   tags: [
     'On-campus housing',
@@ -470,7 +470,10 @@ const womens_residence_hall: DormSeedData = {
   application_start_date: '2026-06-01',
   application_end_date: '2026-07-15',
   images: [
-    'WRH_front.jpg',
+    'WRH_entrance.jpg',
+    'WRH_canteen.jpg',
+    'WRH_hallway.jpg',
+    'WRH_room.jpg'
   ],
   tags: [
     'On-campus housing',
@@ -661,7 +664,9 @@ const foreha: DormSeedData = {
   application_end_date: '2026-07-15',
   images: [
     'FOREHA_front.jpg',
+    'FOREHA_common.jpg',
     'FOREHA_room.jpg',
+    'FOREHA_cr.jpg'
   ],
   tags: [
     'On-campus housing',
@@ -856,6 +861,9 @@ const nfrh: DormSeedData = {
   application_end_date: '2026-07-15',
   images: [
     'NFRH_front.jpg',
+    'NFRH_common.jpg',
+    'NFRH_room.jpg',
+    'NFRH_cr.jpg',
   ],
   tags: [
     'On-campus housing',
@@ -1049,8 +1057,10 @@ const vetmed_residence_hall: DormSeedData = {
   application_start_date: '2026-06-01',
   application_end_date: '2026-07-15',
   images: [
+    'VMRH_entrance.jpg',
     'VMRH_front.jpg',
     'VMRH_room.jpg',
+    'VMRH_common.jpg'
   ],
   tags: [
     'On-campus housing',
@@ -1240,10 +1250,10 @@ const ati_ntc: DormSeedData = {
   application_start_date: '2026-06-01',
   application_end_date: '2026-07-15',
   images: [
-    'ATI_main.jpg',
-    'ATI_main2.jpg',
-    'ATI_entrance.jpg',
-    'ATI_inside.jpg',
+    'ATI_front.jpg',
+    'ATI_common.jpg',
+    'ATI_room.jpg',
+    'ATI_parking.jpg',
   ],
   tags: [
     'On-campus housing',
@@ -1437,6 +1447,9 @@ const new_dorm_residence_hall: DormSeedData = {
   application_end_date: '2026-07-15',
   images: [
     'NDRH_front.jpg',
+    'NDRH_cr.jpg',
+    'NDRH_study.jpg',
+    'NDRH_room.jpg',
   ],
   tags: [
     'On-campus housing',
@@ -1631,6 +1644,9 @@ const international_house: DormSeedData = {
   application_end_date: '2026-07-15',
   images: [
     'IH_front.jpg',
+    'IH_common.jpg',
+    'IH_kitchen.jpg',
+    'IH_room.jpg',
   ],
   tags: [
     'On-campus housing',
