@@ -123,8 +123,8 @@ router
         router.patch('/transient-bookings/:id/verify', [controllers.TransientBooking, 'verify'])
 
         // Profile
-        router.get('/landlord/profile', [controllers.LandlordProfiles, 'show'])
-        router.patch('/landlord/profile', [controllers.LandlordProfiles, 'update'])
+        // router.get('/landlord/profile', [controllers.LandlordProfiles, 'show'])
+        // router.patch('/landlord/profile', [controllers.LandlordProfiles, 'update'])
       })
       .use(middleware.role([ROLES.LANDLORD]))
 
@@ -172,7 +172,7 @@ router
         router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
 
         // ─── PHONE DUPLICATE CHECK ───
-        router.get('/check-phone/:phone', [controllers.PhoneNumbers, 'check'])
+        //router.get('/check-phone/:phone', [controllers.PhoneNumbers, 'check'])
 
         // Document Zip Export (Backblaze)
         router.get('/accommodations/:id/export-documents', [
@@ -212,10 +212,10 @@ router
       // ─── MANAGER ───
       // ====================================================================
 
-      router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
-      router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
-      router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
-      router.get('/manager/occupancy-history', [controllers.OccupancyRecords, 'history'])
+      // router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
+      // router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
+      // router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
+      // router.get('/manager/occupancy-history', [controllers.OccupancyRecords, 'history'])
   })
   .use(middleware.auth())
 
