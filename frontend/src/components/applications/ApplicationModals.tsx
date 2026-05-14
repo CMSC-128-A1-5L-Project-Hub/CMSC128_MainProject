@@ -27,7 +27,7 @@ const StatusBadge = ({
       style={{ background: cfg.bg, color: cfg.color }}
     >
       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
     </span>
   );
 };
@@ -115,7 +115,7 @@ const ApplicationModalContent = ({
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">College</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.college}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student.college.toUpperCase()}</p>
                 </div>
 
                 <div className="col-span-1">
@@ -142,12 +142,17 @@ const ApplicationModalContent = ({
                   <p className="text-[#1A0008] text-sm">{formatTime(app.applicationDate)}</p>
                 </div>
 
-                <div>
-                  <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Duration</p>
-                  <p className="text-[#1A0008] text-sm">
-                    {app.durationOfStayDays} day{app.durationOfStayDays !== 1 ? "s" : ""}
-                  </p>
-                </div>
+                {/* Only display when stay type is transient */}
+                {app.applicationStayType === "transient" ? (
+                  <div>
+                    <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Duration</p>
+                    <p className="text-[#1A0008] text-sm">
+                      {app.durationOfStayDays} day{app.durationOfStayDays !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  )
+                  : undefined
+                }
               </div>
             </div>
           </div>
@@ -163,7 +168,9 @@ const ApplicationModalContent = ({
               <div className="grid grid-cols-2 gap-y-3">
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Stay</p>
-                  <p className="text-[#1A0008] text-sm">{app.applicationStayType}</p>
+                  <p className="text-[#1A0008] text-sm">
+                    {app.applicationStayType === "non_transient" ? "Non-Transient" : "Transient"}
+                  </p>
                 </div>
 
                 <div className="col-span-1">
@@ -173,7 +180,11 @@ const ApplicationModalContent = ({
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</p>
-                  <p className="text-[#1A0008] text-sm">{app.applicationRoomType}</p>
+                  <p className="text-[#1A0008] text-sm">
+                    {app.applicationRoomType === "shared" ? "Shared"
+                      : app.applicationRoomType === "single" ? "Single" : "Double"
+                    }
+                  </p>
                 </div>
 
                 <div className="col-span-1">
