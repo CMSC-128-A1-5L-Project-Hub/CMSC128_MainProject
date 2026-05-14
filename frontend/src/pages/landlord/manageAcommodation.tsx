@@ -14,6 +14,7 @@ import Toast from "../../components/Toast";
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel";
 import Bell from "../../assets/icons/bell_icon.svg?react";
 import UbleLoader from "../shared/LoadingPage";
+import CustomHeader from "../../components/CustomHeader"
 
 const COMMON_AMENITIES = [
   "WiFi", "Air Conditioning", "Kitchen", "Laundry", "Study Area",
@@ -441,16 +442,9 @@ const ManageAccommodationDashboard: React.FC = () => {
       <div className="flex-1 mt-12 lg:mt-0">
 
         {/* Header bar */}
-        <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 pl-12 lg:pl-0">
-              <span className="h-6 w-1 rounded-full bg-[#3D0718]" />
-              <h1 className="font-serif text-3xl italic text-[#3D0718] md:text-4xl font-bold">
-                Properties
-              </h1>
-            </div>
-
-            {/* Notification bell  */}
+        <CustomHeader
+          title="Properties"
+          right={
             <div className="relative" ref={notifWrapperRef}>
               <button
                 aria-label="Notifications"
@@ -473,8 +467,8 @@ const ManageAccommodationDashboard: React.FC = () => {
                 wrapperRef={notifWrapperRef}
               />
             </div>
-          </div>
-        </header>
+          }
+        />
 
         {/* Main content */}
         <main className="p-4 sm:p-6 lg:p-10">

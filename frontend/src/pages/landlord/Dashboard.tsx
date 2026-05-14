@@ -15,6 +15,7 @@ import ReportsPanel from "../../components/dashboard/landlord/rooms/dashboard/Re
 import ApplicationPeriod from "../../components/dashboard/landlord/rooms/dashboard/Calendar";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
+import GradientPillSelect from "@/components/DropDownGradient";
 
 import { api } from "../../api/axios";
 import { useUserStore } from "../../stores/useUserStore";
@@ -113,8 +114,11 @@ function FilterTabs({
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
+const ROOMS_PER_PAGE = 5;
+
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("Overview");
+  const [roomsPage, setRoomsPage] = useState(1);
   const [docModalOpen, setDocModalOpen] = useState(false);
   const [newDocName, setNewDocName] = useState("");
   const [newDocFormat, setNewDocFormat] = useState("any");
@@ -235,6 +239,10 @@ export default function Dashboard() {
 
   // ── Derived values ──────────────────────────────────────────────────────────
 
+  useEffect(() => { setRoomsPage(1); }, [rooms.length, activeTab]);
+  const totalRoomPages = Math.max(1, Math.ceil(rooms.length / ROOMS_PER_PAGE));
+  const paginatedRooms = rooms.slice((roomsPage - 1) * ROOMS_PER_PAGE, roomsPage * ROOMS_PER_PAGE);
+
   const totalCapacity = rooms.reduce((s, r) => s + r.roomCapacity, 0);
   const totalOccupied = rooms.reduce((s, r) => s + r.roomCurrentOccupancy, 0);
   const occupancyPct = totalCapacity > 0 ? Math.round((totalOccupied / totalCapacity) * 100) : 0;
@@ -258,6 +266,12 @@ export default function Dashboard() {
   const manager = accommodation?.manager;
   const managerStatus = !manager ? "none" : manager.managerStatus === "active" ? "assigned" : "pending";
   const primaryPhone = manager?.user?.phoneNumbers?.find((p) => p.isPrimary)?.contactNumber ?? "";
+
+  const documentFormatOptions = [
+    { value: "any", label: "Any" },
+    { value: "pdf", label: "PDF" },
+    { value: "image", label: "JPEG / PNG" },
+  ];
 
   // ── Helpers for review modal ─────────────────────────────────────────────
 
@@ -548,7 +562,7 @@ export default function Dashboard() {
                       ) : rooms.length === 0 ? (
                         <p className="text-xs text-gray-400 py-4 text-center italic">No rooms added yet</p>
                       ) : (
-                        rooms.map((r) => {
+                        paginatedRooms.map((r) => {
                           let statusText = r.roomAvailability === "available" ? "Available" : r.roomAvailability === "occupied" ? "Fully Occupied" : r.roomAvailability;
                           const statusColor = r.roomAvailability === "available" ? "bg-green-100 text-green-700" : r.roomAvailability === "occupied" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700";
                           return (
@@ -563,6 +577,48 @@ export default function Dashboard() {
                       )}
                     </div>
                   </div>
+                  {rooms.length > ROOMS_PER_PAGE && (
+                    <div className="flex flex-col">
+                      <hr className="border-[#6B0F2B]/10 border-t" />
+                      <div className="flex items-center justify-between mt-3">
+                        <p className="text-xs text-[#9A7080]">
+                          Showing {(roomsPage - 1) * ROOMS_PER_PAGE + 1}–{Math.min(roomsPage * ROOMS_PER_PAGE, rooms.length)} of {rooms.length} rooms
+                        </p>
+                        <div className="flex items-center justify-center gap-1">
+                          {roomsPage > 1 && (
+                            <button
+                              onClick={() => setRoomsPage((p) => p - 1)}
+                              className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                            >
+                              {"<"}
+                            </button>
+                          )}
+                          {Array.from({ length: totalRoomPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => setRoomsPage(page)}
+                              className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center ${
+                                roomsPage === page
+                                  ? "text-white"
+                                  : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"
+                              }`}
+                              style={roomsPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                          {roomsPage < totalRoomPages && (
+                            <button
+                              onClick={() => setRoomsPage((p) => p + 1)}
+                              className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                            >
+                              {">"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </SectionCard>
               </div>
             )}
@@ -575,18 +631,49 @@ export default function Dashboard() {
       </div>
 
       {/* ADD DOCUMENT MODAL */}
-      <Modal open={docModalOpen} onClose={() => setDocModalOpen(false)} title="Add Document Requirements" eyebrow="Facility-Specific"
-        footer={<Button variant="primary" size="md" className="ml-auto !rounded-2xl" disabled={addDocMutation.isPending}
+      <Modal 
+        open={docModalOpen} 
+        onClose={() => setDocModalOpen(false)} 
+        title="Add Document Requirements" 
+        eyebrow="Facility-Specific"
+        footer={
+        <Button variant="primary" size="md" className="ml-auto !rounded-2xl" disabled={addDocMutation.isPending}
           onClick={() => { if (newDocName.trim()) addDocMutation.mutate({ requirement_name: newDocName.trim(), accepted_format: newDocFormat }); }}>
-          {addDocMutation.isPending ? "Adding…" : "Add"}</Button>}>
+          {addDocMutation.isPending ? "Adding…" : "Add"}
+        </Button>}>
         <div className="flex flex-col gap-4">
-          <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Facility-Specific</p>
-            <div className="flex gap-2 flex-wrap items-center">{facilityDocs.map((doc) => <span key={doc.id} className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">{doc.requirementName}</span>)}</div></div>
-          <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Document Name</p>
-            <input className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]" placeholder="Medical Certificate" value={newDocName} onChange={(e) => setNewDocName(e.target.value)} /></div>
-          <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Accepted Document Format</p>
-            <select className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535] appearance-none bg-white" value={newDocFormat} onChange={(e) => setNewDocFormat(e.target.value)}>
-              <option value="any">Any</option><option value="pdf">PDF</option><option value="image">JPEG / PNG</option></select></div>
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Facility-Specific</p>
+            <div className="flex gap-2 flex-wrap items-center">{facilityDocs.map((doc) => 
+              <span key={doc.id} className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">{doc.requirementName}
+              </span>)}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Document Name</p>
+            <input className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]" placeholder="Medical Certificate" value={newDocName} onChange={(e) => setNewDocName(e.target.value)} 
+            />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Accepted Document Format</p>
+            <div className="relative w-full">
+              <select
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-10 text-sm outline-none focus:border-[#8C1535] appearance-none bg-white"
+                value={newDocFormat}
+                onChange={(e) => setNewDocFormat(e.target.value)}
+              >
+                <option value="any">Any</option>
+                <option value="pdf">PDF</option>
+                <option value="image">JPEG / PNG</option>
+              </select>
+
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#3D0718]">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
         </div>
       </Modal>
 
