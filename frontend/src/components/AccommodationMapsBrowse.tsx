@@ -326,7 +326,7 @@ function Content({ selectedPin, onCardClick }: ContentProps) {
                 </h3>
 
                 {/* Location */}
-                <p className="text-[10px] text-gray-500 truncate mb-1">
+                <p className="text-[10px] text-gray-500">
                     📍 {selectedPin.accommodationLocation}
                 </p>
 
@@ -345,7 +345,7 @@ function Content({ selectedPin, onCardClick }: ContentProps) {
                         ))}
                     </div>
                     <span className="text-[10px] text-gray-500">
-                        {selectedPin.rating !== "6" ? Number(selectedPin.rating).toFixed(1) : 'No rating'}
+                        {selectedPin.rating !== "0" ? Number(selectedPin.rating).toFixed(1) : 'No rating'}
                     </span>
                 </div>
 

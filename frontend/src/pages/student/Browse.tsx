@@ -77,7 +77,6 @@ export default function BrowsePage() {
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
-            console.log("done loading")
             setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
@@ -143,10 +142,7 @@ export default function BrowsePage() {
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
-        console.log("searching for: ", searching)
-        console.log(filterInEffect, searched, "outside")
         if (!filterInEffect && !searched) {
-            console.log(filterInEffect, searched)
             return
         }
 
@@ -189,7 +185,7 @@ export default function BrowsePage() {
                 if (Number(el.rating) < Number(rating))
                     rating = Number(el.rating).toFixed(1)
             })
-
+            
             bookmarks.forEach((el: { studentNumber: string }) => {
                 if (el.studentNumber === studentNo) bookmarked = true
             })
