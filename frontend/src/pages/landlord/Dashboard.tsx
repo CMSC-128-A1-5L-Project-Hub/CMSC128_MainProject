@@ -128,22 +128,19 @@ export default function Dashboard() {
   const { id } = useParams<{ id: string }>();
   const user = useUserStore((s) => s.user);
 
-  // wag niyo galawin toh
   useEffect(() => {
     setLandlordSidebarContext("full");
   }, []);
+
   // ── Queries ─────────────────────────────────────────────────────────────────
 
-  const { data: accommodations = [], isSuccess: accLoaded } = useQuery<
-    Accommodation[]
-  >({
+  const { data: accommodations = [], isSuccess: accLoaded } = useQuery<Accommodation[]>({
     queryKey: ["landlord-accommodations"],
     queryFn: () => api.get("/landlord/accommodations").then((r) => r.data ?? []),
   });
 
   const accommodationId = id ? Number(id) : undefined;
-  const accommodation =
-    accommodations.find((a) => a.id === accommodationId) ?? null;
+  const accommodation = accommodations.find((a) => a.id === accommodationId) ?? null;
 
   useEffect(() => {
     if (accLoaded && !accommodation) {
@@ -156,17 +153,14 @@ export default function Dashboard() {
     queryFn: () => api.get("/reports/revenue").then((r) => r.data),
   });
 
-  const { data: applications = [], isLoading: appsLoading } = useQuery<
-    Application[]
-  >({
+  const { data: applications = [], isLoading: appsLoading } = useQuery<Application[]>({
     queryKey: ["landlord-applications"],
     queryFn: () => api.get("/applications/incoming").then((r) => r.data),
   });
 
   const { data: rooms = [], isLoading: roomsLoading } = useQuery<Room[]>({
     queryKey: ["landlord-rooms", accommodationId],
-    queryFn: () =>
-      api.get(`/accommodations/${accommodationId}/rooms`).then((r) => r.data),
+    queryFn: () => api.get(`/accommodations/${accommodationId}/rooms`).then((r) => r.data),
     enabled: !!accommodationId,
   });
 
@@ -189,8 +183,7 @@ export default function Dashboard() {
         application_start_date: start,
         application_end_date: end,
       }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] }),
   });
 
   const addDocMutation = useMutation({
@@ -216,19 +209,20 @@ export default function Dashboard() {
     },
   });
 
+  // Use applicationId and correct action/rejection_reason
   const reviewAppMutation = useMutation({
     mutationFn: ({
       applicationId,
-      status,
+      action,
       rejectionReason,
     }: {
       applicationId: number;
-      status: "approved" | "rejected";
+      action: "approve" | "reject";
       rejectionReason?: string;
     }) =>
-      api.put(`/applications/${applicationId}/status`, {
-        status,
-        ...(status === "rejected" && { rejectionReason }),
+      api.patch(`/applications/${applicationId}/review`, {
+        action: action,
+        ...(action === "reject" && { rejection_reason: rejectionReason }),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
@@ -243,16 +237,9 @@ export default function Dashboard() {
 
   const totalCapacity = rooms.reduce((s, r) => s + r.roomCapacity, 0);
   const totalOccupied = rooms.reduce((s, r) => s + r.roomCurrentOccupancy, 0);
-  const occupancyPct =
-    totalCapacity > 0
-      ? Math.round((totalOccupied / totalCapacity) * 100)
-      : 0;
-
+  const occupancyPct = totalCapacity > 0 ? Math.round((totalOccupied / totalCapacity) * 100) : 0;
   const projectedRevenue = revenue?.projectedMonthlyRevenue ?? 0;
-
-  const underReviewApps = applications.filter(
-    (a) => a.applicationStatus === "under_review"
-  );
+  const underReviewApps = applications.filter((a) => a.applicationStatus === "under_review");
 
   // Form 5 / enrollment proof stats — scoped to this accommodation
   const accommodationApps = applications.filter(
@@ -269,13 +256,8 @@ export default function Dashboard() {
 
   // Manager card props
   const manager = accommodation?.manager;
-  const managerStatus = !manager
-    ? "none"
-    : manager.managerStatus === "active"
-    ? "assigned"
-    : "pending";
-  const primaryPhone =
-    manager?.user?.phoneNumbers?.find((p) => p.isPrimary)?.contactNumber ?? "";
+  const managerStatus = !manager ? "none" : manager.managerStatus === "active" ? "assigned" : "pending";
+  const primaryPhone = manager?.user?.phoneNumbers?.find((p) => p.isPrimary)?.contactNumber ?? "";
 
   // ── Helpers for review modal ─────────────────────────────────────────────
 
@@ -303,13 +285,22 @@ export default function Dashboard() {
     if (selectedApp) {
       reviewAppMutation.mutate({
         applicationId: selectedApp.id,
-        status: "rejected",
+        action: "reject",
         rejectionReason,
       });
     }
   };
 
-  // ── Right panel (shared between mobile and desktop) ─────────────────────────
+  const handleConfirmApproval = () => {
+    if (selectedApp) {
+      reviewAppMutation.mutate({
+        applicationId: selectedApp.id,
+        action: "approve",
+      });
+    }
+  };
+
+  // ── Right panel ─────────────────────────────────────────────────────────
 
   const RightPanel = () => (
     <div className="flex flex-col gap-4">
@@ -336,21 +327,14 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex h-screen bg-[#F5EEF0] overflow-hidden">
+    <div className="flex h-screen bg-[#FAF8F9] overflow-hidden">
       <Sidebar role="landlord" />
-
-      {/* Everything right of sidebar: main + right panel, side by side */}
       <div className="flex flex-1 overflow-hidden min-w-0">
-        {/* MAIN — grows to fill all space between sidebar and right panel */}
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 min-w-0">
           <div className="space-y-4">
             {/* NAVBAR */}
             <div className="flex items-center gap-3 pl-16 lg:pl-0">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigate("/landlord/dashboard")}
-              >
+              <Button variant="secondary" size="sm" onClick={() => navigate("/landlord/dashboard")}>
                 ← Back
               </Button>
               <span className="text-gray-300">|</span>
@@ -363,102 +347,49 @@ export default function Dashboard() {
               title="Efficiently manage applicants & housing accommodation"
               subtitle={
                 underReviewApps.length > 0
-                  ? `You have ${underReviewApps.length} application${
-                      underReviewApps.length !== 1 ? "s" : ""
-                    } awaiting your review`
+                  ? `You have ${underReviewApps.length} application${underReviewApps.length !== 1 ? "s" : ""} awaiting your review`
                   : "Everything is up to date"
               }
               name={user ? user.fname : ""}
               type="full"
             />
 
-            {/* RIGHT PANEL — mobile only, below hero */}
             <div className="lg:hidden">
               <RightPanel />
             </div>
 
-            {/* FILTER */}
             <FilterTabs active={activeTab} setActive={setActiveTab} />
 
             {/* OVERVIEW */}
             {activeTab === "Overview" && (
               <>
-                {/* Stat cards – responsive grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <StatCard
-                    title="PROJECTED REVENUE"
-                    value={`₱${projectedRevenue.toLocaleString("en-PH")}`}
-                    subtitle="Monthly (active tenants)"
-                  />
-                  <StatCard
-                    title="OCCUPIED"
-                    value={`${totalOccupied}`}
-                    subtitle={`${occupancyPct}% of capacity`}
-                  />
-                  <StatCard
-                    title="VACANT"
-                    value={`${Math.max(totalCapacity - totalOccupied, 0)}`}
-                    subtitle={`${100 - occupancyPct}% available`}
-                    negative={totalCapacity - totalOccupied === 0}
-                  />
+                  <StatCard title="PROJECTED REVENUE" value={`₱${projectedRevenue.toLocaleString("en-PH")}`} subtitle="Monthly (active tenants)" />
+                  <StatCard title="OCCUPIED" value={`${totalOccupied}`} subtitle={`${occupancyPct}% of capacity`} />
+                  <StatCard title="VACANT" value={`${Math.max(totalCapacity - totalOccupied, 0)}`} subtitle={`${100 - occupancyPct}% available`} negative={totalCapacity - totalOccupied === 0} />
                 </div>
 
-                {/* Section cards – responsive grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* OCCUPANCY */}
                   <SectionCard title="Occupancy Rate">
                     <div className="flex items-center gap-4">
-                      <div className="shrink-0">
-                        <CircleProgress value={occupancyPct} />
-                      </div>
+                      <CircleProgress value={occupancyPct} />
                       <div className="flex flex-col gap-2 flex-1">
-                        <div
-                          className="flex justify-between items-center p-2 rounded-xl"
-                          style={{ background: "rgba(140,21,53,0.06)" }}
-                        >
-                          <div>
-                            <p className="text-[10px] text-[#8C1535]/60 uppercase tracking-wider">
-                              Occupied
-                            </p>
-                            <p className="text-lg font-bold text-[#8C1535]">
-                              {totalOccupied}
-                            </p>
-                          </div>
+                        <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(140,21,53,0.06)" }}>
+                          <div><p className="text-[10px] text-[#8C1535]/60 uppercase tracking-wider">Occupied</p><p className="text-lg font-bold text-[#8C1535]">{totalOccupied}</p></div>
                           <div className="w-2 h-2 rounded-full bg-[#8C1535]" />
                         </div>
-                        <div
-                          className="flex justify-between items-center p-2 rounded-xl"
-                          style={{ background: "rgba(0,0,0,0.03)" }}
-                        >
-                          <div>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-wider">
-                              Vacant
-                            </p>
-                            <p className="text-lg font-bold text-gray-400">
-                              {Math.max(totalCapacity - totalOccupied, 0)}
-                            </p>
-                          </div>
+                        <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(0,0,0,0.03)" }}>
+                          <div><p className="text-[10px] text-gray-400 uppercase tracking-wider">Vacant</p><p className="text-lg font-bold text-gray-400">{Math.max(totalCapacity - totalOccupied, 0)}</p></div>
                           <div className="w-2 h-2 rounded-full bg-gray-300" />
                         </div>
-                        <div
-                          className="flex justify-between items-center p-2 rounded-xl"
-                          style={{ background: "rgba(140,21,53,0.03)" }}
-                        >
-                          <div>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-wider">
-                              Total Rooms
-                            </p>
-                            <p className="text-lg font-bold text-gray-600">
-                              {totalCapacity}
-                            </p>
-                          </div>
+                        <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(140,21,53,0.03)" }}>
+                          <div><p className="text-[10px] text-gray-400 uppercase tracking-wider">Total Rooms</p><p className="text-lg font-bold text-gray-600">{totalCapacity}</p></div>
                           <div className="w-2 h-2 rounded-full bg-gray-200" />
                         </div>
                       </div>
                     </div>
                   </SectionCard>
 
-                  {/* FORM 5 RENEWAL */}
                   <SectionCard title="Form 5 Renewal">
                     <div className="flex items-center gap-4">
                       <div className="shrink-0">
@@ -511,17 +442,10 @@ export default function Dashboard() {
                     </div>
                   </SectionCard>
 
-                  {/* DOCUMENT REQUIREMENTS */}
-                  <SectionCard
-                    title="Document Requirements"
-                    action={editingDocs ? "Done" : "Edit →"}
-                    onAction={() => setEditingDocs(!editingDocs)}
-                  >
+                  <SectionCard title="Document Requirements" action={editingDocs ? "Done" : "Edit →"} onAction={() => setEditingDocs(!editingDocs)}>
                     <div className="flex flex-col gap-3 text-sm -mt-2">
                       <div>
-                        <p className="text-xs text-gray-400 mb-1">
-                          SYSTEM STANDARD
-                        </p>
+                        <p className="text-xs text-gray-400 mb-1">SYSTEM STANDARD</p>
                         <div className="flex gap-2 flex-wrap items-center">
                           <span
                             className="w-fit inline-flex items-center gap-1.5 px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold"
@@ -538,33 +462,19 @@ export default function Dashboard() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400 mb-1">
-                          FACILITY-SPECIFIC
-                        </p>
+                        <p className="text-xs text-gray-400 mb-1">FACILITY-SPECIFIC</p>
                         <div className="flex gap-2 flex-wrap items-center">
                           {facilityDocs.map((doc) => (
-                            <span
-                              key={doc.id}
-                              className="w-fit inline-flex items-center gap-2 pl-3 pr-1.5 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold"
-                            >
+                            <span key={doc.id} className="w-fit inline-flex items-center gap-2 pl-3 pr-1.5 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">
                               {doc.requirementName}
                               {editingDocs && (
-                                <button
-                                  onClick={() => setDocToDelete({ id: doc.id, name: doc.requirementName })}
-                                  className="w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition shrink-0"
-                                >
+                                <button onClick={() => setDocToDelete({ id: doc.id, name: doc.requirementName })} className="w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition shrink-0">
                                   <span className="text-white text-[10px] font-bold leading-none">✕</span>
                                 </button>
                               )}
                             </span>
                           ))}
-                          <Button
-                            variant="dashed"
-                            size="sm"
-                            onClick={() => setDocModalOpen(true)}
-                          >
-                            + Add More
-                          </Button>
+                          <Button variant="dashed" size="sm" onClick={() => setDocModalOpen(true)}>+ Add More</Button>
                         </div>
                       </div>
                     </div>
@@ -573,77 +483,35 @@ export default function Dashboard() {
               </>
             )}
 
-            {/* FEES */}
-            {activeTab === "Fees" && (
-              <PaymentList delinquent={delinquent} isLoading={feesLoading} />
-            )}
+            {activeTab === "Fees" && <PaymentList delinquent={delinquent} isLoading={feesLoading} />}
 
-            {/* ROOMS */}
             {activeTab === "Rooms" && (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* APPLICATIONS UNDER REVIEW */}
-                  <SectionCard
-                    title="Applications Under Review"
-                    action="View all →"
-                  >
+                  <SectionCard title="Applications Under Review" action="View all →" onAction={() => navigate(accommodationId ? `/landlord/applications?accId=${accommodationId}` : "/landlord/applications")}>
                     <div className="overflow-x-auto">
                       <div className="min-w-[500px] xl:min-w-0">
                         <div className="grid grid-cols-[5fr_4fr_4fr_2fr] items-center gap-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                          <span className="text-[#9A7080] font-bold overflow-hidden whitespace-nowrap">
-                            Student
-                          </span>
-                          <span className="text-[#9A7080] font-bold overflow-hidden whitespace-nowrap">
-                            Type
-                          </span>
-                          <span className="text-[#9A7080] font-bold overflow-hidden whitespace-nowrap">
-                            Applied
-                          </span>
-                          <span className="text-center text-[#9A7080] font-bold overflow-hidden whitespace-nowrap">
-                            Action
-                          </span>
+                          <span className="text-[#9A7080] font-bold">Student</span>
+                          <span className="text-[#9A7080] font-bold">Type</span>
+                          <span className="text-[#9A7080] font-bold">Applied</span>
+                          <span className="text-center text-[#9A7080] font-bold">Action</span>
                         </div>
-
                         {appsLoading ? (
-                          <p className="text-xs text-gray-400 py-4 text-center">
-                            Loading…
-                          </p>
+                          <p className="text-xs text-gray-400 py-4 text-center">Loading…</p>
                         ) : underReviewApps.length === 0 ? (
-                          <p className="text-xs text-gray-400 py-4 text-center italic">
-                            No applications under review
-                          </p>
+                          <p className="text-xs text-gray-400 py-4 text-center italic">No applications under review</p>
                         ) : (
                           underReviewApps.map((app) => (
-                            <div
-                              key={app.id}
-                              className="grid grid-cols-[5fr_4fr_4fr_2fr] items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0"
-                            >
-                              {/* Student */}
-                              <div className="flex items-center gap-3 min-w-0 overflow-hidden">
+                            <div key={app.id} className="grid grid-cols-[5fr_4fr_4fr_2fr] items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0">
+                              <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
-                                <p className="font-medium whitespace-nowrap text-[clamp(11px,0.9vw,15px)] truncate">
-                                  {app.student.user.fname}{" "}
-                                  {app.student.user.lname}
-                                </p>
+                                <p className="font-medium text-[clamp(11px,0.9vw,15px)] truncate">{app.student.user.fname} {app.student.user.lname}</p>
                               </div>
-                              {/* Type */}
-                              <p className="text-sm text-gray-500 capitalize overflow-hidden whitespace-nowrap">
-                                {app.applicationStayType.replace("_", "-")}
-                              </p>
-                              {/* Applied */}
-                              <p className="text-sm text-gray-500 overflow-hidden whitespace-nowrap">
-                                {fmt(app.applicationDate)}
-                              </p>
-                              {/* Action */}
+                              <p className="text-sm text-gray-500 capitalize">{app.applicationStayType.replace("_", "-")}</p>
+                              <p className="text-sm text-gray-500">{fmt(app.applicationDate)}</p>
                               <div className="flex justify-center">
-                                <Button
-                                  variant="reddishPink"
-                                  size="sm"
-                                  className="!rounded-xl whitespace-nowrap"
-                                  onClick={() => handleOpenReview(app)}
-                                >
-                                  Review
-                                </Button>
+                                <Button variant="reddishPink" size="sm" className="!rounded-xl" onClick={() => handleOpenReview(app)}>Review</Button>
                               </div>
                             </div>
                           ))
@@ -652,106 +520,43 @@ export default function Dashboard() {
                     </div>
                   </SectionCard>
 
-                  {/* WAITLISTED */}
                   <SectionCard title="Waitlisted" action="View all →" onAction={() => navigate(accommodationId ? `/landlord/applications?accId=${accommodationId}` : "/landlord/applications")}>
                     <div className="overflow-x-auto">
                       <div className="min-w-[500px] xl:min-w-0">
                         <div className="flex items-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                          <span className="flex-[5] text-[#9A7080] font-bold">
-                            Student
-                          </span>
-                          <span className="flex-[3] text-[#9A7080] font-bold">
-                            Preferred Type
-                          </span>
-                          <span className="flex-[3] text-center text-[#9A7080] font-bold">
-                            Since
-                          </span>
+                          <span className="flex-[5] text-[#9A7080] font-bold">Student</span>
+                          <span className="flex-[3] text-[#9A7080] font-bold">Preferred Type</span>
+                          <span className="flex-[3] text-center text-[#9A7080] font-bold">Since</span>
                         </div>
-                        <p className="text-xs text-gray-400 py-4 text-center italic">
-                          Waitlist is managed by your assigned manager
-                        </p>
+                        <p className="text-xs text-gray-400 py-4 text-center italic">Waitlist is managed by your assigned manager</p>
                       </div>
                     </div>
                   </SectionCard>
                 </div>
 
-                {/* APPLICATIONS UNDER REVIEW */}
-                <SectionCard
-                  title="Applications Under Review"
-                  action="View all →"
-                  onAction={() => navigate(accommodationId ? `/landlord/applications?accId=${accommodationId}` : "/landlord/applications")} // <-- Add this!
-                ></SectionCard>
-
-                {/* ROOMS TABLE */}
-                <SectionCard title="Rooms" action="Manage →">
+                <SectionCard title="Rooms" action="Manage →" onAction={() => navigate("/landlord/rooms")}>
                   <div className="overflow-x-auto">
                     <div className="min-w-[500px] xl:min-w-0">
                       <div className="flex items-center text-[10px] font-semibold uppercase tracking-wider pb-2 border-b border-gray-100">
-                        <span className="flex-1 text-[#9A7080] font-bold">
-                          Room Number
-                        </span>
-                        <span className="flex-1 text-center text-[#9A7080] font-bold">
-                          Type
-                        </span>
-                        <span className="flex-1 text-center text-[#9A7080] font-bold">
-                          Occupancy
-                        </span>
-                        <span className="flex-1 text-center text-[#9A7080] font-bold">
-                          Status
-                        </span>
+                        <span className="flex-1 text-[#9A7080] font-bold">Room Number</span>
+                        <span className="flex-1 text-center text-[#9A7080] font-bold">Type</span>
+                        <span className="flex-1 text-center text-[#9A7080] font-bold">Occupancy</span>
+                        <span className="flex-1 text-center text-[#9A7080] font-bold">Status</span>
                       </div>
-
                       {roomsLoading ? (
-                        <p className="text-xs text-gray-400 py-4 text-center">
-                          Loading…
-                        </p>
+                        <p className="text-xs text-gray-400 py-4 text-center">Loading…</p>
                       ) : rooms.length === 0 ? (
-                        <p className="text-xs text-gray-400 py-4 text-center italic">
-                          No rooms added yet
-                        </p>
+                        <p className="text-xs text-gray-400 py-4 text-center italic">No rooms added yet</p>
                       ) : (
                         rooms.map((r) => {
-                          let statusText = r.roomAvailability;
-                          if (r.roomAvailability === "available")
-                            statusText = "Available";
-                          else if (r.roomAvailability === "occupied")
-                            statusText = "Fully Occupied";
-
-                          const statusColor =
-                            r.roomAvailability === "available"
-                              ? "bg-green-100 text-green-700"
-                              : r.roomAvailability === "occupied"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700";
-
+                          let statusText = r.roomAvailability === "available" ? "Available" : r.roomAvailability === "occupied" ? "Fully Occupied" : r.roomAvailability;
+                          const statusColor = r.roomAvailability === "available" ? "bg-green-100 text-green-700" : r.roomAvailability === "occupied" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700";
                           return (
-                            <div
-                              key={r.id}
-                              className="flex items-center py-3 border-b border-gray-50 last:border-0"
-                            >
-                              <div className="flex-1 flex items-center gap-3">
-                                <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
-                                <p className="font-medium text-sm">
-                                  Room {r.roomNumber}
-                                </p>
-                              </div>
-                              <div className="flex-1 flex justify-center">
-                                <p className="text-sm text-gray-500 capitalize">
-                                  {r.roomType}
-                                </p>
-                              </div>
-                              <div className="flex-1 flex justify-center">
-                                <p className="text-sm text-gray-500">
-                                  {r.roomCurrentOccupancy}/{r.roomCapacity}
-                                </p>
-                              </div>
-                              <div className="flex-1 flex justify-center">
-                                <span
-                                  className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${statusColor}`}
-                                >
-                                  {statusText}
-                                </span>
-                              </div>
+                            <div key={r.id} className="flex items-center py-3 border-b border-gray-50 last:border-0">
+                              <div className="flex-1 flex items-center gap-3"><div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" /><p className="font-medium text-sm">Room {r.roomNumber}</p></div>
+                              <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500 capitalize">{r.roomType}</p></div>
+                              <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500">{r.roomCurrentOccupancy}/{r.roomCapacity}</p></div>
+                              <div className="flex-1 flex justify-center"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>{statusText}</span></div>
                             </div>
                           );
                         })
@@ -764,249 +569,62 @@ export default function Dashboard() {
           </div>
         </main>
 
-        {/* RIGHT PANEL */}
-        <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
+        <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#FAF8F9] overflow-y-auto">
           <RightPanel />
         </aside>
       </div>
 
       {/* ADD DOCUMENT MODAL */}
-      <Modal
-        open={docModalOpen}
-        onClose={() => setDocModalOpen(false)}
-        title="Add Document Requirements"
-        eyebrow="Facility-Specific"
-        footer={
-          <Button
-            variant="primary"
-            size="md"
-            className="ml-auto !rounded-2xl"
-            disabled={addDocMutation.isPending}
-            onClick={() => {
-              if (newDocName.trim()) {
-                addDocMutation.mutate({ requirement_name: newDocName.trim(), accepted_format: newDocFormat });
-              }
-            }}
-          >
-            {addDocMutation.isPending ? "Adding…" : "Add"}
-          </Button>
-        }
-      >
+      <Modal open={docModalOpen} onClose={() => setDocModalOpen(false)} title="Add Document Requirements" eyebrow="Facility-Specific"
+        footer={<Button variant="primary" size="md" className="ml-auto !rounded-2xl" disabled={addDocMutation.isPending}
+          onClick={() => { if (newDocName.trim()) addDocMutation.mutate({ requirement_name: newDocName.trim(), accepted_format: newDocFormat }); }}>
+          {addDocMutation.isPending ? "Adding…" : "Add"}</Button>}>
         <div className="flex flex-col gap-4">
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Facility-Specific
-            </p>
-            <div className="flex gap-2 flex-wrap items-center">
-              {facilityDocs.map((doc) => (
-                <span
-                  key={doc.id}
-                  className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold"
-                >
-                  {doc.requirementName}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
-              Document Name
-            </p>
-            <input
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]"
-              placeholder="Medical Certificate"
-              value={newDocName}
-              onChange={(e) => setNewDocName(e.target.value)}
-            />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
-              Accepted Document Format
-            </p>
-            <select
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535] appearance-none bg-white"
-              value={newDocFormat}
-              onChange={(e) => setNewDocFormat(e.target.value)}
-            >
-              <option value="any">Any</option>
-              <option value="pdf">PDF</option>
-              <option value="image">JPEG / PNG</option>
-            </select>
-          </div>
+          <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Facility-Specific</p>
+            <div className="flex gap-2 flex-wrap items-center">{facilityDocs.map((doc) => <span key={doc.id} className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">{doc.requirementName}</span>)}</div></div>
+          <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Document Name</p>
+            <input className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535]" placeholder="Medical Certificate" value={newDocName} onChange={(e) => setNewDocName(e.target.value)} /></div>
+          <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Accepted Document Format</p>
+            <select className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535] appearance-none bg-white" value={newDocFormat} onChange={(e) => setNewDocFormat(e.target.value)}>
+              <option value="any">Any</option><option value="pdf">PDF</option><option value="image">JPEG / PNG</option></select></div>
         </div>
       </Modal>
 
       {/* DELETE DOCUMENT MODAL */}
-      <Modal
-        open={docToDelete !== null}
-        onClose={() => setDocToDelete(null)}
-        title="Remove Document"
-        eyebrow="Document Requirements"
-        footer={
-          <div className="flex gap-2 ml-auto">
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => setDocToDelete(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              disabled={removeDocMutation.isPending}
-              onClick={() => {
-                if (docToDelete) removeDocMutation.mutate(docToDelete.id);
-              }}
-            >
-              {removeDocMutation.isPending ? "Removing…" : "Remove"}
-            </Button>
-          </div>
-        }
-      >
-        <p className="text-sm text-gray-600">
-          Are you sure you want to remove{" "}
-          <span className="font-semibold text-[#6B0F2B]">
-            {docToDelete?.name ?? ""}
-          </span>{" "}
-          from the document requirements? This may affect existing tenants.
-        </p>
+      <Modal open={docToDelete !== null} onClose={() => setDocToDelete(null)} title="Remove Document" eyebrow="Document Requirements"
+        footer={<div className="flex gap-2 ml-auto"><Button variant="secondary" size="md" onClick={() => setDocToDelete(null)}>Cancel</Button>
+          <Button variant="primary" size="md" disabled={removeDocMutation.isPending} onClick={() => { if (docToDelete) removeDocMutation.mutate(docToDelete.id); }}>{removeDocMutation.isPending ? "Removing…" : "Remove"}</Button></div>}>
+        <p className="text-sm text-gray-600">Are you sure you want to remove <span className="font-semibold text-[#6B0F2B]">{docToDelete?.name ?? ""}</span> from the document requirements? This may affect existing tenants.</p>
       </Modal>
 
       {/* APPLICATION REVIEW MODAL */}
-      <Modal
-        open={reviewModalOpen}
-        onClose={handleCloseReview}
-        title="Review Application"
-        eyebrow="Application Details"
-        footer={
-          <div className="flex gap-2 ml-auto">
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={handleRejectClick}
-            >
-              Reject
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() =>
-                selectedApp &&
-                reviewAppMutation.mutate({
-                  applicationId: selectedApp.id,
-                  status: "approved",
-                })
-              }
-              disabled={reviewAppMutation.isPending}
-            >
-              {reviewAppMutation.isPending ? "Processing…" : "Accept"}
-            </Button>
-          </div>
-        }
-      >
+      <Modal open={reviewModalOpen} onClose={handleCloseReview} title="Review Application" eyebrow="Application Details"
+        footer={<div className="flex gap-2 ml-auto">
+          <Button variant="secondary" size="md" onClick={handleRejectClick}>Reject</Button>
+          <Button variant="primary" size="md" onClick={handleConfirmApproval} disabled={reviewAppMutation.isPending}>{reviewAppMutation.isPending ? "Processing…" : "Accept"}</Button></div>}>
         {selectedApp && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider">
-                  Student Name
-                </p>
-                <p className="font-semibold text-gray-800">
-                  {selectedApp.student.user.fname}{" "}
-                  {selectedApp.student.user.lname}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider">
-                  Student Number
-                </p>
-                <p className="font-semibold text-gray-800">
-                  {selectedApp.student.studentNumber}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider">
-                  Room Type
-                </p>
-                <p className="font-semibold text-gray-800 capitalize">
-                  {selectedApp.applicationRoomType}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider">
-                  Stay Type
-                </p>
-                <p className="font-semibold text-gray-800 capitalize">
-                  {selectedApp.applicationStayType.replace("_", "-")}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider">
-                  Application Date
-                </p>
-                <p className="font-semibold text-gray-800">
-                  {fmt(selectedApp.applicationDate)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider">
-                  Current Status
-                </p>
-                <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">
-                  Under Review
-                </span>
-              </div>
+              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Student Name</p><p className="font-semibold text-gray-800">{selectedApp.student.user.fname} {selectedApp.student.user.lname}</p></div>
+              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Student Number</p><p className="font-semibold text-gray-800">{selectedApp.student.studentNumber}</p></div>
+              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Room Type</p><p className="font-semibold text-gray-800 capitalize">{selectedApp.applicationRoomType}</p></div>
+              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Stay Type</p><p className="font-semibold text-gray-800 capitalize">{selectedApp.applicationStayType.replace("_", "-")}</p></div>
+              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Application Date</p><p className="font-semibold text-gray-800">{fmt(selectedApp.applicationDate)}</p></div>
+              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Current Status</p><span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">Under Review</span></div>
             </div>
           </div>
         )}
       </Modal>
 
       {/* REJECTION REASON MODAL */}
-      <Modal
-        open={rejectionModalOpen}
-        onClose={() => {
-          setRejectionModalOpen(false);
-          setRejectionReason("");
-        }}
-        title="Rejection Reason"
-        eyebrow="Application Rejection"
-        footer={
-          <div className="flex gap-2 ml-auto">
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={handleBackToReview}
-            >
-              ← Back
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={handleConfirmRejection}
-              disabled={reviewAppMutation.isPending || !rejectionReason.trim()}
-            >
-              {reviewAppMutation.isPending ? "Processing…" : "Reject"}
-            </Button>
-          </div>
-        }
-      >
+      <Modal open={rejectionModalOpen} onClose={() => { setRejectionModalOpen(false); setRejectionReason(""); }} title="Rejection Reason" eyebrow="Application Rejection"
+        footer={<div className="flex gap-2 ml-auto">
+          <Button variant="secondary" size="md" onClick={handleBackToReview}>← Back</Button>
+          <Button variant="primary" size="md" onClick={handleConfirmRejection} disabled={reviewAppMutation.isPending || !rejectionReason.trim()}>{reviewAppMutation.isPending ? "Processing…" : "Reject"}</Button></div>}>
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
-            Please provide a reason for rejecting this application. This will be
-            communicated to the applicant.
-          </p>
-          <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Rejection Reason
-            </label>
-            <textarea
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#8C1535] min-h-[120px] resize-none"
-              placeholder="Enter the reason for rejection..."
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-            />
-          </div>
+          <p className="text-sm text-gray-600">Please provide a reason for rejecting this application. This will be communicated to the applicant.</p>
+          <div><label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Rejection Reason</label>
+            <textarea className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#8C1535] min-h-[120px] resize-none" placeholder="Enter the reason for rejection..." value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} /></div>
         </div>
       </Modal>
     </div>

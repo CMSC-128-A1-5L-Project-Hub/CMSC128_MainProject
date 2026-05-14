@@ -91,7 +91,7 @@ interface SidebarMenuItem {
 }
 
 interface SidebarProps {
-  role?: "student" | "landlord" | "manager" | "landlord-manage";
+  role?: "student" | "landlord" | "manager" | "landlord-manage" | "super_admin";
   profile?: {
     fullName: string;
     shortName: string;
@@ -109,6 +109,8 @@ interface SidebarProps {
 function getRoleFromPathname(pathname: string, propRole?: string): string {
   if (pathname.startsWith("/student/")) return "student";
   if (pathname.startsWith("/manager/")) return "manager";
+  if (pathname.startsWith("/admin/")) return "super_admin";
+
 
   // /landlord/accommodation/:id will punta to the individual accommodation dashboard (full sidebar)
   if (/^\/landlord\/accommodation\/\d+/.test(pathname)) return "landlord";
@@ -168,7 +170,24 @@ function getActiveId(pathname: string, role: string): string {
         if (pathname.startsWith("/landlord/dashboard")) return "dashboard";
         if (pathname.startsWith("/landlord/profile")) return "account";
         return "";
+    
+      case "super_admin":
+        if (pathname.startsWith("/admin/dashboard"))
+          return "dashboard";
 
+        if (pathname.startsWith("/admin/student-verifications"))
+          return "student-verifications";
+
+        if (pathname.startsWith("/admin/landlord-verifications"))
+          return "landlord-verifications";
+
+        if (pathname.startsWith("/admin/pending-accommodations"))
+          return "pending-accommodations";
+
+        if (pathname.startsWith("/admin/activity-logs"))
+          return "activity-logs";
+
+        return "dashboard";
     default:
       return "dashboard";
   }
@@ -267,7 +286,15 @@ const MobileDrawer = ({
       >
         <div className="flex items-center justify-between px-5 pt-6 pb-4">
           <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-[#C9973A] text-white font-bold text-sm">
-            {role === "student" ? "S" : role === "landlord" || role === "landlord-manage" ? "L" : "M"}
+            {
+            role === "student"
+            ? "S"
+            : role === "landlord" || role === "landlord-manage"
+            ? "L"
+            : role === "super_admin"
+            ? "SA"
+            : "M"
+            }
           </div>
           <button
             onClick={onClose}
@@ -392,7 +419,15 @@ const DesktopSidebar = ({
         onClick={() => onNavigate(brandPath)}
       >
         <span className="text-white font-bold text-sm">
-          {role === "student" ? "S" : role === "landlord" || role === "landlord-manage" ? "L" : "M"}
+          {
+          role === "student"
+          ? "S"
+          : role === "landlord" || role === "landlord-manage"
+          ? "L"
+          : role === "super_admin"
+          ? "SA"
+          : "M"
+          }
         </span>
       </div>
 
@@ -500,6 +535,40 @@ export default function Sidebar({ role, profile }: SidebarProps) {
         return [
           { id: "dashboard", label: "Dashboard", icon: <DashboardIcon />, path: "/landlord/dashboard" },
         ];
+      
+      case "super_admin":
+        return [
+          {
+            id: "dashboard",
+            label: "Dashboard",
+            icon: <DashboardIcon />,
+            path: "/admin/dashboard",
+          },
+          {
+            id: "student-verifications",
+            label: "Student Verifications",
+            icon: <ApplicationIcon />,
+            path: "/admin/student-verifications",
+          },
+          {
+            id: "landlord-verifications",
+            label: "Housing Administrator Verifications",
+            icon: <ProfileIcon />,
+            path: "/admin/landlord-verifications",
+          },
+          {
+            id: "pending-accommodations",
+            label: "Pending Accommodations",
+            icon: <RoomIcon />,
+            path: "/admin/pending-accommodations",
+          },
+          {
+            id: "activity-logs",
+            label: "Activity Logs",
+            icon: <DocumentIcon />,
+            path: "/admin/activity-logs",
+          },
+        ];
 
       default:
         return [];
@@ -519,10 +588,30 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     return `/${effectiveRole}/profile`;
   })();
 
-  const bottomItems: SidebarMenuItem[] = [
-    { id: "account", label: "Account", icon: <ProfileIcon />, path: profilePath },
-    { id: "logout",  label: "Logout",  icon: <LogoutIcon />,  path: "/logout" },
-  ];
+  const bottomItems: SidebarMenuItem[] =
+    effectiveRole === "super_admin"
+      ? [
+          {
+            id: "logout",
+            label: "Logout",
+            icon: <LogoutIcon />,
+            path: "/logout",
+          },
+        ]
+      : [
+          {
+            id: "account",
+            label: "Account",
+            icon: <ProfileIcon />,
+            path: profilePath,
+          },
+          {
+            id: "logout",
+            label: "Logout",
+            icon: <LogoutIcon />,
+            path: "/logout",
+          },
+        ];
 
   // ── Brand (logo) click destination ─────────────────────────────────────────
   const brandPath = (() => {
@@ -531,6 +620,7 @@ export default function Sidebar({ role, profile }: SidebarProps) {
     }
     if (effectiveRole === "landlord-manage") return "/landlord/dashboard";
     if (effectiveRole === "manager") return "/manager/dashboard";
+    if (effectiveRole === "super_admin") return "/admin/dashboard";
     return "/student/dashboard";
   })();
 

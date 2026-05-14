@@ -38,9 +38,13 @@ router.group(() => {
   router.get('/rooms/available/count', [controllers.Rooms, 'countAvailableRooms'])
   .as('public_rooms_available_count')
 
+  router.get('/facilities/count', [controllers.AdminSettings, 'countFacilities'])
+  .as('public_facilities_count')
+
   router.get('/occupancy/dorms', [controllers.OccupancyRecords, 'publicDormOccupancy'])
 
   router.post('/support/contact', [controllers.Supports, 'contact'])
+  router.get('/reviews/average-rating', [controllers.Reviews, 'averageRating'])
   
 })
 
