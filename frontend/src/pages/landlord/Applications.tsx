@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Modal from "../../components/Modal";
+import Button from "../../components/Button";
 import CustomHeader from '../../components/CustomHeader';
 import UbleLoader from "../shared/LoadingPage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -23,6 +24,14 @@ function greeting() {
   if (h < 12) return "Good Morning";
   if (h < 18) return "Good Afternoon";
   return "Good Evening";
+}
+
+function fmt(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-PH", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 const CLR = {
@@ -47,7 +56,6 @@ interface Application {
   status: UIStatus;
   type?: string;
   remark?: string;
-  assignedRoom?: string;
   originalData?: any;
 }
 
@@ -149,8 +157,9 @@ export default function Applications() {
   const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");
   const [currentPage, setCurrentPage] = useState(1);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
-  const [remark, setRemark] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(6);
   const SORT_OPTS = [{ value: "latest", label: "Latest" }, { value: "earliest", label: "Earliest" }];
 
@@ -191,7 +200,6 @@ export default function Applications() {
     queryFn: async () => { const res = await api.get("/me"); return res.data; },
   });
 
-  // sends action + rejection_reason
   const updateStatusMutation = useMutation({
     mutationFn: async ({ applicationId, action, reason }: { applicationId: number; action: "approve" | "reject"; reason?: string }) => {
       const res = await api.patch(`/applications/${applicationId}/review`, {
@@ -204,7 +212,9 @@ export default function Applications() {
       queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
       refetch();
       setViewModalOpen(false);
-      setRemark("");
+      setRejectionModalOpen(false);
+      setSelectedApp(null);
+      setRejectionReason("");
     },
     onError: (error: any) => {
       alert(`Error: ${error.message}`);
@@ -232,14 +242,37 @@ export default function Applications() {
   const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleView = (app: Application) => { setSelectedApp(app); setRemark(app.remark || ""); setViewModalOpen(true); };
-  const handleReject = () => {
-    if (!selectedApp || !remark) { alert("A rejection remark is required."); return; }
-    updateStatusMutation.mutate({ applicationId: selectedApp.id, action: "reject", reason: remark });
+  // ── Modal handlers ─────────────────────────────────────────────
+  const handleView = (app: Application) => {
+    setSelectedApp(app);
+    setViewModalOpen(true);
   };
-  const handleAccept = () => {
-    if (!selectedApp) return;
-    updateStatusMutation.mutate({ applicationId: selectedApp.id, action: "approve" });
+
+  const handleCloseReview = () => {
+    setViewModalOpen(false);
+    setSelectedApp(null);
+  };
+
+  const handleRejectClick = () => {
+    setRejectionModalOpen(true);
+    setViewModalOpen(false);
+  };
+
+  const handleBackToReview = () => {
+    setRejectionModalOpen(false);
+    setViewModalOpen(true);
+  };
+
+  const handleConfirmRejection = () => {
+    if (selectedApp && rejectionReason.trim()) {
+      updateStatusMutation.mutate({ applicationId: selectedApp.id, action: "reject", reason: rejectionReason });
+    }
+  };
+
+  const handleConfirmApproval = () => {
+    if (selectedApp) {
+      updateStatusMutation.mutate({ applicationId: selectedApp.id, action: "approve" });
+    }
   };
 
   const stats = [
@@ -323,32 +356,60 @@ export default function Applications() {
             </div>
           </div>
 
-          <Modal open={viewModalOpen} onClose={() => setViewModalOpen(false)}
-            title={selectedApp?.status === "Rejected" ? "Rejection Remarks" : "Application Details"}
+          {/* APPLICATION REVIEW MODAL */}
+          <Modal 
+            open={viewModalOpen} 
+            onClose={handleCloseReview} 
+            title="Review Application" 
+            eyebrow="Application Details"
             footer={
-              <div className="w-full flex justify-end gap-3">
-                {selectedApp?.status === "Under Review" ? (
-                  <>
-                    <button onClick={handleReject} disabled={updateStatusMutation.isPending} className="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-bold text-xs md:text-sm disabled:opacity-50">Reject</button>
-                    <button onClick={handleAccept} disabled={updateStatusMutation.isPending} className="px-4 py-2 rounded-xl bg-green-100 text-black font-bold text-xs md:text-sm shadow-lg shadow-[#6B0F2B]/20 disabled:opacity-50">
-                      {updateStatusMutation.isPending ? "Saving..." : "Accept"}
-                    </button>
-                  </>
-                ) : null}
+              <div className="flex gap-2 ml-auto">
+                <Button variant="secondary" size="md" onClick={handleRejectClick}>Reject</Button>
+                <Button variant="primary" size="md" onClick={handleConfirmApproval} disabled={updateStatusMutation.isPending}>
+                  {updateStatusMutation.isPending ? "Processing…" : "Accept"}
+                </Button>
               </div>
             }>
             {selectedApp && (
-              <div className="space-y-4 pr-1">
-                {(selectedApp.status === "Under Review" || selectedApp.status === "Rejected") && (
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Admin Remarks</label>
-                    <textarea value={remark} onChange={(e) => setRemark(e.target.value)} disabled={selectedApp.status === "Rejected"}
-                      placeholder="Enter reason for rejection or special notes..."
-                      className="w-full h-[80px] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#6B0F2B] disabled:bg-gray-50 disabled:text-gray-500 resize-none" />
-                  </div>
-                )}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div><p className="text-xs text-gray-400 uppercase tracking-wider">Student Name</p><p className="font-semibold text-gray-800">{selectedApp.student}</p></div>
+                  <div><p className="text-xs text-gray-400 uppercase tracking-wider">Email</p><p className="font-semibold text-gray-800">{selectedApp.email}</p></div>
+                  <div><p className="text-xs text-gray-400 uppercase tracking-wider">Type</p><p className="font-semibold text-gray-800 capitalize">{selectedApp.type?.replace("_", " ") || "N/A"}</p></div>
+                  <div><p className="text-xs text-gray-400 uppercase tracking-wider">Date Applied</p><p className="font-semibold text-gray-800">{selectedApp.date}</p></div>
+                  <div><p className="text-xs text-gray-400 uppercase tracking-wider">Reviewed</p><p className="font-semibold text-gray-800">{selectedApp.reviewed}</p></div>
+                  <div><p className="text-xs text-gray-400 uppercase tracking-wider">Current Status</p><span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">{selectedApp.status}</span></div>
+                </div>
               </div>
             )}
+          </Modal>
+
+          {/* REJECTION REASON MODAL */}
+          <Modal 
+            open={rejectionModalOpen} 
+            onClose={() => { setRejectionModalOpen(false); setRejectionReason(""); }} 
+            title="Rejection Reason" 
+            eyebrow="Application Rejection"
+            footer={
+              <div className="flex gap-2 ml-auto">
+                <Button variant="secondary" size="md" onClick={handleBackToReview}>← Back</Button>
+                <Button variant="primary" size="md" onClick={handleConfirmRejection} disabled={updateStatusMutation.isPending || !rejectionReason.trim()}>
+                  {updateStatusMutation.isPending ? "Processing…" : "Reject"}
+                </Button>
+              </div>
+            }>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">Please provide a reason for rejecting this application. This will be communicated to the applicant.</p>
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Rejection Reason</label>
+                <textarea 
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#8C1535] min-h-[120px] resize-none" 
+                  placeholder="Enter the reason for rejection..." 
+                  value={rejectionReason} 
+                  onChange={(e) => setRejectionReason(e.target.value)} 
+                />
+              </div>
+            </div>
           </Modal>
         </main>
       </div>
