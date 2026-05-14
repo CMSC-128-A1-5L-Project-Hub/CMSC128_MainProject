@@ -30,6 +30,7 @@ router.group(() => {
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
   router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
   router.get('/accommodations/:id/document-requirements', [controllers.Accommodation, 'listDocumentRequirements'])
+  router.put('/accommodations/:id/bookmark', [controllers.Accommodation, 'updateBookmark'])
 
   // Landing Page
   router.get('/settings', [controllers.AdminSettings, 'index'])

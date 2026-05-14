@@ -108,6 +108,20 @@ export default function BrowsePage() {
     const name = user ? `${user.fname}` : ""
     const studentNo = user?.student?.studentNumber ?? ""
 
+    const updateAccommodation = async () => {
+        try {
+          const response = await api.put("/accommodations/1", {
+            accommodation_name: "Dorm A",
+            accommodation_location: "UPLB",
+            accommodation_capacity: 4,
+          })
+      
+          console.log(response.data)
+        } catch (error) {
+          console.error(error)
+        }
+      }
+
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
     useEffect(() => { if (user && user.role !== "student") navigate("/auth/signin") }, [user, navigate])
 
@@ -144,7 +158,8 @@ export default function BrowsePage() {
         const tagObject = Object.fromEntries(
             tags.map(tag => [tag, false])
         );
-        console.log("success", accommodations, min, max)
+
+
         // setFilters(tagObject)
         // setMinPrice(min)
         // setMaxPrice(max)
