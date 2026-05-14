@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { api } from "../../api/axios";
 
 interface Particle {
   id: number;
@@ -18,6 +19,24 @@ export default function UBLEFooter() {
   const heroRef = useRef<HTMLDivElement>(null);
   const animFrameRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = async () => {
+    try {
+      setSending(true);
+      setSent(false);
+
+      await api.post("/support/contact", form);
+
+      setForm({ name: "", email: "", message: "" });
+      setSent(true);
+    } catch (error) {
+      console.error("Failed to send support message:", error);
+    } finally {
+      setSending(false);
+    }
+  };
 
   // Scroll-triggered reveal with better detection
   useEffect(() => {
@@ -448,13 +467,29 @@ export default function UBLEFooter() {
                   <label style={labelStyle}>MESSAGE</label>
                   <textarea placeholder="How can we help you?" rows={4} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} style={{ ...inputStyle, resize: "none" }} />
                 </div>
-                <button style={{
-                  padding: "13px 28px", borderRadius: 999,
-                  background: "linear-gradient(135deg, #e8c05c, #c8a03a)",
-                  border: "none", cursor: "pointer",
-                  color: "#2e0610", fontWeight: 700, fontSize: 14,
-                  alignSelf: "flex-start",
-                }}>Send Message</button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={sending}
+                  style={{
+                    padding: "13px 28px",
+                    borderRadius: 999,
+                    background: "linear-gradient(135deg, #e8c05c, #c8a03a)",
+                    border: "none",
+                    cursor: sending ? "not-allowed" : "pointer",
+                    color: "#2e0610",
+                    fontWeight: 700,
+                    fontSize: 14,
+                    alignSelf: "flex-start",
+                    opacity: sending ? 0.7 : 1,
+                  }}
+                >
+                  {sending ? "Sending..." : "Send Message"}
+                </button>
+                {sent && (
+                  <p style={{ color: "#c9a84c", fontSize: 12, margin: 0 }}>
+                    Message sent successfully.
+                  </p>
+                )}
                 <p style={{ color: "rgba(255,255,255,0.32)", fontSize: 12, margin: 0 }}>
                   Or email us directly at:{" "}
                   <a href="mailto:uble@uplb.edu.ph" style={{ color: "#c9a84c", textDecoration: "none" }}>uble@uplb.edu.ph</a>
