@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "../../api/axios";
+import { useNavigate } from "react-router-dom";
 
 interface Particle {
   id: number;
@@ -21,6 +22,7 @@ export default function UBLEFooter() {
   const particlesRef = useRef<Particle[]>([]);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     try {
@@ -35,6 +37,17 @@ export default function UBLEFooter() {
       console.error("Failed to send support message:", error);
     } finally {
       setSending(false);
+    }
+  };
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   };
 
@@ -432,8 +445,31 @@ export default function UBLEFooter() {
                 <h3 style={{ color: "white", fontSize: 15, fontWeight: 600, margin: "0 0 10px" }}>Quick Links</h3>
                 <div style={{ height: 1, background: "linear-gradient(to right, #c9a84c 0%, transparent 80%)", marginBottom: 20 }} />
                 <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 15 }}>
-                  {["Home", "Browse Rooms", "About Us", "Features", "Support", "Sign In"].map(l => (
-                    <li key={l}><a href="#" style={{ color: "rgba(255,255,255,0.48)", fontSize: 13, textDecoration: "none" }}>{l}</a></li>
+                  {[
+                    { label: "Home", action: () => scrollToSection("home") },
+                    { label: "Browse Rooms", action: () => navigate("/student/browse") },
+                    { label: "About Us", action: () => scrollToSection("about") },
+                    { label: "Features", action: () => scrollToSection("features") },
+                    { label: "Support", action: () => scrollToSection("support") },
+                    { label: "Sign In", action: () => navigate("/auth/signin") },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <button
+                        onClick={l.action}
+                        style={{
+                          color: "rgba(255,255,255,0.48)",
+                          fontSize: 13,
+                          textDecoration: "none",
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          cursor: "pointer",
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        }}
+                      >
+                        {l.label}
+                      </button>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -443,8 +479,31 @@ export default function UBLEFooter() {
                 <h3 style={{ color: "white", fontSize: 15, fontWeight: 600, margin: "0 0 10px" }}>Resources</h3>
                 <div style={{ height: 1, background: "linear-gradient(to right, #c9a84c 0%, transparent 80%)", marginBottom: 20 }} />
                 <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 15 }}>
-                  {["How It Works", "For Landlords", "For Managers", "FAQs", "Privacy Policy", "Terms of Service"].map(l => (
-                    <li key={l}><a href="#" style={{ color: "rgba(255,255,255,0.48)", fontSize: 13, textDecoration: "none" }}>{l}</a></li>
+                  {[
+                    { label: "How It Works", action: () => scrollToSection("features") },
+                    { label: "For Landlords", action: () => navigate("/auth/signin") },
+                    { label: "For Managers", action: () => navigate("/auth/signin") },
+                    { label: "FAQs", action: () => scrollToSection("support") },
+                    { label: "Privacy Policy", action: () => {} },
+                    { label: "Terms of Service", action: () => {} },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <button
+                        onClick={l.action}
+                        style={{
+                          color: "rgba(255,255,255,0.48)",
+                          fontSize: 13,
+                          textDecoration: "none",
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          cursor: "pointer",
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        }}
+                      >
+                        {l.label}
+                      </button>
+                    </li>
                   ))}
                 </ul>
               </div>
