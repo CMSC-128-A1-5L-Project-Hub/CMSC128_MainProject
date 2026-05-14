@@ -630,10 +630,11 @@ export default function ApplicationsPage() {
                               {app?.student?.user?.fname?.charAt(0)?.toUpperCase() || 'U'}
                             </div>
                             <div className="min-w-0">
+                              {/* Fixed to handle cases where user's google account may not have a last name */}
                               <p className="font-medium truncate">
-                                {app?.student?.user?.fname && app?.student?.user?.lname
-                                  ? `${app.student.user.fname} ${app.student.user.lname}`
-                                  : "Loading name..."}
+                                {[app?.student?.user?.fname, app?.student?.user?.lname]
+                                  .filter(Boolean)
+                                  .join(" ") || "Unknown"}
                               </p>
                             </div>
                           </div>

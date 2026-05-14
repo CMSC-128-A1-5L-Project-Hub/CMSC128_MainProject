@@ -196,16 +196,39 @@ export default class FeesController {
   async overdueForManager({ auth, response }: HttpContext) {
     const user = auth.user!
 
-    const manager = await Manager
-      .query()
-      .where('userId', user.id)
-      .preload('accommodations')
-      .firstOrFail()
+    let accommodationIds: number[] = []
 
-    const accommodationIds = manager.accommodations.map((a) => a.id)
+    // Check if user is a MANAGER
+    if (user.role === 'manager') {
+      const manager = await Manager
+        .query()
+        .where('userId', user.id)
+        .first()
+      
+      if (!manager) {
+        return response.forbidden({ message: 'Manager profile not found' })
+      }
+      
+      const accommodations = await Accommodation
+        .query()
+        .where('managerId', user.id)
+      
+      accommodationIds = accommodations.map((a) => a.id)
+    } 
+    // Check if user is a LANDLORD  
+    else if (user.role === 'landlord') {
+      const accommodations = await Accommodation
+        .query()
+        .where('landlordId', user.id)
+      
+      accommodationIds = accommodations.map((a) => a.id)
+    } 
+    else {
+      return response.forbidden({ message: 'Access denied. Must be a manager or landlord.' })
+    }
 
     if (accommodationIds.length === 0) {
-      return response.ok({ data: [] })
+      return response.ok([])
     }
 
     const overdueFees = await db

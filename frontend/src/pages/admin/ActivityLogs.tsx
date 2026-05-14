@@ -201,6 +201,9 @@ export default function ActivityLogsPage() {
                   <option value="payment">Payment</option>
                   <option value="room">Room</option>
                   <option value="account">Account</option>
+                  <option value="accommodation">Accommodation</option>
+                  <option value="document">Document</option>
+                  <option value="fee">Fee/Billing</option>
                 </select>
 
                 {/* SORT */}

@@ -15,6 +15,7 @@ import ZipExportService from '#services/zip_export_service'
 import type { ZipEntry } from '#services/zip_export_service'
 import Room from '#models/room'
 import DocumentRequirement from '#models/document_requirement'
+import LogService from '#services/log_service'
 
 export default class AccommodationController {
   private accommodationService = new AccommodationService()
@@ -500,6 +501,17 @@ export default class AccommodationController {
       }
     }
 
+    const changedFields: string[] = []
+    if (accommodation_name) changedFields.push('name')
+    if (accommodation_location) changedFields.push('location')
+    if (accommodation_type) changedFields.push('type')
+    if (accommodation_capacity) changedFields.push('capacity')
+    if (tenant_restriction) changedFields.push('tenant_restriction')
+    if (accommodation_size) changedFields.push('size')
+    if (application_start_date) changedFields.push('application_start_date')
+    if (application_end_date) changedFields.push('application_end_date')
+    if (latitude && longitude) changedFields.push('location_coords')
+
     accommodation.merge({
       ...(accommodation_name && { accommodationName: accommodation_name }),
       ...(accommodation_location && { accommodationLocation: accommodation_location }),
@@ -513,6 +525,18 @@ export default class AccommodationController {
     })
 
     await accommodation.save()
+
+    try {
+      await LogService.record(
+        landlordId,
+        'accommodation',
+        accommodation.id,
+        'ACCOMMODATION_UPDATED',
+        `Landlord ${landlordId} updated accommodation "${accommodation.accommodationName}" (fields: ${changedFields.join(', ') || 'none'})`
+      )
+    } catch (e) {
+      console.error('Failed to log ACCOMMODATION_UPDATED:', e)
+    }
 
     return response.ok(accommodation.serialize())
   }
@@ -579,6 +603,18 @@ export default class AccommodationController {
 
       await trx.commit()
 
+      try {
+        await LogService.record(
+          landlordId,
+          'accommodation',
+          accommodation.id,
+          'ACCOMMODATION_IMAGES_UPLOADED',
+          `Landlord ${landlordId} uploaded ${uploaded.length} image(s) to accommodation "${accommodation.accommodationName}"`
+        )
+      } catch (e) {
+        console.error('Failed to log ACCOMMODATION_IMAGES_UPLOADED:', e)
+      }
+
       return response.ok(uploaded)
 
     } catch (error) {
@@ -619,6 +655,18 @@ export default class AccommodationController {
       await image.file.useTransaction(trx).delete()
 
       await trx.commit()
+
+      try {
+        await LogService.record(
+          landlordId,
+          'accommodation',
+          image.accommodation.id,
+          'ACCOMMODATION_IMAGE_DELETED',
+          `Landlord ${landlordId} deleted an image from accommodation "${image.accommodation.accommodationName}"`
+        )
+      } catch (e) {
+        console.error('Failed to log ACCOMMODATION_IMAGE_DELETED:', e)
+      }
 
       return response.ok({ message: 'Image deleted successfully' })
     } catch (error) {
@@ -803,6 +851,18 @@ export default class AccommodationController {
       acceptedFormat: format,
     })
 
+    try {
+      await LogService.record(
+        landlordId,
+        'document',
+        requirement.id,
+        'DOCUMENT_REQUIREMENT_ADDED',
+        `Landlord ${landlordId} added document requirement "${requirement.requirementName}" to accommodation "${accommodation.accommodationName}"`
+      )
+    } catch (e) {
+      console.error('Failed to log DOCUMENT_REQUIREMENT_ADDED:', e)
+    }
+
     return response.created(requirement)
   }
 
@@ -837,7 +897,21 @@ export default class AccommodationController {
       })
     }
 
+    const removedName = requirement.requirementName
+    const removedId = requirement.id
     await requirement.delete()
+
+    try {
+      await LogService.record(
+        landlordId,
+        'document',
+        removedId,
+        'DOCUMENT_REQUIREMENT_REMOVED',
+        `Landlord ${landlordId} removed document requirement "${removedName}" from accommodation "${accommodation.accommodationName}"`
+      )
+    } catch (e) {
+      console.error('Failed to log DOCUMENT_REQUIREMENT_REMOVED:', e)
+    }
 
     return response.ok({ message: 'Document requirement removed.' })
   }

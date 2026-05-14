@@ -2,6 +2,7 @@ import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
 import NotificationService from '#services/notification_service'
+import LogService from '#services/log_service'
 
 @inject()
 export default class AdminAccommodationsController {
@@ -15,7 +16,7 @@ export default class AdminAccommodationsController {
     return response.ok(accommodations)
   }
 
-  async verify({ params, request, response }: HttpContext) {
+  async verify({ auth, params, request, response }: HttpContext) {
     const { status } = request.all()
     const accommodation = await Accommodation.findOrFail(params.id)
     accommodation.status = status
@@ -30,6 +31,20 @@ export default class AdminAccommodationsController {
           accommodation.accommodationName
         )
       }
+    }
+
+    try {
+      const activityType =
+        status === 'verified' ? 'ACCOMMODATION_VERIFIED' : 'ACCOMMODATION_REJECTED'
+      await LogService.record(
+        auth.user?.id ?? null,
+        'accommodation',
+        accommodation.id,
+        activityType,
+        `Admin ${auth.user?.id ?? 'system'} set status of accommodation "${accommodation.accommodationName}" to "${status}"`
+      )
+    } catch (e) {
+      console.error('Failed to log accommodation verification:', e)
     }
 
     return response.ok(accommodation)
