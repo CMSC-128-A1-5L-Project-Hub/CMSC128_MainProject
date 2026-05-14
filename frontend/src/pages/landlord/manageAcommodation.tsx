@@ -438,7 +438,6 @@ const ManageAccommodationDashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col lg:flex-row bg-[#F5EEF0] min-h-screen">
-      <Sidebar role="landlord-manage" profile={{ fullName: `${user?.fname ?? ''} ${user?.lname ?? ''}`.trim(), shortName: user?.fname ?? '', email: user?.email ?? '' }} />
       <div className="flex-1 mt-12 lg:mt-0">
 
         {/* Header bar */}

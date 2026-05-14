@@ -402,8 +402,6 @@ export default function FeesPage() {
 
   return (
     <div className="flex min-h-screen bg-[#f5f0f1]">
-      <Sidebar role="landlord" />
-
       <div className="flex-1 p-6 overflow-y-auto">
         <HeroBanner
           greeting={greeting()}

@@ -298,7 +298,6 @@ export default function Applications() {
 
   return (
     <div className="flex h-screen bg-[#F5EEF0]">
-      <Sidebar role="landlord" />
       <DrawerNav open={drawerOpen} onClose={() => setDrawerOpen(false)} activePage={activePage} setActivePage={setActivePage} />
       <div className="flex flex-col w-full h-full">
         <CustomHeader title="Applications" />
