@@ -95,6 +95,7 @@ export default function BrowsePage() {
         staleTime: 60_000,
         gcTime: 5 * 60_000,
         placeholderData: (prev: any) => prev,
+        refetchOnMount: "always",
     })
 
     const { data: user, isError } = useQuery({
