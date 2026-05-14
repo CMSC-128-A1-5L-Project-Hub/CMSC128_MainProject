@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Modal from "./Modal";
 import Button from "./Button";
 import Card from "./ui/Card";
@@ -13,6 +14,9 @@ import {
 } from "react-icons/io5";
 import GradientPillSelect from "./DropDownGradient.tsx";
 import { api } from "../api/axios";
+
+type UploadedFile = { file: File; name: string; size: string; progress: number; status: string; requirementId: number | null; requirementName: string };
+type RequirementOption = { id: number; requirementName: string; acceptedFormat: string };
 
 interface ApplyModalProps {
     open: boolean;
@@ -79,13 +83,20 @@ export default function RoomApplicationModal({
     const [declaration, setDeclaration] = useState<"accept" | "retract" | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [uploadedFiles, setUploadedFiles] = useState<{ name: string; size: string; progress: number; status: string }[]>([]);
+    const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
     const paymentInputRef = useRef<HTMLInputElement>(null);
     const [paymentFile, setPaymentFile] = useState<{ name: string; size: string; progress: number; status: string } | null>(null);
 
     const isTransient = selectedStayType === "transient";
-    const requiredDocsCount = isTransient ? 2 : 3;
+
+    const { data: docRequirements = [] } = useQuery<RequirementOption[]>({
+        queryKey: ["doc-requirements", accommodation?.id],
+        queryFn: () => api.get(`/accommodations/${accommodation?.id}/document-requirements`).then((r) => r.data),
+        enabled: open && !!accommodation?.id,
+    });
+
+    const requiredDocsCount = docRequirements.length;
 
     useEffect(() => {
         if (open) {
@@ -144,16 +155,25 @@ export default function RoomApplicationModal({
         if (selectedFiles.length === 0) return;
 
         setUploadedFiles(prev => {
-            const availableSlots = 3 - prev.length;
+            const availableSlots = Math.max(requiredDocsCount - prev.length, 0);
             if (availableSlots <= 0) return prev;
-            const filesToAdd = selectedFiles.slice(0, availableSlots).map(file => ({
-                name: file.name,
-                size: (file.size / 1024).toFixed(0) + "kb",
-                progress: 100,
-                status: "Completed"
-            }));
+            const startIdx = prev.length;
+            const filesToAdd: UploadedFile[] = selectedFiles.slice(0, availableSlots).map((file, idx) => {
+                const req = docRequirements[startIdx + idx];
+                return {
+                    file,
+                    name: file.name,
+                    size: (file.size / 1024).toFixed(0) + "kb",
+                    progress: 100,
+                    status: "Completed",
+                    requirementId: req?.id ?? null,
+                    requirementName: req?.requirementName ?? file.name,
+                };
+            });
             return [...prev, ...filesToAdd];
         });
+        // reset input so re-selecting the same file works
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     const handlePaymentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,32 +190,47 @@ export default function RoomApplicationModal({
 
     const handleSubmit = async () => {
         try {
-            const payload = {
-                accommodationId: accommodation.id,
-                roomId: currentRoom?.id,
-                applicationRoomType: selectedArrangement,
-                applicationStayType: selectedStayType,
-                durationOfStayDays: isTransient ? numberOfDays : null,
-                preferredTags:
-                    selectedPreferences.length > 0 ? selectedPreferences : null,
-                moveInDate: isTransient ? moveInDate : null,
-                moveOutDate: isTransient ? moveOutDate : null,
-                reservationFee: isTransient ? reservationFee : null,
-                moveInFee: !isTransient ? moveInFee : null,
-            };
+            const formData = new FormData();
+            formData.append("accommodationId", String(accommodation.id));
+            if (currentRoom?.id != null) formData.append("roomId", String(currentRoom.id));
+            formData.append("applicationRoomType", selectedArrangement);
+            formData.append("applicationStayType", selectedStayType);
+            if (isTransient) {
+                formData.append("durationOfStayDays", String(numberOfDays));
+                formData.append("moveInDate", moveInDate);
+                formData.append("moveOutDate", moveOutDate);
+                formData.append("reservationFee", String(reservationFee));
+            } else {
+                formData.append("moveInFee", String(moveInFee));
+            }
+            if (selectedPreferences.length > 0) {
+                formData.append("preferredTags", JSON.stringify(selectedPreferences));
+            }
 
-            console.log("Submitting payload:", payload);
+            // Attach documents in order, matched to requirements by index
+            const reqIds: (number | null)[] = [];
+            const reqNames: string[] = [];
+            uploadedFiles.forEach((uf, i) => {
+                formData.append("documents", uf.file);
+                const req = docRequirements[i];
+                reqIds.push(req?.id ?? null);
+                reqNames.push(req?.requirementName ?? uf.file.name);
+            });
+            if (uploadedFiles.length > 0) {
+                formData.append("requirement_ids", JSON.stringify(reqIds));
+                formData.append("requirement_names", JSON.stringify(reqNames));
+            }
 
             try {
-                const res = await api.post("/applications", payload);
+                const res = await api.post("/applications", formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
                 console.log("Application submitted:", res.data);
                 handleClose();
             } catch (err: any) {
                 console.error("Submit failed status:", err.response?.status);
                 console.error("Submit failed data:", err.response?.data);
             }
-
-            handleClose(); // close modal after success
         } catch (err) {
             console.error("Submit failed:", err);
         }
@@ -504,13 +539,14 @@ export default function RoomApplicationModal({
                         {/* Documents Section */}
                         <div className="">
                             <h4 className="text-[12px] font-black text-[#6B0F2B] uppercase tracking-[0.15em]">Supporting Documents</h4>
-                            <div className="flex gap-2">
-                                {(isTransient
-                                    ? ["Companion's Valid ID", "Dormitory Agreement Form"]
-                                    : ["Parent's Consent Form", "Parent's Valid ID", "Dormitory Agreement"]
-                                ).map((doc) => (
-                                    <span key={doc} className="px-3 py-1 bg-[#FDF2F4] text-[#6B0F2B] text-[11px] mt-2 font-bold rounded-full border border-[#F2D9DF]">{doc}</span>
-                                ))}
+                            <div className="flex gap-2 flex-wrap">
+                                {docRequirements.length === 0 ? (
+                                    <span className="text-[11px] text-[#9A7080] italic mt-2">No specific documents required by this accommodation.</span>
+                                ) : (
+                                    docRequirements.map((doc) => (
+                                        <span key={doc.id} className="px-3 py-1 bg-[#FDF2F4] text-[#6B0F2B] text-[11px] mt-2 font-bold rounded-full border border-[#F2D9DF]">{doc.requirementName}</span>
+                                    ))
+                                )}
                             </div>
 
                             <Card className="bg-[#FAF7F8] border-[#F2D9DF] flex flex-col lg:flex-row gap-6 rounded-3xl min-h-[160px]">
@@ -547,7 +583,7 @@ export default function RoomApplicationModal({
 
                                 <div className="flex-1 flex flex-col items-center justify-center lg:border-l border-[#F2D9DF] px-4">
                                     <div className="text-5xl font-black text-[#3D0718] tracking-tighter">
-                                        {uploadedFiles.length}<span className="text-[#D4B0BA] text-3xl">/{isTransient ? 2 : 3}</span>
+                                        {uploadedFiles.length}<span className="text-[#D4B0BA] text-3xl">/{requiredDocsCount}</span>
                                     </div>
                                     <p className="text-[9px] font-black text-[#C8B0B8] uppercase tracking-[0.2em] mt-1">Documents Uploaded</p>
                                 </div>

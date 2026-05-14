@@ -42,12 +42,14 @@ interface Accommodation {
 
 interface Application {
   id: number;
+  accommodationId: number;
   applicationRoomType: string;
   applicationStayType: string;
   applicationStatus: string;
   applicationDate: string;
   student: {
     studentNumber: string;
+    enrollmentProofFileId: number | null;
     user: { fname: string; lname: string };
   };
 }
@@ -252,6 +254,19 @@ export default function Dashboard() {
     (a) => a.applicationStatus === "under_review"
   );
 
+  // Form 5 / enrollment proof stats — scoped to this accommodation
+  const accommodationApps = applications.filter(
+    (a) => a.accommodationId === accommodationId
+  );
+  const form5Submitted = accommodationApps.filter(
+    (a) => a.student?.enrollmentProofFileId != null
+  ).length;
+  const form5Pending = accommodationApps.length - form5Submitted;
+  const form5Pct =
+    accommodationApps.length > 0
+      ? Math.round((form5Submitted / accommodationApps.length) * 100)
+      : 0;
+
   // Manager card props
   const manager = accommodation?.manager;
   const managerStatus = !manager
@@ -447,7 +462,7 @@ export default function Dashboard() {
                   <SectionCard title="Form 5 Renewal">
                     <div className="flex items-center gap-4">
                       <div className="shrink-0">
-                        <CircleProgress value={83} />
+                        <CircleProgress value={form5Pct} />
                       </div>
                       <div className="flex flex-col gap-2 flex-1">
                         <div
@@ -456,10 +471,10 @@ export default function Dashboard() {
                         >
                           <div>
                             <p className="text-[10px] text-[#8C1535]/60 uppercase tracking-wider">
-                              Renewed
+                              Submitted
                             </p>
                             <p className="text-lg font-bold text-[#8C1535]">
-                              —
+                              {form5Submitted}
                             </p>
                           </div>
                           <div className="w-2 h-2 rounded-full bg-[#8C1535]" />
@@ -473,7 +488,7 @@ export default function Dashboard() {
                               Pending
                             </p>
                             <p className="text-lg font-bold text-yellow-600">
-                              —
+                              {form5Pending}
                             </p>
                           </div>
                           <div className="w-2 h-2 rounded-full bg-yellow-500" />
@@ -484,10 +499,10 @@ export default function Dashboard() {
                         >
                           <div>
                             <p className="text-[10px] text-gray-400 uppercase tracking-wider">
-                              Not Enrolled
+                              Total Applicants
                             </p>
-                            <p className="text-lg font-bold text-gray-400">
-                              —
+                            <p className="text-lg font-bold text-gray-500">
+                              {accommodationApps.length}
                             </p>
                           </div>
                           <div className="w-2 h-2 rounded-full bg-gray-300" />
@@ -508,13 +523,19 @@ export default function Dashboard() {
                           SYSTEM STANDARD
                         </p>
                         <div className="flex gap-2 flex-wrap items-center">
-                          <span className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">
-                            Form 5
-                          </span>
-                          <span className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold">
-                            Valid ID
+                          <span
+                            className="w-fit inline-flex items-center gap-1.5 px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold"
+                            title="Collected automatically when the student signs up."
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Form 5 / Enrollment Proof
                           </span>
                         </div>
+                        <p className="text-[10px] text-gray-400 italic mt-1">
+                          Auto-collected at student signup. Submission tracked in the Form 5 panel above.
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400 mb-1">

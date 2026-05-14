@@ -1,11 +1,12 @@
 // app/models/application.ts
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Accommodation from '#models/accommodation'
 import Student from '#models/student'
 import User from '#models/user'
 import Room from '#models/room'
+import ApplicationDocument from '#models/application_document'
 
 export default class Application extends BaseModel {
   static table = 'applications'
@@ -81,4 +82,7 @@ export default class Application extends BaseModel {
 
   @belongsTo(() => Room, { foreignKey: 'roomId' })
   declare room: BelongsTo<typeof Room>
+
+  @hasMany(() => ApplicationDocument, { foreignKey: 'applicationId' })
+  declare documents: HasMany<typeof ApplicationDocument>
 }
