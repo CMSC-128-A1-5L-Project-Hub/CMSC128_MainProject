@@ -384,6 +384,16 @@ async store({ request, auth, response }: HttpContext) {
       )
     }
 
+    // Default facility-specific document requirements. Landlord can edit/remove later.
+    await DocumentRequirement.create(
+      {
+        accommodationId: accommodation.id,
+        requirementName: 'Valid ID',
+        acceptedFormat: 'any',
+      },
+      { client: trx }
+    )
+
     await trx.commit()
     console.log(`[${Date.now() - startTime}ms] === TOTAL TIME: ${Date.now() - startTime}ms ===`)
 
