@@ -143,10 +143,10 @@ export default function StudentVerifications({
             <table className="min-w-full border-collapse">
               <thead>
                 <tr className="border-y border-[#F2D9DF]">
-                  <th className="py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="w-[44%] py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
                     Student
                   </th>
-                  <th className="py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="w-[29%] py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
                     Applied
                   </th>
                   <th className="py-3 text-center text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
@@ -171,7 +171,6 @@ export default function StudentVerifications({
                       {formatDate(item.user.submittedAt)}
                     </td>
                     <td className="py-4 text-center">
-                      {/* ← only change: onClick opens modal instead of approving directly */}
                       <button
                         onClick={() => handleReview(item)}
                         disabled={processingUserId === item.user.id}
