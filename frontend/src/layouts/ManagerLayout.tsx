@@ -16,7 +16,14 @@ export default function ManagerLayout() {
 
     return (
         <div className="relative flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
-        <Sidebar role="manager" profile={profile as any} />
+        <Sidebar
+            role={profile?.role}
+            profile={{
+                fullName: `${profile?.fname ?? ""} ${profile?.lname ?? ""}`.trim(),
+                shortName: profile?.fname ?? "",
+                email: profile?.email ?? "",
+            }}
+        />
         <AnimatePresence mode="wait">
             <motion.div
             key={location.pathname}
