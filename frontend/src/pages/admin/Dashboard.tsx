@@ -292,7 +292,7 @@ const AdminDashboard = () => {
   return (
     <div className="flex min-h-screen bg-[#F9F4F5]">
       <Sidebar
-        role={user?.role}
+        role="super_admin"
         profile={{
           fullName: `${user?.fname ?? ""} ${user?.lname ?? ""}`.trim(),
           shortName: user?.fname ?? "",
