@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl'
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import type { MapRef } from 'react-map-gl'
 import { UPLB } from '../constants/uplb'
-import DormCard from "./DormCardBrowse"
-import { Star } from 'lucide-react';
+import { Crosshair, Star } from 'lucide-react';
 import UPLBMarker from './UPLBMarker'
+import { useAccommodationFormStore } from '../stores/useAccommodationFormStore'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -56,10 +57,25 @@ export default function AccommodationMap({
     onCardClick,
     centeredAccommodation,
 }: AccommodationMapProps) {
+    const { accommodationLocation, latitude, longitude, setLocation } = useAccommodationFormStore()
+
     const [selectedPin, setSelectedPin] = useState<AccommodationPin | null>(null) // Stores currently accommodation selected
     const [travelMode, setTravelMode] = useState<TravelMode>('walking') // Stores the transport type to compute the route
     const [routeGeoJSON, setRouteGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null) // Stores the route from MapBox 
     const [loadingRoute, setLoadingRoute] = useState(false) // Checks is we are loading a route
+
+    const [pinLat, setPinLat] = useState<number>(latitude ?? UPLB.latitude)
+    const [pinLng, setPinLng] = useState<number>(longitude ?? UPLB.longitude)
+    const [isPinPlaced, setIsPinPlaced] = useState(latitude !== null)
+    const mapRef = useRef<MapRef | null>(null)
+
+    const recenterToUPLB = () => {
+        // setPinLat(UPLB.latitude)
+        // setPinLng(UPLB.longitude)
+        // setIsPinPlaced(false)
+        // setLocation('', UPLB.latitude, UPLB.longitude)
+        mapRef.current?.flyTo({ center: [UPLB.longitude, UPLB.latitude], zoom: 14, duration: 800 })
+    }
 
     const dormValues = { subtitle: 'Hall', meta: 'Studio · 22 m² · On-campus', price: 3200, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: "4.9" }
     // Center on specific accommodation if provided, otherwise center on UPLB area
@@ -126,163 +142,173 @@ export default function AccommodationMap({
         if (travelMode === 'driving') return `${selectedPin.drivingDistance} min`
         return `${selectedPin.bikingDistance} min`
     }
-
+ 
     return (
-        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-            <Map
-                initialViewState={initialView}
-                style={{ width: '100%', height: '100%' }}
-                mapStyle="mapbox://styles/mapbox/standard"
-                mapboxAccessToken={MAPBOX_TOKEN}
-            >
-                <NavigationControl position="top-right" />
-
-                {/* Route Line */}
-                {routeGeoJSON && (
-                    <Source id="route" type="geojson" data={routeGeoJSON}>
-                        <Layer {...routeLayerStyle(travelMode)} />
-                    </Source>
-                )}
-
-                {/* UPLB Pin */}
-                <UPLBMarker onSelect={() => setSelectedPin(null)} />
-
-                {/* Accommodation Pins */}
-                {accommodations.map((acc) => (
-                    <Marker
-                        key={acc.accommodationId}
-                        longitude={acc.longitude}
-                        latitude={acc.latitude}
-                        anchor="bottom"
-                        onClick={(e) => {
-                            e.originalEvent.stopPropagation()
-                            setSelectedPin(acc)
-                            setSelectedUPLB(false)
-                        }}
+        <>
+            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                <Map
+                    ref={mapRef}
+                    initialViewState={initialView}
+                    style={{ width: '100%', height: '100%' }}
+                    mapStyle="mapbox://styles/mapbox/standard"
+                    mapboxAccessToken={MAPBOX_TOKEN}
+                >
+                    <button
+                        type="button"
+                        onClick={recenterToUPLB}
+                        title="Recenter to UPLB"
+                        className="absolute left-4 top-4 z-10 flex items-center gap-1.5 text-[10px] font-semibold text-[#7a001f] hover:text-[#6B0F2B] bg-white px-3 py-1.5 rounded-lg shadow-md border border-[#e5cfd4] hover:border-[#7a001f] transition-all"
                     >
+                        <Crosshair size={12} />
+                        Recenter
+                    </button>
+                    <NavigationControl position="top-right" />
+                    {/* Route Line */}
+                    {routeGeoJSON && (
+                        <Source id="route" type="geojson" data={routeGeoJSON}>
+                            <Layer {...routeLayerStyle(travelMode)} />
+                        </Source>
+                    )}
 
-                        <div className="relative flex flex-col items-center w-fit">
+                    {/* UPLB Pin */}
+                    <UPLBMarker onSelect={() => setSelectedPin(null)} />
 
-                            <div className="relative flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] shadow-md overflow-hidden z-10">
+                    {/* Accommodation Pins */}
+                    {accommodations.map((acc) => (
+                        <Marker
+                            key={acc.accommodationId}
+                            longitude={acc.longitude}
+                            latitude={acc.latitude}
+                            anchor="bottom"
+                            onClick={(e) => {
+                                e.originalEvent.stopPropagation()
+                                setSelectedPin(acc)
+                            }}
+                        >
+
+                            <div className="relative flex flex-col items-center w-fit">
+
+                                <div className="relative flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] shadow-md overflow-hidden z-10">
 
 
-                                <div className="absolute inset-0 z-0" style={{ background: "linear-gradient(135deg, transparent 40%, rgba(42,4,16,0.55) 100%)", }} />
+                                    <div className="absolute inset-0 z-0" style={{ background: "linear-gradient(135deg, transparent 40%, rgba(42,4,16,0.55) 100%)", }} />
 
 
-                                <div className="relative flex items-center gap-1 z-10">
-                                    {acc.rating === "6" ? (
-                                        <>
-                                            {/* Unrated icon (you can swap this if you want) */}
-                                            <span className="text-white text-[11px]">☆</span>
+                                    <div className="relative flex items-center gap-1 z-10">
+                                        {acc.rating === "6" ? (
+                                            <>
+                                                {/* Unrated icon (you can swap this if you want) */}
+                                                <span className="text-white text-[11px]">☆</span>
 
-                                            <div className="flex gap-1 items-center text-white">
-                                                <span className="text-sm font-medium tracking-tight">
-                                                    {acc.accommodationName}
-                                                </span>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Star size={12} fill="white" stroke="white" strokeWidth={1} />
+                                                <div className="flex gap-1 items-center text-white">
+                                                    <span className="text-sm font-medium tracking-tight">
+                                                        {acc.accommodationName}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Star size={12} fill="white" stroke="white" strokeWidth={1} />
 
-                                            <div className="flex gap-1 items-center text-white">
-                                                <span className="text-sm font-bold tracking-tight">
-                                                    {acc.rating == "0" ? "" : acc.rating}
-                                                </span>
-                                                <span className="text-sm font-medium tracking-tight">
-                                                    {acc.accommodationName}
-                                                </span>
-                                            </div>
-                                        </>
-                                    )}
+                                                <div className="flex gap-1 items-center text-white">
+                                                    <span className="text-sm font-bold tracking-tight">
+                                                        {acc.rating == "0" ? "" : acc.rating}
+                                                    </span>
+                                                    <span className="text-sm font-medium tracking-tight">
+                                                        {acc.accommodationName}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
+
+
+                                <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-t-[14px] border-l-transparent border-r-transparent border-t-[#9E2040] -mt-1 z-0" />
                             </div>
 
+                        </Marker>
+                    ))}
 
-                            <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-t-[14px] border-l-transparent border-r-transparent border-t-[#9E2040] -mt-1 z-0" />
-                        </div>
-
-                    </Marker>
-                ))}
-
-                {/* Accommodation Popup */}
-                {selectedPin && (
-                    <Popup
-                        longitude={selectedPin.longitude}
-                        latitude={selectedPin.latitude}
-                        anchor="top"
-                        onClose={() => setSelectedPin(null)}
-                        closeButton={true}
-                        closeOnClick={false}
-                        maxWidth="300px"
-                        offset={[85, 5] as [number, number]}
-                        style={{ zIndex: 498 }}
-                        className="no-bg-popup"
-                    >
+                    {/* Accommodation Popup */}
+                    {selectedPin && (
+                        <Popup
+                            longitude={selectedPin.longitude}
+                            latitude={selectedPin.latitude}
+                            anchor="top"
+                            onClose={() => setSelectedPin(null)}
+                            closeButton={true}
+                            closeOnClick={false}
+                            maxWidth="300px"
+                            offset={[85, 5] as [number, number]}
+                            style={{ zIndex: 498 }}
+                            className="no-bg-popup"
+                        >
 
 
-                        <Content selectedPin={selectedPin} onCardClick={onCardClick} />
-                        {/* <div className="w-full flex items-center justify-center">
+                            <Content selectedPin={selectedPin} onCardClick={onCardClick} />
+                            {/* <div className="w-full flex items-center justify-center">
                             <DormCard {...{ ...{ name: selectedPin.accommodationName, subtitle: selectedPin.accommodationLocation, meta: selectedPin.accommodationType, price: selectedPin.price ?? 3200, minPrice: selectedPin.minPrice, maxPrice: selectedPin.maxPrice, priceUnit: '/ month', 'featured chips': ["WiFi", "Furnished", "Air-con"], rating: selectedPin.rating }, ...{ isSmall: true } }} verified onView={() => { onCardClick(selectedPin) }} />
                         </div> */}
 
-                    </Popup>
-                )}
-            </Map>
+                        </Popup>
+                    )}
+                </Map>
 
-            {/* Travel Mode Toggle — only visible when a pin is selected */}
-            {false && (
-                <div style={{
-                    position: 'absolute',
-                    bottom: '32px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    backgroundColor: 'white',
-                    borderRadius: '16px',
-                    padding: '12px 20px',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    zIndex: 9999,
-                }}>
-                    <div style={{ marginRight: '8px', textAlign: 'center' }}>
-                        <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>To UPLB</p>
-                        <p style={{ fontSize: '14px', fontWeight: '700', color: '#6B0F2B', margin: 0 }}>
-                            {loadingRoute ? 'Loading...' : currentDistance()}
-                        </p>
+                {/* Travel Mode Toggle — only visible when a pin is selected */}
+                {false && (
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '32px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        backgroundColor: 'white',
+                        borderRadius: '16px',
+                        padding: '12px 20px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        zIndex: 9999,
+                    }}>
+                        <div style={{ marginRight: '8px', textAlign: 'center' }}>
+                            <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>To UPLB</p>
+                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#6B0F2B', margin: 0 }}>
+                                {loadingRoute ? 'Loading...' : currentDistance()}
+                            </p>
+                        </div>
+                        <div style={{ width: '1px', height: '36px', backgroundColor: '#E5E7EB' }} />
+                        {([
+                            { mode: 'walking' as TravelMode, icon: '🚶', label: 'Walk' },
+                            { mode: 'driving' as TravelMode, icon: '🚗', label: 'Drive' },
+                            { mode: 'cycling' as TravelMode, icon: '🚲', label: 'Bike' },
+                        ]).map(({ mode, icon, label }) => (
+                            <button
+                                key={mode}
+                                onClick={() => setTravelMode(mode)}
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                    padding: '8px 16px',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    background: travelMode === mode ? 'linear-gradient(135deg, #6B0F2B, #3D0718)' : '#F3F4F6',
+                                    color: travelMode === mode ? 'white' : '#6B7280',
+                                    fontSize: '18px',
+                                    transition: 'all 0.2s ease',
+                                }}
+                            >
+                                <span>{icon}</span>
+                                <span style={{ fontSize: '11px', fontWeight: '600' }}>{label}</span>
+                            </button>
+                        ))}
                     </div>
-                    <div style={{ width: '1px', height: '36px', backgroundColor: '#E5E7EB' }} />
-                    {([
-                        { mode: 'walking' as TravelMode, icon: '🚶', label: 'Walk' },
-                        { mode: 'driving' as TravelMode, icon: '🚗', label: 'Drive' },
-                        { mode: 'cycling' as TravelMode, icon: '🚲', label: 'Bike' },
-                    ]).map(({ mode, icon, label }) => (
-                        <button
-                            key={mode}
-                            onClick={() => setTravelMode(mode)}
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: '2px',
-                                padding: '8px 16px',
-                                borderRadius: '10px',
-                                border: 'none',
-                                cursor: 'pointer',
-                                background: travelMode === mode ? 'linear-gradient(135deg, #6B0F2B, #3D0718)' : '#F3F4F6',
-                                color: travelMode === mode ? 'white' : '#6B7280',
-                                fontSize: '18px',
-                                transition: 'all 0.2s ease',
-                            }}
-                        >
-                            <span>{icon}</span>
-                            <span style={{ fontSize: '11px', fontWeight: '600' }}>{label}</span>
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        </>
     )
 }
 
@@ -326,7 +352,7 @@ function Content({ selectedPin, onCardClick }: ContentProps) {
                 </h3>
 
                 {/* Location */}
-                <p className="text-[10px] text-gray-500 truncate mb-1">
+                <p className="text-[10px] text-gray-500">
                     📍 {selectedPin.accommodationLocation}
                 </p>
 
@@ -345,7 +371,7 @@ function Content({ selectedPin, onCardClick }: ContentProps) {
                         ))}
                     </div>
                     <span className="text-[10px] text-gray-500">
-                        {selectedPin.rating !== "6" ? Number(selectedPin.rating).toFixed(1) : 'No rating'}
+                        {selectedPin.rating !== "0" ? Number(selectedPin.rating).toFixed(1) : 'No rating'}
                     </span>
                 </div>
 

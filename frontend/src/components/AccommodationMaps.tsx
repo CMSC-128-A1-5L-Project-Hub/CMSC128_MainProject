@@ -78,6 +78,14 @@ export default function AccommodationMap({
     : { longitude: UPLB.longitude, latitude: UPLB.latitude, zoom: 15, pitch: 60, bearing: 0 }
 
   useEffect(() => {
+    if (!selectedPin) return
+    const stillVisible = accommodations.some(
+      (a) => a.accommodationId === selectedPin.accommodationId
+    )
+    if (!stillVisible) setSelectedPin(null)
+  }, [accommodations])
+
+  useEffect(() => {
     if (!selectedPin) {
       setRouteGeoJSON(null)
       return

@@ -7,6 +7,7 @@ import PhoneNumber from '#models/phone_number'
 export default class LandlordProfileController {
     async show({ auth, response }: HttpContext) {
     const authUser = auth.user!
+    
 
     const user = await User.query()
         .where('id', authUser.id)
@@ -59,8 +60,12 @@ export default class LandlordProfileController {
     }
 
     if (secondaryPhone) {
-        secondaryPhone.contactNumber = altPhone
-        await secondaryPhone.save()
+        if (altPhone) {
+            secondaryPhone.contactNumber = altPhone
+            await secondaryPhone.save()
+        } else {
+            await secondaryPhone.delete()  // user cleared it, remove the row
+        }
     } else if (altPhone) {
         await PhoneNumber.create({ userId: user.id, contactNumber: altPhone, isPrimary: false })
     }

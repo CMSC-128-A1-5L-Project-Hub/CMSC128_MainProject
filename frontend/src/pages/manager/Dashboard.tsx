@@ -107,8 +107,8 @@ export default function Dashboard() {
 
   const recentLogs = logs.slice(0, 5)
 
-  const availableRooms = rooms.filter((r) => r.roomAvailability === 'available')
-  const occupiedRooms = rooms.filter((r) => r.roomAvailability === 'occupied')
+  const availableRooms = rooms.filter((r) => r.roomCurrentOccupancy < r.roomCapacity)
+  const occupiedRooms = rooms.filter((r) => r.roomCurrentOccupancy >= r.roomCapacity)
   const soloAvailable = availableRooms.filter((r) => r.roomType === 'single').length
   const doubleAvailable = availableRooms.filter((r) => r.roomType === 'double').length
   const sharedAvailable = availableRooms.filter((r) => r.roomType === 'shared').length

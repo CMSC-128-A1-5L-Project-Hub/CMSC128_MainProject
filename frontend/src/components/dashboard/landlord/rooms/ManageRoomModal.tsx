@@ -62,7 +62,7 @@ export default function ManageRoomModal({ open, room, rooms, onClose, onReassign
               {displayRoom.currentOccupancy === 0 ? (
                 <div className="text-center py-8 text-gray-400">No tenants assigned to this room.</div>
               ) : (
-                <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                <div className="space-y-3 pr-1">
                   {displayRoom.occupants.map((tenant) => (
                     <div key={tenant.id} className="border border-[#6B0F2B3E] rounded-xl p-3 space-y-2 transition hover:border-[#8C1535]/30">
                       <div className="flex justify-between items-start">
@@ -108,7 +108,7 @@ export default function ManageRoomModal({ open, room, rooms, onClose, onReassign
               {getAvailableRooms(displayRoom).length === 0 ? (
                 <div className="text-center py-8 text-gray-400">No other {displayRoom.type} rooms with free capacity.</div>
               ) : (
-                <div className="grid gap-2 max-h-80 overflow-y-auto">
+                <div className="grid gap-2">
                   {getAvailableRooms(displayRoom).map((target) => (
                     <div
                       key={target.id}

@@ -114,10 +114,10 @@ function FilterTabs({
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("Overview");
   const [docModalOpen, setDocModalOpen] = useState(false);
-  const [facilityDocs, setFacilityDocs] = useState(["Birth Certificate"]);
   const [newDocName, setNewDocName] = useState("");
+  const [newDocFormat, setNewDocFormat] = useState("any");
   const [editingDocs, setEditingDocs] = useState(false);
-  const [docToDelete, setDocToDelete] = useState<number | null>(null);
+  const [docToDelete, setDocToDelete] = useState<{ id: number; name: string } | null>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
@@ -173,6 +173,12 @@ export default function Dashboard() {
     queryFn: () => api.get("/reports/delinquency").then((r) => r.data),
   });
 
+  const { data: facilityDocs = [] } = useQuery<{ id: number; requirementName: string; acceptedFormat: string }[]>({
+    queryKey: ["doc-requirements", accommodationId],
+    queryFn: () => api.get(`/accommodations/${accommodationId}/document-requirements`).then((r) => r.data),
+    enabled: !!accommodationId,
+  });
+
   // ── Mutations ────────────────────────────────────────────────────────────────
 
   const saveAppPeriod = useMutation({
@@ -183,6 +189,29 @@ export default function Dashboard() {
       }),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] }),
+  });
+
+  const addDocMutation = useMutation({
+    mutationFn: ({ requirement_name, accepted_format }: { requirement_name: string; accepted_format: string }) =>
+      api.post(`/landlord/accommodations/${accommodationId}/document-requirements`, {
+        requirement_name,
+        accepted_format,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doc-requirements", accommodationId] });
+      setNewDocName("");
+      setNewDocFormat("any");
+      setDocModalOpen(false);
+    },
+  });
+
+  const removeDocMutation = useMutation({
+    mutationFn: (reqId: number) =>
+      api.delete(`/landlord/accommodations/${accommodationId}/document-requirements/${reqId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doc-requirements", accommodationId] });
+      setDocToDelete(null);
+    },
   });
 
   const reviewAppMutation = useMutation({
@@ -324,7 +353,7 @@ export default function Dashboard() {
                     } awaiting your review`
                   : "Everything is up to date"
               }
-              name={user ? `${user.fname} ${user.lname}` : ""}
+              name={user ? user.fname : ""}
               type="full"
             />
 
@@ -492,18 +521,18 @@ export default function Dashboard() {
                           FACILITY-SPECIFIC
                         </p>
                         <div className="flex gap-2 flex-wrap items-center">
-                          {facilityDocs.map((doc, i) => (
+                          {facilityDocs.map((doc) => (
                             <span
-                              key={i}
+                              key={doc.id}
                               className="w-fit inline-flex items-center gap-2 pl-3 pr-1.5 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold"
                             >
-                              {doc}
+                              {doc.requirementName}
                               {editingDocs && (
                                 <button
-                                  onClick={() => setDocToDelete(i)}
+                                  onClick={() => setDocToDelete({ id: doc.id, name: doc.requirementName })}
                                   className="w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition shrink-0"
                                 >
-                                  <X size={8} strokeWidth={3} color="white" />
+                                  <span className="text-white text-[10px] font-bold leading-none">✕</span>
                                 </button>
                               )}
                             </span>
@@ -603,7 +632,7 @@ export default function Dashboard() {
                   </SectionCard>
 
                   {/* WAITLISTED */}
-                  <SectionCard title="Waitlisted" action="View all →">
+                  <SectionCard title="Waitlisted" action="View all →" onAction={() => navigate(accommodationId ? `/landlord/applications?accId=${accommodationId}` : "/landlord/applications")}>
                     <div className="overflow-x-auto">
                       <div className="min-w-[500px] xl:min-w-0">
                         <div className="flex items-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
@@ -624,6 +653,13 @@ export default function Dashboard() {
                     </div>
                   </SectionCard>
                 </div>
+
+                {/* APPLICATIONS UNDER REVIEW */}
+                <SectionCard
+                  title="Applications Under Review"
+                  action="View all →"
+                  onAction={() => navigate(accommodationId ? `/landlord/applications?accId=${accommodationId}` : "/landlord/applications")} // <-- Add this!
+                ></SectionCard>
 
                 {/* ROOMS TABLE */}
                 <SectionCard title="Rooms" action="Manage →">
@@ -724,15 +760,14 @@ export default function Dashboard() {
             variant="primary"
             size="md"
             className="ml-auto !rounded-2xl"
+            disabled={addDocMutation.isPending}
             onClick={() => {
               if (newDocName.trim()) {
-                setFacilityDocs([...facilityDocs, newDocName.trim()]);
-                setNewDocName("");
-                setDocModalOpen(false);
+                addDocMutation.mutate({ requirement_name: newDocName.trim(), accepted_format: newDocFormat });
               }
             }}
           >
-            Add
+            {addDocMutation.isPending ? "Adding…" : "Add"}
           </Button>
         }
       >
@@ -742,12 +777,12 @@ export default function Dashboard() {
               Facility-Specific
             </p>
             <div className="flex gap-2 flex-wrap items-center">
-              {facilityDocs.map((doc, i) => (
+              {facilityDocs.map((doc) => (
                 <span
-                  key={i}
+                  key={doc.id}
                   className="w-fit inline-flex items-center px-3 py-2 bg-[#6B0F2B] text-white rounded-full text-xs font-bold"
                 >
-                  {doc}
+                  {doc.requirementName}
                 </span>
               ))}
             </div>
@@ -767,11 +802,14 @@ export default function Dashboard() {
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
               Accepted Document Format
             </p>
-            <select className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535] appearance-none bg-white">
-              <option value="">Selected Format</option>
-              <option>PDF</option>
-              <option>JPEG / PNG</option>
-              <option>Any</option>
+            <select
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#8C1535] appearance-none bg-white"
+              value={newDocFormat}
+              onChange={(e) => setNewDocFormat(e.target.value)}
+            >
+              <option value="any">Any</option>
+              <option value="pdf">PDF</option>
+              <option value="image">JPEG / PNG</option>
             </select>
           </div>
         </div>
@@ -795,14 +833,12 @@ export default function Dashboard() {
             <Button
               variant="primary"
               size="md"
+              disabled={removeDocMutation.isPending}
               onClick={() => {
-                setFacilityDocs(
-                  facilityDocs.filter((_, j) => j !== docToDelete)
-                );
-                setDocToDelete(null);
+                if (docToDelete) removeDocMutation.mutate(docToDelete.id);
               }}
             >
-              Remove
+              {removeDocMutation.isPending ? "Removing…" : "Remove"}
             </Button>
           </div>
         }
@@ -810,7 +846,7 @@ export default function Dashboard() {
         <p className="text-sm text-gray-600">
           Are you sure you want to remove{" "}
           <span className="font-semibold text-[#6B0F2B]">
-            {docToDelete !== null ? facilityDocs[docToDelete] : ""}
+            {docToDelete?.name ?? ""}
           </span>{" "}
           from the document requirements? This may affect existing tenants.
         </p>

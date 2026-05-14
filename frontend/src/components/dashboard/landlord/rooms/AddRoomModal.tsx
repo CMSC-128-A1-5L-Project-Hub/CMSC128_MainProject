@@ -208,7 +208,7 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
       title="Add New Room"
       footer={
         <div className="flex flex-row justify-end w-full">
-          <Button variant="reddishPink" onClick={handleSubmit}>
+          <Button variant="primary" onClick={handleSubmit}>
             Create Room
           </Button>
         </div>

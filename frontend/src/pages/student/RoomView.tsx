@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
 import GradientPillSelect from "../../components/DropDownGradient.tsx";
@@ -122,15 +123,6 @@ interface Accommodation {
   };
 }
 
-//Mock data for requirements
-
-const MOCK_REQUIREMENTS = [
-  { id: 1, name: "Parent's Consent Form", size: "256 KB", dateModified: "04/05/26 at 1:02PM" },
-  { id: 2, name: "Dormitory Agreement Form", size: "189 KB", dateModified: "04/05/26 at 1:02PM" },
-  { id: 3, name: "Medical Certificate Template", size: "98 KB", dateModified: "04/03/26 at 9:00AM" },
-  { id: 4, name: "Parent's Valid ID", size: "—", dateModified: "—" },
-  { id: 5, name: "Enrollment Form / COR", size: "—", dateModified: "—" },
-];
 
 
 //Inline icons
@@ -1341,14 +1333,20 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
   );
 }
 
-function RequirementsTab() {
-  const [downloaded, setDownloaded] = useState<Set<number>>(new Set());
+function RequirementsTab({ accommodationId }: { accommodationId: number }) {
+  const { data: requirements = [], isLoading } = useQuery<{ id: number; requirementName: string; acceptedFormat: string }[]>({
+    queryKey: ["doc-requirements", accommodationId],
+    queryFn: () => api.get(`/accommodations/${accommodationId}/document-requirements`).then((r) => r.data),
+    enabled: !!accommodationId,
+  });
+
+  const formatLabel: Record<string, string> = { pdf: "PDF", image: "JPEG / PNG", any: "Any" };
 
   return (
-    <div className="space y-4 font-sans mt-4">
+    <div className="space-y-4 font-sans mt-4">
       <div>
         <p className="text-[15px] font-bold text-[#6B0F2B] mt-3">
-          Please download and fill-up the necessary files before filing for an application.
+          Please prepare the following documents before filing for an application.
         </p>
         <p className="text-[12px] text-gray-500 mt-1 flex items-start gap-1">
           <span className="mt-0.5">ⓘ</span>
@@ -1356,68 +1354,36 @@ function RequirementsTab() {
             To help manage your accommodation, assigned dormitory personnel may also be able to view your login
             information. Files and credentials are only used for housing and administrative support. See our data privacy
             clause.
-            {/*<button className="font-semibold underline text-[#6B0F2B] mt-1">here</button>.*/}
           </span>
         </p>
       </div>
-      {/*https://tailwindcss.com/docs/table-layout*/}
       <div className="w-full overflow-x-auto rounded-md border border-[#F0E8EC] mt-5">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[#F7EFF2]">
               <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Requirement</th>
-              <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Size</th>
-              <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Date Modified</th>
-              <th className="text-right px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Action</th>
+              <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Accepted Format</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#F0E8EC]">
-            {MOCK_REQUIREMENTS.map((req) => {
-              const isDownloaded = downloaded.has(req.id);
-              const hasAttachment = req.size !== "—";
-
-              return (
+            {isLoading ? (
+              <tr>
+                <td colSpan={2} className="px-4 py-6 text-center text-[11px] text-gray-400">Loading requirements…</td>
+              </tr>
+            ) : requirements.length === 0 ? (
+              <tr>
+                <td colSpan={2} className="px-4 py-6 text-center text-[11px] text-gray-400 italic">No specific document requirements set.</td>
+              </tr>
+            ) : (
+              requirements.map((req) => (
                 <tr key={req.id} className="bg-white hover:bg-[#FDF8FA] transition-colors">
-                  <td className="px-4 py-3 text-[11px] font-medium text-[#3D0718]">{req.name}</td>
-                  <td className="px-4 py-3 text-[11px] text-gray-500">{req.size}</td>
-                  <td className="px-4 py-3 text-[11px] text-gray-500">{req.dateModified}</td>
-                  <td className="px-4 py-3 text-right">
-                    {hasAttachment ? (
-                      <button
-                        onClick={() => setDownloaded((prev) => new Set([...prev, req.id]))}
-                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-semibold text-white transition-colors"
-                        style={{ background: isDownloaded ? "linear-gradient(135deg, #1A7A4A, #2D9A5F" : "linear-gradient(130deg, #6B0F2B, #9A7080)" }}
-                      >
-                        {isDownloaded ? (
-                          <>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Downloaded
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            Download
-                          </>
-                        )}
-                      </button>
-                    ) : (
-                      <span className="text-[10px] text-gray-400 italic">To be submitted</span>
-                    )}
-                  </td>
+                  <td className="px-4 py-3 text-[11px] font-medium text-[#3D0718]">{req.requirementName}</td>
+                  <td className="px-4 py-3 text-[11px] text-gray-500">{formatLabel[req.acceptedFormat] ?? req.acceptedFormat}</td>
                 </tr>
-              )
-            })}
-
+              ))
+            )}
           </tbody>
-
-
         </table>
-
-
       </div>
     </div>
   )
@@ -1429,6 +1395,26 @@ function RequirementsTab() {
 export default function RoomView() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const currentAccommodationId = Number(id);
+
+  const { data: myApplications = [] } = useQuery({
+    queryKey: ["student-applications"],
+    queryFn: async () => {
+      try {
+        const res = await api.get("/applications/my-applications");
+        return res.data;
+      } catch (error: any) {
+        if (error.response?.status === 404) return [];
+        throw error;
+      }
+    }
+  });
+
+  const hasAlreadyApplied = myApplications.some(
+    (app: any) => 
+      app.accommodationId === currentAccommodationId && 
+      ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
+  );
 
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1441,6 +1427,8 @@ export default function RoomView() {
 
   const [reportType, setReportType] = useState<"dorm" | "manager">("dorm")
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+
+  const [reportOpen, setReportOpen] = useState(false)
 
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
   const [isFavorited, setIsFavorited] = useState(false);
@@ -1741,11 +1729,12 @@ export default function RoomView() {
                   <span className="hidden md:inline text-sm font-semibold">Share</span>
                 </button>
                 <button
-                  onClick={() => { setReportType("dorm"); setIsReportModalOpen(true) }}
-                  className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
+                  onClick={() => {
+                    setReportType("dorm")
+                    setReportOpen(true)
+                  }}
                 >
                   <IconReport />
-                  <span className="hidden md:inline text-sm font-semibold">Report</span>
                 </button>
               </div>
             </div>
@@ -1805,7 +1794,7 @@ export default function RoomView() {
               />
             )}
             {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={avgRating} />}
-            {selectedTab === "Requirements" && <RequirementsTab />}
+            {selectedTab === "Requirements" && <RequirementsTab accommodationId={currentAccommodationId} />}
             {selectedTab === 'Location' && <LocationTab accommodation={accommodation} />}
 
           </div>
@@ -1906,7 +1895,10 @@ export default function RoomView() {
                     </p>
                     <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
                       <button
-                        onClick={() => { setReportType("manager"); setIsReportModalOpen(true) }}
+                        onClick={() => {
+                          setReportType("manager")
+                          setReportOpen(true)
+                        }}
                         className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
                       >
                         <IconReport />
@@ -1920,11 +1912,15 @@ export default function RoomView() {
                 {/* Apply */}
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors"
-                  style={{ background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = CLR.mid)}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = CLR.dark)}>
-                  Apply for Occupancy
+                  disabled={hasAlreadyApplied}
+                  className={`w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors ${
+                    hasAlreadyApplied ? "bg-gray-400 cursor-not-allowed" : "shadow-md"
+                  }`}
+                  style={hasAlreadyApplied ? {} : { background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
+                  onMouseEnter={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = CLR.mid)}
+                  onMouseLeave={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = "linear-gradient(135deg, #2D0511, #9A1F3E)")}
+                >
+                  {hasAlreadyApplied ? "Already Applied" : "Apply for Occupancy"}
                 </button>
 
                 <RoomApplicationModal
@@ -1957,13 +1953,21 @@ export default function RoomView() {
                 />
 
                 <ReportAccommodationModal
-                  open={isReportModalOpen}
-                  onClose={() => setIsReportModalOpen(false)}
+                  open={reportOpen}
+                  onClose={() => setReportOpen(false)}
                   reportType={reportType}
+                  reportableId={
+                    reportType === "dorm"
+                      ? accommodation.id
+                      : accommodation.manager.userId
+                  }
                   accommodationName={accommodation.accommodationName}
-                  managerName={managerUser ? `${managerUser.fname} ${managerUser.lname}` : undefined}
+                  managerName={
+                    accommodation.manager?.user
+                      ? `${accommodation.manager.user.fname} ${accommodation.manager.user.lname}`
+                      : undefined
+                  }
                 />
-
               </div>
 
             </div>
