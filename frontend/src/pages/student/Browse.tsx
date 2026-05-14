@@ -436,7 +436,7 @@ export default function BrowsePage() {
 
                                     {/* Fixed pagination */}
                                     {totalPages > 1 && (
-                                        <div className="pt-6 pb-2 flex justify-center shrink-0 bg-[#F6F2F4]">
+                                        <div className="pt-6 pb-2 flex justify-end shrink-0 bg-[#F6F2F4]">
                                             <Pagination
                                                 currentPage={currentPage}
                                                 totalPages={totalPages}
