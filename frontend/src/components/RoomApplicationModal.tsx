@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from "react";
 import Modal from "./Modal";
 import Button from "./Button";
 import Card from "./ui/Card";
+import defaultAccommodation from "@/assets/defaults/accommodation.png";
+
 import {
     IoStar,
     IoCloudUploadOutline,
@@ -118,56 +120,6 @@ export default function RoomApplicationModal({
         );
     }, [selectedStayType, selectedArrangement]);
 
-    const modalFooter = (
-        <div className="flex flex-row justify-end items-center w-full">
-            {(uploadedFiles.length < requiredDocsCount || (isTransient && (!moveInDate || !moveOutDate))) && (
-                <p className="text-[11px] font-bold items-center justify-center mr-4 text-[#6B0F2B]">
-                    {isTransient && (!moveInDate || !moveOutDate)
-                        ? "Please select stay dates to proceed."
-                        : `Please upload all ${requiredDocsCount} required documents to proceed.`}
-                </p>
-            )}
-            <Button
-                variant="primary"
-                size="lg"
-                className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
-                onClick={() => setStep("verify")}
-                disabled={uploadedFiles.length < requiredDocsCount || (isTransient && (!moveInDate || !moveOutDate))}
-            >
-                Submit
-            </Button>
-        </div>
-    )
-
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFiles = Array.from(e.target.files || []);
-        if (selectedFiles.length === 0) return;
-
-        setUploadedFiles(prev => {
-            const availableSlots = 3 - prev.length;
-            if (availableSlots <= 0) return prev;
-            const filesToAdd = selectedFiles.slice(0, availableSlots).map(file => ({
-                name: file.name,
-                size: (file.size / 1024).toFixed(0) + "kb",
-                progress: 100,
-                status: "Completed"
-            }));
-            return [...prev, ...filesToAdd];
-        });
-    };
-
-    const handlePaymentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setPaymentFile({
-            name: file.name,
-            size: (file.size / 1024).toFixed(0) + "kb",
-            progress: 100,
-            status: "Completed"
-        });
-    };
-
     const handleSubmit = async () => {
         try {
             const payload = {
@@ -200,6 +152,92 @@ export default function RoomApplicationModal({
             console.error("Submit failed:", err);
         }
     };
+
+    const modalFooter =
+        step === "apply" ? (
+            <div className="flex flex-row justify-end items-center w-full">
+                {(uploadedFiles.length < requiredDocsCount ||
+                    (isTransient && (!moveInDate || !moveOutDate))) && (
+                    <p className="text-[11px] font-bold items-center justify-center mr-4 text-[#6B0F2B]">
+                        {isTransient && (!moveInDate || !moveOutDate)
+                            ? "Please select stay dates to proceed."
+                            : `Please upload all ${requiredDocsCount} required documents to proceed.`}
+                    </p>
+                )}
+
+                <Button
+                    variant="primary"
+                    size="lg"
+                    className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
+                    onClick={() => setStep("verify")}
+                    disabled={
+                        uploadedFiles.length < requiredDocsCount ||
+                        (isTransient && (!moveInDate || !moveOutDate))
+                    }
+                >
+                    Submit
+                </Button>
+            </div>
+        ) : (
+            <div className="flex justify-end gap-4 w-full">
+                <Button
+                    variant="secondary"
+                    onClick={() => setStep("apply")}
+                    className="px-10 rounded-full"
+                >
+                    Back
+                </Button>
+
+                <Button
+                    onClick={handleSubmit}
+                    variant="primary"
+                    size="lg"
+                    className={`px-16 rounded-full text-white transition-all ${
+                        declaration === "accept" &&
+                        (!isTransient || paymentFile)
+                            ? "bg-emerald-500"
+                            : "bg-[#8C1533] opacity-50 grayscale"
+                    }`}
+                    disabled={
+                        declaration !== "accept" ||
+                        (isTransient && !paymentFile)
+                    }
+                >
+                    Submit
+                </Button>
+            </div>
+        );
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFiles = Array.from(e.target.files || []);
+        if (selectedFiles.length === 0) return;
+
+        setUploadedFiles(prev => {
+            const availableSlots = 3 - prev.length;
+            if (availableSlots <= 0) return prev;
+            const filesToAdd = selectedFiles.slice(0, availableSlots).map(file => ({
+                name: file.name,
+                size: (file.size / 1024).toFixed(0) + "kb",
+                progress: 100,
+                status: "Completed"
+            }));
+            return [...prev, ...filesToAdd];
+        });
+    };
+
+    const handlePaymentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setPaymentFile({
+            name: file.name,
+            size: (file.size / 1024).toFixed(0) + "kb",
+            progress: 100,
+            status: "Completed"
+        });
+    };
+
+    
 
     const removeFile = (index: number) => {
         setUploadedFiles(prev => prev.filter((_, i) => i !== index));
@@ -329,9 +367,10 @@ export default function RoomApplicationModal({
                         <div className="flex flex-col md:flex-row gap-6 items-start">
                             <div className="w-full md:w-[320px] h-[180px] rounded-3xl overflow-hidden shadow-sm flex-shrink-0">
                                 <img
-                                    src={accommodation?.imageUrls?.[0] ?? accommodation?.primaryImageUrl ?? "/default-accommodation.png"}
+                                    src={accommodation?.imageUrls?.[0] ?? accommodation?.primaryImageUrl ?? defaultAccommodation}
                                     alt={accommodation?.accommodationName}
                                     className="w-full h-full object-cover"
+                                    onError={(e) => { e.currentTarget.src = defaultAccommodation; }}
                                 />
                             </div>
                             <div className="flex-1 w-full">
@@ -720,7 +759,7 @@ export default function RoomApplicationModal({
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-4 pt-6">
+                        {/* <div className="flex justify-end gap-4 pt-6">
                             <Button variant="secondary" onClick={() => setStep("apply")} className="px-10 rounded-full">Back</Button>
                             <Button
                                 onClick={handleSubmit}
@@ -731,7 +770,7 @@ export default function RoomApplicationModal({
                             >
                                 Submit
                             </Button>
-                        </div>
+                        </div> */}
                     </div>
                 )}
             </div>
