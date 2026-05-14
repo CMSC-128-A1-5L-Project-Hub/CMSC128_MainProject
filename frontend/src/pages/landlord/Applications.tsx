@@ -228,6 +228,7 @@ export default function Applications() {
   // fetch data and map it to the UI Interface
   const { data: appsData = [], isLoading, refetch } = useQuery<Application[]>({
     queryKey: ["landlord-applications"],
+    staleTime: 0,
     queryFn: async () => {
       try {
         const res = await api.get("/applications/incoming");
@@ -292,13 +293,16 @@ export default function Applications() {
           });
           return res.data;
       },
-      onSuccess: () => {
+      onSuccess: (data) => {
+          console.log("updateStatusMutation succeeded:", data);
+          console.log("Invalidating landlord-applications...");
           queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
-          refetch(); // immediate refetch
+          console.log("Invalidation called.");
           setViewModalOpen(false);
           setRemark("");
       },
       onError: (error) => {
+          console.error("updateStatusMutation failed:", error);
           alert(`Error: ${error.message}`);
       }
   });
@@ -396,17 +400,20 @@ export default function Applications() {
           throw new Error(error.response?.data?.message || "Failed to assign room");
         }
       },
-      onSuccess: () => {
+      onSuccess: (data) => {
+        console.log("assignRoomMutation succeeded:", data);
+        console.log("Invalidating landlord-applications and accommodation-rooms...");
         queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
         queryClient.invalidateQueries({ queryKey: ["accommodation-rooms"] });
-        refetch(); // immediate refetch
+        console.log("Invalidation called.");
         setViewModalOpen(false);
         setSelectedRoom(null);
       },
       onError: (error) => {
+        console.error("assignRoomMutation failed:", error);
         alert(`Error assigning room: ${error.message}`);
       }
-    });
+  });
 
   const handleSaveAssignment = () => {
     if (!selectedApp || !selectedRoom) return;
