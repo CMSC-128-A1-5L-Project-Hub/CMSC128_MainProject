@@ -76,7 +76,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 onChange={handleChange}
                 placeholder={hasGoogleLastName ? "" : "Last Name"}
                 className="col-span-5"
-                disabled={hasGoogleLastName} // ✅ Only disable if Google provided a last name
+                disabled={hasGoogleLastName} // Only disable if Google provided a last name
             />
 
             <FormField 
