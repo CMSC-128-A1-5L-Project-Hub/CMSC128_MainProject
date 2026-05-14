@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl'
+import type { MapRef } from 'react-map-gl'
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { UPLB } from '../constants/uplb'
@@ -76,6 +77,7 @@ export default function AccommodationMap({
   const [travelMode, setTravelMode] = useState<TravelMode>('walking')
   const [routeGeoJSON, setRouteGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null)
   const [loadingRoute, setLoadingRoute] = useState(false)
+  const mapRef = useRef<MapRef>(null)
 
   const initialView = centeredAccommodation
     ? { longitude: centeredAccommodation.longitude, latitude: centeredAccommodation.latitude, zoom: 16, pitch: 45, bearing: 0 }
@@ -122,9 +124,20 @@ export default function AccommodationMap({
     return `${selectedPin.bikingDistance} min`
   }
 
+  const recenterToUPLB = () => {
+    mapRef.current?.flyTo({
+      center: [UPLB.longitude, UPLB.latitude],
+      zoom: 15,
+      pitch: 60,
+      bearing: 0,
+      duration: 1200,
+    })
+  }
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Map
+        ref={mapRef}
         initialViewState={initialView}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/standard"
@@ -351,6 +364,48 @@ export default function AccommodationMap({
           ))}
         </div>
       )}
+
+      {/* ─── Recenter to UPLB Button ─────────────────────────────────── */}
+      <button
+        onClick={recenterToUPLB}
+        title="Recenter to UPLB"
+        style={{
+          position: 'absolute',
+          bottom: selectedPin ? '120px' : '32px',
+          right: '16px',
+          width: '48px',
+          height: '48px',
+          borderRadius: '50%',
+          border: 'none',
+          cursor: 'pointer',
+          background: 'linear-gradient(135deg, #710A2B, #3D0718)',
+          boxShadow: '0 4px 16px rgba(113,10,43,0.35)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          transition: 'bottom 0.3s ease, transform 0.15s ease, box-shadow 0.15s ease',
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'
+          ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(113,10,43,0.5)'
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'
+          ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(113,10,43,0.35)'
+        }}
+        onMouseDown={e => (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'}
+        onMouseUp={e => (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'}
+      >
+        <svg width="38" height="38" viewBox="-2 -2 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.8" />
+          <circle cx="12" cy="12" r="3" stroke="white" strokeWidth="1.8" />
+          <line x1="12" y1="0" x2="12" y2="3" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="12" y1="21" x2="12" y2="24" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="0" y1="12" x2="3" y2="12" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="21" y1="12" x2="24" y2="12" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      </button>
     </div>
   )
 }
