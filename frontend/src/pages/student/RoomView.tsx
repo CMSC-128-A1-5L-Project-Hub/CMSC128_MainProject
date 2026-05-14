@@ -1424,11 +1424,11 @@ export default function RoomView() {
     }
   });
 
-  const hasAlreadyApplied = myApplications.some(
-    (app: any) =>
-      app.accommodationId === currentAccommodationId &&
-      ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
-  );
+  // const hasAlreadyApplied = myApplications.some(
+  //   (app: any) =>
+  //     app.accommodationId === currentAccommodationId &&
+  //     ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
+  // );
 
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -1669,6 +1669,11 @@ export default function RoomView() {
         ? reservationFeeValue
         : 0;
 
+    const hasAlreadyApplied = myApplications.some(
+      (app: any) =>
+        app.roomId === selectedRoom?.id &&
+        ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
+    );
 
   return (
     <>
@@ -1686,18 +1691,18 @@ export default function RoomView() {
           {/* Content grid */}
           <div className={`grid ${GRID_COLS} gap-6`}>
 
-            {/* Main image — col 1 */}
-            <div className="relative overflow-hidden rounded-2xl" style={{ height: 300 }}>
-              <img src={displayPhotos[current]} alt="Main room" className="w-full h-full object-cover" />
-              <button
-                onClick={() => setCurrent((c) => (c - 1 + displayPhotos.length) % displayPhotos.length)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-10 transition-all hover:scale-110 active:scale-95"
-                style={{ background: CLR.mid }}
-              >
-                <span className="text-white text-xl font-bold pb-1 pr-0.5" style={{ lineHeight: 0 }}>
-                  {"<"}
-                </span>
-              </button>
+          {/* Main image — col 1 */}
+          <div className="relative overflow-hidden rounded-2xl" style={{ height: 300 }}>
+            <img src={displayPhotos[current] || defaultAccommodation } alt="Main room" className="w-full h-full object-cover" onError={(e) => {e.currentTarget.src = defaultAccommodation; }} />
+            <button
+              onClick={() => setCurrent((c) => (c - 1 + displayPhotos.length) % displayPhotos.length)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-10 transition-all hover:scale-110 active:scale-95"
+              style={{ background: CLR.mid }}
+            >
+              <span className="text-white text-xl font-bold pb-1 pr-0.5" style={{ lineHeight: 0 }}>
+                {"<"}
+              </span>
+            </button>
 
               <button
                 onClick={() => setCurrent((c) => (c + 1) % displayPhotos.length)}
@@ -1711,28 +1716,28 @@ export default function RoomView() {
             </div>
             </div>
 
-            {/* Thumbnail stack — col 2 */}
-            <div className="hidden lg:grid grid-rows-2 gap-3" style={{ height: 300 }}>
-              {/* Top-right */}
-              <div className="overflow-hidden rounded-2xl cursor-pointer" onClick={() => setCurrent(1)}>
-                <img src={displayPhotos[1]} alt="Thumb 2" className="w-full h-full object-cover" />
+          {/* Thumbnail stack — col 2 */}
+          <div className="hidden lg:grid grid-rows-2 gap-3" style={{ height: 300 }}>
+            {/* Top-right */}
+            <div className="overflow-hidden rounded-2xl cursor-pointer" onClick={() => setCurrent(1)}>
+              <img src={displayPhotos[1] || defaultAccommodation} alt="Thumb 2" className="w-full h-full object-cover" onError={(e) => {e.currentTarget.src = defaultAccommodation; }}/>
+            </div>
+            {/* Bottom-right: two small */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="overflow-hidden rounded-2xl cursor-pointer" onClick={() => setCurrent(2)}>
+                <img src={displayPhotos[2] || defaultAccommodation} alt="Thumb 3" className="w-full h-full object-cover" onError={(e) => {e.currentTarget.src = defaultAccommodation; }} />
               </div>
-              {/* Bottom-right: two small */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="overflow-hidden rounded-2xl cursor-pointer" onClick={() => setCurrent(2)}>
-                  <img src={displayPhotos[2]} alt="Thumb 3" className="w-full h-full object-cover" />
-                </div>
-                <div className="relative overflow-hidden rounded-2xl cursor-pointer" onClick={() => setCurrent(3)}>
-                  <img src={displayPhotos[3]} alt="Thumb 4" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-[#6B0F2B]/70 flex items-center justify-center">
-                    <button onClick={(e) => { e.stopPropagation(); setShowAllPhotosModal(true); }}
-                      className="bg-white text-gray-900 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow">
-                      <IconPlus /> All photos
-                    </button>
-                  </div>
+              <div className="relative overflow-hidden rounded-2xl cursor-pointer" onClick={() => setCurrent(3)}>
+                <img src={displayPhotos[3] || defaultAccommodation} alt="Thumb 4" className="w-full h-full object-cover" onError={(e) => {e.currentTarget.src = defaultAccommodation; }} />
+                <div className="absolute inset-0 bg-[#6B0F2B]/70 flex items-center justify-center">
+                  <button onClick={(e) => { e.stopPropagation(); setShowAllPhotosModal(true); }}
+                    className="bg-white text-gray-900 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow">
+                    <IconPlus /> All photos
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
 
           {/* Content row */}
 
