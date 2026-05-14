@@ -30,6 +30,7 @@ router.group(() => {
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
   router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
   router.get('/accommodations/:id/document-requirements', [controllers.Accommodation, 'listDocumentRequirements'])
+  router.put('/accommodations/:id/bookmark', [controllers.Accommodation, 'updateBookmark'])
 
   // Landing Page
   router.get('/settings', [controllers.AdminSettings, 'index'])
@@ -47,6 +48,7 @@ router.group(() => {
   router.get('/reviews/average-rating', [controllers.Reviews, 'averageRating'])
   
 })
+
 
 /*
 |--------------------------------------------------------------------------
@@ -172,6 +174,7 @@ router
         router.get('/applications/view-all-waitlisted', [controllers.Application, 'viewAllWaitlisted'])
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
         router.get('/applications/:id/enrollment-proof', [controllers.Application, 'viewEnrollmentProof'])
+        router.get('/applications/:id/documents', [controllers.Application, 'viewDocuments'])
         router.get('/manager/applications/approved', [controllers.Application, 'approvedForAssignment'])
 
         // Manager dashboard

@@ -457,9 +457,9 @@ export default function ApplicationsPage() {
 
         { label: 'pending', count: counts.pending || 0, from: '#C9973A', to: '#E8C37A', bg: '#FEF8EE', text: '#C9973A' },
 
-        { label: 'waitlisted', count: counts.waitlisted || 0, from: '#3A6AB7', to: '#7cd3f2', bg: '#F4F0FA', text: '#3A6AB7' },
+        { label: 'waitlisted', count: counts.waitlisted || 0, from: '#3A6AB7', to: '#7cd3f2', bg: '#EEF4FF', text: '#3A6AB7' },
 
-        { label: 'under review', count: counts.under_review || 0, from: '#6B3AB7', to: '#9B6AE7', bg: '#F0F7F3', text: '#6B3AB7' },
+        { label: 'under review', count: counts.under_review || 0, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
 
         { label: 'cancelled', count: counts.cancelled || 0, from: '#AA2661', to: '#FDCAE0', bg: '#FAF0F7', text: '#AE2F67' },
 
@@ -630,10 +630,11 @@ export default function ApplicationsPage() {
                               {app?.student?.user?.fname?.charAt(0)?.toUpperCase() || 'U'}
                             </div>
                             <div className="min-w-0">
+                              {/* Fixed to handle cases where user's google account may not have a last name */}
                               <p className="font-medium truncate">
-                                {app?.student?.user?.fname && app?.student?.user?.lname
-                                  ? `${app.student.user.fname} ${app.student.user.lname}`
-                                  : "Loading name..."}
+                                {[app?.student?.user?.fname, app?.student?.user?.lname]
+                                  .filter(Boolean)
+                                  .join(" ") || "Unknown"}
                               </p>
                             </div>
                           </div>

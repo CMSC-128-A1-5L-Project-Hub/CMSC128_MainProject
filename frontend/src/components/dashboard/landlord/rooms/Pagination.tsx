@@ -66,8 +66,8 @@ export default function Pagination({
             onClick={goToPreviousRange}
             className={`${buttonBase} bg-white text-[#654050] border border-[#E8D4E2] hover:bg-[#5A1021] hover:text-white`}
           >
-            <ChevronLeft size={16} />
-            <ChevronLeft size={16} className="-ml-2" />
+            <ChevronLeft size={20} />
+            <ChevronLeft size={20} className="-ml-2" />
           </button>
         )}
 
@@ -81,7 +81,7 @@ export default function Pagination({
               : "bg-white text-[#654050] border border-[#E8D4E2] hover:bg-[#5A1021] hover:text-white"
           }`}
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={20} />
         </button>
 
         {/* Page Numbers */}
@@ -112,7 +112,7 @@ export default function Pagination({
               : "bg-white text-[#654050] border border-[#E8D4E2] hover:bg-[#5A1021] hover:text-white"
           }`}
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={20} />
         </button>
 
         {/* Next Range */}
@@ -121,8 +121,8 @@ export default function Pagination({
             onClick={goToNextRange}
             className={`${buttonBase} bg-white text-[#654050] border border-[#E8D4E2] hover:bg-[#5A1021] hover:text-white`}
           >
-            <ChevronRight size={16} />
-            <ChevronRight size={16} className="-ml-2" />
+            <ChevronRight size={20} />
+            <ChevronRight size={20} className="-ml-2" />
           </button>
         )}
       </div>
@@ -145,28 +145,11 @@ export default function Pagination({
             type="number"
             min={1}
             max={totalPages}
-            defaultValue={currentPage}
-            onBlur={(e) => {
+            value={currentPage}
+            onChange={(e) => {
               const val = parseInt(e.target.value);
-
               if (!isNaN(val) && val >= 1 && val <= totalPages) {
                 goToPage(val);
-              } else {
-                e.target.value = currentPage.toString();
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                const val = parseInt(
-                  (e.target as HTMLInputElement).value
-                );
-
-                if (!isNaN(val) && val >= 1 && val <= totalPages) {
-                  goToPage(val);
-                } else {
-                  (e.target as HTMLInputElement).value =
-                    currentPage.toString();
-                }
               }
             }}
             className="w-16 px-2 py-2 border border-[#F2D9DF] rounded-xl text-center text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8C1535]"

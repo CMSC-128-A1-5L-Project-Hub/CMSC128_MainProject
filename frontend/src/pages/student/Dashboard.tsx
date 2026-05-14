@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import defaultAccommodation from "@/assets/defaults/accommodation.png"
 import CustomHeader from '../../components/CustomHeader';
 import UbleLoader from "../shared/LoadingPage";
+import HeroBanner from "@/components/dashboard/HeroBanner";
 
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
@@ -1070,26 +1071,13 @@ if (!profile || !user || user.role !== "student") {
           <div className="-mx-4 lg:-mx-6">
             <CustomHeader title="Dashboard" />
           </div>
-          <div
-            className="relative rounded-2xl overflow-hidden flex items-center min-h-[140px] sm:min-h-[176px]"
-            style={{ background: `linear-gradient(135deg, ${CLR.dark} 0%, ${CLR.accent} 60%, ${CLR.mid} 100%)` }}
-          >
-            <div className="relative z-10 px-5 sm:px-8 py-6">
-              <p className="text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1" style={{ color: CLR.goldLt }}>
-                {heroContent.greeting}, {profile.shortName}
-              </p>
-              <h2 className="text-white font-bold text-lg sm:text-2xl leading-snug mb-1.5 max-w-xs sm:max-w-sm">
-                {heroContent.title}
-              </h2>
-              <p className="text-white/60 text-xs sm:text-sm">
-                You have {pendingApplicationsCount} pending application{pendingApplicationsCount !== 1 && "s"} and {notificationsTodayCount} new notification{notificationsTodayCount !== 1 && "s"} today.              
-              </p>
-            </div>
-
-            <div className="absolute right-0 bottom-0 h-full flex items-end pointer-events-none">
-              <img src={house_icon} alt="" className="w-[130px] h-[130px]" />
-            </div>
-          </div>
+          <HeroBanner
+            greeting="Good Day"
+            name={profile.shortName}
+            title={heroContent.title}
+            subtitle={`You have ${pendingApplicationsCount} pending application${pendingApplicationsCount !== 1 && "s"} and ${notificationsTodayCount} new notification${notificationsTodayCount !== 1 && "s"} today. `}
+            type="full"
+          />
 
           <div className="bg-white rounded-[22px] shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 sm:px-6 pt-4">

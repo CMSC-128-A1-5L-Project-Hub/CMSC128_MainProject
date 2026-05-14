@@ -156,7 +156,29 @@ async store({ auth, request, response }: HttpContext) {
         assignment.moveIn.toISODate() ?? ''
       )
 
-      await LogService.record(user.id, 'assignment', assignment.id, 'LANDLORD_ASSIGNED_ROOM_OVERRIDE')
+      try {
+        if (existingAssignment && user.role === 'landlord') {
+          await LogService.record(
+            user.id,
+            'assignment',
+            assignment.id,
+            'LANDLORD_ASSIGNED_ROOM_OVERRIDE',
+            `Landlord ${user.id} overrode existing assignment ${existingAssignment.id} and assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding})`
+          )
+        } else {
+          const activityType =
+            user.role === 'manager' ? 'MANAGER_ASSIGNED_ROOM' : 'LANDLORD_ASSIGNED_ROOM'
+          await LogService.record(
+            user.id,
+            'assignment',
+            assignment.id,
+            activityType,
+            `${user.role === 'manager' ? 'Manager' : 'Landlord'} ${user.id} assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding}) at "${accommodation.accommodationName}"`
+          )
+        }
+      } catch (e) {
+        console.error('Failed to log assignment creation:', e)
+      }
       return response.ok(assignment)
 
     } catch (error) {

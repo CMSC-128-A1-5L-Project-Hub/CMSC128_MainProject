@@ -1,3 +1,4 @@
+import { useState } from "react"
 import Modal from "@/components/Modal"
 
 type Props = {
@@ -49,10 +50,17 @@ export default function StudentVerificationModal({
 }: Props) {
   const user = selectedItem?.user
   const student = selectedItem?.profileDetails
-
-  console.log("selectedItem:", selectedItem)
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   if (!user) return null
+
+  const enrollmentProof = student?.enrollmentProof as
+    | { fileName: string; fileType: "document" | "image"; url: string }
+    | undefined
+
+  const isPdf =
+    enrollmentProof?.fileType === "document" ||
+    (enrollmentProof?.fileName ?? "").toLowerCase().endsWith(".pdf")
 
   const fullName =
     `${user.fname ?? ""} ${user.lname ?? ""}`.trim()
@@ -211,34 +219,102 @@ export default function StudentVerificationModal({
           </div>
         </div>
 
-        {user.idImageUrl && (
+        {enrollmentProof?.url && (
           <div
             className="rounded-2xl overflow-hidden"
-            style={{
-              border: "1px solid rgba(140,21,53,0.12)",
-            }}
+            style={{ border: "1px solid rgba(140,21,53,0.12)" }}
           >
             <p
               className="px-4 py-2 text-[9px] font-bold tracking-[0.18em] uppercase text-[#9E2040]"
               style={{
-                fontFamily:
-                  "'Plus Jakarta Sans', sans-serif",
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 background: "rgba(140,21,53,0.05)",
-                borderBottom:
-                  "1px solid rgba(140,21,53,0.08)",
+                borderBottom: "1px solid rgba(140,21,53,0.08)",
               }}
             >
-              Submitted ID
+              Submitted Documents
             </p>
 
-            <img
-              src={user.idImageUrl}
-              alt="Student ID"
-              className="w-full object-cover max-h-48"
-            />
+            <div className="flex items-center gap-3 p-3 bg-white">
+              <div
+                className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-[10px] font-extrabold text-white"
+                style={{
+                  background: "linear-gradient(135deg, #8C1535 0%, #3D0718 100%)",
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                }}
+              >
+                {isPdf ? "PDF" : "IMG"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p
+                  className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#9E2040]"
+                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                >
+                  Enrollment Proof
+                </p>
+                <p
+                  className="text-[12px] font-semibold text-[#1A0A10] truncate"
+                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  title={enrollmentProof.fileName}
+                >
+                  {enrollmentProof.fileName}
+                </p>
+              </div>
+              <button
+                onClick={() => setPreviewOpen(true)}
+                className="px-4 py-2 rounded-xl text-[11px] font-bold tracking-[0.10em] uppercase transition-all hover:brightness-110 active:scale-[0.98]"
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  background: "linear-gradient(135deg, #8C1535 0%, #3D0718 100%)",
+                  color: "#fff",
+                }}
+              >
+                View
+              </button>
+            </div>
           </div>
         )}
       </div>
+
+      <Modal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title={enrollmentProof?.fileName ?? "Document"}
+        eyebrow="Enrollment Proof"
+        maxWidth={900}
+        maxHeight={800}
+      >
+        {enrollmentProof?.url ? (
+          isPdf ? (
+            <iframe
+              src={enrollmentProof.url}
+              title={enrollmentProof.fileName}
+              className="w-full rounded-xl bg-white"
+              style={{ height: "70vh", border: "1px solid rgba(140,21,53,0.12)" }}
+            />
+          ) : (
+            <img
+              src={enrollmentProof.url}
+              alt={enrollmentProof.fileName}
+              className="w-full max-h-[70vh] object-contain rounded-xl bg-[#FAFAFA]"
+              style={{ border: "1px solid rgba(140,21,53,0.12)" }}
+            />
+          )
+        ) : (
+          <p className="text-center text-gray-400 italic py-10">No document available.</p>
+        )}
+        <div className="mt-3 flex justify-end">
+          <a
+            href={enrollmentProof?.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-bold tracking-[0.10em] uppercase text-[#8C1535] hover:underline"
+            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          >
+            Open in new tab ↗
+          </a>
+        </div>
+      </Modal>
     </Modal>
   )
 }
