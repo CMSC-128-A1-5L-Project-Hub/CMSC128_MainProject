@@ -47,10 +47,10 @@ export default function BrowsePage() {
     const [searchTerm, setSearchTerm] = useState("")
     const [activeFilter, setActiveFilter] = useState("All")
     const [onlyBookmarked, setOnlyBookmarked] = useState(false)
-    const [minPrice, setMinPrice] = useState(500)
-    const [maxPrice, setMaxPrice] = useState(7000)
-    const [origMin, setOrigMin] = useState(800)
-    const [origMax, setOrigMax] = useState(7000)
+    const [minPrice, setMinPrice] = useState(-Infinity)
+    const [maxPrice, setMaxPrice] = useState(Infinity)
+    const [origMin, setOrigMin] = useState(-Infinity)
+    const [origMax, setOrigMax] = useState(Infinity)
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
     const [starRating, setStarRating] = useState(3)
@@ -89,6 +89,7 @@ export default function BrowsePage() {
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
+            console.log("success", res.data)
             setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
@@ -169,10 +170,8 @@ export default function BrowsePage() {
         ...prev,
         }));
 
-        if (!landingFilters) {
         setMinPrice(min);
         setMaxPrice(max);
-        }
         setOrigMin(min)
         setOrigMax(max)
         setSliderResetKey(prev => prev + 1)
@@ -257,23 +256,29 @@ export default function BrowsePage() {
             /* search match */
             const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
             if (!nameMatch) {
+                console.log("name", accommodationName)
                 continue
             }
 
             /* filters */
             if (!bookmarked && onlyBookmarked) {
+                console.log("name", accommodationName)
                 continue
             }
             if (Number(rating) < starRating) {
+                console.log("rating", accommodationName)
                 continue
             }
             if (minimum < minPrice || maximum > maxPrice) {
+                console.log("price", accommodationName, minPrice, maxPrice, origMax, origMin)
                 continue
             }
             if (dormType !== "All" && accommodationType !== dormType.toLowerCase()) {
+                console.log("dorm", accommodationName)
                 continue
             }
             if (roomType !== "All" && !roomTypes.has(roomType.toLowerCase())) {
+                console.log("room", accommodationName)
                 continue
             }
             if (trueTags.length !== 0) {
