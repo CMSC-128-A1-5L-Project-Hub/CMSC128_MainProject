@@ -1487,6 +1487,9 @@ export default function RoomView() {
     queryKey: ["me"],
     queryFn: async () => {
       const res = await api.get("/me")
+      // console.log("me:", res.data);
+      // console.log("student:", res.data.student);
+      // console.log("gender:", res.data.student?.gender);
       return res.data
     },
   })
@@ -1509,12 +1512,7 @@ export default function RoomView() {
     }
   });
 
-  const hasAlreadyApplied = myApplications.some(
-    (app: any) =>
-      app.accommodationId === currentAccommodationId &&
-      ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
-  );
-
+  
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -1712,6 +1710,50 @@ export default function RoomView() {
     accommodation.tags
       ?.map((tag: any) => tag.tagDetail ?? tag.tag_detail)
       .filter(Boolean) ?? [];
+
+  const hasAlreadyApplied = myApplications.some(
+    (app: any) =>
+      app.accommodationId === currentAccommodationId &&
+      ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
+  );
+  
+
+  const studentGender = String(user?.student?.gender ?? user?.gender ?? "").toLowerCase();
+  const accommodationRestriction = String((accommodation as any)?.tenantRestriction ?? "").trim().toLowerCase();
+  // console.log({
+  //   user,
+  //   student: user?.student,
+  //   studentGender,
+  //   accommodation,
+  //   accommodationRestriction,
+  // });
+
+  const genderBlocked =
+    (accommodationRestriction === "female-only" && studentGender === "male") ||
+    (accommodationRestriction === "male-only" && studentGender === "female");
+
+  //   console.log({
+  //   studentGender,
+  //   accommodationRestriction,
+  //   genderBlocked,
+  // });
+  // console.log("accommodation keys:", Object.keys(accommodation ?? {}));
+  // console.log("restriction candidates:", {
+  //   tenantRestriction: (accommodation as any)?.tenantRestriction,
+  //   tenant_restriction: (accommodation as any)?.tenant_restriction,
+  //   restriction: (accommodation as any)?.restriction,
+  //   tenantPreference: (accommodation as any)?.tenantPreference,
+  // });
+
+  const cannotApplyReason = hasAlreadyApplied
+    ? "You already have an active application for this dorm."
+    : genderBlocked
+      ? `This dorm is for ${accommodationRestriction === "female-only" ? "female" : "male"} students only.`
+      : !selectedRoom
+        ? "No matching room is currently available."
+        : "";
+
+  const cannotApply = hasAlreadyApplied || genderBlocked || !selectedRoom;
 
   const selectedRoomTags = selectedRoom?.tags ?? [];
 
@@ -2065,16 +2107,21 @@ export default function RoomView() {
 
                 {/* Apply */}
                 <button
-                  onClick={() => setIsModalOpen(true)}
-                  disabled={hasAlreadyApplied}
-                  className={`w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors ${hasAlreadyApplied ? "bg-gray-400 cursor-not-allowed" : "shadow-md"
-                    }`}
-                  style={hasAlreadyApplied ? {} : { background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
-                  onMouseEnter={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = CLR.mid)}
-                  onMouseLeave={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = "linear-gradient(135deg, #2D0511, #9A1F3E)")}
+                  onClick={() => !cannotApply && setIsModalOpen(true)}
+                  disabled={cannotApply}
+                  className={`w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors ${
+                    cannotApply ? "bg-gray-400 cursor-not-allowed" : "shadow-md"
+                  }`}
+                  style={cannotApply ? {} : { background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
                 >
                   {hasAlreadyApplied ? "Already Applied" : "Apply for Occupancy"}
                 </button>
+
+                {cannotApplyReason && (
+                  <p className="mt-2 text-[12px] text-[#8C1535] italic text-center">
+                    {cannotApplyReason}
+                  </p>
+                )}
 
                 <RoomApplicationModal
                   open={isModalOpen}
