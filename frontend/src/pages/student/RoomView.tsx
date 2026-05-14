@@ -1282,49 +1282,56 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
 
         {/* Review details */}
         <div className="space-y-3 font-sans">
-          {sortedReviews.map((review) => ( // ← sortedReviews, not reviews
-            <div key={review.id} className="bg-[#F7EFF2] border border-[#EFE3E8] p-4">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                    style={{ background: "#D1C4C9" }}
-                  >
-                    {review.student?.user?.fname?.[0] ?? "?"}
-                  </div>
-                  <div>
-                    <p className="text-[15px] font-bold text-gray-800">
-                      {review.student?.user
-                        ? `${review.student?.user?.fname} ${review.student?.user?.lname}`
-                        : "Anonymous"}
-                    </p>
-                    {review.createdAt && (
-                      <p className="text-[8px] font-light text-gray-800">
-                        {new Date(review.createdAt).toLocaleDateString("en-PH", {
-                          month: "long",
-                          day: "2-digit",
-                          year: "numeric",
-                        })}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <span className="text-[15px] font-bold" style={{ color: CLR.gold }}>
-                    {review.rating}
-                  </span>
-                  <div className="ml-5">
-                    <StarRating rating={review.rating} size="md" />
-
-                  </div>
-
-                </div>
-              </div>
-              {review.content && (
-                <p className="text-[10px] text-gray-600">{review.content}</p>
-              )}
+          {sortedReviews.length === 0 ? (
+            <div className="flex items-center justify-center py-10">
+              <p className="text-[11px] text-gray-400 italic">No reviews yet.</p>
             </div>
-          ))}
+          ) : (
+            sortedReviews.map((review) => ( // ← sortedReviews, not reviews
+              <div key={review.id} className="bg-[#F7EFF2] border border-[#EFE3E8] p-4">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                      style={{ background: "#D1C4C9" }}
+                    >
+                      {review.student?.user?.fname?.[0] ?? "?"}
+                    </div>
+                    <div>
+                      <p className="text-[15px] font-bold text-gray-800">
+                        {review.student?.user
+                          ? `${review.student?.user?.fname} ${review.student?.user?.lname}`
+                          : "Anonymous"}
+                      </p>
+                      {review.createdAt && (
+                        <p className="text-[8px] font-light text-gray-800">
+                          {new Date(review.createdAt).toLocaleDateString("en-PH", {
+                            month: "long",
+                            day: "2-digit",
+                            year: "numeric",
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <span className="text-[15px] font-bold" style={{ color: CLR.gold }}>
+                      {review.rating}
+                    </span>
+                    <div className="ml-5">
+                      <StarRating rating={review.rating} size="md" />
+
+                    </div>
+
+                  </div>
+                </div>
+                {review.content && (
+                  <p className="text-[10px] text-gray-600">{review.content}</p>
+                )}
+              </div>
+            ))
+          )}
+
         </div>
         {/* End of review details */}
 
@@ -1737,7 +1744,7 @@ export default function RoomView() {
           {/* Content row */}
 
           <div className="bg-white rounded-2xl shadow-sm p-6 px-8">
-            <div className="flex items-center gap-2 flex-wrap mb-2">
+            <div className="flex items-baseline gap-2 flex-wrap mb-2">
               <StarRating rating={avgRating} size="md" />
               <span className="text-[15px] font- text-[#9A7080] font-semibold mr-5">
                 {avgRating.toFixed(1)} ({accommodation.reviews.length})
@@ -1775,9 +1782,14 @@ export default function RoomView() {
                   onClick={() => {
                     setReportType("dorm")
                     setReportOpen(true)
+                    
                   }}
+                  className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
                 >
                   <IconReport />
+                  <span className="hidden md:inline text-sm font-semibold">
+                    Report
+                  </span>
                 </button>
               </div>
             </div>
@@ -1874,7 +1886,7 @@ export default function RoomView() {
 
                 {/* Inclusions */}
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Inclusions:</p>
-                <div className="flex gap-2 mb-4 mt-2">
+                <div className="flex flex-wrap gap-2 mb-4 mt-2">
                   {roomInclusions.length > 0 ? (
                     roomInclusions.map((inc: string) => (
                       <span key={inc} className="flex items-center gap-1.5 text-sm font-medium text-[white] bg-[#6B0F2B] truncate px-3 py-1 rounded-full">
