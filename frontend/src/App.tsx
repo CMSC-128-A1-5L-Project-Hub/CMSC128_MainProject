@@ -47,6 +47,7 @@ import ActivityLogsPage from "./pages/admin/ActivityLogs"
 import StudentLayout from "./layouts/StudentLayout"
 import ManagerLayout from "./layouts/ManagerLayout"
 import LandlordLayout from "./layouts/LandlordLayout"
+import AdminLayout from "./layout/AdminLayout"
 
 function FullLandingPage() {
   return (
@@ -110,6 +111,7 @@ function AnimatedRoutes() {
 
         {/* ── Landlord routes ── */}
         <Route element={<LandlordLayout />}>
+          {/* Manage Accommodation (landing page for landlords) */}
           <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
           {/* Individual Accommodation Dashboard */}
           <Route path="/landlord/accommodation/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
@@ -118,15 +120,15 @@ function AnimatedRoutes() {
           <Route path="/landlord/profile" element={<ProtectedRoute><LandlordProfile /></ProtectedRoute>} />
           <Route path="/landlord/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
         </Route>
-        {/* Manage Accommodation (landing page for landlords) */}
-        
 
         {/* ── Admin routes ── */}
-        <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin/student-verifications" element={<ProtectedRoute> <StudentVerificationsPage /> </ProtectedRoute>} />
-        <Route path="/admin/landlord-verifications" element={<ProtectedRoute> <LandlordVerificationsPage /> </ProtectedRoute>} />
-        <Route path="/admin/activity-logs" element={<ProtectedRoute> <ActivityLogsPage /> </ProtectedRoute>} />
-
+        <Route element={<AdminLayout/>}>
+          <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/student-verifications" element={<ProtectedRoute> <StudentVerificationsPage /> </ProtectedRoute>} />
+          <Route path="/admin/landlord-verifications" element={<ProtectedRoute> <LandlordVerificationsPage /> </ProtectedRoute>} />
+          <Route path="/admin/activity-logs" element={<ProtectedRoute> <ActivityLogsPage /> </ProtectedRoute>} />
+        </Route>
+        
         {/* ── Catch-all: 404 ── */}
         <Route path="*" element={<NotFound />} />
       </Routes>
