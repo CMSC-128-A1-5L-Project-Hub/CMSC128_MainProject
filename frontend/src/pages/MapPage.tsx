@@ -2,12 +2,11 @@
 // Route: /map              -> centered on UPLB (browse all)
 // Route: /map?center=:id   -> centered on specific accommodation (from "View Location" button)
 // Filters are passed via URL query params so they persist from the browse/cards page
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import AccommodationMap, { type AccommodationPin, type AccommodationReview } from '../components/AccommodationMaps'
 import { api } from '../api/axios'
-import { useUserStore } from '../stores/useUserStore'
 
 const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
   const res = await api.get('/accommodations')
@@ -49,6 +48,9 @@ const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
       imageUrl: acc.primaryImageUrl ?? undefined,
       reviews,
       rating,
+      amenities: (acc.tags ?? [])
+        .map((t: any) => t.tagDetail ?? t.tag_detail)
+        .filter(Boolean),
     } satisfies AccommodationPin
   })
 }
@@ -59,8 +61,6 @@ const DEFAULT_MAX_RENT = 15000
 export default function MapPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-
-  const user = useUserStore((s) => s.user)
 
   const { data: accommodations = [], isLoading, isError } = useQuery({
     queryKey: ['accommodations'],
@@ -80,8 +80,52 @@ export default function MapPage() {
   // ─── Local UI state ────────────────────────────────────────────────────────
   const [minRating, setMinRating] = useState(0)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [availableTags, setAvailableTags] = useState(['WiFi', 'Furnished', 'Air-con', 'Laundry', 'Study-Friendly', 'Transient'])
+  const [showAllTags, setShowAllTags] = useState(false)
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+
+  // ─── Favorites (persisted to localStorage) ────────────────────────────────
+  const [favorites, setFavorites] = useState<Set<number>>(() => {
+    try {
+      const stored = localStorage.getItem('map_favorites')
+      return stored ? new Set<number>(JSON.parse(stored)) : new Set<number>()
+    } catch {
+      return new Set<number>()
+    }
+  })
+
+  const toggleFavorite = useCallback((accommodationId: number) => {
+    setFavorites(prev => {
+      const next = new Set(prev)
+      if (next.has(accommodationId)) {
+        next.delete(accommodationId)
+      } else {
+        next.add(accommodationId)
+      }
+      try {
+        localStorage.setItem('map_favorites', JSON.stringify([...next]))
+      } catch { /* ignore */ }
+      return next
+    })
+  }, [])
+
+  const availableTags = useMemo(() => {
+    return [...new Set(accommodations.flatMap((acc) => acc.amenities ?? []))]
+  }, [accommodations])
+
+  // Staged: filters only apply to map when "Apply Filters" is clicked
+  const [appliedFilters, setAppliedFilters] = useState({
+    type: 'all',
+    restriction: 'all',
+    minRent: DEFAULT_MIN_RENT,
+    maxRent: DEFAULT_MAX_RENT,
+    maxWalk: 60,
+    minCapacity: 0,
+    stayType: 'all',
+    rating: 0,
+    tags: [] as string[],
+    showFavoritesOnly: false,
+  })
 
   const centerId = searchParams.get('center')
   const centeredAccommodation = useMemo(
@@ -97,38 +141,45 @@ export default function MapPage() {
     } else {
       params.set(key, String(value))
     }
-    setSearchParams(params, { replace: true })
+    setSearchParams(params)
   }
 
   const resetFilters = () => {
     const params = new URLSearchParams()
     if (centerId) params.set('center', centerId)
-    setSearchParams(params, { replace: true })
+    setSearchParams(params)
     setMinRating(0)
     setSelectedTags([])
+    setShowFavoritesOnly(false)
+    setAppliedFilters({ type: 'all', restriction: 'all', minRent: DEFAULT_MIN_RENT, maxRent: DEFAULT_MAX_RENT, maxWalk: 60, minCapacity: 0, stayType: 'all', rating: 0, tags: [], showFavoritesOnly: false })
+  }
+
+  const handleApplyFilters = () => {
+    setAppliedFilters({ type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType, rating: minRating, tags: selectedTags, showFavoritesOnly })
   }
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
   }
 
-  // ─── Filtering (all filters are reactive) ────────────────────────────────
+  // ─── Filtering (search is immediate; all others staged via Apply) ──────────
   const filtered = useMemo(() => {
     return accommodations.filter((acc) => {
       const matchSearch =
         acc.accommodationName.toLowerCase().includes(search.toLowerCase()) ||
         acc.accommodationLocation.toLowerCase().includes(search.toLowerCase())
-      const matchType = type === 'all' || acc.accommodationType === type
-      const matchRestriction = restriction === 'all' || acc.tenantRestriction === restriction
-      const matchRent = acc.minRent >= minRent && acc.maxRent <= maxRent
-      const matchWalk = acc.walkingDistance <= maxWalk
-      const matchCapacity = acc.accommodationCapacity >= minCapacity
-      const matchStayType = stayType === 'all' || acc.stayType === stayType || acc.stayType === 'both'
-      const matchRating = !acc.rating || acc.rating >= minRating
-      const matchTags = selectedTags.length === 0 || selectedTags.every(tag => acc.amenities?.includes(tag))
-      return matchSearch && matchType && matchRestriction && matchRent && matchWalk && matchCapacity && matchStayType && matchRating && matchTags
+      const matchType = appliedFilters.type === 'all' || acc.accommodationType === appliedFilters.type
+      const matchRestriction = appliedFilters.restriction === 'all' || acc.tenantRestriction === appliedFilters.restriction
+      const matchRent = acc.minRent >= appliedFilters.minRent && acc.maxRent <= appliedFilters.maxRent
+      const matchWalk = acc.walkingDistance <= appliedFilters.maxWalk
+      const matchCapacity = acc.accommodationCapacity >= appliedFilters.minCapacity
+      const matchStayType = appliedFilters.stayType === 'all' || acc.stayType === appliedFilters.stayType || acc.stayType === 'both'
+      const matchRating = !acc.rating || acc.rating >= appliedFilters.rating
+      const matchTags = appliedFilters.tags.length === 0 || appliedFilters.tags.every(tag => acc.amenities?.includes(tag))
+      const matchFavorites = !appliedFilters.showFavoritesOnly || favorites.has(acc.accommodationId)
+      return matchSearch && matchType && matchRestriction && matchRent && matchWalk && matchCapacity && matchStayType && matchRating && matchTags && matchFavorites
     })
-  }, [accommodations, search, type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType, minRating, selectedTags])
+  }, [accommodations, search, appliedFilters, favorites])
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', fontFamily: "'Plus Jakarta Sans', sans-serif", overflow: 'hidden' }}>
@@ -171,7 +222,7 @@ export default function MapPage() {
                     {isLoading ? 'Loading...' : `${filtered.length} of ${accommodations.length} shown`}
                   </p>
                   <button 
-                  onClick={() => navigate(-1)}
+                  onClick={() => navigate('/')}
                   className='mt-4 p-0 flex items-center text-white text-xs hover:underline hover:scale-105 transition-all'>
                     ← Back
                   </button>
@@ -198,24 +249,39 @@ export default function MapPage() {
                   />
                 </div>
 
-                {/* Favorites toggle (UI only) — hidden for guests */}
-                {user && <div className="max-md:col-span-2 space-y-2">
+                {/* Favorites toggle */}
+                <div className="max-md:col-span-2 space-y-2">
                   <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Show Favorites Only</label>
                   <div className="h-[46px] flex items-center justify-between p-3 bg-[#FDF7F8] rounded-2xl border border-[#F5EBEB]">
                     <div className="flex items-center gap-3">
                       <div className="text-[#710A2B]">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth={1.5}
+                          stroke={showFavoritesOnly ? '#710A2B' : 'currentColor'}
+                          fill={showFavoritesOnly ? '#710A2B' : 'none'}
+                          className="w-5 h-5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
                         </svg>
                       </div>
-                      <p className="text-sm font-bold text-gray-800 truncate">Saved Rooms</p>
+                      <p className="text-sm font-bold text-gray-800 truncate">
+                        Saved Rooms
+                        {favorites.size > 0 && (
+                          <span className="ml-2 text-[10px] font-bold text-white bg-[#710A2B] px-1.5 py-0.5 rounded-full">
+                            {favorites.size}
+                          </span>
+                        )}
+                      </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer scale-90">
-                      <input type="checkbox" className="sr-only peer" />
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={showFavoritesOnly}
+                        onChange={(e) => setShowFavoritesOnly(e.target.checked)}
+                      />
                       <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#710A2B]/20 peer-checked:after:bg-[#710A2B]" />
                     </label>
                   </div>
-                </div>}
+                </div>
 
                 {/* Dorm Type */}
                 <div className="max-md:col-span-1 space-y-2">
@@ -369,7 +435,7 @@ export default function MapPage() {
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {availableTags.map(tag => (
+                    {(showAllTags ? availableTags : availableTags.slice(0, 10)).map(tag => (
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag)}
@@ -384,9 +450,27 @@ export default function MapPage() {
                       </button>
                     ))}
                   </div>
+                  {availableTags.length > 10 && (
+                    <button
+                      onClick={() => setShowAllTags(prev => !prev)}
+                      className="text-[10px] font-bold text-[#710A2B] hover:underline"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    >
+                      {showAllTags ? 'See less ↑' : `See all ${availableTags.length} ↓`}
+                    </button>
+                  )}
                 </div>
               </div>
 
+              {/* Apply Button */}
+              <div className="p-6 pt-4 border-t border-gray-50">
+                <button
+                  onClick={handleApplyFilters}
+                  className="w-full py-4 bg-[#710A2B] text-sm text-white font-bold rounded-2xl shadow-lg hover:bg-[#5a0822] transition-all active:scale-95"
+                >
+                  Apply Filters
+                </button>
+              </div>
             </div>
           </div>
 
@@ -451,6 +535,8 @@ export default function MapPage() {
               accommodations={filtered}
               centeredAccommodation={centeredAccommodation}
               onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
+              favorites={favorites}
+              onToggleFavorite={toggleFavorite}
             />
           </div>
         </div>

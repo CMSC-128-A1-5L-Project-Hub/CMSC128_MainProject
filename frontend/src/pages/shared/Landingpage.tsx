@@ -300,7 +300,7 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
   const hiddenCount = extraTags.length - displayedExtra.length;
 
   const handleSearch = () => {
-    navigate("/student/browse", {
+    navigate("/map", {
       state: {
         dormType,
         minPrice,
@@ -745,16 +745,7 @@ export default function LandingPage() {
           <button
             className="browse-btn"
             style={fu(0.54)}
-            onClick={async (e) => {
-              e.stopPropagation();
-              try {
-                await api.get("/me");
-                window.location.href = `/student/browse`;
-              } catch (error) {
-                window.location.href = "/auth/signin";
-              }
-            }}
-
+            onClick={() => { window.location.href = "/map"; }}
           >Browse Rooms →</button>
 
           <div className="search-wrapper" style={fu(0.64)}>
