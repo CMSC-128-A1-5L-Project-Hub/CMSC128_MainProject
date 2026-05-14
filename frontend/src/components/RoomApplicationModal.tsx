@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Modal from "./Modal";
 import Button from "./Button";
 import Card from "./ui/Card";
@@ -13,6 +14,7 @@ import {
 } from "react-icons/io5";
 import GradientPillSelect from "./DropDownGradient.tsx";
 import { api } from "../api/axios";
+
 
 interface ApplyModalProps {
     open: boolean;
@@ -78,26 +80,28 @@ export default function RoomApplicationModal({
     const [moveOutDate, setMoveOutDate] = useState("");
     const [declaration, setDeclaration] = useState<"accept" | "retract" | null>(null);
 
-
     // ── Per-requirement document state ────────────────────────────────────────
-    // documentRequirements comes from accommodation prop, shape: { id, requirementName, acceptedFormat }[]
     type DocRequirement = { id: number; requirementName: string; acceptedFormat: 'pdf' | 'image' | 'any' }
     type DocSlot = { file: File | null; name: string; size: string }
 
-    const docRequirements: DocRequirement[] = (accommodation?.documentRequirements ?? []) as DocRequirement[]
+    const { data: docRequirements = [] } = useQuery<DocRequirement[]>({
+        queryKey: ["doc-requirements", accommodation?.id],
+        queryFn: () => api.get(`/accommodations/${accommodation?.id}/document-requirements`).then((r) => r.data),
+        enabled: open && !!accommodation?.id,
+    });
     const hasDocRequirements = docRequirements.length > 0
 
     // slots: Record<requirementId, DocSlot[]> — starts with one empty slot per requirement
     const makeEmptySlot = (): DocSlot => ({ file: null, name: '', size: '' })
     const [docSlots, setDocSlots] = useState<Record<number, DocSlot[]>>({})
 
-    // Sync slots when requirements change (modal open/close or accommodation change)
+    // Sync slots when requirements change (modal open/close, accommodation change, or fetch lands)
     useEffect(() => {
         if (!open) return
         const initial: Record<number, DocSlot[]> = {}
         docRequirements.forEach(req => { initial[req.id] = [makeEmptySlot()] })
         setDocSlots(initial)
-    }, [open, accommodation?.id])
+    }, [open, accommodation?.id, docRequirements.length])
 
     const slotInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
@@ -109,7 +113,6 @@ export default function RoomApplicationModal({
             slots[slotIndex] = { file, name: file.name, size: (file.size / 1024).toFixed(0) + 'kb' }
             return { ...prev, [reqId]: slots }
         })
-        // reset input so same file can be re-selected after removal
         e.target.value = ''
     }
 
@@ -140,9 +143,6 @@ export default function RoomApplicationModal({
         (docSlots[req.id] ?? []).some(s => s.file !== null)
     )
 
-    const totalUploadedCount = Object.values(docSlots).reduce(
-        (sum, slots) => sum + slots.filter(s => s.file !== null).length, 0
-    )
     const totalRequiredCount = docRequirements.length
 
     const paymentInputRef = useRef<HTMLInputElement>(null);
@@ -177,32 +177,50 @@ export default function RoomApplicationModal({
 
     const handleSubmit = async () => {
         try {
-            const payload = {
-                accommodationId: accommodation.id,
-                roomId: currentRoom?.id,
-                applicationRoomType: selectedArrangement,
-                applicationStayType: selectedStayType,
-                durationOfStayDays: isTransient ? numberOfDays : null,
-                preferredTags:
-                    selectedPreferences.length > 0 ? selectedPreferences : null,
-                moveInDate: isTransient ? moveInDate : null,
-                moveOutDate: isTransient ? moveOutDate : null,
-                reservationFee: isTransient ? reservationFee : null,
-                moveInFee: !isTransient ? moveInFee : null,
-            };
+            const formData = new FormData();
+            formData.append("accommodationId", String(accommodation.id));
+            if (currentRoom?.id != null) formData.append("roomId", String(currentRoom.id));
+            formData.append("applicationRoomType", selectedArrangement);
+            formData.append("applicationStayType", selectedStayType);
+            if (isTransient) {
+                formData.append("durationOfStayDays", String(numberOfDays));
+                formData.append("moveInDate", moveInDate);
+                formData.append("moveOutDate", moveOutDate);
+                formData.append("reservationFee", String(reservationFee));
+            } else {
+                formData.append("moveInFee", String(moveInFee));
+            }
+            if (selectedPreferences.length > 0) {
+                formData.append("preferredTags", JSON.stringify(selectedPreferences));
+            }
 
-            console.log("Submitting payload:", payload);
+            // Attach documents from per-requirement slots
+            const reqIds: (number | null)[] = [];
+            const reqNames: string[] = [];
+            for (const req of docRequirements) {
+                const slots = docSlots[req.id] ?? [];
+                for (const slot of slots) {
+                    if (!slot.file) continue;
+                    formData.append("documents", slot.file);
+                    reqIds.push(req.id);
+                    reqNames.push(req.requirementName);
+                }
+            }
+            if (reqIds.length > 0) {
+                formData.append("requirement_ids", JSON.stringify(reqIds));
+                formData.append("requirement_names", JSON.stringify(reqNames));
+            }
 
             try {
-                const res = await api.post("/applications", payload);
+                const res = await api.post("/applications", formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
                 console.log("Application submitted:", res.data);
                 handleClose();
             } catch (err: any) {
                 console.error("Submit failed status:", err.response?.status);
                 console.error("Submit failed data:", err.response?.data);
             }
-
-            handleClose(); // close modal after success
         } catch (err) {
             console.error("Submit failed:", err);
         }

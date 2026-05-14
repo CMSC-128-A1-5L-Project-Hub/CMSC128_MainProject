@@ -11,7 +11,6 @@ import type {
   AssignmentItem,
 } from '../src/stores/useDashboardStore'
 
-// ─── Fetchers ────────────────────────────────────────────────────
 const fetchProfile = async (): Promise<RawProfile> => {
   const { data } = await api.get('/me')
   return data.data ?? data
@@ -34,7 +33,6 @@ const fetchAssignments = async (): Promise<RawAssignment[]> => {
 
 const fetchRooms = async (): Promise<RawRoom[]> => {
   const { data } = await api.get('/manager/rooms')
-  // console.log(data)
   return data.data ?? data
 }
 
@@ -43,7 +41,6 @@ const fetchLogs = async (): Promise<RawLog[]> => {
   return data.data ?? data
 }
 
-// ─── Query keys ──────────────────────────────────────────────────
 export const dashboardKeys = {
   all: ['dashboard'] as const,
   profile: () => [...dashboardKeys.all, 'profile'] as const,
@@ -54,7 +51,6 @@ export const dashboardKeys = {
   logs: () => [...dashboardKeys.all, 'logs'] as const,
 }
 
-// ─── Hooks ───────────────────────────────────────────────────────
 export function useProfile() {
   const setProfile = useDashboardStore((s) => s.setProfile)
   return useQuery({
@@ -77,6 +73,7 @@ export function useIncomingApps() {
       setIncomingApps(apps)
       return apps
     },
+    staleTime: 0, // Always fetch fresh
   })
 }
 
@@ -89,6 +86,7 @@ export function useApprovedApps() {
       setApprovedApps(apps)
       return apps
     },
+    staleTime: 0, // Always fetch fresh
   })
 }
 
@@ -101,6 +99,7 @@ export function useAssignments() {
       setAssignments(assignments)
       return assignments
     },
+    staleTime: 0, // Always fetch fresh
   })
 }
 
@@ -113,6 +112,7 @@ export function useRooms() {
       setRooms(rooms)
       return rooms
     },
+    staleTime: 0, // Always fetch fresh
   })
 }
 
@@ -125,15 +125,17 @@ export function useLogs() {
       setLogs(logs)
       return logs
     },
+    staleTime: 60_000,
   })
 }
 
 export function useRefreshDashboard() {
   const queryClient = useQueryClient()
-  return () => queryClient.refetchQueries({ queryKey: dashboardKeys.all })
+  return () => {
+    queryClient.invalidateQueries({ queryKey: dashboardKeys.all })
+  }
 }
 
-// ─── Shared transformations ──────────────────────────────────────
 export function formatDate(isoString: string) {
   return new Date(isoString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -145,7 +147,11 @@ export function formatDate(isoString: string) {
 export function parsePreferredTags(raw: string[] | string | null | undefined): string[] {
   if (!raw) return []
   if (Array.isArray(raw)) return raw
-  try { return JSON.parse(raw) } catch { return [] }
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return []
+  }
 }
 
 export function transformApp(app: RawApplication): TransformedApp {
@@ -190,7 +196,7 @@ export function mergeAppWithAssignment(
   if (activeAssign) {
     const confirmationStatus = activeAssign.confirmationStatus ?? 'pending_confirmation'
     return {
-      applicationId: app.id,                                                       
+      applicationId: app.id,
       student: app,
       roomNumber: activeAssign.room.roomNumber,
       roomBuilding: activeAssign.room.roomBuilding,
@@ -203,7 +209,7 @@ export function mergeAppWithAssignment(
     }
   }
   return {
-    applicationId: app.id,                                                           
+    applicationId: app.id,
     student: app,
     roomNumber: '',
     roomBuilding: '',

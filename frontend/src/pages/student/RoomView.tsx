@@ -378,7 +378,7 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
     : null;
 
   return (
-    <div ref={ref} className="relative w-full">
+    <div ref={ref} className="relative w-full pb-2">
       {/* ── Saved State ── */}
       {isSet && !editing && (
         <div className="bg-[#6B0F2B] rounded-2xl overflow-hidden">

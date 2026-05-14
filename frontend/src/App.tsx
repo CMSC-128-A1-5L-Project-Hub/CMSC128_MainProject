@@ -41,6 +41,7 @@ import UbleLoader from "./pages/shared/LoadingPage"
 import OccupancyReportPrint from "./pages/landlord/reports/OccupancyReportPrint"
 import RevenueReportPrint from "./pages/landlord/reports/RevenueReportPrint"
 import AccommodationHistoryReportPrint from "./pages/landlord/reports/AccommodationHistoryReportPrint"
+import ActivityLogsPage from "./pages/admin/ActivityLogs"
 
 function FullLandingPage() {
   return (
@@ -110,7 +111,8 @@ function App() {
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/student-verifications" element={<ProtectedRoute> <StudentVerificationsPage /> </ProtectedRoute>} />
         <Route path="/admin/landlord-verifications" element={<ProtectedRoute> <LandlordVerificationsPage /> </ProtectedRoute>} />
-        
+        <Route path="/admin/activity-logs" element={<ProtectedRoute> <ActivityLogsPage /> </ProtectedRoute>} />
+
         {/* ── Catch-all: 404 ── */}
         <Route path="*" element={<NotFound />} />
       </Routes>

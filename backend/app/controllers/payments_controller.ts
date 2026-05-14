@@ -6,13 +6,14 @@ import Fee from '#models/fee'
 import FileMetadata from '#models/file_metadatum'
 import Manager from '#models/manager'
 import LogService from '#services/log_service'
+import Accommodation from '#models/accommodation'
 import { DateTime } from 'luxon'
 
 export default class PaymentsController {
 
   // ─── STUDENT: UPLOAD PAYMENT PROOF ───
   // POST /payments/:feeId/pay
-  async uploadProof({ params, request, response }: HttpContext) {
+  async uploadProof({ auth, params, request, response }: HttpContext) {
     const feeId = params.feeId
     const fee = await Fee.findOrFail(feeId)
 
@@ -65,6 +66,18 @@ export default class PaymentsController {
       paymentStatus: 'pending',
     })
 
+    try {
+      await LogService.record(
+        auth.user?.id ?? null,
+        'payment',
+        payment.id,
+        'PAYMENT_PROOF_UPLOADED',
+        `Student ${auth.user?.id ?? 'unknown'} uploaded ${modeOfPayment} payment of ${paymentAmount} for Fee ${fee.id}`
+      )
+    } catch (e) {
+      console.error('Failed to log PAYMENT_PROOF_UPLOADED:', e)
+    }
+
     return response.ok({
       message: 'Payment proof uploaded successfully',
       payment, // adonis auto-serialize
@@ -73,32 +86,65 @@ export default class PaymentsController {
 
   // ─── MANAGER: VIEW PENDING PAYMENTS ───
   // GET /payments/pending
-  async pending({ auth, response }: HttpContext) {
-    const user = auth.user!
+async pending({ auth, response }: HttpContext) {
+  const user = auth.user!
 
-    const manager = await Manager
+  let accommodationIds: number[] = []
+
+  if (user.role === 'manager') {
+    const accommodations = await Accommodation
       .query()
-      .where('userId', user.id)
-      .preload('accommodations')
-      .firstOrFail()
-
-    const accoms = manager.accommodations.map(accom => accom.id)
-
-    if (accoms.length === 0) {
-      return response.ok([]) // was: return []
-    }
-
-    const payments = await Payment
+      .where('managerId', user.id)
+    accommodationIds = accommodations.map((a) => a.id)
+  } 
+  else if (user.role === 'landlord') {
+    const accommodations = await Accommodation
       .query()
-      .where('paymentStatus', 'pending')
-      .whereHas('fee', (feeQuery) => {
-        feeQuery.whereIn('accommodationId', accoms)
-      })
-      .preload('fee')
-      .preload('proofFile')
-
-    return response.ok(payments)
+      .where('landlordId', user.id)
+    accommodationIds = accommodations.map((a) => a.id)
   }
+  else {
+    return response.forbidden({ message: 'Access denied' })
+  }
+
+  if (accommodationIds.length === 0) {
+    return response.ok([])
+  }
+
+  const payments = await Payment
+    .query()
+    .where('paymentStatus', 'pending')
+    .whereHas('fee', (feeQuery) => {
+      feeQuery
+        .whereHas('student', (studentQuery) => {
+          studentQuery
+            .whereHas('assignments', (assignmentQuery) => {
+              assignmentQuery
+                .whereHas('room', (roomQuery) => {
+                  roomQuery
+                    .whereHas('accommodation', (accommodationQuery) => {
+                      accommodationQuery.whereIn('id', accommodationIds)
+                    })
+                })
+                .whereNull('actualMoveOut')
+                .where('confirmationStatus', 'active')
+            })
+        })
+    })
+    .preload('fee', (feeQuery) => {
+      feeQuery.preload('student', (studentQuery) => {
+        studentQuery.preload('user')
+        studentQuery.preload('assignments', (assignmentQuery) => {
+          assignmentQuery.preload('room', (roomQuery) => {
+            roomQuery.preload('accommodation')
+          })
+        })
+      })
+    })
+    .preload('proofFile')
+
+  return response.ok(payments)
+}
 
   // ─── MANAGER: VERIFY PAYMENT ───
   // PATCH /payments/:id/verify

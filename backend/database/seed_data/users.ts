@@ -232,6 +232,20 @@ export const Users: UserSeedData[] = [
         role: 'student',
         account_status: 'active'
     },
+    {
+        email: 'tannireyey@gmail.com',
+        fname: 'Marcus Naethan',
+        lname: 'Reyes',
+        role: 'student',
+        account_status: 'active'
+    },
+    {
+        email: 'janellesison03@gmail.com',
+        fname: 'Janelle',
+        lname: 'Sison',
+        role: 'student',
+        account_status: 'active'
+    },
 ]
 
 export const Landlords: LandlordSeedData[] = [
@@ -354,6 +368,20 @@ export const Students: StudentSeedData[] = [
     {
         email: 'kndxyl@gmail.com',
         studentNumber: '2023-05432',
+        college: 'cas',
+        degreeProgram: 'BS Computer Science',
+        gender: 'female'
+    },
+    {
+        email: 'tannireyey@gmail.com',
+        studentNumber: '2023-54320',
+        college: 'cas',
+        degreeProgram: 'BS Computer Science',
+        gender: 'male'
+    },
+    {
+        email: 'janellesison03@gmail.com',
+        studentNumber: '2023-99999',
         college: 'cas',
         degreeProgram: 'BS Computer Science',
         gender: 'female'

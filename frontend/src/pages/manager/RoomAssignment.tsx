@@ -5,7 +5,7 @@ import CustomHeader from '../../components/CustomHeader';
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import SearchBar from '../../components/SearchBar';
 
-
+import { useQueryClient } from "@tanstack/react-query"
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
 import Card from "../../components/ui/Card"
@@ -73,6 +73,7 @@ const AssignModalContent = ({
   onClose: () => void
   onAssigned: () => void
 }) => {
+  const queryClient = useQueryClient()
   const studentPrefs = assignment.student.preferredTags ?? []
   const appStayType = assignment.stayType.replace('-', '_')
 
@@ -173,7 +174,7 @@ const AssignModalContent = ({
                   )}
                 </div>
 
-                {/* Assign button – uses api */}
+                {/* Assign button – invalidates all dashboard queries after success */}
                 <Button
                   variant="reddishPink"
                   size="sm"
@@ -191,6 +192,8 @@ const AssignModalContent = ({
                     try {
                       const res = await api.post('/assignments', payload)
                       if (res.status === 200 || res.status === 201) {
+                        // Invalidate all related dashboard queries
+                        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
                         onClose()
                         onAssigned()
                       } else {
@@ -198,7 +201,7 @@ const AssignModalContent = ({
                       }
                     } catch (e: any) {
                       console.error(e)
-                      alert('Network error')
+                      alert(e.response?.data?.message || 'Network error')
                     }
                   }}
                   className="w-full sm:w-auto"

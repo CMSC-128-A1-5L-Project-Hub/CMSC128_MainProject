@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import defaultAccommodation from "@/assets/defaults/accommodation.png"
 import CustomHeader from '../../components/CustomHeader';
 import UbleLoader from "../shared/LoadingPage";
+import HeroBanner from "@/components/dashboard/HeroBanner";
 
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
@@ -79,7 +80,7 @@ const CLR = {
 } as const;
 
 // ── Types ──────────────────────────────────────────────────────────────────
-type ApplicationStatus = "Approved" | "Pending" | "In Review";
+type ApplicationStatus = "Approved" | "Pending" | "In Review" | "Rejected" | "Cancelled" | "Waitlisted" | "Confirmed";
 
 interface Application {
   id: number;
@@ -318,10 +319,15 @@ const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
     Approved: "bg-green-100 text-green-700 border border-green-200",
     Pending: "bg-amber-100 text-amber-700 border border-amber-200",
     "In Review": "bg-sky-100 text-sky-700 border border-sky-200",
+    Rejected: "bg-red-100 text-red-700 border border-red-200",
+    Cancelled: "bg-gray-100 text-gray-600 border border-gray-200",
+    Waitlisted: "bg-purple-100 text-purple-700 border border-purple-200",
+    Confirmed: "bg-emerald-100 text-emerald-700 border border-emerald-200",
   };
 
+
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${styles[status]}`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${styles[status] || styles["In Review"]}`}>
       {status}
     </span>
   );
@@ -653,7 +659,7 @@ const DesktopProfilePanel = ({
           <div key={item.label}>
             <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
             {"green" in item && item.green ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#3FA36C] bg-[#5E5A4D] text-[#cefad0] text-green-800"> 
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#3FA36C] bg-[#5E5A4D] text-[#cefad0] text-green-200"> 
                 {item.value}
               </span>
             ) : (
@@ -1065,26 +1071,13 @@ if (!profile || !user || user.role !== "student") {
           <div className="-mx-4 lg:-mx-6">
             <CustomHeader title="Dashboard" />
           </div>
-          <div
-            className="relative rounded-2xl overflow-hidden flex items-center min-h-[140px] sm:min-h-[176px]"
-            style={{ background: `linear-gradient(135deg, ${CLR.dark} 0%, ${CLR.accent} 60%, ${CLR.mid} 100%)` }}
-          >
-            <div className="relative z-10 px-5 sm:px-8 py-6">
-              <p className="text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1" style={{ color: CLR.goldLt }}>
-                {heroContent.greeting}, {profile.shortName}
-              </p>
-              <h2 className="text-white font-bold text-lg sm:text-2xl leading-snug mb-1.5 max-w-xs sm:max-w-sm">
-                {heroContent.title}
-              </h2>
-              <p className="text-white/60 text-xs sm:text-sm">
-                You have {pendingApplicationsCount} pending application{pendingApplicationsCount !== 1 && "s"} and {notificationsTodayCount} new notification{notificationsTodayCount !== 1 && "s"} today.              
-              </p>
-            </div>
-
-            <div className="absolute right-0 bottom-0 h-full flex items-end pointer-events-none">
-              <img src={house_icon} alt="" className="w-[130px] h-[130px]" />
-            </div>
-          </div>
+          <HeroBanner
+            greeting="Good Day"
+            name={profile.shortName}
+            title={heroContent.title}
+            subtitle={`You have ${pendingApplicationsCount} pending application${pendingApplicationsCount !== 1 && "s"} and ${notificationsTodayCount} new notification${notificationsTodayCount !== 1 && "s"} today. `}
+            type="full"
+          />
 
           <div className="bg-white rounded-[22px] shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
@@ -1159,13 +1152,16 @@ if (!profile || !user || user.role !== "student") {
 
                         <td className="px-4 sm:px-6 py-3 sm:py-4">
                           <StatusBadge
-                            status={
-                              app.applicationStatus === "approved"
-                                ? "Approved"
-                                : app.applicationStatus === "pending"
-                                ? "Pending"
-                                : "In Review"
-                            }
+                              status={
+                                  app.applicationStatus === "approved" ? "Approved"
+                                  : app.applicationStatus === "pending" ? "Pending"
+                                  : app.applicationStatus === "under_review" ? "In Review"
+                                  : app.applicationStatus === "rejected" ? "Rejected"
+                                  : app.applicationStatus === "cancelled" ? "Cancelled"
+                                  : app.applicationStatus === "waitlisted" ? "Waitlisted"
+                                  : app.applicationStatus === "confirmed" ? "Confirmed"
+                                  : "Pending" // fallback
+                              }
                           />
                         </td>
 

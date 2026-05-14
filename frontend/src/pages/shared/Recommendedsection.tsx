@@ -226,13 +226,17 @@ function ResidenceCard({
 
       {/* CTA Button */}
       <button
-        onClick={(e) => {
+        onClick={async (e) => {
           e.stopPropagation();
 
           const residenceWithId = residence as any;
+          if (!residenceWithId.id) return;
 
-          if (residenceWithId.id) {
+          try {
+            await api.get("/me");
             window.location.href = `/student/roomview/${residenceWithId.id}`;
+          } catch (error) {
+            window.location.href = "/auth/signin";
           }
         }}
         className={`
