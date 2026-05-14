@@ -9,8 +9,9 @@ import GradientPillSelect from "../../components/DropDownGradient.tsx";
 import UbleLoader from "../shared/LoadingPage.tsx";
 import { api } from "../../api/axios";
 import defaultAccommodation from "@/assets/defaults/accommodation.png";
-import { Crosshair, Star } from 'lucide-react';
+import { Crosshair, Minimize2, Maximize2  } from 'lucide-react';
 
+<i data-lucide="expand"></i>  
 
 //MapBox Imports
 import Map, { Marker, NavigationControl, Source, Layer } from 'react-map-gl'
@@ -879,6 +880,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   const fetchModes = async (destLang: number, destLat: number) => {
     setLoadingRoute(true)
     setPreviewed(true)
+    setCardCollapsed(true)
 
     try {
       const origin = `${accomLng},${accomLat}`
@@ -952,13 +954,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
   return (
     <div
-      className="mt-4"
-      style={{
-        height: 460,
-        position: 'relative',
-        borderRadius: 16,
-        overflow: 'hidden'
-      }}
+      className="mt-4 relative rounded-2xl overflow-hidden h-[520px] sm:h-[460px]"
     >
       <Map
         ref={mapRef}
@@ -1033,6 +1029,28 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
         )}
       </Map>
 
+      <button
+        onClick={() => setCardCollapsed(c => !c)}
+        title={cardCollapsed ? 'Expand directions' : 'Minimize directions'}
+        style={{
+          position: 'absolute', top: 12, left: 16, zIndex: 11,
+          background: CLR.dark, border: 'none', borderRadius: '50%',
+          width: 44, height: 44,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+        }}
+        >
+        {cardCollapsed ? (
+          <div style={{ transform: 'scale(1)' }}>
+            <Maximize2 size={18} color="white" strokeWidth={2} />
+          </div>
+        ) : (
+          <div style={{ transform: 'scale(1)' }}>
+            <Minimize2 size={18} color="white" strokeWidth={2} />
+          </div>
+        )}
+      </button>
+
 
       {!cardCollapsed && (
         <div style={{
@@ -1040,21 +1058,9 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
           background: 'white', borderRadius: 20,
           padding: '16px 18px 18px',
           boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-          width: 280, zIndex: 10,
+          width: 'calc(100% - 32px)', maxWidth: 280, zIndex: 10,
           display: 'flex', flexDirection: 'column', gap: 10,
         }}>
-
-          <div style={{
-            position: 'absolute', top: -18, left: 16,
-            background: CLR.dark, borderRadius: '50%',
-            width: 40, height: 40,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
-            </svg>
-          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
             {/* House icon */}
@@ -1273,6 +1279,8 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
           </button>
         </div>
       )}
+
+
 
 
 
@@ -1817,12 +1825,26 @@ export default function RoomView() {
           {/* Content row */}
 
           <div className="bg-white rounded-2xl shadow-sm p-6 px-8">
-            <div className="flex items-baseline gap-2 flex-wrap mb-2">
-              <StarRating rating={avgRating} size="md" />
-              <span className="text-[15px] font- text-[#9A7080] font-semibold mr-5">
-                {avgRating.toFixed(1)} ({accommodation.reviews.length})
-              </span>
-              <div className="ml-auto flex items-center gap-1">
+            <div className="flex items-center gap-2 flex-wrap mb-2">
+              
+              <div className="flex md:hidden items-center gap-1 shrink-0">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" style={{ color: CLR.gold }}>
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="text-[14px] text-[#9A7080] font-semibold">
+                  {avgRating.toFixed(1)} ({accommodation.reviews.length})
+                </span>
+              </div>
+
+              <div className="hidden md:flex items-center gap-2 shrink-0">
+                <StarRating rating={avgRating} size="md" />
+                <span className="text-[15px] text-[#9A7080] font-semibold">
+                  {avgRating.toFixed(1)} ({accommodation.reviews.length})
+                </span>
+              </div>
+
+
+              <div className="ml-auto flex items-center gap-1 shrink-0">
                 <button onClick={async () => {
 
                   try {
