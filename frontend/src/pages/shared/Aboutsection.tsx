@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import DormCard from "../../components/DormCard";
+import { api } from "../../api/axios";
 
 const KF = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -185,6 +186,20 @@ function TagsCloud() {
 }
 
 function RoomsCard() {
+  const [availableRooms, setAvailableRooms] = useState(0);
+  useEffect(() => {
+    const fetchFacilityCount = async () => {
+      try {
+        const res = await api.get("/rooms/available/count");
+        setAvailableRooms(res.data.total ?? 0);
+      } catch (error) {
+        console.error("Failed to fetch facility count:", error);
+      }
+    };
+
+    fetchFacilityCount();
+  }, []);
+
   return (
     <div style={{ background: "#fff", borderRadius: 18, padding: "18px", boxShadow: "0 6px 28px rgba(26,10,15,0.09)", display: "flex", flexDirection: "column", gap: 6 }}>
       <div style={{ width: 48, height: 48, borderRadius: 12, background: "#6B0F2B", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 4 }}>
@@ -193,7 +208,7 @@ function RoomsCard() {
         </svg>
       </div>
       <p style={{ fontSize: 10.5, color: "#8A5060" }}>Available Rooms</p>
-      <p style={{ fontSize: 38, fontWeight: 700, color: "#2A0410", lineHeight: 1 }}>124</p>
+      <p style={{ fontSize: 38, fontWeight: 700, color: "#2A0410", lineHeight: 1 }}>{availableRooms}</p>
       <p style={{ fontSize: 10, color: "#8A5060" }}>across UPLB area</p>
       <span style={{ alignSelf: "flex-start", fontSize: 10.5, fontWeight: 600, color: "#2D7A4A", background: "#EAF4EE", borderRadius: 999, padding: "4px 12px" }}>↑ 18% this sem</span>
     </div>
@@ -201,7 +216,34 @@ function RoomsCard() {
 }
 
 function OccCard() {
-  const OCC = [{ label: "Kamia", pct: 88 }, { label: "Narra", pct: 74 }, { label: "Molave", pct: 61 }, { label: "Yakal", pct: 45 }];
+  const [occupancy, setOccupancy] = useState<
+      { id: number; name: string; occupancyRate: number }[]
+    >([]);
+
+    useEffect(() => {
+      const fetchOccupancy = async () => {
+        try {
+          const res = await api.get("/occupancy/dorms");
+          setOccupancy(Array.isArray(res.data) ? res.data : []);
+        } catch (error) {
+          console.error("Failed to fetch dorm occupancy:", error);
+        }
+      };
+
+      fetchOccupancy();
+    }, []);
+
+    const OCC = occupancy.length
+      ? occupancy.map(item => ({
+          label: item.name,
+          pct: item.occupancyRate,
+        }))
+      : [
+          { label: "Kamia", pct: 88 },
+          { label: "Narra", pct: 64 },
+          { label: "Molave", pct: 75 },
+          { label: "Yakal", pct: 81 },
+        ];
   return (
     <div style={{ background: "#fff", borderRadius: 18, padding: "18px", boxShadow: "0 6px 28px rgba(26,10,15,0.09)", display: "flex", flexDirection: "column", gap: 10 }}>
       <div>
@@ -210,7 +252,24 @@ function OccCard() {
       </div>
       {OCC.map(({ label, pct }) => (
         <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 10.5, fontWeight: 600, color: "#2A0410", width: 46 }}>{label}</span>
+          {/* <span style={{ fontSize: 10.5, fontWeight: 600, color: "#2A0410", width: 46 }}>{label}</span> */}
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 600,
+              color: "#2A0410",
+              width: 92,
+              minWidth: 92,
+              lineHeight: 1.2,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              wordBreak: "break-word",
+            }}
+          >
+            {label}
+          </span>
           <div style={{ flex: 1, height: 7, borderRadius: 999, background: "#F5ECF0", overflow: "hidden" }}>
             <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg,#8B1A2F,#C9973A)" }} />
           </div>
