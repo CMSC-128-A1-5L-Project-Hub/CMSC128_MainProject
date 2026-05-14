@@ -376,7 +376,14 @@ export default function FeesPage() {
   const fullName = user ? `${user.fname} ${user.lname}` : ''
 
   // Calculate totals
-  const totalOverdue = overdueFees.reduce((sum, f) => sum + (f.fee_balance || 0), 0)
+  const totalOverdue = overdueFees.reduce((sum, f) => {
+    const balance = Number(f.fee_balance) || 0
+    return sum + balance
+  }, 0)
+
+  // For debugging, log the values
+  console.log('Overdue fees:', overdueFees)
+  console.log('Total overdue:', totalOverdue)
   const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (p.paymentAmount || 0), 0)
 
   return (
