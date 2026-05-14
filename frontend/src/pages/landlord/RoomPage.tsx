@@ -145,7 +145,6 @@ export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [reportedIssues, setReportedIssues] = useState<RoomIssue[]>([]);
   const [loading, setLoading] = useState(true);
-  const [accommodations, setAccommodations] = useState<{ id: number; accommodationName: string }[]>([]);
   const [selectedAccomId, setSelectedAccomId] = useState<number | null>(null);
 
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
@@ -171,26 +170,31 @@ export default function RoomsPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(8);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // ─── FETCH ACCOMMODATIONS ON MOUNT ───
+  // ─── FETCH AND SET ACCOMMODATION ID ON MOUNT ───
   useEffect(() => {
-    api.get("/landlord/accommodations")
-      .then((res) => {
-        const list = res.data ?? [];
-        setAccommodations(list);
-        if (list.length > 0) {
-          const storedId = Number(sessionStorage.getItem("landlord-acc-id"));
-          const match = list.find((a: any) => a.id === storedId);
-          setSelectedAccomId(match ? storedId : list[0].id);
-        }
-      })
-      .catch(() => {
-        setToast({
-          show: true,
-          type: "error",
-          title: "Failed to Load",
-          message: "Could not load accommodations."
+    const storedId = sessionStorage.getItem("landlord-acc-id");
+    if (storedId) {
+      setSelectedAccomId(Number(storedId));
+    } else {
+      // If no stored ID, fetch accommodations and use the first one
+      api.get("/landlord/accommodations")
+        .then((res) => {
+          const list = res.data ?? [];
+          if (list.length > 0) {
+            const id = list[0].id;
+            setSelectedAccomId(id);
+            sessionStorage.setItem("landlord-acc-id", String(id));
+          }
+        })
+        .catch(() => {
+          setToast({
+            show: true,
+            type: "error",
+            title: "Failed to Load",
+            message: "Could not load accommodations."
+          });
         });
-      });
+    }
   }, []);
 
   // ─── FETCH REPORTED ISSUES ON MOUNT ───
@@ -433,18 +437,6 @@ export default function RoomsPage() {
     }
   };
 
-  const handleAccommodationChange = (id: number) => {
-    setSelectedAccomId(id);
-    sessionStorage.setItem("landlord-acc-id", String(id));
-    setCurrentPage(1);
-    setToast({
-      show: true,
-      type: "info",
-      title: "Switched Accommodation",
-      message: `Now viewing ${accommodations.find(a => a.id === id)?.accommodationName || "accommodation"}'s rooms.`
-    });
-  };
-
   return (
     <div className="flex h-screen overflow-hidden bg-[#FBF9FA] font-sans">
       <div className="flex flex-col w-full">
@@ -472,19 +464,8 @@ export default function RoomsPage() {
               />
             </div>
             
-            {/* Desktop Filters */}
+            {/* Desktop Filters - No accommodation dropdown */}
             <div className="hidden sm:flex items-center gap-2">
-              {accommodations.length > 1 && (
-                <select
-                  value={selectedAccomId ?? ""}
-                  onChange={(e) => handleAccommodationChange(Number(e.target.value))}
-                  className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-500 hover:border-[#8C1535]/30 transition-all outline-none shadow-sm"
-                >
-                  {accommodations.map((acc) => (
-                    <option key={acc.id} value={acc.id}>{acc.accommodationName}</option>
-                  ))}
-                </select>
-              )}
               <select value={selectedType} onChange={(e) => handleFilterChange("type", e.target.value)}
                 className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-500 hover:border-[#8C1535]/30 transition-all outline-none shadow-sm">
                 <option value="all">All Types</option>
@@ -535,23 +516,9 @@ export default function RoomsPage() {
             </button>
           </div>
 
-          {/* Mobile Filter Panel */}
+          {/* Mobile Filter Panel - No accommodation dropdown */}
           {showMobileFilters && (
             <div className="sm:hidden bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-              {accommodations.length > 1 && (
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-gray-600">Dormitory</label>
-                  <select
-                    value={selectedAccomId ?? ""}
-                    onChange={(e) => handleAccommodationChange(Number(e.target.value))}
-                    className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm w-full"
-                  >
-                    {accommodations.map((acc) => (
-                      <option key={acc.id} value={acc.id}>{acc.accommodationName}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-gray-600">Room Type</label>
                 <select value={selectedType} onChange={(e) => handleFilterChange("type", e.target.value)}
