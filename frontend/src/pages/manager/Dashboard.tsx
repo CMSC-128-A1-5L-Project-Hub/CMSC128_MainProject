@@ -134,9 +134,9 @@ export default function Dashboard() {
       <div className="relative flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
         <Sidebar role="manager" profile={profile as any} />
         <div className='flex flex-col'>
-            <CustomHeader
-              title="Dashboard"></CustomHeader>
             <div className="relative z-10 flex-1 flex flex-col p-6 pt-6 gap-6 overflow-y-auto">
+              <CustomHeader
+              title="Dashboard"></CustomHeader>
               {/* Header */}
               
               {/* <div className="relative pl-10 lg:pl-0 flex flex-row items-center justify-between mb-2 pb-1">
