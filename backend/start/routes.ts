@@ -28,9 +28,14 @@ router.group(() => {
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
   router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
 
-  // Landing Page
-  router.get('/settings', [controllers.AdminSettings, 'index'])
-  .as('public_settings.index')
+    // Landing Page
+    router.get('/settings', [controllers.AdminSettings, 'index'])
+    .as('public_settings.index')
+
+    router.get('/rooms/available/count', [controllers.Rooms, 'countAvailableRooms'])
+    .as('public_rooms_available_count')
+
+    router.get('/occupancy/dorms', [controllers.OccupancyRecords, 'publicDormOccupancy'])
 })
 
 /*
