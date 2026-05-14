@@ -110,7 +110,7 @@ const ApplicationModalContent = ({
 
                 <div className="col-span-2">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Degree Program</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.degreeProgram}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student.degreeProgram.toUpperCase()}</p>
                 </div>
 
                 <div className="col-span-1">
