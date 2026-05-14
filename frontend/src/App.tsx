@@ -44,6 +44,8 @@ import RevenueReportPrint from "./pages/landlord/reports/RevenueReportPrint"
 import AccommodationHistoryReportPrint from "./pages/landlord/reports/AccommodationHistoryReportPrint"
 import ActivityLogsPage from "./pages/admin/ActivityLogs"
 
+import StudentLayout from "./layout/StudentLayout"
+
 function FullLandingPage() {
   return (
     <>
@@ -84,12 +86,14 @@ function AnimatedRoutes() {
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage/></ProtectedRoute>}/>
 
         {/* ── Student routes ── */}
-        <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
-        <Route path="/student/browse" element={<BrowsePage />} />
-        <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="/student/applications" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
-        <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
-        <Route path="/student/roomview/:id" element={<RoomView />} />
+        <Route element={<StudentLayout />}>
+          <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard/></ProtectedRoute>}/>
+          <Route path="/student/browse" element={<BrowsePage />} />
+          <Route path="/student/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/student/applications" element={<ProtectedRoute><ApplicationStatus/></ProtectedRoute>}/>
+          <Route path="/student/billingdashboard" element={<ProtectedRoute><BillingDashboard/></ProtectedRoute>}/>
+          <Route path="/student/roomview/:id" element={<RoomView />} />
+        </Route>
 
         {/* ── Manager routes ── */}
         <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>

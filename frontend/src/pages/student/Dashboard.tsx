@@ -1062,15 +1062,7 @@ if (!profile || !user || user.role !== "student") {
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.2 }}
-    >
       <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
-        {/* Reusable Sidebar */}
-        <Sidebar role="student" profile={profile} />
 
         {/* Main content */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -1451,6 +1443,5 @@ if (!profile || !user || user.role !== "student") {
           notifWrapperRef={notifWrapperRef}
         />
       </div>
-    </motion.div>
   );
 }

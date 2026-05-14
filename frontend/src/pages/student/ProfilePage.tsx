@@ -181,15 +181,7 @@ export default function ProfilePage() {
   const verifyDate = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.2 }}
-    >
       <div className="min-h-screen bg-[#FAF6F2] lg:flex font-['Plus_Jakarta_Sans'] text-[#2A1F1A]">
-        <Sidebar role="student" />
-
         <div className="flex-1">
           <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
             <div className="flex items-center gap-3 pl-12 lg:pl-0">
@@ -294,7 +286,6 @@ export default function ProfilePage() {
         {showHistory && <AccomHistoryModal history={history} studentName={profile.fname} onClose={() => setShowHistory(false)} />}
         <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => e.target.files?.[0] && handlePfpUpload(e.target.files[0])} />
       </div>
-    </motion.div>
   );
 }
 

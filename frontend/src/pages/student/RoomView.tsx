@@ -1643,15 +1643,7 @@ export default function RoomView() {
 
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.2 }}
-    >
-      <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
-        <Sidebar role="student" />
-
+    <>
         <main className="flex-1 overflow-y-auto p-6">
 
           <button onClick={() => navigate(-1)}
@@ -1986,7 +1978,6 @@ export default function RoomView() {
         {showAllPhotos && (
           <AllPhotosModal photos={displayPhotos} onClose={() => setShowAllPhotosModal(false)} />
         )}
-      </div>
-    </motion.div>
+      </>
   );
 }

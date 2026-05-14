@@ -315,12 +315,6 @@ export default function BrowsePage() {
     }
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.2 }}
-        >
             <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
@@ -328,11 +322,6 @@ export default function BrowsePage() {
             setSliderResetKey, sliderResetKey
             }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
-
-                {/* Sidebar */}
-                <div className="relative z-[9999]">
-                    <Sidebar role="student" />
-                </div>
 
                 {/* Main */}
                 <div className="flex flex-col w-full min-w-0 h-screen overflow-hidden">
@@ -485,10 +474,8 @@ export default function BrowsePage() {
                         }} />
                     </div>
                 </div>
-
             </div>
         </filterContext.Provider>
-        </motion.div>
     )
 }
 
