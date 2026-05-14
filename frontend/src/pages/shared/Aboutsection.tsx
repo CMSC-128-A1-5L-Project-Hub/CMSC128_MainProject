@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import DormCard from "../../components/DormCard";
 import { api } from "../../api/axios";
+import defaultAccommodationImage from '../../assets/defaults/accommodation.png';
 
 const KF = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -413,7 +414,7 @@ export default function AboutSection() {
           <div className="original-grid-layout" style={{ display: "grid", gridTemplateColumns: "220px 280px 220px", gap: 16, alignItems: "end" }}>
             <motion.div style={{ y: yColA as any }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
               <DormCard
-                  image={featuredDorm?.primaryImageUrl}
+                  image={featuredDorm?.primaryImageUrl || defaultAccommodationImage}
                   imageName={featuredDorm?.name ?? "Featured Dorm"}
                   name={featuredDorm?.name ?? "Featured Dorm"}
                   subtitle={featuredDorm?.subtitle ?? ""}
@@ -467,7 +468,7 @@ export default function AboutSection() {
               <motion.div style={{ y: yColA as any }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
               <DormCard
                   name={featuredDorm?.name ?? "Featured Dorm"}
-                  image={featuredDorm?.primaryImageUrl}
+                  image={featuredDorm?.primaryImageUrl || defaultAccommodationImage}
                   imageName={featuredDorm?.name ?? "Featured Dorm"}
                   subtitle={featuredDorm?.subtitle ?? ""}
                   meta={

@@ -49,6 +49,9 @@ export default function DormCard({
             src={typeof image === "string" ? image : "../src/assets/defaults/accommodation.png"}
             alt={imageName}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = "../src/assets/defaults/accommodation.png";
+            }}
           />
           {/* Overlay */}
           <div
