@@ -18,7 +18,6 @@ type PriceRangeSliderProps = {
     valueStyle?: React.CSSProperties;
     width?: string;
     currencyText?: string;
-    key: number;
   };
 
 const PriceRangeSlider = ({
@@ -30,7 +29,6 @@ const PriceRangeSlider = ({
     valueStyle = valueCSS,
     width = "300px",
     currencyText = "$",
-    key,
 }: PriceRangeSliderProps) => {
 
     const [minVal, setMinVal] = useState(min);

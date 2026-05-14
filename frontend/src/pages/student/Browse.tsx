@@ -112,7 +112,7 @@ export default function BrowsePage() {
     useEffect(() => {
         if (!isSuccess || accommodations.length === 0) return
 
-        
+
         let min = Infinity
         let max = -Infinity
         const tagSet = new Set<string>();
@@ -134,7 +134,6 @@ export default function BrowsePage() {
         const tagObject = Object.fromEntries(
             tags.map(tag => [tag, false])
         );
-        console.log("success", accommodations, min, max)
         setFilters(tagObject)
         setMinPrice(min)
         setMaxPrice(max)
