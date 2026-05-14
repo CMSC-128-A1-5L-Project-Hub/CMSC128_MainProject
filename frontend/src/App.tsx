@@ -47,7 +47,7 @@ import ActivityLogsPage from "./pages/admin/ActivityLogs"
 import StudentLayout from "./layouts/StudentLayout"
 import ManagerLayout from "./layouts/ManagerLayout"
 import LandlordLayout from "./layouts/LandlordLayout"
-import AdminLayout from "./layout/AdminLayout"
+import AdminLayout from "./layouts/AdminLayout"
 
 function FullLandingPage() {
   return (
