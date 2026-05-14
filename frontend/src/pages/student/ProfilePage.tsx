@@ -59,6 +59,7 @@ interface ProfileEditFields {
   emergencyContactNumber: string;
   emergencyContactName: string;
   classification: string;
+  yearLevel: string; // Added to interface
 }
 
 // ─── Zustand Store ───────────────────────────────────────────────────────────
@@ -82,6 +83,7 @@ const useProfileStore = create<ProfileEditStore>((set) => ({
     emergencyContactNumber: '',
     emergencyContactName: '',
     classification: '',
+    yearLevel: '', // Initialize in store
   },
   setIsEditing: (v: boolean) => set({ isEditing: v }),
   setShowHistory: (v: boolean) => set({ showHistory: v }),
@@ -120,12 +122,27 @@ export default function ProfilePage() {
         emergencyContactName: profile.student?.emergencyContactName || "",
         emergencyContactNumber: profile.student?.emergencyContactNumber || "",
         classification: profile.student?.classification || "Undergraduate",
+        yearLevel: profile.student?.yearLevel || "", // Map yearLevel to form
       });
     }
   }, [profile, setForm]);
 
   const saveMutation = useMutation({
-    mutationFn: async (updatedForm: ProfileEditFields) => (await api.put("/me", updatedForm)).data,
+    mutationFn: async (updatedForm: ProfileEditFields) => {
+      // Re-constructing the payload to match the backend's expected nested structure
+      const payload = {
+        mname: updatedForm.mname,
+        facebookAccount: updatedForm.facebookAccount,
+        phoneNumbers: [{ contactNumber: updatedForm.primaryPhone, isPrimary: true }],
+        student: {
+          classification: updatedForm.classification,
+          yearLevel: updatedForm.yearLevel,
+          emergencyContactName: updatedForm.emergencyContactName,
+          emergencyContactNumber: updatedForm.emergencyContactNumber,
+        }
+      };
+      return (await api.put("/me", payload)).data;
+    },
     onSuccess: (data: UserProfile) => {
       qc.invalidateQueries({ queryKey: ["me"] });
       setUser(data);
@@ -148,7 +165,6 @@ export default function ProfilePage() {
   const currentDorm = history.find((h: AccommodationHistoryItem) => !h.actualMoveOut);
   const defaultPfp = profile.student?.gender?.toLowerCase() === "female" ? femalePfp : malePfp;
   
-  // Dynamic Verification Date (Current month/year)
   const verifyDate = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
   return (
@@ -217,7 +233,7 @@ export default function ProfilePage() {
 
                   <div className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
                     <Field label="UP Mail" value={profile.email} readOnly />
-                    <Field label="College" value={profile.student?.college} readOnly />
+                    <Field label="College" value={profile.student?.college} readOnly isCaps />
                     
                     <Field label="Middle Name" value={form.mname} editing={isEditing} onChange={(v: string) => setForm({...form, mname: v})} />
                     <Field label="Degree Program" value={profile.student?.degreeProgram} readOnly />
@@ -226,13 +242,13 @@ export default function ProfilePage() {
                     <Field label="Student Number" value={profile.student?.studentNumber} readOnly />
                     
                     <Field label="Facebook Link" value={form.facebookAccount} editing={isEditing} onChange={(v: string) => setForm({...form, facebookAccount: v})} />
-                    <Field label="Gender" value={profile.student?.gender} readOnly />
+                    <Field label="Gender" value={profile.student?.gender} readOnly isCaps />
 
                     <Field label="Emergency Contact" value={form.emergencyContactName} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactName: v})} />
-                    <Field label="Classification" value={form.classification} editing={isEditing} onChange={(v: string) => setForm({...form, classification: v})} />
+                    <Field label="Classification" value={form.classification} editing={isEditing} isCaps onChange={(v: string) => setForm({...form, classification: v})} />
 
                     <Field label="Emergency Contact #" value={form.emergencyContactNumber} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactNumber: v})} />
-                    <Field label="Year Level" value={profile.student?.yearLevel} readOnly />
+                    <Field label="Year Level" value={form.yearLevel} editing={isEditing} isCaps onChange={(v: string) => setForm({...form, yearLevel: v})} />
                   </div>
 
                   {/* Current Dorm - Manager Style */}
@@ -264,7 +280,7 @@ export default function ProfilePage() {
   );
 }
 
-function Field({ label, value, editing, readOnly, onChange }: any) {
+function Field({ label, value, editing, readOnly, onChange, isCaps }: any) {
   return (
     <div className="space-y-1.5">
       <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#A88993]">{label}</p>
@@ -272,10 +288,10 @@ function Field({ label, value, editing, readOnly, onChange }: any) {
         <input 
           value={value || ""} 
           onChange={(e) => onChange(e.target.value)} 
-          className="w-full rounded-xl border border-[#EADFD3] bg-[#FBF9F8] px-4 py-3 text-sm font-semibold text-[#2A1F1A] outline-none focus:border-[#8C1535] transition-colors" 
+          className={`w-full rounded-xl border border-[#EADFD3] bg-[#FBF9F8] px-4 py-3 text-sm font-semibold text-[#2A1F1A] outline-none focus:border-[#8C1535] transition-colors ${isCaps ? 'uppercase' : ''}`} 
         />
       ) : (
-        <div className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold border-[#F2F2F2] bg-white text-[#A88993]`}>
+        <div className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold border-[#F2F2F2] bg-white text-[#A88993] ${isCaps ? 'uppercase' : ''}`}>
           {value || "NONE"}
         </div>
       )}
