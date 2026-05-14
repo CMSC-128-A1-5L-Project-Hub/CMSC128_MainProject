@@ -48,6 +48,7 @@ export default class AccommodationController {
           studentQuery.preload('user')
         })
       })
+      .preload('bookmarks')
       .first()
 
     if (!accommodation) {
