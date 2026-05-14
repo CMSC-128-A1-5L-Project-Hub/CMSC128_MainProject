@@ -11,6 +11,7 @@ import Room from '#models/room'
 import db from '@adonisjs/lucid/services/db'
 import { withPrimaryImageUrl } from '#services/image_service'
 import { signImageUrl } from '#services/image_service'
+import Accommodation from '#models/accommodation'
 import FileMetadata from '#models/file_metadatum'
 import ApplicationDocument from '#models/application_document'
 import DocumentRequirement from '#models/document_requirement'
@@ -152,7 +153,7 @@ export default class ApplicationsController {
       applicationStatus: initialStatus,
       preferredTags: preferredTags ?? null,
     })
-
+    
     // Handle optional supporting documents (multipart). Each file may have a
     // requirement_id metadata field (sent as JSON in request body) tying it to
     // a specific DocumentRequirement; otherwise stored as a generic supporting doc.
@@ -215,7 +216,11 @@ export default class ApplicationsController {
       }
     }
 
-    await LogService.record(user.id, 'application', newApp.id, 'STUDENT_SUBMITTED')
+    const accommodation = await Accommodation.find(accommodationId)
+
+    const detail = `${user.fname} ${user.lname} submitted an application to ${accommodation?.accommodationName}`
+
+    await LogService.record(user.id, 'application', newApp.id, 'STUDENT_SUBMITTED', detail)
     return response.ok(newApp)
   }
 
