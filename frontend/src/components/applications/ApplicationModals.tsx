@@ -142,12 +142,17 @@ const ApplicationModalContent = ({
                   <p className="text-[#1A0008] text-sm">{formatTime(app.applicationDate)}</p>
                 </div>
 
-                <div>
-                  <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Duration</p>
-                  <p className="text-[#1A0008] text-sm">
-                    {app.durationOfStayDays} day{app.durationOfStayDays !== 1 ? "s" : ""}
-                  </p>
-                </div>
+                {/* Only display when stay type is transient */}
+                {app.applicationStayType === "transient" ? (
+                  <div>
+                    <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Duration</p>
+                    <p className="text-[#1A0008] text-sm">
+                      {app.durationOfStayDays} day{app.durationOfStayDays !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  )
+                  : undefined
+                }
               </div>
             </div>
           </div>
