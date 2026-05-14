@@ -1410,12 +1410,6 @@ export default function RoomView() {
     }
   });
 
-  const hasAlreadyApplied = myApplications.some(
-    (app: any) => 
-      app.accommodationId === currentAccommodationId && 
-      ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
-  );
-
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -1640,6 +1634,11 @@ export default function RoomView() {
         ? reservationFeeValue
         : 0;
 
+    const hasAlreadyApplied = myApplications.some(
+      (app: any) =>
+        app.roomId === selectedRoom?.id &&
+        ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
+    );
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
