@@ -275,7 +275,7 @@ function Field({ label, value, editing, readOnly, onChange }: any) {
           className="w-full rounded-xl border border-[#EADFD3] bg-[#FBF9F8] px-4 py-3 text-sm font-semibold text-[#2A1F1A] outline-none focus:border-[#8C1535] transition-colors" 
         />
       ) : (
-        <div className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold ${readOnly ? 'border-[#F2F2F2] bg-white text-[#A88993]' : 'border-[#EADFD3] bg-[#FBF9F8] text-[#2A1F1A]'}`}>
+        <div className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold border-[#F2F2F2] bg-white text-[#A88993]`}>
           {value || "NONE"}
         </div>
       )}
