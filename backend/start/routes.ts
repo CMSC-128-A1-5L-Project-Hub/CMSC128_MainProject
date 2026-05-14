@@ -85,6 +85,8 @@ router
         router.post('/transient-bookings', [controllers.TransientBooking, 'store'])
         router.post('/transient-bookings/:id/proof', [controllers.TransientBooking, 'uploadProof'])
         router.get('/transient-bookings', [controllers.TransientBooking, 'myBookings'])
+        router.post('/issue-reports', [controllers.IssueReports, 'store'])
+        
     }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
@@ -190,6 +192,7 @@ router
         // User Verifications
         router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
         router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
+        router.patch('/admin/users/:userId/reject', [controllers.AdminVerifications, 'reject'])
 
         // System Settings (Academic Year & Semester Updates)
         router.get('/admin/settings', [controllers.AdminSettings, 'index'])

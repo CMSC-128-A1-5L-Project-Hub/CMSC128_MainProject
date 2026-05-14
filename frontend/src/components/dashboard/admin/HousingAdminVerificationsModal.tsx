@@ -5,8 +5,9 @@ type Props = {
   onClose: () => void
   selectedItem: any | null
   verifyingUserId: number | null
-  onApprove: (userId: number) => void
-  onReject: (userId: number) => void
+  processingAction: "approve" | "reject" | null
+  onApprove: (userId: number) => Promise<void>
+  onReject: (userId: number) => Promise<void>
 }
 
 function InfoRow({
@@ -42,10 +43,12 @@ export default function HousingAdminVerificationModal({
   onClose,
   selectedItem,
   verifyingUserId,
+  processingAction,
   onApprove,
   onReject,
 }: Props) {
   const user = selectedItem?.user
+  const landlord = selectedItem?.profileDetails
 
   if (!user) return null
 
@@ -59,7 +62,9 @@ export default function HousingAdminVerificationModal({
     .join("")
     .toUpperCase()
 
-  const isVerifying = verifyingUserId === user.id
+  const isProcessing = verifyingUserId === user.id
+  const isApproving = isProcessing && processingAction === "approve"
+  const isRejecting = isProcessing && processingAction === "reject"
 
   const formatDate = (timestamp?: string) => {
     if (!timestamp) return "N/A"
@@ -77,7 +82,7 @@ export default function HousingAdminVerificationModal({
       {/* Reject */}
     <button
       onClick={() => onReject(user.id)}
-      disabled={isVerifying}
+      disabled={isProcessing}
       className="py-2.5 rounded-xl text-[12px] font-bold tracking-[0.10em] uppercase transition-all duration-200 hover:brightness-105 active:scale-[0.98] disabled:opacity-60"
       style={{
         fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -86,12 +91,19 @@ export default function HousingAdminVerificationModal({
         border: "1px solid rgba(140,21,53,0.25)",
       }}
       >
-      Reject
+      {isRejecting ? (
+        <span className="flex items-center justify-center gap-2">
+          <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-[#8C1535]/30 border-t-[#8C1535] animate-spin" />
+          Rejecting…
+        </span>
+      ) : (
+        "Reject"
+      )}
     </button>
       {/* Approve */}
       <button
         onClick={() => onApprove(user.id)}
-        disabled={isVerifying}
+        disabled={isProcessing}
         className="w-full py-2.5 rounded-xl text-[12px] font-bold tracking-[0.10em] uppercase transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
         style={{
           fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -101,7 +113,7 @@ export default function HousingAdminVerificationModal({
           boxShadow: "0 4px 14px rgba(140,21,53,0.35)",
         }}
       >
-        {isVerifying ? (
+        {isApproving ? (
           <span className="flex items-center justify-center gap-2">
             <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" />
             Approving…
@@ -190,16 +202,16 @@ export default function HousingAdminVerificationModal({
           <InfoRow label="Last Name" value={user.lname} />
 
           <InfoRow label="Email Address" value={user.email} />
-          <InfoRow label="Phone Number" value={user.phone} />
+          {/* <InfoRow label="Phone Number" value={user.phone} /> */}
 
           <div className="col-span-2">
-            <InfoRow label="Address" value={user.address} />
+            <InfoRow label="TIN" value={landlord?.tin} />
           </div>
 
           <div className="col-span-2">
             <InfoRow
               label="Application Date"
-              value={formatDate(user.createdAt)}
+              value={formatDate(user.submittedAt)}
             />
           </div>
         </div>
