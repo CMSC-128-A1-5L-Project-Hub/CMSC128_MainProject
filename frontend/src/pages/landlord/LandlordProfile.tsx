@@ -359,15 +359,14 @@ export default function LandlordProfile() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="mt-4 grid grid-cols-2 gap-3">
+                                    <div className="mt-4">
                                         <button onClick={() => fileInputRef.current?.click()}
-                                            className="flex min-h-[76px] items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E6CAD3] px-3 py-3 text-left hover:bg-[#FBF5F7] transition-colors">
+                                            className="flex min-h-[76px] w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E6CAD3] px-3 py-3 text-left hover:bg-[#FBF5F7] transition-colors">
                                             <img src={Camera} alt="" className="h-5 w-5 shrink-0" />
-                                            <div className="leading-tight"><p className="text-[11px] font-bold tracking-wider text-[#A04E66]">PHOTO</p><p className="text-[10px] text-[#C3AAB3]">JPG/PNG • 5MB</p></div>
-                                        </button>
-                                        <button className="flex min-h-[76px] items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E6CAD3] px-3 py-3 text-left hover:bg-[#FBF5F7] transition-colors">
-                                            <img src={FileUp} alt="" className="h-5 w-5 shrink-0" />
-                                            <div className="leading-tight"><p className="text-[11px] font-bold tracking-wider text-[#A04E66]">DOCUMENTS</p><p className="text-[10px] text-[#C3AAB3]">Valid ID • PDF/JPG</p></div>
+                                            <div className="leading-tight">
+                                                <p className="text-[11px] font-bold tracking-wider text-[#A04E66]">PHOTO</p>
+                                                <p className="text-[10px] text-[#C3AAB3]">JPG/PNG • 5MB</p>
+                                            </div>
                                         </button>
                                     </div>
                                 </div>
