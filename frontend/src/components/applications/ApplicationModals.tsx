@@ -163,7 +163,9 @@ const ApplicationModalContent = ({
               <div className="grid grid-cols-2 gap-y-3">
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Stay</p>
-                  <p className="text-[#1A0008] text-sm">{app.applicationStayType}</p>
+                  <p className="text-[#1A0008] text-sm">
+                    {app.stayType === "non_transient" ? "Non-Transient" : "Transient"}
+                  </p>
                 </div>
 
                 <div className="col-span-1">
@@ -173,7 +175,11 @@ const ApplicationModalContent = ({
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</p>
-                  <p className="text-[#1A0008] text-sm">{app.applicationRoomType}</p>
+                  <p className="text-[#1A0008] text-sm">
+                    {app.applicationRoomType === "shared" ? "Shared"
+                      : app.applicationRoomType === "single" ? "Single" : "Double"
+                    }
+                  </p>
                 </div>
 
                 <div className="col-span-1">
