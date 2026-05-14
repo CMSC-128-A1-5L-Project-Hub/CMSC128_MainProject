@@ -317,6 +317,11 @@ export default function AboutSection() {
   });
 
   const [topRatedDorms, setTopRatedDorms] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    dorms: 0,
+    rooms: 0,
+    rating: 0,
+  });
 
   useEffect(() => {
     const fetchTopRatedDorms = async () => {
@@ -329,6 +334,26 @@ export default function AboutSection() {
     };
 
     fetchTopRatedDorms();
+
+    const fetchStats = async () => {
+      try {
+        const [dormsRes, roomsRes, ratingsRes] = await Promise.all([
+          api.get("/facilities/count"),
+          api.get("/rooms/available/count"),
+          api.get("/reviews/average-rating"),
+        ]);
+
+        setStats({
+          dorms: dormsRes.data.total ?? 0,
+          rooms: roomsRes.data.total ?? 0,
+          rating: Number(Number(ratingsRes.data.average ?? 0).toFixed(1)),
+        });
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      }
+    };
+
+    fetchStats();
   }, []);
 
   const featuredDorm = topRatedDorms[0];
@@ -361,9 +386,9 @@ export default function AboutSection() {
           viewport={{ once: true, amount: 0.3 }} 
           style={{ display: "flex", justifyContent: "center", width: "100%", gap: "20px" }}
         >
-          <Stat value="24+"  l1="PARTNERED" l2="DORMS"  border />
-          <Stat value="480+" l1="TOTAL"     l2="ROOMS"  border />
-          <Stat value="4.9★" l1="AVERAGE"   l2="RATING" />
+          <Stat value={`${stats.dorms}✧`} l1="PARTNERED" l2="DORMS" border />
+          <Stat value={`˗ˏˋ${stats.rooms}ˎˊ˗`} l1="TOTAL" l2="ROOMS" border />
+          <Stat value={`${stats.rating}★`} l1="AVERAGE" l2="RATING" />
         </motion.div>
 
         <div className="about-outer-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "52px 2px 100px", display: "grid", gridTemplateColumns: "400px 1fr", gap: "clamp(20px, 5vw, 80px)", alignItems: "center" }}>
