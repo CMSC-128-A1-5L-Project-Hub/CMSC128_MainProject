@@ -13,6 +13,7 @@ import { withPrimaryImageUrl, signImageUrl, withAllImageUrls } from '#services/i
 import ZipExportService from '#services/zip_export_service'
 import type { ZipEntry } from '#services/zip_export_service'
 import Room from '#models/room'
+import DocumentRequirement from '#models/document_requirement'
 
 export default class AccommodationController {
   private accommodationService = new AccommodationService()
@@ -674,7 +675,7 @@ async landlordIndex({ auth, response }: HttpContext) {
       .leftJoin('accommodation_images', 'accommodations.id', 'accommodation_images.accommodation_id')
       .leftJoin('file_metadata', 'accommodation_images.image_file_id', 'file_metadata.id')
       .where('accommodations.status', 'verified')
-      .whereNotNull('accommodations.manager_id')
+      // .whereNotNull('accommodations.manager_id')
       .whereIn('accommodations.tenant_restriction', allowedRestrictions)
       .groupBy('accommodations.id')
       .select(
@@ -694,6 +695,134 @@ async landlordIndex({ auth, response }: HttpContext) {
       accommodations.map(async (acc: any) => ({
         ...acc,
         primaryImageUrl: await signImageUrl(acc.primary_image_path),
+      }))
+    )
+
+    return response.ok(data)
+  }
+
+  // ─── GET /accommodations/:id/document-requirements ───────────────────────
+  // Public: list all document requirements for an accommodation
+  async listDocumentRequirements({ params, response }: HttpContext) {
+    const requirements = await DocumentRequirement.query()
+      .where('accommodationId', params.id)
+      .orderBy('createdAt', 'asc')
+
+    return response.ok(requirements)
+  }
+
+  // ─── POST /landlord/accommodations/:id/document-requirements ─────────────
+  // Role: Landlord — add a document requirement to their accommodation
+  async addDocumentRequirement({ params, request, auth, response }: HttpContext) {
+    const landlordId = auth.user!.id
+
+    const accommodation = await Accommodation.query()
+      .where('id', params.id)
+      .where('landlord_id', landlordId)
+      .first()
+
+    if (!accommodation) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Accommodation not found or you do not have access to it.',
+      })
+    }
+
+    const { requirement_name, accepted_format } = request.body()
+
+    if (!requirement_name || typeof requirement_name !== 'string' || !requirement_name.trim()) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: 'requirement_name is required.',
+      })
+    }
+
+    const validFormats = ['pdf', 'image', 'any']
+    const format = validFormats.includes(accepted_format) ? accepted_format : 'any'
+
+    const requirement = await DocumentRequirement.create({
+      accommodationId: accommodation.id,
+      requirementName: requirement_name.trim(),
+      acceptedFormat: format,
+    })
+
+    return response.created(requirement)
+  }
+
+  // ─── DELETE /landlord/accommodations/:id/document-requirements/:reqId ────
+  // Role: Landlord — remove a document requirement from their accommodation
+  async removeDocumentRequirement({ params, auth, response }: HttpContext) {
+    const landlordId = auth.user!.id
+
+    const accommodation = await Accommodation.query()
+      .where('id', params.id)
+      .where('landlord_id', landlordId)
+      .first()
+
+    if (!accommodation) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Accommodation not found or you do not have access to it.',
+      })
+    }
+
+    const requirement = await DocumentRequirement.query()
+      .where('id', params.reqId)
+      .where('accommodationId', accommodation.id)
+      .first()
+
+    if (!requirement) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Document requirement not found.',
+      })
+    }
+
+    await requirement.delete()
+
+    return response.ok({ message: 'Document requirement removed.' })
+  }
+
+  // Top 5 dorms by average rating, regardless of tenant restriction (for landing page)
+  async topRated({ response }: HttpContext) {
+    const accommodations = await db
+      .from('accommodations')
+      .leftJoin('reviews', 'accommodations.id', 'reviews.accommodation_id')
+      .leftJoin('rooms', 'accommodations.id', 'rooms.accommodation_id')
+      .leftJoin('accommodation_tags', 'accommodations.id', 'accommodation_tags.accommodation_id')
+      .leftJoin('accommodation_images', 'accommodations.id', 'accommodation_images.accommodation_id')
+      .leftJoin('file_metadata', 'accommodation_images.image_file_id', 'file_metadata.id')
+      .where('accommodations.status', 'verified')
+      .groupBy('accommodations.id')
+      .select(
+        'accommodations.id',
+        'accommodations.accommodation_name',
+        'accommodations.accommodation_location',
+        'accommodations.accommodation_type'
+      )
+      .select(db.raw('COALESCE(AVG(reviews.rating), 0) as average_rating'))
+      .select(db.raw('COALESCE(MIN(rooms.room_rent), 0) as starting_price'))
+      .select(db.raw('GROUP_CONCAT(DISTINCT accommodation_tags.tag_detail) as tags'))
+      .select(db.raw('MIN(file_metadata.file_path) as primary_image_path'))
+      .orderBy('average_rating', 'desc')
+      .limit(5)
+
+    const data = await Promise.all(
+      accommodations.map(async (acc: any) => ({
+        id: acc.id,
+        name: acc.accommodation_name,
+        subtitle: acc.accommodation_location,
+        meta: acc.accommodation_type,
+        price: Number(acc.starting_price ?? 0),
+        rating: Number(Number(acc.average_rating ?? 0).toFixed(1)),
+        chips: acc.tags ? acc.tags.split(',').slice(0, 3) : [],
+        primaryImageUrl: acc.primary_image_path
+          ? await signImageUrl(acc.primary_image_path)
+          : null,
       }))
     )
 

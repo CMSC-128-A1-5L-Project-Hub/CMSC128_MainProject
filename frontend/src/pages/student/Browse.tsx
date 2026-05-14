@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { Star, SlidersHorizontal, MapPin, X, BookmarkCheck, ChevronRight } from "lucide-react"
 import Sidebar from "../../components/Sidebar"
@@ -43,6 +43,7 @@ type Dorm = {
 const ITEMS_PER_PAGE = 4;
 
 export default function BrowsePage() {
+    const [searchParams] = useSearchParams()
     const [searchTerm, setSearchTerm] = useState("")
     const [activeFilter, setActiveFilter] = useState("All")
     const [onlyBookmarked, setOnlyBookmarked] = useState(false)
@@ -67,6 +68,15 @@ export default function BrowsePage() {
     const [searched, setSearched] = useState(false);
     const [sliderResetKey, setSliderResetKey] = useState(0);
     const navigate = useNavigate()
+
+    const location = useLocation();
+    const landingFilters = location.state as {
+    dormType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    rating?: number;
+    tags?: string[];
+    } | null;
 
     const { data: accommodations = [], isError: accommodationsError, isSuccess, isLoading: accLoading } = useQuery({
         queryKey: ["accommodations", searchTerm, activeFilter],
@@ -134,14 +144,48 @@ export default function BrowsePage() {
         const tagObject = Object.fromEntries(
             tags.map(tag => [tag, false])
         );
-        setFilters(tagObject)
-        setMinPrice(min)
-        setMaxPrice(max)
+        console.log("success", accommodations, min, max)
+        // setFilters(tagObject)
+        // setMinPrice(min)
+        // setMaxPrice(max)
+        setFilters(prev => ({
+        ...tagObject,
+        ...prev,
+        }));
+
+        if (!landingFilters) {
+        setMinPrice(min);
+        setMaxPrice(max);
+        }
         setOrigMin(min)
         setOrigMax(max)
         setSliderResetKey(prev => prev + 1)
 
     }, [isSuccess, accommodations])
+
+    useEffect(() => {
+        if (!landingFilters) return;
+
+        if (landingFilters.dormType && landingFilters.dormType !== "All Types") {
+            setDormType(landingFilters.dormType);
+        }
+
+        if (landingFilters.minPrice) setMinPrice(landingFilters.minPrice);
+        if (landingFilters.maxPrice) setMaxPrice(landingFilters.maxPrice);
+        if (landingFilters.rating) setStarRating(landingFilters.rating);
+
+        if (landingFilters.tags?.length) {
+            setFilters(prev => ({
+            ...prev,
+            ...Object.fromEntries(
+                landingFilters.tags!.map(tag => [tag, true])
+            ),
+            }));
+        }
+
+        setFilterInEffect(true);
+        setSearched(true);
+    }, []);
 
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
@@ -249,7 +293,7 @@ export default function BrowsePage() {
     const paginatedDorms = flatDorms.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     /* map URL params — untouched */
-    const [searchParams] = useSearchParams()
+    // const [searchParams] = useSearchParams()
     const centerId = searchParams.get("center")
     const centeredAccommodation = centerId
         ? mapAccommodations.find(a => a.accommodationId === Number(centerId)) ?? null

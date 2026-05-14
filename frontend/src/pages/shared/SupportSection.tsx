@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { api } from "../../api/axios";
+import { useNavigate } from "react-router-dom";
 
 interface Particle {
   id: number;
@@ -18,6 +20,36 @@ export default function UBLEFooter() {
   const heroRef = useRef<HTMLDivElement>(null);
   const animFrameRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async () => {
+    try {
+      setSending(true);
+      setSent(false);
+
+      await api.post("/support/contact", form);
+
+      setForm({ name: "", email: "", message: "" });
+      setSent(true);
+    } catch (error) {
+      console.error("Failed to send support message:", error);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
 
   // Scroll-triggered reveal with better detection
   useEffect(() => {
@@ -413,8 +445,31 @@ export default function UBLEFooter() {
                 <h3 style={{ color: "white", fontSize: 15, fontWeight: 600, margin: "0 0 10px" }}>Quick Links</h3>
                 <div style={{ height: 1, background: "linear-gradient(to right, #c9a84c 0%, transparent 80%)", marginBottom: 20 }} />
                 <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 15 }}>
-                  {["Home", "Browse Rooms", "About Us", "Features", "Support", "Sign In"].map(l => (
-                    <li key={l}><a href="#" style={{ color: "rgba(255,255,255,0.48)", fontSize: 13, textDecoration: "none" }}>{l}</a></li>
+                  {[
+                    { label: "Home", action: () => scrollToSection("home") },
+                    { label: "Browse Rooms", action: () => navigate("/student/browse") },
+                    { label: "About Us", action: () => scrollToSection("about") },
+                    { label: "Features", action: () => scrollToSection("features") },
+                    { label: "Support", action: () => scrollToSection("support") },
+                    { label: "Sign In", action: () => navigate("/auth/signin") },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <button
+                        onClick={l.action}
+                        style={{
+                          color: "rgba(255,255,255,0.48)",
+                          fontSize: 13,
+                          textDecoration: "none",
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          cursor: "pointer",
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        }}
+                      >
+                        {l.label}
+                      </button>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -424,8 +479,31 @@ export default function UBLEFooter() {
                 <h3 style={{ color: "white", fontSize: 15, fontWeight: 600, margin: "0 0 10px" }}>Resources</h3>
                 <div style={{ height: 1, background: "linear-gradient(to right, #c9a84c 0%, transparent 80%)", marginBottom: 20 }} />
                 <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 15 }}>
-                  {["How It Works", "For Landlords", "For Managers", "FAQs", "Privacy Policy", "Terms of Service"].map(l => (
-                    <li key={l}><a href="#" style={{ color: "rgba(255,255,255,0.48)", fontSize: 13, textDecoration: "none" }}>{l}</a></li>
+                  {[
+                    { label: "How It Works", action: () => scrollToSection("features") },
+                    { label: "For Landlords", action: () => navigate("/auth/signin") },
+                    { label: "For Managers", action: () => navigate("/auth/signin") },
+                    { label: "FAQs", action: () => scrollToSection("support") },
+                    { label: "Privacy Policy", action: () => {} },
+                    { label: "Terms of Service", action: () => {} },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <button
+                        onClick={l.action}
+                        style={{
+                          color: "rgba(255,255,255,0.48)",
+                          fontSize: 13,
+                          textDecoration: "none",
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          cursor: "pointer",
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        }}
+                      >
+                        {l.label}
+                      </button>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -448,13 +526,29 @@ export default function UBLEFooter() {
                   <label style={labelStyle}>MESSAGE</label>
                   <textarea placeholder="How can we help you?" rows={4} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} style={{ ...inputStyle, resize: "none" }} />
                 </div>
-                <button style={{
-                  padding: "13px 28px", borderRadius: 999,
-                  background: "linear-gradient(135deg, #e8c05c, #c8a03a)",
-                  border: "none", cursor: "pointer",
-                  color: "#2e0610", fontWeight: 700, fontSize: 14,
-                  alignSelf: "flex-start",
-                }}>Send Message</button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={sending}
+                  style={{
+                    padding: "13px 28px",
+                    borderRadius: 999,
+                    background: "linear-gradient(135deg, #e8c05c, #c8a03a)",
+                    border: "none",
+                    cursor: sending ? "not-allowed" : "pointer",
+                    color: "#2e0610",
+                    fontWeight: 700,
+                    fontSize: 14,
+                    alignSelf: "flex-start",
+                    opacity: sending ? 0.7 : 1,
+                  }}
+                >
+                  {sending ? "Sending..." : "Send Message"}
+                </button>
+                {sent && (
+                  <p style={{ color: "#c9a84c", fontSize: 12, margin: 0 }}>
+                    Message sent successfully.
+                  </p>
+                )}
                 <p style={{ color: "rgba(255,255,255,0.32)", fontSize: 12, margin: 0 }}>
                   Or email us directly at:{" "}
                   <a href="mailto:uble@uplb.edu.ph" style={{ color: "#c9a84c", textDecoration: "none" }}>uble@uplb.edu.ph</a>

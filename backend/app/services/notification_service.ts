@@ -1,21 +1,36 @@
 // app/services/notification_service.ts
 import { inject } from '@adonisjs/core'
-import mail from '@adonisjs/mail/services/main'
 import env from '#start/env'
 import User from '#models/user'
 
 @inject()
 export default class NotificationService {
 
-  // ─── Helper: send email ───────────────────────────────────────────────────
+  // ─── Helper: send email via Brevo HTTP API ────────────────────────────────
   private async send(to: string, subject: string, html: string) {
     try {
-      await mail.send((message) => {
-        message
-          .to(to)
-          .subject(subject)
-          .html(html)
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': env.get('BREVO_API_KEY'),
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: {
+            name: env.get('MAIL_FROM_NAME'),
+            email: env.get('MAIL_FROM_ADDRESS'),
+          },
+          to: [{ email: to }],
+          subject,
+          htmlContent: html,
+        }),
       })
+
+      if (!response.ok) {
+        const error = await response.text()
+        console.error('Email failed to send:', error)
+      }
     } catch (error) {
       console.error('Email failed to send:', error)
     }

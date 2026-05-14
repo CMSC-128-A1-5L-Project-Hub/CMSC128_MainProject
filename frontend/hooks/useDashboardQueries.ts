@@ -34,6 +34,7 @@ const fetchAssignments = async (): Promise<RawAssignment[]> => {
 
 const fetchRooms = async (): Promise<RawRoom[]> => {
   const { data } = await api.get('/manager/rooms')
+  // console.log(data)
   return data.data ?? data
 }
 

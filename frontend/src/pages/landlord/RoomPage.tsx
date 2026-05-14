@@ -166,7 +166,11 @@ export default function RoomsPage() {
     api.get("/landlord/accommodations").then((res) => {
       const list = res.data ?? [];
       setAccommodations(list);
-      if (list.length > 0) setSelectedAccomId(list[0].id);
+      if (list.length > 0) {
+        const storedId = Number(sessionStorage.getItem("landlord-acc-id"));
+        const match = list.find((a: any) => a.id === storedId);
+        setSelectedAccomId(match ? storedId : list[0].id);
+      }
     });
   }, []);
 
@@ -321,6 +325,17 @@ export default function RoomsPage() {
             
             {/* Desktop Filters */}
             <div className="hidden sm:flex items-center gap-2">
+              {accommodations.length > 1 && (
+                <select
+                  value={selectedAccomId ?? ""}
+                  onChange={(e) => setSelectedAccomId(Number(e.target.value))}
+                  className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-500 hover:border-[#8C1535]/30 transition-all outline-none shadow-sm"
+                >
+                  {accommodations.map((acc) => (
+                    <option key={acc.id} value={acc.id}>{acc.accommodationName}</option>
+                  ))}
+                </select>
+              )}
               <select value={selectedType} onChange={(e) => handleFilterChange("type", e.target.value)}
                 className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-500 hover:border-[#8C1535]/30 transition-all outline-none shadow-sm">
                 <option value="all">All Types</option>
@@ -374,6 +389,20 @@ export default function RoomsPage() {
           {/* Mobile Filter Panel */}
           {showMobileFilters && (
             <div className="sm:hidden bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+              {accommodations.length > 1 && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-gray-600">Dormitory</label>
+                  <select
+                    value={selectedAccomId ?? ""}
+                    onChange={(e) => setSelectedAccomId(Number(e.target.value))}
+                    className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm w-full"
+                  >
+                    {accommodations.map((acc) => (
+                      <option key={acc.id} value={acc.id}>{acc.accommodationName}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-gray-600">Room Type</label>
                 <select value={selectedType} onChange={(e) => handleFilterChange("type", e.target.value)}
