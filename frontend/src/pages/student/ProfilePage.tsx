@@ -1,38 +1,18 @@
-/*
-  ProfilePage.tsx - Student profile view and edit
-
-  Colors are taken from Dashboard.tsx so everything stays consistent:
-    dark:   #3D0718
-    mid:    #6B0F2B
-    accent: #8C1535
-    gold:   #C9973A
-    goldLt: #E8C37A
-
-  Endpoints this page talks to:
-    GET  /api/me               - pulls current user + student record
-    PUT  /api/me               - saves editable fields
-    POST /api/me/profile-picture - uploads profile picture
-    GET  /api/my-stay/history  - all past and current dorm assignments
-*/
-
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { create } from "zustand";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { api } from "../../api/axios";
 import Sidebar from "../../components/Sidebar";
 import { useUserStore } from '../../stores/useUserStore';
 import femalePfp from "../../assets/defaults/female-pfp.png";
 import malePfp from "../../assets/defaults/male-pfp.png";
 
-const CLR = {
-  dark:   "#3D0718",
-  mid:    "#6B0F2B",
-  accent: "#8C1535",
-  gold:   "#C9973A",
-  goldLt: "#E8C37A",
-  goldDk: "#a07825",
-} as const;
+// Icons
+import Camera from "../../assets/icons/camera.svg";
+import Pencil from "../../assets/icons/edit.svg";
+import BadgeCheck from "../../assets/icons/verify.svg";
+import Save from "../../assets/icons/save.svg";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -53,38 +33,35 @@ interface UserProfile {
     degreeProgram: string;
     gender: string;
     yearLevel: string | null;
+    classification: string | null;
     emergencyContactName: string | null;
     emergencyContactNumber: string | null;
   } | null;
+  updatedAt: string;
 }
 
 interface AccommodationHistoryItem {
   id: number;
-  roomId: number;
-  moveIn: string;
-  expectedMoveOut: string;
-  actualMoveOut: string | null;
   room: {
     roomName: string;
-    monthlyRate: number;
     roomType: string;
     accommodation: {
       accommodationName: string;
-      accommodationType: string;
     };
   };
-  review?: { rating: number } | null;
+  actualMoveOut: string | null;
 }
 
 interface ProfileEditFields {
-  primaryPhone: string        
-  secondaryPhone: string      
-  facebookAccount: string
-  emergencyContactNumber: string
-  emergencyContactName: string
+  mname: string;
+  primaryPhone: string;
+  facebookAccount: string;
+  emergencyContactNumber: string;
+  emergencyContactName: string;
+  classification: string;
 }
 
-// ─── Zustand store for edit-form state ───────────────────────────────────────
+// ─── Zustand Store ───────────────────────────────────────────────────────────
 
 interface ProfileEditStore {
   isEditing: boolean;
@@ -93,896 +70,241 @@ interface ProfileEditStore {
   setIsEditing: (v: boolean) => void;
   setShowHistory: (v: boolean) => void;
   setForm: (f: ProfileEditFields) => void;
-  patchForm: (patch: Partial<ProfileEditFields>) => void;
 }
 
 const useProfileStore = create<ProfileEditStore>((set) => ({
   isEditing: false,
   showHistory: false,
   form: {
+    mname: '',
     primaryPhone: '',
-    secondaryPhone: '',
     facebookAccount: '',
     emergencyContactNumber: '',
     emergencyContactName: '',
+    classification: '',
   },
-  setIsEditing: (v) => set({ isEditing: v }),
-  setShowHistory: (v) => set({ showHistory: v }),
-  setForm: (form) => set({ form }),
-  patchForm: (patch) => set((s) => ({ form: { ...s.form, ...patch } })),
+  setIsEditing: (v: boolean) => set({ isEditing: v }),
+  setShowHistory: (v: boolean) => set({ showHistory: v }),
+  setForm: (form: ProfileEditFields) => set({ form }),
 }));
-
-// ─── API helpers ─────────────────────────────────────────────────────────────
-
-async function fetchMe(): Promise<UserProfile> {
-  const res = await api.get("/me");
-  return res.data;
-}
-
-async function fetchHistory(): Promise<AccommodationHistoryItem[]> {
-  try {
-    const [historyRes, currentRes] = await Promise.all([
-      api.get('/my-stay/history'),
-      api.get('/my-stay/current'),
-    ])
-    const past = Array.isArray(historyRes.data) ? historyRes.data : []
-    const current = currentRes.data ? [currentRes.data] : []
-    return [...current, ...past]  // current first so find() picks it up
-  } catch {
-    return []
-  }
-}
-
-async function updateMe(form: ProfileEditFields): Promise<UserProfile> {
-  const res = await api.put("/me", form);
-  return res.data;
-}
-
-async function uploadProfilePicture(file: File): Promise<{ profilePictureUrl: string }> {
-  const form = new FormData();
-  form.append("profilePicture", file);
-  const res = await api.post("/me/profile-picture", form, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return res.data;
-}
-
-// ─── Utility functions ────────────────────────────────────────────────────────
-
-function fullName(p: UserProfile) {
-  return [p.fname, p.mname, p.lname].filter(Boolean).join(" ");
-}
-
-function initials(p: UserProfile) {
-  return `${p.fname?.[0] ?? ""}${p.lname?.[0] ?? ""}`.toUpperCase();
-}
-
-function primaryPhone(p: UserProfile) {
-  return p.phoneNumbers?.find((n) => n.isPrimary)?.contactNumber ?? "NONE";
-}
-
-function secondaryPhone(p: UserProfile) {
-  const extras = p.phoneNumbers?.filter((n) => !n.isPrimary);
-  return extras?.length ? extras[0].contactNumber : "NONE";
-}
-
-function yearLevel(student: UserProfile["student"]) {
-  if (!student) return "—";
-  return student.yearLevel ?? "—";
-}
-
-function formatSemester(dateStr: string) {
-  const d = new Date(dateStr);
-  const mo = d.getMonth();
-  const sem = mo >= 5 && mo <= 10 ? 1 : 2;
-  const ayStart = sem === 1 ? d.getFullYear() : d.getFullYear() - 1;
-  return `Semester ${sem}, AY ${ayStart}–${String(ayStart + 1).slice(2)}`;
-}
-
-function formatCurrency(n: number) {
-  return `₱${n.toLocaleString("en-PH")}`;
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <span style={{ color: CLR.gold, fontSize: 13 }}>
-      {"★".repeat(Math.floor(rating))}
-      {"☆".repeat(5 - Math.floor(rating))}
-      <span style={{ color: "#555", marginLeft: 4, fontSize: 12 }}>{rating.toFixed(1)}</span>
-    </span>
-  );
-}
-
-function AccomHistoryModal({
-  history,
-  onClose,
-  studentName,
-}: {
-  history: AccommodationHistoryItem[];
-  onClose: () => void;
-  studentName: string;
-}) {
-  const totalSpent = history.reduce((sum, h) => {
-    const months = Math.max(
-      1,
-      Math.round(
-        (new Date(h.actualMoveOut ?? h.expectedMoveOut).getTime() -
-          new Date(h.moveIn).getTime()) /
-          (1000 * 60 * 60 * 24 * 30)
-      )
-    );
-    return sum + h.room.monthlyRate * months;
-  }, 0);
-
-  const ratedItems = history.filter((h) => h.review?.rating);
-  const avgRating =
-    ratedItems.length > 0
-      ? ratedItems.reduce((s, h) => s + (h.review?.rating ?? 0), 0) / ratedItems.length
-      : 0;
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 999,
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 16,
-          width: "min(560px, 92vw)",
-          maxHeight: "80vh",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.25)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          style={{
-            background: CLR.mid,
-            color: "#fff",
-            padding: "20px 24px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderRadius: "16px 16px 0 0",
-          }}
-        >
-          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: 1 }}>
-            {studentName.toUpperCase()}'S ACCOMMODATION HISTORY
-          </span>
-          <button
-            onClick={onClose}
-            style={{
-              background: "rgba(255,255,255,0.2)",
-              border: "none",
-              borderRadius: "50%",
-              width: 28,
-              height: 28,
-              color: "#fff",
-              cursor: "pointer",
-              fontWeight: 700,
-              fontSize: 16,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        <div
-          style={{
-            overflowY: "auto",
-            flex: 1,
-            padding: "16px 24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-        >
-          {history.length === 0 ? (
-            <p style={{ color: "#888", textAlign: "center", marginTop: 32 }}>
-              No accommodation history yet.
-            </p>
-          ) : (
-            history.map((item) => {
-              const isActive = !item.actualMoveOut;
-              return (
-                <div
-                  key={item.id}
-                  style={{
-                    display: "flex",
-                    gap: 16,
-                    background: "#f9f5f6",
-                    borderRadius: 12,
-                    padding: 14,
-                    border: `1px solid ${isActive ? CLR.gold : "#e0d0d5"}`,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 90,
-                      height: 70,
-                      borderRadius: 8,
-                      background: `linear-gradient(135deg, ${CLR.mid}, ${CLR.dark})`,
-                      flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: CLR.goldLt,
-                      fontSize: 10,
-                      fontWeight: 600,
-                      textAlign: "center",
-                      padding: 4,
-                    }}
-                  >
-                    AY {new Date(item.moveIn).getFullYear()}–
-                    {String(new Date(item.moveIn).getFullYear() + 1).slice(2)}
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: CLR.dark }}>
-                      {item.room.accommodation.accommodationName}
-                    </div>
-                    <div style={{ fontSize: 12, color: "#666", marginBottom: 6 }}>
-                      {item.room.roomType} · {item.room.accommodation.accommodationType} · Room{" "}
-                      {item.room.roomName}
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 12px" }}>
-                      <div>
-                        <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase" }}>
-                          Semester
-                        </div>
-                        <div style={{ fontSize: 12, color: "#333" }}>
-                          {formatSemester(item.moveIn)}
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase" }}>
-                          Monthly Rate
-                        </div>
-                        <div style={{ fontSize: 12, color: "#333", fontWeight: 600 }}>
-                          {formatCurrency(item.room.monthlyRate)} / month
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase" }}>
-                          {isActive ? "Move-in Date" : "Duration"}
-                        </div>
-                        <div style={{ fontSize: 12, color: "#333" }}>
-                          {isActive
-                            ? new Date(item.moveIn).toLocaleDateString("en-PH", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })
-                            : `${new Date(item.moveIn).toLocaleDateString("en-PH", {
-                                month: "short",
-                                year: "numeric",
-                              })} – ${new Date(item.actualMoveOut!).toLocaleDateString("en-PH", {
-                                month: "short",
-                                year: "numeric",
-                              })}`}
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase" }}>
-                          Rating Given
-                        </div>
-                        <div>
-                          {item.review?.rating ? (
-                            <StarRating rating={item.review.rating} />
-                          ) : (
-                            <span style={{ fontSize: 12, color: "#aaa" }}>No rating yet</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "flex-start" }}>
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        padding: "3px 10px",
-                        borderRadius: 20,
-                        background: isActive ? "#e8f5e9" : "#fce4ec",
-                        color: isActive ? "#2e7d32" : "#c62828",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {isActive ? "Active / Current" : "Inactive"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        <div
-          style={{
-            borderTop: "1px solid #eee",
-            padding: "14px 24px",
-            display: "flex",
-            justifyContent: "space-around",
-            background: "#fafafa",
-            borderRadius: "0 0 16px 16px",
-          }}
-        >
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 11, color: "#999", textTransform: "uppercase" }}>Total Dorms</div>
-            <div style={{ fontWeight: 700, fontSize: 18, color: CLR.dark }}>{history.length}</div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 11, color: "#999", textTransform: "uppercase" }}>Total Spent</div>
-            <div style={{ fontWeight: 700, fontSize: 18, color: CLR.dark }}>
-              {formatCurrency(totalSpent)}
-            </div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 11, color: "#999", textTransform: "uppercase" }}>Avg Rating Given</div>
-            <div
-              style={{
-                fontWeight: 700,
-                fontSize: 18,
-                color: CLR.dark,
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              <span style={{ color: CLR.gold }}>★</span>
-              {avgRating > 0 ? avgRating.toFixed(1) : "—"}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Shared styles (module-level so components don't recreate them) ───────────
-
-const fieldStyle: React.CSSProperties = {
-  fontSize: 14,
-  color: "#222",
-  fontWeight: 500,
-  fontFamily: "'Plus Jakarta Sans', sans-serif",
-};
-const labelStyle: React.CSSProperties = {
-  fontSize: 10,
-  color: "#999",
-  textTransform: "uppercase",
-  letterSpacing: "0.5px",
-  fontFamily: "'Plus Jakarta Sans', sans-serif",
-  marginBottom: 2,
-};
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "6px 10px",
-  border: `1px solid ${CLR.goldLt}`,
-  borderRadius: 6,
-  fontSize: 13,
-  color: "#222",
-  fontFamily: "'Plus Jakarta Sans', sans-serif",
-  background: "#fff",
-  boxSizing: "border-box",
-};
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div style={labelStyle}>{label}</div>
-      <div style={fieldStyle}>{value || "—"}</div>
-    </div>
-  );
-}
-
-function EditableField({
-  label,
-  field,
-  value,
-  isEditing,
-  readOnly = false,
-  onChange,
-}: {
-  label: string;
-  field: keyof ProfileEditFields | null;
-  value: string;
-  isEditing: boolean;
-  readOnly?: boolean;
-  onChange?: (val: string) => void;
-}) {
-  if (!isEditing || readOnly || !field) {
-    return <Field label={label} value={value} />;
-  }
-  return (
-    <div>
-      <div style={labelStyle}>{label}</div>
-      <input
-        style={inputStyle}
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
-      />
-    </div>
-  );
-}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
-  const navigate = useNavigate();
   const qc = useQueryClient();
-
-  const { isEditing, showHistory, form, setIsEditing, setShowHistory, setForm, patchForm } =
-    useProfileStore();
+  const { isEditing, showHistory, form, setIsEditing, setShowHistory, setForm } = useProfileStore();
   const { setUser } = useUserStore();
-
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [pfpUploading, setPfpUploading] = useState(false);
 
-  // ── Queries ────────────────────────────────────────────────────────────────
-
-  const {
-    data: profile,
-    isLoading: profileLoading,
-    isError: profileError,
-  } = useQuery<UserProfile>({
+  const { data: profile, isLoading: profileLoading, isError: profileError } = useQuery<UserProfile>({
     queryKey: ["me"],
-    queryFn: fetchMe,
+    queryFn: async () => (await api.get("/me")).data,
   });
 
   const { data: history = [] } = useQuery<AccommodationHistoryItem[]>({
     queryKey: ["my-stay-history"],
-    queryFn: fetchHistory,
+    queryFn: async () => {
+      try {
+        const [hRes, cRes] = await Promise.all([api.get('/my-stay/history'), api.get('/my-stay/current')]);
+        return [...(cRes.data ? [cRes.data] : []), ...(Array.isArray(hRes.data) ? hRes.data : [])];
+      } catch { return []; }
+    }
   });
 
-  // ── Mutations ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (profile) {
+      setForm({
+        mname: profile.mname || "",
+        primaryPhone: profile.phoneNumbers?.find((n: any) => n.isPrimary)?.contactNumber || "",
+        facebookAccount: profile.facebookAccount || "",
+        emergencyContactName: profile.student?.emergencyContactName || "",
+        emergencyContactNumber: profile.student?.emergencyContactNumber || "",
+        classification: profile.student?.classification || "Undergraduate",
+      });
+    }
+  }, [profile, setForm]);
 
   const saveMutation = useMutation({
-    mutationFn: updateMe,
-    onSuccess: (updatedProfile) => {
-      qc.invalidateQueries({ queryKey: ['me'] });
-      setUser(updatedProfile);
+    mutationFn: async (updatedForm: ProfileEditFields) => (await api.put("/me", updatedForm)).data,
+    onSuccess: (data: UserProfile) => {
+      qc.invalidateQueries({ queryKey: ["me"] });
+      setUser(data);
       setIsEditing(false);
-    },
-    onError: (err: any) => {
-      alert(err?.response?.data?.message ?? 'Failed to save profile.');
-    },
+    }
   });
 
-  const pfpMutation = useMutation({
-    mutationFn: uploadProfilePicture,
-    onMutate: () => setPfpUploading(true),
-    onSettled: () => setPfpUploading(false),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['me'] }),
-    onError: (err: any) => alert(err?.response?.data?.message ?? 'Failed to upload photo.'),
-  });
+  const handlePfpUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append("profilePicture", file);
+    try {
+      await api.post("/me/profile-picture", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      qc.invalidateQueries({ queryKey: ["me"] });
+    } catch (err) { console.error("Upload failed", err); }
+  };
 
-  // ── Derived values ─────────────────────────────────────────────────────────
+  if (profileLoading) return <div className="flex h-screen items-center justify-center font-bold text-[#8C1535]">Loading...</div>;
+  if (profileError || !profile) return <div className="flex h-screen items-center justify-center text-[#8C1535]">Error loading profile.</div>;
 
-  const currentDorm = history.find((h) => !h.actualMoveOut) ?? null;
-
-  const sidebarProfile = profile
-    ? {
-        fullName: fullName(profile),
-        shortName: initials(profile),
-        email: profile.email,
-        studentNo: profile.student?.studentNumber,
-        college: profile.student?.college,
-        course: profile.student?.degreeProgram,
-        yearLevel: yearLevel(profile.student),
-        status: profile.accountStatus,
-      }
-    : undefined;
-
-  // ── Loading / error states ─────────────────────────────────────────────────
-
-  if (profileLoading) {
-    return (
-      <div style={{ display: "flex", height: "100vh", background: "#f5f0f1" }}>
-        <Sidebar role="student" profile={sidebarProfile} />
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: CLR.mid,
-            fontSize: 16,
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
-          }}
-        >
-          Loading profile...
-        </div>
-      </div>
-    );
-  }
-
-  if (profileError || !profile) {
-    return (
-      <div style={{ display: "flex", height: "100vh", background: "#f5f0f1" }}>
-        <Sidebar role="student" profile={sidebarProfile} />
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexDirection: "column",
-            gap: 12,
-            color: CLR.accent,
-          }}
-        >
-          <span style={{ fontSize: 18 }}>Failed to load profile.</span>
-          <button
-            onClick={() => navigate("/student/dashboard")}
-            style={{
-              padding: "8px 20px",
-              background: CLR.mid,
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              cursor: "pointer",
-            }}
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  const currentDorm = history.find((h: AccommodationHistoryItem) => !h.actualMoveOut);
   const defaultPfp = profile.student?.gender?.toLowerCase() === "female" ? femalePfp : malePfp;
-
-  // ── Render ─────────────────────────────────────────────────────────────────
+  
+  // Dynamic Verification Date (Current month/year)
+  const verifyDate = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        overflow: "hidden",
-        background: "#f5f0f1",
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
-      }}
-    >
-      <Sidebar role="student" profile={sidebarProfile} />
+    <div className="min-h-screen bg-[#FAF6F2] lg:flex font-['Plus_Jakarta_Sans'] text-[#2A1F1A]">
+      <Sidebar role="student" />
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
-          <div style={{ width: 4, height: 22, background: CLR.gold, borderRadius: 2 }} />
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: CLR.dark }}>Profile</h1>
-        </div>
+      <div className="flex-1">
+        <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
+          <div className="flex items-center gap-3 pl-12 lg:pl-0">
+            <span className="h-6 w-1 rounded-full bg-[#3D0718]" />
+            <h1 className="font-serif text-3xl italic font-bold text-[#3D0718] md:text-4xl">Profile</h1>
+          </div>
+        </header>
 
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 16,
-            padding: "28px 32px",
-            display: "flex",
-            gap: 32,
-            boxShadow: "0 2px 12px rgba(61,7,24,0.07)",
-          }}
-        >
-          {/* ── Left column: avatar, photo/docs, verified badge ── */}
-          <div style={{ width: 200, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+        <main className="px-3 py-4 md:px-6 lg:px-8 lg:py-6">
+          <section className="overflow-hidden rounded-[40px] border border-[#EADFD3] bg-white shadow-sm">
+            <div className="p-6 md:p-10 lg:p-14">
+              <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
+                
+                {/* LEFT: Dashed Photo/Doc Boxes */}
+                <div className="w-full lg:w-[320px] lg:shrink-0">
+                  <div className="relative aspect-square overflow-hidden rounded-[35px] bg-[#F9EBEE] border border-[#F2F2F2]">
+                    <img src={profile.profilePictureUrl || defaultPfp} className="h-full w-full object-cover" alt="Profile" />
+                    <button onClick={() => fileInputRef.current?.click()} className="absolute left-4 top-4 bg-white/90 p-2 rounded-xl shadow-sm border border-[#F2F2F2]">
+                      <img src={Camera} className="h-6 w-6" alt="Upload" />
+                    </button>
+                  </div>
 
-            {/* Avatar — clickable to upload */}
-            <div
-              style={{
-                width: "100%",
-                aspectRatio: "1",
-                borderRadius: 14,
-                overflow: "hidden",
-                position: "relative",
-                cursor: pfpUploading ? "not-allowed" : "pointer",
-              }}
-              onClick={() => !pfpUploading && fileInputRef.current?.click()}
-              title="Click to change photo"
-            >
-              <img
-                src={profile.profilePictureUrl || defaultPfp}
-                  onError={(e) => { e.currentTarget.src = defaultPfp; }}
-                alt="Profile"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
+                  <div className="mt-6 grid grid-cols-2 gap-4">
+                    <div onClick={() => fileInputRef.current?.click()} className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-pointer hover:bg-white transition-colors">
+                      <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">PHOTO</p>
+                      <p className="text-[9px] text-gray-400">JPG/PNG</p>
+                    </div>
+                    <div className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-not-allowed">
+                      <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">DOCUMENTS</p>
+                      <p className="text-[9px] text-gray-400">ID / Form 5</p>
+                    </div>
+                  </div>
 
-              {/* Overlay shown while uploading */}
-              {pfpUploading && (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "rgba(61,7,24,0.55)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <span style={{ color: "#fff", fontSize: 12, fontWeight: 600 }}>Uploading...</span>
+                  <div className="mt-6 flex items-center gap-4 rounded-2xl bg-[#E6F4EA] px-6 py-4 border border-[#D0E6D5]">
+                    <img src={BadgeCheck} className="h-5 w-5" alt="Verified" />
+                    <div className="flex-1">
+                      <p className="text-[11px] font-extrabold uppercase text-[#1F7A3A]">Verified UPLB Student</p>
+                    </div>
+                    <span className="text-[10px] text-[#1F7A3A]/60 font-bold">{verifyDate}</span>
+                  </div>
                 </div>
-              )}
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) pfpMutation.mutate(file);
-                  e.target.value = "";
-                }}
-              />
-            </div>
+                {/* RIGHT: Detailed Grid */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-6 mb-12">
+                    <div className="min-w-0">
+                      <p className="mb-2 text-[10px] font-bold tracking-[0.15em] text-[#A88993] uppercase">Full Name</p>
+                      <h2 className="text-4xl font-bold text-[#2A1F1A] lg:text-5xl">
+                        {profile.fname} {isEditing ? "" : (profile.mname || "")} {profile.lname}
+                      </h2>
+                    </div>
+                    <button 
+                      onClick={() => isEditing ? saveMutation.mutate(form) : setIsEditing(true)}
+                      className="inline-flex items-center gap-3 rounded-2xl border border-[#E6CAD3] px-8 py-3 text-sm font-bold text-[#2A1F1A] shadow-sm hover:bg-[#8C1535] hover:text-white transition-all group"
+                    >
+                      <img src={isEditing ? Save : Pencil} className="h-4 w-4 group-hover:invert" alt="" />
+                      {isEditing ? "SAVE PROFILE" : "EDIT PROFILE"}
+                    </button>
+                  </div>
 
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                onClick={() => !pfpUploading && fileInputRef.current?.click()}
-                disabled={pfpUploading}
-                style={{
-                  flex: 1,
-                  padding: "6px 0",
-                  fontSize: 11,
-                  border: `1px solid ${CLR.goldLt}`,
-                  borderRadius: 8,
-                  background: "#fff",
-                  color: CLR.mid,
-                  cursor: pfpUploading ? "not-allowed" : "pointer",
-                  fontWeight: 600,
-                  opacity: pfpUploading ? 0.6 : 1,
-                }}
-              >
-                {pfpUploading ? "UPLOADING..." : "PHOTO"}
-              </button>
-              <button
-                style={{
-                  flex: 1,
-                  padding: "6px 0",
-                  fontSize: 11,
-                  border: `1px solid ${CLR.goldLt}`,
-                  borderRadius: 8,
-                  background: "#fff",
-                  color: CLR.mid,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-              >
-                DOCUMENTS
-              </button>
-            </div>
+                  <div className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
+                    <Field label="UP Mail" value={profile.email} readOnly />
+                    <Field label="College" value={profile.student?.college} readOnly />
+                    
+                    <Field label="Middle Name" value={form.mname} editing={isEditing} onChange={(v: string) => setForm({...form, mname: v})} />
+                    <Field label="Degree Program" value={profile.student?.degreeProgram} readOnly />
 
-            {profile.accountStatus === "active" && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: "#e8f5e9",
-                  borderRadius: 8,
-                  padding: "6px 10px",
-                  fontSize: 12,
-                  color: "#2e7d32",
-                  fontWeight: 600,
-                }}
-              >
-                <div>
-                  <div>Verified UPLB Student</div>
-                  <div style={{ fontWeight: 400, fontSize: 10, color: "#555" }}>
-                    Since{" "}
-                    {new Date().toLocaleDateString("en-PH", {
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    <Field label="Phone Number" value={form.primaryPhone} editing={isEditing} onChange={(v: string) => setForm({...form, primaryPhone: v})} />
+                    <Field label="Student Number" value={profile.student?.studentNumber} readOnly />
+                    
+                    <Field label="Facebook Link" value={form.facebookAccount} editing={isEditing} onChange={(v: string) => setForm({...form, facebookAccount: v})} />
+                    <Field label="Gender" value={profile.student?.gender} readOnly />
+
+                    <Field label="Emergency Contact" value={form.emergencyContactName} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactName: v})} />
+                    <Field label="Classification" value={form.classification} editing={isEditing} onChange={(v: string) => setForm({...form, classification: v})} />
+
+                    <Field label="Emergency Contact #" value={form.emergencyContactNumber} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactNumber: v})} />
+                    <Field label="Year Level" value={profile.student?.yearLevel} readOnly />
+                  </div>
+
+                  {/* Current Dorm - Manager Style */}
+                  <div className="mt-14 border-t border-[#F2F2F2] pt-10">
+                    <p className="mb-5 text-[10px] font-extrabold tracking-widest text-[#A88993] uppercase">Current Dorm</p>
+                    <div className="flex items-center gap-6 rounded-3xl border border-[#EADFD3] bg-[#F8EFF2] p-5">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8C1535] text-lg font-bold text-white shadow-sm uppercase">
+                        {currentDorm?.room.accommodation.accommodationName?.[0] || "D"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-lg font-bold text-[#2A1F1A]">{currentDorm?.room.accommodation.accommodationName || "No Assignment"}</p>
+                        <p className="text-sm text-[#A88993]">{currentDorm?.room.roomType || "Shared Residence"}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setShowHistory(true)} className="mt-8 inline-flex items-center gap-3 rounded-2xl bg-[#4A0819] px-8 py-4 text-[11px] font-bold uppercase tracking-widest text-white shadow-lg">
+                      📜 Accommodation History
+                    </button>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* ── Right column: all profile fields ── */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                marginBottom: 20,
-              }}
-            >
-              <div>
-                <div style={labelStyle}>Full Name</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: CLR.dark }}>
-                  {fullName(profile)}
-                </div>
-              </div>
-
-              {isEditing ? (
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    style={{
-                      padding: "8px 18px",
-                      background: "#fff",
-                      border: "1.5px solid #ccc",
-                      borderRadius: 8,
-                      color: "#666",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontSize: 13,
-                    }}
-                  >
-                    CANCEL
-                  </button>
-                  <button
-                    onClick={() => saveMutation.mutate(form)}
-                    disabled={saveMutation.isPending}
-                    style={{
-                      padding: "8px 22px",
-                      background: "#fff",
-                      border: `1.5px solid ${CLR.accent}`,
-                      borderRadius: 8,
-                      color: CLR.accent,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontSize: 13,
-                      opacity: saveMutation.isPending ? 0.6 : 1,
-                    }}
-                  >
-                    {saveMutation.isPending ? "Saving..." : "SAVE"}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setForm({
-                      primaryPhone: primaryPhone(profile),
-                      secondaryPhone: secondaryPhone(profile),
-                      facebookAccount: profile.facebookAccount ?? '',
-                      emergencyContactNumber: profile.student?.emergencyContactNumber ?? '',
-                      emergencyContactName: profile.student?.emergencyContactName ?? '',
-                    });
-                    setIsEditing(true);
-                  }}
-                  style={{
-                    padding: "8px 22px",
-                    background: "#fff",
-                    border: `1.5px solid ${CLR.accent}`,
-                    borderRadius: 8,
-                    color: CLR.accent,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    fontSize: 13,
-                  }}
-                >
-                  EDIT PROFILE
-                </button>
-              )}
             </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 32px" }}>
-              <Field label="UP Mail" value={profile.email} />
-              <Field label="College" value={profile.student?.college ?? ''} />
-
-              <EditableField label="Primary Phone Number" field="primaryPhone"
-                value={isEditing ? form.primaryPhone : primaryPhone(profile)}
-                isEditing={isEditing} onChange={(v) => patchForm({ primaryPhone: v })} />
-              <Field label="Degree Program" value={profile.student?.degreeProgram ?? ''} />
-
-              <EditableField label="2nd Phone Number" field="secondaryPhone"
-                value={isEditing ? form.secondaryPhone : secondaryPhone(profile)}
-                isEditing={isEditing} onChange={(v) => patchForm({ secondaryPhone: v })} />
-              <Field label="Student Number" value={profile.student?.studentNumber ?? '—'} />
-
-              <EditableField label="Facebook Link" field="facebookAccount"
-                value={isEditing ? form.facebookAccount : (profile.facebookAccount ?? '')}
-                isEditing={isEditing} onChange={(v) => patchForm({ facebookAccount: v })} />
-              <Field label="Year Level" value={yearLevel(profile.student)} />
-
-              <EditableField label="Emergency Contact Number" field="emergencyContactNumber"
-                value={isEditing ? form.emergencyContactNumber : (profile.student?.emergencyContactNumber ?? '')}
-                isEditing={isEditing} onChange={(v) => patchForm({ emergencyContactNumber: v })} />
-              <Field label="Gender" value={profile.student?.gender ?? '—'} />
-
-              <EditableField label="Emergency Contact Name" field="emergencyContactName"
-                value={isEditing ? form.emergencyContactName : (profile.student?.emergencyContactName ?? '')}
-                isEditing={isEditing} onChange={(v) => patchForm({ emergencyContactName: v })} />
-            </div>
-
-            {/* current dorm + history button */}
-            <div style={{ marginTop: 24 }}>
-              <div style={labelStyle}>Current Dorm</div>
-              {currentDorm ? (
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 10,
-                    background: "#f9f5f6",
-                    border: `1px solid ${CLR.goldLt}`,
-                    borderRadius: 10,
-                    padding: "8px 14px",
-                    marginBottom: 12,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 6,
-                      background: CLR.mid,
-                      color: "#fff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 700,
-                      fontSize: 13,
-                    }}
-                  >
-                    {currentDorm.room.accommodation.accommodationName[0]}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: CLR.dark }}>
-                      {currentDorm.room.accommodation.accommodationName}
-                    </div>
-                    <div style={{ fontSize: 11, color: "#888" }}>
-                      {currentDorm.room.roomType} · {currentDorm.room.accommodation.accommodationType}{" "}
-                      · {formatSemester(currentDorm.moveIn)}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ fontSize: 13, color: "#aaa", marginBottom: 12 }}>
-                  No active dorm assignment.
-                </div>
-              )}
-
-              <button
-                onClick={() => setShowHistory(true)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "9px 20px",
-                  background: CLR.dark,
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                  fontSize: 13,
-                }}
-              >
-                ACCOMMODATION HISTORY
-              </button>
-            </div>
-          </div>
-        </div>
+          </section>
+        </main>
       </div>
 
-      {showHistory && (
-        <AccomHistoryModal
-          history={history}
-          studentName={profile.fname}
-          onClose={() => setShowHistory(false)}
+      {showHistory && <AccomHistoryModal history={history} studentName={profile.fname} onClose={() => setShowHistory(false)} />}
+      <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => e.target.files?.[0] && handlePfpUpload(e.target.files[0])} />
+    </div>
+  );
+}
+
+function Field({ label, value, editing, readOnly, onChange }: any) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#A88993]">{label}</p>
+      {editing && !readOnly ? (
+        <input 
+          value={value || ""} 
+          onChange={(e) => onChange(e.target.value)} 
+          className="w-full rounded-xl border border-[#EADFD3] bg-[#FBF9F8] px-4 py-3 text-sm font-semibold text-[#2A1F1A] outline-none focus:border-[#8C1535] transition-colors" 
         />
+      ) : (
+        <div className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold border-[#F2F2F2] bg-white text-[#A88993]`}>
+          {value || "NONE"}
+        </div>
       )}
+    </div>
+  );
+}
+
+function AccomHistoryModal({ history, studentName, onClose }: any) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="w-full max-w-2xl rounded-[32px] bg-white p-8" onClick={e => e.stopPropagation()}>
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="text-2xl font-bold text-[#3D0718]">Stay History - {studentName}</h3>
+          <button onClick={onClose} className="text-gray-400 text-3xl">&times;</button>
+        </div>
+        <div className="max-h-[60vh] overflow-y-auto space-y-4">
+          {history.length > 0 ? history.map((item: any, idx: number) => (
+            <div key={idx} className="rounded-2xl border border-[#F2F2F2] p-5 flex justify-between items-center">
+              <div>
+                <p className="font-bold text-[#2A1F1A]">{item.room.accommodation.accommodationName}</p>
+                <p className="text-xs text-[#A88993]">{item.room.roomName} • {item.room.roomType}</p>
+              </div>
+              <span className={`rounded-full px-4 py-1 text-[10px] font-bold uppercase ${item.actualMoveOut ? 'bg-gray-100 text-gray-400' : 'bg-green-100 text-green-700'}`}>
+                {item.actualMoveOut ? 'Past' : 'Current'}
+              </span>
+            </div>
+          )) : <p className="text-center py-10 text-gray-400 italic">No history records found.</p>}
+        </div>
+      </div>
     </div>
   );
 }
