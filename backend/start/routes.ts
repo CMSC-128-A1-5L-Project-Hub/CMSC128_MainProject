@@ -171,6 +171,9 @@ router
         router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
         router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
 
+        // ─── PHONE DUPLICATE CHECK ───
+        router.get('/check-phone/:phone', [controllers.PhoneNumbers, 'check'])
+
         // Document Zip Export (Backblaze)
         router.get('/accommodations/:id/export-documents', [
           controllers.Accommodation,
