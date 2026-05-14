@@ -807,7 +807,45 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
   const sessionTokenRef = useRef(crypto.randomUUID())
 
+  const handleSearch = (val: string) => {
+    setSearchQuery(val)
+    setSelectedDest(null)
+    setPreviewed(false)
+    setRouteGeoJSON(null)
+    setDurations({ driving: null, walking: null })
 
+    if (searchTimeout.current) clearTimeout(searchTimeout.current)
+
+    if (!val.trim()) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+
+    searchTimeout.current = setTimeout(async () => {
+      setLoadingSuggestions(true)
+      try {
+        // ✅ Search Box suggest endpoint (has POI coverage)
+        const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(val)}&access_token=${MAPBOX_TOKEN}&session_token=${sessionTokenRef.current}&proximity=121.2436,14.1654&bbox=121.15,14.10,121.35,14.25&country=PH&limit=5`
+        const res = await fetch(url)
+        const data = await res.json()
+
+        const results = (data.suggestions ?? []).map((s: any) => ({
+          label: s.name + (s.place_formatted ? `, ${s.place_formatted}` : ''),
+          mapbox_id: s.mapbox_id,
+          lat: null,
+          lng: null,
+        }))
+
+        setSuggestions(results)
+        setShowSuggestions(results.length > 0)
+      } catch {
+        setSuggestions([])
+      } finally {
+        setLoadingSuggestions(false)
+      }
+    }, 350)
+  }
 
   const selectSuggestion = async (s: any) => {
     setSearchQuery(s.label)
