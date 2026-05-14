@@ -128,14 +128,15 @@ export default function ProfilePage() {
   }, [profile, setForm]);
 
   // FIXED SAVE MUTATION: Uses the "Manager/Original" payload structure
-  const saveMutation = useMutation({
+ const saveMutation = useMutation({
     mutationFn: async (updatedForm: ProfileEditFields) => {
       const payload = {
         mname: updatedForm.mname,
         facebookAccount: updatedForm.facebookAccount,
-        // Backend needs phone numbers as an array
-        phoneNumbers: [{ contactNumber: updatedForm.primaryPhone, isPrimary: true }],
-        // Backend needs student data nested
+        phoneNumbers: [{ 
+          contactNumber: updatedForm.primaryPhone, 
+          isPrimary: true 
+        }],
         student: {
           classification: updatedForm.classification,
           yearLevel: updatedForm.yearLevel,
@@ -143,16 +144,26 @@ export default function ProfilePage() {
           emergencyContactNumber: updatedForm.emergencyContactNumber,
         }
       };
-      return (await api.put("/me", payload)).data;
+
+      // We use api.put("/me", payload) because this is the student's own profile
+      const { data } = await api.put("/me", payload);
+      return data;
     },
-    onSuccess: (data: UserProfile) => {
+    onSuccess: (data) => {
+      // 1. Clear the cache so it fetches fresh data from DB
       qc.invalidateQueries({ queryKey: ["me"] });
+      
+      // 2. Update global user store
       setUser(data);
+      
+      // 3. Close edit mode
       setIsEditing(false);
+      
+      alert("Changes saved to database!");
     },
-    onError: (err) => {
-      console.error("Save Error:", err);
-      alert("Save failed. Check console.");
+    onError: (error: any) => {
+      console.error("SAVE FAILED:", error.response?.data || error.message);
+      alert(`Save failed: ${error.response?.data?.message || "Check network tab"}`);
     }
   });
 
