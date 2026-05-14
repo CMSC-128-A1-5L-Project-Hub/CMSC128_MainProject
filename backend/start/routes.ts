@@ -38,6 +38,8 @@ router.group(() => {
   .as('public_rooms_available_count')
 
   router.get('/occupancy/dorms', [controllers.OccupancyRecords, 'publicDormOccupancy'])
+
+  router.post('/support/contact', [controllers.Supports, 'contact'])
   
 })
 
