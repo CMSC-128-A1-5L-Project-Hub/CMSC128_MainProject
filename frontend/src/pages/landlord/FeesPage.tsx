@@ -4,6 +4,8 @@ import { api } from '../../api/axios'
 import { useUserStore } from '../../stores/useUserStore'
 import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
+import Dropdown from "@/components/ApplicationStatus/Dropdown";
+import SearchBar from "@/components/SearchBar";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -74,6 +76,31 @@ function timeAgo(dateStr: string) {
 
 function initials(fname: string, lname: string) {
   return `${fname?.[0] ?? ''}${lname?.[0] ?? ''}`.toUpperCase()
+}
+
+// ─── Filter Tabs ──────────────────────────────────────────────────────
+
+type ActiveTab = 'Payment Verification' | 'Overdue Fees'
+
+function FilterTabs({ active, setActive }: { active: ActiveTab; setActive: (tab: ActiveTab) => void }) {
+  const tabs: ActiveTab[] = ['Payment Verification', 'Overdue Fees']
+  return (
+    <div className="bg-white p-1 rounded-xl inline-flex gap-1">
+      {tabs.map((tab) => (
+        <button
+          key={tab}
+          onClick={() => setActive(tab)}
+          className={`px-4 py-1.5 text-sm rounded-lg transition ${
+            active === tab
+              ? 'bg-[#6B0F2B] text-white shadow'
+              : 'text-gray-500 hover:text-black'
+          }`}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+  )
 }
 
 // ─── Overdue Fee Modal ──────────────────────────────────────────────────────
@@ -157,6 +184,12 @@ export default function FeesPage() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [selectedFee, setSelectedFee] = useState<OverdueFee | null>(null)
+  const [activeTab, setActiveTab] = useState<ActiveTab>('Payment Verification')
+  const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest")
+  const [itemsPerPage, setItemsPerPage] = useState(6)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [paymentSearch, setPaymentSearch] = useState('')
+  
 
   const { data: overdueFees = [], isLoading: loadingFees } = useQuery({
     queryKey: ['fees', 'overdue'],
@@ -180,6 +213,10 @@ export default function FeesPage() {
     `${f.fname} ${f.lname}`.toLowerCase().includes(search.toLowerCase())
   )
 
+  const filteredPayments = pendingPayments.filter((p) =>
+    p.fee?.studentNumber?.toLowerCase().includes(paymentSearch.toLowerCase())
+  )
+
   const fullName = user ? `${user.fname} ${user.lname}` : ''
 
   return (
@@ -195,147 +232,208 @@ export default function FeesPage() {
           type="mini"
         />
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mt-5">
+        <div className="mt-5 space-y-4">
 
-          {/* ── Overdue Fees ── */}
-          <div className="bg-white rounded-2xl shadow-sm p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h2 className="font-semibold text-base">Overdue Fees</h2>
-                <p className="text-xs text-gray-400">{filteredFees.length} total tenants</p>
+          {/* ── Tabs ── */}
+          <div className="flex justify-between items-center">
+            <FilterTabs active={activeTab} setActive={setActiveTab} />
+          </div>
+
+          {/* ── Payment Verification Panel ── */}
+          {activeTab === 'Payment Verification' && (
+            <div className="bg-white rounded-2xl shadow-sm p-5">
+              <div className="flex flex-row items-center mb-3">
+                <div>
+                  <h2 className="text-[16px] font-bold text-black">Payment Verification</h2>
+                  <p className="text-[12px] italic">{pendingPayments.length} total tenants</p>
+                </div>
+                <div className="flex items-end gap-3 ml-auto">
+                  <Dropdown
+                    title="No. of Items"
+                    items={[
+                      { label: "5", href: "" },
+                      { label: "10", href: "" },
+                      { label: "15", href: "" },
+                      { label: "20", href: "" },
+                    ]}
+                    direction="down"
+                    widthClass="w-29 lg:w-32"
+                    titleClass="text-[10px] lg:text-[11px]"
+                    selectedClass="text-[12px] lg:text-[13px]"
+                    onSelect={(label) => {
+                      setItemsPerPage(Number(label))
+                      setCurrentPage(1)
+                    }}
+                  />
+                  <Dropdown
+                    title="Sort By"
+                    items={[
+                      { label: "Latest", href: "" },
+                      { label: "Earliest", href: "" },
+                    ]}
+                    direction="down"
+                    widthClass="w-29 lg:w-32"
+                    titleClass="text-[10px] lg:text-[11px]"
+                    selectedClass="text-[12px] lg:text-[13px] block"
+                    onSelect={(label) => {
+                      setSortBy(label === "Latest" ? "latest" : "earliest")
+                      setCurrentPage(1)
+                    }}
+                  />
+                  <SearchBar
+                    value={paymentSearch}
+                    onChange={(query) => {
+                      setPaymentSearch(query)
+                      setCurrentPage(1)
+                    }}
+                    onPageReset={() => setCurrentPage(1)}
+                  />
+                </div>
               </div>
-              <input
-                type="text"
-                placeholder="Search applications..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="text-xs border border-gray-200 rounded-lg px-3 py-2 w-44 focus:outline-none"
-              />
-            </div>
 
-            {loadingFees ? (
-              <p className="text-sm text-gray-400 py-8 text-center">Loading...</p>
-            ) : filteredFees.length === 0 ? (
-              <p className="text-sm text-gray-400 py-8 text-center">No overdue fees.</p>
-            ) : (
-              <table className="w-full text-sm">
+              <table className="w-full lg:table-fixed text-sm">
                 <thead>
-                  <tr className="text-left text-[10px] text-gray-400 uppercase border-b">
-                    <th className="pb-2">Students</th>
-                    <th className="pb-2">Room Number</th>
-                    <th className="pb-2">Due Date</th>
-                    <th className="pb-2">Amount Due</th>
-                    <th className="pb-2">Action</th>
+                  <tr className="text-[10px] text-[#9A7080] uppercase tracking-widest font-bold text-left border-y border-[#6B0F2B]/10">
+                    <th className="px-4 py-2">Student</th>
+                    <th className="px-4 py-2 text-right whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredFees.map((fee) => (
-                    <tr key={fee.id} className="border-b last:border-0">
-                      <td className="py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-[#6B0F2B] text-white text-xs font-bold flex items-center justify-center shrink-0">
-                            {initials(fee.fname, fee.lname)}
-                          </div>
-                          <span className="font-medium">{fee.fname} {fee.lname}</span>
-                        </div>
-                      </td>
-                      <td className="py-3">
-                        <div>{fee.room_number}</div>
-                        <div className="text-xs text-gray-400">{fee.accommodation_name}</div>
-                      </td>
-                      <td className="py-3">
-                        <div>{new Date(fee.due_date).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                        <div className="text-xs text-gray-400">{timeAgo(fee.due_date)}</div>
-                      </td>
-                      <td className="py-3">₱{fee.fee_balance.toLocaleString()}</td>
-                      <td className="py-3">
-                        <button
-                          onClick={() => setSelectedFee(fee)}
-                          className="text-xs px-4 py-1.5 border border-[#8C1535] text-[#8C1535] rounded-lg hover:bg-[#8C1535] hover:text-white transition-colors"
-                        >
-                          View
-                        </button>
+                  {pendingPayments.length === 0 ? (
+                    <tr>
+                      <td colSpan={2} className="text-center py-16 text-gray-400 text-sm">
+                        No pending payments.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    pendingPayments.map((payment) => (
+                      <tr key={payment.id} className="hover:bg-gray-50 transition-all border-b last:border-0">
+                        {/* ... row cells ... */}
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-            )}
 
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-50 text-xs text-gray-400">
-              <span>Showing 1–{filteredFees.length} of {filteredFees.length} tenants</span>
-              <div className="flex gap-1">
-                <button className="w-7 h-7 rounded bg-[#3D0718] text-white font-bold">1</button>
-                <button className="w-7 h-7 rounded border border-gray-200 text-gray-500">›</button>
+              <div className="flex items-center justify-between px-2 mt-4 pt-3 border-t border-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                <span>
+                  {pendingPayments.length === 0
+                    ? 'No results'
+                    : `Showing 1–${pendingPayments.length} of ${pendingPayments.length}`}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-semibold text-white"
+                    style={{ background: 'linear-gradient(135deg,#3D0718,#6B0F2B)', boxShadow: '0 4px 12px rgba(107,15,43,0.35)' }}
+                  >
+                    1
+                  </button>
+                  <button className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-semibold border border-gray-200 text-[#6B0F2B]">
+                    ›
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* ── Payment Verification ── */}
-          <div className="bg-white rounded-2xl shadow-sm p-5">
-            <div className="mb-3">
-              <h2 className="font-semibold text-base">Payment Verification</h2>
-              <p className="text-xs text-gray-400">{pendingPayments.length} total tenants</p>
-            </div>
+          {/* ── Overdue Fees Panel ── */}
+          {activeTab === 'Overdue Fees' && (
+            <div className="bg-white rounded-2xl shadow-sm p-5">
+              <div className="flex flex-row items-center mb-3">
+                <div>
+                  <h2 className="text-[16px] font-bold text-black">Overdue Fees</h2>
+                  <p className="text-[12px] italic">{filteredFees.length} total tenants</p>
+                </div>
+                <div className="flex items-end gap-3 ml-auto">
+                  <Dropdown
+                    title="No. of Items"
+                    items={[
+                      { label: "5", href: "" },
+                      { label: "10", href: "" },
+                      { label: "15", href: "" },
+                      { label: "20", href: "" },
+                    ]}
+                    direction="down"
+                    widthClass="w-29 lg:w-32"
+                    titleClass="text-[10px] lg:text-[11px]"
+                    selectedClass="text-[12px] lg:text-[13px]"
+                    onSelect={(label) => {
+                      setItemsPerPage(Number(label))
+                      setCurrentPage(1)
+                    }}
+                  />
+                  <Dropdown
+                    title="Sort By"
+                    items={[
+                      { label: "Latest", href: "" },
+                      { label: "Earliest", href: "" },
+                    ]}
+                    direction="down"
+                    widthClass="w-29 lg:w-32"
+                    titleClass="text-[10px] lg:text-[11px]"
+                    selectedClass="text-[12px] lg:text-[13px] block"
+                    onSelect={(label) => {
+                      setSortBy(label === "Latest" ? "latest" : "earliest")
+                      setCurrentPage(1)
+                    }}
+                  />
+                  <SearchBar
+                    value={search}
+                    onChange={(query) => {
+                      setSearch(query)
+                      setCurrentPage(1)
+                    }}
+                    onPageReset={() => setCurrentPage(1)}
+                  />
+                </div>
+              </div>
 
-            {loadingPayments ? (
-              <p className="text-sm text-gray-400 py-8 text-center">Loading...</p>
-            ) : pendingPayments.length === 0 ? (
-              <p className="text-sm text-gray-400 py-8 text-center">No pending payments.</p>
-            ) : (
-              <table className="w-full text-sm">
+              <table className="w-full lg:table-fixed text-sm">
                 <thead>
-                  <tr className="text-left text-[10px] text-gray-400 uppercase border-b">
-                    <th className="pb-2">Students</th>
-                    <th className="pb-2">Amount</th>
-                    <th className="pb-2">Action</th>
+                  <tr className="text-[10px] text-[#9A7080] uppercase tracking-widest font-bold text-left border-y border-[#6B0F2B]/10">
+                    <th className="p-2 px-4 py-2">Student</th>
+                    <th className="p-2 px-24 py-2">Amount Due</th>
+                    <th className="p-2 px-24 py-2">Date</th>
+                    <th className="p-2 px-4 py-2 text-right whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {pendingPayments.map((payment) => (
-                    <tr key={payment.id} className="border-b last:border-0">
-                      <td className="py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-[#6B0F2B] text-white text-xs font-bold flex items-center justify-center shrink-0">
-                            {payment.fee?.studentNumber?.[0] ?? 'S'}
-                          </div>
-                          <div>
-                            <div className="font-medium">{payment.fee?.studentNumber ?? '—'}</div>
-                            <div className="text-xs text-gray-400 capitalize">{payment.paymentStatus}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3">₱{payment.paymentAmount.toLocaleString()}</td>
-                      <td className="py-3">
-                        <div className="flex items-center gap-2">
-                          {payment.proofFile && (
-                            <a href={payment.proofFile.filePath} target="_blank" rel="noreferrer" className="text-xs text-blue-500 underline">
-                              Receipt
-                            </a>
-                          )}
-                          <button
-                            onClick={() => verifyMutation.mutate({ id: payment.id, action: 'approve' })}
-                            disabled={verifyMutation.isPending}
-                            className="text-xs px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg hover:bg-green-50 hover:border-green-400 hover:text-green-700 transition-colors disabled:opacity-50"
-                          >
-                            Review
-                          </button>
-                        </div>
+                  {pendingPayments.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="text-center py-16 text-gray-400 text-sm">
+                        No pending payments.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    pendingPayments.map((payment) => (
+                      <tr key={payment.id} className="hover:bg-gray-50 transition-all border-b last:border-0">
+                        {/* ... row cells ... */}
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-            )}
 
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-50 text-xs text-gray-400">
-              <span>Showing 1–{pendingPayments.length} of {pendingPayments.length} tenants</span>
-              <div className="flex gap-1">
-                <button className="w-7 h-7 rounded bg-[#3D0718] text-white font-bold">1</button>
-                <button className="w-7 h-7 rounded border border-gray-200 text-gray-500">›</button>
+              <div className="flex items-center justify-between px-2 mt-4 pt-3 border-t border-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                <span>
+                  {filteredFees.length === 0
+                    ? 'No results'
+                    : `Showing 1–${filteredFees.length} of ${filteredFees.length}`}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-semibold text-white"
+                    style={{ background: 'linear-gradient(135deg,#3D0718,#6B0F2B)', boxShadow: '0 4px 12px rgba(107,15,43,0.35)' }}
+                  >
+                    1
+                  </button>
+                  <button className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-semibold border border-gray-200 text-[#6B0F2B]">
+                    ›
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
         </div>
       </div>
