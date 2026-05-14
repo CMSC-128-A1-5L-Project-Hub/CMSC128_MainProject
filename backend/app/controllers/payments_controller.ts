@@ -84,23 +84,28 @@ export default class PaymentsController {
     })
   }
 
-  // ─── MANAGER: VIEW PENDING PAYMENTS ───
-  // GET /payments/pending
-async pending({ auth, response }: HttpContext) {
+// ─── MANAGER/LANDLORD: VIEW PENDING PAYMENTS ───
+// GET /payments/pending
+async pending({ auth, request, response }: HttpContext) {
   const user = auth.user!
+  const accommodationId = request.input('accommodationId') // Get from query param
 
   let accommodationIds: number[] = []
 
   if (user.role === 'manager') {
-    const accommodations = await Accommodation
-      .query()
-      .where('managerId', user.id)
+    let query = Accommodation.query().where('managerId', user.id)
+    if (accommodationId) {
+      query = query.where('id', accommodationId)
+    }
+    const accommodations = await query
     accommodationIds = accommodations.map((a) => a.id)
   } 
   else if (user.role === 'landlord') {
-    const accommodations = await Accommodation
-      .query()
-      .where('landlordId', user.id)
+    let query = Accommodation.query().where('landlordId', user.id)
+    if (accommodationId) {
+      query = query.where('id', accommodationId)
+    }
+    const accommodations = await query
     accommodationIds = accommodations.map((a) => a.id)
   }
   else {
@@ -134,11 +139,6 @@ async pending({ auth, response }: HttpContext) {
     .preload('fee', (feeQuery) => {
       feeQuery.preload('student', (studentQuery) => {
         studentQuery.preload('user')
-        studentQuery.preload('assignments', (assignmentQuery) => {
-          assignmentQuery.preload('room', (roomQuery) => {
-            roomQuery.preload('accommodation')
-          })
-        })
       })
     })
     .preload('proofFile')

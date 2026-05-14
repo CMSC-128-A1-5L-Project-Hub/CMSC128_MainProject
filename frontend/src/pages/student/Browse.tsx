@@ -96,6 +96,7 @@ export default function BrowsePage() {
         staleTime: 60_000,
         gcTime: 5 * 60_000,
         placeholderData: (prev: any) => prev,
+        refetchOnMount: "always",
     })
 
     const { data: user, isError } = useQuery({
@@ -108,6 +109,20 @@ export default function BrowsePage() {
 
     const name = user ? `${user.fname}` : ""
     const studentNo = user?.student?.studentNumber ?? ""
+
+    const updateAccommodation = async () => {
+        try {
+          const response = await api.put("/accommodations/1", {
+            accommodation_name: "Dorm A",
+            accommodation_location: "UPLB",
+            accommodation_capacity: 4,
+          })
+      
+          console.log(response.data)
+        } catch (error) {
+          console.error(error)
+        }
+      }
 
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
     useEffect(() => { if (user && user.role !== "student") navigate("/auth/signin") }, [user, navigate])
@@ -123,7 +138,7 @@ export default function BrowsePage() {
     useEffect(() => {
         if (!isSuccess || accommodations.length === 0) return
 
-        
+
         let min = Infinity
         let max = -Infinity
         const tagSet = new Set<string>();
@@ -145,7 +160,8 @@ export default function BrowsePage() {
         const tagObject = Object.fromEntries(
             tags.map(tag => [tag, false])
         );
-        console.log("success", accommodations, min, max)
+
+
         // setFilters(tagObject)
         // setMinPrice(min)
         // setMaxPrice(max)
@@ -416,7 +432,7 @@ export default function BrowsePage() {
 
                                     {/* Fixed pagination */}
                                     {totalPages > 1 && (
-                                        <div className="pt-6 pb-2 flex justify-center shrink-0 bg-[#F6F2F4]">
+                                        <div className="pt-6 pb-2 flex justify-end shrink-0 bg-[#F6F2F4]">
                                             <Pagination
                                                 currentPage={currentPage}
                                                 totalPages={totalPages}
