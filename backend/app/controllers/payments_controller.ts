@@ -6,6 +6,7 @@ import Fee from '#models/fee'
 import FileMetadata from '#models/file_metadatum'
 import Manager from '#models/manager'
 import LogService from '#services/log_service'
+import Accommodation from '#models/accommodation'
 import { DateTime } from 'luxon'
 
 export default class PaymentsController {
@@ -73,32 +74,42 @@ export default class PaymentsController {
 
   // ─── MANAGER: VIEW PENDING PAYMENTS ───
   // GET /payments/pending
-  async pending({ auth, response }: HttpContext) {
-    const user = auth.user!
+async pending({ auth, response }: HttpContext) {
+  const user = auth.user!
 
-    const manager = await Manager
+  let accommodationIds: number[] = []
+
+  if (user.role === 'manager') {
+    const accommodations = await Accommodation
       .query()
-      .where('userId', user.id)
-      .preload('accommodations')
-      .firstOrFail()
-
-    const accoms = manager.accommodations.map(accom => accom.id)
-
-    if (accoms.length === 0) {
-      return response.ok([]) // was: return []
-    }
-
-    const payments = await Payment
+      .where('managerId', user.id)
+    accommodationIds = accommodations.map((a) => a.id)
+  } 
+  else if (user.role === 'landlord') {
+    const accommodations = await Accommodation
       .query()
-      .where('paymentStatus', 'pending')
-      .whereHas('fee', (feeQuery) => {
-        feeQuery.whereIn('accommodationId', accoms)
-      })
-      .preload('fee')
-      .preload('proofFile')
-
-    return response.ok(payments)
+      .where('landlordId', user.id)
+    accommodationIds = accommodations.map((a) => a.id)
   }
+  else {
+    return response.forbidden({ message: 'Access denied' })
+  }
+
+  if (accommodationIds.length === 0) {
+    return response.ok([])
+  }
+
+  const payments = await Payment
+    .query()
+    .where('paymentStatus', 'pending')
+    .whereHas('fee', (feeQuery) => {
+      feeQuery.whereIn('accommodationId', accommodationIds)
+    })
+    .preload('fee')
+    .preload('proofFile')
+
+  return response.ok(payments)
+}
 
   // ─── MANAGER: VERIFY PAYMENT ───
   // PATCH /payments/:id/verify
