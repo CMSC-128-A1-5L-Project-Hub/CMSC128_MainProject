@@ -5,6 +5,7 @@ import Student from '#models/student'
 import Landlord from '#models/landlord'
 import NotificationService from '#services/notification_service'
 import LogService from '#services/log_service'
+import { signImageUrl } from '#services/image_service'
 
 @inject()
 export default class AdminVerificationsController {
@@ -21,15 +22,30 @@ export default class AdminVerificationsController {
 
     for (const user of users) {
       // 2. Check if they submitted the setup form
-      const student = await Student.findBy('userId', user.id)
+      const student = await Student.query()
+        .where('userId', user.id)
+        .preload('enrollmentProof')
+        .first()
       const landlord = await Landlord.findBy('userId', user.id)
 
       // 3. Only add them to the list if they actually submitted their details
       if (student || landlord) {
+        const profileDetails: any = (student || landlord)?.toJSON()
+
+        if (student?.enrollmentProof) {
+          const proof = student.enrollmentProof
+          profileDetails.enrollmentProof = {
+            id: proof.id,
+            fileName: proof.fileName,
+            fileType: proof.fileType,
+            url: await signImageUrl(proof.filePath),
+          }
+        }
+
         pendingUsers.push({
           user,
           requestedRole: student ? 'student' : 'landlord',
-          profileDetails: student || landlord,
+          profileDetails,
         })
       }
     }
