@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Modal from "./Modal";
 import Button from "./Button";
 import Card from "./ui/Card";
@@ -59,6 +60,9 @@ export default function RoomApplicationModal({
     const [step, setStep] = useState<"apply" | "verify">("apply");
     type StayType = "transient" | "non_transient";
     type Arrangement = "single" | "double" | "shared";
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const queryClient = useQueryClient();
 
     const stayTypes: StayType[] = [
         ...new Set(
@@ -121,6 +125,10 @@ export default function RoomApplicationModal({
     }, [selectedStayType, selectedArrangement]);
 
     const handleSubmit = async () => {
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+
         try {
             const payload = {
                 accommodationId: accommodation.id,
@@ -128,28 +136,26 @@ export default function RoomApplicationModal({
                 applicationRoomType: selectedArrangement,
                 applicationStayType: selectedStayType,
                 durationOfStayDays: isTransient ? numberOfDays : null,
-                preferredTags:
-                    selectedPreferences.length > 0 ? selectedPreferences : null,
+                preferredTags: selectedPreferences.length > 0 ? selectedPreferences : null,
                 moveInDate: isTransient ? moveInDate : null,
                 moveOutDate: isTransient ? moveOutDate : null,
                 reservationFee: isTransient ? reservationFee : null,
                 moveInFee: !isTransient ? moveInFee : null,
             };
 
-            console.log("Submitting payload:", payload);
+            const res = await api.post("/applications", payload);
+            console.log("Application submitted:", res.data);
 
-            try {
-                const res = await api.post("/applications", payload);
-                console.log("Application submitted:", res.data);
-                handleClose();
-            } catch (err: any) {
-                console.error("Submit failed status:", err.response?.status);
-                console.error("Submit failed data:", err.response?.data);
-            }
+            await queryClient.invalidateQueries({ queryKey: ["applications"] });
+            await queryClient.invalidateQueries({ queryKey: ["student-applications"] });
+            await queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
 
-            handleClose(); // close modal after success
-        } catch (err) {
-            console.error("Submit failed:", err);
+            handleClose();
+        } catch (err: any) {
+            console.error("Submit failed status:", err.response?.status);
+            console.error("Submit failed data:", err.response?.data);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -194,16 +200,18 @@ export default function RoomApplicationModal({
                     size="lg"
                     className={`px-16 rounded-full text-white transition-all ${
                         declaration === "accept" &&
-                        (!isTransient || paymentFile)
+                        (!isTransient || paymentFile) &&
+                        !isSubmitting
                             ? "bg-emerald-500"
                             : "bg-[#8C1533] opacity-50 grayscale"
                     }`}
                     disabled={
+                        isSubmitting ||
                         declaration !== "accept" ||
                         (isTransient && !paymentFile)
                     }
                 >
-                    Submit
+                    {isSubmitting ? "Submitting..." : "Submit"}
                 </Button>
             </div>
         );
