@@ -44,8 +44,9 @@ import RevenueReportPrint from "./pages/landlord/reports/RevenueReportPrint"
 import AccommodationHistoryReportPrint from "./pages/landlord/reports/AccommodationHistoryReportPrint"
 import ActivityLogsPage from "./pages/admin/ActivityLogs"
 
-import StudentLayout from "./layout/StudentLayout"
-import ManagerLayout from "./layout/ManagerLayout"
+import StudentLayout from "./layouts/StudentLayout"
+import ManagerLayout from "./layouts/ManagerLayout"
+import LandlordLayout from "./layouts/LandlordLayout"
 
 function FullLandingPage() {
   return (
@@ -108,14 +109,17 @@ function AnimatedRoutes() {
         </Route>
 
         {/* ── Landlord routes ── */}
+        <Route element={<LandlordLayout />}>
+          <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
+          {/* Individual Accommodation Dashboard */}
+          <Route path="/landlord/accommodation/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
+          <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
+          <Route path="/landlord/fees" element={<ProtectedRoute><FeesPage /></ProtectedRoute>} />
+          <Route path="/landlord/profile" element={<ProtectedRoute><LandlordProfile /></ProtectedRoute>} />
+          <Route path="/landlord/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
+        </Route>
         {/* Manage Accommodation (landing page for landlords) */}
-        <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
-        {/* Individual Accommodation Dashboard */}
-        <Route path="/landlord/accommodation/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
-        <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
-        <Route path="/landlord/fees" element={<ProtectedRoute><FeesPage /></ProtectedRoute>} />
-        <Route path="/landlord/profile" element={<ProtectedRoute><LandlordProfile /></ProtectedRoute>} />
-        <Route path="/landlord/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
+        
 
         {/* ── Admin routes ── */}
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
