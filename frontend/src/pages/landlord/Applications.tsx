@@ -226,7 +226,7 @@ export default function Applications() {
   const [expectedMoveOutDate, setExpectedMoveOutDate] = useState("");
 
   // fetch data and map it to the UI Interface
-  const { data: appsData = [], isLoading } = useQuery<Application[]>({
+  const { data: appsData = [], isLoading, refetch } = useQuery<Application[]>({
     queryKey: ["landlord-applications"],
     queryFn: async () => {
       try {
@@ -285,25 +285,22 @@ export default function Applications() {
 
   // setup Mutations for approving or rejecting
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, action, reason }: { id: number; action: "approve" | "reject"; reason?: string }) => {
-      try {
-        const res = await api.patch(`/applications/${id}/review`, { 
-          action: action, 
-          rejection_reason: reason 
-        });
-        return res.data;
-      } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to update application status");
+      mutationFn: async ({ id, action, reason }: { id: number; action: "approve" | "reject"; reason?: string }) => {
+          const res = await api.patch(`/applications/${id}/review`, { 
+              action: action, 
+              rejection_reason: reason 
+          });
+          return res.data;
+      },
+      onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
+          refetch(); // immediate refetch
+          setViewModalOpen(false);
+          setRemark("");
+      },
+      onError: (error) => {
+          alert(`Error: ${error.message}`);
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
-      setViewModalOpen(false);
-      setRemark("");
-    },
-    onError: (error) => {
-      alert(`Error: ${error.message}`);
-    }
   });
 
   const total = scopedAppsData.length;
@@ -386,29 +383,30 @@ export default function Applications() {
 
   // setup Mutation for assigning a room (at the moment, landlord can only accept and reject, not assign rooms)
   const assignRoomMutation = useMutation({
-    mutationFn: async ({ roomId, applicationId, moveIn, expectedMoveOut }: { roomId: string | number; applicationId: number; moveIn: string; expectedMoveOut: string }) => {
-      try {
-        const res = await api.post("/assignments", {
-          roomId: roomId,
-          applicationId: applicationId,
-          moveIn: moveIn,
-          expectedMoveOut: expectedMoveOut
-        });
-        return res.data;
-      } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to assign room");
+      mutationFn: async ({ roomId, applicationId, moveIn, expectedMoveOut }: { roomId: string | number; applicationId: number; moveIn: string; expectedMoveOut: string }) => {
+        try {
+          const res = await api.post("/assignments", {
+            roomId: roomId,
+            applicationId: applicationId,
+            moveIn: moveIn,
+            expectedMoveOut: expectedMoveOut
+          });
+          return res.data;
+        } catch (error: any) {
+          throw new Error(error.response?.data?.message || "Failed to assign room");
+        }
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
+        queryClient.invalidateQueries({ queryKey: ["accommodation-rooms"] });
+        refetch(); // immediate refetch
+        setViewModalOpen(false);
+        setSelectedRoom(null);
+      },
+      onError: (error) => {
+        alert(`Error assigning room: ${error.message}`);
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["accommodation-rooms"] });
-      setViewModalOpen(false);
-      setSelectedRoom(null);
-    },
-    onError: (error) => {
-      alert(`Error assigning room: ${error.message}`);
-    }
-  });
+    });
 
   const handleSaveAssignment = () => {
     if (!selectedApp || !selectedRoom) return;
