@@ -300,17 +300,15 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
   const hiddenCount = extraTags.length - displayedExtra.length;
 
   const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (dormType !== "All Types") params.set("dormType", dormType);
-    if (minPrice > MIN_PRICE) params.set("minPrice", String(minPrice));
-    if (maxPrice < MAX_PRICE) params.set("maxPrice", String(maxPrice));
-    if (rating > 0) params.set("rating", String(rating));
-
-    [...activeTags, ...extraTags].forEach(tag => {
-      params.append("tags", tag);
+    navigate("/student/browse", {
+      state: {
+        dormType,
+        minPrice,
+        maxPrice,
+        rating,
+        tags: [...activeTags, ...extraTags],
+      },
     });
-
-    navigate(`/student/browse?${params.toString()}`);
   };
 
   return (
