@@ -416,7 +416,6 @@ export default function RoomAssignment() {
 
       {/* Layout */}
       <div className="flex h-screen bg-[#F5EEF0] font-sans">
-        <Sidebar role="manager" profile={profile as any} />
         <div className="flex flex-col w-full flex-1 min-w-0">
           <CustomHeader
             title="Room Assignment"></CustomHeader>

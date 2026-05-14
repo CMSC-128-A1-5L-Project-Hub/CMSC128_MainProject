@@ -45,6 +45,7 @@ import AccommodationHistoryReportPrint from "./pages/landlord/reports/Accommodat
 import ActivityLogsPage from "./pages/admin/ActivityLogs"
 
 import StudentLayout from "./layout/StudentLayout"
+import ManagerLayout from "./layout/ManagerLayout"
 
 function FullLandingPage() {
   return (
@@ -96,13 +97,15 @@ function AnimatedRoutes() {
         </Route>
 
         {/* ── Manager routes ── */}
-        <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
-        <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
-        <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
-        <Route path="/manager/movein-moveout" element={<ProtectedRoute><MoveinMoveout /></ProtectedRoute>}/>
-        <Route path="/manager/applications" element={<ProtectedRoute><ManagerApplicationsPage /></ProtectedRoute>}/>
-        <Route path="/manager/waitlist" element={<ProtectedRoute><Waitlist /></ProtectedRoute>} />
-        <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
+        <Route element={<ManagerLayout/>}>
+          <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard/></ProtectedRoute>}/>
+          <Route path="/manager/occupancy-records" element={<ProtectedRoute><OccupancyRecords /></ProtectedRoute>}/>
+          <Route path="/manager/room-assignment" element={<ProtectedRoute><RoomAssignment /></ProtectedRoute>}/>
+          <Route path="/manager/movein-moveout" element={<ProtectedRoute><MoveinMoveout /></ProtectedRoute>}/>
+          <Route path="/manager/applications" element={<ProtectedRoute><ManagerApplicationsPage /></ProtectedRoute>}/>
+          <Route path="/manager/waitlist" element={<ProtectedRoute><Waitlist /></ProtectedRoute>} />
+          <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
+        </Route>
 
         {/* ── Landlord routes ── */}
         {/* Manage Accommodation (landing page for landlords) */}

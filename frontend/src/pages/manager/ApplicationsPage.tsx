@@ -498,15 +498,6 @@ export default function ApplicationsPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4]">
-      <Sidebar 
-          role="manager" 
-          profile={{
-              fullName: user ? `${user.fname} ${user.lname}` : 'Loading...',
-              shortName: user?.fname || '...',
-              email: user?.email || '...',
-              status: user?.manager?.managerStatus || '...'
-          }} 
-      />
       <DrawerNav
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
