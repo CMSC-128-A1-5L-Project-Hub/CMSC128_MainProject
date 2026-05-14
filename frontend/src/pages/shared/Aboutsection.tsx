@@ -316,6 +316,23 @@ export default function AboutSection() {
     offset: ["start end", "end start"]
   });
 
+  const [topRatedDorms, setTopRatedDorms] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchTopRatedDorms = async () => {
+      try {
+        const res = await api.get("/accommodations/top-rated");
+        setTopRatedDorms(Array.isArray(res.data) ? res.data : []);
+      } catch (error) {
+        console.error("Failed to fetch top rated dorms:", error);
+      }
+    };
+
+    fetchTopRatedDorms();
+  }, []);
+
+  const featuredDorm = topRatedDorms[0];
+
   const yColA = useTransform(scrollYProgress, [0, 1], [0, 0]);
   const yColB = useTransform(scrollYProgress, [0, 1], [100, -180]); 
   const yColC = useTransform(scrollYProgress, [0, 1], [40, -80]);
@@ -370,7 +387,27 @@ export default function AboutSection() {
           {/* DESKTOP: Original 3-column grid layout */}
           <div className="original-grid-layout" style={{ display: "grid", gridTemplateColumns: "220px 280px 220px", gap: 16, alignItems: "end" }}>
             <motion.div style={{ y: yColA as any }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              <DormCard name="Kamia Residence" subtitle="Hall" meta="Studio · 22 m² · On-campus" price={3200} priceUnit="/ month" featured chips={["WiFi", "Furnished", "Air-con"]} rating={4.9} verified onView={() => {}} />
+              <DormCard
+                  name={featuredDorm?.name ?? "Featured Dorm"}
+                  subtitle={featuredDorm?.subtitle ?? ""}
+                  meta={
+                    featuredDorm?.meta
+                      ?.split("-")
+                      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join("-") ?? ""
+                  }
+                  price={featuredDorm?.price ?? 0}
+                  priceUnit="/ month"
+                  featured
+                  chips={featuredDorm?.chips ?? []}
+                  rating={featuredDorm?.rating == 0 ? 'unrated' : featuredDorm?.rating ?? 'unrated'}
+                  verified
+                  onView={() => {
+                    if (featuredDorm?.id) {
+                      window.location.href = `/student/roomview/${featuredDorm.id}`;
+                    }
+                  }}
+                />
             </motion.div>
 
             <motion.div style={{ position: "relative", paddingTop: 190, y: yColB as any }} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
@@ -389,8 +426,27 @@ export default function AboutSection() {
             {/* Top row: DormCard and RoomsCard side by side */}
             <div className="top-row-cards" style={{ display: "flex", gap: 16, justifyContent: "center" }}>
               <motion.div style={{ y: yColA as any }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-                <DormCard name="Kamia Residence" subtitle="Hall" meta="Studio · 22 m² · On-campus" price={3200} priceUnit="/ month" featured chips={["WiFi", "Furnished", "Air-con"]} rating={4.9} verified onView={() => {}} />
-              </motion.div>
+              <DormCard
+                  name={featuredDorm?.name ?? "Featured Dorm"}
+                  subtitle={featuredDorm?.subtitle ?? ""}
+                  meta={
+                    featuredDorm?.meta
+                      ?.split("-")
+                      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join("-") ?? ""
+                  }
+                  price={featuredDorm?.price ?? 0}
+                  priceUnit="/ month"
+                  featured
+                  chips={featuredDorm?.chips ?? []}
+                  rating={featuredDorm?.rating == 0 ? 'unrated' : featuredDorm?.rating ?? 'unrated'}
+                  verified
+                  onView={() => {
+                    if (featuredDorm?.id) {
+                      window.location.href = `/student/roomview/${featuredDorm.id}`;
+                    }
+                  }}
+                />              </motion.div>
 
               <motion.div className="rooms-card-wrapper" style={{ position: "relative", paddingTop: 0, y: yColB as any }} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
                 <TagsCloud />
