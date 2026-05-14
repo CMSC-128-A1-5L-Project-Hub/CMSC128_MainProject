@@ -7,6 +7,7 @@ import HeroBanner from '../../components/dashboard/HeroBanner'
 import Sidebar from "../../components/Sidebar";
 import CustomHeader from '../../components/CustomHeader';
 import StatsBanner from "@/components/ApplicationStatus/StatsBanner";
+import Dropdown from "@/components/ApplicationStatus/Dropdown";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/ApplicationStatus/Pagination";
 import StylizedStatus from "@/components/BillingDashboard/StylizedStatus";
@@ -529,6 +530,21 @@ export default function LandlordApplicationsPage() {
                 <p className="italic text-[11px] lg:text-[12px]">{filtered.length} total applications</p>
               </div>
               <div className="flex flex-row gap-2">
+                <Dropdown
+                  title="Sort by"
+                  items={[
+                    { label: "Date applied (Latest)", href: "" },
+                    { label: "Date applied (Earliest)", href: "" },
+                  ]}
+                  direction="down"
+                  widthClass="w-32 lg:w-44"
+                  titleClass="text-[10px] lg:text-[11px]"
+                  selectedClass="text-[12px] lg:text-[13px]"
+                  onSelect={(label) => {
+                    setSortBy(label.includes("Latest") ? "latest" : "earliest");
+                    setCurrentPage(1);
+                  }}
+                />
                 <SearchBar
                   value={search}
                   onChange={setSearch}
