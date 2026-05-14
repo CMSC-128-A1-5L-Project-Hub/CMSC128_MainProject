@@ -874,10 +874,10 @@ export default function RoomApplicationModal({
                                     <input type="checkbox" checked={declaration === "accept"} onChange={() => setDeclaration(declaration === "accept" ? null : "accept")} className="w-5 h-5 rounded border-[#D4B0BA] text-[#6B0F2B] focus:ring-[#6B0F2B]" />
                                     <span className="text-[11px] font-bold text-[#1A0008]">I acknowledge this clause</span>
                                 </label>
-                                <label className="flex items-center gap-3 cursor-pointer">
+                                {/* <label className="flex items-center gap-3 cursor-pointer">
                                     <input type="checkbox" checked={declaration === "retract"} onChange={() => setDeclaration(declaration === "retract" ? null : "retract")} className="w-5 h-5 rounded border-[#D4B0BA] text-[#6B0F2B] focus:ring-[#6B0F2B]" />
                                     <span className="text-[11px] font-bold text-[#1A0008]">I don't acknowledge this clause, and I would like to retract my application</span>
-                                </label>
+                                </label> */}
                             </div>
                         </div>
                     </div>
