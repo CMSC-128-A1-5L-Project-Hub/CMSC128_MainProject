@@ -11,6 +11,7 @@ import Room from '#models/room'
 import db from '@adonisjs/lucid/services/db'
 import { withPrimaryImageUrl } from '#services/image_service'
 import { signImageUrl } from '#services/image_service'
+import Accommodation from '#models/accommodation'
 
 @inject()
 export default class ApplicationsController {
@@ -150,7 +151,11 @@ export default class ApplicationsController {
       preferredTags: preferredTags ?? null,
     })
 
-    await LogService.record(user.id, 'application', newApp.id, 'STUDENT_SUBMITTED')
+    const accommodation = await Accommodation.find(accommodationId)
+
+    const detail = `${user.fname} ${user.lname} submitted an application to ${accommodation?.accommodationName}`
+
+    await LogService.record(user.id, 'application', newApp.id, 'STUDENT_SUBMITTED', detail)
     return response.ok(newApp)
   }
 
