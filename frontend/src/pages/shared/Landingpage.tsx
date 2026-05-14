@@ -745,7 +745,16 @@ export default function LandingPage() {
           <button
             className="browse-btn"
             style={fu(0.54)}
-            onClick={() => { window.location.href = "/student/browse"; }}
+            onClick={async (e) => {
+              e.stopPropagation();
+              try {
+                await api.get("/me");
+                window.location.href = `/student/browse`;
+              } catch (error) {
+                window.location.href = "/auth/signin";
+              }
+            }}
+
           >Browse Rooms →</button>
 
           <div className="search-wrapper" style={fu(0.64)}>
