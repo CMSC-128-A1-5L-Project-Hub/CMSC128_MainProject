@@ -67,6 +67,7 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
     const { data: applications = [], isLoading, isError } = useQuery({
         queryKey: ["student-applications"],
         queryFn: fetchApplications,
+        refetchOnMount: "always",
     });
 
     const sortedApplications = useMemo(() => {
