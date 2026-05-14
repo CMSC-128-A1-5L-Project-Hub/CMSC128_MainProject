@@ -124,7 +124,7 @@ button {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: white;
+  background: black;
   border: 2px solid #9A7080;
   cursor: pointer;
 }
@@ -187,9 +187,9 @@ button {
 }
 
 .thumb::-webkit-slider-thumb {
-  background-color: #6B0F2B;
+  background-color: #fff;
   border-radius: 50%;
-  border: 4px solid #6B0F2B; /* updated */
+  border: 3px solid #6B0F2B; /* updated */
   cursor: pointer;
   height: 28px;
   width: 28px;
