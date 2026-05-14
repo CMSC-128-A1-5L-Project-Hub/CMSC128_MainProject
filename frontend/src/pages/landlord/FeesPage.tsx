@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../api/axios'
 import { useUserStore } from '../../stores/useUserStore'
@@ -6,7 +6,6 @@ import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
 import Dropdown from "@/components/ApplicationStatus/Dropdown"
 import SearchBar from "@/components/SearchBar"
-import StylizedStatus from '@/components/BillingDashboard/StylizedStatus'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -46,13 +45,13 @@ interface PendingPayment {
 
 // ─── API ───────────────────────────────────────────────────────────────────
 
-const fetchOverdueFees = async (): Promise<OverdueFee[]> => {
-  const res = await api.get('/fees/overdue')
+const fetchOverdueFees = async (accommodationId: number): Promise<OverdueFee[]> => {
+  const res = await api.get('/fees/overdue', { params: { accommodationId } })
   return res.data
 }
 
-const fetchPendingPayments = async (): Promise<PendingPayment[]> => {
-  const res = await api.get('/payments/pending')
+const fetchPendingPayments = async (accommodationId: number): Promise<PendingPayment[]> => {
+  const res = await api.get('/payments/pending', { params: { accommodationId } })
   return res.data
 }
 
@@ -107,7 +106,7 @@ function FilterTabs({ active, setActive }: { active: ActiveTab; setActive: (tab:
 
 function PaymentRow({ payment, onVerify }: { payment: PendingPayment; onVerify: (id: number, action: 'approve' | 'reject') => void }) {
   const [showActions, setShowActions] = useState(false)
-  const studentName = payment.fee?.student?.user 
+  const studentName = payment.fee?.student?.user
     ? `${payment.fee.student.user.fname} ${payment.fee.student.user.lname}`
     : payment.fee?.studentNumber || 'Unknown'
 
@@ -336,15 +335,32 @@ export default function FeesPage() {
   const [itemsPerPage, setItemsPerPage] = useState(6)
   const [currentPage, setCurrentPage] = useState(1)
   const [paymentSearch, setPaymentSearch] = useState('')
+  const [accommodations, setAccommodations] = useState<{ id: number; accommodationName: string }[]>([])
+  const [selectedAccomId, setSelectedAccomId] = useState<number | null>(null)
+
+  // ─── FETCH ACCOMMODATIONS ON MOUNT (mirrors RoomsPage) ───
+  useEffect(() => {
+    api.get('/landlord/accommodations').then((res) => {
+      const list = res.data ?? []
+      setAccommodations(list)
+      if (list.length > 0) {
+        const storedId = Number(sessionStorage.getItem('landlord-acc-id'))
+        const match = list.find((a: any) => a.id === storedId)
+        setSelectedAccomId(match ? storedId : list[0].id)
+      }
+    })
+  }, [])
 
   const { data: overdueFees = [], isLoading: loadingFees, refetch: refetchOverdue } = useQuery({
-    queryKey: ['fees', 'overdue'],
-    queryFn: fetchOverdueFees,
+    queryKey: ['fees', 'overdue', selectedAccomId],
+    queryFn: () => fetchOverdueFees(selectedAccomId!),
+    enabled: !!selectedAccomId,
   })
 
   const { data: pendingPayments = [], isLoading: loadingPayments, refetch: refetchPayments } = useQuery({
-    queryKey: ['payments', 'pending'],
-    queryFn: fetchPendingPayments,
+    queryKey: ['payments', 'pending', selectedAccomId],
+    queryFn: () => fetchPendingPayments(selectedAccomId!),
+    enabled: !!selectedAccomId,
   })
 
   const verifyMutation = useMutation({
@@ -357,6 +373,12 @@ export default function FeesPage() {
 
   const handleVerify = (id: number, action: 'approve' | 'reject') => {
     verifyMutation.mutate({ id, action })
+  }
+
+  const handleAccomChange = (id: number) => {
+    setSelectedAccomId(id)
+    sessionStorage.setItem('landlord-acc-id', String(id))
+    setCurrentPage(1)
   }
 
   // Filter and paginate overdue fees
@@ -375,21 +397,11 @@ export default function FeesPage() {
 
   const fullName = user ? `${user.fname} ${user.lname}` : ''
 
-  // Calculate totals
-  const totalOverdue = overdueFees.reduce((sum, f) => {
-    const balance = Number(f.fee_balance) || 0
-    return sum + balance
-  }, 0)
-
-  // For debugging, log the values
-  console.log('Overdue fees:', overdueFees)
-  console.log('Total overdue:', totalOverdue)
+  const totalOverdue = overdueFees.reduce((sum, f) => sum + (Number(f.fee_balance) || 0), 0)
   const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (p.paymentAmount || 0), 0)
 
   return (
     <div className="flex min-h-screen bg-[#f5f0f1]">
-      <Sidebar role="landlord" />
-
       <div className="flex-1 p-6 overflow-y-auto">
         <HeroBanner
           greeting={greeting()}
@@ -424,9 +436,20 @@ export default function FeesPage() {
         </div>
 
         <div className="mt-5 space-y-4">
-          {/* Tabs */}
-          <div className="flex justify-between items-center">
+          {/* Tabs + Accommodation Switcher */}
+          <div className="flex justify-between items-center flex-wrap gap-3">
             <FilterTabs active={activeTab} setActive={setActiveTab} />
+            {accommodations.length > 1 && (
+              <select
+                value={selectedAccomId ?? ''}
+                onChange={(e) => handleAccomChange(Number(e.target.value))}
+                className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs font-bold text-gray-500 outline-none shadow-sm"
+              >
+                {accommodations.map((acc) => (
+                  <option key={acc.id} value={acc.id}>{acc.accommodationName}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Payment Verification Panel */}
@@ -480,7 +503,7 @@ export default function FeesPage() {
                     ))
                   )}
                 </tbody>
-               </table>
+              </table>
             </div>
           )}
 
@@ -541,7 +564,7 @@ export default function FeesPage() {
                     ))
                   )}
                 </tbody>
-               </table>
+              </table>
 
               {totalFeePages > 1 && (
                 <div className="flex items-center justify-between px-2 mt-4 pt-3 border-t border-gray-100">

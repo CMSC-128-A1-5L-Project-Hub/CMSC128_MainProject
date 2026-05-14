@@ -138,14 +138,6 @@ export default function ActivityLogsPage() {
 
   return (
     <div className="flex min-h-screen bg-[#F9F4F5]">
-      <Sidebar
-        role={user?.role}
-        profile={{
-          fullName: `${user?.fname ?? ""} ${user?.lname ?? ""}`.trim(),
-          shortName: user?.fname ?? "",
-          email: user?.email ?? "",
-        }}
-      />
 
       <main className="mt-12 flex-1 overflow-x-hidden p-5 lg:mt-0 lg:p-8">
         <div className="space-y-6">

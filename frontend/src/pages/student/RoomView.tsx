@@ -1,5 +1,6 @@
 //https://uble.onrender.com
 
+import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -1675,22 +1676,20 @@ export default function RoomView() {
     );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
-      <Sidebar role="student" />
+    <>
+        <main className="flex-1 overflow-y-auto p-6">
 
-      <main className="flex-1 overflow-y-auto p-6">
+          <button onClick={() => navigate(-1)}
+            className="flex items-center gap-1.5 text-md font-semibold mb-3 hover:underline"
+            style={{ color: CLR.mid }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5M12 5l-7 7 7 7" />
+            </svg>
+            Back
+          </button>
 
-        <button onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-md font-semibold mb-3 hover:underline"
-          style={{ color: CLR.mid }}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5M12 5l-7 7 7 7" />
-          </svg>
-          Back
-        </button>
-
-        {/* Content grid */}
-        <div className={`grid ${GRID_COLS} gap-6`}>
+          {/* Content grid */}
+          <div className={`grid ${GRID_COLS} gap-6`}>
 
           {/* Main image — col 1 */}
           <div className="relative overflow-hidden rounded-2xl" style={{ height: 300 }}>
@@ -1705,16 +1704,16 @@ export default function RoomView() {
               </span>
             </button>
 
-            <button
-              onClick={() => setCurrent((c) => (c + 1) % displayPhotos.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-10 transition-all hover:scale-110 active:scale-95"
-              style={{ background: CLR.mid }}
-            >
-              <span className="text-white text-xl font-bold pb-1 pl-0.5" style={{ lineHeight: 0 }}>
-                {">"}
-              </span>
-            </button>
-          </div>
+              <button
+                onClick={() => setCurrent((c) => (c + 1) % displayPhotos.length)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-10 transition-all hover:scale-110 active:scale-95"
+                style={{ background: CLR.mid }}
+              >
+                <span className="text-white text-xl font-bold pb-1 pl-0.5" style={{ lineHeight: 0 }}>
+                  {">"}
+                </span>
+              </button>
+            </div>
 
           {/* Thumbnail stack — col 2 */}
           <div className="hidden lg:grid grid-rows-2 gap-3" style={{ height: 300 }}>
@@ -1785,247 +1784,221 @@ export default function RoomView() {
                   <IconReport />
                 </button>
               </div>
-            </div>
-            <h1 className="text-[30px] font-bold text-gray-900 mb-1">{accommodation.accommodationName}</h1>
-            <p className="text-[15px] font-semibold text-[#6B0F2B]" >{accommodation.accommodationLocation}</p>
-            <p className="text-[18px] text-[#9A7080]">
-              {selectedRoom?.size != null ? Number(selectedRoom.size).toFixed(1) : "—"}{" "} m² · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-            </p>
-            {/* Tabs*/}
-            <div className="flex overflow-x-auto sm:justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-none">
-              {tabs.map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => setselectedTab(t.key)}
-                  className={`flex-shrink-0 sm:flex-1 flex flex-col items-center px-4 py-2.5 text-[15px] sm:text-[18px] font-semibold transition-colors whitespace-nowrap ${selectedTab === t.key ? "text-[#6B0F2B]" : "text-[#9A7080] hover:text-[#805364]"
-                    }`}
-                >
-                  <span className="relative">
-                    {t.label}
-                    {selectedTab === t.key && (
-                      <span
-                        className="absolute -bottom-3 left-0 w-full h-[5px] rounded-full"
-                        style={{ background: "linear-gradient(90deg, #9A7080, #6B0F2B)" }}
-                      />
-                    )}
-                  </span>
-                </button>
-              ))}
-            </div>
 
-            {selectedTab === "Features" && (
-              <FeaturesTab
-                accommodation={accommodation}
-                rooms={normalizedRooms}
-                accommodationTags={accommodationTags}
-                roomInclusions={roomInclusions}
-                roomPreferences={availablePreferences}
-                commonPreferences={commonPreferences}
-                optionalPreferences={optionalPreferences}
-                selectedPreferences={selectedPreferences}
-                setSelectedPreferences={setSelectedPreferences}
-                selectedTenantRestriction={selectedTenantRestriction}
-                setselectedTenantRestriction={(v) => {
-                  setselectedTenantRestriction(v);
-                  setHasSelectedRoomFilters(true);
-                }}
-                selectedStayType={selectedStayType}
-                setSelectedStayType={(v) => {
-                  setSelectedStayType(v);
-                  setHasSelectedRoomFilters(true);
-                }}
-                selectedArrangement={selectedArrangement}
-                setSelectedArrangement={(v) => {
-                  setSelectedArrangement(v);
-                  setHasSelectedRoomFilters(true);
-                }}
-              />
-            )}
-            {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={avgRating} />}
-            {selectedTab === "Requirements" && <RequirementsTab accommodationId={currentAccommodationId} />}
-            {selectedTab === 'Location' && <LocationTab accommodation={accommodation} />}
-
-          </div>
-
-          <div className="font-sans">
-            <div className="bg-white rounded-2xl shadow-sm py-6 mb-4">
-              {/* Price */}
-              <div className="mx-9">
-                <div className="mb-1">
-                  <p className="text-[15px] font-bold text-[#3D0718] mt-2">
-                    {hasFilters ? "From:" : "Starts at:"}
-                  </p>
-                  <span className="text-[37px] font-bold font-sans text-[#6B0F2B]">
-                    ₱{selectedRoom?.rent != null ? Number(selectedRoom.rent).toLocaleString() : "—"}
-                  </span>
-                  {!isTransient ? (
-                    <span className="text-[21px] font-normal text-[#9A7080]"> / month</span>
-                  ) : (<span className="text-[21px] font-normal text-[#9A7080]"> / day </span>)}
-                </div>
-                <div className="w-full h-[6px] bg-gray-200 mt-2"></div>
-                {/* <p className="text-[15px] font-normal text-[#000000] mt-2">2 months advance, 1 month deposit</p> */}
-                {isTransient ? (
-                  <p className="text-[15px] font-normal text-[#000000] mt-2">
-                    One-time reservation fee
-                  </p>
-                ) : (
-                  <p className="text-[15px] font-normal text-[#000000] mt-2">
-                    {selectedRoom?.advanceMonths ?? 0}{" "}
-                    {selectedRoom?.advanceMonths === 1 ? "month" : "months"} advance,{" "}
-                    {selectedRoom?.depositMonths ?? 0}{" "}
-                    {selectedRoom?.depositMonths === 1 ? "month" : "months"} deposit
-                  </p>
-                )}
-
-                {/* Inclusions */}
-                <p className="text-[15px] font-bold text-[#9A7080] mt-2">Inclusions:</p>
-                <div className="flex gap-2 mb-4 mt-2">
-                  {roomInclusions.length > 0 ? (
-                    roomInclusions.map((inc: string) => (
-                      <span key={inc} className="flex items-center gap-1.5 text-sm font-medium text-[white] bg-[#6B0F2B] truncate px-3 py-1 rounded-full">
-                        {inc}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-[13px] text-gray-500 italic">No listed inclusions</span>
-                  )}
-                </div>
-
-                {/* Dates */}
-                <p className="text-[15px] font-bold text-[#9A7080] mt-2">Duration of Stay:</p>
-                {isTransient ? (
-                  <ApplicationPeriod
-                    onPeriodChange={(start, end) => {
-                      setSelectedStart(start);
-                      setSelectedEnd(end);
-                    }}
-                  />
-                ) : (
-                  <div className="flex items-center gap-3 mt-2 mb-8">
-                    <div className="flex-1">
-                      <p className="text-[11px] font-bold text-[#6B0F2B]">
-                        {selectedStart
-                          ? `${MONTHS_SHORT[selectedStart.month]} ${selectedStart.day}, ${selectedStart.year}`
-                          : "—"}
-                      </p>
-                      <span className="text-[11px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-In</span>
-                    </div>
-                    <span className="text-[#D4B0BA] text-[12px] font-bold uppercase mb-4">to</span>
-                    <div className="flex-1">
-                      <p className="text-[11px] font-bold text-[#6B0F2B]">
-                        {selectedEnd
-                          ? `${MONTHS_SHORT[selectedEnd.month]} ${selectedEnd.day}, ${selectedEnd.year}`
-                          : "—"}
-                      </p>
-                      <span className="text-[11px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-Out</span>
-                    </div>
-                  </div>
-                )}
-
-                {manager && (
-                  <div className="border border-[#F0E8EC] rounded-2xl p-4 flex flex-col items-center gap-1.5 mb-4">
-                    <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mb-1"
-                      style={{ background: managerUser?.pfpUrl ? `url(${managerUser.pfpUrl}) center/cover` : CLR.mid }}>
-                      {!managerUser?.pfpUrl && `${managerUser?.fname[0]}${managerUser?.lname[0]}`}
-                    </div>
-                    <div className="w-full h-[2px] bg-[#F0E8EC] mt-2 mx-4"></div>
-
-                    <p className="font-bold text-[#000000] text-[16px] flex items-center gap-1.5">
-                      {managerUser?.fname} {managerUser?.lname} <IconVerified />
-                    </p>
-
-                    <p className="text-[11px] font-semibold text-[#848484] mb-1">Dorm Manager</p>
-                    <p className="flex items-center gap-1.5 -mt-1 text-xs text-[#848484]">
-                      <IconPhone /> (+63){managerUser?.phone?.slice(1) ?? "XXX XXX XXXX"}
-                    </p>
-                    <p className="flex items-center gap-1.5 text-xs text-gray-500">
-                      <IconMail /> {managerUser?.email}
-                    </p>
-                    <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
-                      <button
-                        onClick={() => {
-                          setReportType("manager")
-                          setReportOpen(true)
-                        }}
-                        className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
-                      >
-                        <IconReport />
-                        <span className="hidden md:inline text-sm font-semibold">Report</span>
-                      </button>
-
-                    </div>
-                  </div>
-                )}
-
-                {/* Apply */}
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  disabled={hasAlreadyApplied}
-                  className={`w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors ${hasAlreadyApplied ? "bg-gray-400 cursor-not-allowed" : "shadow-md"
-                    }`}
-                  style={hasAlreadyApplied ? {} : { background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
-                  onMouseEnter={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = CLR.mid)}
-                  onMouseLeave={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = "linear-gradient(135deg, #2D0511, #9A1F3E)")}
-                >
-                  {hasAlreadyApplied ? "Already Applied" : "Apply for Occupancy"}
-                </button>
-
-                <RoomApplicationModal
-                  open={isModalOpen}
-                  onClose={() => setIsModalOpen(false)}
+              {selectedTab === "Features" && (
+                <FeaturesTab
                   accommodation={accommodation}
-                  selectedRoom={selectedRoom}
                   rooms={normalizedRooms}
-                  initialStart={selectedStart}
-                  initialEnd={selectedEnd}
-                  displayStart={selectedStart
-                    ? `${MONTHS_SHORT[selectedStart.month]} ${selectedStart.day}, ${selectedStart.year}`
-                    : "—"}
-                  displayEnd={selectedEnd
-                    ? `${MONTHS_SHORT[selectedEnd.month]} ${selectedEnd.day}, ${selectedEnd.year}`
-                    : "—"}
                   accommodationTags={accommodationTags}
+                  roomInclusions={roomInclusions}
+                  roomPreferences={availablePreferences}
+                  commonPreferences={commonPreferences}
+                  optionalPreferences={optionalPreferences}
                   selectedPreferences={selectedPreferences}
                   setSelectedPreferences={setSelectedPreferences}
+                  selectedTenantRestriction={selectedTenantRestriction}
+                  setselectedTenantRestriction={(v) => {
+                    setselectedTenantRestriction(v);
+                    setHasSelectedRoomFilters(true);
+                  }}
                   selectedStayType={selectedStayType}
-                  setSelectedStayType={setSelectedStayType}
+                  setSelectedStayType={(v) => {
+                    setSelectedStayType(v);
+                    setHasSelectedRoomFilters(true);
+                  }}
                   selectedArrangement={selectedArrangement}
-                  setSelectedArrangement={setSelectedArrangement}
+                  setSelectedArrangement={(v) => {
+                    setSelectedArrangement(v);
+                    setHasSelectedRoomFilters(true);
+                  }}
                 />
-
-                <ShareModal
-                  open={isShareModalOpen}
-                  onClose={() => setIsShareModalOpen(false)}
-                  accommodationName={accommodation.accommodationName}
-                />
-
-                <ReportAccommodationModal
-                  open={reportOpen}
-                  onClose={() => setReportOpen(false)}
-                  reportType={reportType}
-                  reportableId={
-                    reportType === "dorm"
-                      ? accommodation.id
-                      : accommodation.manager.userId
-                  }
-                  accommodationName={accommodation.accommodationName}
-                  managerName={
-                    accommodation.manager?.user
-                      ? `${accommodation.manager.user.fname} ${accommodation.manager.user.lname}`
-                      : undefined
-                  }
-                />
-              </div>
+              )}
+              {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={avgRating} />}
+              {selectedTab === "Requirements" && <RequirementsTab accommodationId={currentAccommodationId} />}
+              {selectedTab === 'Location' && <LocationTab accommodation={accommodation} />}
 
             </div>
+
+            <div className="font-sans">
+              <div className="bg-white rounded-2xl shadow-sm py-6 mb-4">
+                {/* Price */}
+                <div className="mx-9">
+                  <div className="mb-1">
+                    <p className="text-[15px] font-bold text-[#3D0718] mt-2">
+                      {hasFilters ? "From:" : "Starts at:"}
+                    </p>
+                    <span className="text-[37px] font-bold font-sans text-[#6B0F2B]">
+                      ₱{selectedRoom?.rent != null ? Number(selectedRoom.rent).toLocaleString() : "—"}
+                    </span>
+                    {!isTransient ? (
+                      <span className="text-[21px] font-normal text-[#9A7080]"> / month</span>
+                    ) : (<span className="text-[21px] font-normal text-[#9A7080]"> / day </span>)}
+                  </div>
+                  <div className="w-full h-[6px] bg-gray-200 mt-2"></div>
+                  {/* <p className="text-[15px] font-normal text-[#000000] mt-2">2 months advance, 1 month deposit</p> */}
+                  {isTransient ? (
+                    <p className="text-[15px] font-normal text-[#000000] mt-2">
+                      One-time reservation fee
+                    </p>
+                  ) : (
+                    <p className="text-[15px] font-normal text-[#000000] mt-2">
+                      {selectedRoom?.advanceMonths ?? 0}{" "}
+                      {selectedRoom?.advanceMonths === 1 ? "month" : "months"} advance,{" "}
+                      {selectedRoom?.depositMonths ?? 0}{" "}
+                      {selectedRoom?.depositMonths === 1 ? "month" : "months"} deposit
+                    </p>
+                  )}
+
+                  {/* Inclusions */}
+                  <p className="text-[15px] font-bold text-[#9A7080] mt-2">Inclusions:</p>
+                  <div className="flex gap-2 mb-4 mt-2">
+                    {roomInclusions.length > 0 ? (
+                      roomInclusions.map((inc: string) => (
+                        <span key={inc} className="flex items-center gap-1.5 text-sm font-medium text-[white] bg-[#6B0F2B] truncate px-3 py-1 rounded-full">
+                          {inc}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[13px] text-gray-500 italic">No listed inclusions</span>
+                    )}
+                  </div>
+
+                  {/* Dates */}
+                  <p className="text-[15px] font-bold text-[#9A7080] mt-2">Duration of Stay:</p>
+                  {isTransient ? (
+                    <ApplicationPeriod
+                      onPeriodChange={(start, end) => {
+                        setSelectedStart(start);
+                        setSelectedEnd(end);
+                      }}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-3 mt-2 mb-8">
+                      <div className="flex-1">
+                        <p className="text-[11px] font-bold text-[#6B0F2B]">
+                          {selectedStart
+                            ? `${MONTHS_SHORT[selectedStart.month]} ${selectedStart.day}, ${selectedStart.year}`
+                            : "—"}
+                        </p>
+                        <span className="text-[11px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-In</span>
+                      </div>
+                      <span className="text-[#D4B0BA] text-[12px] font-bold uppercase mb-4">to</span>
+                      <div className="flex-1">
+                        <p className="text-[11px] font-bold text-[#6B0F2B]">
+                          {selectedEnd
+                            ? `${MONTHS_SHORT[selectedEnd.month]} ${selectedEnd.day}, ${selectedEnd.year}`
+                            : "—"}
+                        </p>
+                        <span className="text-[11px] font-bold text-[#9A7080] uppercase mt-1 block">Expected Move-Out</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {manager && (
+                    <div className="border border-[#F0E8EC] rounded-2xl p-4 flex flex-col items-center gap-1.5 mb-4">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mb-1"
+                        style={{ background: managerUser?.pfpUrl ? `url(${managerUser.pfpUrl}) center/cover` : CLR.mid }}>
+                        {!managerUser?.pfpUrl && `${managerUser?.fname[0]}${managerUser?.lname[0]}`}
+                      </div>
+                      <div className="w-full h-[2px] bg-[#F0E8EC] mt-2 mx-4"></div>
+
+                      <p className="font-bold text-[#000000] text-[16px] flex items-center gap-1.5">
+                        {managerUser?.fname} {managerUser?.lname} <IconVerified />
+                      </p>
+
+                      <p className="text-[11px] font-semibold text-[#848484] mb-1">Dorm Manager</p>
+                      <p className="flex items-center gap-1.5 -mt-1 text-xs text-[#848484]">
+                        <IconPhone /> (+63){managerUser?.phone?.slice(1) ?? "XXX XXX XXXX"}
+                      </p>
+                      <p className="flex items-center gap-1.5 text-xs text-gray-500">
+                        <IconMail /> {managerUser?.email}
+                      </p>
+                      <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
+                        <button
+                          onClick={() => {
+                            setReportType("manager")
+                            setReportOpen(true)
+                          }}
+                          className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
+                        >
+                          <IconReport />
+                          <span className="hidden md:inline text-sm font-semibold">Report</span>
+                        </button>
+
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Apply */}
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    disabled={hasAlreadyApplied}
+                    className={`w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors ${
+                      hasAlreadyApplied ? "bg-gray-400 cursor-not-allowed" : "shadow-md"
+                    }`}
+                    style={hasAlreadyApplied ? {} : { background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
+                    onMouseEnter={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = CLR.mid)}
+                    onMouseLeave={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = "linear-gradient(135deg, #2D0511, #9A1F3E)")}
+                  >
+                    {hasAlreadyApplied ? "Already Applied" : "Apply for Occupancy"}
+                  </button>
+
+                  <RoomApplicationModal
+                    open={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    accommodation={accommodation}
+                    selectedRoom={selectedRoom}
+                    rooms={normalizedRooms}
+                    initialStart={selectedStart}
+                    initialEnd={selectedEnd}
+                    displayStart={selectedStart
+                      ? `${MONTHS_SHORT[selectedStart.month]} ${selectedStart.day}, ${selectedStart.year}`
+                      : "—"}
+                    displayEnd={selectedEnd
+                      ? `${MONTHS_SHORT[selectedEnd.month]} ${selectedEnd.day}, ${selectedEnd.year}`
+                      : "—"}
+                    accommodationTags={accommodationTags}
+                    selectedPreferences={selectedPreferences}
+                    setSelectedPreferences={setSelectedPreferences}
+                    selectedStayType={selectedStayType}
+                    setSelectedStayType={setSelectedStayType}
+                    selectedArrangement={selectedArrangement}
+                    setSelectedArrangement={setSelectedArrangement}
+                  />
+
+                  <ShareModal
+                    open={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    accommodationName={accommodation.accommodationName}
+                  />
+
+                  <ReportAccommodationModal
+                    open={reportOpen}
+                    onClose={() => setReportOpen(false)}
+                    reportType={reportType}
+                    reportableId={
+                      reportType === "dorm"
+                        ? accommodation.id
+                        : accommodation.manager.userId
+                    }
+                    accommodationName={accommodation.accommodationName}
+                    managerName={
+                      accommodation.manager?.user
+                        ? `${accommodation.manager.user.fname} ${accommodation.manager.user.lname}`
+                        : undefined
+                    }
+                  />
+                </div>
+
+              </div>
+            </div>
           </div>
-        </div>
 
 
-      </main>
-      {showAllPhotos && (
-        <AllPhotosModal photos={displayPhotos} onClose={() => setShowAllPhotosModal(false)} />
-      )}
-    </div>
+        </main>
+        {showAllPhotos && (
+          <AllPhotosModal photos={displayPhotos} onClose={() => setShowAllPhotosModal(false)} />
+        )}
+      </>
   );
 }
