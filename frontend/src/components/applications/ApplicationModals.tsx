@@ -164,7 +164,7 @@ const ApplicationModalContent = ({
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Stay</p>
                   <p className="text-[#1A0008] text-sm">
-                    {app.stayType === "non_transient" ? "Non-Transient" : "Transient"}
+                    {app.applicationStayType === "non_transient" ? "Non-Transient" : "Transient"}
                   </p>
                 </div>
 
