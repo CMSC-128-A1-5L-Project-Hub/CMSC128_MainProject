@@ -156,7 +156,7 @@ export default function StudentVerifications({
               </thead>
               <tbody>
                 {students.slice(0, 5).map((item: any) => (
-                  <tr key={item.user.id}>
+                  <tr key={item.user.id} className="hover:bg-[#FFF7F9]">
                     <td className="py-4">
                       <div className="flex items-center gap-4">
                         <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042] flex items-center justify-center text-white font-semibold">
