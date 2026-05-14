@@ -73,23 +73,24 @@ export default function SystemSettings({
 
           <div className="flex items-center justify-between py-2">
             <div>
-              <p className="text-sm font-medium text-[#2A0410]">Auto-Verify New Users</p>
+              <p className="text-sm font-medium text-[#2A0410]">
+                Auto-Verify New Users
+              </p>
               <p className="text-xs text-gray-500">
                 Instantly approves students and landlords on setup. For testing only.
               </p>
             </div>
+
             <button
               type="button"
-              role="switch"
-              aria-checked={autoVerifyUsers}
               onClick={() => onAutoVerifyChange(!autoVerifyUsers)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-[#C9973A] focus:ring-offset-2 ${
-                autoVerifyUsers ? "bg-[#6B0F2B]" : "bg-gray-200"
+              className={`w-12 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                autoVerifyUsers ? "bg-[#6B0F2B]" : "bg-gray-300"
               }`}
             >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full transition-transform ${
-                  autoVerifyUsers ? "translate-x-5 bg-white" : "translate-x-0 bg-white"
+              <div
+                className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ${
+                  autoVerifyUsers ? "translate-x-5" : "translate-x-0"
                 }`}
               />
             </button>
