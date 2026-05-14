@@ -113,8 +113,11 @@ function FilterTabs({
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
+const ROOMS_PER_PAGE = 5;
+
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("Overview");
+  const [roomsPage, setRoomsPage] = useState(1);
   const [docModalOpen, setDocModalOpen] = useState(false);
   const [newDocName, setNewDocName] = useState("");
   const [newDocFormat, setNewDocFormat] = useState("any");
@@ -234,6 +237,10 @@ export default function Dashboard() {
   });
 
   // ── Derived values ──────────────────────────────────────────────────────────
+
+  useEffect(() => { setRoomsPage(1); }, [rooms.length, activeTab]);
+  const totalRoomPages = Math.max(1, Math.ceil(rooms.length / ROOMS_PER_PAGE));
+  const paginatedRooms = rooms.slice((roomsPage - 1) * ROOMS_PER_PAGE, roomsPage * ROOMS_PER_PAGE);
 
   const totalCapacity = rooms.reduce((s, r) => s + r.roomCapacity, 0);
   const totalOccupied = rooms.reduce((s, r) => s + r.roomCurrentOccupancy, 0);
@@ -548,7 +555,7 @@ export default function Dashboard() {
                       ) : rooms.length === 0 ? (
                         <p className="text-xs text-gray-400 py-4 text-center italic">No rooms added yet</p>
                       ) : (
-                        rooms.map((r) => {
+                        paginatedRooms.map((r) => {
                           let statusText = r.roomAvailability === "available" ? "Available" : r.roomAvailability === "occupied" ? "Fully Occupied" : r.roomAvailability;
                           const statusColor = r.roomAvailability === "available" ? "bg-green-100 text-green-700" : r.roomAvailability === "occupied" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700";
                           return (
@@ -563,6 +570,48 @@ export default function Dashboard() {
                       )}
                     </div>
                   </div>
+                  {rooms.length > ROOMS_PER_PAGE && (
+                    <div className="flex flex-col">
+                      <hr className="border-[#6B0F2B]/10 border-t" />
+                      <div className="flex items-center justify-between mt-3">
+                        <p className="text-xs text-[#9A7080]">
+                          Showing {(roomsPage - 1) * ROOMS_PER_PAGE + 1}–{Math.min(roomsPage * ROOMS_PER_PAGE, rooms.length)} of {rooms.length} rooms
+                        </p>
+                        <div className="flex items-center justify-center gap-1">
+                          {roomsPage > 1 && (
+                            <button
+                              onClick={() => setRoomsPage((p) => p - 1)}
+                              className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                            >
+                              {"<"}
+                            </button>
+                          )}
+                          {Array.from({ length: totalRoomPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => setRoomsPage(page)}
+                              className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center ${
+                                roomsPage === page
+                                  ? "text-white"
+                                  : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"
+                              }`}
+                              style={roomsPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                          {roomsPage < totalRoomPages && (
+                            <button
+                              onClick={() => setRoomsPage((p) => p + 1)}
+                              className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                            >
+                              {">"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </SectionCard>
               </div>
             )}
