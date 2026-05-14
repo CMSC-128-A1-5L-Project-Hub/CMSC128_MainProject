@@ -12,7 +12,8 @@ export default function LandlordVerificationsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const [verifyingUserId, setVerifyingUserId] = useState<number | null>(null)
+  const [processingUserId, setProcessingUserId] = useState<number | null>(null)
+  const [processingAction, setProcessingAction] = useState<"approve" | "reject" | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [sortOrder, setSortOrder] = useState("latest")
   const [isSortOpen, setIsSortOpen] = useState(false)
@@ -52,7 +53,8 @@ export default function LandlordVerificationsPage() {
 
   const verifyUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      setVerifyingUserId(userId)
+      setProcessingUserId(userId)
+      setProcessingAction("approve")
 
       const res = await api.patch(`/admin/users/${userId}/verify`, {
         roleToAssign: "landlord",
@@ -65,7 +67,26 @@ export default function LandlordVerificationsPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
     },
     onSettled: () => {
-      setVerifyingUserId(null)
+      setProcessingUserId(null)
+      setProcessingAction(null)
+    },
+  })
+
+  const rejectUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      setProcessingUserId(userId)
+      setProcessingAction("reject")
+
+      const res = await api.patch(`/admin/users/${userId}/reject`)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
+    },
+    onSettled: () => {
+      setProcessingUserId(null)
+      setProcessingAction(null)
     },
   })
 
@@ -242,8 +263,8 @@ export default function LandlordVerificationsPage() {
               <p className="text-sm text-red-500">Error loading requests.</p>
             ) : filteredLandlords.length === 0 ? (
               <div className="flex h-[390px] items-center justify-center border-t border-[#F2D9DF]">
-                <p className="text-5xl font-light tracking-wide text-gray-200">
-                  NO PENDING LANDLORDS
+                <p className="text-lg font-medium text-[#9A7080] text-center">
+                  No pending housing administrators
                 </p>
               </div>
             ) : (
@@ -294,7 +315,7 @@ export default function LandlordVerificationsPage() {
                           </td>
 
                           <td className="px-8 py-5 text-sm text-[#A06B7C]">
-                            {formatAppliedDate(item.user.createdAt)}
+                            {formatAppliedDate(item.user.submittedAt)}
                           </td>
 
                           <td className="px-8 py-5 text-sm text-gray-600">
@@ -342,10 +363,15 @@ export default function LandlordVerificationsPage() {
         open={isModalOpen}
         onClose={handleCloseModal}
         selectedItem={selectedItem}
-        verifyingUserId={verifyingUserId}
-        onApprove={(userId) => verifyUserMutation.mutate(userId)}
-        onReject={(userId) => {
-          console.log("Reject user:", userId)
+        verifyingUserId={processingUserId}
+        processingAction={processingAction}
+        onApprove={async (userId) => {
+          await verifyUserMutation.mutateAsync(userId)
+          handleCloseModal()
+        }}
+        onReject={async (userId) => {
+          await rejectUserMutation.mutateAsync(userId)
+          handleCloseModal()
         }}
       />
     </div>

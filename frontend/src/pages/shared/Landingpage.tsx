@@ -7,6 +7,7 @@ import uplbLogo from "../../assets/logos/uplb.png";
 import casLogo from "../../assets/logos/cas.png";
 import icsLogo from "../../assets/logos/ics.png";
 import { useNavigate } from "react-router-dom";
+import { api } from "../../api/axios"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const NAV_LINKS  = ["HOME", "ABOUT", "FEATURES", "RECOMMENDED", "SUPPORT"] as const;
@@ -281,6 +282,8 @@ const labelStyle: React.CSSProperties = { fontSize: 9, fontWeight: 700, letterSp
 const selectStyle: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: "#2a1018", background: "transparent", border: "none", outline: "none", width: "100%", cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif" };
 
 function SearchBar({ isMobile }: { isMobile: boolean }) {
+  const navigate = useNavigate();
+
   const [dormType, setDormType] = useState("All Types");
   const [location, setLocation] = useState("Anywhere");
   const [minPrice, setMinPrice] = useState(2500);
@@ -297,11 +300,15 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
   const hiddenCount = extraTags.length - displayedExtra.length;
 
   const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (dormType !== "All Types") params.set("type", dormType);
-    if (minPrice > MIN_PRICE) params.set("min_rent", String(minPrice));
-    if (maxPrice < MAX_PRICE) params.set("max_rent", String(maxPrice));
-    window.location.href = `/map?${params.toString()}`;
+    navigate("/student/browse", {
+      state: {
+        dormType,
+        minPrice,
+        maxPrice,
+        rating,
+        tags: [...activeTags, ...extraTags],
+      },
+    });
   };
 
   return (
@@ -318,9 +325,9 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
             <p style={labelStyle}>Dorm Type</p>
             <select value={dormType} onChange={e => setDormType(e.target.value)} style={selectStyle}>
               <option>All Types</option>
-              <option value="on-campus">On-Campus</option>
-              <option value="off-campus">Off-Campus</option>
-              <option value="partner_housing">Partner Housing</option>
+              <option value="On-campus">On-Campus</option>
+              <option value="Off-campus">Off-Campus</option>
+              <option value="Partner-housing">Partner Housing</option>
             </select>
           </div>
 
@@ -507,17 +514,22 @@ export default function LandingPage() {
 
   // Fetch semester from backend
   useEffect(() => {
-    fetch("/api/v1/sys-variables", { credentials: "include" })
-      .then(res => res.json())
-      .then(data => {
-        if (data?.data) {
-          const sem = data.data.currentSemester;
-          const sy = data.data.currentSy;
-          const semMap: Record<string, string> = { first_sem: "1st Semester", second_sem: "2nd Semester", midyear: "Midyear" };
-          setSemesterLabel(`Now Accepting Applications · ${semMap[sem] ?? sem} AY ${sy}`);
+    const fetchSystemSettings = async () => {
+      try {
+        const res = await api.get("/settings");
+        const data = res.data;
+
+        if (data?.currentSemester && data?.currentSy) {
+          setSemesterLabel(
+            `Now Accepting Applications · ${data.currentSemester} AY ${data.currentSy}`
+          );
         }
-      })
-      .catch(() => {});
+      } catch (error) {
+        console.error("Failed to fetch system settings:", error);
+      }
+    };
+
+    fetchSystemSettings();
   }, []);
 
   useEffect(() => {
@@ -733,7 +745,7 @@ export default function LandingPage() {
           <button
             className="browse-btn"
             style={fu(0.54)}
-            onClick={() => { window.location.href = "/map"; }}
+            onClick={() => { window.location.href = "/student/browse"; }}
           >Browse Rooms →</button>
 
           <div className="search-wrapper" style={fu(0.64)}>

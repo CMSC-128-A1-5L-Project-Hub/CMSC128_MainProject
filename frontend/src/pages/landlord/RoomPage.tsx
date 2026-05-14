@@ -30,6 +30,7 @@ import ManageRoomModal from "../../components/dashboard/landlord/rooms/ManageRoo
 import BillingModal from "../../components/dashboard/landlord/rooms/BillingModal";
 import Pagination from "../../components/dashboard/landlord/rooms/Pagination";
 import { api } from "../../api/axios";
+import { useUserStore } from "../../stores/useUserStore";
 
 /* ================= TYPES ================= */
 export interface Tenant {
@@ -73,6 +74,13 @@ export interface RoomIssue {
 }
 
 /* ================= HELPERS ================= */
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good Morning";
+  if (h < 18) return "Good Afternoon";
+  return "Good Evening";
+}
+
 function capitalizeFirst(s: string): "Single" | "Double" | "Shared" {
   return (s.charAt(0).toUpperCase() + s.slice(1)) as "Single" | "Double" | "Shared";
 }
@@ -132,6 +140,7 @@ function mapRoom(r: any): Room {
 }
 
 export default function RoomsPage() {
+  const { user } = useUserStore();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [reportedIssues, setReportedIssues] = useState<RoomIssue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,7 +166,11 @@ export default function RoomsPage() {
     api.get("/landlord/accommodations").then((res) => {
       const list = res.data ?? [];
       setAccommodations(list);
-      if (list.length > 0) setSelectedAccomId(list[0].id);
+      if (list.length > 0) {
+        const storedId = Number(sessionStorage.getItem("landlord-acc-id"));
+        const match = list.find((a: any) => a.id === storedId);
+        setSelectedAccomId(match ? storedId : list[0].id);
+      }
     });
   }, []);
 
@@ -289,8 +302,8 @@ export default function RoomsPage() {
         <CustomHeader title={"Manage Rooms"} />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
           <HeroBanner
-            greeting="Manage Your Rooms"
-            name="Landlord"
+            greeting={greeting()}
+            name={user ? user.fname : ""}
             title="Accommodation Room Control"
             subtitle="Monitor occupancy, manage billing, and update room availability."
             type="mini"
@@ -312,6 +325,17 @@ export default function RoomsPage() {
             
             {/* Desktop Filters */}
             <div className="hidden sm:flex items-center gap-2">
+              {accommodations.length > 1 && (
+                <select
+                  value={selectedAccomId ?? ""}
+                  onChange={(e) => setSelectedAccomId(Number(e.target.value))}
+                  className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-500 hover:border-[#8C1535]/30 transition-all outline-none shadow-sm"
+                >
+                  {accommodations.map((acc) => (
+                    <option key={acc.id} value={acc.id}>{acc.accommodationName}</option>
+                  ))}
+                </select>
+              )}
               <select value={selectedType} onChange={(e) => handleFilterChange("type", e.target.value)}
                 className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-500 hover:border-[#8C1535]/30 transition-all outline-none shadow-sm">
                 <option value="all">All Types</option>
@@ -365,6 +389,20 @@ export default function RoomsPage() {
           {/* Mobile Filter Panel */}
           {showMobileFilters && (
             <div className="sm:hidden bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+              {accommodations.length > 1 && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-gray-600">Dormitory</label>
+                  <select
+                    value={selectedAccomId ?? ""}
+                    onChange={(e) => setSelectedAccomId(Number(e.target.value))}
+                    className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm w-full"
+                  >
+                    {accommodations.map((acc) => (
+                      <option key={acc.id} value={acc.id}>{acc.accommodationName}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-gray-600">Room Type</label>
                 <select value={selectedType} onChange={(e) => handleFilterChange("type", e.target.value)}

@@ -38,6 +38,9 @@ import Applications from "./pages/landlord/Applications"
 import StudentVerificationsPage from "./pages/admin/StudentVerificationsPage"
 import LandlordVerificationsPage from "./pages/admin/LandlordVerificationsPage"
 import UbleLoader from "./pages/shared/LoadingPage"
+import OccupancyReportPrint from "./pages/landlord/reports/OccupancyReportPrint"
+import RevenueReportPrint from "./pages/landlord/reports/RevenueReportPrint"
+import AccommodationHistoryReportPrint from "./pages/landlord/reports/AccommodationHistoryReportPrint"
 
 function FullLandingPage() {
   return (
@@ -63,6 +66,11 @@ function App() {
         <Route path="/dev/login" element={<DevLogin/>}/>
         <Route path="/map" element={<InteractiveMap />} />
         <Route path="/loader" element = {<UbleLoader />} />
+
+        {/* ── Print-only routes (rendered by backend Puppeteer; data passed via URL) ── */}
+        <Route path="/reports/occupancy/print" element={<OccupancyReportPrint />} />
+        <Route path="/reports/revenue/print" element={<RevenueReportPrint />} />
+        <Route path="/reports/accommodation-history/print" element={<AccommodationHistoryReportPrint />} />
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>

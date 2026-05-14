@@ -27,9 +27,15 @@ export default function PendingAccommodations({
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading...</p>
       ) : accommodations.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No pending accommodations.
-        </p>
+        <>
+            <hr className="border-[#F2D9DF]" />
+
+            <div className="flex h-[390px] items-center justify-center py-10">
+              <p className="text-lg text-[#9A7080] text-center">
+                No pending accommodations
+              </p>
+            </div>
+          </>
       ) : (
         <div className="max-h-[300px] overflow-y-auto rounded-xl border border-[#F2D9DF]">
           <table className="min-w-full text-sm">

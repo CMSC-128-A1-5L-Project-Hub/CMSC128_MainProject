@@ -5,8 +5,10 @@ import Button from "../../Button";
 import { useState } from "react";
 
 export default function PersonalInfo({ role, data, setData, nextStep }: any) {
-    //custom errors per field (if applicable)
     const [errors, setErrors] = useState<Record<string,string>>({})
+    
+    // Track if last name was NOT pre-filled by Google
+    const [missingGoogleLastName] = useState(!data.lastName || data.lastName === "");
     
     const handleChange = (e:any) => {
         setData({
@@ -23,11 +25,8 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
     }
 
     const handleNext = () => {
-        //new errors record instance
         const newErrors: Record<string,string> = {}
         
-        //check each required field for errors
-        //if error, make error entry
         if (role === "student" && !data.gender) newErrors.gender = "This field is required"
         if (role === "student" && !data.emergencyName) newErrors.emergencyName = "This field is required"
         if (role === "student" && !data.emergencyNumber){
@@ -38,13 +37,11 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
         if (role === "landlord" && !data.tin) newErrors.tin = "This field is required"
 
         setErrors(newErrors)
-        //if no error/s were found, next step
         if (Object.keys(newErrors).length === 0) nextStep()
     }
 
     return (
         <>
-        {/* Headers */}
         <h2 className="text-2xl sm:text-3xl font-bold text-[#1A0008] mb-1">
             Create your Account
         </h2>
@@ -52,9 +49,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
             Let's start with your basic information. We've pre-filled your Google details.
         </p>
 
-        {/* Google pre-fill notice */}
         <div className="flex items-center gap-3 bg-[#6B0F2B1F] border border-[#6B0F2B1A] rounded-xl px-4 py-3 mb-7">
-            {/* Google "G" logo */}
             <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
                 alt="google"
@@ -63,7 +58,6 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
             <p className="text-sm text-[#6B4050]">Some fields are pre-filled from your Google account.</p>
         </div>
 
-        {/* Form fields */}
         <div className="grid grid-cols-12 gap-4">
             <FormField 
                 label="First Name"
@@ -80,9 +74,9 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 name="lastName"
                 value={data.lastName}
                 onChange={handleChange}
-                placeholder="Last Name"
+                placeholder={missingGoogleLastName ? "" : "Last Name"}
                 className="col-span-5"
-                disabled={!!data.lastName}
+                disabled={missingGoogleLastName} 
             />
 
             <FormField 
@@ -168,8 +162,6 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
             />
             
         </div>
-        {/* Continue button */}
-        {/* nireuse ko lang ung button component*/}
         <div className="col-span-12 flex items-center justify-between mt-5">
             <Button onClick={handleNext} variant="primary" size="lg">
                 Continue

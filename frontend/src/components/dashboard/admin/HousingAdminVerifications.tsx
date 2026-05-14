@@ -7,15 +7,19 @@ import HousingAdminVerificationModal from "./HousingAdminVerificationsModal"
 type HousingAdminVerificationsProps = {
   admins: any[]
   isLoading: boolean
-  verifyingUserId: number | null
-  onApprove: (userId: number) => void
+  processingUserId: number | null
+  processingAction: "approve" | "reject" | null
+  onApprove: (userId: number) => Promise<void>
+  onReject: (userId: number) => Promise<void>
 }
 
 export default function HousingAdminVerifications({
   admins,
   isLoading,
-  verifyingUserId,
+  processingUserId,
+  processingAction,
   onApprove,
+  onReject,
 }: HousingAdminVerificationsProps) {
   const formatAppliedDate = (timestamp?: string) => {
     if (!timestamp) return "N/A"
@@ -46,8 +50,13 @@ export default function HousingAdminVerifications({
     }, 350)
   }
 
-  const handleApprove = (userId: number) => {
-    onApprove(userId)
+  const handleApprove = async (userId: number) => {
+    await onApprove(userId)
+    handleClose()
+  }
+
+  const handleReject = async (userId: number) => {
+    await onReject(userId)
     handleClose()
   }
 
@@ -69,10 +78,16 @@ export default function HousingAdminVerifications({
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading...</p>
       ) : admins.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No pending housing administrators.
-        </p>
-      ) : (
+          <>
+            <hr className="border-[#F2D9DF]" />
+
+            <div className="flex items-center justify-center py-10">
+              <p className="text-lg text-[#9A7080] text-center">
+                No pending housing administrators
+              </p>
+            </div>
+          </>
+        ) : (
         <div className="max-h-[320px] overflow-y-auto">
           <table className="min-w-full border-collapse">
             <thead>
@@ -90,7 +105,10 @@ export default function HousingAdminVerifications({
             </thead>
 
             <tbody>
-              {admins.slice(0, 5).map((item: any) => (
+              {admins.slice(0, 5).map((item: any) => {
+                console.log("im here")
+                console.log("housing admin item:", item)
+                return (
                 <tr key={item.user.id}>
                   <td className="py-4">
                     <div className="flex items-center gap-4">
@@ -105,22 +123,21 @@ export default function HousingAdminVerifications({
                   </td>
 
                   <td className="py-4 text-sm text-[#A06B7C]">
-                    {formatAppliedDate(item.appliedAt)}
+                    {formatAppliedDate(item.user.submittedAt)}
                   </td>
 
                   <td className="py-4 text-center">
                     <button
                       onClick={() => handleReview(item)}
-                      disabled={verifyingUserId === item.user.id}
+                      disabled={processingUserId === item.user.id}
                       className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-4 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF] disabled:opacity-60"
                     >
-                      {verifyingUserId === item.user.id
-                        ? "Approving..."
-                        : "Review"}
+                      {processingUserId === item.user.id ? "Processing..." : "Review"}
                     </button>
                   </td>
                 </tr>
-              ))}
+              )
+      })}
             </tbody>
           </table>
         </div>
@@ -129,9 +146,10 @@ export default function HousingAdminVerifications({
         open={modalOpen}
         onClose={handleClose}
         selectedItem={selectedItem}
-        verifyingUserId={verifyingUserId}
+        verifyingUserId={processingUserId}
+        processingAction={processingAction}
         onApprove={handleApprove}
-        onReject={handleApprove}
+        onReject={handleReject}
       />
     </Card>
   )

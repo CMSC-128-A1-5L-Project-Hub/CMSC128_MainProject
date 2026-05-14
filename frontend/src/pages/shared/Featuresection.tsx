@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 type Role = "student" | "dormitory" | "administrator";
 
@@ -122,6 +123,8 @@ export default function FeaturesSection() {
   const [animating, setAnimating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const navigate = useNavigate();
+  
   // Preload all images to keep GIFs running
   useEffect(() => {
     ROLES.forEach(role => {
@@ -388,7 +391,24 @@ export default function FeaturesSection() {
                         </div>
                       ))}
                     </div>
-                    <button className="fs-cta">{role.cta}</button>
+                    <button
+                      className="fs-cta"
+                      onClick={() => {
+                        if (role.id === "student") {
+                          navigate("/student/browse");
+                        }
+
+                        if (role.id === "dormitory") {
+                          navigate("/auth/signin");
+                        }
+
+                        if (role.id === "administrator") {
+                          navigate("/auth/signin");
+                        }
+                      }}
+                    >
+                      {role.cta}
+                    </button>
                   </div>
 
                   <div className="fs-img-pane">

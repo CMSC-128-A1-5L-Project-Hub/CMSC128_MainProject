@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { Star, SlidersHorizontal, MapPin, X, BookmarkCheck, ChevronRight } from "lucide-react"
 import Sidebar from "../../components/Sidebar"
@@ -25,6 +25,7 @@ type FilterContextType = {
     setFilterPanelOpen: (v: boolean) => void
     origMin: number; origMax: number; setOrigMin: (v: number) => void; setOrigMax: (v: number) => void;
     setFilterInEffect: (v: boolean) => void; setSearched: (v: boolean) => void;
+    setSliderResetKey: (v: number) => void; sliderResetKey: number;
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
@@ -42,6 +43,7 @@ type Dorm = {
 const ITEMS_PER_PAGE = 4;
 
 export default function BrowsePage() {
+    const [searchParams] = useSearchParams()
     const [searchTerm, setSearchTerm] = useState("")
     const [activeFilter, setActiveFilter] = useState("All")
     const [onlyBookmarked, setOnlyBookmarked] = useState(false)
@@ -64,7 +66,17 @@ export default function BrowsePage() {
     const [filterInEffect, setFilterInEffect] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [searched, setSearched] = useState(false);
+    const [sliderResetKey, setSliderResetKey] = useState(0);
     const navigate = useNavigate()
+
+    const location = useLocation();
+    const landingFilters = location.state as {
+    dormType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    rating?: number;
+    tags?: string[];
+    } | null;
 
     const { data: accommodations = [], isError: accommodationsError, isSuccess, isLoading: accLoading } = useQuery({
         queryKey: ["accommodations", searchTerm, activeFilter],
@@ -77,7 +89,6 @@ export default function BrowsePage() {
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
-            console.log("done loading")
             setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
@@ -94,7 +105,7 @@ export default function BrowsePage() {
         },
     })
 
-    const name = user ? `${user.fname} ${user.lname}` : ""
+    const name = user ? `${user.fname}` : ""
     const studentNo = user?.student?.studentNumber ?? ""
 
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
@@ -111,6 +122,7 @@ export default function BrowsePage() {
     useEffect(() => {
         if (!isSuccess || accommodations.length === 0) return
 
+        
         let min = Infinity
         let max = -Infinity
         const tagSet = new Set<string>();
@@ -132,21 +144,53 @@ export default function BrowsePage() {
         const tagObject = Object.fromEntries(
             tags.map(tag => [tag, false])
         );
-        setFilters(tagObject)
-        setMinPrice(min)
-        setMaxPrice(max)
+        console.log("success", accommodations, min, max)
+        // setFilters(tagObject)
+        // setMinPrice(min)
+        // setMaxPrice(max)
+        setFilters(prev => ({
+        ...tagObject,
+        ...prev,
+        }));
+
+        if (!landingFilters) {
+        setMinPrice(min);
+        setMaxPrice(max);
+        }
         setOrigMin(min)
         setOrigMax(max)
+        setSliderResetKey(prev => prev + 1)
 
     }, [isSuccess, accommodations])
 
     useEffect(() => {
+        if (!landingFilters) return;
+
+        if (landingFilters.dormType && landingFilters.dormType !== "All Types") {
+            setDormType(landingFilters.dormType);
+        }
+
+        if (landingFilters.minPrice) setMinPrice(landingFilters.minPrice);
+        if (landingFilters.maxPrice) setMaxPrice(landingFilters.maxPrice);
+        if (landingFilters.rating) setStarRating(landingFilters.rating);
+
+        if (landingFilters.tags?.length) {
+            setFilters(prev => ({
+            ...prev,
+            ...Object.fromEntries(
+                landingFilters.tags!.map(tag => [tag, true])
+            ),
+            }));
+        }
+
+        setFilterInEffect(true);
+        setSearched(true);
+    }, []);
+
+    useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
-        console.log("searching for: ", searching)
-        console.log(filterInEffect, searched, "outside")
         if (!filterInEffect && !searched) {
-            console.log(filterInEffect, searched)
             return
         }
 
@@ -189,7 +233,7 @@ export default function BrowsePage() {
                 if (Number(el.rating) < Number(rating))
                     rating = Number(el.rating).toFixed(1)
             })
-
+            
             bookmarks.forEach((el: { studentNumber: string }) => {
                 if (el.studentNumber === studentNo) bookmarked = true
             })
@@ -249,7 +293,7 @@ export default function BrowsePage() {
     const paginatedDorms = flatDorms.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     /* map URL params — untouched */
-    const [searchParams] = useSearchParams()
+    // const [searchParams] = useSearchParams()
     const centerId = searchParams.get("center")
     const centeredAccommodation = centerId
         ? mapAccommodations.find(a => a.accommodationId === Number(centerId)) ?? null
@@ -273,7 +317,8 @@ export default function BrowsePage() {
         <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
-            searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched
+            searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched,
+            setSliderResetKey, sliderResetKey
         }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
 
@@ -584,7 +629,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
     const {
         dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
         roomType, setRoomType, starRating, setStarRating,
-        onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen, origMin, origMax,
+        onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen, origMin, origMax, setSliderResetKey, sliderResetKey,
         setFilterInEffect, setOrigMin, setOrigMax
     } = context
 
@@ -599,14 +644,14 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
     ) as Record<string, boolean>;
 
     const resetAll = () => {
+        let temp = sliderResetKey
         setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
         setDormType("All"); setRoomType("All"); setMinPrice(origMin); setMaxPrice(origMax);
-        setFilterPanelOpen(false); setFilterInEffect(true); setSliderResetKey(prev => prev + 1);
+        setFilterPanelOpen(false); setFilterInEffect(true); setSliderResetKey(temp + 1);
         setSelectedDorm("All"); setSelectedRoom("All");
     }
-
+    
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
-    const [sliderResetKey, setSliderResetKey] = useState(0);
     const [minimumOrig, setMinimumOrig] = useState(origMin);
     const [maximumOrig, setMaximumOrig] = useState(origMax);
     const [range, setRange] = useState({ min: 0, max: 100 });
@@ -703,14 +748,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
             {/* Price range */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
             <div className="px-2">
-
-                {/* <DualRangeSlider
-                    minVal={minPrice} maxVal={maxPrice}
-                    onMinChange={setMinPrice} onMaxChange={setMaxPrice}
-                    dataMin={origMin} dataMax={origMax}
-                /> */}
-                <PriceRangeSlider key={sliderResetKey} min={minimumOrig} max={maximumOrig} onChange={handleRangeChange}></PriceRangeSlider>
-
+                <PriceRangeSlider key={sliderResetKey} min={origMin} max={origMax} onChange={handleRangeChange}></PriceRangeSlider>
             </div>
 
             <Divider />

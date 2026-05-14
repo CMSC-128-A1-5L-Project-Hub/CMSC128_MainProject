@@ -10,6 +10,7 @@ import Room from '#models/room'
 import Review from '#models/review'
 import Bookmark from '#models/bookmark'
 import Application from '#models/application'
+import DocumentRequirement from '#models/document_requirement'
 
 export default class Accommodation extends BaseModel {
   static table = 'accommodations'
@@ -110,4 +111,7 @@ export default class Accommodation extends BaseModel {
 
   @hasMany(() => Application, { foreignKey: 'accommodationId' })
   declare applications: HasMany<typeof Application>
+
+  @hasMany(() => DocumentRequirement, { foreignKey: 'accommodationId' })
+  declare documentRequirements: HasMany<typeof DocumentRequirement>
 }
