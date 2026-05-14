@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
+import { motion } from "framer-motion"
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { Star, SlidersHorizontal, MapPin, X, BookmarkCheck, ChevronRight } from "lucide-react"
 import Sidebar from "../../components/Sidebar"
@@ -330,18 +331,13 @@ export default function BrowsePage() {
     }
 
     return (
-        <filterContext.Provider value={{
+            <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
             searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched,
             setSliderResetKey, sliderResetKey
-        }}>
+            }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
-
-                {/* Sidebar */}
-                <div className="relative z-[9999]">
-                    <Sidebar role="student" />
-                </div>
 
                 {/* Main */}
                 <div className="flex flex-col w-full min-w-0 h-screen overflow-hidden">
@@ -436,7 +432,7 @@ export default function BrowsePage() {
 
                                     {/* Fixed pagination */}
                                     {totalPages > 1 && (
-                                        <div className="pt-6 pb-2 flex justify-center shrink-0 bg-[#F6F2F4]">
+                                        <div className="pt-6 pb-2 flex justify-end shrink-0 bg-[#F6F2F4]">
                                             <Pagination
                                                 currentPage={currentPage}
                                                 totalPages={totalPages}
@@ -494,7 +490,6 @@ export default function BrowsePage() {
                         }} />
                     </div>
                 </div>
-
             </div>
         </filterContext.Provider>
     )

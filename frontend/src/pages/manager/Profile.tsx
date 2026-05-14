@@ -158,8 +158,6 @@ if (profileLoading) {
 
   return (
     <div className="min-h-screen bg-[#FAF6F2] text-[#2A1F1A] lg:flex">
-      <Sidebar role="manager" />
-
       <div className="flex-1">
         <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between">

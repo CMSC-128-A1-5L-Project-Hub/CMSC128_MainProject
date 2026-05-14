@@ -1,5 +1,6 @@
 // src/components/DormCard.tsx
 import React from "react";
+import defaultAccommodation from "../assets//defaults/accommodation.png";
 
 export interface DormCardProps {
   image?: string;
@@ -46,7 +47,8 @@ export default function DormCard({
       >
         <div className="w-full h-full relative">
           <img
-            src={typeof image === "string" ? image : "../src/assets/defaults/accommodation.png"}
+            src={image ?? defaultAccommodation}
+            onError={(e) => { e.currentTarget.src = defaultAccommodation }}
             alt={imageName}
             className="w-full h-full object-cover"
           />

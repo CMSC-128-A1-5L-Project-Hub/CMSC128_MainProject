@@ -550,29 +550,22 @@ export default function MoveinMoveout() {
     }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
-            {/* SIDEBAR */}
-            <Sidebar role="manager" profile={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname} />
-            {/* CONTENT */}
-            <div className="flex flex-col flex-1 min-w-0 w-full">
-                <CustomHeader
-                    title="Move In & Move Out"></CustomHeader>    
-                <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
-                    <main className="flex-1 flex flex-col gap-4">
-                        <HeroBanner
-                            greeting="Good Day"
-                            name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-                            title="Check your applicants"
-                            subtitle="We make it easy for you to track the accommodation applications you manage."
-                            type="mini"
-                        />
-                        {/* TABLE */}
-                        <MoveInMoveOutTable records={[]} />
-                    </main>
-                </div>
+        <div className="flex flex-col flex-1 min-w-0 w-full">
+            <CustomHeader
+                title="Move In & Move Out"></CustomHeader>    
+            <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
+                <main className="flex-1 flex flex-col gap-4">
+                    <HeroBanner
+                        greeting="Good Day"
+                        name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
+                        title="Check your applicants"
+                        subtitle="We make it easy for you to track the accommodation applications you manage."
+                        type="mini"
+                    />
+                    {/* TABLE */}
+                    <MoveInMoveOutTable records={[]} />
+                </main>
             </div>
-            
-            
         </div>
     )
 }

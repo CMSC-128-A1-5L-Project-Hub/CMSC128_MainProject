@@ -2,9 +2,12 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import Modal from "./Modal";
 import Button from "./Button";
 import Card from "./ui/Card";
+import defaultAccommodation from "@/assets/defaults/accommodation.png";
+
 import {
     IoStar,
     IoCloudUploadOutline,
@@ -59,6 +62,9 @@ export default function RoomApplicationModal({
     const [step, setStep] = useState<"apply" | "verify">("apply");
     type StayType = "transient" | "non_transient";
     type Arrangement = "single" | "double" | "shared";
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const queryClient = useQueryClient();
 
     const stayTypes: StayType[] = [
         ...new Set(
@@ -176,12 +182,22 @@ export default function RoomApplicationModal({
     }, [moveInDate, moveOutDate, isTransient]);
 
     const handleSubmit = async () => {
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+
         try {
             const formData = new FormData();
+
             formData.append("accommodationId", String(accommodation.id));
-            if (currentRoom?.id != null) formData.append("roomId", String(currentRoom.id));
+
+            if (currentRoom?.id != null) {
+                formData.append("roomId", String(currentRoom.id));
+            }
+
             formData.append("applicationRoomType", selectedArrangement);
             formData.append("applicationStayType", selectedStayType);
+
             if (isTransient) {
                 formData.append("durationOfStayDays", String(numberOfDays));
                 formData.append("moveInDate", moveInDate);
@@ -190,39 +206,61 @@ export default function RoomApplicationModal({
             } else {
                 formData.append("moveInFee", String(moveInFee));
             }
+
             if (selectedPreferences.length > 0) {
-                formData.append("preferredTags", JSON.stringify(selectedPreferences));
+                formData.append(
+                    "preferredTags",
+                    JSON.stringify(selectedPreferences)
+                );
             }
 
-            // Attach documents from per-requirement slots
+            // Attach documents
             const reqIds: (number | null)[] = [];
             const reqNames: string[] = [];
+
             for (const req of docRequirements) {
                 const slots = docSlots[req.id] ?? [];
+
                 for (const slot of slots) {
                     if (!slot.file) continue;
+
                     formData.append("documents", slot.file);
                     reqIds.push(req.id);
                     reqNames.push(req.requirementName);
                 }
             }
+
             if (reqIds.length > 0) {
                 formData.append("requirement_ids", JSON.stringify(reqIds));
                 formData.append("requirement_names", JSON.stringify(reqNames));
             }
 
-            try {
-                const res = await api.post("/applications", formData, {
-                    headers: { "Content-Type": "multipart/form-data" },
-                });
-                console.log("Application submitted:", res.data);
-                handleClose();
-            } catch (err: any) {
-                console.error("Submit failed status:", err.response?.status);
-                console.error("Submit failed data:", err.response?.data);
-            }
-        } catch (err) {
-            console.error("Submit failed:", err);
+            const res = await api.post("/applications", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            console.log("Application submitted:", res.data);
+
+            await queryClient.invalidateQueries({
+                queryKey: ["applications"],
+            });
+
+            await queryClient.invalidateQueries({
+                queryKey: ["student-applications"],
+            });
+
+            await queryClient.invalidateQueries({
+                queryKey: ["landlord-applications"],
+            });
+
+            handleClose();
+        } catch (err: any) {
+            console.error("Submit failed status:", err.response?.status);
+            console.error("Submit failed data:", err.response?.data);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -230,19 +268,28 @@ export default function RoomApplicationModal({
         <div className="flex flex-row justify-end items-center w-full gap-3">
             {step === "apply" ? (
                 <>
-                    {(!allDocsFilled || (isTransient && (!moveInDate || !moveOutDate))) && (
+                    {(!allDocsFilled ||
+                        (isTransient && (!moveInDate || !moveOutDate))) && (
                         <p className="text-[11px] font-bold mr-2 text-[#6B0F2B]">
-                            {isTransient && (!moveInDate || !moveOutDate)
+                            {isTransient &&
+                            (!moveInDate || !moveOutDate)
                                 ? "Please select stay dates to proceed."
-                                : `Please upload all ${totalRequiredCount} required document${totalRequiredCount !== 1 ? 's' : ''} to proceed.`}
+                                : `Please upload all ${totalRequiredCount} required document${
+                                    totalRequiredCount !== 1 ? "s" : ""
+                                } to proceed.`}
                         </p>
                     )}
+
                     <Button
                         variant="primary"
                         size="lg"
                         className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
                         onClick={() => setStep("verify")}
-                        disabled={!allDocsFilled || (isTransient && (!moveInDate || !moveOutDate))}
+                        disabled={
+                            !allDocsFilled ||
+                            (isTransient &&
+                                (!moveInDate || !moveOutDate))
+                        }
                     >
                         Next
                     </Button>
@@ -256,31 +303,49 @@ export default function RoomApplicationModal({
                     >
                         Back
                     </Button>
+
                     <Button
                         onClick={handleSubmit}
                         variant="primary"
                         size="lg"
-                        className={`px-16 rounded-full text-white transition-all ${declaration === "accept" && (!isTransient || paymentFile) ? 'bg-emerald-500' : 'bg-[#8C1533] opacity-50 grayscale'}`}
-                        disabled={declaration !== "accept" || (isTransient && !paymentFile)}
+                        className={`px-16 rounded-full text-white transition-all ${
+                            declaration === "accept" &&
+                            (!isTransient || paymentFile) &&
+                            !isSubmitting
+                                ? "bg-emerald-500"
+                                : "bg-[#8C1533] opacity-50 grayscale"
+                        }`}
+                        disabled={
+                            isSubmitting ||
+                            declaration !== "accept" ||
+                            (isTransient && !paymentFile)
+                        }
                     >
-                        Submit
+                        {isSubmitting ? "Submitting..." : "Submit"}
                     </Button>
                 </>
             )}
         </div>
-    )
+    );
 
-    const handlePaymentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePaymentSelect = (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
         const file = e.target.files?.[0];
+
         if (!file) return;
 
         setPaymentFile({
             name: file.name,
             size: (file.size / 1024).toFixed(0) + "kb",
             progress: 100,
-            status: "Completed"
+            status: "Completed",
         });
     };
+
+    // const removeFile = (index: number) => {
+    //     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    // };
 
     const currentRoom =
         rooms.find((room: any) => {
@@ -413,9 +478,10 @@ export default function RoomApplicationModal({
                         <div className="flex flex-col md:flex-row gap-6 items-start">
                             <div className="w-full md:w-[320px] h-[180px] rounded-3xl overflow-hidden shadow-sm flex-shrink-0">
                                 <img
-                                    src={accommodation?.imageUrls?.[0] ?? accommodation?.primaryImageUrl ?? "/default-accommodation.png"}
+                                    src={accommodation?.imageUrls?.[0] ?? accommodation?.primaryImageUrl ?? defaultAccommodation}
                                     alt={accommodation?.accommodationName}
                                     className="w-full h-full object-cover"
+                                    onError={(e) => { e.currentTarget.src = defaultAccommodation; }}
                                 />
                             </div>
                             <div className="flex-1 w-full">
