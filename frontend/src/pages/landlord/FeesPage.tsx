@@ -7,6 +7,10 @@ import HeroBanner from '../../components/dashboard/HeroBanner'
 import Dropdown from "@/components/ApplicationStatus/Dropdown"
 import SearchBar from "@/components/SearchBar"
 import Toast from "@/components/Toast"
+import Modal from "@/components/Modal"
+import Button from "@/components/Button"
+import Card from "@/components/ui/Card"
+import { IoPersonSharp, IoCalendarSharp, IoBedSharp, IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp } from "react-icons/io5"
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -59,6 +63,126 @@ const fetchPendingPayments = async (accommodationId: number): Promise<PendingPay
 const verifyPayment = async ({ id, action }: { id: number; action: 'approve' | 'reject' }) => {
   const res = await api.patch(`/payments/${id}/verify`, { action })
   return res.data
+}
+
+// ─── Overdue Fee Modal Content ─────────────────────────────────────────────
+function OverdueFeeModalContent({ fee, onClose }: { fee: OverdueFee; onClose: () => void }) {
+  return (
+    <Card className="!p-0">
+      <div className="flex flex-col gap-6 p-6">
+        {/* HEADER */}
+        <div className="flex flex-row justify-between items-start">
+          <div className="flex flex-col">
+            <p className="text-[#1A0008] font-bold text-xl">{fee.fname} {fee.lname}</p>
+            <p className="text-[#C8B0B8] text-xs mt-1">
+              Student Number: {fee.student_number}
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.7rem] font-semibold whitespace-nowrap bg-red-100 text-red-800">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+            Overdue
+          </span>
+        </div>
+
+        {/* FEE DETAILS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-[#F5ECF0] rounded-xl p-4">
+          <div className="col-span-1 sm:border-r border-[#F5ECF0] sm:pr-4">
+            <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
+              <IoDocumentSharp size={18} color="#6B0F2B" />
+              Fee Details
+            </p>
+            <div className="grid grid-cols-2 gap-y-3">
+              <div className="col-span-2">
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Category</p>
+                <p className="text-[#1A0008] text-sm capitalize">{fee.fee_category}</p>
+              </div>
+              <div className="col-span-1">
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Original Amount</p>
+                <p className="text-[#1A0008] text-sm">₱{fee.fee_amount?.toLocaleString() ?? 0}</p>
+              </div>
+              <div className="col-span-1">
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Balance</p>
+                <p className="text-[#1A0008] text-sm font-bold text-red-600">₱{fee.fee_balance?.toLocaleString() ?? 0}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-1 sm:pl-2">
+            <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
+              <IoCalendarSharp size={18} color="#6B0F2B" />
+              Due Date
+            </p>
+            <div className="flex flex-col gap-3">
+              <div>
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Due Date</p>
+                <p className="text-[#1A0008] text-sm">
+                  {new Date(fee.due_date).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
+              </div>
+              <div>
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Overdue Since</p>
+                <p className="text-[#1A0008] text-sm text-red-600">{timeAgo(fee.due_date)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ROOM INFORMATION */}
+        <div className="border border-[#F5ECF0] rounded-xl p-4">
+          <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
+            <IoBedSharp size={18} color="#6B0F2B" />
+            Room Information
+          </p>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Number</p>
+              <p className="text-[#1A0008] text-sm">{fee.room_number || '—'}</p>
+            </div>
+            <div>
+              <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Building</p>
+              <p className="text-[#1A0008] text-sm">{fee.accommodation_name || '—'}</p>
+            </div>
+            <div>
+              <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</p>
+              <p className="text-[#1A0008] text-sm capitalize">{fee.room_type || '—'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* STAY DURATION */}
+        <div className="border border-[#F5ECF0] rounded-xl p-4">
+          <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
+            <IoCalendarSharp size={18} color="#6B0F2B" />
+            Stay Duration
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Move In</p>
+              <p className="text-[#1A0008] text-sm">
+                {fee.move_in ? new Date(fee.move_in).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }) : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Expected Move Out</p>
+              <p className="text-[#1A0008] text-sm">
+                {fee.expected_move_out ? new Date(fee.expected_move_out).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }) : '—'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ACTIONS */}
+        <div className="flex flex-row justify-end gap-3 pt-1">
+          <Button variant="secondary" onClick={onClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={() => {}}>
+            Send Reminder
+          </Button>
+        </div>
+      </div>
+    </Card>
+  )
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -198,88 +322,15 @@ function OverdueRow({ fee, onView }: { fee: OverdueFee; onView: (fee: OverdueFee
         <p className="text-xs text-red-400">{timeAgo(fee.due_date)}</p>
       </td>
       <td className="px-4 py-3 text-right">
-        <button
-          onClick={() => onView(fee)}
-          className="px-4 py-1.5 rounded-lg border border-[#6B0F2B] text-[#6B0F2B] text-sm font-semibold hover:bg-[#6B0F2B] hover:text-white transition"
-        >
-          View Details
-        </button>
+      <Button 
+        variant="secondary" 
+        size="sm" 
+        onClick={() => onView(fee)}
+      >
+        View Details
+      </Button>
       </td>
     </tr>
-  )
-}
-
-// ─── Overdue Fee Modal ──────────────────────────────────────────────────────
-
-function OverdueFeeModal({ fee, onClose }: { fee: OverdueFee; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-[480px] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="bg-[#6B0F2B] text-white text-center py-4 relative">
-          <h2 className="font-bold tracking-widest text-sm uppercase">Overdue Fee Details</h2>
-          <button onClick={onClose} className="absolute right-4 top-4 text-white/70 hover:text-white">✕</button>
-        </div>
-
-        <div className="p-6">
-          <h3 className="text-xl font-bold text-[#3D0718] mb-5">{fee.fname} {fee.lname}</h3>
-
-          <div className="grid grid-cols-2 gap-5">
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Due Date</p>
-              <p className="font-medium text-sm">
-                {new Date(fee.due_date).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </p>
-              <p className="text-xs text-red-400">{timeAgo(fee.due_date)}</p>
-            </div>
-
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Amount Due</p>
-              <p className="text-lg font-bold text-red-600">₱{fee.fee_balance?.toLocaleString() ?? 0}</p>
-              <p className="text-xs text-gray-400">Original: ₱{fee.fee_amount?.toLocaleString() ?? 0}</p>
-            </div>
-
-            <div className="col-span-2">
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Room Information</p>
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                <div>
-                  <p className="text-gray-400 text-xs">Room Number</p>
-                  <p className="font-medium">{fee.room_number || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400 text-xs">Building</p>
-                  <p className="font-medium">{fee.accommodation_name || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400 text-xs">Room Type</p>
-                  <p className="font-medium capitalize">{fee.room_type || '—'}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-span-2">
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Stay Duration</p>
-              <p className="text-sm">
-                {fee.move_in ? new Date(fee.move_in).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }) : '—'}
-                {' – '}
-                {fee.expected_move_out ? new Date(fee.expected_move_out).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }) : '—'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="px-6 pb-5 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm hover:bg-gray-50"
-          >
-            Close
-          </button>
-          <button className="bg-[#3D0718] text-white text-sm px-6 py-2 rounded-lg hover:bg-[#6B0F2B] transition-colors">
-            Send Reminder
-          </button>
-        </div>
-      </div>
-    </div>
   )
 }
 
@@ -665,9 +716,19 @@ export default function FeesPage() {
         </div>
       </div>
 
-      {selectedFee && (
-        <OverdueFeeModal fee={selectedFee} onClose={() => setSelectedFee(null)} />
-      )}
+      {/* Overdue Fee Modal - Using Modal component */}
+      <Modal
+        open={!!selectedFee}
+        onClose={() => setSelectedFee(null)}
+        title="OVERDUE FEE DETAILS"
+        eyebrow="Payment Information"
+        maxWidth={700}
+        maxHeight={650}
+      >
+        {selectedFee && (
+          <OverdueFeeModalContent fee={selectedFee} onClose={() => setSelectedFee(null)} />
+        )}
+      </Modal>
 
       {/* Toast Notifications */}
       <Toast
