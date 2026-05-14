@@ -4,6 +4,7 @@ import User from '#models/user'
 import Student from '#models/student'
 import Landlord from '#models/landlord'
 import NotificationService from '#services/notification_service'
+import LogService from '#services/log_service'
 
 @inject()
 export default class AdminVerificationsController {
@@ -37,7 +38,7 @@ export default class AdminVerificationsController {
   }
 
   // Approves the user by changing their role
-  async verify({ request, params, response }: HttpContext) {
+  async verify({ auth, request, params, response }: HttpContext) {
     const { roleToAssign } = request.all() // 'student' or 'landlord'
 
     // Note: the route says :userId, so we use params.userId here
@@ -49,17 +50,42 @@ export default class AdminVerificationsController {
 
     await this.notificationService.sendAccountApprovedEmail(user, roleToAssign)
 
+    try {
+      await LogService.record(
+        auth.user?.id ?? null,
+        'account',
+        user.id,
+        'ACCOUNT_VERIFIED',
+        `Admin ${auth.user?.id ?? 'system'} verified ${roleToAssign} account for ${user.fname} ${user.lname} (user ${user.id})`
+      )
+    } catch (e) {
+      console.error('Failed to log ACCOUNT_VERIFIED:', e)
+    }
+
     return response.ok(user)
   }
 
-  async reject({ params, response }: HttpContext) {
+  async reject({ auth, request, params, response }: HttpContext) {
     const user = await User.findOrFail(params.userId)
+    const { reason } = request.all()
 
     user.role = 'unassigned'
     user.accountStatus = 'rejected'
     // user.submittedAt = null
 
     await user.save()
+
+    try {
+      await LogService.record(
+        auth.user?.id ?? null,
+        'account',
+        user.id,
+        'ACCOUNT_REJECTED',
+        `Admin ${auth.user?.id ?? 'system'} rejected account for ${user.fname} ${user.lname} (user ${user.id})${reason ? `: ${reason}` : ''}`
+      )
+    } catch (e) {
+      console.error('Failed to log ACCOUNT_REJECTED:', e)
+    }
 
     return response.ok({
       message: 'User verification rejected',

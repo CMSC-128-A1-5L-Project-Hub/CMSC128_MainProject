@@ -12,7 +12,7 @@ export default class PaymentsController {
 
   // ─── STUDENT: UPLOAD PAYMENT PROOF ───
   // POST /payments/:feeId/pay
-  async uploadProof({ params, request, response }: HttpContext) {
+  async uploadProof({ auth, params, request, response }: HttpContext) {
     const feeId = params.feeId
     const fee = await Fee.findOrFail(feeId)
 
@@ -64,6 +64,18 @@ export default class PaymentsController {
       modeOfPayment,
       paymentStatus: 'pending',
     })
+
+    try {
+      await LogService.record(
+        auth.user?.id ?? null,
+        'payment',
+        payment.id,
+        'PAYMENT_PROOF_UPLOADED',
+        `Student ${auth.user?.id ?? 'unknown'} uploaded ${modeOfPayment} payment of ${paymentAmount} for Fee ${fee.id}`
+      )
+    } catch (e) {
+      console.error('Failed to log PAYMENT_PROOF_UPLOADED:', e)
+    }
 
     return response.ok({
       message: 'Payment proof uploaded successfully',

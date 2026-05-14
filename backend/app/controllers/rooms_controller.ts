@@ -38,6 +38,19 @@ export default class RoomsController {
     const landlordId = auth.user!.id
     const payload = await createRoomValidator.validate(request.all())
     const room = await this.roomService.createRoom(landlordId, params.accommodationId, payload)
+
+    try {
+      await LogService.record(
+        landlordId,
+        'room',
+        room.id,
+        'ROOM_CREATED',
+        `Room ${room.roomNumber} (building ${room.roomBuilding}) added to Accommodation ${params.accommodationId}`
+      )
+    } catch (e) {
+      console.error('Failed to log ROOM_CREATED:', e)
+    }
+
     return response.ok(room)
   }
 
@@ -46,6 +59,19 @@ export default class RoomsController {
     try {
       const payload = await updateRoomValidator.validate(request.all())
       const updatedRoom = await this.roomService.updateRoom(params.id, payload, auth.user!.id)
+
+      try {
+        await LogService.record(
+          auth.user!.id,
+          'room',
+          updatedRoom.id,
+          'ROOM_UPDATED',
+          `Room ${updatedRoom.roomNumber} (building ${updatedRoom.roomBuilding}) updated`
+        )
+      } catch (e) {
+        console.error('Failed to log ROOM_UPDATED:', e)
+      }
+
       return response.ok(updatedRoom)
     } catch (err) {
       const error = err as Error
@@ -59,7 +85,23 @@ export default class RoomsController {
   // ─── MANAGER: DELETE A ROOM ───
   async destroy({ params, auth, response }: HttpContext) {
     try {
+      const roomBeforeDelete = await Room.find(params.id)
       await this.roomService.deleteRoom(params.id, auth.user!.id)
+
+      try {
+        await LogService.record(
+          auth.user!.id,
+          'room',
+          Number(params.id),
+          'ROOM_DELETED',
+          roomBeforeDelete
+            ? `Room ${roomBeforeDelete.roomNumber} (building ${roomBeforeDelete.roomBuilding}) deleted from Accommodation ${roomBeforeDelete.accommodationId}`
+            : `Room ${params.id} deleted`
+        )
+      } catch (e) {
+        console.error('Failed to log ROOM_DELETED:', e)
+      }
+
       return response.ok({ message: 'Room deleted successfully.' })
     } catch (err) {
       const error = err as Error

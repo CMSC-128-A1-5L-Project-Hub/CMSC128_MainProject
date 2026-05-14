@@ -60,6 +60,19 @@ export default class ApplicationsController {
         await application.useTransaction(trx).save()
 
         await trx.commit()
+
+        try {
+          await LogService.record(
+            user.id,
+            'assignment',
+            assignment.id,
+            'STUDENT_ACCEPTED_ASSIGNMENT',
+            `Student ${student.studentNumber} accepted assignment ${assignment.id} for room ${room.roomNumber} (building ${room.roomBuilding})`
+          )
+        } catch (e) {
+          console.error('Failed to log STUDENT_ACCEPTED_ASSIGNMENT:', e)
+        }
+
         return response.ok({ message: 'Assignment confirmed successfully' })
 
       } else if (action === 'reject') {
@@ -79,6 +92,18 @@ export default class ApplicationsController {
         await application.useTransaction(trx).save()
 
         await trx.commit()
+
+        try {
+          await LogService.record(
+            user.id,
+            'assignment',
+            assignment.id,
+            'STUDENT_REJECTED_ASSIGNMENT',
+            `Student ${student.studentNumber} rejected assignment ${assignment.id} for room ${room.roomNumber} (building ${room.roomBuilding}); slot released`
+          )
+        } catch (e) {
+          console.error('Failed to log STUDENT_REJECTED_ASSIGNMENT:', e)
+        }
 
         // 3. Automatically promote the next waitlisted student
         await this.waitlistService.processMoveOut(room.accommodationId, room)
