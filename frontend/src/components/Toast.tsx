@@ -71,7 +71,7 @@ export default function Toast({
   return (
     <div
       className={`
-        fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999] 
+        fixed top-4 right-4 sm:top-6 sm:right-6 z-[9999] 
         flex items-start sm:items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-3.5 sm:py-4 
         bg-white
         border ${colors.border}
@@ -81,17 +81,15 @@ export default function Toast({
         max-w-[calc(100vw-2rem)] sm:max-w-md w-full
         transition-all duration-300 ease-out
         ${exiting 
-          ? "opacity-0 translate-x-full" 
-          : "opacity-100 translate-x-0 animate-[slideRight_0.4s_cubic-bezier(0.22,1,0.36,1)]"
+          ? "opacity-0 -translate-y-4" 
+          : "opacity-100 translate-y-0 animate-[slideDown_0.4s_cubic-bezier(0.22,1,0.36,1)]"
         }
       `}
     >
-      {/* Icon */}
       <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mt-0.5 sm:mt-0 ${colors.bg} ${colors.text}`}>
         <Icon size={16} className={`sm:w-[18px] sm:h-[18px] ${type === "loading" ? "animate-spin" : ""}`} />
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
         <p className="text-[13px] sm:text-sm font-semibold text-[#1A0008] leading-tight">
           {title}
@@ -103,7 +101,6 @@ export default function Toast({
         )}
       </div>
 
-      {/* Action Button */}
       {action && (
         <button
           onClick={action.onClick}
@@ -113,7 +110,6 @@ export default function Toast({
         </button>
       )}
 
-      {/* Close */}
       <button
         onClick={dismiss}
         className="flex-shrink-0 p-1 rounded-md text-[#9A7080] hover:text-[#6B0F2B] hover:bg-[#F5ECF0] transition-colors mt-0.5 sm:mt-0"
@@ -122,9 +118,9 @@ export default function Toast({
       </button>
 
       <style>{`
-        @keyframes slideRight {
-          from { opacity: 0; transform: translateX(100%); }
-          to   { opacity: 1; transform: translateX(0); }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-100%); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
