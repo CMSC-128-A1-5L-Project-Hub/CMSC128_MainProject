@@ -98,6 +98,12 @@ router
         // Reporting & Analytics
         router.get('/reports/revenue', [controllers.Reports, 'revenue'])
         router.get('/reports/delinquency', [controllers.Reports, 'delinquency'])
+        router.get('/reports/overdue-fees/xlsx', [controllers.Reports, 'overdueFeesXlsx'])
+        router.get('/reports/occupancy/pdf', [controllers.Reports, 'occupancyPdf'])
+        router.get('/reports/revenue/pdf', [controllers.Reports, 'revenuePdf'])
+        router.get('/reports/accommodation-history/pdf', [controllers.Reports, 'accommodationHistoryPdf'])
+        router.get('/reports/waiting-list/xlsx', [controllers.Reports, 'waitingListXlsx'])
+        router.get('/reports/housed-students/xlsx', [controllers.Reports, 'housedStudentsXlsx'])
 
         // Accommodation Management
         router.get('/landlord/accommodations', [controllers.Accommodation, 'landlordIndex'])
