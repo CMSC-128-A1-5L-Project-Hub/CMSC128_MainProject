@@ -14,12 +14,13 @@ export default function PendingAccommodations({
   onVerify,
 }: PendingAccommodationsProps) {
   return (
-    <Card className="shadow-sm">
-      <div className="mb-4">
-        <h2 className="text-xl font-bold text-[#2A0410]">
+    <Card className="shadow-sm rounded-2xl border border-[#F2D9DF] bg-white p-6">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-[#2A0410]">
           Pending Accommodation Approvals
         </h2>
-        <p className="text-xs text-gray-500">
+
+        <p className="text-xs text-gray-500 mt-1">
           Approve or reject submitted accommodations.
         </p>
       </div>
@@ -28,55 +29,63 @@ export default function PendingAccommodations({
         <p className="text-sm text-gray-500">Loading...</p>
       ) : accommodations.length === 0 ? (
         <>
-            <hr className="border-[#F2D9DF]" />
+          <hr className="border-[#F2D9DF]" />
 
-            <div className="flex h-[390px] items-center justify-center py-10">
-              <p className="text-lg text-[#9A7080] text-center">
-                No pending accommodations
-              </p>
-            </div>
-          </>
+          <div className="flex items-center justify-center py-10">
+            <p className="text-lg text-[#9A7080] text-center">
+              No pending accommodations
+            </p>
+          </div>
+        </>
       ) : (
-        <div className="max-h-[300px] overflow-y-auto rounded-xl border border-[#F2D9DF]">
-          <table className="min-w-full text-sm">
-            <thead className="bg-[#FFF7F9] sticky top-0">
-              <tr>
-                <th className="text-left px-4 py-3 border-b border-[#F2D9DF]">
+        <div className="max-h-[320px] overflow-y-auto">
+          <table className="min-w-full border-collapse">
+            <thead>
+              <tr className="border-y border-[#F2D9DF]">
+                <th className="py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
                   Accommodation
                 </th>
-                <th className="text-left px-4 py-3 border-b border-[#F2D9DF]">
+
+                <th className="py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
                   Landlord
                 </th>
-                <th className="text-left px-4 py-3 border-b border-[#F2D9DF]">
+
+                <th className="py-3 text-center text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
                   Actions
                 </th>
               </tr>
             </thead>
 
             <tbody>
-              {accommodations.map((item: any) => (
-                <tr key={item.id} className="hover:bg-[#FFF7F9]">
-                  <td className="px-4 py-3 border-b border-[#F2D9DF]">
-                    <p className="font-medium text-[#2A0410]">
-                      {item.accommodationName ?? "—"}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {item.accommodationLocation ?? "—"}
-                    </p>
+              {accommodations.slice(0, 5).map((item: any) => (
+                <tr
+                  key={item.id}
+                  className="hover:bg-[#FFF7F9] transition-colors"
+                >
+                  <td className="py-4">
+                    <div className="flex flex-col">
+                      <p className="font-medium text-[#2A0410]">
+                        {item.accommodationName ?? "—"}
+                      </p>
+
+                      <p className="text-sm text-[#A06B7C]">
+                        {item.accommodationLocation ?? "—"}
+                      </p>
+                    </div>
                   </td>
 
-                  <td className="px-4 py-3 border-b border-[#F2D9DF] text-gray-600">
+                  <td className="py-4 text-sm text-[#2A0410]">
                     {item.landlord?.user
                       ? `${item.landlord.user.fname} ${item.landlord.user.lname}`
                       : "—"}
                   </td>
 
-                  <td className="px-4 py-3 border-b border-[#F2D9DF]">
-                    <div className="flex gap-2">
+                  <td className="py-4">
+                    <div className="flex justify-center gap-2">
                       <button
                         onClick={() => onVerify(item.id, "verified")}
                         disabled={verifyingAccommodationId === item.id}
-                        className="text-xs px-3 py-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 disabled:opacity-60"
+                        className="rounded-xl px-4 py-2 text-sm font-semibold bg-[#EAF7EE] text-[#2D8A4E] hover:bg-[#D8F0E1] disabled:opacity-60"
                       >
                         {verifyingAccommodationId === item.id
                           ? "Approving..."
@@ -86,7 +95,7 @@ export default function PendingAccommodations({
                       <button
                         onClick={() => onVerify(item.id, "rejected")}
                         disabled={verifyingAccommodationId === item.id}
-                        className="text-xs px-3 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 disabled:opacity-60"
+                        className="rounded-xl px-4 py-2 text-sm font-semibold bg-[#FFF1F1] text-[#C53B3B] hover:bg-[#FFE2E2] disabled:opacity-60"
                       >
                         Reject
                       </button>
