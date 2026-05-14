@@ -79,7 +79,7 @@ const CLR = {
 } as const;
 
 // ── Types ──────────────────────────────────────────────────────────────────
-type ApplicationStatus = "Approved" | "Pending" | "In Review";
+type ApplicationStatus = "Approved" | "Pending" | "In Review" | "Rejected" | "Cancelled" | "Waitlisted" | "Confirmed";
 
 interface Application {
   id: number;
@@ -318,10 +318,15 @@ const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
     Approved: "bg-green-100 text-green-700 border border-green-200",
     Pending: "bg-amber-100 text-amber-700 border border-amber-200",
     "In Review": "bg-sky-100 text-sky-700 border border-sky-200",
+    Rejected: "bg-red-100 text-red-700 border border-red-200",
+    Cancelled: "bg-gray-100 text-gray-600 border border-gray-200",
+    Waitlisted: "bg-purple-100 text-purple-700 border border-purple-200",
+    Confirmed: "bg-emerald-100 text-emerald-700 border border-emerald-200",
   };
 
+
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${styles[status]}`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${styles[status] || styles["In Review"]}`}>
       {status}
     </span>
   );
@@ -1159,13 +1164,16 @@ if (!profile || !user || user.role !== "student") {
 
                         <td className="px-4 sm:px-6 py-3 sm:py-4">
                           <StatusBadge
-                            status={
-                              app.applicationStatus === "approved"
-                                ? "Approved"
-                                : app.applicationStatus === "pending"
-                                ? "Pending"
-                                : "In Review"
-                            }
+                              status={
+                                  app.applicationStatus === "approved" ? "Approved"
+                                  : app.applicationStatus === "pending" ? "Pending"
+                                  : app.applicationStatus === "under_review" ? "In Review"
+                                  : app.applicationStatus === "rejected" ? "Rejected"
+                                  : app.applicationStatus === "cancelled" ? "Cancelled"
+                                  : app.applicationStatus === "waitlisted" ? "Waitlisted"
+                                  : app.applicationStatus === "confirmed" ? "Confirmed"
+                                  : "Pending" // fallback
+                              }
                           />
                         </td>
 
