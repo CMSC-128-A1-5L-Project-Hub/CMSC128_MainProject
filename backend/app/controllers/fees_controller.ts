@@ -193,34 +193,26 @@ export default class FeesController {
 
   // ─── MANAGER/LANDLORD: VIEW OVERDUE FEES ───
   // GET /fees/overdue
-  async overdueForManager({ auth, response }: HttpContext) {
+  async overdueForManager({ auth, request, response }: HttpContext) {
     const user = auth.user!
+    const accommodationId = request.input('accommodationId') // Get from query param
 
     let accommodationIds: number[] = []
 
-    // Check if user is a MANAGER
     if (user.role === 'manager') {
-      const manager = await Manager
-        .query()
-        .where('userId', user.id)
-        .first()
-      
-      if (!manager) {
-        return response.forbidden({ message: 'Manager profile not found' })
+      let query = Accommodation.query().where('managerId', user.id)
+      if (accommodationId) {
+        query = query.where('id', accommodationId)
       }
-      
-      const accommodations = await Accommodation
-        .query()
-        .where('managerId', user.id)
-      
+      const accommodations = await query
       accommodationIds = accommodations.map((a) => a.id)
     } 
-    // Check if user is a LANDLORD  
     else if (user.role === 'landlord') {
-      const accommodations = await Accommodation
-        .query()
-        .where('landlordId', user.id)
-      
+      let query = Accommodation.query().where('landlordId', user.id)
+      if (accommodationId) {
+        query = query.where('id', accommodationId)
+      }
+      const accommodations = await query
       accommodationIds = accommodations.map((a) => a.id)
     } 
     else {
@@ -240,6 +232,8 @@ export default class FeesController {
       .leftJoin('accommodations', 'rooms.accommodation_id', 'accommodations.id')
       .whereIn('accommodations.id', accommodationIds)
       .where('fees.fee_status', 'overdue')
+      .whereNull('assignments.actual_move_out')
+      .where('assignments.confirmation_status', 'active')
       .select(
         'fees.id',
         'fees.student_number',
