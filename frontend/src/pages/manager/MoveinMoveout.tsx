@@ -557,8 +557,8 @@ export default function MoveinMoveout() {
             <div className="flex flex-col flex-1 min-w-0 w-full">
                 <CustomHeader
                     title="Move In & Move Out"></CustomHeader>    
-                <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
-                    <main className="flex-1 flex flex-col gap-4">
+                <div className="flex-1 flex flex-col p-6 overflow-y-auto">
+                    <main className="flex-1 flex flex-col gap-6">
                         <HeroBanner
                             greeting="Good Day"
                             name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}

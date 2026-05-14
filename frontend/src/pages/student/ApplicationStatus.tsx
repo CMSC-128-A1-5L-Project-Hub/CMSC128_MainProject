@@ -143,7 +143,7 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
             <div className = "flex flex-col overflow-hidden w-full">
                 <CustomHeader
                     title="Applications"></CustomHeader>
-                <div className="flex-1 flex flex-col overflow-hidden gap-4 lg:gap-6 p-4 lg:p-6">
+                <div className="flex-1 flex flex-col overflow-hidden gap-6 p-6">
                     <div>
                         <HeroBanner
                             greeting={heroContent.greeting}
