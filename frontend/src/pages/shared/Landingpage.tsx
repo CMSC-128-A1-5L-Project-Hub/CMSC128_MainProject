@@ -282,6 +282,8 @@ const labelStyle: React.CSSProperties = { fontSize: 9, fontWeight: 700, letterSp
 const selectStyle: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: "#2a1018", background: "transparent", border: "none", outline: "none", width: "100%", cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif" };
 
 function SearchBar({ isMobile }: { isMobile: boolean }) {
+  const navigate = useNavigate();
+
   const [dormType, setDormType] = useState("All Types");
   const [location, setLocation] = useState("Anywhere");
   const [minPrice, setMinPrice] = useState(2500);
@@ -299,10 +301,16 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (dormType !== "All Types") params.set("type", dormType);
-    if (minPrice > MIN_PRICE) params.set("min_rent", String(minPrice));
-    if (maxPrice < MAX_PRICE) params.set("max_rent", String(maxPrice));
-    window.location.href = `/map?${params.toString()}`;
+    if (dormType !== "All Types") params.set("dormType", dormType);
+    if (minPrice > MIN_PRICE) params.set("minPrice", String(minPrice));
+    if (maxPrice < MAX_PRICE) params.set("maxPrice", String(maxPrice));
+    if (rating > 0) params.set("rating", String(rating));
+
+    [...activeTags, ...extraTags].forEach(tag => {
+      params.append("tags", tag);
+    });
+
+    navigate(`/student/browse?${params.toString()}`);
   };
 
   return (
@@ -319,9 +327,9 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
             <p style={labelStyle}>Dorm Type</p>
             <select value={dormType} onChange={e => setDormType(e.target.value)} style={selectStyle}>
               <option>All Types</option>
-              <option value="on-campus">On-Campus</option>
-              <option value="off-campus">Off-Campus</option>
-              <option value="partner_housing">Partner Housing</option>
+              <option value="On-campus">On-Campus</option>
+              <option value="Off-campus">Off-Campus</option>
+              <option value="Partner-housing">Partner Housing</option>
             </select>
           </div>
 
@@ -739,7 +747,7 @@ export default function LandingPage() {
           <button
             className="browse-btn"
             style={fu(0.54)}
-            onClick={() => { window.location.href = "/map"; }}
+            onClick={() => { window.location.href = "/student/browse"; }}
           >Browse Rooms →</button>
 
           <div className="search-wrapper" style={fu(0.64)}>
