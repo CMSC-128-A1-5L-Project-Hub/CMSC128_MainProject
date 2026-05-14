@@ -287,9 +287,11 @@ export default function Applications() {
   // setup Mutations for approving or rejecting
   const updateStatusMutation = useMutation({
       mutationFn: async ({ id, action, reason }: { id: number; action: "approve" | "reject"; reason?: string }) => {
-          const res = await api.patch(`/applications/${id}/review`, { 
-              action: action, 
-              rejection_reason: reason 
+          const targetStatus = action === "approve" ? "approved" : "rejected";
+
+          const res = await api.put(`/applications/${id}/status`, { 
+              status: targetStatus, 
+              ...(targetStatus === "rejected" && { rejectionReason: reason })
           });
           return res.data;
       },
