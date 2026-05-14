@@ -300,7 +300,6 @@ export default function ApplicationsPage() {
     queryKey: ["applicationList"],
     queryFn: async () => {
       const res = await api.get("/applications/view-applicants");
-      console.log(res.data[0]?.student?.user)
       return res.data;
     },
     enabled: !USE_MOCK,
@@ -631,11 +630,11 @@ export default function ApplicationsPage() {
                               {app?.student?.user?.fname?.charAt(0)?.toUpperCase() || 'U'}
                             </div>
                             <div className="min-w-0">
-                              {/* bug here */}
+                              {/* Fixed to handle cases where user's google account may not have a last name */}
                               <p className="font-medium truncate">
-                                {app?.student?.user?.fname && app?.student?.user?.lname
-                                  ? `${app.student.user.fname} ${app.student.user.lname}`
-                                  : "Loading name..."}
+                                {[app?.student?.user?.fname, app?.student?.user?.lname]
+                                  .filter(Boolean)
+                                  .join(" ") || "Unknown"}
                               </p>
                             </div>
                           </div>
