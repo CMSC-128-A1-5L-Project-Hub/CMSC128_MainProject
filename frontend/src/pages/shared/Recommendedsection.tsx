@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
+import { api } from "../../api/axios";
+import { useNavigate } from "react-router-dom";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Residence {
+  id?: number;
   icon: string;
   name: string;
   type: string;
@@ -223,6 +226,15 @@ function ResidenceCard({
 
       {/* CTA Button */}
       <button
+        onClick={(e) => {
+          e.stopPropagation();
+
+          const residenceWithId = residence as any;
+
+          if (residenceWithId.id) {
+            window.location.href = `/student/roomview/${residenceWithId.id}`;
+          }
+        }}
         className={`
           inline-flex items-center gap-2 text-[0.8rem] font-semibold py-2 px-4 rounded-full
           transition-all duration-200 ease-out hover:-translate-y-0.5
@@ -282,12 +294,19 @@ function NavBtn({
 
 // ─── Main Export ──────────────────────────────────────────────────────────────
 export default function ResidenceCarousel() {
-  const [current, setCurrent] = useState(1);
+  const [current, setCurrent] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
-  const total = RESIDENCES.length;
+  // const total = RESIDENCES.length;
   const autoRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchX = useRef(0);
+
+  const [residences, setResidences] = useState<Residence[]>([]);
+  const navigate = useNavigate();
+  // const total = residences.length;
+  const displayResidences = residences.length > 0 ? residences : RESIDENCES;
+
+  const total = displayResidences.length;
 
   // Scroll trigger for the entire section
   useEffect(() => {
@@ -335,6 +354,43 @@ export default function ResidenceCarousel() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [current, goTo, resetAuto]);
 
+  useEffect(() => {
+    const fetchTopRated = async () => {
+      try {
+        const res = await api.get("/accommodations/top-rated");
+
+        const formatted = res.data.map((item: any) => ({
+          icon: "🏠",
+          name: item.name,
+          type:
+            item.meta
+              ?.split("-")
+              .map((word: string) =>
+                word.charAt(0).toUpperCase() + word.slice(1)
+              )
+              .join("-") ?? "",
+          desc: item.subtitle ?? "",
+          students: "Verified Listing",
+          rating:
+            item.rating === 0
+              ? "Unrated"
+              : String(item.rating),
+          price: `₱${Number(item.price).toLocaleString()}`,
+          per: "/month",
+          tags: item.chips ?? [],
+          featured: true,
+          id: item.id,
+        }));
+
+        setResidences(formatted);
+      } catch (error) {
+        console.error("Failed to fetch residences:", error);
+      }
+    };
+
+    fetchTopRated();
+  }, []);
+  
   const prevIdx = (current - 1 + total) % total;
   const nextIdx = (current + 1) % total;
 
@@ -411,7 +467,7 @@ export default function ResidenceCarousel() {
               {/* Mobile: Single card */}
               <div className="block sm:hidden">
                 <ResidenceCard
-                  residence={RESIDENCES[current]}
+                  residence={displayResidences[current]}
                   isActive={true}
                   onClick={() => {}}
                   position="center"
@@ -421,19 +477,19 @@ export default function ResidenceCarousel() {
               {/* Desktop: Three cards */}
               <div className="hidden sm:flex items-center justify-center gap-4 md:gap-2">
                 <ResidenceCard
-                  residence={RESIDENCES[prevIdx]}
+                  residence={displayResidences[prevIdx]}
                   isActive={false}
                   onClick={() => { goTo(prevIdx); resetAuto(); }}
                   position="left"
                 />
                 <ResidenceCard
-                  residence={RESIDENCES[current]}
+                  residence={displayResidences[current]}
                   isActive={true}
                   onClick={() => {}}
                   position="center"
                 />
                 <ResidenceCard
-                  residence={RESIDENCES[nextIdx]}
+                  residence={displayResidences[nextIdx]}
                   isActive={false}
                   onClick={() => { goTo(nextIdx); resetAuto(); }}
                   position="right"
@@ -470,7 +526,7 @@ export default function ResidenceCarousel() {
 
           {/* Line indicator */}
           <div className="flex justify-center items-center gap-2 mt-8 sm:mt-10">
-            {RESIDENCES.map((_, i) => (
+            {displayResidences.map((_, i) => (
               <button
                 key={i}
                 onClick={() => { goTo(i); resetAuto(); }}
