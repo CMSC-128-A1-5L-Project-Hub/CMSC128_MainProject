@@ -15,16 +15,21 @@ export default class ManagerProfileController {
     const authUser = auth.user
 
     if (!authUser) {
-      return response.unauthorized({ message: 'Unauthorized' })
+      return response.unauthorized({
+        message: 'Unauthorized',
+      })
     }
 
     const user = await User.query()
       .where('id', authUser.id)
       .preload('phoneNumbers')
+      .preload('profilePicture')
       .first()
 
     if (!user) {
-      return response.unauthorized({ message: 'Unauthorized' })
+      return response.unauthorized({
+        message: 'Unauthorized',
+      })
     }
 
     const manager = await Manager.query()
@@ -32,7 +37,9 @@ export default class ManagerProfileController {
       .first()
 
     if (!manager) {
-      return response.notFound({ message: 'Manager profile not found' })
+      return response.notFound({
+        message: 'Manager profile not found',
+      })
     }
 
     const accommodation = await Accommodation.query()
@@ -40,27 +47,60 @@ export default class ManagerProfileController {
       .first()
 
     const primaryPhone =
-      user.phoneNumbers.find((p) => p.isPrimary)?.contactNumber ?? 'NONE'
+      user.phoneNumbers.find((p) => p.isPrimary)
+        ?.contactNumber ?? 'NONE'
 
     const secondaryPhone =
-      user.phoneNumbers.find((p) => !p.isPrimary)?.contactNumber ?? 'NONE'
+      user.phoneNumbers.find((p) => !p.isPrimary)
+        ?.contactNumber ?? 'NONE'
 
     return response.ok({
       accommodationId: accommodation?.id ?? null,
-      fullName: `${user.fname ?? ''} ${user.lname ?? ''}`.trim(),
+
+      fullName:
+        `${user.fname ?? ''} ${user.lname ?? ''}`.trim(),
+
       shortName: user.fname ?? '',
+
       email: user.email ?? 'NONE',
+
       facebook: user.facebookAccount ?? 'NONE',
+
       phone: primaryPhone,
-      employer: 'NONE', // i still have to fix this since i have to map it to the landlor. soon. 
+
+      employer: 'NONE',
+
       altPhone: secondaryPhone,
-      status: manager.managerStatus === 'active' ? 'Active' : 'Pending',
+
+      status:
+        manager.managerStatus === 'active'
+          ? 'Active'
+          : 'Pending',
+
       verifiedSince:
-        manager.managerStatus === 'active' && manager.verifiedAt
+        manager.managerStatus === 'active' &&
+        manager.verifiedAt
           ? formatDate(manager.verifiedAt.toJSDate())
           : '---',
-      currentDorm: accommodation?.accommodationName ?? 'No assigned dorm yet',
-      dormMeta: accommodation?.accommodationType ?? 'NONE',
+
+      currentDorm:
+        accommodation?.accommodationName ??
+        'No assigned dorm yet',
+
+      dormMeta:
+        accommodation?.accommodationType ?? 'NONE',
+
+      // Profile picture
+      pfpFileId: user.pfpFileId,
+
+      profilePicture: user.profilePicture
+        ? {
+            id: user.profilePicture.id,
+            fileName: user.profilePicture.fileName,
+            filePath: user.profilePicture.filePath,
+            fileType: user.profilePicture.fileType,
+          }
+        : null,
     })
   }
 
