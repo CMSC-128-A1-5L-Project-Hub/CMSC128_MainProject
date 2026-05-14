@@ -428,7 +428,7 @@ export default class ApplicationsController {
       // approve then use waitlist service, set reviewer info
       applicationObject.reviewedBy = user.id
       applicationObject.reviewedAt = DateTime.now()
-
+      await applicationObject.save()
       const updatedApp = await this.waitlistService.processApproval(applicationObject.id)
 
       if (updatedApp.applicationStatus === 'approved') {
