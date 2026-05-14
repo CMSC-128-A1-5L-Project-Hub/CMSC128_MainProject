@@ -27,6 +27,7 @@ router.group(() => {
   router.get('/accommodations', [controllers.Accommodation, 'index'])
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
   router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
+  router.get('/accommodations/:id/document-requirements', [controllers.Accommodation, 'listDocumentRequirements'])
 })
 
 /*
@@ -120,6 +121,10 @@ router
 
         // Invite Manager
         router.post('/landlord/accommodations/:id/invite-manager', [controllers.InviteManager, 'invite'])
+
+        // Document Requirements
+        router.post('/landlord/accommodations/:id/document-requirements', [controllers.Accommodation, 'addDocumentRequirement'])
+        router.delete('/landlord/accommodations/:id/document-requirements/:reqId', [controllers.Accommodation, 'removeDocumentRequirement'])
 
         // Transient booking verification (landlord)
         router.patch('/transient-bookings/:id/verify', [controllers.TransientBooking, 'verify'])
