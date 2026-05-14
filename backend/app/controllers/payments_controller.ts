@@ -115,9 +115,32 @@ async pending({ auth, response }: HttpContext) {
     .query()
     .where('paymentStatus', 'pending')
     .whereHas('fee', (feeQuery) => {
-      feeQuery.whereIn('accommodationId', accommodationIds)
+      feeQuery
+        .whereHas('student', (studentQuery) => {
+          studentQuery
+            .whereHas('assignments', (assignmentQuery) => {
+              assignmentQuery
+                .whereHas('room', (roomQuery) => {
+                  roomQuery
+                    .whereHas('accommodation', (accommodationQuery) => {
+                      accommodationQuery.whereIn('id', accommodationIds)
+                    })
+                })
+                .whereNull('actualMoveOut')
+                .where('confirmationStatus', 'active')
+            })
+        })
     })
-    .preload('fee')
+    .preload('fee', (feeQuery) => {
+      feeQuery.preload('student', (studentQuery) => {
+        studentQuery.preload('user')
+        studentQuery.preload('assignments', (assignmentQuery) => {
+          assignmentQuery.preload('room', (roomQuery) => {
+            roomQuery.preload('accommodation')
+          })
+        })
+      })
+    })
     .preload('proofFile')
 
   return response.ok(payments)
