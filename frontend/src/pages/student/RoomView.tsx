@@ -95,6 +95,7 @@ interface Review {
 }
 
 interface Accommodation {
+  bookmarks: any;
   id: number;
   accommodationName: string;
   accommodationLocation: string;
@@ -571,20 +572,19 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
           {/* Thumbnail strip */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-3 py-2 bg-black/40 rounded-full overflow-x-auto max-w-[90vw]">
             {photos.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt={`Thumb ${i + 1}`}
-              onClick={() => setLightboxIndex(i)}
-              className={`w-10 h-10 object-cover rounded-lg cursor-pointer flex-shrink-0 transition-all ${
-                i === lightboxIndex ? "opacity-100" : "opacity-50 hover:opacity-75"
-              }`}
-              style={
-                i === lightboxIndex
-                  ? { border: `2px solid ${CLR.mid}` }
-                  : { border: "2px solid transparent" }
-              }
-            />
+              <img
+                key={i}
+                src={src}
+                alt={`Thumb ${i + 1}`}
+                onClick={() => setLightboxIndex(i)}
+                className={`w-10 h-10 object-cover rounded-lg cursor-pointer flex-shrink-0 transition-all ${i === lightboxIndex ? "opacity-100" : "opacity-50 hover:opacity-75"
+                  }`}
+                style={
+                  i === lightboxIndex
+                    ? { border: `2px solid ${CLR.mid}` }
+                    : { border: "2px solid transparent" }
+                }
+              />
             ))}
           </div>
         </div>
@@ -1314,10 +1314,10 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
                     {review.rating}
                   </span>
                   <div className="ml-5">
-                    <StarRating rating={review.rating} size="md"/>
+                    <StarRating rating={review.rating} size="md" />
 
                   </div>
-                  
+
                 </div>
               </div>
               {review.content && (
@@ -1397,6 +1397,19 @@ export default function RoomView() {
   const { id } = useParams();
   const currentAccommodationId = Number(id);
 
+  const { data: user, isError, isSuccess } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+      const res = await api.get("/me")
+      return res.data
+    },
+  })
+
+  const name = user ? `${user.fname}` : ""
+  const studentNo = user?.student?.studentNumber ?? ""
+
+
+
   const { data: myApplications = [] } = useQuery({
     queryKey: ["student-applications"],
     queryFn: async () => {
@@ -1411,12 +1424,29 @@ export default function RoomView() {
   });
 
   const hasAlreadyApplied = myApplications.some(
-    (app: any) => 
-      app.accommodationId === currentAccommodationId && 
+    (app: any) =>
+      app.accommodationId === currentAccommodationId &&
       ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
   );
 
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  useEffect(() => {
+    if (!isSuccess || accommodation == null) return
+
+    const bookmarks = accommodation.bookmarks
+    for (let i = 0; i < bookmarks.length; i++)
+    {
+      if (bookmarks[i].studentNumber == studentNo)
+      {
+        setIsFavorited(true);
+        break;
+      }
+    }
+
+  }, [isSuccess, accommodation])
+
   const [loading, setLoading] = useState(true);
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
@@ -1431,7 +1461,6 @@ export default function RoomView() {
   const [reportOpen, setReportOpen] = useState(false)
 
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
-  const [isFavorited, setIsFavorited] = useState(false);
   const [moveIn, setMoveIn] = useState("");
   const [moveOut, setMoveOut] = useState("");
   const [current, setCurrent] = useState(0);
@@ -1449,7 +1478,6 @@ export default function RoomView() {
         const res = await api.get(`/accommodations/${id}`);
         const data = res.data.data ?? res.data;
 
-        console.log("ACCOMMODATION DETAILS:", data);
         setAccommodation(data);
 
         if (data.rooms?.length) {
@@ -1474,7 +1502,7 @@ export default function RoomView() {
   }, [selectedTenantRestriction, selectedStayType, selectedArrangement]);
 
   if (loading) {
-      return <UbleLoader />
+    return <UbleLoader />
   }
 
   if (!accommodation) {
@@ -1715,11 +1743,26 @@ export default function RoomView() {
                 {avgRating.toFixed(1)} ({accommodation.reviews.length})
               </span>
               <div className="ml-auto flex items-center gap-1">
-                <button onClick={() => setIsFavorited((f) => !f)} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
+                <button onClick={async () => {
+                  try {
+                    const response = await api.put(
+                      `/accommodations/${accommodation.id}/bookmark`,
+                      {
+                        studentNumber: studentNo,
+                        favorite: !isFavorited
+                      }
+                    )
+
+                    console.log("Bookmarked:", response.data)
+                  } catch (error) {
+                    console.error("error: ", error)
+                  }
+                  setIsFavorited((f) => !f)
+                }} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
                   <IconHeart filled={isFavorited} />
-                    <span className="hidden md:inline text-sm font-semibold">
-                      Favorite
-                    </span>
+                  <span className="hidden md:inline text-sm font-semibold">
+                    Favorite
+                  </span>
                 </button>
                 <button
                   onClick={() => setIsShareModalOpen(true)}
@@ -1913,9 +1956,8 @@ export default function RoomView() {
                 <button
                   onClick={() => setIsModalOpen(true)}
                   disabled={hasAlreadyApplied}
-                  className={`w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors ${
-                    hasAlreadyApplied ? "bg-gray-400 cursor-not-allowed" : "shadow-md"
-                  }`}
+                  className={`w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors ${hasAlreadyApplied ? "bg-gray-400 cursor-not-allowed" : "shadow-md"
+                    }`}
                   style={hasAlreadyApplied ? {} : { background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
                   onMouseEnter={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = CLR.mid)}
                   onMouseLeave={(e) => !hasAlreadyApplied && (e.currentTarget.style.background = "linear-gradient(135deg, #2D0511, #9A1F3E)")}
