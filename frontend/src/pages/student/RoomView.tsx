@@ -1753,8 +1753,6 @@ export default function RoomView() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
-      <Sidebar role="student" />
-
       <main className="flex-1 overflow-y-auto p-6">
 
         <button onClick={() => navigate(-1)}
