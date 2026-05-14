@@ -440,7 +440,7 @@ const one_silangan: DormSeedData = {
     ],
     rooms: [
         {
-            room_number: 'AC-1',
+            room_number: '101',
             room_building: 'Silangan Place',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -457,7 +457,7 @@ const one_silangan: DormSeedData = {
             preferences: ['Window view'],
         },
         {
-            room_number: 'AC-2',
+            room_number: '102',
             room_building: 'Silangan Place',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -473,7 +473,7 @@ const one_silangan: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'AC-3',
+            room_number: '103',
             room_building: 'Silangan Place',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -489,7 +489,7 @@ const one_silangan: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'FN-1',
+            room_number: '201',
             room_building: 'Silangan Place',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -505,7 +505,7 @@ const one_silangan: DormSeedData = {
             inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'FN-2',
+            room_number: '202',
             room_building: 'Silangan Place',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -521,7 +521,7 @@ const one_silangan: DormSeedData = {
             inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'FN-3',
+            room_number: '203',
             room_building: 'Silangan Place',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -537,7 +537,7 @@ const one_silangan: DormSeedData = {
             inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'GRP1',
+            room_number: '301',
             room_building: 'Silangan Place',
             room_type: 'shared',
             room_stay_type: 'transient',
@@ -549,7 +549,7 @@ const one_silangan: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Cabinet'],
         },
         {
-            room_number: 'GRP2',
+            room_number: '302',
             room_building: 'Silangan Place',
             room_type: 'shared',
             room_stay_type: 'transient',
@@ -625,7 +625,7 @@ const estellar_residences: DormSeedData = {
     ],
     rooms: [
         {
-            room_number: 'S101',
+            room_number: '101',
             room_building: 'Estellar Bldg',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -643,7 +643,7 @@ const estellar_residences: DormSeedData = {
             preferences: ['Ground floor'],
         },
         {
-            room_number: 'S102',
+            room_number: '102',
             room_building: 'Estellar Bldg',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -660,7 +660,7 @@ const estellar_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'S103',
+            room_number: '103',
             room_building: 'Estellar Bldg',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -677,7 +677,7 @@ const estellar_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'D201',
+            room_number: '201',
             room_building: 'Estellar Bldg',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -695,7 +695,7 @@ const estellar_residences: DormSeedData = {
             preferences: ['Upper floor', 'Window view'],
         },
         {
-            room_number: 'D202',
+            room_number: '202',
             room_building: 'Estellar Bldg',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -712,7 +712,7 @@ const estellar_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'D203',
+            room_number: '203',
             room_building: 'Estellar Bldg',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -729,7 +729,7 @@ const estellar_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'SH301',
+            room_number: '301',
             room_building: 'Estellar Bldg',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -746,7 +746,7 @@ const estellar_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Shared bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'SH302',
+            room_number: '302',
             room_building: 'Estellar Bldg',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -764,7 +764,7 @@ const estellar_residences: DormSeedData = {
             preferences: ['Quiet floor'],
         },
         {
-            room_number: 'SH303',
+            room_number: '303',
             room_building: 'Estellar Bldg',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -1458,7 +1458,7 @@ const mix_match_dormitory: DormSeedData = {
     ],
     rooms: [
         {
-            room_number: 'A-01',
+            room_number: '101',
             room_building: 'Mix-Match Dorm',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -1475,7 +1475,7 @@ const mix_match_dormitory: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'A-02',
+            room_number: '102',
             room_building: 'Mix-Match Dorm',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -1492,7 +1492,7 @@ const mix_match_dormitory: DormSeedData = {
             inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'A-03',
+            room_number: '103',
             room_building: 'Mix-Match Dorm',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -1509,7 +1509,7 @@ const mix_match_dormitory: DormSeedData = {
             inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'B-01',
+            room_number: '201',
             room_building: 'Mix-Match Dorm',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -1527,7 +1527,7 @@ const mix_match_dormitory: DormSeedData = {
             preferences: ['Quiet room'],
         },
         {
-            room_number: 'B-02',
+            room_number: '202',
             room_building: 'Mix-Match Dorm',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -1544,7 +1544,7 @@ const mix_match_dormitory: DormSeedData = {
             inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'C-01',
+            room_number: '301',
             room_building: 'Mix-Match Dorm',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -1561,7 +1561,7 @@ const mix_match_dormitory: DormSeedData = {
             inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'C-02',
+            room_number: '302',
             room_building: 'Mix-Match Dorm',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -1578,7 +1578,7 @@ const mix_match_dormitory: DormSeedData = {
             inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk'],
         },
         {
-            room_number: 'C-03',
+            room_number: '303',
             room_building: 'Mix-Match Dorm',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -1856,7 +1856,7 @@ const koru_residences: DormSeedData = {
     ],
     rooms: [
         {
-            room_number: 'K-101',
+            room_number: '101',
             room_building: 'Koru Bldg',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -1874,7 +1874,7 @@ const koru_residences: DormSeedData = {
             preferences: ['Ground floor', 'Garden view'],
         },
         {
-            room_number: 'K-102',
+            room_number: '102',
             room_building: 'Koru Bldg',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -1891,7 +1891,7 @@ const koru_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Hot shower', 'Cabinet', 'Study desk', 'Bed with mattress', 'Curtains'],
         },
         {
-            room_number: 'K-103',
+            room_number: '103',
             room_building: 'Koru Bldg',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -1908,7 +1908,7 @@ const koru_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Hot shower', 'Cabinet', 'Study desk', 'Bed with mattress', 'Curtains'],
         },
         {
-            room_number: 'K-201',
+            room_number: '201',
             room_building: 'Koru Bldg',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -1926,7 +1926,7 @@ const koru_residences: DormSeedData = {
             preferences: ['Upper floor', 'Window view'],
         },
         {
-            room_number: 'K-202',
+            room_number: '202',
             room_building: 'Koru Bldg',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -1943,7 +1943,7 @@ const koru_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Hot shower', 'Cabinet', 'Study desk', 'Bed with mattress', 'Curtains'],
         },
         {
-            room_number: 'K-203',
+            room_number: '203',
             room_building: 'Koru Bldg',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -1960,7 +1960,7 @@ const koru_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Hot shower', 'Cabinet', 'Study desk', 'Bed with mattress', 'Curtains'],
         },
         {
-            room_number: 'K-301',
+            room_number: '301',
             room_building: 'Koru Bldg',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -1977,7 +1977,7 @@ const koru_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Shared bathroom', 'Hot shower', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'K-302',
+            room_number: '302',
             room_building: 'Koru Bldg',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -2060,7 +2060,7 @@ const westbrook_residences: DormSeedData = {
     ],
     rooms: [
         {
-            room_number: 'W-101',
+            room_number: '101',
             room_building: 'Westbrook',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -2077,7 +2077,7 @@ const westbrook_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'W-102',
+            room_number: '102',
             room_building: 'Westbrook',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -2094,7 +2094,7 @@ const westbrook_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'W-103',
+            room_number: '103',
             room_building: 'Westbrook',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -2111,7 +2111,7 @@ const westbrook_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'W-201',
+            room_number: '201',
             room_building: 'Westbrook',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -2128,7 +2128,7 @@ const westbrook_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'W-202',
+            room_number: '202',
             room_building: 'Westbrook',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -2145,7 +2145,7 @@ const westbrook_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'W-203',
+            room_number: '203',
             room_building: 'Westbrook',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -2162,7 +2162,7 @@ const westbrook_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Study desk', 'Bed with mattress'],
         },
         {
-            room_number: 'W-T01',
+            room_number: 'T01',
             room_building: 'Westbrook',
             room_type: 'single',
             room_stay_type: 'transient',
@@ -2175,7 +2175,7 @@ const westbrook_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Bed with mattress'],
         },
         {
-            room_number: 'W-T02',
+            room_number: 'T02',
             room_building: 'Westbrook',
             room_type: 'double',
             room_stay_type: 'transient',
@@ -2188,7 +2188,7 @@ const westbrook_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Bed with mattress'],
         },
         {
-            room_number: 'W-T03',
+            room_number: 'T03',
             room_building: 'Westbrook',
             room_type: 'single',
             room_stay_type: 'transient',
@@ -2201,7 +2201,7 @@ const westbrook_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Bed with mattress'],
         },
         {
-            room_number: 'W-T04',
+            room_number: 'T04',
             room_building: 'Westbrook',
             room_type: 'double',
             room_stay_type: 'transient',
@@ -2214,7 +2214,7 @@ const westbrook_residences: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'En-suite bathroom', 'Cabinet', 'Bed with mattress'],
         },
         {
-            room_number: 'W-T05',
+            room_number: 'T05',
             room_building: 'Westbrook',
             room_type: 'single',
             room_stay_type: 'transient',
@@ -2253,7 +2253,7 @@ const holland_tulips: DormSeedData = {
     ],
     rooms: [
         {
-            room_number: 'HT101',
+            room_number: '101',
             room_building: 'Holland Tulips',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -2270,7 +2270,7 @@ const holland_tulips: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-            room_number: 'HT102',
+            room_number: '102',
             room_building: 'Holland Tulips',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -2288,7 +2288,7 @@ const holland_tulips: DormSeedData = {
             preferences: ['Quiet room'],
         },
         {
-            room_number: 'HT103',
+            room_number: '103',
             room_building: 'Holland Tulips',
             room_type: 'single',
             room_stay_type: 'non_transient',
@@ -2305,7 +2305,7 @@ const holland_tulips: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-            room_number: 'HT201',
+            room_number: '201',
             room_building: 'Holland Tulips',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -2322,7 +2322,7 @@ const holland_tulips: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-            room_number: 'HT202',
+            room_number: '202',
             room_building: 'Holland Tulips',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -2339,7 +2339,7 @@ const holland_tulips: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-            room_number: 'HT203',
+            room_number: '203',
             room_building: 'Holland Tulips',
             room_type: 'double',
             room_stay_type: 'non_transient',
@@ -2356,7 +2356,7 @@ const holland_tulips: DormSeedData = {
             inclusions: ['Aircon', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-            room_number: 'HT301',
+            room_number: '301',
             room_building: 'Holland Tulips',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -2373,7 +2373,7 @@ const holland_tulips: DormSeedData = {
             inclusions: ['Electric fan', 'WiFi', 'Cabinet', 'Study desk', 'Shared bathroom'],
         },
         {
-            room_number: 'HT302',
+            room_number: '302',
             room_building: 'Holland Tulips',
             room_type: 'shared',
             room_stay_type: 'non_transient',
@@ -2653,7 +2653,6 @@ const centtro_residences: DormSeedData = {
         'Near Centtro Mall',
     ],
     rooms: [
-        // Dorm units (non-transient, studen4focused)
         {
             room_number: '101',
             room_building: 'Centtro Residences',
