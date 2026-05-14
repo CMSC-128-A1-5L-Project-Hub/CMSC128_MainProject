@@ -49,6 +49,7 @@ router.group(() => {
   
 })
 
+
 /*
 |--------------------------------------------------------------------------
 | PROTECTED API ROUTES (Requires Auth)
@@ -173,6 +174,7 @@ router
         router.get('/applications/view-all-waitlisted', [controllers.Application, 'viewAllWaitlisted'])
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
         router.get('/applications/:id/enrollment-proof', [controllers.Application, 'viewEnrollmentProof'])
+        router.get('/applications/:id/documents', [controllers.Application, 'viewDocuments'])
         router.get('/manager/applications/approved', [controllers.Application, 'approvedForAssignment'])
 
         // Manager dashboard

@@ -48,7 +48,6 @@ export default class AccommodationController {
           studentQuery.preload('user')
         })
       })
-      .preload('bookmarks')
       .first()
 
     if (!accommodation) {
@@ -196,6 +195,7 @@ export default class AccommodationController {
     })
   }
 
+
   // ─── PUT /accommodations/bookmark ────────────────────────────────────
   // update bookmark of accommodations
   async updateBookmark({ params, request, response }: HttpContext) {
@@ -238,7 +238,6 @@ export default class AccommodationController {
     return response.ok(accommodation.serialize())
 
   }
-
   // ─── POST /landlord/accommodations ───────────────────────────────────────
   // Landlord: create a new accommodation
   async store({ request, auth, response }: HttpContext) {
@@ -428,6 +427,16 @@ export default class AccommodationController {
           { client: trx }
         )
       }
+
+      // Default facility-specific document requirements. Landlord can edit/remove later.
+      await DocumentRequirement.create(
+        {
+          accommodationId: accommodation.id,
+          requirementName: 'Valid ID',
+          acceptedFormat: 'any',
+        },
+        { client: trx }
+      )
 
       await trx.commit()
       console.log(`[${Date.now() - startTime}ms] === TOTAL TIME: ${Date.now() - startTime}ms ===`)
