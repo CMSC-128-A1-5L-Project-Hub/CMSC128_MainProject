@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
+import { AnimatePresence } from "framer-motion"
 import NotFound from "./pages/shared/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
 import SignIn from "./pages/shared/SignIn"
@@ -55,10 +56,12 @@ function FullLandingPage() {
   );
 }
 
-function App() {
+function AnimatedRoutes() {
+  const location = useLocation();
+
   return (
-    <BrowserRouter>
-      <Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
         {/* ── Public routes (guest-accessible) ── */}
         <Route path="/" element={<FullLandingPage />} />
         <Route path="/auth/signin" element={<SignIn/>}/>
@@ -116,6 +119,14 @@ function App() {
         {/* ── Catch-all: 404 ── */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+    </AnimatePresence>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AnimatedRoutes/>
     </BrowserRouter>
   )
 }

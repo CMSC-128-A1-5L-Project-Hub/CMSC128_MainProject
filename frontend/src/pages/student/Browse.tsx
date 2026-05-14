@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
+import { motion } from "framer-motion"
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { Star, SlidersHorizontal, MapPin, X, BookmarkCheck, ChevronRight } from "lucide-react"
 import Sidebar from "../../components/Sidebar"
@@ -314,12 +315,18 @@ export default function BrowsePage() {
     }
 
     return (
-        <filterContext.Provider value={{
+        <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2 }}
+        >
+            <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
             searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched,
             setSliderResetKey, sliderResetKey
-        }}>
+            }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
 
                 {/* Sidebar */}
@@ -481,6 +488,7 @@ export default function BrowsePage() {
 
             </div>
         </filterContext.Provider>
+        </motion.div>
     )
 }
 

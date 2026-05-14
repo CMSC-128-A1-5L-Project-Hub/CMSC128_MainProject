@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { create } from "zustand";
 import { useRef, useState, useEffect } from "react";
@@ -180,113 +181,120 @@ export default function ProfilePage() {
   const verifyDate = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-[#FAF6F2] lg:flex font-['Plus_Jakarta_Sans'] text-[#2A1F1A]">
-      <Sidebar role="student" />
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className="min-h-screen bg-[#FAF6F2] lg:flex font-['Plus_Jakarta_Sans'] text-[#2A1F1A]">
+        <Sidebar role="student" />
 
-      <div className="flex-1">
-        <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-3 pl-12 lg:pl-0">
-            <span className="h-6 w-1 rounded-full bg-[#3D0718]" />
-            <h1 className="font-serif text-3xl italic font-bold text-[#3D0718] md:text-4xl">Profile</h1>
-          </div>
-        </header>
+        <div className="flex-1">
+          <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
+            <div className="flex items-center gap-3 pl-12 lg:pl-0">
+              <span className="h-6 w-1 rounded-full bg-[#3D0718]" />
+              <h1 className="font-serif text-3xl italic font-bold text-[#3D0718] md:text-4xl">Profile</h1>
+            </div>
+          </header>
 
-        <main className="px-3 py-4 md:px-6 lg:px-8 lg:py-6">
-          <section className="overflow-hidden rounded-[40px] border border-[#EADFD3] bg-white shadow-sm">
-            <div className="p-6 md:p-10 lg:p-14">
-              <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
-                
-                <div className="w-full lg:w-[320px] lg:shrink-0">
-                  <div className="relative aspect-square overflow-hidden rounded-[35px] bg-[#F9EBEE] border border-[#F2F2F2]">
-                    <img src={profile.profilePictureUrl || defaultPfp} className="h-full w-full object-cover" alt="Profile" />
-                    <button onClick={() => fileInputRef.current?.click()} className="absolute left-4 top-4 bg-white/90 p-2 rounded-xl shadow-sm border border-[#F2F2F2]">
-                      <img src={Camera} className="h-6 w-6" alt="Upload" />
-                    </button>
-                  </div>
-
-                  <div className="mt-6 grid grid-cols-2 gap-4">
-                    <div onClick={() => fileInputRef.current?.click()} className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-pointer hover:bg-white transition-colors">
-                      <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">PHOTO</p>
-                      <p className="text-[9px] text-gray-400">JPG/PNG</p>
+          <main className="px-3 py-4 md:px-6 lg:px-8 lg:py-6">
+            <section className="overflow-hidden rounded-[40px] border border-[#EADFD3] bg-white shadow-sm">
+              <div className="p-6 md:p-10 lg:p-14">
+                <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
+                  
+                  <div className="w-full lg:w-[320px] lg:shrink-0">
+                    <div className="relative aspect-square overflow-hidden rounded-[35px] bg-[#F9EBEE] border border-[#F2F2F2]">
+                      <img src={profile.profilePictureUrl || defaultPfp} className="h-full w-full object-cover" alt="Profile" />
+                      <button onClick={() => fileInputRef.current?.click()} className="absolute left-4 top-4 bg-white/90 p-2 rounded-xl shadow-sm border border-[#F2F2F2]">
+                        <img src={Camera} className="h-6 w-6" alt="Upload" />
+                      </button>
                     </div>
-                    <div className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-not-allowed">
-                      <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">DOCUMENTS</p>
-                      <p className="text-[9px] text-gray-400">ID / Form 5</p>
-                    </div>
-                  </div>
 
-                  <div className="mt-6 flex items-center gap-4 rounded-2xl bg-[#E6F4EA] px-6 py-4 border border-[#D0E6D5]">
-                    <img src={BadgeCheck} className="h-5 w-5" alt="Verified" />
-                    <div className="flex-1">
-                      <p className="text-[11px] font-extrabold uppercase text-[#1F7A3A]">Verified UPLB Student</p>
-                    </div>
-                    <span className="text-[10px] text-[#1F7A3A]/60 font-bold">{verifyDate}</span>
-                  </div>
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-6 mb-12">
-                    <div className="min-w-0">
-                      <p className="mb-2 text-[10px] font-bold tracking-[0.15em] text-[#A88993] uppercase">Full Name</p>
-                      <h2 className="text-4xl font-bold text-[#2A1F1A] lg:text-5xl">
-                        {profile.fname} {isEditing ? "" : (profile.mname || "")} {profile.lname}
-                      </h2>
-                    </div>
-                    <button 
-                      onClick={() => isEditing ? saveMutation.mutate(form) : setIsEditing(true)}
-                      disabled={saveMutation.isPending}
-                      className="inline-flex items-center gap-3 rounded-2xl border border-[#E6CAD3] px-8 py-3 text-sm font-bold text-[#2A1F1A] shadow-sm hover:bg-[#8C1535] hover:text-white transition-all group disabled:opacity-50"
-                    >
-                      <img src={isEditing ? Save : Pencil} className="h-4 w-4 group-hover:invert" alt="" />
-                      {saveMutation.isPending ? "SAVING..." : isEditing ? "SAVE PROFILE" : "EDIT PROFILE"}
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
-                    <Field label="UP Mail" value={profile.email} readOnly />
-                    <Field label="College" value={profile.student?.college} readOnly isCaps />
-                    
-                    <Field label="Middle Name" value={form.mname} editing={isEditing} onChange={(v: string) => setForm({...form, mname: v})} />
-                    <Field label="Degree Program" value={profile.student?.degreeProgram} readOnly />
-
-                    <Field label="Phone Number" value={form.primaryPhone} editing={isEditing} onChange={(v: string) => setForm({...form, primaryPhone: v})} />
-                    <Field label="Student Number" value={profile.student?.studentNumber} readOnly />
-                    
-                    <Field label="Facebook Link" value={form.facebookAccount} editing={isEditing} onChange={(v: string) => setForm({...form, facebookAccount: v})} />
-                    <Field label="Gender" value={profile.student?.gender} readOnly isCaps />
-
-                    <Field label="Emergency Contact" value={form.emergencyContactName} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactName: v})} />
-                    <Field label="Classification" value={form.classification} editing={isEditing} isCaps onChange={(v: string) => setForm({...form, classification: v})} />
-
-                    <Field label="Emergency Contact #" value={form.emergencyContactNumber} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactNumber: v})} />
-                    <Field label="Year Level" value={form.yearLevel} editing={isEditing} isCaps onChange={(v: string) => setForm({...form, yearLevel: v})} />
-                  </div>
-
-                  <div className="mt-14 border-t border-[#F2F2F2] pt-10">
-                    <p className="mb-5 text-[10px] font-extrabold tracking-widest text-[#A88993] uppercase">Current Dorm</p>
-                    <div className="flex items-center gap-6 rounded-3xl border border-[#EADFD3] bg-[#F8EFF2] p-5">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8C1535] text-lg font-bold text-white shadow-sm uppercase">
-                        {currentDorm?.room.accommodation.accommodationName?.[0] || "D"}
+                    <div className="mt-6 grid grid-cols-2 gap-4">
+                      <div onClick={() => fileInputRef.current?.click()} className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-pointer hover:bg-white transition-colors">
+                        <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">PHOTO</p>
+                        <p className="text-[9px] text-gray-400">JPG/PNG</p>
                       </div>
+                      <div className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-not-allowed">
+                        <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">DOCUMENTS</p>
+                        <p className="text-[9px] text-gray-400">ID / Form 5</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex items-center gap-4 rounded-2xl bg-[#E6F4EA] px-6 py-4 border border-[#D0E6D5]">
+                      <img src={BadgeCheck} className="h-5 w-5" alt="Verified" />
+                      <div className="flex-1">
+                        <p className="text-[11px] font-extrabold uppercase text-[#1F7A3A]">Verified UPLB Student</p>
+                      </div>
+                      <span className="text-[10px] text-[#1F7A3A]/60 font-bold">{verifyDate}</span>
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-6 mb-12">
                       <div className="min-w-0">
-                        <p className="text-lg font-bold text-[#2A1F1A]">{currentDorm?.room.accommodation.accommodationName || "No Assignment"}</p>
-                        <p className="text-sm text-[#A88993]">{currentDorm?.room.roomType || "Shared Residence"}</p>
+                        <p className="mb-2 text-[10px] font-bold tracking-[0.15em] text-[#A88993] uppercase">Full Name</p>
+                        <h2 className="text-4xl font-bold text-[#2A1F1A] lg:text-5xl">
+                          {profile.fname} {isEditing ? "" : (profile.mname || "")} {profile.lname}
+                        </h2>
                       </div>
+                      <button 
+                        onClick={() => isEditing ? saveMutation.mutate(form) : setIsEditing(true)}
+                        disabled={saveMutation.isPending}
+                        className="inline-flex items-center gap-3 rounded-2xl border border-[#E6CAD3] px-8 py-3 text-sm font-bold text-[#2A1F1A] shadow-sm hover:bg-[#8C1535] hover:text-white transition-all group disabled:opacity-50"
+                      >
+                        <img src={isEditing ? Save : Pencil} className="h-4 w-4 group-hover:invert" alt="" />
+                        {saveMutation.isPending ? "SAVING..." : isEditing ? "SAVE PROFILE" : "EDIT PROFILE"}
+                      </button>
                     </div>
-                    <button onClick={() => setShowHistory(true)} className="mt-8 inline-flex items-center gap-3 rounded-2xl bg-[#4A0819] px-8 py-4 text-[11px] font-bold uppercase tracking-widest text-white shadow-lg">
-                      📜 Accommodation History
-                    </button>
+
+                    <div className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
+                      <Field label="UP Mail" value={profile.email} readOnly />
+                      <Field label="College" value={profile.student?.college} readOnly isCaps />
+                      
+                      <Field label="Middle Name" value={form.mname} editing={isEditing} onChange={(v: string) => setForm({...form, mname: v})} />
+                      <Field label="Degree Program" value={profile.student?.degreeProgram} readOnly />
+
+                      <Field label="Phone Number" value={form.primaryPhone} editing={isEditing} onChange={(v: string) => setForm({...form, primaryPhone: v})} />
+                      <Field label="Student Number" value={profile.student?.studentNumber} readOnly />
+                      
+                      <Field label="Facebook Link" value={form.facebookAccount} editing={isEditing} onChange={(v: string) => setForm({...form, facebookAccount: v})} />
+                      <Field label="Gender" value={profile.student?.gender} readOnly isCaps />
+
+                      <Field label="Emergency Contact" value={form.emergencyContactName} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactName: v})} />
+                      <Field label="Classification" value={form.classification} editing={isEditing} isCaps onChange={(v: string) => setForm({...form, classification: v})} />
+
+                      <Field label="Emergency Contact #" value={form.emergencyContactNumber} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactNumber: v})} />
+                      <Field label="Year Level" value={form.yearLevel} editing={isEditing} isCaps onChange={(v: string) => setForm({...form, yearLevel: v})} />
+                    </div>
+
+                    <div className="mt-14 border-t border-[#F2F2F2] pt-10">
+                      <p className="mb-5 text-[10px] font-extrabold tracking-widest text-[#A88993] uppercase">Current Dorm</p>
+                      <div className="flex items-center gap-6 rounded-3xl border border-[#EADFD3] bg-[#F8EFF2] p-5">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8C1535] text-lg font-bold text-white shadow-sm uppercase">
+                          {currentDorm?.room.accommodation.accommodationName?.[0] || "D"}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-lg font-bold text-[#2A1F1A]">{currentDorm?.room.accommodation.accommodationName || "No Assignment"}</p>
+                          <p className="text-sm text-[#A88993]">{currentDorm?.room.roomType || "Shared Residence"}</p>
+                        </div>
+                      </div>
+                      <button onClick={() => setShowHistory(true)} className="mt-8 inline-flex items-center gap-3 rounded-2xl bg-[#4A0819] px-8 py-4 text-[11px] font-bold uppercase tracking-widest text-white shadow-lg">
+                        📜 Accommodation History
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
-        </main>
-      </div>
+            </section>
+          </main>
+        </div>
 
-      {showHistory && <AccomHistoryModal history={history} studentName={profile.fname} onClose={() => setShowHistory(false)} />}
-      <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => e.target.files?.[0] && handlePfpUpload(e.target.files[0])} />
-    </div>
+        {showHistory && <AccomHistoryModal history={history} studentName={profile.fname} onClose={() => setShowHistory(false)} />}
+        <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => e.target.files?.[0] && handlePfpUpload(e.target.files[0])} />
+      </div>
+    </motion.div>
   );
 }
 
