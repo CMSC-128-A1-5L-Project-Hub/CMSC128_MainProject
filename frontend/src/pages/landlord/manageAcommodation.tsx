@@ -364,6 +364,7 @@ const StepTwo = ({ onBack, onClose, amenities, onSuccess }: {
 };
 
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
+// ─── Main Dashboard ──────────────────────────────────────────────────────────
 const ManageAccommodationDashboard: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -388,8 +389,8 @@ const ManageAccommodationDashboard: React.FC = () => {
   const { data: accommodations, refetch } = useQuery({
       queryKey: ['landlord-accommodations'],
       queryFn: async () => { const res = await api.get('/landlord/accommodations'); return res.data ?? []; },
-      staleTime: 5 * 60 * 1000, // 5 minutes don't refetch if data is fresh
-      gcTime: 30 * 60 * 1000,   // 30 minutes keep in cache
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
   });
 
   const verifiedAccommodations = (accommodations ?? []).filter((a: any) => a.status !== 'rejected');
@@ -431,80 +432,74 @@ const ManageAccommodationDashboard: React.FC = () => {
     setToast({ show: true, type: "success", title: "Accommodation Submitted!", message: "Your property is now under review by admin." });
   };
 
-  if (isLoading) return (
-     <UbleLoader />
-  );
+  if (isLoading) return <UbleLoader />;
   if (isError) return null;
 
   return (
-    <div className="flex flex-col lg:flex-row bg-[#F5EEF0] min-h-screen">
-      <Sidebar role="landlord-manage" profile={{ fullName: `${user?.fname ?? ''} ${user?.lname ?? ''}`.trim(), shortName: user?.fname ?? '', email: user?.email ?? '' }} />
-      <div className="flex-1 mt-12 lg:mt-0">
+    <div className="flex flex-col h-screen bg-[#F5EEF0] overflow-y-auto">
+      {/* Header */}
+      <CustomHeader
+        title="Properties"
+        right={
+          <div className="relative" ref={notifWrapperRef}>
+            <button
+              aria-label="Notifications"
+              onClick={() => setNotifOpen((prev) => !prev)}
+            >
+              <Bell className="h-10 w-10 text-[#3D0718] hover:text-[#8C1535] transition-colors" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#8C1535] text-white text-[9px] font-bold flex items-center justify-center border-2 border-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+            <NotificationPanel
+              open={notifOpen}
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onMarkAllRead={markAllRead}
+              onMarkOneRead={markOneRead}
+              onClose={() => setNotifOpen(false)}
+              wrapperRef={notifWrapperRef}
+            />
+          </div>
+        }
+      />
 
-        {/* Header bar */}
-        <CustomHeader
-          title="Properties"
-          right={
-            <div className="relative" ref={notifWrapperRef}>
-              <button
-                aria-label="Notifications"
-                onClick={() => setNotifOpen((prev) => !prev)}
-              >
-                <Bell className="h-10 w-10 text-[#3D0718] hover:text-[#8C1535] transition-colors" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#8C1535] text-white text-[9px] font-bold flex items-center justify-center border-2 border-white">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-              <NotificationPanel
-                open={notifOpen}
-                notifications={notifications}
-                unreadCount={unreadCount}
-                onMarkAllRead={markAllRead}
-                onMarkOneRead={markOneRead}
-                onClose={() => setNotifOpen(false)}
-                wrapperRef={notifWrapperRef}
-              />
+      {/* Main content - scrolls naturally */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-10">
+        <div className="text-center mb-6 sm:mb-10">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#C9973A]/10 text-[#C9973A] text-[9px] sm:text-[10px] font-bold tracking-widest uppercase mb-3 sm:mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#C9973A]" />Landlord Portal
+          </div>
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-['Cormorant_Garamond'] font-semibold text-[#1a0a0f] tracking-tight leading-[0.85]">
+            Manage Your <span className="italic text-[#8C1535]">Properties</span>
+          </h2>
+          <p className="text-gray-500 mt-3 sm:mt-4 max-w-lg mx-auto leading-relaxed text-xs sm:text-sm px-4">
+            List, review, and update your accommodations to keep your listings accurate and attractive for students.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8 max-w-md mx-auto">
+          {[
+            { value: verifiedAccommodations.length, label: "Properties", color: "text-[#8C1535]" },
+            { value: verifiedAccommodations.filter((a: any) => a.status === 'verified').length, label: "Verified", color: "text-emerald-600" },
+            { value: verifiedAccommodations.filter((a: any) => a.status === 'pending').length, label: "Pending", color: "text-amber-600" },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-white rounded-2xl p-3 sm:p-4 text-center shadow-sm border border-gray-100">
+              <p className={`text-xl sm:text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+              <p className="text-[9px] sm:text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">{stat.label}</p>
             </div>
-          }
-        />
+          ))}
+        </div>
 
-        {/* Main content */}
-        <main className="p-4 sm:p-6 lg:p-10">
-          <div className="text-center mb-6 sm:mb-10">
-            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#C9973A]/10 text-[#C9973A] text-[9px] sm:text-[10px] font-bold tracking-widest uppercase mb-3 sm:mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C9973A]" />Landlord Portal
-            </div>
-            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-['Cormorant_Garamond'] font-semibold text-[#1a0a0f] tracking-tight leading-[0.85]">
-              Manage Your <span className="italic text-[#8C1535]">Properties</span>
-            </h2>
-            <p className="text-gray-500 mt-3 sm:mt-4 max-w-lg mx-auto leading-relaxed text-xs sm:text-sm px-4">
-              List, review, and update your accommodations to keep your listings accurate and attractive for students.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8 max-w-md mx-auto">
-            {[
-              { value: verifiedAccommodations.length, label: "Properties", color: "text-[#8C1535]" },
-              { value: verifiedAccommodations.filter((a: any) => a.status === 'verified').length, label: "Verified", color: "text-emerald-600" },
-              { value: verifiedAccommodations.filter((a: any) => a.status === 'pending').length, label: "Pending", color: "text-amber-600" },
-            ].map((stat) => (
-              <div key={stat.label} className="bg-white rounded-2xl p-3 sm:p-4 text-center shadow-sm border border-gray-100">
-                <p className={`text-xl sm:text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                <p className="text-[9px] sm:text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 px-0 sm:px-0">
-            {verifiedAccommodations.map((accommodation: any) => (
-              <AccommodationCard key={accommodation.id} accommodation={accommodation} />
-            ))}
-            <AddCard onClick={() => setOpen(true)} />
-          </div>
-        </main>
-      </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {verifiedAccommodations.map((accommodation: any) => (
+            <AccommodationCard key={accommodation.id} accommodation={accommodation} />
+          ))}
+          <AddCard onClick={() => setOpen(true)} />
+        </div>
+      </main>
 
       <Modal open={open} onClose={handleClose}
         title={step === 1 ? "ADD A NEW ACCOMMODATION" : "UPLOAD IMAGES"}

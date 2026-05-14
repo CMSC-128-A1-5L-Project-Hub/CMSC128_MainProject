@@ -6,6 +6,7 @@ import HeroBanner from "../../components/dashboard/HeroBanner";
 import Button from "../../components/Button";
 import Card from "@/components/ui/Card";
 import CustomHeader from '../../components/CustomHeader';
+import Toast from "@/components/Toast";
 
 import {
   Plus,
@@ -149,6 +150,15 @@ export default function RoomsPage() {
 
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [modalType, setModalType] = useState<"add" | "delete" | "manage" | "billing" | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Toast state
+  const [toast, setToast] = useState<{
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+  }>({ show: false, type: "success", title: "" });
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -163,22 +173,40 @@ export default function RoomsPage() {
 
   // ─── FETCH ACCOMMODATIONS ON MOUNT ───
   useEffect(() => {
-    api.get("/landlord/accommodations").then((res) => {
-      const list = res.data ?? [];
-      setAccommodations(list);
-      if (list.length > 0) {
-        const storedId = Number(sessionStorage.getItem("landlord-acc-id"));
-        const match = list.find((a: any) => a.id === storedId);
-        setSelectedAccomId(match ? storedId : list[0].id);
-      }
-    });
+    api.get("/landlord/accommodations")
+      .then((res) => {
+        const list = res.data ?? [];
+        setAccommodations(list);
+        if (list.length > 0) {
+          const storedId = Number(sessionStorage.getItem("landlord-acc-id"));
+          const match = list.find((a: any) => a.id === storedId);
+          setSelectedAccomId(match ? storedId : list[0].id);
+        }
+      })
+      .catch(() => {
+        setToast({
+          show: true,
+          type: "error",
+          title: "Failed to Load",
+          message: "Could not load accommodations."
+        });
+      });
   }, []);
 
   // ─── FETCH REPORTED ISSUES ON MOUNT ───
   useEffect(() => {
-    api.get("/landlord/room-issues").then((res) => {
-      setReportedIssues((res.data ?? []).map(mapIssue));
-    });
+    api.get("/landlord/room-issues")
+      .then((res) => {
+        setReportedIssues((res.data ?? []).map(mapIssue));
+      })
+      .catch(() => {
+        setToast({
+          show: true,
+          type: "error",
+          title: "Failed to Load Issues",
+          message: "Could not load reported issues."
+        });
+      });
   }, []);
 
   // ─── FETCH ROOMS WHEN ACCOMMODATION CHANGES ───
@@ -188,6 +216,14 @@ export default function RoomsPage() {
     api
       .get(`/accommodations/${selectedAccomId}/rooms`)
       .then((res) => setRooms((res.data ?? []).map(mapRoom)))
+      .catch(() => {
+        setToast({
+          show: true,
+          type: "error",
+          title: "Failed to Load Rooms",
+          message: "Could not load rooms for this accommodation."
+        });
+      })
       .finally(() => setLoading(false));
   }, [selectedAccomId]);
 
@@ -229,11 +265,32 @@ export default function RoomsPage() {
     setSelectedStayType("all");
     setSelectedStatus("all");
     setCurrentPage(1);
+    setToast({
+      show: true,
+      type: "info",
+      title: "Filters Cleared",
+      message: "All filters have been reset."
+    });
   };
 
   const dismissIssue = async (issueId: number) => {
-    await api.patch(`/room-issues/${issueId}/resolve`);
-    setReportedIssues(prev => prev.filter(issue => issue.id !== issueId));
+    try {
+      await api.patch(`/room-issues/${issueId}/resolve`);
+      setReportedIssues(prev => prev.filter(issue => issue.id !== issueId));
+      setToast({
+        show: true,
+        type: "success",
+        title: "Issue Resolved",
+        message: "The reported issue has been marked as resolved."
+      });
+    } catch {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Resolve",
+        message: "Could not resolve the issue. Please try again."
+      });
+    }
   };
 
   const openModal = (type: typeof modalType, room?: Room) => {
@@ -248,33 +305,93 @@ export default function RoomsPage() {
 
   const addRoom = async (roomData: Omit<Room, "id" | "occupants" | "currentOccupancy" | "availability"> & { tags: RoomTag[] }) => {
     if (!selectedAccomId) return;
-    const res = await api.post(`/accommodations/${selectedAccomId}/rooms`, {
-      room_number: roomData.name,
-      room_type: roomData.type.toLowerCase(),
-      room_stay_type: roomData.stay_type,
-      room_capacity: roomData.capacity,
-      room_building: roomData.building,
-      room_rent: roomData.price,
-      tenant_restriction: roomData.tenant_restriction,
-      tags: roomData.tags.map(t => t.name),
-    });
-    setRooms(prev => [...prev, mapRoom(res.data)]);
-    closeModal();
+    setIsProcessing(true);
+    setToast({ show: true, type: "loading", title: "Adding Room...", message: "Please wait." });
+    
+    try {
+      const res = await api.post(`/accommodations/${selectedAccomId}/rooms`, {
+        room_number: roomData.name,
+        room_type: roomData.type.toLowerCase(),
+        room_stay_type: roomData.stay_type,
+        room_capacity: roomData.capacity,
+        room_building: roomData.building,
+        room_rent: roomData.price,
+        tenant_restriction: roomData.tenant_restriction,
+        tags: roomData.tags.map(t => t.name),
+      });
+      setRooms(prev => [...prev, mapRoom(res.data)]);
+      closeModal();
+      setToast({
+        show: true,
+        type: "success",
+        title: "Room Added!",
+        message: `${roomData.name} has been successfully created.`
+      });
+    } catch (error: any) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Add Room",
+        message: error.response?.data?.message || "Could not create the room."
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const deleteRoom = async () => {
     if (!selectedRoom) return;
-    await api.delete(`/rooms/${selectedRoom.id}`);
-    setRooms(prev => prev.filter(r => r.id !== selectedRoom.id));
-    closeModal();
+    setIsProcessing(true);
+    setToast({ show: true, type: "loading", title: "Deleting Room...", message: "Please wait." });
+    
+    try {
+      await api.delete(`/rooms/${selectedRoom.id}`);
+      setRooms(prev => prev.filter(r => r.id !== selectedRoom.id));
+      closeModal();
+      setToast({
+        show: true,
+        type: "success",
+        title: "Room Deleted",
+        message: `${selectedRoom.name} has been permanently removed.`
+      });
+    } catch (error: any) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Delete Room",
+        message: error.response?.data?.message || "Could not delete the room. Make sure it's empty."
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const reassignTenant = async (tenant: Tenant, _fromRoom: Room, toRoom: Room) => {
     if (!selectedAccomId) return;
-    await api.patch(`/assignments/${tenant.assignmentId}/transfer`, { targetRoomId: toRoom.id });
-    const res = await api.get(`/accommodations/${selectedAccomId}/rooms`);
-    setRooms((res.data ?? []).map(mapRoom));
-    closeModal();
+    setIsProcessing(true);
+    setToast({ show: true, type: "loading", title: "Reassigning Tenant...", message: "Please wait." });
+    
+    try {
+      await api.patch(`/assignments/${tenant.assignmentId}/transfer`, { targetRoomId: toRoom.id });
+      const res = await api.get(`/accommodations/${selectedAccomId}/rooms`);
+      setRooms((res.data ?? []).map(mapRoom));
+      closeModal();
+      setToast({
+        show: true,
+        type: "success",
+        title: "Tenant Reassigned",
+        message: `${tenant.name} has been moved to Room ${toRoom.name}.`
+      });
+    } catch (error: any) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Reassign",
+        message: error.response?.data?.message || "Could not reassign the tenant."
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const generateBilling = async (billingData: {
@@ -285,19 +402,51 @@ export default function RoomsPage() {
     allowInstallments: boolean;
   }) => {
     if (!selectedRoom) return;
-    await api.post("/landlord/fees/bulk", {
-      roomId: selectedRoom.id,
-      tenantId: billingData.tenantId,
-      month: parseInt(billingData.month, 10),
-      year: parseInt(billingData.year, 10),
-      amount: billingData.amount,
-      allowInstallments: billingData.allowInstallments,
+    setIsProcessing(true);
+    setToast({ show: true, type: "loading", title: "Generating Bill...", message: "Please wait." });
+    
+    try {
+      await api.post("/landlord/fees/bulk", {
+        roomId: selectedRoom.id,
+        tenantId: billingData.tenantId,
+        month: parseInt(billingData.month, 10),
+        year: parseInt(billingData.year, 10),
+        amount: billingData.amount,
+        allowInstallments: billingData.allowInstallments,
+      });
+      closeModal();
+      setToast({
+        show: true,
+        type: "success",
+        title: "Bill Generated!",
+        message: `Billing statement has been sent to ${billingData.tenantId === "all" ? "all tenants" : "the tenant"}.`
+      });
+    } catch (error: any) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Generate Bill",
+        message: error.response?.data?.message || "Could not generate the billing statement."
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleAccommodationChange = (id: number) => {
+    setSelectedAccomId(id);
+    sessionStorage.setItem("landlord-acc-id", String(id));
+    setCurrentPage(1);
+    setToast({
+      show: true,
+      type: "info",
+      title: "Switched Accommodation",
+      message: `Now viewing ${accommodations.find(a => a.id === id)?.accommodationName || "accommodation"}'s rooms.`
     });
   };
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#FBF9FA] font-sans">
-      <Sidebar role="landlord" />
       <div className="flex flex-col w-full">
         <CustomHeader title={"Manage Rooms"} />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
@@ -328,7 +477,7 @@ export default function RoomsPage() {
               {accommodations.length > 1 && (
                 <select
                   value={selectedAccomId ?? ""}
-                  onChange={(e) => setSelectedAccomId(Number(e.target.value))}
+                  onChange={(e) => handleAccommodationChange(Number(e.target.value))}
                   className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-500 hover:border-[#8C1535]/30 transition-all outline-none shadow-sm"
                 >
                   {accommodations.map((acc) => (
@@ -394,7 +543,7 @@ export default function RoomsPage() {
                   <label className="text-xs font-bold text-gray-600">Dormitory</label>
                   <select
                     value={selectedAccomId ?? ""}
-                    onChange={(e) => setSelectedAccomId(Number(e.target.value))}
+                    onChange={(e) => handleAccommodationChange(Number(e.target.value))}
                     className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm w-full"
                   >
                     {accommodations.map((acc) => (
@@ -558,6 +707,15 @@ export default function RoomsPage() {
       <DeleteRoomModal open={modalType === "delete"} room={selectedRoom} onClose={closeModal} onConfirm={deleteRoom} />
       <ManageRoomModal open={modalType === "manage"} room={selectedRoom} rooms={rooms} onClose={closeModal} onReassign={reassignTenant} />
       <BillingModal open={modalType === "billing"} room={selectedRoom} onClose={closeModal} onGenerate={generateBilling} />
+
+      {/* Toast Notifications */}
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 */
 
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { create } from "zustand";
 import { useRef, useState, useEffect } from "react";
@@ -677,11 +678,17 @@ export default function ProfilePage() {
                       <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">PHOTO</p>
                       <p className="text-[9px] text-gray-400">JPG/PNG</p>
                     </div>
-                    <div className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-not-allowed">
-                      <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">DOCUMENTS</p>
-                      <p className="text-[9px] text-gray-400">ID / Form 5</p>
+
+                    <div className="mt-6 grid grid-cols-2 gap-4">
+                      <div onClick={() => fileInputRef.current?.click()} className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-pointer hover:bg-white transition-colors">
+                        <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">PHOTO</p>
+                        <p className="text-[9px] text-gray-400">JPG/PNG</p>
+                      </div>
+                      <div className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-not-allowed">
+                        <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">DOCUMENTS</p>
+                        <p className="text-[9px] text-gray-400">ID / Form 5</p>
+                      </div>
                     </div>
-                  </div>
 
                   {profile.accountStatus === "active" && (
                     <div className="mt-6 flex items-center gap-4 rounded-2xl bg-[#E6F4EA] px-6 py-4 border border-[#D0E6D5]">
@@ -788,6 +795,9 @@ export default function ProfilePage() {
                           {currentDorm && ` • ${formatSemester(currentDorm.moveIn)}`}
                         </p>
                       </div>
+                      <button onClick={() => setShowHistory(true)} className="mt-8 inline-flex items-center gap-3 rounded-2xl bg-[#4A0819] px-8 py-4 text-[11px] font-bold uppercase tracking-widest text-white shadow-lg">
+                        📜 Accommodation History
+                      </button>
                     </div>
                     <button 
                       onClick={() => setShowHistory(true)} 
@@ -798,10 +808,9 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
-        </main>
-      </div>
+            </section>
+          </main>
+        </div>
 
       {showHistory && (
         <AccomHistoryModal
