@@ -383,8 +383,12 @@ const ManageAccommodationDashboard: React.FC = () => {
   const { data: user, isLoading, isError } = useQuery({
     queryKey: ['me'], queryFn: async () => { const res = await api.get('/me'); return res.data; }
   });
+
   const { data: accommodations, refetch } = useQuery({
-    queryKey: ['landlord-accommodations'], queryFn: async () => { const res = await api.get('/landlord/accommodations'); return res.data ?? []; }, staleTime: 0
+      queryKey: ['landlord-accommodations'],
+      queryFn: async () => { const res = await api.get('/landlord/accommodations'); return res.data ?? []; },
+      staleTime: 5 * 60 * 1000, // 5 minutes don't refetch if data is fresh
+      gcTime: 30 * 60 * 1000,   // 30 minutes keep in cache
   });
 
   const verifiedAccommodations = (accommodations ?? []).filter((a: any) => a.status !== 'rejected');
