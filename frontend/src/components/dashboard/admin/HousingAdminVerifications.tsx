@@ -78,10 +78,16 @@ export default function HousingAdminVerifications({
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading...</p>
       ) : admins.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No pending housing administrators.
-        </p>
-      ) : (
+          <>
+            <hr className="border-[#F2D9DF]" />
+
+            <div className="flex items-center justify-center py-10">
+              <p className="text-sm text-[#9A7080] text-center">
+                No pending housing administrators.
+              </p>
+            </div>
+          </>
+        ) : (
         <div className="max-h-[320px] overflow-y-auto">
           <table className="min-w-full border-collapse">
             <thead>
