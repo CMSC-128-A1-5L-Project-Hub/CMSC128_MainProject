@@ -14,6 +14,7 @@ import { Crosshair, Minimize2, Maximize2  } from 'lucide-react';
 <i data-lucide="expand"></i>  
 
 //MapBox Imports
+//
 import Map, { Marker, NavigationControl, Source, Layer } from 'react-map-gl'
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -2201,6 +2202,8 @@ export default function RoomView() {
       {showAllPhotos && (
         <AllPhotosModal photos={displayPhotos} onClose={() => setShowAllPhotosModal(false)} />
       )}
+
+      
 
 
     </div>
