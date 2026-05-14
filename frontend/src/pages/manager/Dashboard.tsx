@@ -12,7 +12,7 @@ import AvailableRooms from '../../components/dashboard/manager/AvailableRooms'
 import OccupiedRooms from '../../components/dashboard/manager/OccupiedRooms'
 import CustomHeader from '../../components/CustomHeader';
 import ReportModal from '../../components/ReportModal'
-import UbleLoader from '../shared/LoadingPage'
+import Toast from '../../components/Toast'
 import {
   useProfile,
   useIncomingApps,
@@ -25,7 +25,32 @@ import {
   useRefreshDashboard,
 } from '../../../hooks/useDashboardQueries'
 
+// ─── Filter Tabs ──────────────────────────────────────────────────────
+function FilterTabs({ active, setActive }: { active: string; setActive: (tab: string) => void }) {
+  const tabs = ["Students", "Rooms"]
+  return (
+    <div className="w-full">
+      <div className="inline-flex bg-white p-1 rounded-xl gap-1 shadow-sm border border-gray-100">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActive(tab)}
+            className={`px-6 py-2 text-sm rounded-lg font-semibold transition-all duration-200 ${
+              active === tab
+                ? "bg-gradient-to-r from-[#6B0F2B] to-[#8C1535] text-white shadow-md"
+                : "text-gray-500 hover:text-[#6B0F2B] hover:bg-gray-50"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState("Students")
   const { data: profile, isLoading: profileLoading } = useProfile()
   const { data: incomingApps = [] } = useIncomingApps()
   const { data: approvedApps = [] } = useApprovedApps()
@@ -35,9 +60,15 @@ export default function Dashboard() {
   const refreshDashboard = useRefreshDashboard()
 
   const [reportOpen, setReportOpen] = useState(false)
+  const [toast, setToast] = useState<{
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+  }>({ show: false, type: "success", title: "" });
 
   if (profileLoading) {
-      return null
+    return null
   }
 
   const transformedIncoming = incomingApps.map(transformApp)
@@ -108,112 +139,95 @@ export default function Dashboard() {
   const recentLogs = logs.slice(0, 5)
 
   const availableRooms = rooms.filter((r) => r.roomCurrentOccupancy < r.roomCapacity)
-  const occupiedRooms = rooms.filter((r) => r.roomCurrentOccupancy >= r.roomCapacity)
+  const occupiedRoomsList = rooms.filter((r) => r.roomCurrentOccupancy >= r.roomCapacity)
   const soloAvailable = availableRooms.filter((r) => r.roomType === 'single').length
   const doubleAvailable = availableRooms.filter((r) => r.roomType === 'double').length
   const sharedAvailable = availableRooms.filter((r) => r.roomType === 'shared').length
 
-  const soloOccupied = occupiedRooms.filter((r) => r.roomType === 'single').length
-  const doubleOccupied = occupiedRooms.filter((r) => r.roomType === 'double').length
-  const sharedOccupied = occupiedRooms.filter((r) => r.roomType === 'shared').length
+  const soloOccupied = occupiedRoomsList.filter((r) => r.roomType === 'single').length
+  const doubleOccupied = occupiedRoomsList.filter((r) => r.roomType === 'double').length
+  const sharedOccupied = occupiedRoomsList.filter((r) => r.roomType === 'shared').length
 
   const totalSolo = rooms.filter((r) => r.roomType === 'single').length
   const totalDouble = rooms.filter((r) => r.roomType === 'double').length
   const totalShared = rooms.filter((r) => r.roomType === 'shared').length
 
   const fullName = profile ? `${profile.fname} ${profile.lname}` : ''
-  const primaryPhone =
-    profile?.phoneNumbers?.find((p: any) => p.isPrimary)?.contactNumber ?? ''
+  const primaryPhone = profile?.phoneNumbers?.find((p: any) => p.isPrimary)?.contactNumber ?? ''
   const heroTitle = 'Efficiently manage applicants & housing accommodation'
   const heroSubtitle = `You have ${pendingApps.length} pending applications and ${readyForAssignment.filter((i) => i.status === 'pending_confirmation').length} waiting for confirmation.`
   const totalTenants = assignments.filter((a) => !a.actualMoveOut).length
 
+  const handleActionSuccess = (message: string) => {
+    setToast({
+      show: true,
+      type: "success",
+      title: "Action Completed",
+      message
+    })
+    refreshDashboard()
+  }
+
   return (
     <>
       <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
-      <div className="relative flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
-        <div className='flex flex-col'>
-            <div className="relative z-10 flex-1 flex flex-col p-6 pt-6 gap-6 overflow-y-auto">
-              <CustomHeader
-              title="Dashboard"></CustomHeader>
-              {/* Header */}
-              
-              {/* <div className="relative pl-10 lg:pl-0 flex flex-row items-center justify-between mb-2 pb-1">
-                <div className="flex flex-row gap-2 lg:hidden">
-                  <button
-                    onClick={() => setReportOpen(true)}
-                    className="w-12 h-11 rounded-2xl flex items-center justify-center"
-                  >
-                    <img src={report_icon} alt="Report" className="w-6 h-6" />
-                  </button>
-                  <div ref={notifWrapperRef} className="relative">
-                    <button
-                      onClick={() => setNotifOpen((prev) => !prev)}
-                      className="w-12 h-11 rounded-2xl flex items-center justify-center"
-                    >
-                      <img src={notif_icon} alt="Notifications" className="w-6 h-6" />
-                      {unreadCount > 0 && (
-                        <span className="absolute top-0.5 right-1 w-3 h-3 rounded-full border border-white bg-[#C9973A]" />
-                      )}
-                    </button>
-                    <NotificationPanel
-                      open={notifOpen}
-                      notifications={notifications}
-                      unreadCount={unreadCount}
-                      onMarkAllRead={markAllRead}
-                      onMarkOneRead={markOneRead}
-                      onClose={() => setNotifOpen(false)}
-                      wrapperRef={notifWrapperRef}
-                    />
-                  </div>
-                </div>
-              </div> */}
+      <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">     
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <CustomHeader title="Dashboard" />
+          
+          <div className="flex-1 overflow-y-auto p-6">
+            <main className="flex flex-col gap-6">
+              <HeroBanner
+                greeting="Good Day"
+                name={fullName}
+                title={heroTitle}
+                subtitle={heroSubtitle}
+                type="full"
+              />
 
-              <main className="flex-1 flex flex-col gap-6">
-                <HeroBanner
-                  greeting="Good Day"
-                  name={fullName}
-                  title={heroTitle}
-                  subtitle={heroSubtitle}
-                  type="full"
+              {/* Stats Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <DonutStatCard
+                  title="Pending Approvals"
+                  value={pendingApps.length}
+                  total={30}
                 />
+                <DonutStatCard
+                  title="Pending Confirmations"
+                  value={readyForAssignment.filter(item => item.status === 'pending_confirmation').length}
+                  total={approvedApps.length}
+                />
+                <DonutStatCard
+                  title="Total Tenants"
+                  value={totalTenants}
+                  total={100}
+                />
+              </div>
 
-                <div className="grid grid-cols-3 lg:grid-cols-3 gap-6">
-                  <DonutStatCard
-                    title="Pending Approvals"
-                    value={pendingApps.length}
-                    total={30}
-                  />
-                  <DonutStatCard
-                    title="Pending Confirmations"
-                    value={readyForAssignment.filter(item => item.status === 'pending_confirmation').length}
-                    total={approvedApps.length}
-                  />
-                  <DonutStatCard
-                    title="Total Tenants"
-                    value={totalTenants}
-                    total={100}
-                  />
-                </div>
+              {/* Tabs */}
+              <FilterTabs active={activeTab} setActive={setActiveTab} />
 
-                <div className="flex flex-col gap-6 lg:hidden">
-                  <AvailableRooms
-                    totalRooms={rooms.length}
-                    soloRooms={soloAvailable}
-                    doubleRooms={doubleAvailable}
-                    sharedRooms={sharedAvailable}
-                  />
-                  <OccupiedRooms
-                    occupiedSolo={soloOccupied}
-                    totalSolo={totalSolo}
-                    occupiedDouble={doubleOccupied}
-                    totalDouble={totalDouble}
-                    occupiedShared={sharedOccupied}
-                    totalShared={totalShared}
-                  />
-                  <ActivityLogs data={recentLogs} />
-                </div>
+              {/* Mobile View */}
+              <div className="flex flex-col gap-6 lg:hidden">
+                <AvailableRooms
+                  totalRooms={rooms.length}
+                  soloRooms={soloAvailable}
+                  doubleRooms={doubleAvailable}
+                  sharedRooms={sharedAvailable}
+                />
+                <OccupiedRooms
+                  occupiedSolo={soloOccupied}
+                  totalSolo={totalSolo}
+                  occupiedDouble={doubleOccupied}
+                  totalDouble={totalDouble}
+                  occupiedShared={sharedOccupied}
+                  totalShared={totalShared}
+                />
+                <ActivityLogs data={recentLogs} />
+              </div>
 
+              {/* STUDENTS TAB - Applications + Waitlist */}
+              {activeTab === "Students" && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch w-full">
                   <Applications
                     data={pendingApps}
@@ -221,6 +235,12 @@ export default function Dashboard() {
                     onAction={refreshDashboard}
                   />
                   <Waitlist waitlists={waitlistedApps} className="col-span-1" />
+                </div>
+              )}
+
+              {/* ROOMS TAB - Room Assignment + Upcoming Moves */}
+              {activeTab === "Rooms" && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch w-full">
                   <ConfirmedStudents
                     data={readyForAssignment}
                     allRooms={rooms}
@@ -229,38 +249,49 @@ export default function Dashboard() {
                   />
                   <Moves data={moves} className="col-span-1 lg:col-span-2 xl:col-span-3" />
                 </div>
-              </main>
-            </div>
+              )}
+            </main>
+          </div>
         </div>
-        
 
-        <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F5EEF0] overflow-y-auto">
-          <ProfileCard
-            fullName={fullName}
-            role="Dormitory Manager"
-            email={profile?.email ?? ''}
-            phoneNumber={primaryPhone}
-            dormitory={profile?.dormitory ?? 'Loading...'}
-            status={profile?.accountStatus ?? 'pending'}
-            onNotification={() => {}}
-          />
-          <AvailableRooms
-            totalRooms={rooms.length}
-            soloRooms={soloAvailable}
-            doubleRooms={doubleAvailable}
-            sharedRooms={sharedAvailable}
-          />
-          <OccupiedRooms
-            occupiedSolo={soloOccupied}
-            totalSolo={totalSolo}
-            occupiedDouble={doubleOccupied}
-            totalDouble={totalDouble}
-            occupiedShared={sharedOccupied}
-            totalShared={totalShared}
-          />
-          <ActivityLogs data={recentLogs} />
+        {/* Right Sidebar  */}
+        <aside className="hidden lg:flex lg:w-[380px] xl:w-[420px] flex-shrink-0 flex-col bg-[#F5EEF0] overflow-y-auto">
+          <div className="flex flex-col gap-4 p-4">
+            <ProfileCard
+              fullName={fullName}
+              role="Dormitory Manager"
+              email={profile?.email ?? ''}
+              phoneNumber={primaryPhone}
+              dormitory={profile?.dormitory ?? 'Loading...'}
+              status={profile?.accountStatus ?? 'pending'}
+              onNotification={() => {}}
+            />
+            <AvailableRooms
+              totalRooms={rooms.length}
+              soloRooms={soloAvailable}
+              doubleRooms={doubleAvailable}
+              sharedRooms={sharedAvailable}
+            />
+            <OccupiedRooms
+              occupiedSolo={soloOccupied}
+              totalSolo={totalSolo}
+              occupiedDouble={doubleOccupied}
+              totalDouble={totalDouble}
+              occupiedShared={sharedOccupied}
+              totalShared={totalShared}
+            />
+            <ActivityLogs data={recentLogs} />
+          </div>
         </aside>
       </div>
+
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </>
   )
 }

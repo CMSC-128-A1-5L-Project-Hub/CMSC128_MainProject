@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { X } from "lucide-react";
 import { setLandlordSidebarContext } from "../../components/Sidebar";
 import HeroBanner from "../../components/dashboard/HeroBanner";
 import StatCard from "../../components/dashboard/landlord/rooms/dashboard/StatCard";
@@ -15,7 +14,10 @@ import ReportsPanel from "../../components/dashboard/landlord/rooms/dashboard/Re
 import ApplicationPeriod from "../../components/dashboard/landlord/rooms/dashboard/Calendar";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
-import GradientPillSelect from "@/components/DropDownGradient";
+import Card from "../../components/ui/Card";
+import Toast from "../../components/Toast";
+import { DateTime } from 'luxon';
+import { IoPersonSharp, IoCalendarSharp, IoBedSharp, IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp } from "react-icons/io5";
 
 import { api } from "../../api/axios";
 import { useUserStore } from "../../stores/useUserStore";
@@ -48,10 +50,14 @@ interface Application {
   applicationStayType: string;
   applicationStatus: string;
   applicationDate: string;
+  durationOfStayDays: number;
   student: {
     studentNumber: string;
     enrollmentProofFileId: number | null;
-    user: { fname: string; lname: string };
+    user: { fname: string; lname: string; email: string };
+    college: string;
+    degreeProgram: string;
+    yearLevel: string;
   };
 }
 
@@ -85,6 +91,13 @@ function fmt(dateStr: string) {
   });
 }
 
+function formatTime(dateString: string) {
+  if (!dateString) return "N/A";
+  const dt = DateTime.fromISO(dateString).setZone('utc', { keepLocalTime: true });
+  if (!dt.isValid) return "Invalid Time";
+  return dt.toFormat('h:mm a');
+}
+
 function FilterTabs({
   active,
   setActive,
@@ -112,6 +125,215 @@ function FilterTabs({
   );
 }
 
+// ─── Application Modal Content ─────────────────────────────────────────────
+const ApplicationModalContent = ({
+  app,
+  onAccept,
+  onReject,
+  isPending,
+}: {
+  app: Application;
+  onAccept: () => void;
+  onReject: () => void;
+  isPending: boolean;
+}) => {
+  const fullName = `${app.student.user.fname} ${app.student.user.lname}`;
+
+  return (
+    <Card className="!p-0">
+      <div className="flex flex-col gap-6 p-6">
+        {/* HEADER */}
+        <div className="flex flex-row justify-between items-start">
+          <div className="flex flex-col">
+            <p className="text-[#1A0008] font-bold text-xl">{fullName}</p>
+            <p className="text-[#C8B0B8] text-xs mt-1">
+              Date Applied: {fmt(app.applicationDate)}
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.7rem] font-semibold whitespace-nowrap bg-yellow-100 text-yellow-800">
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-600" />
+            Under Review
+          </span>
+        </div>
+
+        {/* APPLICANT AND OCCUPANCY DETAILS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-[#F5ECF0] rounded-xl p-4">
+          {/* LEFT: APPLICANT DETAILS */}
+          <div className="col-span-1 sm:border-r border-[#F5ECF0] sm:pr-4">
+            <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
+              <IoPersonSharp size={18} color="#6B0F2B" />
+              Applicant Details
+            </p>
+            <div className="grid grid-cols-2 gap-y-3">
+              <div className="col-span-2">
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Email</p>
+                <p className="text-[#1A0008] text-sm break-all">{app.student.user.email}</p>
+              </div>
+              <div className="col-span-1">
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Year Level</p>
+                <p className="text-[#1A0008] text-sm">{app.student.yearLevel || "N/A"}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Degree Program</p>
+                <p className="text-[#1A0008] text-sm">{app.student.degreeProgram}</p>
+              </div>
+              <div className="col-span-1">
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">College</p>
+                <p className="text-[#1A0008] text-sm">{app.student.college}</p>
+              </div>
+              <div className="col-span-1">
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Student Number</p>
+                <p className="text-[#1A0008] text-sm">{app.student.studentNumber}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT: OCCUPANCY DETAILS */}
+          <div className="col-span-1 sm:pl-2">
+            <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
+              <IoCalendarSharp size={18} color="#6B0F2B" />
+              Occupancy Details
+            </p>
+            <div className="flex flex-col gap-3">
+              <div>
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Application Date</p>
+                <p className="text-[#1A0008] text-sm">{fmt(app.applicationDate)}</p>
+              </div>
+              <div>
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Time Submitted</p>
+                <p className="text-[#1A0008] text-sm">{formatTime(app.applicationDate)}</p>
+              </div>
+              <div>
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Duration</p>
+                <p className="text-[#1A0008] text-sm">
+                  {app.durationOfStayDays} day{app.durationOfStayDays !== 1 ? "s" : ""}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ROOM PREFERENCE AND DOCUMENTS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-[#F5ECF0] rounded-xl p-4">
+          {/* LEFT: ROOM PREFERENCE */}
+          <div className="col-span-1 sm:border-r border-[#F5ECF0] sm:pr-4">
+            <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
+              <IoBedSharp size={18} color="#6B0F2B" />
+              Room Preference
+            </p>
+            <div className="grid grid-cols-2 gap-y-3">
+              <div className="col-span-1">
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Stay</p>
+                <p className="text-[#1A0008] text-sm capitalize">{app.applicationStayType?.replace('_', ' ')}</p>
+              </div>
+              <div className="col-span-1">
+                <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Room Type</p>
+                <p className="text-[#1A0008] text-sm capitalize">{app.applicationRoomType}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT: DOCUMENTS */}
+          <div className="col-span-1 sm:pl-2">
+            <p className="flex flex-row gap-2 items-center font-semibold text-[#1A0008] mb-3">
+              <IoDocumentSharp size={18} color="#6B0F2B" />
+              Uploaded Documents
+            </p>
+            <div className="flex flex-col gap-3">
+              {[
+                { label: "FORM 5", icon: <IoDocumentTextSharp size={16} color="white" /> },
+                { label: "VALID ID", icon: <IoIdCardSharp size={16} color="white" /> },
+              ].map((doc) => (
+                <div key={doc.label} className="grid grid-cols-[auto_1fr_60px] items-center gap-3">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                  >
+                    {doc.icon}
+                  </div>
+                  <p className="text-[#1A0008] text-xs font-semibold">{doc.label}</p>
+                  <Button variant="reddishPink" size="sm">View</Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ACTIONS */}
+        <div className="flex flex-row justify-end gap-3 pt-1">
+          <Button variant="primary" onClick={onAccept} disabled={isPending}>
+            {isPending ? "Processing..." : "Accept"}
+          </Button>
+          <Button variant="secondary" onClick={onReject} disabled={isPending}>
+            Reject
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+// ─── Rejection Modal ───────────────────────────────────────────────────────
+const RejectionModal = ({
+  open,
+  targetName,
+  onBack,
+  onConfirm,
+  isPending,
+}: {
+  open: boolean;
+  targetName: string;
+  onBack: () => void;
+  onConfirm: (reason: string) => void;
+  isPending: boolean;
+}) => {
+  const [reason, setReason] = useState("");
+
+  const handleConfirm = () => {
+    if (!reason.trim()) return;
+    onConfirm(reason.trim());
+    setReason("");
+  };
+
+  const handleBack = () => {
+    setReason("");
+    onBack();
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={handleBack}
+      title="Reject Application"
+      eyebrow="Provide a reason"
+      footer={
+        <div className="flex flex-row justify-end w-full gap-3">
+          <Button variant="secondary" onClick={handleBack}>
+            ← Back
+          </Button>
+          <Button variant="primary" disabled={!reason.trim() || isPending} onClick={handleConfirm}>
+            {isPending ? "Processing..." : "Confirm Reject"}
+          </Button>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <p className="text-[#1A0008] text-sm">
+          Please provide a reason for rejecting{" "}
+          <span className="font-semibold">{targetName}</span>'s application.
+        </p>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Enter rejection reason..."
+          rows={4}
+          className="w-full border border-[#F5ECF0] rounded-xl p-3 text-sm text-[#1A0008] placeholder:text-[#C8B0B8] resize-none focus:outline-none focus:border-[#6B0F2B]"
+        />
+      </div>
+    </Modal>
+  );
+};
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 const ROOMS_PER_PAGE = 5;
@@ -128,6 +350,15 @@ export default function Dashboard() {
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  
+  // Toast state
+  const [toast, setToast] = useState<{
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+  }>({ show: false, type: "success", title: "" });
+
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const user = useUserStore((s) => s.user);
@@ -157,9 +388,18 @@ export default function Dashboard() {
     queryFn: () => api.get("/reports/revenue").then((r) => r.data),
   });
 
-  const { data: applications = [], isLoading: appsLoading } = useQuery<Application[]>({
-    queryKey: ["landlord-applications"],
-    queryFn: () => api.get("/applications/incoming").then((r) => r.data),
+  const { data: applications = [], isLoading: appsLoading, refetch: refetchApps } = useQuery<Application[]>({
+    queryKey: ["landlord-applications", accommodationId], // Add accommodationId to query key
+    queryFn: async () => {
+      const res = await api.get("/applications/incoming");
+      let data = res.data;
+      // Filter by current accommodation ID if present
+      if (accommodationId) {
+        data = data.filter((app: Application) => app.accommodationId === accommodationId);
+      }
+      return data;
+    },
+    enabled: !!accommodationId, // Only run when we have an accommodation ID
   });
 
   const { data: rooms = [], isLoading: roomsLoading } = useQuery<Room[]>({
@@ -187,7 +427,23 @@ export default function Dashboard() {
         application_start_date: start,
         application_end_date: end,
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] });
+      setToast({
+        show: true,
+        type: "success",
+        title: "Application Period Updated",
+        message: "The application period has been successfully updated."
+      });
+    },
+    onError: () => {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update application period. Please try again."
+      });
+    }
   });
 
   const addDocMutation = useMutation({
@@ -201,7 +457,21 @@ export default function Dashboard() {
       setNewDocName("");
       setNewDocFormat("any");
       setDocModalOpen(false);
+      setToast({
+        show: true,
+        type: "success",
+        title: "Document Requirement Added",
+        message: "The document requirement has been successfully added."
+      });
     },
+    onError: () => {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Add Failed",
+        message: "Failed to add document requirement. Please try again."
+      });
+    }
   });
 
   const removeDocMutation = useMutation({
@@ -210,10 +480,23 @@ export default function Dashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["doc-requirements", accommodationId] });
       setDocToDelete(null);
+      setToast({
+        show: true,
+        type: "success",
+        title: "Document Requirement Removed",
+        message: "The document requirement has been successfully removed."
+      });
     },
+    onError: () => {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Remove Failed",
+        message: "Failed to remove document requirement. Please try again."
+      });
+    }
   });
 
-  // Use applicationId and correct action/rejection_reason
   const reviewAppMutation = useMutation({
     mutationFn: ({
       applicationId,
@@ -228,13 +511,38 @@ export default function Dashboard() {
         action: action,
         ...(action === "reject" && { rejection_reason: rejectionReason }),
       }),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
+      refetchApps();
       setReviewModalOpen(false);
       setRejectionModalOpen(false);
       setSelectedApp(null);
       setRejectionReason("");
+      
+      if (variables.action === "approve") {
+        setToast({
+          show: true,
+          type: "success",
+          title: "Application Approved!",
+          message: "The application has been successfully approved."
+        });
+      } else {
+        setToast({
+          show: true,
+          type: "success",
+          title: "Application Rejected",
+          message: "The application has been rejected and the student has been notified."
+        });
+      }
     },
+    onError: (error: any) => {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Action Failed",
+        message: error.response?.data?.message || "An error occurred. Please try again."
+      });
+    }
   });
 
   // ── Derived values ──────────────────────────────────────────────────────────
@@ -248,30 +556,20 @@ export default function Dashboard() {
   const occupancyPct = totalCapacity > 0 ? Math.round((totalOccupied / totalCapacity) * 100) : 0;
   const projectedRevenue = revenue?.projectedMonthlyRevenue ?? 0;
   const underReviewApps = applications.filter((a) => a.applicationStatus === "under_review");
-
+  
   // Form 5 / enrollment proof stats — scoped to this accommodation
-  const accommodationApps = applications.filter(
-    (a) => a.accommodationId === accommodationId
-  );
+  const accommodationApps = applications; // Since applications is already filtered by accommodationId
   const form5Submitted = accommodationApps.filter(
     (a) => a.student?.enrollmentProofFileId != null
   ).length;
   const form5Pending = accommodationApps.length - form5Submitted;
-  const form5Pct =
-    accommodationApps.length > 0
-      ? Math.round((form5Submitted / accommodationApps.length) * 100)
-      : 0;
-
-  // Manager card props
-  const manager = accommodation?.manager;
-  const managerStatus = !manager ? "none" : manager.managerStatus === "active" ? "assigned" : "pending";
-  const primaryPhone = manager?.user?.phoneNumbers?.find((p) => p.isPrimary)?.contactNumber ?? "";
-
-  const documentFormatOptions = [
-    { value: "any", label: "Any" },
-    { value: "pdf", label: "PDF" },
-    { value: "image", label: "JPEG / PNG" },
-  ];
+  const form5Pct = accommodationApps.length > 0
+    ? Math.round((form5Submitted / accommodationApps.length) * 100)
+    : 0;
+    // Manager card props
+    const manager = accommodation?.manager;
+    const managerStatus = !manager ? "none" : manager.managerStatus === "active" ? "assigned" : "pending";
+    const primaryPhone = manager?.user?.phoneNumbers?.find((p) => p.isPrimary)?.contactNumber ?? "";
 
   // ── Helpers for review modal ─────────────────────────────────────────────
 
@@ -296,7 +594,7 @@ export default function Dashboard() {
   };
 
   const handleConfirmRejection = () => {
-    if (selectedApp) {
+    if (selectedApp && rejectionReason.trim()) {
       reviewAppMutation.mutate({
         applicationId: selectedApp.id,
         action: "reject",
@@ -518,7 +816,9 @@ export default function Dashboard() {
                           underReviewApps.map((app) => (
                             <div key={app.id} className="grid grid-cols-[5fr_4fr_4fr_2fr] items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0">
                               <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
+                                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                                  {app.student.user.fname?.charAt(0)?.toUpperCase() || 'U'}
+                                </div>
                                 <p className="font-medium text-[clamp(11px,0.9vw,15px)] truncate">{app.student.user.fname} {app.student.user.lname}</p>
                               </div>
                               <p className="text-sm text-gray-500 capitalize">{app.applicationStayType.replace("_", "-")}</p>
@@ -566,7 +866,7 @@ export default function Dashboard() {
                           const statusColor = r.roomAvailability === "available" ? "bg-green-100 text-green-700" : r.roomAvailability === "occupied" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700";
                           return (
                             <div key={r.id} className="flex items-center py-3 border-b border-gray-50 last:border-0">
-                              <div className="flex-1 flex items-center gap-3"><div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" /><p className="font-medium text-sm">Room {r.roomNumber}</p></div>
+                              <div className="flex-1 flex items-center gap-3"><div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] flex items-center justify-center text-white font-bold text-sm shrink-0" /><p className="font-medium text-sm">Room {r.roomNumber}</p></div>
                               <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500 capitalize">{r.roomType}</p></div>
                               <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500">{r.roomCurrentOccupancy}/{r.roomCapacity}</p></div>
                               <div className="flex-1 flex justify-center"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>{statusText}</span></div>
@@ -665,7 +965,6 @@ export default function Dashboard() {
                 <option value="pdf">PDF</option>
                 <option value="image">JPEG / PNG</option>
               </select>
-
               <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#3D0718]">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -683,36 +982,42 @@ export default function Dashboard() {
         <p className="text-sm text-gray-600">Are you sure you want to remove <span className="font-semibold text-[#6B0F2B]">{docToDelete?.name ?? ""}</span> from the document requirements? This may affect existing tenants.</p>
       </Modal>
 
-      {/* APPLICATION REVIEW MODAL */}
-      <Modal open={reviewModalOpen} onClose={handleCloseReview} title="Review Application" eyebrow="Application Details"
-        footer={<div className="flex gap-2 ml-auto">
-          <Button variant="secondary" size="md" onClick={handleRejectClick}>Reject</Button>
-          <Button variant="primary" size="md" onClick={handleConfirmApproval} disabled={reviewAppMutation.isPending}>{reviewAppMutation.isPending ? "Processing…" : "Accept"}</Button></div>}>
+      {/* APPLICATION REVIEW MODAL - Enhanced */}
+      <Modal 
+        open={reviewModalOpen} 
+        onClose={handleCloseReview} 
+        title="REVIEW APPLICATION" 
+        eyebrow="Application Details"
+        maxWidth={900}
+        maxHeight={650}
+      >
         {selectedApp && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Student Name</p><p className="font-semibold text-gray-800">{selectedApp.student.user.fname} {selectedApp.student.user.lname}</p></div>
-              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Student Number</p><p className="font-semibold text-gray-800">{selectedApp.student.studentNumber}</p></div>
-              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Room Type</p><p className="font-semibold text-gray-800 capitalize">{selectedApp.applicationRoomType}</p></div>
-              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Stay Type</p><p className="font-semibold text-gray-800 capitalize">{selectedApp.applicationStayType.replace("_", "-")}</p></div>
-              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Application Date</p><p className="font-semibold text-gray-800">{fmt(selectedApp.applicationDate)}</p></div>
-              <div><p className="text-xs text-gray-400 uppercase tracking-wider">Current Status</p><span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">Under Review</span></div>
-            </div>
-          </div>
+          <ApplicationModalContent
+            app={selectedApp}
+            onAccept={handleConfirmApproval}
+            onReject={handleRejectClick}
+            isPending={reviewAppMutation.isPending}
+          />
         )}
       </Modal>
 
       {/* REJECTION REASON MODAL */}
-      <Modal open={rejectionModalOpen} onClose={() => { setRejectionModalOpen(false); setRejectionReason(""); }} title="Rejection Reason" eyebrow="Application Rejection"
-        footer={<div className="flex gap-2 ml-auto">
-          <Button variant="secondary" size="md" onClick={handleBackToReview}>← Back</Button>
-          <Button variant="primary" size="md" onClick={handleConfirmRejection} disabled={reviewAppMutation.isPending || !rejectionReason.trim()}>{reviewAppMutation.isPending ? "Processing…" : "Reject"}</Button></div>}>
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600">Please provide a reason for rejecting this application. This will be communicated to the applicant.</p>
-          <div><label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Rejection Reason</label>
-            <textarea className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#8C1535] min-h-[120px] resize-none" placeholder="Enter the reason for rejection..." value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} /></div>
-        </div>
-      </Modal>
+      <RejectionModal
+        open={rejectionModalOpen}
+        targetName={selectedApp ? `${selectedApp.student.user.fname} ${selectedApp.student.user.lname}` : ""}
+        onBack={handleBackToReview}
+        onConfirm={handleConfirmRejection}
+        isPending={reviewAppMutation.isPending}
+      />
+
+      {/* Toast Notifications */}
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }
