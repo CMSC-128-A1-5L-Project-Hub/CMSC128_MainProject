@@ -7,6 +7,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import AccommodationMap, { type AccommodationPin, type AccommodationReview } from '../components/AccommodationMaps'
 import { api } from '../api/axios'
+import { useUserStore } from '../stores/useUserStore'
 
 const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
   const res = await api.get('/accommodations')
@@ -59,6 +60,8 @@ export default function MapPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
+  const user = useUserStore((s) => s.user)
+
   const { data: accommodations = [], isLoading, isError } = useQuery({
     queryKey: ['accommodations'],
     queryFn: fetchAccommodations,
@@ -80,19 +83,6 @@ export default function MapPage() {
   const [availableTags, setAvailableTags] = useState(['WiFi', 'Furnished', 'Air-con', 'Laundry', 'Study-Friendly', 'Transient'])
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
-  // Staged: filters only apply to map when "Apply Filters" is clicked
-  const [appliedFilters, setAppliedFilters] = useState({
-    type: 'all',
-    restriction: 'all',
-    minRent: DEFAULT_MIN_RENT,
-    maxRent: DEFAULT_MAX_RENT,
-    maxWalk: 60,
-    minCapacity: 0,
-    stayType: 'all',
-    rating: 0,
-    tags: [] as string[],
-  })
-
   const centerId = searchParams.get('center')
   const centeredAccommodation = useMemo(
     () => (centerId ? accommodations.find((a) => a.accommodationId === Number(centerId)) ?? null : null),
@@ -107,43 +97,38 @@ export default function MapPage() {
     } else {
       params.set(key, String(value))
     }
-    setSearchParams(params)
+    setSearchParams(params, { replace: true })
   }
 
   const resetFilters = () => {
     const params = new URLSearchParams()
     if (centerId) params.set('center', centerId)
-    setSearchParams(params)
+    setSearchParams(params, { replace: true })
     setMinRating(0)
     setSelectedTags([])
-    setAppliedFilters({ type: 'all', restriction: 'all', minRent: DEFAULT_MIN_RENT, maxRent: DEFAULT_MAX_RENT, maxWalk: 60, minCapacity: 0, stayType: 'all', rating: 0, tags: [] })
-  }
-
-  const handleApplyFilters = () => {
-    setAppliedFilters({ type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType, rating: minRating, tags: selectedTags })
   }
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
   }
 
-  // ─── Filtering (search is immediate; all others staged via Apply) ──────────
+  // ─── Filtering (all filters are reactive) ────────────────────────────────
   const filtered = useMemo(() => {
     return accommodations.filter((acc) => {
       const matchSearch =
         acc.accommodationName.toLowerCase().includes(search.toLowerCase()) ||
         acc.accommodationLocation.toLowerCase().includes(search.toLowerCase())
-      const matchType = appliedFilters.type === 'all' || acc.accommodationType === appliedFilters.type
-      const matchRestriction = appliedFilters.restriction === 'all' || acc.tenantRestriction === appliedFilters.restriction
-      const matchRent = acc.minRent >= appliedFilters.minRent && acc.maxRent <= appliedFilters.maxRent
-      const matchWalk = acc.walkingDistance <= appliedFilters.maxWalk
-      const matchCapacity = acc.accommodationCapacity >= appliedFilters.minCapacity
-      const matchStayType = appliedFilters.stayType === 'all' || acc.stayType === appliedFilters.stayType || acc.stayType === 'both'
-      const matchRating = !acc.rating || acc.rating >= appliedFilters.rating
-      const matchTags = appliedFilters.tags.length === 0 || appliedFilters.tags.every(tag => acc.amenities?.includes(tag))
+      const matchType = type === 'all' || acc.accommodationType === type
+      const matchRestriction = restriction === 'all' || acc.tenantRestriction === restriction
+      const matchRent = acc.minRent >= minRent && acc.maxRent <= maxRent
+      const matchWalk = acc.walkingDistance <= maxWalk
+      const matchCapacity = acc.accommodationCapacity >= minCapacity
+      const matchStayType = stayType === 'all' || acc.stayType === stayType || acc.stayType === 'both'
+      const matchRating = !acc.rating || acc.rating >= minRating
+      const matchTags = selectedTags.length === 0 || selectedTags.every(tag => acc.amenities?.includes(tag))
       return matchSearch && matchType && matchRestriction && matchRent && matchWalk && matchCapacity && matchStayType && matchRating && matchTags
     })
-  }, [accommodations, search, appliedFilters])
+  }, [accommodations, search, type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType, minRating, selectedTags])
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', fontFamily: "'Plus Jakarta Sans', sans-serif", overflow: 'hidden' }}>
@@ -213,8 +198,8 @@ export default function MapPage() {
                   />
                 </div>
 
-                {/* Favorites toggle (UI only) */}
-                <div className="max-md:col-span-2 space-y-2">
+                {/* Favorites toggle (UI only) — hidden for guests */}
+                {user && <div className="max-md:col-span-2 space-y-2">
                   <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Show Favorites Only</label>
                   <div className="h-[46px] flex items-center justify-between p-3 bg-[#FDF7F8] rounded-2xl border border-[#F5EBEB]">
                     <div className="flex items-center gap-3">
@@ -230,7 +215,7 @@ export default function MapPage() {
                       <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#710A2B]/20 peer-checked:after:bg-[#710A2B]" />
                     </label>
                   </div>
-                </div>
+                </div>}
 
                 {/* Dorm Type */}
                 <div className="max-md:col-span-1 space-y-2">
@@ -402,15 +387,6 @@ export default function MapPage() {
                 </div>
               </div>
 
-              {/* Apply Button */}
-              <div className="p-6 pt-4 border-t border-gray-50">
-                <button
-                  onClick={handleApplyFilters}
-                  className="w-full py-4 bg-[#710A2B] text-sm text-white font-bold rounded-2xl shadow-lg hover:bg-[#5a0822] transition-all active:scale-95"
-                >
-                  Apply Filters
-                </button>
-              </div>
             </div>
           </div>
 

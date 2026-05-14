@@ -1,28 +1,21 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Modal from "./Modal"
 import Button from "./Button"
 import FormSelect from "./SignUpForm/shared/FormSelect"
+import { api } from "../api/axios"
 
 //Types
 type RoomIssueReport = {
     building: string
-    roomNumber: string
+    roomId: string
     issueDetails: string
 }
 
-const reportableRooms: Record<string, string[]> = {
-    "Building 1": ["101", "102", "103", "104", "105"],
-    "Building 2": ["201", "202", "203", "204"],
-    "Building 3": ["301", "302", "303", "310"],
-    "Building 4": ["401", "402", "312"],
-    "Building 5": ["501", "502", "221"],
-    "Building 6": ["601", "602", "204"],
+type ManagerRoom = {
+    id: number
+    roomNumber: string
+    roomBuilding: string
 }
-
-const buildingOptions = Object.keys(reportableRooms).map((b) => ({
-    label: b,
-    value: b,
-}))
 
 type ReportModalProps = {
     open: boolean
@@ -30,39 +23,68 @@ type ReportModalProps = {
 }
 
 export default function ReportModal({ open, onClose }: ReportModalProps) {
-    const [form, setForm]     = useState<RoomIssueReport>({ building: "", roomNumber: "", issueDetails: "" })
-    const [errors, setErrors] = useState({ building: false, roomNumber: false, issueDetails: false })
+    const [form, setForm]     = useState<RoomIssueReport>({ building: "", roomId: "", issueDetails: "" })
+    const [errors, setErrors] = useState({ building: false, roomId: false, issueDetails: false })
+    const [rooms, setRooms]   = useState<ManagerRoom[]>([])
+    const [submitting, setSubmitting] = useState(false)
 
-    const roomOptions = form.building
-        ? reportableRooms[form.building].map((r) => ({ label: `Room ${r}`, value: r }))
-        : []
+    useEffect(() => {
+        if (!open) return
+        api.get("/manager/rooms").then((res) => {
+            setRooms(res.data ?? [])
+        })
+    }, [open])
+
+    const buildingOptions = useMemo(() => {
+        const seen = new Set<string>()
+        const list: { label: string; value: string }[] = []
+        for (const r of rooms) {
+            if (!seen.has(r.roomBuilding)) {
+                seen.add(r.roomBuilding)
+                list.push({ label: r.roomBuilding, value: r.roomBuilding })
+            }
+        }
+        return list
+    }, [rooms])
+
+    const roomOptions = useMemo(() => {
+        if (!form.building) return []
+        return rooms
+            .filter((r) => r.roomBuilding === form.building)
+            .map((r) => ({ label: `Room ${r.roomNumber}`, value: String(r.id) }))
+    }, [rooms, form.building])
 
     const handleClose = () => {
         onClose()
-        setForm({ building: "", roomNumber: "", issueDetails: "" })
-        setErrors({ building: false, roomNumber: false, issueDetails: false })
+        setForm({ building: "", roomId: "", issueDetails: "" })
+        setErrors({ building: false, roomId: false, issueDetails: false })
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const newErrors = {
             building:     !form.building,
-            roomNumber:   !form.roomNumber,
+            roomId:       !form.roomId,
             issueDetails: !form.issueDetails.trim(),
         }
         setErrors(newErrors)
         if (Object.values(newErrors).some(Boolean)) return
-        console.log("Issue reported:", form)
-        handleClose()
+        setSubmitting(true)
+        try {
+            await api.post(`/rooms/${form.roomId}/report-issue`, { issueDetails: form.issueDetails })
+            handleClose()
+        } finally {
+            setSubmitting(false)
+        }
     }
 
     const handleBuildingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setForm({ ...form, building: e.target.value, roomNumber: "" })
+        setForm({ ...form, building: e.target.value, roomId: "" })
         setErrors({ ...errors, building: false })
     }
 
     const handleRoomChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setForm({ ...form, roomNumber: e.target.value })
-        setErrors({ ...errors, roomNumber: false })
+        setForm({ ...form, roomId: e.target.value })
+        setErrors({ ...errors, roomId: false })
     }
 
     return (
@@ -74,7 +96,9 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
             maxHeight={560}
             footer={
                 <div className="flex flex-row justify-end w-full">
-                    <Button variant="reddishPink" onClick={handleSubmit}>Submit</Button>
+                    <Button variant="reddishPink" onClick={handleSubmit} disabled={submitting}>
+                        {submitting ? "Submitting..." : "Submit"}
+                    </Button>
                 </div>
             }
         >
@@ -92,12 +116,12 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
                     />
                     <FormSelect
                         label="Room Number"
-                        name="roomNumber"
-                        value={form.roomNumber}
+                        name="roomId"
+                        value={form.roomId}
                         defaultSelect={form.building ? "Select Room" : "Select a building first"}
                         onChange={handleRoomChange}
                         options={roomOptions}
-                        error={errors.roomNumber ? "required" : undefined}
+                        error={errors.roomId ? "required" : undefined}
                     />
                 </div>
 

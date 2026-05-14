@@ -4,10 +4,8 @@ import Modal from "../Modal";
 import type { ApplicationStatus } from "../../pages/student/ApplicationStatus";
 import StylizedStatus from "../BillingDashboard/StylizedStatus";
 import ApprovalProgress from "./ApprovalProgress";
+import defaultAccommodation from "@/assets/defaults/accommodation.png";
 import PhotoCarousel from "./PhotoCarousel";
-import Photo1 from "../../assets/images/forManager.png";
-import Photo2 from "../../assets/images/phone.png";
-import Photo3 from "../../assets/images/sample_dorm.jpg";
 import RightArrow from "../../assets/icons/right-arrow.svg";
 import { api } from "../../api/axios";
 
@@ -46,7 +44,6 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const queryClient = useQueryClient();
   const [cancelConfirmation, setCancelConfirmation] = useState("");
   const [carouselOpen, setCarouselOpen] = useState(false);
-  const accommodationPhotos = [Photo1, Photo2, Photo3];
 
   // Fetch accommodation details
   const { data: accomData, isLoading } = useQuery({
@@ -58,6 +55,12 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
     },
     enabled: !!application?.accommodationId && open,
   });
+
+  const accommodationPhotos = accomData?.imageUrls?.length > 0
+    ? accomData.imageUrls
+    : application?.accommodation?.primaryImageUrl
+      ? [application.accommodation.primaryImageUrl]
+      : [defaultAccommodation];
 
   // Mutation to cancel the application
   const cancelMutation = useMutation({
@@ -87,7 +90,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["student-applications"] });
       onClose(); 
       setCancelConfirmation("");
     },
@@ -110,7 +113,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["student-applications"] });
       onClose(); 
       setCancelConfirmation("");
     },
@@ -289,8 +292,8 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
             {/* render the deadline only if it exists */}
             {application.slotConfirmDeadline && (
               <div>
-                <p className="text-[10px] text-[#8C1535] uppercase font-bold mb-1">Confirm By</p>
-                <p className="font-bold text-[#8C1535]">
+                <p className="text-[11px] text-[#8C1535] uppercase font-bold mb-1">Confirm By</p>
+                <p className="font-bold -mt-1.5 text-[#8C1535]">
                   {new Date(application.slotConfirmDeadline).toLocaleString("en-US", { 
                     month: "short", 
                     day: "numeric", 

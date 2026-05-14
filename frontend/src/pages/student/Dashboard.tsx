@@ -6,9 +6,10 @@ import { api } from "../../api/axios"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import defaultAccommodation from "@/assets/defaults/accommodation.png"
 import CustomHeader from '../../components/CustomHeader';
-
+import UbleLoader from "../shared/LoadingPage";
 
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
+import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
 
 
 // Helpers
@@ -154,42 +155,88 @@ const heroContent: HeroContent = {
   newNotificationsToday: 3,
 };
 
-const toAccommodationPin = (acc: any): AccommodationPin => {
-  let minRent = -1
-  let maxRent = -1
-  ;(acc.rooms ?? []).forEach((r: any) => {
-    const rent = Number(r.roomRent ?? r.room_rent ?? 0)
-    if (minRent === -1 || rent < minRent) minRent = rent
-    if (maxRent === -1 || rent > maxRent) maxRent = rent
-  })
-  if (minRent === -1) minRent = 0
-  if (maxRent === -1) maxRent = 0
-
-  let rating = "6"
-  ;(acc.reviews ?? []).forEach((rv: any) => {
-    if (Number(rv.rating) < Number(rating)) rating = Number(rv.rating).toFixed(1)
-  })
-
-  return {
-    accommodationId: acc.id,
-    accommodationName: acc.accommodationName,
-    accommodationLocation: acc.accommodationLocation,
-    accommodationType: acc.accommodationType,
-    accommodationCapacity: acc.accommodationCapacity,
-    tenantRestriction: acc.tenantRestriction,
-    latitude: Number(acc.latitude),
-    longitude: Number(acc.longitude),
-    minRent,
-    maxRent,
-    walkingDistance: Number(acc.walkingDistance ?? 0),
-    drivingDistance: Number(acc.drivingDistance ?? 0),
-    bikingDistance: Number(acc.bikingDistance ?? 0),
-    rating: rating === "6" ? "0" : rating,
-    price: minRent,
-    minPrice: minRent,
-    maxPrice: maxRent,
-  }
-}
+const dashboardMapAccommodations: AccommodationPin[] = [
+  {
+    accommodationId: 1,
+    accommodationName: "Kamia Residence",
+    accommodationLocation: "UPLB Campus, Los Baños, Laguna",
+    accommodationType: "on-campus",
+    accommodationCapacity: 50,
+    tenantRestriction: "female-only",
+    latitude: 14.1672,
+    longitude: 121.2430,
+    minRent: 3200,
+    maxRent: 3200,
+    price: 3200,    
+    minPrice: 3200,  
+    maxPrice: 3200,  
+    walkingDistance: 3,
+    drivingDistance: 2,
+    bikingDistance: 2,
+    stayType: "transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    accommodationId: 2,
+    accommodationName: "Narra Residence",
+    accommodationLocation: "Off-campus, Los Baños, Laguna",
+    accommodationType: "off-campus",
+    accommodationCapacity: 30,
+    tenantRestriction: "coed",
+    latitude: 14.1690,
+    longitude: 121.2455,
+    minRent: 8500,
+    maxRent: 8500,
+    price: 3200,    
+    minPrice: 3200,  
+    maxPrice: 3200,  
+    walkingDistance: 8,
+    drivingDistance: 4,
+    bikingDistance: 5,
+    stayType: "non_transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    accommodationId: 3,
+    accommodationName: "Molave Dorm",
+    accommodationLocation: "On-campus, Los Baños, Laguna",
+    accommodationType: "on-campus",
+    accommodationCapacity: 40,
+    tenantRestriction: "male-only",
+    latitude: 14.1658,
+    longitude: 121.2418,
+    minRent: 5000,
+    maxRent: 5000,
+    price: 3200,     
+    minPrice: 3200,  
+    maxPrice: 3200,  
+    walkingDistance: 5,
+    drivingDistance: 3,
+    bikingDistance: 3,
+    stayType: "non_transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+  {
+    accommodationId: 4,
+    accommodationName: "Acacia Suites",
+    accommodationLocation: "Near Gate 1, Los Baños, Laguna",
+    accommodationType: "off-campus",
+    accommodationCapacity: 20,
+    tenantRestriction: "coed",
+    latitude: 14.1645,
+    longitude: 121.2400,
+    minRent: 4200,
+    maxRent: 4200,
+    price: 3200,     
+    minPrice: 3200,   
+    maxPrice: 3200,   
+    walkingDistance: 10,
+    drivingDistance: 6,
+    bikingDistance: 7,
+    stayType: "transient",
+    imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80",
+  },
+];
 
 
 // const billingStatements: BillingStatement[] = [
@@ -299,10 +346,11 @@ const StarRating = ({ rating }: { rating: number }) => (
 interface BillingSectionProps {
   overview: BillingOverview;
   statements: BillingStatement[];
+  navigate: any;
 }
 
 
-const BillingSection = ({ overview, statements }: BillingSectionProps) => (
+const BillingSection = ({ overview, statements, navigate }: BillingSectionProps) => (
   <div className="space-y-5">
     <div className="flex items-start justify-between gap-3">
       {/* LEFT SIDE */}
@@ -477,6 +525,8 @@ const BillingSection = ({ overview, statements }: BillingSectionProps) => (
       </div>
 
       <button
+        type="button"
+        onClick={() => navigate('/student/billingdashboard')}
         className="w-full mt-5 text-[15px] font-semibold hover:underline flex items-center justify-center gap-1"
         style={{ color: CLR.mid }}
       >
@@ -491,9 +541,29 @@ interface DesktopProfilePanelProps {
   profile: StudentProfile;
   billing: BillingOverview;
   statements: BillingStatement[];
+  navigate: any;
+  notifOpen: boolean;
+  setNotifOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  notifications: Notification[];
+  unreadCount: number;
+  markAllRead: () => void;
+  markOneRead: (id: number) => void;
+  notifWrapperRef: React.RefObject<HTMLDivElement| null>;
 }
 
-const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePanelProps) => (
+const DesktopProfilePanel = ({
+  profile,
+  billing,
+  statements,
+  navigate,
+  notifOpen,
+  setNotifOpen,
+  notifications,
+  unreadCount,
+  markAllRead,
+  markOneRead,
+  notifWrapperRef,
+}: DesktopProfilePanelProps) => (
   <aside className="hidden lg:flex w-[390px] xl:w-[420px] flex-shrink-0 flex-col gap-4 px-4 pb-4 bg-[#F6F2F4] overflow-y-auto h-screen">
     {/* Top Gradient  */}
     <div
@@ -511,7 +581,10 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
       <div className="flex items-center justify-between mb-6">
         <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
 
-       <button
+       <div ref={notifWrapperRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setNotifOpen((prev) => !prev)}
           className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
           style={{ background: "rgba(255,255,255,0.08)" }}
         >
@@ -521,11 +594,24 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
             className="w-full h-full object-contain scale-[2.5]"
           />
 
-          <span
-            className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
-            style={{ background: CLR.gold }}
-          />
+          {unreadCount > 0 && (
+            <span
+              className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
+              style={{ background: CLR.gold }}
+            />
+          )}
         </button>
+
+        <NotificationPanel
+          open={notifOpen}
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onMarkAllRead={markAllRead}
+          onMarkOneRead={markOneRead}
+          onClose={() => setNotifOpen(false)}
+          wrapperRef={notifWrapperRef}
+        />
+      </div>
       </div>
       {/* Profile Content */}
       <div className="flex items-center gap-4">
@@ -579,7 +665,7 @@ const DesktopProfilePanel = ({ profile, billing, statements }: DesktopProfilePan
     </div>
     </div>
     <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
-      <BillingSection overview={billing} statements={statements} />
+      <BillingSection overview={billing} statements={statements} navigate={navigate} />
     </div>
   </aside>
 );
@@ -599,11 +685,50 @@ export default function Dashboard() {
   const [applicationsLoading, setApplicationsLoading] = useState(true);
   const [recommendedDorms, setRecommendedDorms] = useState<any[]>([]);
   const [recommendedLoading, setRecommendedLoading] = useState(true);
-  const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([]);
   const [billingOverviewData, setBillingOverviewData] = useState<BillingOverview | null>(null);
   const [billingStatementsData, setBillingStatementsData] = useState<BillingStatement[]>([]);
   const [billingLoading, setBillingLoading] = useState(true);
+  const [dashboardMapAccommodations, setDashboardMapAccommodations] = useState<AccommodationPin[]>([])
+  const [mapFilter, setMapFilter] = useState("All")
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const notifWrapperRef = useRef<HTMLDivElement>(null)
 
+  useEffect(() => {
+    api.get('/notifications')
+      .then(({ data }) => {
+        setNotifications(
+          data.map((n: any) => ({
+            id: n.id,
+            type: n.notificationType,
+            message: n.notificationContent,
+            time: new Date(n.notificationTimestamp).toLocaleString(),
+            read: n.readStatus === 'read',
+          }))
+        )
+      })
+      .catch(console.error)
+  }, [])
+
+  const unreadCount = notifications.filter((n) => !n.read).length
+
+  const markAllRead = () => {
+    notifications
+      .filter((n) => !n.read)
+      .forEach((n) =>
+        api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
+      )
+
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
+
+  const markOneRead = (id: number) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    )
+
+    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
+  }
     
   const {
     data: user,
@@ -625,6 +750,17 @@ export default function Dashboard() {
       behavior: "smooth",
     });
   };
+
+  const filteredDashboardMapAccommodations =
+  activeFilter === "All"
+    ? dashboardMapAccommodations
+    : dashboardMapAccommodations.filter((acc) => {
+        if (activeFilter === "On-Campus") return acc.accommodationType === "on-campus"
+        if (activeFilter === "Off-Campus") return acc.accommodationType === "off-campus"
+        if (activeFilter === "UPLB Partner") return acc.accommodationType === "partner_housing"
+        return true
+      })
+
   // Profile and authentication -------------------
   useEffect(() => {
   const fetchProfile = async () => {
@@ -765,22 +901,6 @@ useEffect(() => {
 }, [])
 // ---------------------------------
 
-// Map accommodations fetch -----------------
-useEffect(() => {
-  const fetchMapAccommodations = async () => {
-    try {
-      const res = await api.get('/accommodations')
-      const list = Array.isArray(res.data) ? res.data : []
-      setMapAccommodations(list.map(toAccommodationPin))
-    } catch (error) {
-      console.error('Failed to fetch map accommodations:', error)
-      setMapAccommodations([])
-    }
-  }
-  fetchMapAccommodations()
-}, [])
-// ---------------------------------
-
 // Billing info fetch---------------------------------
 useEffect(() => {
   const fetchBilling = async () => {
@@ -875,48 +995,64 @@ useEffect(() => {
 }, []);
 // ---------------------------------
 
-if (profileLoading) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
-      <p className="text-gray-600">Loading profile...</p>
-    </div>
-  );
+// --------- Map accommodations fetch (for map pins) ----------------
+useEffect(() => {
+  const fetchMapAccommodations = async () => {
+    try {
+      const res = await api.get("/accommodations")
+      const accommodations = Array.isArray(res.data) ? res.data : []
+
+      const pins: AccommodationPin[] = accommodations.map((acc: any) => {
+        const rents = acc.rooms?.map((r: any) => Number(r.roomRent)) ?? []
+        const minRent = rents.length ? Math.min(...rents) : 0
+        const maxRent = rents.length ? Math.max(...rents) : 0
+
+        return {
+          accommodationId: acc.id,
+          accommodationName: acc.accommodationName,
+          accommodationLocation: acc.accommodationLocation,
+          accommodationType: acc.accommodationType,
+          accommodationCapacity: acc.accommodationCapacity,
+          tenantRestriction: acc.tenantRestriction,
+          latitude: acc.latitude,
+          longitude: acc.longitude,
+          minRent,
+          maxRent,
+          price: minRent,
+          minPrice: minRent,
+          maxPrice: maxRent,
+          walkingDistance: acc.walkingDistance,
+          drivingDistance: acc.drivingDistance,
+          bikingDistance: acc.bikingDistance,
+          rating: "0",
+          imageUrl: acc.primaryImageUrl,
+        }
+      })
+
+      setDashboardMapAccommodations(pins)
+    } catch (error) {
+      console.error("Failed to fetch map accommodations:", error)
+    }
+  }
+
+  fetchMapAccommodations()
+}, [])
+// ---------------------------------
+
+const isLoading = profileLoading || isUserLoading
+
+if (isLoading) {
+    return null
 }
 
-if (!profile) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
-      <p className="text-gray-600">Profile not found.</p>
-    </div>
-  );
+if (!profile || !user || user.role !== "student") {
+    return null  // Will redirect via useEffect
 }
-
-if (isUserLoading) {
-    return (
-        <div className="flex items-center justify-center h-screen">
-        <p>Loading...</p>
-        </div>
-    );
-    }
-
-
-    if (!user || user.role !== "student") {
-    return null;
-    }
-
 // ------------------------------------------------------
 
 
 
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
-
-  const filteredMapAccommodations = mapAccommodations.filter((a) => {
-    if (activeFilter === "All") return true;
-    if (activeFilter === "On-Campus") return a.accommodationType === "on-campus";
-    if (activeFilter === "Off-Campus") return a.accommodationType === "off-campus";
-    if (activeFilter === "UPLB Partner") return a.accommodationType === "partner_housing";
-    return true;
-  });
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
@@ -951,21 +1087,26 @@ if (isUserLoading) {
           </div>
 
           <div className="bg-white rounded-[22px] shadow-sm border border-gray-100 overflow-hidden">
-            <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-3">
+            <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
               <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
-              <button className="text-sm font-semibold hover:underline flex items-center gap-1" style={{ color: CLR.mid }}>
-                View all  →
-              </button>
+             <button
+              type="button"
+              onClick={() => navigate('/student/applications')}
+              className="text-sm font-bold hover:underline my-auto flex items-center gap-1"
+              style={{ color: CLR.mid }}
+            >
+              View all <IconChevronRight className="w-4 h-4" />
+            </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[540px]">
+            <div className="overflow-x-auto p-4">
+              <table className="w-full text-sm min-w-[540px] border-b -mt-1 border-[#6B0F2B]/10">
                 <thead>
-                  <tr className="border-t border-gray-100">
+                  <tr className="border-y border-[#6B0F2B]/10">
                     {["DORM", "TYPE", "APPLIED", "LOCATION", "STATUS", "ACTION"].map((h) => (
                       <th
                         key={h}
-                        className="px-4 sm:px-6 py-2.5 text-left text-[10px] font-bold tracking-widest text-[#A06B7C] uppercase whitespace-nowrap"
+                        className="px-4 text-left text-[#9A7080] text-[12px] tracking-widest font-bold uppercase whitespace-nowrap"
                       >
                         {h}
                       </th>
@@ -1008,9 +1149,11 @@ if (isUserLoading) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="sm:col-span-1 lg:col-span-3 bg-white rounded-[28px] shadow-[0_10px_24px_rgba(61,7,24,0.12)] border border-[#EFE5E8] p-6">
               <div className="flex items-center justify-between pb-4 border-b border-[#F1E5EA]">
-                <h3 className="font-bold text-[#1B2233] text-[15px]">Recommended</h3>
+                <h3 className="font-bold text-[#1B2233] text-base">Recommended</h3>
                 <button
-                  className="text-[14px] font-semibold flex items-center gap-1"
+                  type="button"
+                  onClick={() => navigate('/student/browse')}
+                  className="text-[14px] font-bold flex items-center gap-1"
                   style={{ color: CLR.mid }}
                 >
                   View all <IconChevronRight className="w-4 h-4" />
@@ -1153,16 +1296,12 @@ if (isUserLoading) {
             </div>
 
             <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-[22px] shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
-              <div className="rounded-xl overflow-hidden flex-1 min-h-[220px] sm:min-h-[260px] relative">
-                <div className="absolute inset-0">
-                 <AccommodationMap
-                  accommodations={filteredMapAccommodations}
-                  centeredAccommodation={filteredMapAccommodations[0] ?? null}
-                  onCardClick={(acc) => {
-                    navigate(`/student/roomview/${acc.accommodationId}`)
-                  }}
+              <div className="h-[320px] rounded-2xl overflow-hidden">
+                <AccommodationMap
+                  accommodations={filteredDashboardMapAccommodations}
+                  centeredAccommodation={null}
+                  onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
                 />
-                </div>
               </div>
 
               <div>
@@ -1171,11 +1310,17 @@ if (isUserLoading) {
                 </p>
 
                 <div className="relative mb-3">
-                  <select className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition">
-                    <option>All Types</option>
-                    <option>Transient</option>
-                    <option>Non-transient</option>
+                  <select
+                    value={activeFilter}
+                    onChange={(e) => setActiveFilter(e.target.value)}
+                    className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition"
+                  >
+                    <option value="All">All Types</option>
+                    <option value="On-Campus">On-Campus</option>
+                    <option value="Off-Campus">Off-Campus</option>
+                    <option value="UPLB Partner">UPLB Partner</option>
                   </select>
+
                   <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 </div>
 
@@ -1183,6 +1328,7 @@ if (isUserLoading) {
                   {mapFilters.map((f) => (
                     <button
                       key={f}
+                      type="button"
                       onClick={() => setActiveFilter(f)}
                       className="px-2.5 py-1 rounded-full text-xs font-semibold transition-all"
                       style={
@@ -1197,7 +1343,8 @@ if (isUserLoading) {
                 </div>
 
                 <button
-                  onClick={() => navigate("/map")}
+                  type="button"
+                  onClick={() => navigate("/student/browse")}
                   className="w-full text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-sm"
                   style={{ background: CLR.mid }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = CLR.dark)}
@@ -1217,6 +1364,7 @@ if (isUserLoading) {
               <BillingSection
                 overview={billingOverviewData ?? emptyBilling}
                 statements={billingStatementsData}
+                navigate={navigate}
               />
             ) : (
               <div className="bg-white rounded-2xl p-4">
@@ -1231,6 +1379,14 @@ if (isUserLoading) {
         profile={profile}
         billing={billingOverviewData ?? emptyBilling}
         statements={billingStatementsData}
+        navigate={navigate}
+        notifOpen={notifOpen}
+        setNotifOpen={setNotifOpen}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        markAllRead={markAllRead}
+        markOneRead={markOneRead}
+        notifWrapperRef={notifWrapperRef}
       />
     </div>
   );

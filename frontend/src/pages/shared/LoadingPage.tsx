@@ -140,8 +140,8 @@ const UbleLoader: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-8 min-h-screen bg-white relative overflow-hidden">
-      {/* Floating circles */}
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-8 bg-white overflow-hidden">
+    {/* Floating circles */}
       {circles.map(circle => (
         <React.Fragment key={circle.id}>
           {!circle.popped && (

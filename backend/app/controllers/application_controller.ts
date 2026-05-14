@@ -10,6 +10,7 @@ import WaitlistWorkflowService from '#services/waitlisted_workflow_service'
 import Room from '#models/room'
 import db from '@adonisjs/lucid/services/db'
 import { withPrimaryImageUrl } from '#services/image_service'
+import { signImageUrl } from '#services/image_service'
 
 @inject()
 export default class ApplicationsController {
@@ -116,6 +117,18 @@ export default class ApplicationsController {
     if (activeStay) {
       return response.conflict({ message: 'You already have an active housing assignment.' })
     }
+    
+    // prevent exact duplicates applications
+    const existingApplication = await Application.query()
+      .where('studentNumber', student.studentNumber)
+      .where('accommodationId', accommodationId)
+      // We block it if they are already in any of these active phases:
+      .whereIn('applicationStatus', ['pending', 'under_review', 'approved', 'waitlisted', 'confirmed'])
+      .first()
+
+    if (existingApplication) {
+      return response.conflict({ message: 'You already have an active application for this accommodation.' })
+    }
 
     // Transient applications skip the manager step and land in the landlord's queue
     // for downpayment verification. Non-transient follow the normal pending → manager flow.
@@ -147,59 +160,58 @@ export default class ApplicationsController {
     if (!user) return response.unauthorized({ message: 'Unauthorized' })
     const student = await Student.findByOrFail('userId', user.id)
 
-    // 1. Fetch all applications and preload all required nested relationships on 'accommodation'
+    // Fetch applications with minimal preloads
     const applications = await Application.query()
       .where('studentNumber', student.studentNumber)
-      .preload('accommodation', (accommodationQuery) => {
-        // Preload rooms and their tags for rent calculation
-        accommodationQuery.preload('rooms', (roomQuery) => {
-          roomQuery.preload('tags')
+      .preload('accommodation', (q) => {
+        q.select('id', 'accommodationName', 'accommodationType', 'accommodationLocation', 'primaryImageIndex')
+        q.preload('images', (img) => {
+          img.limit(1)
+          img.preload('file', (f) => f.select('id', 'filePath'))
         })
-        // Preload images and their files for the signed URL
-        accommodationQuery.preload('images', (imageQuery) => {
-          imageQuery.preload('file')
+        q.preload('rooms', (r) => {
+          r.select('id', 'accommodationId', 'roomRent', 'roomType', 'roomStayType')
+          r.preload('tags')
         })
       })
       .orderBy('applicationDate', 'desc')
+      .limit(50)
 
-    // 2. Process applications to compute rent, attach signed URLs, and serialize
+    // Calculate rent in memory (avoids N+1 DB queries)
     const data = await Promise.all(
       applications.map(async (app) => {
-        // --- A. Compute Estimated Rent ---
-        const accommodationRooms = app.accommodation?.rooms ?? []
-        const preferredTags: string[] = (app as any).preferredTags ?? []
+        const serialized = app.serialize() as any
 
-        const matchingRooms = accommodationRooms.filter(room => {
+        const rooms = app.accommodation?.rooms || []
+        const preferredTags: string[] = (app as any).preferredTags || []
+
+        const matchingRooms = rooms.filter((room: any) => {
           if (room.roomType !== app.applicationRoomType) return false
           if (room.roomStayType !== app.applicationStayType) return false
           if (preferredTags.length > 0) {
-            const roomTagNames = room.tags?.map(t => t.tagDetail) ?? []
-            if (!preferredTags.every(tag => roomTagNames.includes(tag))) return false
+            const roomTags = room.tags?.map((t: any) => t.tagDetail) || []
+            if (!preferredTags.every((tag: string) => roomTags.includes(tag))) return false
           }
           return true
         })
 
-        const estimatedRent = matchingRooms.length > 0
-          ? Math.min(...matchingRooms.map(r => r.roomRent))
-          : null
+        serialized.estimatedMonthlyRent =
+          matchingRooms.length > 0
+            ? Math.min(...matchingRooms.map((r: any) => r.roomRent))
+            : null
 
-        // --- B. Serialize Model to Plain JSON Object ---
-        const serializedApp = app.serialize() as any
-
-        // --- C. Attach Custom Properties ---
-        serializedApp.estimatedMonthlyRent = estimatedRent
-
-        if (app.accommodation) {
-          // Resolve B2 signed URL and attach it to the serialized accommodation object
-          serializedApp.accommodation = await withPrimaryImageUrl(app.accommodation)
+        if (app.accommodation?.images?.length > 0) {
+          serialized.accommodation = serialized.accommodation || {}
+          serialized.accommodation.primaryImageUrl = await signImageUrl(
+            app.accommodation.images[0]?.file?.filePath
+          )
         }
 
-        return serializedApp
+        return serialized
       })
     )
 
-    // Return the fully populated and serialized array
-    return data
+    return response.ok(data)
   }
 
   // ─── MANAGER/LANDLORD: VIEW INCOMING ────────────────────────

@@ -105,6 +105,11 @@ router
 
         // ─── FEES (CREATED BY LANDLORD) ───
         router.post('/fees', [controllers.Fees, 'store'])
+        router.post('/landlord/fees/bulk', [controllers.Fees, 'bulkStore'])
+
+        // ─── ROOM ISSUES (LANDLORD VIEW + RESOLVE) ───
+        router.get('/landlord/room-issues', [controllers.Rooms, 'listIssues'])
+        router.patch('/room-issues/:id/resolve', [controllers.Rooms, 'resolveIssue'])
 
         // Manager Handover
         router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])
@@ -155,6 +160,7 @@ router
         router.get('/view-assignments', [controllers.Assignments, 'viewAssignments'])
         router.post('/assignments', [controllers.Assignments, 'store'])
         router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
+        router.patch('/assignments/:id/transfer', [controllers.Assignments, 'transfer'])
 
         // Payment Verification
         router.get('/payments/pending', [controllers.Payments, 'pending'])
@@ -164,6 +170,9 @@ router
         // Reports
         router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
         router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
+
+        // ─── PHONE DUPLICATE CHECK ───
+        router.get('/check-phone/:phone', [controllers.PhoneNumbers, 'check'])
 
         // Document Zip Export (Backblaze)
         router.get('/accommodations/:id/export-documents', [

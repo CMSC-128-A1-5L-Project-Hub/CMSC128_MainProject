@@ -30,16 +30,12 @@ interface ApplicationStatusPageProps {
 const fetchApplications = async (): Promise<Application[]> => {
     try {
         const res = await api.get("/applications/my-applications");
-        
-        const body = res.data;
-        return body.data ?? body;
+        return res.data; // return res.data directly, just like Dashboard.tsx does!
     } catch (error: any) {
         console.error("Fetch applications error:", error);
-        // If the server explicitly says "Not Found" (404), return an empty array
-        if (error.response && error.response.status === 404) {
+        if (error.response?.status === 404) {
             return [];
         }
-        
         throw error;
     }
 };
@@ -69,7 +65,7 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
 
     // Data fetching - using the real API
     const { data: applications = [], isLoading, isError } = useQuery({
-        queryKey: ["applications"],
+        queryKey: ["student-applications"],
         queryFn: fetchApplications,
     });
 
@@ -163,7 +159,7 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
 
                     <div className="bg-white rounded-2xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
                         <div className='flex justify-between pb-2 lg:pb-4'>
-                            <div>
+                            <div className='my-auto'>
                                 <h1 className='font-bold -mt-1'>Application History</h1>
                                 <p className='italic text-[11px] lg:text-[12px]'>{totalApps} total applications</p>
                             </div>
@@ -244,36 +240,18 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                         </div>
 
                         <div className={`${applications.length === 0 ? "hidden" : "flex flex-col"}`}>
-                            <hr className="border-[#6B0F2B]/5 border-t-2" />
+                            <hr className="border-[#6B0F2B]/10 border-t" />
                             <div className="flex items-center justify-between mt-3">
                                 <p className="text-xs text-[#9A7080]">
                                     {totalApps === 0
                                         ? "No results"
                                         : `Showing ${(currentPage - 1) * ROWS_PER_PAGE + 1}–${Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of ${totalApps}`}
                                 </p>
-                                <div className="flex items-center justify-center gap-1 mt-3 mb-2">
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                        <button
-                                            key={page}
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
-                                                ${currentPage === page
-                                                    ? "text-white"
-                                                    : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"}`}
-                                            style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
-                                        >
-                                            {page}
-                                        </button>
-                                    ))}
-                                    {currentPage < totalPages && (
-                                        <button
-                                            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                                            className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
-                                        >
-                                            {">"}
-                                        </button>
-                                    )}
-                                </div>
+                                <Pagination
+                                    totalPages={totalPages}
+                                    currentPage={currentPage}
+                                    onPageChange={setCurrentPage}
+                                    />
                             </div>
                         </div>
                         

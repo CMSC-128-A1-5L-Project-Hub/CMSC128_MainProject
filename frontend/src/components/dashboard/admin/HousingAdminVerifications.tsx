@@ -1,5 +1,8 @@
 import Card from "@/components/ui/Card"
 import { useNavigate } from "react-router-dom"
+import { useState } from "react"
+import HousingAdminVerificationModal from "./HousingAdminVerificationsModal"
+
 
 type HousingAdminVerificationsProps = {
   admins: any[]
@@ -26,6 +29,27 @@ export default function HousingAdminVerifications({
 
   const navigate = useNavigate()
 
+  
+  const [selectedItem, setSelectedItem] = useState<any | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
+
+  const handleReview = (item: any) => {
+    setSelectedItem(item)
+    setModalOpen(true)
+  }
+
+  const handleClose = () => {
+    setModalOpen(false)
+
+    setTimeout(() => {
+      setSelectedItem(null)
+    }, 350)
+  }
+
+  const handleApprove = (userId: number) => {
+    onApprove(userId)
+    handleClose()
+  }
 
   return (
     <Card className="shadow-sm rounded-2xl border border-[#F2D9DF] bg-white p-6">
@@ -86,7 +110,7 @@ export default function HousingAdminVerifications({
 
                   <td className="py-4 text-center">
                     <button
-                      onClick={() => onApprove(item.user.id)}
+                      onClick={() => handleReview(item)}
                       disabled={verifyingUserId === item.user.id}
                       className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-4 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF] disabled:opacity-60"
                     >
@@ -101,6 +125,14 @@ export default function HousingAdminVerifications({
           </table>
         </div>
       )}
+       <HousingAdminVerificationModal
+        open={modalOpen}
+        onClose={handleClose}
+        selectedItem={selectedItem}
+        verifyingUserId={verifyingUserId}
+        onApprove={handleApprove}
+        onReject={handleApprove}
+      />
     </Card>
   )
 }

@@ -181,13 +181,40 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
       stay_type: newRoom.stay_type,
       tenant_restriction: newRoom.tenant_restriction,
     });
+    
+    onClose();
   };
 
-  if (!open) return null;
+  const handleClose = () => {
+    onClose();
+    setNewRoom({
+      name: "",
+      building: "",
+      type: "Double",
+      capacity: 2,
+      price: "",
+      stay_type: "non_transient",
+      tenant_restriction: "coed",
+    });
+    setInclusions([]);
+    setPreferences([]);
+    setErrors({});
+  };
 
   return (
-    <Modal open={open} onClose={onClose} title="Add New Room">
-      <div className="space-y-4 sm:space-y-5 max-h-[65vh] sm:max-h-[70vh] overflow-y-auto pr-1 sm:pr-2">
+    <Modal
+      open={open}
+      onClose={handleClose}
+      title="Add New Room"
+      footer={
+        <div className="flex flex-row justify-end w-full">
+          <Button variant="primary" onClick={handleSubmit}>
+            Create Room
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-4 sm:space-y-5">
         {/* Room Name */}
         <div className="flex flex-col gap-1">
           <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">ROOM NAME</label>
@@ -195,7 +222,7 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
             type="text"
             value={newRoom.name}
             onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
-            className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${
+            className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 transition ${
               errors.name ? "border-red-500" : "border-[#e5cfd4]"
             }`}
             placeholder="e.g., Executive Suite"
@@ -210,7 +237,7 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
             type="text"
             value={newRoom.building}
             onChange={(e) => setNewRoom({ ...newRoom, building: e.target.value })}
-            className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${
+            className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 transition ${
               errors.building ? "border-red-500" : "border-[#e5cfd4]"
             }`}
             placeholder="e.g., North Tower"
@@ -225,7 +252,7 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
             <select
               value={newRoom.type}
               onChange={(e) => handleTypeChange(e.target.value as Room["type"])}
-              className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${
+              className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 transition ${
                 errors.type ? "border-red-500" : "border-[#e5cfd4]"
               }`}
             >
@@ -246,7 +273,7 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
               onBlur={applyCapacityUpdate}
               onKeyDown={handleCapacityKeyDown}
               disabled={newRoom.type !== "Shared"}
-              className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${
+              className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 transition ${
                 errors.capacity ? "border-red-500" : "border-[#e5cfd4]"
               } ${newRoom.type !== "Shared" ? "bg-gray-100 cursor-not-allowed" : ""}`}
             />
@@ -261,7 +288,7 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
             type="number"
             value={newRoom.price}
             onChange={(e) => setNewRoom({ ...newRoom, price: e.target.value })}
-            className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${
+            className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 transition ${
               errors.price ? "border-red-500" : "border-[#e5cfd4]"
             }`}
             placeholder="0"
@@ -277,7 +304,7 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
             <select
               value={newRoom.stay_type}
               onChange={(e) => setNewRoom({ ...newRoom, stay_type: e.target.value as "transient" | "non_transient" })}
-              className="border border-[#e5cfd4] rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30"
+              className="border border-[#e5cfd4] rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 transition"
             >
               <option value="transient">Transient</option>
               <option value="non_transient">Non‑Transient</option>
@@ -288,7 +315,7 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
             <select
               value={newRoom.tenant_restriction}
               onChange={(e) => setNewRoom({ ...newRoom, tenant_restriction: e.target.value as "coed" | "non-coed" })}
-              className="border border-[#e5cfd4] rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30"
+              className="border border-[#e5cfd4] rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 transition"
             >
               <option value="coed">Co‑ed</option>
               <option value="non-coed">Non‑Coed</option>
@@ -349,7 +376,7 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
               onChange={(e) => setCustomInclusionInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomInclusion(); }}}
               placeholder="Add custom inclusion..."
-              className="flex-1 border border-[#e5cfd4] rounded-lg px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="flex-1 border border-[#e5cfd4] rounded-lg px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 transition"
             />
             <Button variant="secondary" size="sm" onClick={addCustomInclusion} type="button" className="text-[10px] sm:text-xs">Add</Button>
           </div>
@@ -408,7 +435,7 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
               onChange={(e) => setCustomPreferenceInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomPreference(); }}}
               placeholder="Add custom preference..."
-              className="flex-1 border border-[#e5cfd4] rounded-lg px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="flex-1 border border-[#e5cfd4] rounded-lg px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-amber-500 transition"
             />
             <Button variant="secondary" size="sm" onClick={addCustomPreference} type="button" className="text-[10px] sm:text-xs">Add</Button>
           </div>
@@ -427,8 +454,6 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
           {inclusions.length > 0 && <div><p className="text-gray-500 text-[10px] sm:text-xs">Inclusions</p><p className="text-[10px] sm:text-xs">{inclusions.map(t => t.name).join(", ")}</p></div>}
           {preferences.length > 0 && <div><p className="text-gray-500 text-[10px] sm:text-xs">Preferences</p><p className="text-[10px] sm:text-xs">{preferences.map(t => t.name).join(", ")}</p></div>}
         </div>
-
-        <Button className="w-full py-2 sm:py-2.5 mt-2 text-xs sm:text-sm" onClick={handleSubmit}>Create Room</Button>
       </div>
     </Modal>
   );

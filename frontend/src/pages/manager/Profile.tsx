@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/axios";
 
 import Sidebar from "../../components/Sidebar";
-
+import UbleLoader from "../shared/LoadingPage";
 import Bell from "../../assets/icons/bell_icon.svg?react";
 import Camera from "../../assets/icons/camera.svg";
 import Pencil from "../../assets/icons/edit.svg";
@@ -113,10 +113,10 @@ export default function Profile() {
   }, [user, navigate]);
 
 
-  if (profileLoading) {
+if (profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F6F2F4]">
-        <p className="text-gray-600">Loading profile...</p>
+        <UbleLoader />
       </div>
     );
   }

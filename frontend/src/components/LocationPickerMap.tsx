@@ -4,6 +4,7 @@ import type { MapRef } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { useAccommodationFormStore } from '../stores/useAccommodationFormStore'
 import { UPLB } from '../constants/uplb'
+import { GraduationCap, MapPin, Crosshair } from 'lucide-react'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -37,6 +38,15 @@ export default function LocationPickerMap() {
   const [isPinPlaced, setIsPinPlaced] = useState(latitude !== null)
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const recenterToUPLB = () => {
+    setPinLat(UPLB.latitude)
+    setPinLng(UPLB.longitude)
+    setIsPinPlaced(false)
+    setSearchInput('')
+    setLocation('', UPLB.latitude, UPLB.longitude)
+    mapRef.current?.flyTo({ center: [UPLB.longitude, UPLB.latitude], zoom: 14, duration: 800 })
+  }
 
   const handleMapClick = useCallback(async (e: any) => {
     const { lat, lng } = e.lngLat
@@ -115,9 +125,20 @@ export default function LocationPickerMap() {
 
       {error && <p className="text-red-500 text-xs">{error}</p>}
 
-      <p className="text-[10px] text-gray-400">
-        Search an address or click anywhere on the map. Drag the pin to fine-tune.
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] text-gray-400">
+          Search an address or click anywhere on the map. Drag the pin to fine-tune.
+        </p>
+        <button
+          type="button"
+          onClick={recenterToUPLB}
+          className="flex items-center gap-1.5 text-[10px] font-semibold text-[#7a001f] hover:text-[#6B0F2B] px-3 py-1.5 rounded-lg border border-[#e5cfd4] hover:border-[#7a001f] transition-all"
+          title="Recenter to UPLB"
+        >
+          <Crosshair size={12} />
+          Recenter
+        </button>
+      </div>
 
       {/* Map */}
       <div className="w-full h-[250px] rounded-xl overflow-hidden border border-[#e5cfd4]">
@@ -134,8 +155,8 @@ export default function LocationPickerMap() {
 
           {/* UPLB marker */}
           <Marker longitude={UPLB.longitude} latitude={UPLB.latitude} anchor="bottom">
-            <div className="bg-purple-600 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow text-xs">
-              🎓
+            <div className="bg-[#6B0F2B] w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-md">
+              <GraduationCap size={14} className="text-white" />
             </div>
           </Marker>
 
@@ -149,9 +170,10 @@ export default function LocationPickerMap() {
               onDragEnd={handleMarkerDragEnd}
             >
               <div className="flex flex-col items-center cursor-grab active:cursor-grabbing">
-                <div className="bg-[#7a001f] w-9 h-9 rounded-full flex items-center justify-center border-4 border-white shadow-lg text-sm">
-                  📍
+                <div className="bg-[#7a001f] w-9 h-9 rounded-full flex items-center justify-center border-[3px] border-white shadow-lg">
+                  <MapPin size={16} className="text-white" fill="white" />
                 </div>
+                <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-[#7a001f] -mt-0.5" />
               </div>
             </Marker>
           )}
