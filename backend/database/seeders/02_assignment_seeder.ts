@@ -31,6 +31,10 @@
     */
     export default class AssignmentSeeder extends BaseSeeder {
         async run() {
+            // Uncomment to wipe first
+            // await db.from("assignments").delete()
+            // await db.from("rooms").update({ room_current_occupancy: 0, room_availability: "available" })
+
             const students = await Student.all();
             const unassigned = [...students];
 
