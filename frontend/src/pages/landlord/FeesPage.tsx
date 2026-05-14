@@ -6,6 +6,7 @@ import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
 import Dropdown from "@/components/ApplicationStatus/Dropdown"
 import SearchBar from "@/components/SearchBar"
+import Toast from "@/components/Toast"
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -104,7 +105,11 @@ function FilterTabs({ active, setActive }: { active: ActiveTab; setActive: (tab:
 
 // ─── Payment Verification Row ──────────────────────────────────────────────
 
-function PaymentRow({ payment, onVerify }: { payment: PendingPayment; onVerify: (id: number, action: 'approve' | 'reject') => void }) {
+function PaymentRow({ payment, onVerify, isPending }: { 
+  payment: PendingPayment; 
+  onVerify: (id: number, action: 'approve' | 'reject') => void;
+  isPending: boolean;
+}) {
   const [showActions, setShowActions] = useState(false)
   const studentName = payment.fee?.student?.user
     ? `${payment.fee.student.user.fname} ${payment.fee.student.user.lname}`
@@ -136,13 +141,15 @@ function PaymentRow({ payment, onVerify }: { payment: PendingPayment; onVerify: 
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => onVerify(payment.id, 'approve')}
-              className="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700"
+              disabled={isPending}
+              className="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-50"
             >
               Approve
             </button>
             <button
               onClick={() => onVerify(payment.id, 'reject')}
-              className="px-3 py-1 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700"
+              disabled={isPending}
+              className="px-3 py-1 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-50"
             >
               Reject
             </button>
@@ -337,8 +344,16 @@ export default function FeesPage() {
   const [paymentSearch, setPaymentSearch] = useState('')
   const [accommodations, setAccommodations] = useState<{ id: number; accommodationName: string }[]>([])
   const [selectedAccomId, setSelectedAccomId] = useState<number | null>(null)
+  
+  // Toast state
+  const [toast, setToast] = useState<{
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+  }>({ show: false, type: "success", title: "" });
 
-  // ─── FETCH ACCOMMODATIONS ON MOUNT (mirrors RoomsPage) ───
+  // ─── FETCH ACCOMMODATIONS ON MOUNT ───
   useEffect(() => {
     api.get('/landlord/accommodations').then((res) => {
       const list = res.data ?? []
@@ -348,27 +363,81 @@ export default function FeesPage() {
         const match = list.find((a: any) => a.id === storedId)
         setSelectedAccomId(match ? storedId : list[0].id)
       }
+    }).catch(() => {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Load",
+        message: "Could not load accommodations."
+      });
     })
   }, [])
 
-  const { data: overdueFees = [], isLoading: loadingFees, refetch: refetchOverdue } = useQuery({
+  const { data: overdueFees = [], isLoading: loadingFees, refetch: refetchOverdue, error: overdueError } = useQuery({
     queryKey: ['fees', 'overdue', selectedAccomId],
     queryFn: () => fetchOverdueFees(selectedAccomId!),
     enabled: !!selectedAccomId,
   })
 
-  const { data: pendingPayments = [], isLoading: loadingPayments, refetch: refetchPayments } = useQuery({
+  const { data: pendingPayments = [], isLoading: loadingPayments, refetch: refetchPayments, error: paymentError } = useQuery({
     queryKey: ['payments', 'pending', selectedAccomId],
     queryFn: () => fetchPendingPayments(selectedAccomId!),
     enabled: !!selectedAccomId,
   })
 
+  // Show errors if any
+  useEffect(() => {
+    if (overdueError) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Load Overdue Fees",
+        message: "Could not fetch overdue fees data."
+      });
+    }
+  }, [overdueError])
+
+  useEffect(() => {
+    if (paymentError) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Load Payments",
+        message: "Could not fetch pending payments data."
+      });
+    }
+  }, [paymentError])
+
   const verifyMutation = useMutation({
     mutationFn: verifyPayment,
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       refetchPayments()
       refetchOverdue()
+      
+      if (variables.action === 'approve') {
+        setToast({
+          show: true,
+          type: "success",
+          title: "Payment Approved!",
+          message: "The payment has been successfully verified."
+        });
+      } else {
+        setToast({
+          show: true,
+          type: "success",
+          title: "Payment Rejected",
+          message: "The payment has been rejected."
+        });
+      }
     },
+    onError: (error: any) => {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Action Failed",
+        message: error.response?.data?.message || "Could not process the payment verification."
+      });
+    }
   })
 
   const handleVerify = (id: number, action: 'approve' | 'reject') => {
@@ -379,6 +448,12 @@ export default function FeesPage() {
     setSelectedAccomId(id)
     sessionStorage.setItem('landlord-acc-id', String(id))
     setCurrentPage(1)
+    setToast({
+      show: true,
+      type: "info",
+      title: "Switched Accommodation",
+      message: `Now viewing ${accommodations.find(a => a.id === id)?.accommodationName || 'accommodation'}`
+    });
   }
 
   // Filter and paginate overdue fees
@@ -402,6 +477,7 @@ export default function FeesPage() {
 
   return (
     <div className="flex min-h-screen bg-[#f5f0f1]">
+      <Sidebar role="landlord" />
       <div className="flex-1 p-6 overflow-y-auto">
         <HeroBanner
           greeting={greeting()}
@@ -439,7 +515,7 @@ export default function FeesPage() {
           {/* Tabs + Accommodation Switcher */}
           <div className="flex justify-between items-center flex-wrap gap-3">
             <FilterTabs active={activeTab} setActive={setActiveTab} />
-            {accommodations.length > 1 && (
+            {accommodations.length > 0 && (
               <select
                 value={selectedAccomId ?? ''}
                 onChange={(e) => handleAccomChange(Number(e.target.value))}
@@ -494,12 +570,20 @@ export default function FeesPage() {
                 </thead>
                 <tbody>
                   {loadingPayments ? (
-                    <tr><td colSpan={4} className="text-center py-16 text-gray-400">Loading...</td></tr>
+                    <tr><td colSpan={4} className="text-center py-16 text-gray-400">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
+                      Loading...
+                    </td></tr>
                   ) : filteredPayments.length === 0 ? (
                     <tr><td colSpan={4} className="text-center py-16 text-gray-400">No pending payments.</td></tr>
                   ) : (
                     filteredPayments.map((payment) => (
-                      <PaymentRow key={payment.id} payment={payment} onVerify={handleVerify} />
+                      <PaymentRow 
+                        key={payment.id} 
+                        payment={payment} 
+                        onVerify={handleVerify}
+                        isPending={verifyMutation.isPending}
+                      />
                     ))
                   )}
                 </tbody>
@@ -555,7 +639,10 @@ export default function FeesPage() {
                 </thead>
                 <tbody>
                   {loadingFees ? (
-                    <tr><td colSpan={4} className="text-center py-16 text-gray-400">Loading...</td></tr>
+                    <tr><td colSpan={4} className="text-center py-16 text-gray-400">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
+                      Loading...
+                    </td></tr>
                   ) : paginatedFees.length === 0 ? (
                     <tr><td colSpan={4} className="text-center py-16 text-gray-400">No overdue fees.</td></tr>
                   ) : (
@@ -582,6 +669,15 @@ export default function FeesPage() {
       {selectedFee && (
         <OverdueFeeModal fee={selectedFee} onClose={() => setSelectedFee(null)} />
       )}
+
+      {/* Toast Notifications */}
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </div>
   )
 }
