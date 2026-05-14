@@ -9,6 +9,7 @@ import GradientPillSelect from "../../components/DropDownGradient.tsx";
 import UbleLoader from "../shared/LoadingPage.tsx";
 import { api } from "../../api/axios";
 import defaultAccommodation from "@/assets/defaults/accommodation.png";
+import { Crosshair, Star } from 'lucide-react';
 
 
 //MapBox Imports
@@ -766,6 +767,7 @@ const routeLayerStyle = (mode: TravelMode): LayerProps => ({
 
 function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
+  const mapRef = useRef<any>(null)
   // only keep destination selector (optional)
   const [destIndex, setDestIndex] = useState(0)
 
@@ -781,9 +783,9 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   //Raw text for user to find a specific location
   const [searchQuery, setSearchQuery] = useState('')
   //Place suggestions
-  const [suggestions, setSuggestions] = useState<{ label: string; lat: number; lng: number }[]>([])
+  const [suggestions, setSuggestions] = useState<{ label: string; mapbox_id?: string; lat: number | null; lng: number | null }[]>([])
   //The actual destination the user sets.
-  const [selectedDest, setSelectedDest] = useState<{ label: String; lat: number; lng: number } | null>(null)
+  const [selectedDest, setSelectedDest] = useState<{ label: string; lat: number; lng: number } | null>(null)
 
   //Show suggestion bar
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -803,46 +805,36 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   const hasValidCoordinates =
     !Number.isNaN(accomLat) && !Number.isNaN(accomLng)
 
-  const handleSearch = (val: string) => {
-    setSearchQuery(val)
+  const sessionTokenRef = useRef(crypto.randomUUID())
 
-    setSelectedDest(null)
-    setPreviewed(false)
-    setRouteGeoJSON(null)
-    setDurations({ driving: null, walking: null })
 
-    if (searchTimeout.current) clearTimeout(searchTimeout.current)
 
-    //Debounce - 
-    searchTimeout.current = setTimeout(async () => {
-      setLoadingSuggestions(true)
-      try {
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(val)}.json?access_token=${MAPBOX_TOKEN}&autocomplete=true&limit=5&proximity=121.2436,14.1654`
-
-        const res = await fetch(url)
-        const data = await res.json()
-
-        const results = (data.features ?? []).map((f: any) => ({
-          label: f.place_name,
-          lng: f.center[0],
-          lat: f.center[1],
-        }))
-
-        setSuggestions(results)
-        setShowSuggestions(true)
-      } catch {
-        setSuggestions([])
-      } finally {
-        setLoadingSuggestions(false)
-      }
-    }, 350)
-  }
-
-  const selectSuggestion = (s: { label: string; lat: number; lng: number }) => {
-    setSelectedDest(s)
+  const selectSuggestion = async (s: any) => {
     setSearchQuery(s.label)
     setSuggestions([])
     setShowSuggestions(false)
+
+    if (s.lat !== null) {
+      setSelectedDest(s)
+      return
+    }
+
+    // Retrieve full coordinates from mapbox_id
+    try {
+      const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${s.mapbox_id}?access_token=${MAPBOX_TOKEN}&session_token=${sessionTokenRef.current}`
+      const res = await fetch(url)
+      const data = await res.json()
+      const feature = data.features?.[0]
+      if (feature) {
+        const [lng, lat] = feature.geometry.coordinates
+        const dest = { label: s.label, lng, lat }
+        setSelectedDest(dest)
+        // Refresh session token after a complete suggest→retrieve cycle
+        sessionTokenRef.current = crypto.randomUUID()
+      }
+    } catch (err) {
+      console.error('Failed to retrieve location:', err)
+    }
   }
 
   //Data for modes:
@@ -931,6 +923,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
       }}
     >
       <Map
+        ref={mapRef}
         initialViewState={{
           longitude: accomLng,
           latitude: accomLat,
@@ -1001,6 +994,7 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
           </Marker>
         )}
       </Map>
+
 
       {!cardCollapsed && (
         <div style={{
@@ -1202,6 +1196,43 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
               </div>
             )}
           </div>
+
+          <button
+            onClick={() => mapRef.current?.flyTo({
+              center: [accomLng, accomLat],
+              zoom: 15,
+              pitch: 40,
+              duration: 1200,
+            })}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'white',
+              border: `1.5px solid ${CLR.mid}`,
+              borderRadius: 999,
+              padding: '7px 14px',
+              fontSize: 12,
+              fontWeight: 700,
+              color: CLR.mid,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = CLR.mid
+              e.currentTarget.style.color = 'white'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'white'
+              e.currentTarget.style.color = CLR.mid
+            }}
+          >
+            <div style={{flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13, fontWeight: 700,}}>
+              <Crosshair size={12} />
+              Recenter
+            </div>
+
+          </button>
         </div>
       )}
 
