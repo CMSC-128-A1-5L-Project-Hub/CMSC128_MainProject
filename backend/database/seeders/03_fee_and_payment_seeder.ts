@@ -41,10 +41,6 @@ const makePaymentProof = (studentNumber: string, feeId: number, paymentIndex: nu
 
 export default class FeeSeeder extends BaseSeeder {
     async run() {
-        // Uncomment to wipe first
-        // await db.from("payments").delete();
-        // await db.from("fees").delete();
-
         const assignments = await db
             .from("assignments")
             .join("rooms", "rooms.id", "assignments.room_id")

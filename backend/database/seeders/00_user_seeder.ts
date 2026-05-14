@@ -1,4 +1,3 @@
-import db from "@adonisjs/lucid/services/db";
 import User from "#models/user";
 import Student from "#models/student";
 import Landlord from "#models/landlord";
@@ -18,16 +17,6 @@ const ALL_USERS = [...Users, ...FakeUsers]
 
 export default class UserSeeder extends BaseSeeder {
     async run() {
-        // Uncomment to wipe only fake students
-        // const fakeEmails = FakeUsers.map((u) => u.email)
-        // const fakeUsers = await User.query().whereIn('email', fakeEmails)
-        // const fakeUserIds = fakeUsers.map((u) => u.id)
-
-        // if (fakeUserIds.length > 0) {
-        //     await Student.query().whereIn('userId', fakeUserIds).delete()
-        //     await User.query().whereIn('id', fakeUserIds).delete()
-        // }
-
         // 1. Super admin/s
         for (const admin of SuperAdmins) {
             await User.firstOrCreate({email: admin.email}, { ...admin })

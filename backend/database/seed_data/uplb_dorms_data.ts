@@ -7,7 +7,7 @@ export interface RoomSeedData {
     room_stay_type: 'transient' | 'non_transient'
     room_capacity: number
     room_current_occupancy: number
-    room_availability: 'available' | 'available' | 'maintenance'
+    room_availability: 'available' | 'occupied' | 'maintenance'
     room_rent: number                                      // PHP per month
     tenant_restriction: 'coed' | 'non-coed'
     room_size?: number                                     // sqm
