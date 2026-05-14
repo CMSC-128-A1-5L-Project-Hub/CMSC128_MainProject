@@ -26,6 +26,7 @@ import ProfilePage from "./pages/student/ProfilePage"
 import RoomView from "./pages/student/RoomView"
 import RoomsPage from "./pages/landlord/RoomPage"
 import AuthSuccess from "./pages/shared/AuthSuccess"
+import DevLogin from "./pages/shared/DevLogin"
 import PendingVerification from "./pages/shared/PendingVerification"
 import ManagerApplicationsPage from "./pages/manager/ApplicationsPage"
 import Waitlist from "./pages/manager/Waitlist"
@@ -36,6 +37,10 @@ import LandlordProfile from './pages/landlord/LandlordProfile'
 import Applications from "./pages/landlord/Applications"
 import StudentVerificationsPage from "./pages/admin/StudentVerificationsPage"
 import LandlordVerificationsPage from "./pages/admin/LandlordVerificationsPage"
+import UbleLoader from "./pages/shared/LoadingPage"
+import OccupancyReportPrint from "./pages/landlord/reports/OccupancyReportPrint"
+import RevenueReportPrint from "./pages/landlord/reports/RevenueReportPrint"
+import AccommodationHistoryReportPrint from "./pages/landlord/reports/AccommodationHistoryReportPrint"
 
 function FullLandingPage() {
   return (
@@ -58,8 +63,14 @@ function App() {
         <Route path="/auth/signin" element={<SignIn/>}/>
         <Route path="/auth/signup" element={<SignUp/>}/>
         <Route path="/auth/success" element={<AuthSuccess/>}/>
+        <Route path="/dev/login" element={<DevLogin/>}/>
         <Route path="/map" element={<InteractiveMap />} />
-        {/* <Route path="/accommodations/:id" element={<FullRoomView />} /> */}
+        <Route path="/loader" element = {<UbleLoader />} />
+
+        {/* ── Print-only routes (rendered by backend Puppeteer; data passed via URL) ── */}
+        <Route path="/reports/occupancy/print" element={<OccupancyReportPrint />} />
+        <Route path="/reports/revenue/print" element={<RevenueReportPrint />} />
+        <Route path="/reports/accommodation-history/print" element={<AccommodationHistoryReportPrint />} />
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
@@ -86,8 +97,10 @@ function App() {
         <Route path="/manager/profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
 
         {/* ── Landlord routes ── */}
-        <Route path="/landlord/accommodations/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
+        {/* Manage Accommodation (landing page for landlords) */}
         <Route path="/landlord/dashboard" element={<ProtectedRoute><ManageAccommodationDashboard /></ProtectedRoute>} />
+        {/* Individual Accommodation Dashboard */}
+        <Route path="/landlord/accommodation/:id" element={<ProtectedRoute><LandlordDashboard /></ProtectedRoute>} />
         <Route path="/landlord/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
         <Route path="/landlord/fees" element={<ProtectedRoute><FeesPage /></ProtectedRoute>} />
         <Route path="/landlord/profile" element={<ProtectedRoute><LandlordProfile /></ProtectedRoute>} />
@@ -97,6 +110,7 @@ function App() {
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/student-verifications" element={<ProtectedRoute> <StudentVerificationsPage /> </ProtectedRoute>} />
         <Route path="/admin/landlord-verifications" element={<ProtectedRoute> <LandlordVerificationsPage /> </ProtectedRoute>} />
+        
         {/* ── Catch-all: 404 ── */}
         <Route path="*" element={<NotFound />} />
       </Routes>

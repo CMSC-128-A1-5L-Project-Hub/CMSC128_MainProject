@@ -1,7 +1,29 @@
 import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Modal from "../../components/Modal";
+import CustomHeader from '../../components/CustomHeader';
+import UbleLoader from "../shared/LoadingPage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import HeroBanner from "@/components/dashboard/HeroBanner";
+
+interface HeroContent {
+    greeting: string;
+    name: string;
+    title: string;
+    subtitle: string;
+}
+import { api } from "../../api/axios";
+import StatsBanner from "@/components/ApplicationStatus/StatsBanner";
+import Dropdown from "@/components/ApplicationStatus/Dropdown";
+import SearchBar from "@/components/SearchBar";
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good Morning";
+  if (h < 18) return "Good Afternoon";
+  return "Good Evening";
+}
 
 const CLR = {
   dark: "#3D0718",
@@ -188,7 +210,8 @@ const DrawerNav = ({ open, onClose, activePage, setActivePage }: any) => (
 
 export default function Applications() {
   const queryClient = useQueryClient();
-
+  const [searchParams] = useSearchParams();
+  const targetAccId = searchParams.get("accId");
   const [activeTab, setActiveTab] = useState("Application");
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -203,91 +226,97 @@ export default function Applications() {
   const [expectedMoveOutDate, setExpectedMoveOutDate] = useState("");
 
   // fetch data and map it to the UI Interface
-  const { data: appsData = [], isLoading } = useQuery<Application[]>({
+  const { data: appsData = [], isLoading, refetch } = useQuery<Application[]>({
     queryKey: ["landlord-applications"],
+    staleTime: 0,
     queryFn: async () => {
-      const res = await fetch("/api/applications/incoming"); 
-      if (!res.ok) throw new Error("Failed to fetch applications");
-      const json = await res.json();
-      
-      return json.map((app: any) => {
-        const user = app.student?.user;
-        return {
-          id: app.id,
-          student: user ? `${user.fname} ${user.lname}` : "Unknown Applicant",
-          email: user?.email || "No email provided",
-          date: new Date(app.applicationDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-          reviewed: app.reviewedAt ? new Date(app.reviewedAt).toLocaleDateString("en-US") : "---",
-          status: mapStatus(app.applicationStatus),
-          type: app.applicationStayType,
-          remark: app.rejectionReason,
-          originalData: app 
-        };
-      });
+      try {
+        const res = await api.get("/applications/incoming");
+        const json = res.data;
+        
+        return json.map((app: any) => {
+          const user = app.student?.user;
+          return {
+            id: app.id,
+            student: user ? `${user.fname} ${user.lname}` : "Unknown Applicant",
+            email: user?.email || "No email provided",
+            date: new Date(app.applicationDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+            reviewed: app.reviewedAt ? new Date(app.reviewedAt).toLocaleDateString("en-US") : "---",
+            status: mapStatus(app.applicationStatus),
+            type: app.applicationStayType,
+            remark: app.rejectionReason,
+            originalData: app 
+          };
+        });
+      } catch (error: any) {
+         if (error.response?.status === 404) return [];
+         throw new Error("Failed to fetch applications");
+      }
     },
   });
+
+  // filter the raw API data by the accommodation ID in the URL if it exists
+  const scopedAppsData = useMemo(() => {
+    if (!targetAccId) return appsData; // if no ID in URL, show everything
+    
+    return appsData.filter(
+      (app) => String(app.originalData?.accommodationId) === targetAccId
+    );
+  }, [appsData, targetAccId]);
 
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
-      const res = await fetch("/api/me");
-      if (!res.ok) throw new Error("Failed to fetch user");
-      return res.json();
+      const res = await api.get("/me");
+      return res.data;
     },
   });
 
-  // fetch dynamic rooms for the selected application's accommodation
-  const { data: dynamicRooms = [], isLoading: isLoadingRooms } = useQuery({
-    queryKey: ["accommodation-rooms", selectedApp?.originalData?.accommodationId],
-    queryFn: async () => {
-      if (!selectedApp?.originalData?.accommodationId) return [];
+  // // fetch dynamic rooms for the selected application's accommodation
+  // const { data: dynamicRooms = [], isLoading: isLoadingRooms } = useQuery({
+  //   queryKey: ["accommodation-rooms", selectedApp?.originalData?.accommodationId],
+  //   queryFn: async () => {
+  //     if (!selectedApp?.originalData?.accommodationId) return [];
       
-      const res = await fetch(`/api/accommodations/${selectedApp.originalData.accommodationId}/rooms`);
-      if (!res.ok) throw new Error("Failed to fetch rooms");
-      
-      return res.json();
-    },
-    // only fetch if an app is selected and we actually need to show the room UI
-    enabled: !!selectedApp?.originalData?.accommodationId && (selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted"),
-  });
+  //     const res = await api.get(`/accommodations/${selectedApp.originalData.accommodationId}/rooms`);
+  //     return res.data;
+  //   },
+  //   enabled: !!selectedApp?.originalData?.accommodationId && (selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted"),
+  // });
 
   // setup Mutations for approving or rejecting
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, action, reason }: { id: number; action: "approve" | "reject"; reason?: string }) => {
-      const res = await fetch(`/api/applications/${id}/review`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          action: action, 
-          rejection_reason: reason 
-        }),
-      });
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to update application status");
+      mutationFn: async ({ id, action, reason }: { id: number; action: "approve" | "reject"; reason?: string }) => {
+          const targetStatus = action === "approve" ? "approved" : "rejected";
+
+          const res = await api.put(`/applications/${id}/status`, { 
+              status: targetStatus, 
+              ...(targetStatus === "rejected" && { rejectionReason: reason })
+          });
+          return res.data;
+      },
+      onSuccess: (data) => {
+          console.log("updateStatusMutation succeeded:", data);
+          console.log("Invalidating landlord-applications...");
+          queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
+          console.log("Invalidation called.");
+          setViewModalOpen(false);
+          setRemark("");
+      },
+      onError: (error) => {
+          console.error("updateStatusMutation failed:", error);
+          alert(`Error: ${error.message}`);
       }
-      return res.json();
-    },
-    onSuccess: () => {
-      // refresh the application list after a successful mutation
-      queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
-      setViewModalOpen(false);
-      setRemark("");
-    },
-    onError: (error) => {
-      alert(`Error: ${error.message}`);
-    }
   });
 
-  const total = appsData.length;
-  const counts = appsData.reduce((acc, a) => {
+  const total = scopedAppsData.length;
+  const counts = scopedAppsData.reduce((acc, a) => {
     acc[a.status] = (acc[a.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
   const filtered = useMemo(() => {
-    let list = activeTab === "Application" ? appsData : appsData.filter(a => a.status === "Waitlisted");
+    let list = activeTab === "Application" ? scopedAppsData : scopedAppsData.filter(a => a.status === "Waitlisted");
     const q = search.toLowerCase();
     const res = list.filter((a) => a.student.toLowerCase().includes(q));
     return res.sort((a, b) => {
@@ -295,12 +324,33 @@ export default function Applications() {
       const timeB = new Date(b.date).getTime();
       return sortBy === "latest" ? timeB - timeA : timeA - timeB;
     });
-  }, [appsData, activeTab, search, sortBy]);
+  }, [scopedAppsData, activeTab, search, sortBy]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const accommodationNames = useMemo(() => {
+    if (!scopedAppsData || scopedAppsData.length === 0) return "your accommodations";
+    
+    // create a Set to get unique names, just in case the landlord manages multiple buildings
+    const names = new Set(
+      appsData
+        .map(app => app.originalData?.accommodation?.accommodationName)
+        .filter(Boolean)
+    );
+    
+    if (names.size === 0) return "your accommodations";
+    return Array.from(names).join(" & ");
+  }, [scopedAppsData]);
+
+  const [itemsPerPage, setItemsPerPage] = useState(6)
+
+  const SORT_OPTS = [
+    { value: "latest", label: "Latest" },
+    { value: "earliest", label: "Earliest" },
+  ]
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
-  const paginated = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginated = filtered.slice(startIndex, startIndex + itemsPerPage)
 
   const handleView = (app: Application) => {
     setSelectedApp(app);
@@ -337,65 +387,92 @@ export default function Applications() {
     updateStatusMutation.mutate({ id: selectedApp.id, action: "approve" });
   };
 
-  // setup Mutation for assigning a room (at the moment, landlord can only accept and reject, not assign rooms)
-  const assignRoomMutation = useMutation({
-    mutationFn: async ({ roomId, applicationId, moveIn, expectedMoveOut }: { roomId: string | number; applicationId: number; moveIn: string; expectedMoveOut: string }) => {
-      const res = await fetch("/api/assignments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          roomId: roomId,
-          applicationId: applicationId,
-          moveIn: moveIn,
-          expectedMoveOut: expectedMoveOut
-        }),
-      });
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to assign room");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["accommodation-rooms"] });
-      setViewModalOpen(false);
-      setSelectedRoom(null);
-    },
-    onError: (error) => {
-      alert(`Error assigning room: ${error.message}`);
-    }
-  });
+  // // setup Mutation for assigning a room (at the moment, landlord can only accept and reject, not assign rooms)
+  // const assignRoomMutation = useMutation({
+  //     mutationFn: async ({ roomId, applicationId, moveIn, expectedMoveOut }: { roomId: string | number; applicationId: number; moveIn: string; expectedMoveOut: string }) => {
+  //       try {
+  //         const res = await api.post("/assignments", {
+  //           roomId: roomId,
+  //           applicationId: applicationId,
+  //           moveIn: moveIn,
+  //           expectedMoveOut: expectedMoveOut
+  //         });
+  //         return res.data;
+  //       } catch (error: any) {
+  //         throw new Error(error.response?.data?.message || "Failed to assign room");
+  //       }
+  //     },
+  //     onSuccess: (data) => {
+  //       console.log("assignRoomMutation succeeded:", data);
+  //       console.log("Invalidating landlord-applications and accommodation-rooms...");
+  //       queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
+  //       queryClient.invalidateQueries({ queryKey: ["accommodation-rooms"] });
+  //       console.log("Invalidation called.");
+  //       setViewModalOpen(false);
+  //       setSelectedRoom(null);
+  //     },
+  //     onError: (error) => {
+  //       console.error("assignRoomMutation failed:", error);
+  //       alert(`Error assigning room: ${error.message}`);
+  //     }
+  // });
 
-  const handleSaveAssignment = () => {
-    if (!selectedApp || !selectedRoom) return;
-    if (!moveInDate || !expectedMoveOutDate) {
-      alert("Please select both a Move In and Expected Move Out date.");
-      return;
-    }
+  // const handleSaveAssignment = () => {
+  //   if (!selectedApp || !selectedRoom) return;
+  //   if (!moveInDate || !expectedMoveOutDate) {
+  //     alert("Please select both a Move In and Expected Move Out date.");
+  //     return;
+  //   }
 
-    // check if the student already has an assigned room that is different from the newly selected one
-    if (selectedApp.assignedRoom && selectedApp.assignedRoom !== selectedRoom.toString()) {
-      const confirmOverride = window.confirm(
-        "This applicant is already assigned to a room. Are you sure you want to release their old room and reassign them to this new one?"
-      );
-      if (!confirmOverride) return; // stop the function if they click cancel
-    }
+  //   // check if the student already has an assigned room that is different from the newly selected one
+  //   if (selectedApp.assignedRoom && selectedApp.assignedRoom !== selectedRoom.toString()) {
+  //     const confirmOverride = window.confirm(
+  //       "This applicant is already assigned to a room. Are you sure you want to release their old room and reassign them to this new one?"
+  //     );
+  //     if (!confirmOverride) return; // stop the function if they click cancel
+  //   }
 
-    assignRoomMutation.mutate({ 
-      roomId: selectedRoom, 
-      applicationId: selectedApp.id,
-      moveIn: moveInDate,
-      expectedMoveOut: expectedMoveOutDate
-    });
-  };
+  //   assignRoomMutation.mutate({ 
+  //     roomId: selectedRoom, 
+  //     applicationId: selectedApp.id,
+  //     moveIn: moveInDate,
+  //     expectedMoveOut: expectedMoveOutDate
+  //   });
+  // };
 
   const stats = [
-    { label: "Under Review", color: "linear-gradient(135deg, #C9973A, #E8C37A)", text: "#C9973A", light_bg: "#FEF8EE", value: counts["Under Review"] || 0 },
-    { label: "Accepted", color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)", text: "#1A7A4A", light_bg: "#F0F7F3", value: counts.Accepted || 0 },
-    { label: "Waitlisted", color: "linear-gradient(135deg, #6B3AB7, #9B6AE7)", text: "#6B3AB7", light_bg: "#F4F0FA", value: counts.Waitlisted || 0 },
-    { label: "Rejected", color: "linear-gradient(135deg, #AA2661, #FDCAE0)", text: "#AE2F67", light_bg: "#FAF0F7", value: counts.Rejected || 0 },
+    { 
+      label: "Under Review", 
+      count: counts["Under Review"] || 0,
+      from: "#C9973A",
+      to: "#E8C37A",
+      bg: "#FEF8EE",
+      text: "#C9973A",
+    },
+    { 
+      label: "Accepted", 
+      count: counts.Accepted || 0,
+      from: "#1A7A4A",
+      to: "#2D9A5F",
+      bg: "#F0F7F3",
+      text: "#1A7A4A",
+    },
+    { 
+      label: "Waitlisted", 
+      count: counts.Waitlisted || 0,
+      from: "#6B3AB7",
+      to: "#9B6AE7",
+      bg: "#F4F0FA",
+      text: "#6B3AB7",
+    },
+    { 
+      label: "Rejected", 
+      count: counts.Rejected || 0,
+      from: "#AA2661",
+      to: "#FDCAE0",
+      bg: "#FAF0F7",
+      text: "#AE2F67",
+    },
   ];
 
   const getVisiblePages = () => {
@@ -411,275 +488,296 @@ export default function Applications() {
 
   const showRoomAssignment = selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted";
 
+  const heroContent: HeroContent = {
+        name: currentUser?.fname,
+        greeting: greeting(),
+        title: `Check your applicants for ${accommodationNames}`,
+        subtitle: "We make it easy for you to track the accommodation applications you manage",
+    };
+
+
+
   return (
     <div className="flex h-screen bg-[#F5EEF0]">
       <Sidebar role="landlord" />
       <DrawerNav open={drawerOpen} onClose={() => setDrawerOpen(false)} activePage={activePage} setActivePage={setActivePage} />
+      <div className="flex flex-col w-full h-full">
+        <CustomHeader
+            title="Applications"></CustomHeader>
+        <main className="flex-1 flex-col p-6 space-y-6 overflow-y-auto">  
+            <HeroBanner
+                greeting={heroContent.greeting}
+                name={heroContent.name}
+                title={heroContent.title}
+                subtitle={heroContent.subtitle}
+                type="mini"
+            />
 
-      <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => setDrawerOpen(true)} className="lg:hidden p-1" aria-label="Open menu" style={{ color: CLR.mid }}>
-            <IconMenu />
-          </button>
-          <div className="hidden lg:block w-1 h-6 rounded-full" style={{ background: CLR.mid }} />
-          <h1 className="font-serif italic text-[24px] lg:text-[34px] font-semibold text-gray-900 tracking-tight">Applications</h1>
-        </div>
+          <StatsBanner
+            stats={stats}
+            total={total}
+            cols={4}>
 
-        <div className="rounded-2xl p-6 mb-6 text-white" style={{ background: `linear-gradient(135deg, ${CLR.dark}, ${CLR.accent})` }}>
-          <p className="text-[10px] md:text-xs uppercase tracking-widest opacity-70">Good Day, {currentUser?.fname ?? "Landlord"}</p>
-          <h2 className="text-xl md:text-2xl font-bold mt-1">Check your applicants for Narra Residences</h2>
-          <p className="text-xs md:text-sm opacity-70 mt-1">We make it easy for you to track the accommodation applications you manage.</p>
-        </div>
+          </StatsBanner>
 
-        <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {stats.map((s) => {
-              const pct = total ? Math.round((s.value / total) * 100) : 0;
-              return (
-                <div key={s.label}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: s.text }}>{s.label}</p>
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex items-center h-7 md:h-8 rounded-full overflow-hidden w-full" style={{ background: s.light_bg }}>
-                      <div className="absolute left-0 top-0 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, minWidth: "20px", background: s.color }} />
-                      <span className="relative z-10 text-white text-[9px] md:text-[10px] font-bold px-3 whitespace-nowrap">{s.value} / {total}</span>
-                    </div>
-                    <span className="text-xs font-semibold text-gray-400">{pct}%</span>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex justify-between items-center">
+            <FilterTabs active={activeTab} setActive={setActiveTab} />
           </div>
-        </div>
 
-        <div className="mb-6 flex justify-between items-center">
-          <FilterTabs active={activeTab} setActive={setActiveTab} />
-        </div>
-
-        <div className="bg-white rounded-3xl border shadow-sm mt-6 overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-end gap-4 p-4 md:p-6 border-b">
-            <div className="shrink-0">
-              <h2 className="text-sm md:text-lg font-semibold tracking-tight text-black">{activeTab} History</h2>
-              <p className="text-[0.7rem] md:text-xs text-gray-400">{filtered.length} total applications</p>
-            </div>
-            <div className="flex items-end gap-3 md:ml-auto w-full md:w-auto">
-              <FilterSelect 
-                label="Sort By" 
-                value={sortBy} 
-                onChange={(v: any) => setSortBy(v)} 
-                options={[{ value: "latest", label: "Latest" }, { value: "earliest", label: "Earliest" }]} 
+          <div className="bg-white rounded-2xl p-6 space-y-6 overflow-hidden">
+            <div className="flex flex-row items-center">
+              <div>
+                <h2 className="text-[16px] font-bold text-black">{activeTab} History</h2>
+                <p className="text-[12px] italic">{filtered.length} total applications</p>
+              </div>
+              <div className="flex items-end gap-3 md:ml-auto w-full md:w-auto">
+                <div className='hidden lg:block'>
+                  <Dropdown
+                      title="No. of Items"
+                      items={[
+                          { label: "5", href: "" },
+                          { label: "10", href: "" },
+                          { label: "15", href: "" },
+                          { label: "20", href: "" },
+                      ]}
+                      direction='down'
+                      widthClass="w-29 lg:w-32"
+                      titleClass="text-[10px] lg:text-[11px]"
+                      selectedClass="text-[12px] lg:text-[13px]"
+                      onSelect={(label) => {
+                          setItemsPerPage(Number(label))
+                          setCurrentPage(1)
+                      }}
+                  />
+              </div>
+              
+              <Dropdown
+                title="Sort By"
+                items={SORT_OPTS.map(opt => ({ label: opt.label, href: "" }))}
+                direction='down'
+                widthClass="w-29 lg:w-32"
+                titleClass="text-[10px] lg:text-[11px]"
+                selectedClass="text-[12px] lg:text-[13px] block"
+                onSelect={(label) => {
+                  setSortBy(label === "Latest" ? "latest" : "earliest")
+                  setCurrentPage(1)
+                }}
               />
-              <div className="flex flex-col gap-0.5 md:gap-1 flex-1 min-w-0 md:w-56">
-                <label className="text-[0.5rem] md:text-[10px] font-bold uppercase tracking-widest text-gray-400">Search</label>
-                <input 
-                  type="text" 
-                  placeholder="Search name..." 
-                  value={search} 
-                  onChange={(e) => setSearch(e.target.value)} 
-                  className="w-full border border-gray-200 rounded-lg md:rounded-xl px-2 py-1 md:px-3 md:py-2 text-[0.7rem] md:text-sm focus:outline-none focus:border-[#6B0F2B]" 
-                />
+              <SearchBar
+                  value={search}
+                  onChange={(query) => {
+                      setSearch(query)
+                      }}
+                  onPageReset={() => setCurrentPage(1)}
+              />
               </div>
             </div>
-          </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[600px]">
-              <thead>
-                <tr className="text-left text-[10px] md:text-xs uppercase tracking-wide bg-gray-50/50" style={{ color: CLR.mid }}>
-                  <th className="px-6 py-4 font-bold">Student</th>
-                  <th className="px-4 py-4 font-bold">Date Applied</th>
-                  <th className="px-4 py-4 font-bold">Reviewed on</th>
-                  <th className="px-4 py-4 font-bold">Status</th>
-                  <th className="px-4 py-4 font-bold text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {isLoading ? (
-                  <tr><td colSpan={5} className="text-center py-16 text-gray-400">Loading applications...</td></tr>
-                ) : paginated.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-16 text-gray-400">No applications found.</td></tr>
-                ) : (
-                  paginated.map((app) => (
-                    <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs md:text-sm flex-shrink-0" style={{ background: CLR.avatars[app.id % CLR.avatars.length] }}>{app.student.charAt(0)}</div>
-                          <span className="font-semibold text-gray-900 truncate max-w-[120px] md:max-w-none">{app.student}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 text-gray-600">
-                        <p className="font-medium text-xs md:text-sm">{app.date}</p>
-                        <p className="text-[9px] md:text-[10px] text-gray-400 font-medium mt-0.5"><DaysAgo targetDate={app.date} /></p>
-                      </td>
-                      <td className="px-4 py-4 text-gray-500 text-xs md:text-sm font-medium">{app.reviewed}</td>
-                      <td className="px-4 py-4"><StatusBadge status={app.status} /></td>
-                      <td className="px-4 py-4 text-center">
-                        <button 
-                          onClick={() => handleView(app)} 
-                          className="text-[11px] md:text-sm px-3 md:px-4 py-1.5 rounded-lg md:rounded-xl font-bold transition-all" 
-                          style={{ color: CLR.mid, background: "#F5ECF0", border: `1px solid ${CLR.mid}15` }}
-                        >
-                          View
-                        </button>
+            <div className="overflow-x-auto">
+              <table className="w-full lg:table-fixed border-separate border-spacing-0">
+                <thead className="sticky z-20 top-0 bg-white border-y border-[#6B0F2B]/5">
+                  <tr className="text-[#9A7080] text-[12px] lg:text-xs tracking-widest font-bold">
+                    {[
+                      { label: "Student",     className: "w-[30%]" },
+                      { label: "Date Applied",className: "w-[20%]" },
+                      { label: "Reviewed on", className: "w-[20%]" },
+                      { label: "Status",      className: "w-[15%]" },
+                      { label: "Action",      className: "w-[15%] text-center" },
+                    ].map(col => (
+                      <th
+                        key={col.label}
+                        className={`uppercase p-2 px-4 text-left whitespace-nowrap border-y border-[#6B0F2B]/10 ${col.className}`}
+                      >
+                        {col.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-16">
+                        <UbleLoader />
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50/30">
-            <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">
-              {filtered.length === 0 ? "No results" : `Showing ${startIndex + 1}–${Math.min(startIndex + ITEMS_PER_PAGE, filtered.length)} of ${filtered.length}`}
-            </p>
-            <div className="flex items-center gap-1.5">
-              {getVisiblePages().map((page) => (
-                <PageBtn key={page} active={safePage === page} onClick={() => setCurrentPage(page)}>{page}</PageBtn>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <Modal
-          open={viewModalOpen}
-          onClose={() => setViewModalOpen(false)}
-          title={
-            selectedApp?.status === "Rejected" ? "Rejection Remarks" :
-            selectedApp?.status === "Under Review" ? "Application" : "Room Assignment"
-          }
-          footer={
-            <div className="w-full flex justify-end gap-3">
-              {selectedApp?.status === "Under Review" ? (
-                <>
-                  <button onClick={handleReject} disabled={updateStatusMutation.isPending} className="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-bold text-xs md:text-sm disabled:opacity-50">
-                    Reject
-                  </button>
-                  <button onClick={handleAccept} disabled={updateStatusMutation.isPending} className="px-4 py-2 rounded-xl bg-green-100 text-black font-bold text-xs md:text-sm shadow-lg shadow-[#6B0F2B]/20 disabled:opacity-50">
-                    {updateStatusMutation.isPending ? "Saving..." : "Accept"}
-                  </button>
-                </>
-              ) : (selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted") ? (
-                <button 
-                  onClick={handleSaveAssignment} 
-                  disabled={!selectedRoom || assignRoomMutation.isPending} 
-                  className={`px-6 py-2 rounded-xl text-white font-bold text-xs md:text-sm shadow-lg transition-all ${(selectedRoom && !assignRoomMutation.isPending) ? 'bg-[#8C1535] shadow-[#8C1535]/20 hover:bg-[#6B0F2B]' : 'bg-gray-300 cursor-not-allowed'}`}
-                >
-                  {assignRoomMutation.isPending ? "Saving..." : "Save"}
-                </button>
-              ) : null}
-            </div>
-          }
-        >
-          {selectedApp && (
-            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-              <div className="bg-[#F7F3F5] rounded-2xl border border-[#6B0F2B]/10 p-4 md:p-5">
-                <div className="mb-4">
-                  <p className="text-[16px] font-bold text-gray-900">{selectedApp.student}</p>
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Date Applied: {selectedApp.date}</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-[13px]">
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Applicant Details</p>
-                    <p className="font-bold text-gray-800">{selectedApp.email}</p>
-                    <p className="text-[11px] text-gray-500 font-medium">Data from original object can go here</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Occupancy Details</p>
-                    <p className="font-bold text-gray-800">{selectedApp.type ? selectedApp.type.replace('_', ' ') : 'N/A'}</p>
-                    <p className="text-[11px] text-gray-500 font-medium">Based on durationOfStayDays</p>
-                  </div>
-                </div>
-              </div>
-
-              {(selectedApp.status === "Under Review" || selectedApp.status === "Rejected") && (
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Admin Remarks</label>
-                  <textarea
-                    value={remark}
-                    onChange={(e) => setRemark(e.target.value)}
-                    disabled={selectedApp.status === "Rejected"}
-                    placeholder="Enter reason for rejection or special notes..."
-                    className="w-full h-[80px] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#6B0F2B] disabled:bg-gray-50 disabled:text-gray-500 resize-none"
-                  />
-                </div>
-              )}
-
-              {showRoomAssignment && (
-                <div className="space-y-3 pt-2">
-                  <p className="text-[14px] font-bold text-black ml-1 uppercase tracking-tight">Available Room Assignments</p>
-                  
-                  {isLoadingRooms ? (
-                    <p className="text-xs text-gray-400 ml-1">Loading rooms...</p>
-                  ) : dynamicRooms.length === 0 ? (
-                    <p className="text-xs text-gray-400 ml-1">No rooms found for this accommodation.</p>
+                  ) : paginated.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center py-16 text-gray-400">No applications found.</td></tr>
                   ) : (
-                    <div className="space-y-3">
-                      {dynamicRooms.map((room: any) => (
-                        <div 
-                          key={room.id} 
-                          className={`flex flex-col sm:flex-row sm:items-center border rounded-2xl p-4 md:p-5 transition-all ${
-                            selectedRoom === room.id ? "border-green-500 bg-green-50/30" : "border-gray-100 bg-white"
-                          }`}
-                        >
-                          <div className="sm:w-[35%] sm:border-r border-gray-100 pr-4 mb-3 sm:mb-0">
-                            <div 
-                              className="inline-block px-4 py-1 rounded-lg mb-2" 
-                              style={{ background: `linear-gradient(to right, ${CLR.dark}, ${CLR.accent})` }}
+                    paginated.map((app) => (
+                      <tr key={app.id} className="hover:bg-gray-50 transition-all">
+                        <td className="px-4 py-2">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="hidden lg:flex w-8 h-8 rounded-xl items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                              style={{ background: CLR.avatars[app.id % CLR.avatars.length] }}
                             >
-                              <span className="text-white font-bold text-[10px] tracking-wider uppercase">
-                                Room {room.roomNumber}
-                              </span>
+                              {app.student.charAt(0)}
                             </div>
-                            <p className="text-base font-bold text-gray-900">{room.roomBuilding}</p>
+                            <span className="font-semibold text-[13px] lg:text-[15px] truncate max-w-[180px]">
+                              {app.student}
+                            </span>
                           </div>
-
-                          <div className="flex-1 sm:px-6 space-y-1 mb-4 sm:mb-0">
-                            <div className="flex justify-between text-[12px]">
-                              <span className="text-gray-400 font-bold uppercase text-[9px]">Type</span>
-                              <span className="font-bold text-gray-800 capitalize">{room.roomType}</span>
-                            </div>
-                            <div className="flex justify-between text-[12px]">
-                              <span className="text-gray-400 font-bold uppercase text-[9px]">Price</span>
-                              <span className="font-bold text-gray-800">₱{room.roomRent}</span>
-                            </div>
-                            <div className="flex justify-between text-[12px]">
-                              <span className="text-gray-400 font-bold uppercase text-[9px]">Occupancy</span>
-                              <span className="font-bold text-gray-800">{room.roomCurrentOccupancy}/{room.roomCapacity}</span>
-                            </div>
-                            <div className="flex justify-between text-[12px]">
-                              <span className="text-gray-400 font-bold uppercase text-[9px]">Availability</span>
-                              <span className={`font-bold capitalize ${room.roomAvailability === 'available' ? 'text-green-600' : 'text-red-500'}`}>
-                                {room.roomAvailability}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="sm:pl-4">
-                            <button
-                              onClick={() => setSelectedRoom(room.id)}
-                              disabled={room.roomAvailability !== 'available'}
-                              className={`w-full sm:w-auto px-5 py-2 rounded-xl text-[11px] font-bold transition-all border ${
-                                selectedRoom === room.id 
-                                  ? "bg-green-600 text-white border-green-600 shadow-md" 
-                                  : room.roomAvailability !== 'available'
-                                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                                  : "bg-white text-[#6B0F2B] border-[#6B0F2B]/10 hover:bg-[#F5ECF0]"
-                              }`}
-                            >
-                              {selectedRoom === room.id ? "Selected" : room.roomAvailability !== 'available' ? "Full" : "Assign"}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        </td>
+                        <td className="px-4 py-2">
+                          <span className="block text-[12px] lg:text-[14px]">{app.date}</span>
+                          <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">
+                            <DaysAgo targetDate={app.date} />
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-[12px] lg:text-[14px] text-gray-500">
+                          {app.reviewed}
+                        </td>
+                        <td className="px-4 py-2">
+                          <StatusBadge status={app.status} />
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <button
+                            onClick={() => handleView(app)}
+                            className="text-[11px] lg:text-sm px-3 lg:px-4 py-1.5 rounded-lg lg:rounded-xl font-bold transition-all"
+                            style={{ color: CLR.mid, background: "#F5ECF0", border: `1px solid ${CLR.mid}15` }}
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))
                   )}
-                </div>
-              )}
+                </tbody>
+              </table>
             </div>
-          )}
-        </Modal>
-      </main>
+            <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50/30">
+              <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">
+                {filtered.length === 0 ? "No results" : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, filtered.length)} of ${filtered.length}`}
+              </p>
+              <div className="flex items-center gap-1.5">
+                {getVisiblePages().map((page) => (
+                  <PageBtn key={page} active={safePage === page} onClick={() => setCurrentPage(page)}>{page}</PageBtn>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <Modal
+            open={viewModalOpen}
+            onClose={() => setViewModalOpen(false)}
+            title={selectedApp?.status === "Rejected" ? "Rejection Remarks" : "Application Details"}
+            footer={
+              <div className="w-full flex justify-end gap-3">
+                {selectedApp?.status === "Under Review" ? (
+                  <>
+                    <button onClick={handleReject} disabled={updateStatusMutation.isPending} className="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-bold text-xs md:text-sm disabled:opacity-50">
+                      Reject
+                    </button>
+                    <button onClick={handleAccept} disabled={updateStatusMutation.isPending} className="px-4 py-2 rounded-xl bg-green-100 text-black font-bold text-xs md:text-sm shadow-lg shadow-[#6B0F2B]/20 disabled:opacity-50">
+                      {updateStatusMutation.isPending ? "Saving..." : "Accept"}
+                    </button>
+                  </>
+                ) : null} 
+                {/* : (selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted") ? (
+                  <button 
+                    onClick={handleSaveAssignment} 
+                    disabled={!selectedRoom || assignRoomMutation.isPending} 
+                    className={`px-6 py-2 rounded-xl text-white font-bold text-xs md:text-sm shadow-lg transition-all ${(selectedRoom && !assignRoomMutation.isPending) ? 'bg-[#8C1535] shadow-[#8C1535]/20 hover:bg-[#6B0F2B]' : 'bg-gray-300 cursor-not-allowed'}`}
+                  >
+                    {assignRoomMutation.isPending ? "Saving..." : "Save"}
+                  </button> */}
+              </div>
+            }
+          >
+            {selectedApp && (
+              <div className="space-y-4 pr-1">
+
+                {(selectedApp.status === "Under Review" || selectedApp.status === "Rejected") && (
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Admin Remarks</label>
+                    <textarea
+                      value={remark}
+                      onChange={(e) => setRemark(e.target.value)}
+                      disabled={selectedApp.status === "Rejected"}
+                      placeholder="Enter reason for rejection or special notes..."
+                      className="w-full h-[80px] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#6B0F2B] disabled:bg-gray-50 disabled:text-gray-500 resize-none"
+                    />
+                  </div>
+                )}
+
+                {/* {showRoomAssignment && (
+                  <div className="space-y-3 pt-2">
+                    <p className="text-[14px] font-bold text-black ml-1 uppercase tracking-tight">Available Room Assignments</p>
+                    
+                    {isLoadingRooms ? (
+                      <p className="text-xs text-gray-400 ml-1">Loading rooms...</p>
+                    ) : dynamicRooms.length === 0 ? (
+                      <p className="text-xs text-gray-400 ml-1">No rooms found for this accommodation.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {dynamicRooms.map((room: any) => (
+                          <div 
+                            key={room.id} 
+                            className={`flex flex-col sm:flex-row sm:items-center border rounded-2xl p-4 md:p-5 transition-all ${
+                              selectedRoom === room.id ? "border-green-500 bg-green-50/30" : "border-gray-100 bg-white"
+                            }`}
+                          >
+                            <div className="sm:w-[35%] sm:border-r border-gray-100 pr-4 mb-3 sm:mb-0">
+                              <div 
+                                className="inline-block px-4 py-1 rounded-lg mb-2" 
+                                style={{ background: `linear-gradient(to right, ${CLR.dark}, ${CLR.accent})` }}
+                              >
+                                <span className="text-white font-bold text-[10px] tracking-wider uppercase">
+                                  Room {room.roomNumber}
+                                </span>
+                              </div>
+                              <p className="text-base font-bold text-gray-900">{room.roomBuilding}</p>
+                            </div>
+
+                            <div className="flex-1 sm:px-6 space-y-1 mb-4 sm:mb-0">
+                              <div className="flex justify-between text-[12px]">
+                                <span className="text-gray-400 font-bold uppercase text-[9px]">Type</span>
+                                <span className="font-bold text-gray-800 capitalize">{room.roomType}</span>
+                              </div>
+                              <div className="flex justify-between text-[12px]">
+                                <span className="text-gray-400 font-bold uppercase text-[9px]">Price</span>
+                                <span className="font-bold text-gray-800">₱{room.roomRent}</span>
+                              </div>
+                              <div className="flex justify-between text-[12px]">
+                                <span className="text-gray-400 font-bold uppercase text-[9px]">Occupancy</span>
+                                <span className="font-bold text-gray-800">{room.roomCurrentOccupancy}/{room.roomCapacity}</span>
+                              </div>
+                              <div className="flex justify-between text-[12px]">
+                                <span className="text-gray-400 font-bold uppercase text-[9px]">Availability</span>
+                                <span className={`font-bold capitalize ${room.roomAvailability === 'available' ? 'text-green-600' : 'text-red-500'}`}>
+                                  {room.roomAvailability}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="sm:pl-4">
+                              <button
+                                onClick={() => setSelectedRoom(room.id)}
+                                disabled={room.roomAvailability !== 'available'}
+                                className={`w-full sm:w-auto px-5 py-2 rounded-xl text-[11px] font-bold transition-all border ${
+                                  selectedRoom === room.id 
+                                    ? "bg-green-600 text-white border-green-600 shadow-md" 
+                                    : room.roomAvailability !== 'available'
+                                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                                    : "bg-white text-[#6B0F2B] border-[#6B0F2B]/10 hover:bg-[#F5ECF0]"
+                                }`}
+                              >
+                                {selectedRoom === room.id ? "Selected" : room.roomAvailability !== 'available' ? "Full" : "Assign"}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )} */}
+              </div>
+            )}
+          </Modal>
+        </main>
+      </div>
+      
+      
     </div>
   );
 }

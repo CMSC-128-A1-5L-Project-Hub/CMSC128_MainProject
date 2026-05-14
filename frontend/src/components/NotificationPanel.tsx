@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-export type NotificationType = "application" | "other" | "system" | "fee_due"
+export type NotificationType = "application_status" | "other" | "system" | "fee_due"
 
 export type Notification = {
     id: number
@@ -11,18 +11,11 @@ export type Notification = {
 }
 
 export const TYPE_STYLES: Record<NotificationType, { label: string; bg: string; text: string }> = {
-    application: { label: "Application", bg: "bg-[#6B0F2B]/10", text: "text-[#6B0F2B]" },
-    fee_due:     { label: "Fee due",     bg: "bg-[#B45309]/10", text: "text-[#B45309]" },
-    other:       { label: "Other",       bg: "bg-[#2563EB]/10", text: "text-[#2563EB]" },
-    system:      { label: "System",      bg: "bg-[#5F5E5A]/10", text: "text-[#5F5E5A]" },
+    application_status: { label: "Application", bg: "bg-[#6B0F2B]/10", text: "text-[#6B0F2B]" },
+    fee_due:            { label: "Fee due",     bg: "bg-[#B45309]/10", text: "text-[#B45309]" },
+    other:              { label: "Other",       bg: "bg-[#2563EB]/10", text: "text-[#2563EB]" },
+    system:             { label: "System",      bg: "bg-[#5F5E5A]/10", text: "text-[#5F5E5A]" },
 }
-
-export const MOCK_NOTIFICATIONS: Notification[] = [
-    { id: 1, type: "application", message: "Ana Marie Reyes submitted a new pending application for Building 6.", time: "2 min ago",  read: false },
-    { id: 2, type: "other",       message: "Move-out scheduled for Room 6543, Building 6 on March 28.", time: "15 min ago", read: false },
-    { id: 3, type: "fee_due",     message: "Liza Mae Fontanilla has a fee due on March 9", time: "1 hr ago",   read: false },
-    { id: 4, type: "system",      message: "Occupancy report generated for March 2026.", time: "Yesterday",  read: true  },
-]
 
 type Tab = "unread" | "all"
 

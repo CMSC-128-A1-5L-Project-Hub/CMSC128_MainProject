@@ -3,7 +3,7 @@ import { api } from "../../../api/axios";
 import Button from "../../Button";
 
 // Set to false to re-enable OTP verification via Semaphore SMS
-const SKIP_OTP = true
+const SKIP_OTP = false
 
 export default function PhoneVerification({ data, setData, prevStep, submitForm, isSubmitting }: any) {
     const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
@@ -138,7 +138,7 @@ export default function PhoneVerification({ data, setData, prevStep, submitForm,
                             name="phoneNumber"
                             value={data.phoneNumber}
                             onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, "")
+                                const val = e.target.value.replace(/\D/g, "").replace(/^0+/, "")
                                 setData({ ...data, phoneNumber: val })
                             }}
                             placeholder="9XXXXXXXXXX"

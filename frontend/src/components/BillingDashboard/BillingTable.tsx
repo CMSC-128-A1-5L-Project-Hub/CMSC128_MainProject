@@ -12,8 +12,8 @@ interface BillingTableProps {
 export default function BillingTable({ bills, onPay }: BillingTableProps){
     if (bills.length === 0) return (
         <div className="flex flex-col justify-center items-center h-full text-center">
-            <p className="text-gray-500 font-medium text-lg">No bills found</p>
-            <p className="text-gray-400 text-sm mt-1">When you receive a bill, it will appear here</p>
+            <p className="text-[#9A7080] font-medium text-lg">No bills found</p>
+            <p className="text-[#9A7080]/60 text-sm mt-1">When you receive a bill, it will appear here</p>
         </div>
     );
 
@@ -43,7 +43,7 @@ export default function BillingTable({ bills, onPay }: BillingTableProps){
                 <tbody>
                     {bills.map((bill, index) => (
                         <tr key={index}
-                            className="border-b border-gray-100 last:border-none"
+                            className="border-gray-100 last:border-none"
                             style={{ backgroundColor: 'transparent' }}
                         >
                             <td className='px-2 py-2 flex flex-row'>

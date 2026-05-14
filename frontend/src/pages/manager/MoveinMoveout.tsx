@@ -1,14 +1,35 @@
 import { useState, useMemo } from "react"
 import { api } from "../../api/axios";
+import CustomHeader from '../../components/CustomHeader';
+import Dropdown from "../../components/ApplicationStatus/Dropdown";
+import SearchBar from '../../components/SearchBar';
 
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
 import Card from "../../components/ui/Card"
 import { useQuery } from "@tanstack/react-query";
 import { DateTime } from 'luxon'
-import CustomHeader from '../../components/CustomHeader';
 
 type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected";
+
+const CLR = {
+  dark: "#3D0718",
+  mid: "#6B0F2B",
+  accent: "#8C1535",
+  gold: "#C9973A",
+  avatars: [
+    "#6B0F2B",
+    "#8C1535",
+    "#3D0718",
+    "#b45309",
+    "#15803d",
+    "#7c3aed",
+    "#1d4ed8",
+    "#0f766e",
+    "#92400e",
+    "#065f46",
+  ],
+} as const;
 
 interface User {
   id: number;
@@ -90,21 +111,22 @@ export interface AssignmentResponse {
   room: Room 
 }
 
+const diffFromNow = (isoDate: string | DateTime | undefined | null): number => {
+  if (!isoDate) return 0
 
-
-const diffFromNow = (isoDate: string | DateTime): number => {
   const target = typeof isoDate === 'string' 
     ? DateTime.fromISO(isoDate) 
     : isoDate
 
   const now = DateTime.now()
 
+  // .diff() calculates: target - now
   const { days } = now.diff(target, 'days').toObject()
 
   return Math.trunc(days ?? 0)
 }
 
-const RECORDS_PER_PAGE = 15
+// const RECORDS_PER_PAGE = 5
 type FilterType = "all" | "move-in" | "move-out"
 
 // initial for avatar 
@@ -136,13 +158,14 @@ export default function MoveinMoveout() {
             isError: isErrorList,
             refetch,
         } = useQuery({
-            queryKey: ["list"],
+            queryKey: ["moveInMoveOutlist"],
             queryFn: async () => {
             const res = await api.get("/view-all-assignments");
             return res.data;
             },
+            placeholderData: (prev) => prev,
         });
-    
+
     //TABLE 
     const MoveInMoveOutTable = ({ records = assignments }: { records?: AssignmentResponse[] }) => {
         //STATE 
@@ -150,345 +173,380 @@ export default function MoveinMoveout() {
         const [currentPage, setCurrentPage] = useState(1)
         const [search, setSearch] = useState("")
 
-        const tableTitle =
-        filter === "move-in"
-            ? "Move in History"
-            : filter === "move-out"
-            ? "Move out History"
-            : "Move in and Move out History"
+        const [itemsPerPage, setItemsPerPage] = useState(5)
+        const [sortBy, setSortBy] = useState<string>("Date")
+
+        const SORT_OPTS = [
+        { value: "Date", label: "Date" },
+        { value: "Room Type", label: "Room Type" },
+        { value: "Building", label: "Building" },
+        ]
+
+        const handleSort = (option: string) => {
+            setSortBy(option)
+            setCurrentPage(1)
+        }
 
         //FILTER AND SEARCH
+
+        const safeRecords = records ?? []
+
         const filtered = useMemo(() => {
-            const q = search.toLowerCase()
-            return records.filter(r => {
+            const q = search.toLowerCase();
+
+            return safeRecords.filter((r) => {
+                const moveIn = r.moveIn;
+
                 const matchesFilter =
                     filter === "all" ||
-                    (filter === "move-in" && diffFromNow(r.moveIn) <= 0) ||
-                    (filter === "move-out" && diffFromNow(r.moveIn) > 0)
+                    (filter === "move-in" &&
+                        moveIn &&
+                        diffFromNow(moveIn) <= 0) ||
+                    (filter === "move-out" &&
+                        moveIn &&
+                        diffFromNow(moveIn) > 0);
+
+                const lname =
+                    r.student?.user?.lname?.toLowerCase() ?? "";
+
+                const fname =
+                    r.student?.user?.fname?.toLowerCase() ?? "";
+
+                const building =
+                    r.room?.roomBuilding?.toLowerCase() ?? "";
+
+                const roomNumber =
+                    r.room?.roomNumber?.toLowerCase() ?? "";
+
+                const roomType =
+                    r.room?.roomType?.toLowerCase() ?? "";
+
                 const matchesSearch =
-                    r.student?.user.lname.toLowerCase().includes(q) ||
-                    r.student?.user.fname.toLowerCase().includes(q) ||
-                    r.room.roomBuilding.toLowerCase().includes(q) ||
-                    r.room.roomNumber.toLowerCase().includes(q) ||
-                    r.room.roomType.toLowerCase().includes(q)
-                return matchesFilter && matchesSearch
-            })
-        }, [records, search, filter])
+                    lname.includes(q) ||
+                    fname.includes(q) ||
+                    building.includes(q) ||
+                    roomNumber.includes(q) ||
+                    roomType.includes(q);
+
+                return matchesFilter && matchesSearch;
+            });
+        }, [safeRecords, search, filter]);
+
+        const sorted = useMemo(() => {
+            return [...filtered].sort((a, b) => {
+                const aRoomType = a.room?.roomType ?? "";
+                const bRoomType = b.room?.roomType ?? "";
+
+                const aBuilding = a.room?.roomBuilding ?? "";
+                const bBuilding = b.room?.roomBuilding ?? "";
+
+                const aMoveIn = a.moveIn
+                    ? typeof a.moveIn === "string"
+                        ? new Date(a.moveIn).getTime()
+                        : a.moveIn.toMillis()
+                    : 0;
+
+                const bMoveIn = b.moveIn
+                    ? typeof b.moveIn === "string"
+                        ? new Date(b.moveIn).getTime()
+                        : b.moveIn.toMillis()
+                    : 0;
+
+                if (sortBy === "Room Type") {
+                    return aRoomType.localeCompare(bRoomType);
+                }
+
+                if (sortBy === "Building") {
+                    return aBuilding.localeCompare(bBuilding);
+                }
+
+                if (sortBy === "Date") {
+                    return aMoveIn - bMoveIn;
+                }
+
+                return 0;
+            });
+        }, [filtered, sortBy]);
 
         //PAGES 
-        const totalPages = Math.ceil(filtered.length / RECORDS_PER_PAGE)
-        const startIndex = (currentPage - 1) * RECORDS_PER_PAGE
-        const paginated = filtered.slice(startIndex, startIndex + RECORDS_PER_PAGE)
+        const totalPages = Math.ceil(sorted.length / itemsPerPage)
+        const startIndex = (currentPage - 1) * itemsPerPage
+        const paginated = sorted.slice(startIndex, startIndex + itemsPerPage)
 
         const handleFilterChange = (f: FilterType) => {
             setFilter(f)
             setCurrentPage(1)
         }
 
-        const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-            setSearch(e.target.value)
-            setCurrentPage(1)
-        }
+        // const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        //     setSearch(e.target.value)
+        //     setCurrentPage(1)
+        // }
 
         return (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4 h-full">
                 {/* FILTER BUTTONS */}
                 <div className="bg-white p-1 rounded-xl inline-flex gap-1 w-fit">
-                {(["all", "move-in", "move-out"] as FilterType[]).map(f => (
-                    <button
-                    key={f}
-                    onClick={() => handleFilterChange(f)}
-                    className={`px-4 py-1.5 text-sm rounded-lg transition ${
-                        filter === f
-                        ? "bg-[#6B0F2B] text-white shadow"
-                        : "text-gray-500 hover:text-black"
-                    }`}
-                    >
-                    {f === "all" ? "All" : f === "move-in" ? "Move in" : "Move out"}
-                    </button>
-                ))}
+                    {(["all", "move-in", "move-out"] as FilterType[]).map(f => (
+                        <button
+                            key={f}
+                            onClick={() => handleFilterChange(f)}
+                            className={`px-4 py-1.5 text-sm rounded-lg transition capitalize
+                                ${filter === f
+                                    ? "bg-[#6B0F2B] text-white shadow"
+                                    : "text-gray-500 hover:text-black"
+                                }`}
+                        >
+                            {f === "all" ? "All" : f === "move-in" ? "Move in" : "Move out"}
+                        </button>
+                    ))}
                 </div>
-            
+                
 
-               <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
-                    {/*HEADER (TITLE + SERACG */}
-                    <div className="flex items-start justify-between p-4 border-b">
+               <div className="bg-white rounded-2xl shadow-sm p-6 border overflow-hidden h-full">
+                    {/*HEADER*/}
+                    <div className="flex items-start justify-between">
                         <div className="flex flex-col gap-1">
-                            <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight">
-                                <span className="hidden sm:inline whitespace-nowrap">
-                                    {tableTitle}
-                                </span>
-
-                                <span className="sm:hidden">
-                                    {filter === "all" ? (
-                                    <>
-                                        Move in and Move out
-                                        <br />
-                                        History
-                                    </>
-                                    ) : (
-                                    tableTitle
-                                    )}
-                                </span>
-                                </h2>
+                            <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight whitespace-nowrap">
+                            Move in &amp; Move out History
+                            </h2>
                             <p className="text-xs text-gray-400">
-                                {filter === "all"
-                                ? `${filtered.length} total move-in and move-out history`
-                                : filter === "move-out"
-                                ? `${filtered.length} total move-outs`
-                                : `${filtered.length} total move-ins`}                            
-                                </p>
+                            {filtered.length} total move {filter === "all" ? "outs" : filter === "move-out" ? "outs" : "ins"}
+                            </p>
                         </div>
 
-                        <div className="relative w-[130px] sm:w-[180px]">
-                            <svg
-                                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A36F82]"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2.5}
-                                viewBox="0 0 24 24"
-                                >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z"
-                                />
-                                </svg>
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                value={search}
-                                onChange={handleSearch}
-                                className="w-full min-w-0 h-10 bg-white border border-[#E8D5DC] rounded-xl pl-8 pr-7 text-sm text-[#3D0718] placeholder:text-[#C7A7B3] focus:outline-none focus:bg-[#F5ECF0] transition-all duration-200"
+                        <div className="flex items-center gap-2">
+                            <div className="hidden lg:block">
+                                <Dropdown
+                                    title="No. of Items"
+                                    items={[
+                                        { label: "5", href: "" },
+                                        { label: "10", href: "" },
+                                        { label: "15", href: "" },
+                                        { label: "20", href: "" },
+                                    ]}
+                                    direction='down'
+                                    widthClass="w-29 lg:w-32"
+                                    titleClass="text-[10px] lg:text-[11px]"
+                                    selectedClass="text-[12px] lg:text-[13px]"
+                                    onSelect={(label) => {
+                                        setItemsPerPage(Number(label))
+                                        setCurrentPage(1)
+                                    }}
+                                    />
+                            </div>
+                            
+                            <Dropdown
+                            title="Sort By"
+                            items={SORT_OPTS.map(opt => ({ label: opt.label, href: "" }))}
+                            direction='down'
+                            widthClass="w-29 lg:w-32"
+                            titleClass="text-[10px] lg:text-[11px]"
+                            selectedClass="text-[12px] lg:text-[13px] block"
+                            onSelect={(label) => {
+                                handleSort(label)
+                            }}
+                            />
+                            <SearchBar
+                            value={search}
+                            onChange={(query) => setSearch(query)}
+                            onPageReset={() => setCurrentPage(1)}
                             />
                         </div>
+                        
                     </div>
 
-                    {/* TABLE HEADER */}
-                    <div className="w-full overflow-x-auto pb-2">
-                    <table className="min-w-[900px] w-full text-sm table-fixed">
-                        <thead>
-                        <tr className="border-b border-[#6B0F2B]/10">
-                            <th className="px-4 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-                            Students
-                            </th>
 
-                            <th className="px-3 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-                            Room
-                            </th>
-
-                            <th className="px-5 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-                            Room Type
-                            </th>
-
-                            <th className="px-[60px] py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-                            Date
-                            </th>
-
-                            <th className="px-8 py-3 text-left text-[#9A7080] text-[11px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-                            Type
-                            </th>
-                        </tr>
-                        </thead>
-                        {/* ROWS */}
-                        <tbody className="divide-y divide-[#F5ECF0]">
-                        {/* LOADING STATE */}
-                        {isLoadingList && (
-                            <tr>
-                            <td colSpan={5} className="py-10">
-                                <div className="flex flex-col items-center justify-center text-center">
-                                <div
-                                    className="animate-spin rounded-full h-8 w-8 border-b-2"
-                                    style={{ borderColor: "#9E2040" }}
-                                    role="status"
-                                >
-                                    <span className="sr-only">Loading...</span>
-                                </div>
-
-                                <p className="text-sm text-[#9A7080] mt-2">
-                                    Fetching move-in and move-out history...
-                                </p>
-                                </div>
-                            </td>
-                            </tr>
-                        )}
-
-                        {/* ERROR STATE */}
-                        {isErrorList && (
-                            <tr>
-                            <td colSpan={5} className="py-10 text-center">
-                                <p className="text-sm text-red-600 font-medium">
-                                Failed to load data.
-                                </p>
-
-                                <button
-                                onClick={() => refetch()}
-                                className="mt-2 text-xs font-bold text-[#9E2040] hover:underline uppercase tracking-wider"
-                                >
-                                Try Again
-                                </button>
-                            </td>
-                            </tr>
-                        )}
-
-                        {/* SUCCESS STATE */}
-                        {!isLoadingList && !isErrorList && (
-                            paginated.length > 0 ? (
-                            paginated.map((record, i) => {
-                                const diffMoveIn = diffFromNow(record.moveIn);
-                                const diffMoveOut = diffFromNow(record.expectedMoveOut);
-                                const isMoveIn = diffMoveIn <= 0;
-
-                                return (
-                                <tr
-                                    key={i}
-                                    className={`transition hover:bg-[#FFF9FA] ${
-                                    isMoveIn ? "" : "bg-[#FDF4F7]"
-                                    }`}
-                                >
-                                    {/* STUDENT */}
-                                    <td className="px-4 py-3">
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                        className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
-                                        style={{
-                                            background:
-                                            "linear-gradient(135deg, #6B0F2B, #9E2040)",
-                                        }}
-                                        >
-                                        {getInitial(record.student.user.lname)}
-                                        </div>
-
-                                        <p className="font-semibold text-sm text-[#1A0008]">
-                                        {record.student.user.fname}{" "}
-                                        {record.student.user.lname}
-                                        </p>
-                                    </div>
-                                    </td>
-
-                                    {/* ROOM */}
-                                    <td className="px-4 py-3">
-                                    <div className="flex flex-col">
-                                        <span className="text-sm text-[#1A0008]">
-                                        {record.room.roomNumber}
-                                        </span>
-
-                                        <span className="text-xs text-[#9A7080]">
-                                        {record.room.roomBuilding}
-                                        </span>
-                                    </div>
-                                    </td>
-
-                                    {/* ROOM TYPE */}
-                                    <td className="px-4 py-3">
-                                    <div className="flex flex-col">
-                                        <span className="text-sm text-[#1A0008] capitalize">
-                                        {record.room.roomStayType.replace("_", " ")}
-                                        </span>
-
-                                        <span className="text-xs text-[#9A7080] capitalize">
-                                        {record.room.roomType}
-                                        </span>
-                                    </div>
-                                    </td>
-
-                                    {/* DATE */}
-                                    <td className="px-4 py-3">
-                                    <div className="flex flex-col">
-                                        <span className="text-sm text-[#1A0008]">
-                                        {isMoveIn
-                                            ? record.moveIn.toLocaleString()
-                                            : record.expectedMoveOut.toLocaleString()}
-                                        </span>
-
-                                        <span
-                                        className={`text-xs ${
-                                            isMoveIn
-                                            ? "text-[#9A7080]"
-                                            : "text-[#9E2040]"
-                                        }`}
-                                        >
-                                        {isMoveIn
-                                            ? `${Math.abs(diffMoveIn)} days until move-in`
-                                            : `${
-                                                diffMoveOut < 0
-                                                ? Math.abs(diffMoveOut) +
-                                                    " days until move-out"
-                                                : Math.abs(diffMoveOut) +
-                                                    " days since move-out"
-                                            }`}
-                                        </span>
-                                    </div>
-                                    </td>
-
-                                    {/* MOVE TYPE */}
-                                    <td className="px-4 py-3">
-                                    <span
-                                        className={`text-sm font-medium capitalize ${
-                                        isMoveIn
-                                            ? "text-[#1A0008]"
-                                            : "text-[#9E2040]"
-                                        }`}
-                                    >
-                                        {isMoveIn ? "Move-in" : "Move-out"}
-                                    </span>
-                                    </td>
-                                </tr>
-                                );
-                            })
-                            ) : (
-                            <tr>
-                                <td colSpan={5} className="py-12 text-center">
-                                <p className="text-base italic text-gray-400">
-                                    Nothing to see here
-                                </p>
-                                </td>
-                            </tr>
-                            )
-                        )}
-                        </tbody>
-                        </table>
-                    
-
-                    {/* FOOTER */}
-                    <div className="flex items-center justify-between px-4 py-3 border-t border-[#F5ECF0]">
-                        <p className="text-xs text-[#9A7080]">
-                        {filtered.length === 0
-                            ? "No results"
-                            : `Showing ${startIndex + 1}–${Math.min(
-                                startIndex + RECORDS_PER_PAGE,
-                                filtered.length
-                            )} of ${filtered.length}`}
-                        </p>
-                        <div className="flex items-center gap-1">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(page)}
-                                    className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
-                                        ${currentPage === page
-                                            ? "text-white"
-                                            : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"}`}
-                                    style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                            {currentPage < totalPages && (
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                                    className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
-                                >
-                                    {">"}
-                                </button>
-                            )}
+                     {isLoadingList ? (
+                        <div className="py-12 flex flex-col items-center justify-center text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: CLR.mid }} />
+                            <p className="text-sm text-[#9A7080] mt-2">Fetching applications...</p>
                         </div>
-                    </div>
-                 </div>
+                    ) : isErrorList ? (
+                        <div className="py-12 flex flex-col items-center justify-center text-center">
+                            <p className="text-sm text-red-600 font-medium">Failed to load data.</p>
+                            <button
+                                onClick={() => refetch()}
+                                className="text-xs font-bold text-[#9E2040] hover:underline uppercase tracking-wider"
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                        <div className={`${records.length === 0 && !isLoadingList ?  "items-center justify-center" : ""} w-full overflow-x-auto h-full flex flex-col`}>
+                            <div className={`${records.length === 0 && !isLoadingList ? "flex flex-col" : "hidden" }  justify-center items-center text-center`}>
+                                <p className="text-[#9A7080] font-medium text-lg">No tenants found</p>
+                                <p className="text-[#9A7080]/60 text-sm mt-1">When tenants are assigned rooms, they will appear here</p>
+                            </div>
+                            <table className={`${records.length === 0 && !isLoadingList ? "hidden" : "table"} min-w-[900px] w-full border-b-2 mt-4 border-[#F5ECF0]`}>
+                                <thead>
+                                <tr className="border-y-2 border-[#6B0F2B]/5">
+                                    {["Students", "Room", "Room Type", "Date", "Type"].map((h, i) => (
+                                    <th
+                                        key={h}
+                                        className="text-[#9A7080] text-xs font-bold tracking-widest uppercase pl-3 py-2 text-left"
+                                    >
+                                        {h}
+                                    </th>
+                                    ))}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {paginated.length > 0 ? (
+                                    paginated.map((record, i) => {
+                                    const diffMoveIn = diffFromNow(record.moveIn)
+                                    const diffMoveOut = diffFromNow(record.expectedMoveOut)
+                                    const isMoveIn = diffMoveIn <= 0
+
+                                    return (
+                                        <tr
+                                        key={i}
+                                        className={`transition ${isMoveIn ? "" : "bg-[#FDF4F7]"}`}
+                                        >
+                                        {/* Student */}
+                                        <td className="py-3 pl-3">
+                                            <div className="flex items-center gap-3">
+                                            <div
+                                            className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
+                                            style={{
+                                                background:
+                                                "linear-gradient(135deg, #6B0F2B, #9E2040)",
+                                            }}
+                                            >
+                                            {record?.student?.user?.lname ?
+                                                getInitial(record.student.user.lname) || "U" :
+                                                "U"
+                                            }
+                                            </div>
+                                            <p className="font-semibold text-sm text-[#1A0008]">
+                                            {record?.student?.user?.fname && record?.student?.user?.lname ?
+                                                `${record.student.user.fname} ${record.student.user.lname}` :
+                                                "Loading name..."
+                                            }
+                                            </p>
+                                            </div>
+                                        </td>
+
+                                        {/* ROOM */}
+                                        <td className="px-4 py-3">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm text-[#1A0008]">
+                                            {record?.room?.roomNumber ?? "Failed to Fetch"}
+                                            </span>
+
+                                            <span className="text-xs text-[#9A7080]">
+                                            {record?.room?.roomBuilding ?? "Failed to Fetch"}
+                                            </span>
+                                        </div>
+                                        </td>
+
+                                        {/* ROOM TYPE */}
+                                        <td className="px-4 py-3">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm text-[#1A0008] capitalize">
+                                            {record?.room?.roomStayType ?
+                                                record.room.roomStayType.replace("_", " ") :
+                                                "Failed to Fetch"
+                                            }
+                                            </span>
+
+                                            <span className="text-xs text-[#9A7080] capitalize">
+                                            {record?.room?.roomType ?? "Failed to Fetch"}
+                                            </span>
+                                        </div>
+                                        </td>
+
+                                        {/* DATE */}
+                                        <td className="px-4 py-3">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm text-[#1A0008]">
+                                            {isMoveIn ?
+                                                (record?.moveIn ?
+                                                record.moveIn.toLocaleString() :
+                                                "Failed to Fetch")
+                                                    : 
+                                                (record?.expectedMoveOut ?
+                                                record.expectedMoveOut.toLocaleString() :
+                                                "Failed to Fetch")
+                                            }
+                                            </span>
+
+                                            <span
+                                            className={`text-xs ${
+                                                isMoveIn
+                                                ? "text-[#9A7080]"
+                                                : "text-[#9E2040]"
+                                            }`}
+                                            >
+                                            {isMoveIn
+                                                ? `${Math.abs(diffMoveIn)} days until move-in`
+                                                : `${
+                                                    diffMoveOut < 0
+                                                    ? Math.abs(diffMoveOut) +
+                                                        " days until move-out"
+                                                    : Math.abs(diffMoveOut) +
+                                                        " days since move-out"
+                                                }`}
+                                            </span>
+                                        </div>
+                                        </td>
+
+                                        {/* Type */}
+                                        <td>
+                                            <span className={`text-sm font-medium capitalize ${isMoveIn ? "text-[#1A0008]" : "text-[#9E2040]"}`}>
+                                            {isMoveIn ? "Move-in" : "Move-out"}
+                                            </span>
+                                        </td>
+                                        </tr>
+                                    )
+                                    })
+                                ) : (
+                                    <tr>
+                                        <td colSpan={5} />
+                                    </tr>
+                                )}
+                                </tbody>
+                            </table>
+                            </div>
+                            {/* FOOTER */}
+                            <div className="flex items-center justify-between mt-4 ">
+                                <p className="text-xs text-[#9A7080]">
+                                {sorted.length === 0
+                                    ? ""
+                                    : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, sorted.length)} of ${sorted.length}`}
+                                </p>
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            onClick={() => setCurrentPage(page)}
+                                            className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
+                                                ${currentPage === page
+                                                    ? "text-white"
+                                                    : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"}`}
+                                            style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                    {currentPage < totalPages && (
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                            className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                                        >
+                                            {">"}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+                    
             </div>
-            
-         </div>
-        )
+                    
+       )
     }
 
     return (
@@ -496,23 +554,25 @@ export default function MoveinMoveout() {
             {/* SIDEBAR */}
             <Sidebar role="manager" profile={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname} />
             {/* CONTENT */}
-                <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-                    <CustomHeader title="Move in and Move out" />
-                
-                    <div className="flex-1 flex flex-col p-5 overflow-y-auto">
-                        <main className="flex-1 flex flex-col gap-4">
-                            <HeroBanner
-                                greeting="Good Day"
-                                name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-                                title="Check your move-in and move-out history"
-                                subtitle="We make it easy for you to track the accommodation applications you manage."
-                                type="full"
-                            />
-                    {/* TABLE */}
-                    <MoveInMoveOutTable records={assignments} />
-                </main>
+            <div className="flex flex-col flex-1 min-w-0 w-full">
+                <CustomHeader
+                    title="Move In & Move Out"></CustomHeader>    
+                <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
+                    <main className="flex-1 flex flex-col gap-4">
+                        <HeroBanner
+                            greeting="Good Day"
+                            name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
+                            title="Check your applicants"
+                            subtitle="We make it easy for you to track the accommodation applications you manage."
+                            type="mini"
+                        />
+                        {/* TABLE */}
+                        <MoveInMoveOutTable records={[]} />
+                    </main>
+                </div>
             </div>
+            
+            
         </div>
-     </div>
     )
 }

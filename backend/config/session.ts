@@ -47,9 +47,10 @@ const sessionConfig = defineConfig({
 
     /**
      * Cross-site policy for cookie sending.
-     * Changed sameSite to non if app is in production
+     * 'lax' works for both dev (Vite proxy) and prod (Vercel proxy) since
+     * all API requests are same-origin from the browser's perspective.
      */
-    sameSite: app.inProduction ? 'none' : 'lax',
+    sameSite: 'lax',
   },
 
   /**

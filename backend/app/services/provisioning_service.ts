@@ -2,8 +2,11 @@ import User from '#models/user'
 import FileMetadata from '#models/file_metadatum'
 import Manager from '#models/manager'
 import Accommodation from '#models/accommodation'
+import NotificationService from '#services/notification_service'
 
 export default class ProvisioningService {
+  private notificationService = new NotificationService()
+
   public async provision(profile: { email: string; fname: string; lname?: string }) {
     const defaultPfp = await FileMetadata.firstOrCreate(
       { filePath: 'defaults/default_pfp.png' },
@@ -20,6 +23,7 @@ export default class ProvisioningService {
       user.fname = profile.fname
       user.lname = profile.lname ?? ''
       await user.save()
+      await this.applyPendingManagerInvite(user)
       return user
     }
 
@@ -31,29 +35,48 @@ export default class ProvisioningService {
       pfpFileId: defaultPfp.id,
     })
 
-    // Check if this email was invited to manage an accommodation
-    const pendingAccommodation = await Accommodation.query()
-      .where('invited_manager_email', profile.email)
-      .first()
-
-    if (pendingAccommodation) {
-      // Auto-activate as manager — no admin approval needed
-      user.role = 'manager'
-      user.accountStatus = 'active'
-      await user.save()
-
-      // Create Manager record
-      await Manager.create({
-        userId: user.id,
-        managerStatus: 'active',
-      })
-
-      // Link to accommodation and clear the invite
-      pendingAccommodation.managerId = user.id
-      pendingAccommodation.invitedManagerEmail = null
-      await pendingAccommodation.save()
-    }
+    await this.applyPendingManagerInvite(user)
 
     return user
+  }
+
+  private async applyPendingManagerInvite(user: User) {
+    const pendingAccommodation = await Accommodation.query()
+      .where('invited_manager_email', user.email)
+      .first()
+
+    if (!pendingAccommodation) return
+
+    const outgoingManagerId = pendingAccommodation.managerId
+
+    if (user.role !== 'manager') {
+      user.role = 'manager'
+      // accountStatus stays null until the manager completes setup (/setup),
+      // at which point ProfileService flips it to 'active'. The pending-setup
+      // signal is Manager.managerStatus === 'inactive' (see AuthSuccess).
+      await user.save()
+    }
+
+    const existingManager = await Manager.findBy('userId', user.id)
+    if (!existingManager) {
+      await Manager.create({
+        userId: user.id,
+        managerStatus: 'inactive',
+      })
+    }
+
+    pendingAccommodation.managerId = user.id
+    pendingAccommodation.invitedManagerEmail = null
+    await pendingAccommodation.save()
+
+    if (outgoingManagerId && outgoingManagerId !== user.id) {
+      const outgoing = await User.find(outgoingManagerId)
+      if (outgoing) {
+        await this.notificationService.sendManagerRemovedNotification(
+          outgoing,
+          pendingAccommodation.accommodationName
+        )
+      }
+    }
   }
 }

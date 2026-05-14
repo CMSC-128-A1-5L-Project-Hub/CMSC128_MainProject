@@ -99,8 +99,8 @@ export default function RoomApplicationModal({
                     setMoveOutDate(formattedEnd);
                 }
             } else {
-                if (displayStart) setMoveInDate(displayStart);
-                if (displayEnd) setMoveOutDate(displayEnd);
+                setMoveInDate("");
+                setMoveOutDate("");
             }
         }
     }, [open, initialStart, initialEnd, displayStart, displayEnd, isTransient]);
@@ -117,6 +117,27 @@ export default function RoomApplicationModal({
             prev.filter((p) => allPreferences.includes(p))
         );
     }, [selectedStayType, selectedArrangement]);
+
+    const modalFooter = (
+        <div className="flex flex-row justify-end items-center w-full">
+            {(uploadedFiles.length < requiredDocsCount || (isTransient && (!moveInDate || !moveOutDate))) && (
+                <p className="text-[11px] font-bold items-center justify-center mr-4 text-[#6B0F2B]">
+                    {isTransient && (!moveInDate || !moveOutDate)
+                        ? "Please select stay dates to proceed."
+                        : `Please upload all ${requiredDocsCount} required documents to proceed.`}
+                </p>
+            )}
+            <Button
+                variant="primary"
+                size="lg"
+                className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
+                onClick={() => setStep("verify")}
+                disabled={uploadedFiles.length < requiredDocsCount || (isTransient && (!moveInDate || !moveOutDate))}
+            >
+                Submit
+            </Button>
+        </div>
+    )
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(e.target.files || []);
@@ -157,8 +178,8 @@ export default function RoomApplicationModal({
                 durationOfStayDays: isTransient ? numberOfDays : null,
                 preferredTags:
                     selectedPreferences.length > 0 ? selectedPreferences : null,
-                moveInDate,
-                moveOutDate,
+                moveInDate: isTransient ? moveInDate : null,
+                moveOutDate: isTransient ? moveOutDate : null,
                 reservationFee: isTransient ? reservationFee : null,
                 moveInFee: !isTransient ? moveInFee : null,
             };
@@ -298,6 +319,7 @@ export default function RoomApplicationModal({
                     : (isTransient ? "VERIFY BOOKING" : "VERIFY APPLICATION")
             }
             maxWidth={850}
+            footer={modalFooter}
             maxHeight="95vh"
         >
             <div className="flex flex-col gap-6 font-sans p-2">
@@ -307,7 +329,7 @@ export default function RoomApplicationModal({
                         <div className="flex flex-col md:flex-row gap-6 items-start">
                             <div className="w-full md:w-[320px] h-[180px] rounded-3xl overflow-hidden shadow-sm flex-shrink-0">
                                 <img
-                                    src={accommodation?.images?.[0]?.image_path || "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&q=80&w=400"}
+                                    src={accommodation?.imageUrls?.[0] ?? accommodation?.primaryImageUrl ?? "/default-accommodation.png"}
                                     alt={accommodation?.accommodationName}
                                     className="w-full h-full object-cover"
                                 />
@@ -329,10 +351,10 @@ export default function RoomApplicationModal({
                                     <div className="text-right">
                                         <span className="text-2xl font-black text-[#C9973A]">₱{currentRoom?.rent?.toLocaleString() ?? "—"}</span>
                                         {!isTransient ? (
-                                            <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per month</p>
+                                            <p className="text-[11px] text-[#C8B0B8] font-bold uppercase tracking-widest">per month</p>
                                         ) : (
-                                            <p className="text-[9px] text-[#C8B0B8] font-bold uppercase tracking-widest">per day</p>
-                                        )}
+                                            <p className="text-[11px] text-[#C8B0B8] font-bold uppercase tracking-widest">per day</p>
+                                        )} 
                                     </div>
                                 </div>
                                 {/* Amenity Grid */}
@@ -425,7 +447,7 @@ export default function RoomApplicationModal({
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-2">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest block">Duration of Stay</label>
+                                    <label className="text-[12px] font-bold text-[#C8B0B8] uppercase tracking-widest block">Duration of Stay</label>
                                     <div className="flex items-center gap-3">
                                         <div className="flex-1">
                                             {isTransient ? (
@@ -435,11 +457,11 @@ export default function RoomApplicationModal({
                                                     {moveInDate || "—"}
                                                 </p>
                                             )}
-                                            <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">
+                                            <span className="text-[10px] font-bold text-[#9A7080] uppercase mt-1 block">
                                                 {isTransient ? "Target Move-In" : "Expected Move-In"}
                                             </span>
                                         </div>
-                                        <span className="text-[#D4B0BA] text-[10px] font-bold uppercase mb-4">to</span>
+                                        <span className="text-[#D4B0BA] text-[11px] font-bold uppercase mb-4">to</span>
                                         <div className="flex-1">
                                             {isTransient ? (
                                                 <input type="date" value={moveOutDate} min={moveInDate} onChange={(e) => setMoveOutDate(e.target.value)} className="w-full border border-[#F2D9DF] rounded-lg px-2 py-1.5 text-[11px] font-bold text-[#6B0F2B] outline-none" />
@@ -448,7 +470,7 @@ export default function RoomApplicationModal({
                                                     {moveOutDate || "—"}
                                                 </p>
                                             )}
-                                            <span className="text-[8px] font-bold text-[#9A7080] uppercase mt-1 block">
+                                            <span className="text-[10px] font-bold text-[#9A7080] uppercase mt-1 block">
                                                 {isTransient ? "Target Move-Out" : "Expected Move-Out"}
                                             </span>
                                         </div>
@@ -456,14 +478,14 @@ export default function RoomApplicationModal({
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest block">
+                                    <label className="text-[11px] font-bold text-[#C8B0B8] uppercase tracking-widest block">
                                         {isTransient ? "Reservation Fee" : "Move-In Fee"}
                                     </label>
                                     <p className="text-2xl font-black text-[#C9973A]">
                                         ₱{(isTransient ? reservationFee : moveInFee).toLocaleString()}
                                     </p>
                                     {!isTransient && (
-                                        <p className="text-[9px] font-bold text-[#9A7080]">
+                                        <p className="text-[11px] font-bold text-[#9A7080]">
                                             {advanceMonths} {advanceMonths === 1 ? "month" : "months"} advance,{" "}
                                             {depositMonths} {depositMonths === 1 ? "month" : "months"} deposit
                                         </p>
@@ -480,19 +502,19 @@ export default function RoomApplicationModal({
                         <hr className="border-[#F5ECF0]" />
 
                         {/* Documents Section */}
-                        <div className="space-y-4">
+                        <div className="">
                             <h4 className="text-[12px] font-black text-[#6B0F2B] uppercase tracking-[0.15em]">Supporting Documents</h4>
                             <div className="flex gap-2">
                                 {(isTransient
                                     ? ["Companion's Valid ID", "Dormitory Agreement Form"]
                                     : ["Parent's Consent Form", "Parent's Valid ID", "Dormitory Agreement"]
                                 ).map((doc) => (
-                                    <span key={doc} className="px-3 py-1 bg-[#FDF2F4] text-[#6B0F2B] text-[9px] font-bold rounded-full border border-[#F2D9DF]">{doc}</span>
+                                    <span key={doc} className="px-3 py-1 bg-[#FDF2F4] text-[#6B0F2B] text-[11px] mt-2 font-bold rounded-full border border-[#F2D9DF]">{doc}</span>
                                 ))}
                             </div>
 
-                            <Card className="bg-[#FAF7F8] border-[#F2D9DF] p-6 flex flex-col lg:flex-row gap-6 rounded-3xl min-h-[160px]">
-                                <input type="file" hidden ref={fileInputRef} onChange={handleFileSelect} multiple accept=".pdf" />
+                            <Card className="bg-[#FAF7F8] border-[#F2D9DF] flex flex-col lg:flex-row gap-6 rounded-3xl min-h-[160px]">
+                                <input type="file" hidden ref={fileInputRef} onChange={handleFileSelect} multiple />
                                 <div onClick={() => fileInputRef.current?.click()} className="flex-1 border-2 border-dashed border-[#D4B0BA] rounded-2xl p-6 flex flex-col items-center justify-center text-center bg-white hover:bg-[#FFFDFE] cursor-pointer transition-all">
                                     <IoCloudUploadOutline className="text-[#6B0F2B] mb-2" size={28} />
                                     <p className="text-sm font-black text-[#1A0008]">Upload Files</p>
@@ -530,25 +552,6 @@ export default function RoomApplicationModal({
                                     <p className="text-[9px] font-black text-[#C8B0B8] uppercase tracking-[0.2em] mt-1">Documents Uploaded</p>
                                 </div>
                             </Card>
-
-                            <div className="flex flex-col items-end gap-2 pt-4">
-                                {(uploadedFiles.length < requiredDocsCount || !moveInDate || !moveOutDate) && (
-                                    <p className="text-[10px] font-bold text-[#6B0F2B]">
-                                        {!moveInDate || !moveOutDate
-                                            ? "Please select stay dates to proceed."
-                                            : `Please upload all ${requiredDocsCount} required documents to proceed.`}
-                                    </p>
-                                )}
-                                <Button
-                                    variant="primary"
-                                    size="lg"
-                                    className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
-                                    onClick={() => setStep("verify")}
-                                    disabled={uploadedFiles.length < requiredDocsCount || !moveInDate || !moveOutDate}
-                                >
-                                    Submit
-                                </Button>
-                            </div>
                         </div>
                     </>
                 ) : (

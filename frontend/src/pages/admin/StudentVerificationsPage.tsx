@@ -6,15 +6,19 @@ import Sidebar from "../../components/Sidebar"
 import HeroBanner from "@/components/dashboard/HeroBanner"
 import Card from "@/components/ui/Card"
 import { FiSearch } from "react-icons/fi"
+import StudentVerificationsModal from "@/components/dashboard/admin/StudentVerificationsModal"
 
 export default function StudentVerificationsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const [verifyingUserId, setVerifyingUserId] = useState<number | null>(null)
+  const [processingUserId, setProcessingUserId] = useState<number | null>(null)
+  const [processingAction, setProcessingAction] = useState<"approve" | "reject" | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [sortOrder, setSortOrder] = useState("latest")
   const [isSortOpen, setIsSortOpen] = useState(false)
+  const [selectedItem, setSelectedItem] = useState<any | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const { data: user, isLoading: isUserLoading, isError } = useQuery({
     queryKey: ["me"],
@@ -39,7 +43,8 @@ export default function StudentVerificationsPage() {
 
   const verifyUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      setVerifyingUserId(userId)
+      setProcessingUserId(userId)
+      setProcessingAction("approve")
 
       const res = await api.patch(`/admin/users/${userId}/verify`, {
         roleToAssign: "student",
@@ -52,7 +57,26 @@ export default function StudentVerificationsPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
     },
     onSettled: () => {
-      setVerifyingUserId(null)
+      setProcessingUserId(null)
+      setProcessingAction(null)
+    },
+  })
+
+  const rejectUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      setProcessingUserId(userId)
+      setProcessingAction("reject")
+
+      const res = await api.patch(`/admin/users/${userId}/reject`)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
+    },
+    onSettled: () => {
+      setProcessingUserId(null)
+      setProcessingAction(null)
     },
   })
 
@@ -114,6 +138,16 @@ export default function StudentVerificationsPage() {
 
       return sortOrder === "latest" ? dateB - dateA : dateA - dateB
     })
+
+    const handleOpenModal = (item: any) => {
+      setSelectedItem(item)
+      setIsModalOpen(true)
+    }
+
+    const handleCloseModal = () => {
+      setIsModalOpen(false)
+      setSelectedItem(null)
+    }
 
   return (
     <div className="flex min-h-screen bg-[#F9F4F5]">
@@ -290,7 +324,7 @@ export default function StudentVerificationsPage() {
                           </td>
 
                           <td className="px-8 py-5 text-sm text-[#A06B7C]">
-                            {formatAppliedDate(item.user.createdAt)}
+                            {formatAppliedDate(item.user.submittedAt)}
                           </td>
 
                           <td className="px-8 py-5 text-sm text-gray-600">
@@ -305,17 +339,10 @@ export default function StudentVerificationsPage() {
 
                           <td className="px-8 py-5 text-center">
                             <button
-                              onClick={() =>
-                                verifyUserMutation.mutate(item.user.id)
-                              }
-                              disabled={
-                                verifyingUserId === item.user.id
-                              }
-                              className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-6 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF] disabled:opacity-60"
+                              onClick={() => handleOpenModal(item)}
+                              className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-6 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF]"
                             >
-                              {verifyingUserId === item.user.id
-                                ? "Approving..."
-                                : "Review"}
+                              Review
                             </button>
                           </td>
                         </tr>
@@ -342,6 +369,21 @@ export default function StudentVerificationsPage() {
           </Card>
         </div>
       </main>
+      <StudentVerificationsModal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        selectedItem={selectedItem}
+        verifyingUserId={processingUserId}
+        processingAction={processingAction}
+        onApprove={async (userId) => {
+          await verifyUserMutation.mutateAsync(userId)
+          handleCloseModal()
+        }}
+        onReject={async (userId) => {
+          await rejectUserMutation.mutateAsync(userId)
+          handleCloseModal()
+        }}
+      />
     </div>
   )
 }

@@ -313,15 +313,6 @@ export default function RoomAssignment() {
   // const [sortOpen, setSortOpen] = useState(false)
   const [search, setSearch] = useState("")
 
-  // Loading
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Loading…</p>
-      </div>
-    )
-  }
-
   // Transform approved apps and merge with assignments
   const transformedApproved = approvedApps.map(transformApp)
   const allAssignments: AssignmentItem[] = transformedApproved.map((app) =>
@@ -371,6 +362,15 @@ export default function RoomAssignment() {
   // const startIndex = (currentPage - 1) * ASSIGNMENTS_PER_PAGE
   // const paginatedAssignments = sortedAssignments.slice(startIndex, startIndex + ASSIGNMENTS_PER_PAGE)
 
+  // Loading
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p>Loading…</p>
+      </div>
+    )
+  }
+
   // pagination calc
   const totalPages = Math.ceil(sortedAssignments.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -419,13 +419,16 @@ export default function RoomAssignment() {
             title="Room Assignment"></CustomHeader>
           <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
             <main className="flex-1 flex flex-col gap-4 lg:gap-6">
-              <HeroBanner
-                greeting="Good Day"
-                name={fullName}
-                title="Assign a room to your confirmed applicant"
-                subtitle="We make it easy for you to track the accommodation applications you manage."
-                type="mini"
-              />
+              <div>
+                  <HeroBanner
+                    greeting="Good Day"
+                    name={fullName}
+                    title="Assign a room to your confirmed applicant"
+                    subtitle="We make it easy for you to track the accommodation applications you manage."
+                    type="mini"
+                  />
+              </div>
+              
 
               {/* Stats */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
@@ -437,7 +440,7 @@ export default function RoomAssignment() {
                       total={allAssignments.length}
                       from="#1A7A4A" to="#2D9A5F" bg="#F0F7F3" textColor="#1A7A4A"
                     />
-                    <hr className="border-[#F5EEF0] my-1" />
+                    {/* <hr className="border-[#F5EEF0] my-1" /> */}
                     <StatBar
                       label="Pending"
                       value={totalUnassigned}
@@ -477,8 +480,7 @@ export default function RoomAssignment() {
               </div>
 
               {/* Table */}
-              <Card>
-                <div>
+                <div className="bg-white h-full w-full rounded-2xl p-6 flex flex-col">
                   <div className="flex items-center justify-between mb-2 gap-3 flex-wrap pb-2">
                     <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">Room Assignment</h2>
                     <div className="flex items-center gap-2 ml-auto">
@@ -565,102 +567,110 @@ export default function RoomAssignment() {
                       />
                     </div>
                   </div>
+                  
+                  <div className="flex-1 min-h-0 flex flex-col items-center justify-center">
+                      <div className={`${assignments.length === 0 ? "flex" : "hidden"} flex-col justify-center w-full items-center text-center`}>
+                        <p className="text-[#9A7080] font-medium text-lg">No assignments found</p>
+                        <p className="text-[#9A7080]/60 text-sm mt-1">When somebody gets approved, they will appear here</p>
+                      </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="min-w-[900px] w-full border-collapse">
-                      <thead>
-                        <tr className="border-[#6B0F2B]/5 border-y-2">
-                          {["Student", "Confirmed Room Type", "Date Confirmed", "Status", "Action"].map((h, i) => (
-                            <th
-                              key={h}
-                              className={`text-[#9A7080] p-1 text-xs font-bold tracking-widest uppercase text-left ${i === 3 || i === 4 ? "text-left" : ""}`}
-                            >
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sortedAssignments.length > 0 ? (
-                          paginatedAssignments.map((assignment, i) => (
-                            <tr
-                              key={i}
-                              className={` ${assignment.status === "assigned" ? "bg-[#1A7A4A]/5" : ""}`}
-                            >
-                              {/* Student */}
-                              <td className="py-2.5 pl-1">
-                                <div className="flex items-center gap-2">
-                                  <div
-                                    className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
-                                    style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                                  >
-                                    {getInitials(assignment.student.student.fullName)}
-                                  </div>
-                                  <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
-                                    {assignment.student.student.fullName}
-                                  </p>
-                                </div>
-                              </td>
-
-                              {/* Room type & building */}
-                              <td className="py-2.5">
-                                <p className="text-sm text-[#1A0008] capitalize">{assignment.stayType}</p>
-                                <p className="text-xs text-[#C8B0B8]">
-                                  {assignment.roomBuilding
-                                    ? `Building ${assignment.roomBuilding} · ${assignment.roomType.charAt(0).toUpperCase() + assignment.roomType.slice(1)}`
-                                    : assignment.roomType}
-                                </p>
-                              </td>
-
-                              {/* Date / Move-in */}
-                              <td className="py-2.5">
-                                <p className={`text-sm ${assignment.status === "assigned" ? "text-[#1A0008]" : "text-[#C8B0B8]"}`}>
-                                  {assignment.status === 'pending_confirmation' ? 'TBD' : (assignment.moveIn || '—')}
-                                </p>
-                                {assignment.status !== 'pending_confirmation' && (
-                                  <p className="text-xs text-[#C8B0B8]">
-                                    {assignment.moveIn ? timeAgo(assignment.moveIn) : ''}
-                                  </p>
-                                )}
-                              </td>
-
-                              {/* Status badge */}
-                              <td className="py-2.5 text-left">
-                                <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-full font-bold capitalize whitespace-nowrap
-                                  ${assignment.status === "not assigned" ? "bg-[#9E2040]/10 text-[#9E2040]" :
-                                    assignment.status === "pending_confirmation" ? "bg-amber-100 text-amber-800" :
-                                    "bg-[#1A7A4A]/10 text-[#1A7A4A]"}`}>
-                                  <span className={`w-2 h-2 flex-shrink-0 rounded-full
-                                    ${assignment.status === "not assigned" ? "bg-[#9E2040]" :
-                                      assignment.status === "pending_confirmation" ? "bg-amber-500" : "bg-[#1A7A4A]"}`} />
-                                  {assignment.status === "not assigned" ? "Not Assigned" :
-                                    assignment.status === "pending_confirmation" ? "Pending Confirmation" : "Assigned"}
-                                </span>
-                              </td>
-
-                              {/* Action */}
-                              <td className="py-2.5 text-left">
-                                <Button
-                                  variant="reddishPink"
-                                  size="sm"
-                                  className="w-28 justify-center"
-                                  onClick={() => setSelectedAssignment(assignment)}
+                      <div className={`${assignments.length === 0 ? "hidden" : "flex "} flex-col overflow-x-auto`}>
+                        <table className={` min-w-[900px] w-full border-collapse`}>
+                          <thead>
+                            <tr className="border-[#6B0F2B]/5 border-y-2">
+                              {["Student", "Confirmed Room Type", "Date Confirmed", "Status", "Action"].map((h, i) => (
+                                <th
+                                  key={h}
+                                  className={`text-[#9A7080] py-1 text-xs font-bold tracking-widest uppercase text-left ${i === 3 || i === 4 ? "text-left" : ""}`}
                                 >
-                                  {assignment.status === "assigned" ? "View" : "Assign Room"}
-                                </Button>
-                              </td>
+                                  {h}
+                                </th>
+                              ))}
                             </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan={5} className="text-sm text-[#9A7080] py-6 text-left">
-                              {search ? "No assignments match your search." : "No assignments found."}
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                          </thead>
+                          <tbody>
+                            {sortedAssignments.length > 0 ? (
+                              paginatedAssignments.map((assignment, i) => (
+                                <tr
+                                  key={i}
+                                  className={` ${assignment.status === "assigned" ? "bg-[#1A7A4A]/5" : ""}`}
+                                >
+                                  {/* Student */}
+                                  <td className="py-2.5 pl-1">
+                                    <div className="flex items-center gap-2">
+                                      <div
+                                        className="hidden lg:flex w-9 h-9 rounded-xl flex-shrink-0 items-center justify-center text-white text-xs font-bold"
+                                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                                      >
+                                        {getInitials(assignment.student.student.fullName)}
+                                      </div>
+                                      <p className="font-bold text-[12px] lg:text-sm text-[#1A0008]">
+                                        {assignment.student.student.fullName}
+                                      </p>
+                                    </div>
+                                  </td>
+
+                                  {/* Room type & building */}
+                                  <td className="py-2.5">
+                                    <p className="text-sm text-[#1A0008] capitalize">{assignment.stayType}</p>
+                                    <p className="text-xs text-[#C8B0B8]">
+                                      {assignment.roomBuilding
+                                        ? `Building ${assignment.roomBuilding} · ${assignment.roomType.charAt(0).toUpperCase() + assignment.roomType.slice(1)}`
+                                        : assignment.roomType}
+                                    </p>
+                                  </td>
+
+                                  {/* Date / Move-in */}
+                                  <td className="py-2.5">
+                                    <p className={`text-sm ${assignment.status === "assigned" ? "text-[#1A0008]" : "text-[#C8B0B8]"}`}>
+                                      {assignment.status === 'pending_confirmation' ? 'TBD' : (assignment.moveIn || '—')}
+                                    </p>
+                                    {assignment.status !== 'pending_confirmation' && (
+                                      <p className="text-xs text-[#C8B0B8]">
+                                        {assignment.moveIn ? timeAgo(assignment.moveIn) : ''}
+                                      </p>
+                                    )}
+                                  </td>
+
+                                  {/* Status badge */}
+                                  <td className="py-2.5 text-left">
+                                    <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-full font-bold capitalize whitespace-nowrap
+                                      ${assignment.status === "not assigned" ? "bg-[#9E2040]/10 text-[#9E2040]" :
+                                        assignment.status === "pending_confirmation" ? "bg-amber-100 text-amber-800" :
+                                        "bg-[#1A7A4A]/10 text-[#1A7A4A]"}`}>
+                                      <span className={`w-2 h-2 flex-shrink-0 rounded-full
+                                        ${assignment.status === "not assigned" ? "bg-[#9E2040]" :
+                                          assignment.status === "pending_confirmation" ? "bg-amber-500" : "bg-[#1A7A4A]"}`} />
+                                      {assignment.status === "not assigned" ? "Not Assigned" :
+                                        assignment.status === "pending_confirmation" ? "Pending Confirmation" : "Assigned"}
+                                    </span>
+                                  </td>
+
+                                  {/* Action */}
+                                  <td className="py-2.5 text-left">
+                                    <Button
+                                      variant="reddishPink"
+                                      size="sm"
+                                      className="w-28 justify-center"
+                                      onClick={() => setSelectedAssignment(assignment)}
+                                    >
+                                      {assignment.status === "assigned" ? "View" : "Assign Room"}
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={5} className="text-sm items-center justify-center text-[#9A7080] py-6 text-left">
+                                  {search ? "No assignments match your search." : ""}
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                   </div>
+                  
 
                   {/* Pagination */}
                   {sortedAssignments.length > 0 && (
@@ -692,7 +702,6 @@ export default function RoomAssignment() {
                     </div>
                   )}
                 </div>
-              </Card>
             </main>
           </div>
         </div>

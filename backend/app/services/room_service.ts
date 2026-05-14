@@ -8,7 +8,16 @@ export default class RoomService {
   async getRoomsByAccommodation(accommodationId: number) {
     // Check if accommodation exists first
     await Accommodation.findOrFail(accommodationId)
-    return await Room.query().where('accommodationId', accommodationId).preload('tags')
+    return await Room.query()
+      .where('accommodationId', accommodationId)
+      .preload('tags')
+      .preload('assignments', (q) =>
+        q.where('confirmationStatus', 'active')
+          .whereNull('actualMoveOut')
+          .preload('student', (s) =>
+            s.preload('user', (u) => u.preload('phoneNumbers'))
+          )
+      )
   }
 
   // ─── FETCH SINGLE ROOM ───

@@ -12,6 +12,7 @@ import HousingAdminVerifications from "@/components/dashboard/admin/HousingAdmin
 import PendingAccommodations from "@/components/dashboard/admin/PendingAccommodations"
 import SystemSettings from "@/components/dashboard/admin/SystemSettings"
 import ActivityLogs from "@/components/dashboard/admin/ActivityLogs"
+import UbleLoader from "../shared/LoadingPage"
 
 const AdminDashboard = () => {
   const queryClient = useQueryClient()
@@ -22,7 +23,9 @@ const AdminDashboard = () => {
   const [autoVerifyUsers, setAutoVerifyUsers] = useState(false)
   const [filterDate, setFilterDate] = useState("")
   const [filterAction, setFilterAction] = useState("")
-  const [verifyingUserId, setVerifyingUserId] = useState<number | null>(null)
+  // const [verifyingUserId, setVerifyingUserId] = useState<number | null>(null)
+  const [processingUserId, setProcessingUserId] = useState<number | null>(null)
+  const [processingAction, setProcessingAction] = useState<"approve" | "reject" | null>(null)
   const [verifyingAccommodationId, setVerifyingAccommodationId] = useState<number | null>(null)
 
   const {
@@ -155,7 +158,8 @@ const AdminDashboard = () => {
       userId: number
       roleToAssign: "student" | "landlord"
     }) => {
-      setVerifyingUserId(userId)
+      setProcessingUserId(userId)
+      setProcessingAction("approve")
 
       const res = await api.patch(`/admin/users/${userId}/verify`, {
         roleToAssign,
@@ -168,7 +172,26 @@ const AdminDashboard = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
     },
     onSettled: () => {
-      setVerifyingUserId(null)
+      setProcessingUserId(null)
+      setProcessingAction(null)
+    },
+  })
+
+  const rejectUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      setProcessingUserId(userId)
+      setProcessingAction("reject")
+
+      const res = await api.patch(`/admin/users/${userId}/reject`)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
+    },
+    onSettled: () => {
+      setProcessingUserId(null)
+      setProcessingAction(null)
     },
   })
 
@@ -241,11 +264,7 @@ const AdminDashboard = () => {
   }, [settings])
 
   if (isUserLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-[#F9F4F5]">
-        <p className="text-sm text-[#6B0F2B]">Loading...</p>
-      </div>
-    )
+      return <UbleLoader />
   }
 
   if (!user || (user.role !== "manager" && user.role !== "super_admin")) {
@@ -363,25 +382,33 @@ const AdminDashboard = () => {
             <StudentVerifications
               students={studentPending}
               isLoading={isPendingLoading}
-              verifyingUserId={verifyingUserId}
-              onApprove={(userId) =>
-                verifyUserMutation.mutate({
+              processingUserId={processingUserId}
+              processingAction={processingAction}
+              onApprove={async (userId) => {
+                await verifyUserMutation.mutateAsync({
                   userId,
                   roleToAssign: "student",
                 })
-              }
+              }}
+              onReject={async (userId) => {
+                await rejectUserMutation.mutateAsync(userId)
+              }}
             />
             {/* HOUSING ADMIN VERIFICATIONS */}
             <HousingAdminVerifications
               admins={housingAdminPending}
               isLoading={isPendingLoading}
-              verifyingUserId={verifyingUserId}
-              onApprove={(userId) =>
-                verifyUserMutation.mutate({
+              processingUserId={processingUserId}
+              processingAction={processingAction}
+              onApprove={async (userId) => {
+                await verifyUserMutation.mutateAsync({
                   userId,
                   roleToAssign: "landlord",
                 })
-              }
+              }}
+              onReject={async (userId) => {
+                await rejectUserMutation.mutateAsync(userId)
+              }}
             />
           </section>
           {/* PENDING ACCOMMODATION APPROVAL */}

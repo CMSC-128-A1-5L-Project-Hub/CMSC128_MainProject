@@ -4,11 +4,10 @@ import Modal from "../Modal";
 import type { ApplicationStatus } from "../../pages/student/ApplicationStatus";
 import StylizedStatus from "../BillingDashboard/StylizedStatus";
 import ApprovalProgress from "./ApprovalProgress";
+import defaultAccommodation from "@/assets/defaults/accommodation.png";
 import PhotoCarousel from "./PhotoCarousel";
-import Photo1 from "../../assets/images/forManager.png";
-import Photo2 from "../../assets/images/phone.png";
-import Photo3 from "../../assets/images/sample_dorm.jpg";
 import RightArrow from "../../assets/icons/right-arrow.svg";
+import { api } from "../../api/axios";
 
 export interface Application {
     id: number;
@@ -45,19 +44,23 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const queryClient = useQueryClient();
   const [cancelConfirmation, setCancelConfirmation] = useState("");
   const [carouselOpen, setCarouselOpen] = useState(false);
-  const accommodationPhotos = [Photo1, Photo2, Photo3];
 
   // Fetch accommodation details
   const { data: accomData, isLoading } = useQuery({
     queryKey: ["accommodation", application?.accommodationId],
     queryFn: async () => {
-      const res = await fetch(`/api/accommodations/${application?.accommodationId}`);
-      if (!res.ok) throw new Error("Failed to fetch accommodation details");
-      const json = await res.json();
-      return json.data;
+      // Use api.get instead of native fetch
+      const res = await api.get(`/accommodations/${application?.accommodationId}`);
+      return res.data.data ?? res.data;
     },
     enabled: !!application?.accommodationId && open,
   });
+
+  const accommodationPhotos = accomData?.imageUrls?.length > 0
+    ? accomData.imageUrls
+    : application?.accommodation?.primaryImageUrl
+      ? [application.accommodation.primaryImageUrl]
+      : [defaultAccommodation];
 
   // Mutation to cancel the application
   const cancelMutation = useMutation({
@@ -71,41 +74,29 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       // If approved or waitlisted, we must "decline" the slot so the waitlist service runs
       if (application.applicationStatus === "approved" || application.applicationStatus === "waitlisted") {
         console.log(`[Cancel Flow] Status is ${application.applicationStatus}. Routing to POST /confirm with action: 'decline'`);
-        res = await fetch(`/api/applications/${application.id}/confirm`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "decline" }),
+        res = await api.post(`/applications/${application.id}/confirm`, {
+          action: "decline"
         });
       } 
       // If pending or under review, we just do a standard cancellation
       else {
         console.log(`[Cancel Flow] Status is ${application.applicationStatus}. Routing to PATCH /cancel`);
-        res = await fetch(`/api/applications/${application.id}`, {
-          method: "PATCH",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "cancelled" }),
+        res = await api.patch(`/applications/${application.id}`, {
+          status: "cancelled"
         });
       }
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        console.error("[Cancel Flow] Backend rejected the request:", res.status, errData);
-        throw new Error(errData.message || "Failed to cancel application");
-      }
-
-      const data = await res.json();
-      console.log("[Cancel Flow] Success!", data);
-      return data;
+      console.log("[Cancel Flow] Success!", res.data);
+      return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["student-applications"] });
       onClose(); 
       setCancelConfirmation("");
     },
     onError: (error: any) => {
       console.error("Cancel error caught in UI:", error);
-      alert(error.message || "Could not cancel application. Please try again.");
+      alert(error.response?.data?.message || error.message || "Could not cancel application. Please try again.");
     },
   });
 
@@ -116,29 +107,19 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       
       console.log(`[Accept Flow] Attempting to confirm slot for application ${application.id}`);
 
-      const res = await fetch(`/api/applications/${application.id}/confirm-slot`, {
-        method: "POST", 
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await api.post(`/applications/${application.id}/confirm-slot`);
       
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        console.error("[Accept Flow] Backend rejected the request:", res.status, errData);
-        throw new Error(errData.message || "Failed to confirm slot");
-      }
-
-      const data = await res.json();
-      console.log("[Accept Flow] Success!", data);
-      return data;
+      console.log("[Accept Flow] Success!", res.data);
+      return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["student-applications"] });
       onClose(); 
       setCancelConfirmation("");
     },
     onError: (error: any) => {
       console.error("Accept error caught in UI:", error);
-      alert(error.message || "Could not confirm slot. Please try again.");
+      alert(error.response?.data?.message || error.message || "Could not confirm slot. Please try again.");
     },
   });
 
@@ -311,8 +292,8 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
             {/* render the deadline only if it exists */}
             {application.slotConfirmDeadline && (
               <div>
-                <p className="text-[10px] text-[#8C1535] uppercase font-bold mb-1">Confirm By</p>
-                <p className="font-bold text-[#8C1535]">
+                <p className="text-[11px] text-[#8C1535] uppercase font-bold mb-1">Confirm By</p>
+                <p className="font-bold -mt-1.5 text-[#8C1535]">
                   {new Date(application.slotConfirmDeadline).toLocaleString("en-US", { 
                     month: "short", 
                     day: "numeric", 

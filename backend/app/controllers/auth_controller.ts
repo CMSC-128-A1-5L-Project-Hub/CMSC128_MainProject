@@ -8,6 +8,7 @@ import LogService from '#services/log_service'
 import User from '#models/user'
 import { signFileUrl } from '#services/image_service'
 import PhoneNumber from '#models/phone_number'
+import Accommodation from '#models/accommodation'
 
 @inject()
 export default class AuthController {
@@ -15,33 +16,44 @@ export default class AuthController {
     protected provisioningService: ProvisioningService,
     protected notificationService: NotificationService,
     protected logService: LogService
-  ) {}
+  ) { }
 
   async devLogin({ auth, request, response, session }: HttpContext) {
-    // Only allowed in development
-    // if (process.env.NODE_ENV === 'production') {
+    // if (env.get('NODE_ENV') === 'production') {
     //   return response.status(403).send('Not allowed in production')
     // }
 
-    const role = request.input('role', 'student') // Default to student
+    const role = request.input('role', 'student')
 
-    // Find a user with this role, or just pick the first one available
-    const user = await User.query().where('role', role).first()
+    let user
+    if (role === 'manager') {
+      const accommodation = await Accommodation.query().whereNotNull('managerId').first()
+      if (!accommodation) {
+        return response.status(404).send('No accommodation with an assigned manager found. Please seed your DB.')
+      }
+      user = await User.query().where('id', accommodation.managerId!).first()
+    } else if (role === 'student') {
+      user = await User.query()
+        .where('role', 'student')
+        .whereHas('student', (q) => q)
+        .first()
+    } else {
+      user = await User.query().where('role', role).first()
+    }
 
     if (!user) {
       return response.status(404).send(`No user found with role: ${role}. Please seed your DB.`)
     }
 
-    // Manually log the user in
+    session.clear()
+    session.regenerate()
+
     await auth.use('web').login(user)
-    
-    // Set the session role (matching your callback logic)
     session.put('role', user.role)
 
-    // Log the activity
     await LogService.logAuthActivity(user, 'logged_in')
 
-    return response.redirect(`${env.get('FRONTEND_URL')}/auth/success`)
+    return response.ok({ id: user.id, role: user.role })
   }
 
   // STEP 1: Redirect user to Google login screen
@@ -172,5 +184,45 @@ export default class AuthController {
     const serialized = user.serialize()
     serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
     return response.ok(serialized)
+  }
+
+  // ─── POST /me/profile-picture ────────────────────────────────────────────
+  async uploadProfilePicture({ auth, request, response }: HttpContext) {
+    const user = await User.query()
+      .where('id', auth.user!.id)
+      .preload('profilePicture')
+      .firstOrFail()
+
+    const file = request.file('profilePicture', {
+      size: '5mb',
+      extnames: ['jpg', 'jpeg', 'png', 'webp'],
+    })
+
+    if (!file) {
+      return response.badRequest({ message: 'No file uploaded.' })
+    }
+
+    if (!file.isValid) {
+      return response.badRequest({ message: file.errors[0]?.message ?? 'Invalid file.' })
+    }
+
+    const { uploadImage } = await import('#services/b2_services')
+    const filePath = await uploadImage(file, 'profiles')
+
+    const FileMetadata = (await import('#models/file_metadatum')).default
+
+    const meta = await FileMetadata.create({
+      fileName: file.clientName,
+      filePath,
+      fileType: 'image',
+    })
+
+    user.pfpFileId = meta.id
+    await user.save()
+
+    await user.load('profilePicture')
+    const profilePictureUrl = await signFileUrl(user.profilePicture)
+
+    return response.ok({ profilePictureUrl })
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
 import DonutStatCard from '../../components/dashboard/DonutStatCard'
@@ -12,13 +12,7 @@ import AvailableRooms from '../../components/dashboard/manager/AvailableRooms'
 import OccupiedRooms from '../../components/dashboard/manager/OccupiedRooms'
 import CustomHeader from '../../components/CustomHeader';
 import ReportModal from '../../components/ReportModal'
-import NotificationPanel, {
-  MOCK_NOTIFICATIONS,
-  type Notification,
-} from '../../components/NotificationPanel'
-import notif_icon from '../../assets/icons/notif_icon.svg'
-import report_icon from '../../assets/icons/report.svg'
-
+import UbleLoader from '../shared/LoadingPage'
 import {
   useProfile,
   useIncomingApps,
@@ -41,24 +35,9 @@ export default function Dashboard() {
   const refreshDashboard = useRefreshDashboard()
 
   const [reportOpen, setReportOpen] = useState(false)
-  const [notifOpen, setNotifOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
-  const notifWrapperRef = useRef<HTMLDivElement>(null)
-
-  const unreadCount = notifications.filter((n) => !n.read).length
-  const markAllRead = () =>
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  const markOneRead = (id: number) =>
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
 
   if (profileLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#F5EEF0]">
-        <p className="text-[#6B0F2B] text-lg font-semibold">Loading dashboard…</p>
-      </div>
-    )
+      return null
   }
 
   const transformedIncoming = incomingApps.map(transformApp)
@@ -128,8 +107,8 @@ export default function Dashboard() {
 
   const recentLogs = logs.slice(0, 5)
 
-  const availableRooms = rooms.filter((r) => r.roomAvailability === 'available')
-  const occupiedRooms = rooms.filter((r) => r.roomAvailability === 'occupied')
+  const availableRooms = rooms.filter((r) => r.roomCurrentOccupancy < r.roomCapacity)
+  const occupiedRooms = rooms.filter((r) => r.roomCurrentOccupancy >= r.roomCapacity)
   const soloAvailable = availableRooms.filter((r) => r.roomType === 'single').length
   const doubleAvailable = availableRooms.filter((r) => r.roomType === 'double').length
   const sharedAvailable = availableRooms.filter((r) => r.roomType === 'shared').length
@@ -156,7 +135,7 @@ export default function Dashboard() {
         <Sidebar role="manager" profile={profile as any} />
         <div className='flex flex-col'>
             <CustomHeader
-              title="Application Dashboard"></CustomHeader>
+              title="Dashboard"></CustomHeader>
             <div className="relative z-10 flex-1 flex flex-col p-6 pt-6 gap-6 overflow-y-auto">
               {/* Header */}
               

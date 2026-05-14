@@ -1,7 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
 import User from '#models/user'
-import Manager from '#models/manager'
 import NotificationService from '#services/notification_service'
 import { inject } from '@adonisjs/core'
 
@@ -23,7 +22,7 @@ export default class InviteManagerController {
     }
 
     const accommodation = await Accommodation.query()
-      .where('accommodation_id', params.id)
+      .where('id', params.id)
       .where('landlord_id', user.id)
       .preload('landlord', (q) => q.preload('user'))
       .first()
@@ -36,71 +35,28 @@ export default class InviteManagerController {
       })
     }
 
-    if (accommodation.managerId) {
-      return response.badRequest({
-        status: 400,
-        error: 'Bad Request',
-        message: 'This accommodation already has a manager assigned.',
-      })
-    }
-
     const landlordName = `${user.fname} ${user.lname}`
 
     const existingUser = await User.findBy('email', manager_email)
-
     if (existingUser) {
-      const existingManager = await Manager.findBy('userId', existingUser.id)
-
-      if (!existingManager) {
-        return response.badRequest({
-          status: 400,
-          error: 'Bad Request',
-          message: 'This user exists but is not registered as a manager.',
-        })
-      }
-
-      const alreadyAssigned = await Accommodation.query()
-        .where('manager_id', existingUser.id)
-        .whereNot('accommodation_id', accommodation.id)
-        .first()
-
-      if (alreadyAssigned) {
-        return response.badRequest({
-          status: 400,
-          error: 'Bad Request',
-          message: 'This manager is already assigned to another accommodation.',
-        })
-      }
-
-      accommodation.managerId = existingUser.id
-      accommodation.invitedManagerEmail = null
-      await accommodation.save()
-
-      await this.notificationService.sendManagerAssignmentEmailNotification(
-        existingUser,
-        accommodation.accommodationName
-      )
-
-      return response.ok({
-        status: 200,
-        message: 'Manager assigned successfully.',
-        assigned: true,
+      return response.badRequest({
+        status: 400,
+        error: 'Bad Request',
+        message:
+          'This account is already registered under a different role. Please use a fresh email.',
       })
     }
 
-    // Email not registered — store invite and send email
     accommodation.invitedManagerEmail = manager_email
     await accommodation.save()
 
-    await this.notificationService.sendManagerInvitationEmail(
-      manager_email,
-      accommodation.accommodationName,
-      landlordName
-    )
+    this.notificationService
+      .sendManagerInvitationEmail(manager_email, accommodation.accommodationName, landlordName)
+      .catch((err) => console.error('Manager invitation email failed:', err))
 
     return response.ok({
       status: 200,
-      message: 'Invitation sent. Manager will be auto-assigned upon registration.',
+      message: 'Invitation sent. Manager will be auto-assigned upon sign-in.',
       assigned: false,
     })
   }

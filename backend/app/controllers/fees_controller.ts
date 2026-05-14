@@ -4,6 +4,7 @@ import Fee from '#models/fee'
 import Student from '#models/student'
 import LogService from '#services/log_service'
 import Manager from '#models/manager'
+import Landlord from '#models/landlord'
 import Assignment from '#models/assignment'
 import Room from '#models/room'
 import Accommodation from '#models/accommodation'
@@ -104,6 +105,90 @@ export default class FeesController {
     )
 
     return response.created({ message: 'Fee created successfully', fee })
+  }
+
+  // ─── LANDLORD: BULK CREATE RENT FEES FOR A ROOM ───
+  // POST /landlord/fees/bulk
+  async bulkStore({ auth, request, response }: HttpContext) {
+    const user = auth.user!
+    const landlord = await Landlord.findByOrFail('userId', user.id)
+
+    const { roomId, tenantId, month, year, amount, allowInstallments } = request.body()
+
+    if (!roomId) {
+      return response.badRequest({ message: 'roomId is required' })
+    }
+    if (typeof month !== 'number' || month < 0 || month > 11) {
+      return response.badRequest({ message: 'month must be a number 0-11' })
+    }
+    if (typeof year !== 'number') {
+      return response.badRequest({ message: 'year is required' })
+    }
+    if (!amount || amount <= 0) {
+      return response.badRequest({ message: 'Invalid amount' })
+    }
+
+    const room = await Room.findOrFail(roomId)
+    const accom = await Accommodation.findOrFail(room.accommodationId)
+    if (accom.landlordId !== landlord.userId) {
+      return response.forbidden({ message: 'You do not own this accommodation' })
+    }
+
+    let assignmentQuery = Assignment.query()
+      .where('roomId', roomId)
+      .where('confirmationStatus', 'active')
+      .whereNull('actualMoveOut')
+      .preload('student', (s) => s.preload('user'))
+
+    if (tenantId !== 'all') {
+      const targetUserId = Number(tenantId)
+      if (!Number.isFinite(targetUserId)) {
+        return response.badRequest({ message: 'Invalid tenantId' })
+      }
+      assignmentQuery = assignmentQuery.whereHas('student', (s) =>
+        s.where('userId', targetUserId)
+      )
+    }
+
+    const assignments = await assignmentQuery
+    if (assignments.length === 0) {
+      return response.badRequest({ message: 'No active tenants match the selection' })
+    }
+
+    const dueDate = DateTime.fromObject({ year, month: month + 1, day: 1 }).endOf('month')
+    const parsedAllowInstallments = allowInstallments === true || allowInstallments === 'true'
+
+    const trx = await db.transaction()
+    const created: Fee[] = []
+    try {
+      for (const assignment of assignments) {
+        const fee = new Fee()
+        fee.landlordId = accom.landlordId
+        fee.studentNumber = assignment.studentNumber
+        fee.feeAmount = amount
+        fee.feeBalance = amount
+        fee.feeCategory = 'rent'
+        fee.feeStatus = 'unpaid'
+        fee.dueDate = dueDate
+        fee.allowInstallments = parsedAllowInstallments
+        await fee.useTransaction(trx).save()
+        created.push(fee)
+      }
+      await trx.commit()
+    } catch (error) {
+      await trx.rollback()
+      throw error
+    }
+
+    await LogService.record(
+      user.id,
+      'fee',
+      room.id,
+      'BULK_BILLING_GENERATED',
+      `Bulk billing for room ${room.roomNumber}: ${created.length} tenant(s) at ₱${amount}`
+    )
+
+    return response.created({ created })
   }
 
   // ─── MANAGER/LANDLORD: VIEW OVERDUE FEES ───

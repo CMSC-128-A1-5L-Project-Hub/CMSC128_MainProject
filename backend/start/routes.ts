@@ -23,10 +23,25 @@ router.group(() => {
   router.get('/auth/google/redirect', [controllers.Auth, 'redirect'])
   router.get('/auth/google/callback', [controllers.Auth, 'callback'])
 
+  router.get('/accommodations/top-rated', [controllers.Accommodation, 'topRated'])
+
   // Map Viewer Data
   router.get('/accommodations', [controllers.Accommodation, 'index'])
   router.get('/accommodations/:id', [controllers.Accommodation, 'show'])
   router.get('/accommodations/:id/reviews', [controllers.Reviews, 'index'])
+  router.get('/accommodations/:id/document-requirements', [controllers.Accommodation, 'listDocumentRequirements'])
+
+  // Landing Page
+  router.get('/settings', [controllers.AdminSettings, 'index'])
+  .as('public_settings.index')
+
+  router.get('/rooms/available/count', [controllers.Rooms, 'countAvailableRooms'])
+  .as('public_rooms_available_count')
+
+  router.get('/occupancy/dorms', [controllers.OccupancyRecords, 'publicDormOccupancy'])
+
+  router.post('/support/contact', [controllers.Supports, 'contact'])
+  
 })
 
 /*
@@ -39,6 +54,7 @@ router
     // ─── SUCCESSFUL LOGIN/SIGNUP ───
     router.get('/me', [controllers.Auth, 'me'])
     router.put('/me', [controllers.Auth, 'updateMe'])
+    router.post('/me/profile-picture', [controllers.Auth, 'uploadProfilePicture']).use(uploadThrottle)
     router.post('/logout', [controllers.Auth, 'logout'])
 
     // ─── USER ONBOARDING ───
@@ -84,6 +100,8 @@ router
         router.post('/transient-bookings', [controllers.TransientBooking, 'store'])
         router.post('/transient-bookings/:id/proof', [controllers.TransientBooking, 'uploadProof'])
         router.get('/transient-bookings', [controllers.TransientBooking, 'myBookings'])
+        router.post('/issue-reports', [controllers.IssueReports, 'store'])
+        
     }).use(middleware.role([ROLES.STUDENT]))
 
     // ====================================================================
@@ -94,6 +112,12 @@ router
         // Reporting & Analytics
         router.get('/reports/revenue', [controllers.Reports, 'revenue'])
         router.get('/reports/delinquency', [controllers.Reports, 'delinquency'])
+        router.get('/reports/overdue-fees/xlsx', [controllers.Reports, 'overdueFeesXlsx'])
+        router.get('/reports/occupancy/pdf', [controllers.Reports, 'occupancyPdf'])
+        router.get('/reports/revenue/pdf', [controllers.Reports, 'revenuePdf'])
+        router.get('/reports/accommodation-history/pdf', [controllers.Reports, 'accommodationHistoryPdf'])
+        router.get('/reports/waiting-list/xlsx', [controllers.Reports, 'waitingListXlsx'])
+        router.get('/reports/housed-students/xlsx', [controllers.Reports, 'housedStudentsXlsx'])
 
         // Accommodation Management
         router.get('/landlord/accommodations', [controllers.Accommodation, 'landlordIndex'])
@@ -104,6 +128,11 @@ router
 
         // ─── FEES (CREATED BY LANDLORD) ───
         router.post('/fees', [controllers.Fees, 'store'])
+        router.post('/landlord/fees/bulk', [controllers.Fees, 'bulkStore'])
+
+        // ─── ROOM ISSUES (LANDLORD VIEW + RESOLVE) ───
+        router.get('/landlord/room-issues', [controllers.Rooms, 'listIssues'])
+        router.patch('/room-issues/:id/resolve', [controllers.Rooms, 'resolveIssue'])
 
         // Manager Handover
         router.post('/landlord/accommodations/:id/freeze', [controllers.ManagerHandover, 'freeze'])
@@ -112,6 +141,10 @@ router
 
         // Invite Manager
         router.post('/landlord/accommodations/:id/invite-manager', [controllers.InviteManager, 'invite'])
+
+        // Document Requirements
+        router.post('/landlord/accommodations/:id/document-requirements', [controllers.Accommodation, 'addDocumentRequirement'])
+        router.delete('/landlord/accommodations/:id/document-requirements/:reqId', [controllers.Accommodation, 'removeDocumentRequirement'])
 
         // Transient booking verification (landlord)
         router.patch('/transient-bookings/:id/verify', [controllers.TransientBooking, 'verify'])
@@ -154,6 +187,7 @@ router
         router.get('/view-assignments', [controllers.Assignments, 'viewAssignments'])
         router.post('/assignments', [controllers.Assignments, 'store'])
         router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
+        router.patch('/assignments/:id/transfer', [controllers.Assignments, 'transfer'])
 
         // Payment Verification
         router.get('/payments/pending', [controllers.Payments, 'pending'])
@@ -163,6 +197,9 @@ router
         // Reports
         router.get('/reports/occupancy', [controllers.Reports, 'occupancy'])
         router.get('/reports/applications', [controllers.Reports, 'applicationTrends'])
+
+        // ─── PHONE DUPLICATE CHECK ───
+        router.get('/check-phone/:phone', [controllers.PhoneNumbers, 'check'])
 
         // Document Zip Export (Backblaze)
         router.get('/accommodations/:id/export-documents', [
@@ -180,6 +217,7 @@ router
         // User Verifications
         router.get('/admin/users/pending', [controllers.AdminVerifications, 'index'])
         router.patch('/admin/users/:userId/verify', [controllers.AdminVerifications, 'verify'])
+        router.patch('/admin/users/:userId/reject', [controllers.AdminVerifications, 'reject'])
 
         // System Settings (Academic Year & Semester Updates)
         router.get('/admin/settings', [controllers.AdminSettings, 'index'])

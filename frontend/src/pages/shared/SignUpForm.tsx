@@ -147,7 +147,7 @@ export default function SignUpForm() {
         const user = response.data
 
         // Pending users have already submitted — send them to the waiting page
-        if (user.account_status === 'pending') {
+        if (user.accountStatus === 'pending') {
           navigate('/pending-verification', { replace: true })
           return
         }
@@ -203,6 +203,7 @@ export default function SignUpForm() {
         const roleRoutes: Record<string, string> = {
           student: '/student/dashboard',
           landlord: '/landlord/dashboard',
+          manager: '/manager/dashboard',
         }
         navigate(roleRoutes[updatedUser.role] ?? '/pending-verification')
       } else {

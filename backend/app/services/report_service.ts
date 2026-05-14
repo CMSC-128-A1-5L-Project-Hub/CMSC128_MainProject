@@ -172,4 +172,116 @@ export default class ReportService {
       status: row.status,
     }))
   }
+
+  // Students currently on the waiting list for this landlord's accommodations
+  static async getWaitingList(user: User) {
+    const rows = await db
+      .from('applications')
+      .innerJoin('accommodations', 'accommodations.id', 'applications.accommodation_id')
+      .innerJoin('students', 'students.student_number', 'applications.student_number')
+      .innerJoin('users', 'users.id', 'students.user_id')
+      .where('accommodations.landlord_id', user.id)
+      .where('applications.application_status', 'waitlisted')
+      .select(
+        'applications.id as application_id',
+        'applications.application_date',
+        'applications.application_room_type as room_type',
+        'applications.application_stay_type as stay_type',
+        'accommodations.accommodation_name',
+        'students.student_number',
+        'students.gender',
+        'users.fname',
+        'users.mname',
+        'users.lname',
+        'users.email'
+      )
+      .orderBy('applications.application_date', 'asc')
+
+    return rows.map((row: any) => ({
+      application_id: row.application_id,
+      student_number: row.student_number,
+      student_name: [row.fname, row.mname, row.lname].filter(Boolean).join(' '),
+      email: row.email,
+      gender: row.gender,
+      accommodation_name: row.accommodation_name,
+      room_type: row.room_type,
+      stay_type: row.stay_type,
+      application_date: row.application_date,
+    }))
+  }
+
+  // Students currently housed (active assignments) in this landlord's accommodations
+  static async getHousedStudents(user: User) {
+    const rows = await db
+      .from('assignments')
+      .innerJoin('rooms', 'rooms.id', 'assignments.room_id')
+      .innerJoin('accommodations', 'accommodations.id', 'rooms.accommodation_id')
+      .innerJoin('students', 'students.student_number', 'assignments.student_number')
+      .innerJoin('users', 'users.id', 'students.user_id')
+      .where('accommodations.landlord_id', user.id)
+      .whereNull('assignments.actual_move_out')
+      .select(
+        'assignments.id as assignment_id',
+        'assignments.move_in',
+        'assignments.expected_move_out',
+        'accommodations.accommodation_name',
+        'rooms.room_number',
+        'rooms.room_rent as rent',
+        'students.student_number',
+        'students.gender',
+        'users.fname',
+        'users.mname',
+        'users.lname',
+        'users.email'
+      )
+      .orderBy('accommodations.accommodation_name', 'asc')
+      .orderBy('rooms.room_number', 'asc')
+
+    return rows.map((row: any) => ({
+      assignment_id: row.assignment_id,
+      student_number: row.student_number,
+      student_name: [row.fname, row.mname, row.lname].filter(Boolean).join(' '),
+      email: row.email,
+      gender: row.gender,
+      accommodation_name: row.accommodation_name,
+      room_number: row.room_number,
+      rent: Number(row.rent ?? 0),
+      move_in: row.move_in,
+      expected_move_out: row.expected_move_out,
+    }))
+  }
+
+  // History of completed (moved-out) assignments for this landlord's accommodations
+  static async getAccommodationHistory(user: User) {
+    const rows = await db
+      .from('assignments')
+      .innerJoin('rooms', 'rooms.id', 'assignments.room_id')
+      .innerJoin('accommodations', 'accommodations.id', 'rooms.accommodation_id')
+      .innerJoin('students', 'students.student_number', 'assignments.student_number')
+      .innerJoin('users', 'users.id', 'students.user_id')
+      .where('accommodations.landlord_id', user.id)
+      .whereNotNull('assignments.actual_move_out')
+      .select(
+        'assignments.id as assignment_id',
+        'assignments.move_in',
+        'assignments.actual_move_out',
+        'accommodations.accommodation_name',
+        'rooms.room_number',
+        'students.student_number',
+        'users.fname',
+        'users.mname',
+        'users.lname'
+      )
+      .orderBy('assignments.actual_move_out', 'desc')
+
+    return rows.map((row: any) => ({
+      assignment_id: row.assignment_id,
+      student_number: row.student_number,
+      student_name: [row.fname, row.mname, row.lname].filter(Boolean).join(' '),
+      accommodation_name: row.accommodation_name,
+      room_number: row.room_number,
+      move_in: row.move_in,
+      actual_move_out: row.actual_move_out,
+    }))
+  }
 }

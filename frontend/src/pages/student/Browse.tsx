@@ -1,14 +1,16 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { Star, SlidersHorizontal, MapPin, X, BookmarkCheck, ChevronRight } from "lucide-react"
 import Sidebar from "../../components/Sidebar"
 import CustomHeader from '../../components/CustomHeader'
 import PriceRangeSlider from "../../components/PriceRangeSlider"
 import HeroBanner from "@/components/dashboard/HeroBanner"
-import Dropdown from "../../components/ApplicationStatus/Dropdown"
+import Pagination from "@/components/ApplicationStatus/Pagination"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../api/axios"
+import UbleLoader from "../shared/LoadingPage"
+import defaultAccommodation from "../../assets/defaults/accommodation.png";
 
 /* ─── Context ──────────────────────────────────────────────────────────────── */
 type FilterContextType = {
@@ -21,8 +23,9 @@ type FilterContextType = {
     searching: string; setSearching: (v: string) => void
     filters: { [key: string]: boolean }; setFilters: (v: { [key: string]: boolean }) => void
     setFilterPanelOpen: (v: boolean) => void
-    origMin: number; origMax: number;
-    setFilterInEffect: (v: boolean) => void;
+    origMin: number; origMax: number; setOrigMin: (v: number) => void; setOrigMax: (v: number) => void;
+    setFilterInEffect: (v: boolean) => void; setSearched: (v: boolean) => void;
+    setSliderResetKey: (v: number) => void; sliderResetKey: number;
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
@@ -31,20 +34,23 @@ type Dorm = {
     name: string; subtitle: string; meta: string
     minPrice: number; maxPrice: number; priceUnit: string
     rating: string; accommodationId: number; tags: string[]
-    bookmarked?: boolean
+    bookmarked?: boolean; primaryImageUrl: string;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
    MAIN PAGE
 ══════════════════════════════════════════════════════════════════════════════ */
+const ITEMS_PER_PAGE = 4;
+
 export default function BrowsePage() {
+    const [searchParams] = useSearchParams()
     const [searchTerm, setSearchTerm] = useState("")
     const [activeFilter, setActiveFilter] = useState("All")
     const [onlyBookmarked, setOnlyBookmarked] = useState(false)
     const [minPrice, setMinPrice] = useState(500)
     const [maxPrice, setMaxPrice] = useState(7000)
     const [origMin, setOrigMin] = useState(800)
-    const [origMax, setOrigMax] = useState(12000)
+    const [origMax, setOrigMax] = useState(7000)
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
     const [starRating, setStarRating] = useState(3)
@@ -56,10 +62,23 @@ export default function BrowsePage() {
         "Air-conditioned rooms": false, "Has study area": false,
         "24/7 security": false, "Has curfew": false, "Has canteen": false,
     })
+    const [uniqueTags, setUniqueTags] = useState<string[]>([]);
     const [filterInEffect, setFilterInEffect] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searched, setSearched] = useState(false);
+    const [sliderResetKey, setSliderResetKey] = useState(0);
     const navigate = useNavigate()
 
-    const { data: accommodations = [], isError: accommodationsError } = useQuery({
+    const location = useLocation();
+    const landingFilters = location.state as {
+    dormType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    rating?: number;
+    tags?: string[];
+    } | null;
+
+    const { data: accommodations = [], isError: accommodationsError, isSuccess, isLoading: accLoading } = useQuery({
         queryKey: ["accommodations", searchTerm, activeFilter],
         queryFn: async () => {
             const params: Record<string, any> = {}
@@ -70,10 +89,12 @@ export default function BrowsePage() {
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
-            console.log("done loading")
             setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
+        staleTime: 60_000,
+        gcTime: 5 * 60_000,
+        placeholderData: (prev: any) => prev,
     })
 
     const { data: user, isError } = useQuery({
@@ -84,7 +105,7 @@ export default function BrowsePage() {
         },
     })
 
-    const name = user ? `${user.fname} ${user.lname}` : ""
+    const name = user ? `${user.fname}` : ""
     const studentNo = user?.student?.studentNumber ?? ""
 
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
@@ -93,56 +114,97 @@ export default function BrowsePage() {
     const [flatDorms, setFlatDorms] = useState<Dorm[]>([])
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([])
 
-
-    // for finding the minimum and maximum price
+    // Reset to first page when filters change
     useEffect(() => {
-        let min = -1;
-        let max = -1;
+        setCurrentPage(1);
+    }, [dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters]);
 
-        for (let i = 0; i < accommodations.length; i++) {
-            const { rooms } = accommodations[i]
+    useEffect(() => {
+        if (!isSuccess || accommodations.length === 0) return
 
+        
+        let min = Infinity
+        let max = -Infinity
+        const tagSet = new Set<string>();
+
+        accommodations.forEach(({ rooms, tags }) => {
             rooms.forEach((el: { roomRent: number }) => {
                 const rent = Number(el.roomRent)
-                if (min === -1 || rent < min) {
-                    min = rent;
-                }
 
-                if (max === -1 || rent > max) {
-                    max = rent;
-                }
+                if (rent < min) min = rent
+                if (rent > max) max = rent
             })
+
+            tags.forEach((el: { tagDetail: string }) => {
+                tagSet.add(el.tagDetail);
+            });
+        })
+
+        const tags = Array.from(tagSet)
+        const tagObject = Object.fromEntries(
+            tags.map(tag => [tag, false])
+        );
+        console.log("success", accommodations, min, max)
+        // setFilters(tagObject)
+        // setMinPrice(min)
+        // setMaxPrice(max)
+        setFilters(prev => ({
+        ...tagObject,
+        ...prev,
+        }));
+
+        if (!landingFilters) {
+        setMinPrice(min);
+        setMaxPrice(max);
+        }
+        setOrigMin(min)
+        setOrigMax(max)
+        setSliderResetKey(prev => prev + 1)
+
+    }, [isSuccess, accommodations])
+
+    useEffect(() => {
+        if (!landingFilters) return;
+
+        if (landingFilters.dormType && landingFilters.dormType !== "All Types") {
+            setDormType(landingFilters.dormType);
         }
 
-        if (min !== -1 && max !== -1) {
-            setMinPrice(min)
-            setMaxPrice(max)
-            setOrigMin(min);
-            setOrigMax(max);
+        if (landingFilters.minPrice) setMinPrice(landingFilters.minPrice);
+        if (landingFilters.maxPrice) setMaxPrice(landingFilters.maxPrice);
+        if (landingFilters.rating) setStarRating(landingFilters.rating);
 
-            console.log(min, max, "yowzers", accommodations.length)
+        if (landingFilters.tags?.length) {
+            setFilters(prev => ({
+            ...prev,
+            ...Object.fromEntries(
+                landingFilters.tags!.map(tag => [tag, true])
+            ),
+            }));
         }
-    }, [accommodations]);
+
+        setFilterInEffect(true);
+        setSearched(true);
+    }, []);
 
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
-        if (!filterInEffect) {
-            console.log("broken", filterInEffect)
+        if (!filterInEffect && !searched) {
             return
         }
 
-        console.log("yahooo")
-        console.log(accommodations)
         setFilterInEffect(false);
+        setSearched(false)
+
         for (let i = 0; i < accommodations.length; i++) {
-            console.log(i)
             const {
                 id, accommodationName, accommodationLocation, accommodationType,
                 accommodationCapacity, tenantRestriction, latitude, longitude,
                 walkingDistance, drivingDistance, bikingDistance,
-                rooms, reviews, bookmarks, tags,
+                rooms, reviews, bookmarks, tags, primaryImageUrl
             } = accommodations[i]
+
 
             let minimum = -1, maximum = -1
             const roomTypes = new Set<string>()
@@ -158,11 +220,9 @@ export default function BrowsePage() {
                 roomTypes.add(el.roomType)
                 const rent = Number(el.roomRent)
                 if (minimum === -1) {
-                    console.log("minimum -1", rent)
                     minimum = rent
                 }
                 if (maximum === -1) {
-                    console.log("maximum -1")
                     maximum = rent
                 }
                 if (rent < minimum) minimum = rent
@@ -173,57 +233,45 @@ export default function BrowsePage() {
                 if (Number(el.rating) < Number(rating))
                     rating = Number(el.rating).toFixed(1)
             })
-
+            
             bookmarks.forEach((el: { studentNumber: string }) => {
                 if (el.studentNumber === studentNo) bookmarked = true
             })
 
-
             /* search match */
             const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
             if (!nameMatch) {
-                console.log(accommodationName, "not matched")
                 continue
             }
-
-
-
 
             /* filters */
             if (!bookmarked && onlyBookmarked) {
-                console.log(accommodationName, "not matched book")
                 continue
             }
             if (Number(rating) < starRating) {
-                console.log(accommodationName, "not matched rate")
                 continue
             }
             if (minimum < minPrice || maximum > maxPrice) {
-                console.log(accommodationName, "not matched price", minimum, minPrice, maximum, maxPrice)
                 continue
             }
-            if (dormType !== "All" && accommodationType !== dormType) {
-                console.log(accommodationName, "not dormtype")
+            if (dormType !== "All" && accommodationType !== dormType.toLowerCase()) {
                 continue
             }
-            if (roomType !== "All" && !roomTypes.has(roomType)) {
-                console.log(accommodationName, "not matched room")
+            if (roomType !== "All" && !roomTypes.has(roomType.toLowerCase())) {
                 continue
             }
             if (trueTags.length !== 0) {
-                const hasTag = tempTags.some(t => trueTags.includes(t))
+                const hasTag = trueTags.every(t => tempTags.includes(t))
                 if (!hasTag) {
-                    console.log(accommodationName, "not matched tags")
                     continue
                 }
             }
-
 
             tempDorms.push({
                 name: accommodationName, subtitle: accommodationLocation,
                 meta: accommodationType, minPrice: minimum, maxPrice: maximum,
                 priceUnit: "/ month", rating: rating == "6" ? "0" : rating, accommodationId: id,
-                tags: tempTags, bookmarked,
+                tags: tempTags, bookmarked, primaryImageUrl
             })
 
             tempPins.push({
@@ -239,8 +287,13 @@ export default function BrowsePage() {
         setMapAccommodations(tempPins)
     }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters, studentNo, filterPanelOpen])
 
+    // Pagination logic
+    const totalPages = Math.ceil(flatDorms.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedDorms = flatDorms.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
     /* map URL params — untouched */
-    const [searchParams] = useSearchParams()
+    // const [searchParams] = useSearchParams()
     const centerId = searchParams.get("center")
     const centeredAccommodation = centerId
         ? mapAccommodations.find(a => a.accommodationId === Number(centerId)) ?? null
@@ -256,13 +309,18 @@ export default function BrowsePage() {
     /* ══════════════════════════════════════════════════════════════════════════
        RENDER
     ══════════════════════════════════════════════════════════════════════════ */
+    if (accLoading && accommodations.length === 0) {
+        return <UbleLoader />
+    }
+
     return (
         <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
-            searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect
+            searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched,
+            setSliderResetKey, sliderResetKey
         }}>
-            <div className="flex flex-row w-full min-h-screen bg-[#FDF8FA]">
+            <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
 
                 {/* Sidebar */}
                 <div className="relative z-[9999]">
@@ -270,100 +328,125 @@ export default function BrowsePage() {
                 </div>
 
                 {/* Main */}
-                <div className="flex flex-col w-full min-w-0">
+                <div className="flex flex-col w-full min-w-0 h-screen overflow-hidden">
                     <CustomHeader title="Browse Rooms" />
 
-                    {/* Hero — position untouched */}
-                    <div className="w-full px-6 pt-6 pb-2">
-                        <HeroBanner
-                            greeting="Good Day" name={name}
-                            title="Browse available rooms"
-                            subtitle="Browse available accommodations and apply in just a few clicks"
-                            type="mini"
-                        />
-                    </div>
+                    {/* Scrollable content */}
+                    <div className="flex-1 overflow-y-auto">
 
-                    {/* Toolbar */}
-                    <div className="flex items-center gap-3 px-6 py-3">
-                        <SearchBar />
-                        <button
-                            onClick={() => setFilterPanelOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E8D4DF] bg-white text-[#6B0F2B] text-sm font-semibold shadow-sm hover:bg-[#F5ECF0] transition-colors shrink-0"
-                        >
-                            <SlidersHorizontal size={15} />
-                            Filters
-                            {activeChips.length > 0 && (
-                                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#6B0F2B] text-white text-[10px] font-bold">
-                                    {activeChips.length}
-                                </span>
-                            )}
-                        </button>
-                    </div>
-
-                    {/* Active filter chips */}
-                    {activeChips.length > 0 && (
-                        <div className="flex flex-wrap gap-2 px-6 pb-2">
-                            {activeChips.map(chip => (
-                                <span key={chip} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#6B0F2B]/10 text-[#6B0F2B]">
-                                    {chip}
-                                </span>
-                            ))}
+                        
+                        {/* Hero */}
+                        <div className="w-full px-4 sm:px-6 pt-6 pb-2">
+                            <HeroBanner
+                                greeting="Good Day" name={name}
+                                title="Browse available rooms"
+                                subtitle="Browse available accommodations and apply in just a few clicks"
+                                type="mini"
+                            />
                         </div>
-                    )}
 
-                    {/* Body */}
-                    <div className="flex flex-col md:flex-row gap-4 px-6 pb-8 flex-1 overflow-hidden">
-
-                        {/* ── LEFT ---*/}
-                        <div className="flex flex-col w-full md:w-1/2 shrink-0 min-h-0">
-
-                            <div className="flex items-center justify-between mb-3 shrink-0">
-                                <p className="text-[#1C0A11] font-semibold text-sm">
-                                    {flatDorms.length > 0 ? (
-                                        <>
-                                            <span className="text-[#6B0F2B] font-bold">{flatDorms.length}</span>
-                                            {" "}accommodation{flatDorms.length !== 1 ? "s" : ""} found
-                                        </>
-                                    ) : "No accommodations found"}
-                                </p>
-                            </div>
-
-                            <div className="flex flex-col gap-3 overflow-y-auto pr-1 min-h-0 flex-1 max-h-[60vh] md:max-h-[78vh]">
-                                {flatDorms.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center h-72 gap-3 text-[#9A7080]">
-                                        <MapPin size={40} strokeWidth={1.3} />
-                                        <p className="text-sm font-medium">No results match your current filters</p>
-                                        <p className="text-xs">Try adjusting the filters or search term</p>
-                                    </div>
-                                ) : (
-                                    flatDorms.map(dorm => (
-                                        <DormTile
-                                            key={dorm.accommodationId}
-                                            dorm={dorm}
-                                            hovered={hoveredId === dorm.accommodationId}
-                                            onHover={setHoveredId}
-                                            onClick={() => navigate(`/student/roomview/${dorm.accommodationId}`)}
-                                        />
-                                    ))
+                        {/* Toolbar */}
+                        <div className="flex items-center gap-3 px-4 sm:px-6 py-3">
+                            <SearchBar />
+                            <button
+                                onClick={() => setFilterPanelOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E8D4DF] bg-white text-[#6B0F2B] text-sm font-semibold shadow-sm hover:bg-[#F5ECF0] transition-colors shrink-0"
+                            >
+                                <SlidersHorizontal size={15} />
+                                <span className="hidden sm:inline">Filters</span>
+                                {activeChips.length > 0 && (
+                                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#6B0F2B] text-white text-[10px] font-bold">
+                                        {activeChips.length}
+                                    </span>
                                 )}
-                            </div>
+                            </button>
                         </div>
 
-                        {/* ── RIGHT: map ── */}
-                        <div className="flex flex-col w-full md:w-1/2 shrink-0 rounded-2xl overflow-hidden border border-[#E8D4DF] shadow-md h-[50vh] md:h-auto md:min-h-[560px] relative z-50">
-                            <div className="flex items-center gap-2 px-5 py-4 bg-white border-b border-[#E8D4DF] shrink-0">
-                                <MapPin size={14} className="text-[#6B0F2B]" />
-                                <span className="text-[#1C0A11] font-semibold text-sm">Map view</span>
-                                <span className="ml-auto text-xs text-[#9A7080] font-medium">
-                                    {mapAccommodations.length} pinned
-                                </span>
+                        {/* Active filter chips */}
+                        {activeChips.length > 0 && (
+                            <div className="flex flex-wrap gap-2 px-4 sm:px-6 pb-2">
+                                {activeChips.map(chip => (
+                                    <span key={chip} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#6B0F2B]/10 text-[#6B0F2B]">
+                                        {chip}
+                                    </span>
+                                ))}
                             </div>
-                            <div className="flex-1 min-h-0">
-                                <AccommodationMap
-                                    accommodations={mapAccommodations}
-                                    centeredAccommodation={centeredAccommodation}
-                                    onCardClick={acc => navigate(`/student/roomview/${acc.accommodationId}`)}
-                                />
+                        )}
+
+                        {/* Body */}
+                        <div className="flex flex-col lg:flex-row gap-4 px-4 sm:px-6 pb-8 h-[calc(100vh-280px)] min-h-[600px]">
+
+                            {/* ── LEFT: List ── */}
+                            <div className="flex flex-col w-full lg:w-[45%] shrink-0 min-h-0">
+                                <div className="flex items-center justify-between mb-3 shrink-0">
+                                    <p className="text-[#1C0A11] font-semibold text-sm">
+                                        {flatDorms.length > 0 ? (
+                                            <>
+                                                <span className="text-[#6B0F2B] font-bold">{flatDorms.length}</span>
+                                                {" "}accommodation{flatDorms.length !== 1 ? "s" : ""} found
+                                            </>
+                                        ) : "No accommodations found"}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col min-h-0 flex-1">
+
+                                    {/* Scrollable cards */}
+                                    <div className="flex flex-col gap-3 overflow-y-auto pr-2 min-h-0 flex-1">
+                                        {paginatedDorms.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center h-72 gap-3 text-[#9A7080]">
+                                                <MapPin size={40} strokeWidth={1.3} />
+                                                <p className="text-sm font-medium">
+                                                    No results match your current filters
+                                                </p>
+                                                <p className="text-xs">
+                                                    Try adjusting the filters or search term
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            paginatedDorms.map(dorm => (
+                                                <DormTile
+                                                    key={dorm.accommodationId}
+                                                    dorm={dorm}
+                                                    hovered={hoveredId === dorm.accommodationId}
+                                                    onHover={setHoveredId}
+                                                    onClick={() =>
+                                                        navigate(`/student/roomview/${dorm.accommodationId}`)
+                                                    }
+                                                />
+                                            ))
+                                        )}
+                                    </div>
+
+                                    {/* Fixed pagination */}
+                                    {totalPages > 1 && (
+                                        <div className="pt-6 pb-2 flex justify-center shrink-0 bg-[#F6F2F4]">
+                                            <Pagination
+                                                currentPage={currentPage}
+                                                totalPages={totalPages}
+                                                onPageChange={setCurrentPage}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* ── RIGHT: Map ── */}
+                            <div className="flex flex-col w-full lg:flex-1 rounded-2xl overflow-hidden border border-[#E8D4DF] shadow-md min-h-[400px] lg:min-h-0 relative z-50">
+                                <div className="flex items-center gap-2 px-5 py-3 bg-white border-b border-[#E8D4DF] shrink-0">
+                                    <MapPin size={14} className="text-[#6B0F2B]" />
+                                    <span className="text-[#1C0A11] font-semibold text-sm">Map view</span>
+                                    <span className="ml-auto text-xs text-[#9A7080] font-medium">
+                                        {mapAccommodations.length} pinned
+                                    </span>
+                                </div>
+                                <div className="flex-1 min-h-0">
+                                    <AccommodationMap
+                                        accommodations={mapAccommodations}
+                                        centeredAccommodation={centeredAccommodation}
+                                        onCardClick={acc => navigate(`/student/roomview/${acc.accommodationId}`)}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -386,10 +469,10 @@ export default function BrowsePage() {
                                 onClick={() => setFilterPanelOpen(false)}
                                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#F5ECF0] text-[#6B0F2B] hover:bg-[#E8D4DF] transition-colors"
                             >
-                                <X size={15} />
+                                X
                             </button>
                         </div>
-                        <FilterForm onClose={() => {
+                        <FilterForm origFilters={filters} onClose={() => {
                             setFilterInEffect(true)
                             setFilterPanelOpen(false)
                         }} />
@@ -411,32 +494,34 @@ function DormTile({
 }) {
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
-
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
+    
 
     return (
         <div
             onMouseEnter={() => onHover(dorm.accommodationId)}
             onMouseLeave={() => onHover(null)}
             onClick={onClick}
-            className={`group flex gap-0 bg-white rounded-2xl border cursor-pointer transition-all duration-200 overflow-hidden
+            className={`group flex flex-col sm:flex-row gap-0 bg-white rounded-2xl border cursor-pointer transition-all duration-200 overflow-hidden min-h-[150px]                
                 ${hovered
                     ? "border-[#6B0F2B] shadow-lg shadow-[#6B0F2B]/10 -translate-y-0.5"
                     : "border-[#E8D4DF] shadow-sm hover:border-[#6B0F2B]/40 hover:shadow-md hover:-translate-y-0.5"
                 }`}
         >
             {/* Thumbnail */}
-            <div className="relative w-40 shrink-0 bg-gradient-to-br from-[#6B0F2B] to-[#B5344F] flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 grid grid-cols-3 gap-px opacity-[0.15] p-1.5">
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} className="bg-white rounded-sm" />
-                    ))}
-                </div>
-                <MapPin size={20} className="text-white/50 relative z-10" strokeWidth={1.4} />
+            <div className="relative w-full h-36 sm:w-40 sm:h-auto shrink-0 overflow-hidden">
+                <img
+                    src={dorm.primaryImageUrl}
+                    alt={dorm.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                        e.currentTarget.src = defaultAccommodation;
+                      }}
+                />
             </div>
 
             {/* Content */}
-            <div className="flex flex-col justify-between flex-1 py-4 px-4 min-w-0">
+            <div className="flex flex-col gap-3 flex-1 py-3 px-3 sm:py-3.5 sm:px-4 min-w-0">
                 <div>
                     {/* Name row */}
                     <div className="flex items-start justify-between gap-2 mb-0.5">
@@ -444,28 +529,28 @@ function DormTile({
                             {dorm.name}
                         </h3>
                         {dorm.bookmarked && (
-                            <BookmarkCheck size={15} className="text-[#6B0F2B] shrink-0 mt-0.5" />
+                            <BookmarkCheck size={14} className="text-[#6B0F2B] shrink-0 mt-0.5" />
                         )}
                     </div>
 
                     {/* Location */}
-                    <p className="text-[#9A7080] text-xs mb-2.5 truncate">{dorm.subtitle}</p>
+                    <p className="text-[#9A7080] text-[11px] mb-2 truncate">{dorm.subtitle}</p>
 
                     {/* Badges */}
-                    <div className="flex flex-wrap gap-1.5 mb-3">
+                    <div className="flex flex-wrap gap-1 mb-2">
                         {dorm.meta && (
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide whitespace-nowrap
                                 ${isOnCampus ? "bg-amber-100 text-amber-700" : "bg-rose-50 text-[#6B0F2B]"}`}>
                                 {dorm.meta}
                             </span>
                         )}
                         {dorm.tags.slice(0, 2).map(tag => (
-                            <span key={tag} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F5ECF0] text-[#6B0F2B] border border-[#E8D4DF]">
+                            <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium bg-[#F5ECF0] text-[#6B0F2B] border border-[#E8D4DF] whitespace-nowrap">
                                 {tag}
                             </span>
                         ))}
                         {dorm.tags.length > 2 && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium text-[#9A7080]">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium text-[#9A7080] whitespace-nowrap">
                                 +{dorm.tags.length - 2}
                             </span>
                         )}
@@ -474,27 +559,29 @@ function DormTile({
 
                 {/* Price + rating + CTA */}
                 <div className="flex items-end justify-between gap-2">
-                    <div>
-                        <p className="text-[#6B0F2B] font-bold text-base leading-none">
+                    <div className="min-w-0">
+                        <p className="text-[#6B0F2B] font-bold text-sm leading-none truncate">
                             ₱{dorm.minPrice > 0 ? dorm.minPrice.toLocaleString() : "—"}
                             {dorm.maxPrice > dorm.minPrice && (
-                                <span className="text-sm"> – {dorm.maxPrice.toLocaleString()}</span>
+                                <span className="text-xs"> – {dorm.maxPrice.toLocaleString()}</span>
                             )}
                         </p>
                         <p className="text-[#9A7080] text-[10px] mt-0.5">{dorm.priceUnit}</p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 shrink-0">
                         {validRating && (
                             <div className="flex items-center gap-1">
-                                <Star size={12} fill="#C0934B" stroke="none" />
-                                <span className="text-[#C0934B] font-bold text-xs">{dorm.rating == "0" ? "unrated" : dorm.rating}</span>
+                                <Star size={11} fill="#C0934B" stroke="none" />
+                                <span className="text-[#C0934B] font-bold text-[11px]">
+                                    {dorm.rating == "0" ? "unrated" : dorm.rating}
+                                </span>
                             </div>
                         )}
-                        <span className={`flex items-center gap-0.5 text-xs font-semibold transition-colors
+                        <span className={`flex items-center gap-0.5 text-[11px] font-semibold transition-colors whitespace-nowrap
                             ${hovered ? "text-[#6B0F2B]" : "text-[#9A7080] group-hover:text-[#6B0F2B]"}`}>
                             View
-                            <ChevronRight size={13} />
+                            <ChevronRight size={12} />
                         </span>
                     </div>
                 </div>
@@ -509,7 +596,7 @@ function DormTile({
 function SearchBar() {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
-    const { setSearching } = context
+    const { setSearching, setSearched } = context
 
     return (
         <div className="flex-1 flex items-center gap-2 bg-white rounded-xl border border-[#E8D4DF] px-3.5 py-2 shadow-sm focus-within:border-[#6B0F2B] focus-within:ring-2 focus-within:ring-[#6B0F2B]/10 transition-all">
@@ -521,16 +608,14 @@ function SearchBar() {
                 type="text"
                 placeholder="Search dormitory name…"
                 className="flex-1 text-sm text-[#1C0A11] placeholder-[#C8B0B8] outline-none bg-transparent"
-            />
-            <button
-                onClick={() => {
+                autoComplete="off"
+                onChange={() => {
                     const input = document.getElementById("search-bar") as HTMLInputElement
                     setSearching(input.value.trim().toLowerCase())
+                    setSearched(true)
                 }}
-                className="bg-[#6B0F2B] hover:bg-[#8A1C3D] text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition-colors shrink-0"
-            >
-                Search
-            </button>
+            />
+       
         </div>
     )
 }
@@ -538,43 +623,50 @@ function SearchBar() {
 /* ══════════════════════════════════════════════════════════════════════════════
    FILTER FORM
 ══════════════════════════════════════════════════════════════════════════════ */
-function FilterForm({ onClose }: { onClose: () => void }) {
+function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters: { [key: string]: boolean } }) {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
     const {
         dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
         roomType, setRoomType, starRating, setStarRating,
-        onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen, origMin, origMax,
-        setFilterInEffect
+        onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen, origMin, origMax, setSliderResetKey, sliderResetKey,
+        setFilterInEffect, setOrigMin, setOrigMax
     } = context
 
-    const originalFilters: { [key: string]: boolean } = {
-        "Near campus": false, "Pet friendly": false, "Near establishments": false,
-        "Air-conditioned rooms": false, "Has study area": false,
-        "24/7 security": false, "Has curfew": false, "Has canteen": false,
-    }
+
+    const [openDormCabinet, setDormCabinet] = useState(false)
+    const [openRoomCabinet, setRoomCabinet] = useState(false)
+    const [selectedDorm, setSelectedDorm] = useState("All")
+    const [selectedRoom, setSelectedRoom] = useState("All")
+
+    const originalFilters = Object.fromEntries(
+        Object.keys(origFilters).map((key) => [key, false])
+    ) as Record<string, boolean>;
 
     const resetAll = () => {
+        let temp = sliderResetKey
         setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
         setDormType("All"); setRoomType("All"); setMinPrice(origMin); setMaxPrice(origMax);
-        setFilterPanelOpen(false); setFilterInEffect(true)
+        setFilterPanelOpen(false); setFilterInEffect(true); setSliderResetKey(temp + 1);
+        setSelectedDorm("All"); setSelectedRoom("All");
     }
-
+    
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
-
-    const [range, setRange] = useState({min: 0, max: 100});
+    const [minimumOrig, setMinimumOrig] = useState(origMin);
+    const [maximumOrig, setMaximumOrig] = useState(origMax);
+    const [range, setRange] = useState({ min: 0, max: 100 });
     const handleRangeChange = (value: { min: number; max: number }) => {
         setRange(value);
         setMinPrice(value.min)
         setMaxPrice(value.max)
-      };
+    };
 
     return (
         <div className="pb-4">
 
             {/* Saved only */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Show saved only</p>
-            <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-[#F0E4E9] bg-[#FDF8FA]">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-[#F0E4E9] bg-[#F6F2F4]">
                 <div>
                     <p className="text-[#1C0A11] font-semibold text-sm mb-0.5">Saved Rooms</p>
                     <p className="text-[#9A7080] text-xs">Show only bookmarked dorms</p>
@@ -583,7 +675,7 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                     className={`relative w-11 h-6 rounded-full border-none transition-colors duration-200 ${onlyBookmarked ? "bg-[#6B0F2B]" : "bg-[#E8D4DF]"}`}
                     onClick={() => setOnlyBookmarked(!onlyBookmarked)}
                 >
-                    <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${onlyBookmarked ? "translate-x-[1px]" : "translate-x-[-18px]"}`} />
+                    <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${onlyBookmarked ? "translate-x-[2px]" : "translate-x-[-19px]"}`} />
                 </button>
             </div>
 
@@ -594,15 +686,20 @@ function FilterForm({ onClose }: { onClose: () => void }) {
             <Dropdown
                 title="Dorm type"
                 items={[
-                    { label: "All Types", href: "" },
-                    { label: "on-campus", href: "" },
-                    { label: "off-campus", href: "" },
-                    { label: "partner-housing", href: "" },
+                    { label: "All", href: "" },
+                    { label: "On-campus", href: "" },
+                    { label: "Off-campus", href: "" },
+                    { label: "Partner-housing", href: "" },
                 ]}
                 onSelect={setDormType}
                 showTitle={false} direction="down"
                 widthClass="w-full" titleClass="text-[10px] lg:text-[11px]"
                 selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
+                setOpen={setDormCabinet}
+                setClose={setRoomCabinet}
+                open={openDormCabinet}
+                setSelected={setSelectedDorm}
+                selected={selectedDorm}
             />
 
             <Divider />
@@ -613,14 +710,19 @@ function FilterForm({ onClose }: { onClose: () => void }) {
                 title="Room type"
                 items={[
                     { label: "All", href: "" },
-                    { label: "single", href: "" },
-                    { label: "double", href: "" },
-                    { label: "shared", href: "" },
+                    { label: "Single", href: "" },
+                    { label: "Double", href: "" },
+                    { label: "Shared", href: "" },
                 ]}
                 onSelect={setRoomType}
                 showTitle={false} direction="down"
                 widthClass="w-full" titleClass="text-[10px] lg:text-[11px]"
                 selectedClass="text-[12px] lg:text-[13px] text-left block pl-2"
+                setOpen={setRoomCabinet}
+                setClose={setDormCabinet}
+                open={openRoomCabinet}
+                setSelected={setSelectedRoom}
+                selected={selectedRoom}
             />
 
             <Divider />
@@ -646,14 +748,7 @@ function FilterForm({ onClose }: { onClose: () => void }) {
             {/* Price range */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
             <div className="px-2">
-         
-                {/* <DualRangeSlider
-                    minVal={minPrice} maxVal={maxPrice}
-                    onMinChange={setMinPrice} onMaxChange={setMaxPrice}
-                    dataMin={origMin} dataMax={origMax}
-                /> */}
-                <PriceRangeSlider min={origMin} max={origMax} onChange={handleRangeChange}></PriceRangeSlider>
-
+                <PriceRangeSlider key={sliderResetKey} min={origMin} max={origMax} onChange={handleRangeChange}></PriceRangeSlider>
             </div>
 
             <Divider />
@@ -678,7 +773,7 @@ function FilterForm({ onClose }: { onClose: () => void }) {
 
             <Divider />
 
-            {/* Buttons — inline, scrollable */}
+            {/* Buttons */}
             <div className="flex gap-3 mb-8">
                 <button
                     onClick={resetAll}
@@ -698,48 +793,72 @@ function FilterForm({ onClose }: { onClose: () => void }) {
     )
 }
 
-function DualRangeSlider({
-    minVal, maxVal, onMinChange, onMaxChange, dataMin, dataMax,
-}: {
-    minVal: number; maxVal: number
-    onMinChange: (v: number) => void; onMaxChange: (v: number) => void
-    dataMin: number; dataMax: number
-}) {
-    const STEP = 100
-    const range = dataMax - dataMin
-    const minPct = ((minVal - dataMin) / range) * 100
-    const maxPct = ((maxVal - dataMin) / range) * 100
-
+interface DropdownProps {
+    title: string;
+    items: { label: string; href: string }[];
+    onSelect?: (label: string) => void;
+    direction?: "up" | "down";
+    widthClass?: string;
+    titleClass?: string;
+    selectedClass?: string;
+    showTitle?: boolean;
+    setOpen: (label: boolean) => void;
+    setClose: (label: boolean) => void;
+    selected: string;
+    setSelected: (label: string) => void;
+    open: boolean;
+  }
+  
+  function Dropdown({ showTitle = true, title, items, onSelect, direction = "down", widthClass = "w-32", titleClass = "text-[10px]", selectedClass = "text-[12px]", setOpen, setClose, open, setSelected, selected }: DropdownProps) {
+    
+    const [isMobile, setIsMobile] = useState(false);
+  
+    useEffect(() => {
+      const check = () => setIsMobile(window.innerWidth < 1024);
+      check();
+      window.addEventListener('resize', check);
+      return () => window.removeEventListener('resize', check);
+    }, []);
+  
     return (
-        <div className="relative w-full h-8">
-            {/* Track */}
-            <div className="absolute top-1/2 left-0 right-0 h-1.5 rounded-full bg-[#EDE4E9] -translate-y-1/2" />
-            {/* Fill */}
-            <div
-                className="absolute top-1/2 h-1.5 rounded-full -translate-y-1/2"
-                style={{
-                    left: `${minPct}%`,
-                    width: `${maxPct - minPct}%`,
-                    background: "linear-gradient(90deg,#6B0F2B,#B5344F)",
-                }}
-            />
-            {/* Min thumb */}
-            <input type="range" min={dataMin} max={dataMax} step={STEP} value={minVal}
-                onChange={e => onMinChange(Number(e.target.value))}
-                className="absolute top-1/2 left-0 w-full h-8 -translate-y-1/2 opacity-0 cursor-pointer z-10" />
-            {/* Max thumb */}
-            <input type="range" min={dataMin} max={dataMax} step={STEP} value={maxVal}
-                onChange={e => onMaxChange(Number(e.target.value))}
-                className="absolute top-1/2 left-0 w-full h-8 -translate-y-1/2 opacity-0 cursor-pointer z-10" />
-            {/* Visual knobs */}
-            {[minPct, maxPct].map((pct, i) => (
-                <div key={i}
-                    className="absolute top-1/2 w-5 h-5 rounded-full bg-white border-[2.5px] border-[#6B0F2B] shadow-md pointer-events-none z-[5]"
-                    style={{ left: `${pct}%`, transform: "translate(-50%, -50%)" }}
-                />
-            ))}
-        </div>
-    )
-}
-
-
+      <div className="relative h-12">
+        <button
+          onClick={() => {
+            setClose(false)
+            setOpen(!open)}}
+          type="button"
+          className={`h-full px-2 py-1 border-2 lg:border-3 border-[#6B0F2B] border-opacity-10 bg-white rounded-[8.8px] flex items-center justify-between gap-4 ${widthClass}`}
+        >
+          <div className="flex flex-col items-start overflow-hidden w-full">
+            <span className={showTitle ? `${titleClass} text-[#9A7080] uppercase` : 'hidden'}>{title}</span>
+            <span className={`${selectedClass} font-medium text-gray-800 truncate w-full`}>{selected}</span>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 9-7 7-7-7"/>
+          </svg>
+        </button>
+  
+        {open && (
+          <div className={`absolute mt-1 bg-white w-full border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-30 ${
+            direction === "up" ? "bottom-full mb-1" : "top-full mt-1" }`}>
+            <ul className="p-2 text-sm">
+              {items.map((item) => (
+                <li key={item.label}>
+                  <a
+                    onClick={() => { 
+                      setSelected(item.label); 
+                      setOpen(false); 
+                      onSelect?.(item.label);
+                    }}
+                    className="text-[12px] block p-2 justify-start hover:bg-[#6B0F2B] hover:text-white transition-all rounded w-50"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
+  }

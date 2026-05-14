@@ -24,19 +24,18 @@ export default function SearchBar({value, onChange, onPageReset} : SearchBarProp
 
     const handleBlur = () => {
         setSearchOpen(false)
-        onChange('')
     }
 
     return (
         <div className="flex items-center gap-2 lg:gap-3">
             <div className="hidden lg:flex items-center gap-2">
-                <div className={`px-1 flex items-center border-2 lg:border-3 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px] h-12 overflow-hidden transition-all duration-300 ${searchOpen ? 'w-44' : 'w-12'}`}>
+                <div className={`px-1 flex items-center border-2 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px] h-12 overflow-hidden transition-all duration-300 ${searchOpen ? 'w-44' : 'w-12'}`}>
                     <button onClick={() => { setSearchOpen(!searchOpen); if (!searchOpen) inputRef.current?.focus() }} className="p-1 shrink-0">
                         <SearchIcon />
                     </button>
                     <input ref={inputRef} type="text" placeholder="Search..." value={value} onBlur={handleBlur}
                         onChange={handleChange}
-                        className={`bg-[#FAF4F6] text-[12px] lg:text-[13px] px-1 outline-none transition-all duration-300 ${searchOpen ? 'w-full opacity-100' : 'w-0 opacity-0'}`} />
+                        className={`bg-[#FAF4F6] placeholder:text-[#9A7080] text-[12px] lg:text-[13px] px-1 outline-none transition-all duration-300 ${searchOpen ? 'w-full opacity-100' : 'w-0 opacity-0'}`} />
                 </div>
             </div>
             <button className="lg:hidden border-2 px-2 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px]" onClick={() => setSearchOpen(true)}>
@@ -44,15 +43,15 @@ export default function SearchBar({value, onChange, onPageReset} : SearchBarProp
             </button>
             {searchOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center lg:hidden">
-                    <div className="bg-white rounded-xl p-4 w-[80%] shadow-xl">
-                        <div className="flex items-center gap-2 border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] px-2">
+                    <div className="bg-white rounded-2xl p-4 w-[80%] shadow-xl">
+                        <div className="flex items-center w-full gap-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] px-2">
                             <SearchIcon />
                             <input autoFocus type="text" placeholder="Search dormitory, status, type..." value={value}
                                 onChange={handleChange} className="text-[12px] py-2 outline-none w-full" />
+                            <button onClick={() => setSearchOpen(false)} className="text-[14px] p-0 px-1 text-[#9A7080] w-min text-center">
+                                ✕
+                            </button>
                         </div>
-                        <button onClick={() => setSearchOpen(false)} className="mt-3 text-[12px] text-[#9A7080] w-full text-center">
-                            Close
-                        </button>
                     </div>
                 </div>
             )}

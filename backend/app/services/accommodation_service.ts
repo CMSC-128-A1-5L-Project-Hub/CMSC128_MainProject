@@ -3,138 +3,129 @@ import Room from '#models/room'
 import RoomTag from '#models/room_tag'
 import { signImageUrl } from '#services/image_service'
 
-
 export class AccommodationService {
   async getFilteredCatalog(filters: any = {}) {
     let query = Accommodation.query()
       .where('status', 'verified')
-      .preload('images', (q) => q.preload('file'))
+      .preload('images', (q) => {
+        q.preload('file')
+      })
       .preload('tags')
       .preload('bookmarks')
       .preload('reviews')
-      .preload('rooms', (roomQuery) => {
-        // Preload tags for filtering
-        roomQuery.preload('tags')
-        
-        // Apply room type filter
-        if (filters.roomType) {
-          roomQuery.where('roomType', filters.roomType)
-        }
-        
-        // Apply stay type filter
-        if (filters.stayType) {
-          roomQuery.where('roomStayType', filters.stayType)
-        }
-        
-        // Apply price range filters
-        if (filters.minPrice) {
-          roomQuery.where('roomRent', '>=', filters.minPrice)
-        }
-        if (filters.maxPrice) {
-          roomQuery.where('roomRent', '<=', filters.maxPrice)
-        }
-        
-        // Order cheapest first
-        roomQuery.orderBy('roomRent', 'asc')
-      })
 
-    // Ensure accommodation has at least one room matching type/stay/price
-    if (filters.roomType || filters.stayType || filters.minPrice || filters.maxPrice) {
-      query = query.whereHas('rooms', (roomQuery) => {
-        if (filters.roomType) roomQuery.where('roomType', filters.roomType)
-        if (filters.stayType) roomQuery.where('roomStayType', filters.stayType)
-        if (filters.minPrice) roomQuery.where('roomRent', '>=', filters.minPrice)
-        if (filters.maxPrice) roomQuery.where('roomRent', '<=', filters.maxPrice)
-      })
-    }
-
-    // Accommodation-level filters
     if (filters.dormType) {
-      query = query.where('accommodationType', filters.dormType)
+      const typeMap: Record<string, string> = {
+        'On-Campus': 'on-campus',
+        'Off-Campus': 'off-campus',
+        'UPLB Partner': 'partner_housing',
+      }
+      const mapped = typeMap[filters.dormType] || filters.dormType
+      query = query.where('accommodationType', mapped)
     }
+
     if (filters.maxWalk) {
-      query = query.where('walkingDistance', '<=', filters.maxWalk)
+      query = query.where('walkingDistance', '<=', Number(filters.maxWalk))
     }
 
-    const accommodations = await query
+    let accommodations = await query.limit(50)
 
-    // Parse requested inclusions/tags
+    if (accommodations.length === 0) return []
+
+    const accIds = accommodations.map((a) => a.id)
+    const allRooms = await Room.query()
+      .whereIn('accommodationId', accIds)
+      .where('roomAvailability', 'available')
+      .preload('tags')
+      .orderBy('roomRent', 'asc')
+
+    const roomsByAcc: Record<number, Room[]> = {}
+    for (const room of allRooms) {
+      if (!roomsByAcc[room.accommodationId]) {
+        roomsByAcc[room.accommodationId] = []
+      }
+      roomsByAcc[room.accommodationId].push(room)
+    }
+
+    for (const acc of accommodations) {
+      ;(acc as any).rooms = roomsByAcc[acc.id] || []
+    }
+
+    const hasRoomFilters =
+      filters.roomType || filters.stayType || filters.minPrice || filters.maxPrice
+
+    if (hasRoomFilters) {
+      accommodations = accommodations.filter((acc) => {
+        const rooms = (acc as any).rooms as Room[]
+        if (rooms.length === 0) return false
+        return rooms.some((room) => {
+          if (filters.roomType && room.roomType !== filters.roomType) return false
+          if (filters.stayType && room.roomStayType !== filters.stayType) return false
+          if (filters.minPrice && room.roomRent < Number(filters.minPrice)) return false
+          if (filters.maxPrice && room.roomRent > Number(filters.maxPrice)) return false
+          return true
+        })
+      })
+    }
+
     const requestedInclusions: string[] =
       filters.tags && Array.isArray(filters.tags) && filters.tags.length > 0
         ? filters.tags
         : []
 
-    // Process each accommodation
-    for (const acc of accommodations) {
-      // Filter rooms by inclusions if requested
-      let filteredRooms: Room[] = acc.rooms ?? []
-      
-      if (requestedInclusions.length > 0) {
-        filteredRooms = acc.rooms.filter(room => {
-          const roomInclusions = room.tags?.map((t: RoomTag) => t.tagDetail) || []
-          return requestedInclusions.every(inclusion => roomInclusions.includes(inclusion))
+    if (requestedInclusions.length > 0) {
+      accommodations = accommodations.filter((acc) => {
+        const rooms = (acc as any).rooms as Room[]
+        return rooms.some((room) => {
+          const roomInclusions =
+            room.tags?.map((t: RoomTag) => t.tagDetail) || []
+          return requestedInclusions.every((inc) => roomInclusions.includes(inc))
         })
-      }
-
-      // Group by room type for pricing breakdown
-      const roomsByType: Record<string, Room[]> = {}
-      const allInclusions = new Set<string>()
-      
-      for (const room of filteredRooms) {
-        if (!roomsByType[room.roomType]) {
-          roomsByType[room.roomType] = []
-        }
-        roomsByType[room.roomType].push(room)
-        
-        room.tags?.forEach((tag: RoomTag) => allInclusions.add(tag.tagDetail))
-      }
-
-      // Calculate pricing per room type
-      const roomTypePricing: Record<string, any> = {}
-
-      for (const [type, rooms] of Object.entries(roomsByType)) {
-        const prices = rooms.map((r: Room) => Number(r.roomRent))
-        const typeInclusions = new Set<string>()
-
-        rooms.forEach((room: Room) => {
-          room.tags?.forEach((tag: RoomTag) => typeInclusions.add(tag.tagDetail))
-        })
-
-        roomTypePricing[type] = {
-          roomCount: rooms.length,
-          minPrice: Math.min(...prices),
-          maxPrice: Math.max(...prices),
-          inclusions: Array.from(typeInclusions),
-        }
-      }
-
-      // Overall pricing
-      const allPrices = filteredRooms.map(r => r.roomRent)
-      const overallStartingPrice = allPrices.length > 0 ? Math.min(...allPrices) : null
-
-      // Attach all metadata to accommodation
-      ;(acc as any).pricing = {
-        overallStartingPrice,
-        roomTypes: roomTypePricing,
-        allInclusions: Array.from(allInclusions),
-        hasFilters: requestedInclusions.length > 0,
-        requestedInclusions,
-        matchesFound: filteredRooms.length > 0,
-        totalMatchingRooms: filteredRooms.length
-      }
-
-      // Include ALL rooms for detail view, but mark which ones match
-      ;(acc as any).filteredRoomCount = filteredRooms.length
+      })
     }
 
-    // Sign primary image URL for each accommodation
     const results = await Promise.all(
       accommodations.map(async (acc) => {
         const serialized = acc.serialize() as any
-        const primary = acc.images?.[acc.primaryImageIndex]
+        const rooms = (acc as any).rooms as Room[]
+        const primary = acc.images?.[acc.primaryImageIndex || 0]
         serialized.primaryImageUrl = await signImageUrl(primary?.file?.filePath)
-        serialized.pricing = (acc as any).pricing
-        serialized.filteredRoomCount = (acc as any).filteredRoomCount
+
+        if (rooms.length > 0) {
+          const prices = rooms.map((r) => Number(r.roomRent))
+          const allInclusions = new Set<string>()
+          const roomsByType: Record<string, Room[]> = {}
+          const roomTypePricing: Record<string, any> = {}
+
+          for (const room of rooms) {
+            if (!roomsByType[room.roomType]) roomsByType[room.roomType] = []
+            roomsByType[room.roomType].push(room)
+            room.tags?.forEach((tag: RoomTag) => allInclusions.add(tag.tagDetail))
+          }
+
+          for (const [type, typeRooms] of Object.entries(roomsByType)) {
+            const typePrices = typeRooms.map((r) => Number(r.roomRent))
+            const typeInclusions = new Set<string>()
+            typeRooms.forEach((r) =>
+              r.tags?.forEach((t: RoomTag) => typeInclusions.add(t.tagDetail))
+            )
+            roomTypePricing[type] = {
+              roomCount: typeRooms.length,
+              minPrice: Math.min(...typePrices),
+              maxPrice: Math.max(...typePrices),
+              inclusions: Array.from(typeInclusions),
+            }
+          }
+
+          serialized.pricing = {
+            overallStartingPrice: Math.min(...prices),
+            roomTypes: roomTypePricing,
+            allInclusions: Array.from(allInclusions),
+            totalMatchingRooms: rooms.length,
+          }
+          serialized.filteredRoomCount = rooms.length
+        }
+
         return serialized
       })
     )

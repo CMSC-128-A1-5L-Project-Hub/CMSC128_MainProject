@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
+import AccommodationTag from '#models/accommodation_tag'
 import Student from '#models/student'
 import AccommodationImage from '#models/accommodation_image'
 import FileMetadata from '#models/file_metadatum'
@@ -12,6 +13,7 @@ import { withPrimaryImageUrl, signImageUrl, withAllImageUrls } from '#services/i
 import ZipExportService from '#services/zip_export_service'
 import type { ZipEntry } from '#services/zip_export_service'
 import Room from '#models/room'
+import DocumentRequirement from '#models/document_requirement'
 
 export default class AccommodationController {
   private accommodationService = new AccommodationService()
@@ -198,11 +200,10 @@ async store({ request, auth, response }: HttpContext) {
   const startTime = Date.now()
   console.log('=== STORE START ===')
   const landlordId = auth.user!.id
-  console.log('landlordId:', landlordId)
 
   const landlord = await Landlord.query()
-  .where('user_id', landlordId)
-  .first()
+    .where('user_id', landlordId)
+    .first()
 
   if (!landlord) {
     return response.forbidden({
@@ -222,10 +223,10 @@ async store({ request, auth, response }: HttpContext) {
     latitude,
     longitude,
     primary_image_index,
+    tags, //extract tags array from body
   } = request.body()
 
-  console.log('body:', { accommodation_name, accommodation_location, accommodation_type, accommodation_capacity, tenant_restriction, latitude, longitude })
-
+  // Basic field validation (unchanged)
   if (
     !accommodation_name ||
     !accommodation_location ||
@@ -243,22 +244,21 @@ async store({ request, auth, response }: HttpContext) {
   }
 
   const capacity = Number(accommodation_capacity)
-    if (isNaN(capacity) || capacity < 1 || capacity > 10000) {
-      return response.badRequest({
-        status: 400,
-        error: 'Validation Error',
-        message: 'Accommodation capacity must be between 1 and 10,000',
-      })
-}
+  if (isNaN(capacity) || capacity < 1 || capacity > 10000) {
+    return response.badRequest({
+      status: 400,
+      error: 'Validation Error',
+      message: 'Accommodation capacity must be between 1 and 10,000',
+    })
+  }
 
-  console.log(`[${Date.now() - startTime}ms] Validation passed`)
+  // Optional validation for tags: ensure it's an array of strings
+  const tagList = Array.isArray(tags) ? tags.filter(t => typeof t === 'string' && t.trim().length > 0) : []
 
   const businessPermitFile = request.file('business_permit', {
     extnames: ['pdf', 'jpg', 'jpeg', 'png'],
     size: '5mb',
   })
-
-  console.log('businessPermitFile:', businessPermitFile?.clientName)
 
   if (!businessPermitFile) {
     return response.badRequest({
@@ -274,10 +274,6 @@ async store({ request, auth, response }: HttpContext) {
   })
 
   const MAX_IMAGES = 10
-
-
-  console.log('images count:', images?.length)
-
   if (!images || images.length === 0) {
     return response.badRequest({
       status: 400,
@@ -292,10 +288,9 @@ async store({ request, auth, response }: HttpContext) {
       error: 'Validation Error',
       message: `You can only upload a maximum of ${MAX_IMAGES} images.`,
     })
-}
+  }
 
   const validImages = images.filter((img) => img.isValid && img.tmpPath)
-
   if (validImages.length === 0) {
     return response.badRequest({
       status: 400,
@@ -305,7 +300,6 @@ async store({ request, auth, response }: HttpContext) {
   }
 
   const primaryIndex = Number(primary_image_index ?? 0)
-
   if (isNaN(primaryIndex) || primaryIndex < 0 || primaryIndex >= validImages.length) {
     return response.badRequest({
       status: 400,
@@ -314,18 +308,14 @@ async store({ request, auth, response }: HttpContext) {
     })
   }
 
-  console.log(`[${Date.now() - startTime}ms] Starting distance calculation`)
   const { walkingMinutes, drivingMinutes, cyclingMinutes } =
     await DistanceService.calculate(Number(latitude), Number(longitude))
-  console.log(`[${Date.now() - startTime}ms] Distance calculated:`, { walkingMinutes, drivingMinutes, cyclingMinutes })
 
   const trx = await db.transaction()
 
   try {
-    console.log(`[${Date.now() - startTime}ms] Starting permit upload`)
+    // Upload business permit
     const permitUrl = await uploadImage(businessPermitFile, 'business_permits')
-    console.log(`[${Date.now() - startTime}ms] Permit uploaded:`, permitUrl)
-
     const permitMeta = await FileMetadata.create(
       {
         fileName: businessPermitFile.clientName ?? 'permit.pdf',
@@ -334,8 +324,8 @@ async store({ request, auth, response }: HttpContext) {
       },
       { client: trx }
     )
-    console.log(`[${Date.now() - startTime}ms] Permit meta created, id:`, permitMeta.id)
 
+    // Create accommodation
     const accommodation = await Accommodation.create(
       {
         landlordId,
@@ -358,14 +348,22 @@ async store({ request, auth, response }: HttpContext) {
       },
       { client: trx }
     )
-    console.log(`[${Date.now() - startTime}ms] Accommodation created, id:`, accommodation.id)
 
-    console.log(`[${Date.now() - startTime}ms] Starting parallel image uploads (${validImages.length} images)`)
+    // ─── NEW: Save accommodation tags ────────────────────────────
+    if (tagList.length > 0) {
+      await AccommodationTag.createMany(
+        tagList.map(tagDetail => ({
+          accommodationId: accommodation.id,
+          tagDetail,
+        })),
+        { client: trx }
+      )
+    }
 
+    // Upload images and create file records (unchanged)
     const fileUrls = await Promise.all(
       validImages.map((img) => uploadImage(img, `accommodations/${accommodation.id}`))
     )
-    console.log(`[${Date.now() - startTime}ms] All images uploaded to B2`)
 
     for (let i = 0; i < validImages.length; i++) {
       const fileMeta = await FileMetadata.create(
@@ -385,7 +383,6 @@ async store({ request, auth, response }: HttpContext) {
         { client: trx }
       )
     }
-    console.log(`[${Date.now() - startTime}ms] Image metadata saved to DB`)
 
     await trx.commit()
     console.log(`[${Date.now() - startTime}ms] === TOTAL TIME: ${Date.now() - startTime}ms ===`)
@@ -579,20 +576,21 @@ async store({ request, auth, response }: HttpContext) {
       })
     }
   }
-  async landlordIndex({ auth, response }: HttpContext) {
-    const landlordId = auth.user!.id
+async landlordIndex({ auth, response }: HttpContext) {
+  const landlordId = auth.user!.id
+  const accommodations = await Accommodation.query()
+    .where('landlord_id', landlordId)
+    .preload('images', (q) => q.preload('file'))
+    .preload('tags')
+    .preload('manager', (q) => q.preload('user', (q2) => q2.preload('phoneNumbers')))
 
-    const accommodations = await Accommodation.query()
-      .where('landlord_id', landlordId)
-      .preload('images', (q) => q.preload('file'))
-      .preload('tags')
-      .preload('manager', (q) => q.preload('user', (q2) => q2.preload('phoneNumbers')))
-
-    // attach a signed primaryImageUrl to each accommodation
-    const data = await Promise.all(accommodations.map(withPrimaryImageUrl))
-
-    return response.ok(data)
-  }
+  const data = await Promise.all(accommodations.map(withPrimaryImageUrl))
+  
+  // Temporary debug
+  console.log('primaryImageUrls:', data.map(d => d.primaryImageUrl))
+  
+  return response.ok(data)
+}
 
   // ─── GET /api/v1/accommodations/:id/export-documents ─────────────────────
   // Role: Manager | Landlord
@@ -677,7 +675,7 @@ async store({ request, auth, response }: HttpContext) {
       .leftJoin('accommodation_images', 'accommodations.id', 'accommodation_images.accommodation_id')
       .leftJoin('file_metadata', 'accommodation_images.image_file_id', 'file_metadata.id')
       .where('accommodations.status', 'verified')
-      .whereNotNull('accommodations.manager_id')
+      // .whereNotNull('accommodations.manager_id')
       .whereIn('accommodations.tenant_restriction', allowedRestrictions)
       .groupBy('accommodations.id')
       .select(
@@ -689,10 +687,145 @@ async store({ request, auth, response }: HttpContext) {
         'accommodations.accommodation_size'
       )
       .select(db.raw('COALESCE(AVG(reviews.rating), 0) as average_rating'))
-      .select(db.raw('MIN(file_metadata.file_path) as primaryImageUrl'))
+      .select(db.raw('MIN(file_metadata.file_path) as primary_image_path'))
       .orderBy('average_rating', 'desc')
       .limit(5)
 
-    return response.ok(accommodations)
+    const data = await Promise.all(
+      accommodations.map(async (acc: any) => ({
+        ...acc,
+        primaryImageUrl: await signImageUrl(acc.primary_image_path),
+      }))
+    )
+
+    return response.ok(data)
+  }
+
+  // ─── GET /accommodations/:id/document-requirements ───────────────────────
+  // Public: list all document requirements for an accommodation
+  async listDocumentRequirements({ params, response }: HttpContext) {
+    const requirements = await DocumentRequirement.query()
+      .where('accommodationId', params.id)
+      .orderBy('createdAt', 'asc')
+
+    return response.ok(requirements)
+  }
+
+  // ─── POST /landlord/accommodations/:id/document-requirements ─────────────
+  // Role: Landlord — add a document requirement to their accommodation
+  async addDocumentRequirement({ params, request, auth, response }: HttpContext) {
+    const landlordId = auth.user!.id
+
+    const accommodation = await Accommodation.query()
+      .where('id', params.id)
+      .where('landlord_id', landlordId)
+      .first()
+
+    if (!accommodation) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Accommodation not found or you do not have access to it.',
+      })
+    }
+
+    const { requirement_name, accepted_format } = request.body()
+
+    if (!requirement_name || typeof requirement_name !== 'string' || !requirement_name.trim()) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: 'requirement_name is required.',
+      })
+    }
+
+    const validFormats = ['pdf', 'image', 'any']
+    const format = validFormats.includes(accepted_format) ? accepted_format : 'any'
+
+    const requirement = await DocumentRequirement.create({
+      accommodationId: accommodation.id,
+      requirementName: requirement_name.trim(),
+      acceptedFormat: format,
+    })
+
+    return response.created(requirement)
+  }
+
+  // ─── DELETE /landlord/accommodations/:id/document-requirements/:reqId ────
+  // Role: Landlord — remove a document requirement from their accommodation
+  async removeDocumentRequirement({ params, auth, response }: HttpContext) {
+    const landlordId = auth.user!.id
+
+    const accommodation = await Accommodation.query()
+      .where('id', params.id)
+      .where('landlord_id', landlordId)
+      .first()
+
+    if (!accommodation) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Accommodation not found or you do not have access to it.',
+      })
+    }
+
+    const requirement = await DocumentRequirement.query()
+      .where('id', params.reqId)
+      .where('accommodationId', accommodation.id)
+      .first()
+
+    if (!requirement) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Document requirement not found.',
+      })
+    }
+
+    await requirement.delete()
+
+    return response.ok({ message: 'Document requirement removed.' })
+  }
+
+  // Top 5 dorms by average rating, regardless of tenant restriction (for landing page)
+  async topRated({ response }: HttpContext) {
+    const accommodations = await db
+      .from('accommodations')
+      .leftJoin('reviews', 'accommodations.id', 'reviews.accommodation_id')
+      .leftJoin('rooms', 'accommodations.id', 'rooms.accommodation_id')
+      .leftJoin('accommodation_tags', 'accommodations.id', 'accommodation_tags.accommodation_id')
+      .leftJoin('accommodation_images', 'accommodations.id', 'accommodation_images.accommodation_id')
+      .leftJoin('file_metadata', 'accommodation_images.image_file_id', 'file_metadata.id')
+      .where('accommodations.status', 'verified')
+      .groupBy('accommodations.id')
+      .select(
+        'accommodations.id',
+        'accommodations.accommodation_name',
+        'accommodations.accommodation_location',
+        'accommodations.accommodation_type'
+      )
+      .select(db.raw('COALESCE(AVG(reviews.rating), 0) as average_rating'))
+      .select(db.raw('COALESCE(MIN(rooms.room_rent), 0) as starting_price'))
+      .select(db.raw('GROUP_CONCAT(DISTINCT accommodation_tags.tag_detail) as tags'))
+      .select(db.raw('MIN(file_metadata.file_path) as primary_image_path'))
+      .orderBy('average_rating', 'desc')
+      .limit(5)
+
+    const data = await Promise.all(
+      accommodations.map(async (acc: any) => ({
+        id: acc.id,
+        name: acc.accommodation_name,
+        subtitle: acc.accommodation_location,
+        meta: acc.accommodation_type,
+        price: Number(acc.starting_price ?? 0),
+        rating: Number(Number(acc.average_rating ?? 0).toFixed(1)),
+        chips: acc.tags ? acc.tags.split(',').slice(0, 3) : [],
+        primaryImageUrl: acc.primary_image_path
+          ? await signImageUrl(acc.primary_image_path)
+          : null,
+      }))
+    )
+
+    return response.ok(data)
   }
 }

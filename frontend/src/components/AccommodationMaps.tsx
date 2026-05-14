@@ -84,6 +84,14 @@ export default function AccommodationMap({
     : { longitude: UPLB.longitude, latitude: UPLB.latitude, zoom: 15, pitch: 60, bearing: 0 }
 
   useEffect(() => {
+    if (!selectedPin) return
+    const stillVisible = accommodations.some(
+      (a) => a.accommodationId === selectedPin.accommodationId
+    )
+    if (!stillVisible) setSelectedPin(null)
+  }, [accommodations])
+
+  useEffect(() => {
     if (!selectedPin) {
       setRouteGeoJSON(null)
       return
@@ -371,7 +379,7 @@ export default function AccommodationMap({
         title="Recenter to UPLB"
         style={{
           position: 'absolute',
-          bottom: selectedPin ? '120px' : '32px',
+          bottom: '32px',
           right: '16px',
           width: '48px',
           height: '48px',
@@ -384,15 +392,15 @@ export default function AccommodationMap({
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
-          transition: 'bottom 0.3s ease, transform 0.15s ease, box-shadow 0.15s ease',
+          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
         }}
         onMouseEnter={e => {
           (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'
-          ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(113,10,43,0.5)'
+            ; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(113,10,43,0.5)'
         }}
         onMouseLeave={e => {
           (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'
-          ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(113,10,43,0.35)'
+            ; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(113,10,43,0.35)'
         }}
         onMouseDown={e => (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'}
         onMouseUp={e => (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'}
