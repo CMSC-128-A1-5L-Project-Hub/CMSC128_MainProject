@@ -495,18 +495,6 @@ export default function FeesPage() {
     verifyMutation.mutate({ id, action })
   }
 
-  const handleAccomChange = (id: number) => {
-    setSelectedAccomId(id)
-    sessionStorage.setItem('landlord-acc-id', String(id))
-    setCurrentPage(1)
-    setToast({
-      show: true,
-      type: "info",
-      title: "Switched Accommodation",
-      message: `Now viewing ${accommodations.find(a => a.id === id)?.accommodationName || 'accommodation'}`
-    });
-  }
-
   // Filter and paginate overdue fees
   const filteredFees = overdueFees.filter((f) =>
     `${f.fname} ${f.lname}`.toLowerCase().includes(search.toLowerCase())
@@ -562,20 +550,9 @@ export default function FeesPage() {
         </div>
 
         <div className="mt-5 space-y-4">
-          {/* Tabs + Accommodation Switcher */}
+          {/* Tabs - No accommodation dropdown */}
           <div className="flex justify-between items-center flex-wrap gap-3">
             <FilterTabs active={activeTab} setActive={setActiveTab} />
-            {accommodations.length > 0 && (
-              <select
-                value={selectedAccomId ?? ''}
-                onChange={(e) => handleAccomChange(Number(e.target.value))}
-                className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs font-bold text-gray-500 outline-none shadow-sm"
-              >
-                {accommodations.map((acc) => (
-                  <option key={acc.id} value={acc.id}>{acc.accommodationName}</option>
-                ))}
-              </select>
-            )}
           </div>
 
           {/* Payment Verification Panel */}
