@@ -59,7 +59,7 @@ interface ProfileEditFields {
   emergencyContactNumber: string;
   emergencyContactName: string;
   classification: string;
-  yearLevel: string; 
+  yearLevel: string;
 }
 
 // ─── Zustand Store ───────────────────────────────────────────────────────────
@@ -121,49 +121,45 @@ export default function ProfilePage() {
         facebookAccount: profile.facebookAccount || "",
         emergencyContactName: profile.student?.emergencyContactName || "",
         emergencyContactNumber: profile.student?.emergencyContactNumber || "",
-        classification: profile.student?.classification || "Undergraduate",
+        classification: profile.student?.classification || "",
         yearLevel: profile.student?.yearLevel || "",
       });
     }
   }, [profile, setForm]);
 
-  // FIXED SAVE MUTATION: Uses the "Manager/Original" payload structure
- const saveMutation = useMutation({
+  const saveMutation = useMutation({
     mutationFn: async (updatedForm: ProfileEditFields) => {
+      // We combine camelCase and snake_case to ensure the backend gets what it wants
       const payload = {
         mname: updatedForm.mname,
+        facebook_account: updatedForm.facebookAccount,
         facebookAccount: updatedForm.facebookAccount,
-        phoneNumbers: [{ 
-          contactNumber: updatedForm.primaryPhone, 
-          isPrimary: true 
-        }],
+        phone_numbers: [{ contact_number: updatedForm.primaryPhone, is_primary: true }],
+        phoneNumbers: [{ contactNumber: updatedForm.primaryPhone, isPrimary: true }],
         student: {
           classification: updatedForm.classification,
+          year_level: updatedForm.yearLevel,
           yearLevel: updatedForm.yearLevel,
+          emergency_contact_name: updatedForm.emergencyContactName,
           emergencyContactName: updatedForm.emergencyContactName,
+          emergency_contact_number: updatedForm.emergencyContactNumber,
           emergencyContactNumber: updatedForm.emergencyContactNumber,
         }
       };
 
-      // We use api.put("/me", payload) because this is the student's own profile
-      const { data } = await api.put("/me", payload);
-      return data;
+      const response = await api.put("/me", payload);
+      return response.data;
     },
-    onSuccess: (data) => {
-      // 1. Clear the cache so it fetches fresh data from DB
+    onSuccess: (data: UserProfile) => {
+      qc.setQueryData(["me"], data); 
       qc.invalidateQueries({ queryKey: ["me"] });
-      
-      // 2. Update global user store
       setUser(data);
-      
-      // 3. Close edit mode
       setIsEditing(false);
-      
-      alert("Changes saved to database!");
+      alert("Profile updated successfully!");
     },
-    onError: (error: any) => {
-      console.error("SAVE FAILED:", error.response?.data || error.message);
-      alert(`Save failed: ${error.response?.data?.message || "Check network tab"}`);
+    onError: (err: any) => {
+      console.error("Save failed:", err.response?.data || err.message);
+      alert("Could not save changes. Please try again.");
     }
   });
 
@@ -200,7 +196,6 @@ export default function ProfilePage() {
             <div className="p-6 md:p-10 lg:p-14">
               <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
                 
-                {/* LEFT: Photos */}
                 <div className="w-full lg:w-[320px] lg:shrink-0">
                   <div className="relative aspect-square overflow-hidden rounded-[35px] bg-[#F9EBEE] border border-[#F2F2F2]">
                     <img src={profile.profilePictureUrl || defaultPfp} className="h-full w-full object-cover" alt="Profile" />
@@ -229,7 +224,6 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* RIGHT: Detailed Grid */}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-6 mb-12">
                     <div className="min-w-0">
@@ -262,17 +256,12 @@ export default function ProfilePage() {
                     <Field label="Gender" value={profile.student?.gender} readOnly isCaps />
 
                     <Field label="Emergency Contact" value={form.emergencyContactName} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactName: v})} />
-                    
-                    {/* FIXED: Classification is editable and capitalized */}
                     <Field label="Classification" value={form.classification} editing={isEditing} isCaps onChange={(v: string) => setForm({...form, classification: v})} />
 
                     <Field label="Emergency Contact #" value={form.emergencyContactNumber} editing={isEditing} onChange={(v: string) => setForm({...form, emergencyContactNumber: v})} />
-                    
-                    {/* FIXED: Year Level is now editable and capitalized */}
                     <Field label="Year Level" value={form.yearLevel} editing={isEditing} isCaps onChange={(v: string) => setForm({...form, yearLevel: v})} />
                   </div>
 
-                  {/* Current Dorm */}
                   <div className="mt-14 border-t border-[#F2F2F2] pt-10">
                     <p className="mb-5 text-[10px] font-extrabold tracking-widest text-[#A88993] uppercase">Current Dorm</p>
                     <div className="flex items-center gap-6 rounded-3xl border border-[#EADFD3] bg-[#F8EFF2] p-5">
