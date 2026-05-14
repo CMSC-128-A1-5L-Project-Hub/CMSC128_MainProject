@@ -1709,6 +1709,7 @@ export default function RoomView() {
                 </span>
               </button>
             </div>
+            </div>
 
             {/* Thumbnail stack — col 2 */}
             <div className="hidden lg:grid grid-rows-2 gap-3" style={{ height: 300 }}>
