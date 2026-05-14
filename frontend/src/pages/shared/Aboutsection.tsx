@@ -429,9 +429,21 @@ export default function AboutSection() {
                   chips={featuredDorm?.chips ?? []}
                   rating={featuredDorm?.rating == 0 ? 'unrated' : featuredDorm?.rating ?? 'unrated'}
                   verified
-                  onView={() => {
-                    if (featuredDorm?.id) {
+                  onView={async () => {
+                    if (!featuredDorm?.id) return;
+
+                    try {
+                      const res = await api.get("/me");
+                      const user = res.data.user ?? res.data;
+
+                      if (user?.role !== "student") {
+                        window.location.href = "/auth/signin";
+                        return;
+                      }
+
                       window.location.href = `/student/roomview/${featuredDorm.id}`;
+                    } catch (error) {
+                      window.location.href = "/auth/signin";
                     }
                   }}
                 />
@@ -455,6 +467,8 @@ export default function AboutSection() {
               <motion.div style={{ y: yColA as any }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
               <DormCard
                   name={featuredDorm?.name ?? "Featured Dorm"}
+                  image={featuredDorm?.primaryImageUrl}
+                  imageName={featuredDorm?.name ?? "Featured Dorm"}
                   subtitle={featuredDorm?.subtitle ?? ""}
                   meta={
                     featuredDorm?.meta
@@ -468,12 +482,25 @@ export default function AboutSection() {
                   chips={featuredDorm?.chips ?? []}
                   rating={featuredDorm?.rating == 0 ? 'unrated' : featuredDorm?.rating ?? 'unrated'}
                   verified
-                  onView={() => {
-                    if (featuredDorm?.id) {
+                  onView={async () => {
+                    if (!featuredDorm?.id) return;
+
+                    try {
+                      const res = await api.get("/me");
+                      const user = res.data.user ?? res.data;
+
+                      if (user?.role !== "student") {
+                        window.location.href = "/auth/signin";
+                        return;
+                      }
+
                       window.location.href = `/student/roomview/${featuredDorm.id}`;
+                    } catch (error) {
+                      window.location.href = "/auth/signin";
                     }
                   }}
-                />              </motion.div>
+                />              
+                </motion.div>
 
               <motion.div className="rooms-card-wrapper" style={{ position: "relative", paddingTop: 0, y: yColB as any }} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
                 <TagsCloud />
