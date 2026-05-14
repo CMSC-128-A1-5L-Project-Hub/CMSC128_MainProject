@@ -7,8 +7,8 @@ import { useState } from "react";
 export default function PersonalInfo({ role, data, setData, nextStep }: any) {
     const [errors, setErrors] = useState<Record<string,string>>({})
     
-    // Track if last name was pre-filled by Google
-    const [hasGoogleLastName] = useState(data.lastName && data.lastName !== "");
+    // Track if last name was NOT pre-filled by Google
+    const [missingGoogleLastName] = useState(!data.lastName || data.lastName === "");
     
     const handleChange = (e:any) => {
         setData({
@@ -74,9 +74,9 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 name="lastName"
                 value={data.lastName}
                 onChange={handleChange}
-                placeholder={hasGoogleLastName ? "" : "Last Name"}
+                placeholder={missingGoogleLastName ? "" : "Last Name"}
                 className="col-span-5"
-                disabled={hasGoogleLastName} // Only disable if Google provided a last name
+                disabled={missingGoogleLastName} 
             />
 
             <FormField 
