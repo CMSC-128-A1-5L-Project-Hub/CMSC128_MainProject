@@ -700,6 +700,7 @@ async landlordIndex({ auth, response }: HttpContext) {
     return response.ok(data)
   }
 
+  // Top 5 dorms by average rating, regardless of tenant restriction (for landing page)
   async topRated({ response }: HttpContext) {
     const accommodations = await db
       .from('accommodations')
