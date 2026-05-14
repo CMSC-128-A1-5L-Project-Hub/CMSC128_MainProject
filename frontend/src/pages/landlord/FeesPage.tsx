@@ -4,6 +4,7 @@ import { api } from '../../api/axios'
 import { useUserStore } from '../../stores/useUserStore'
 import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
+import CustomHeader from '../../components/CustomHeader';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -183,10 +184,12 @@ export default function FeesPage() {
   const fullName = user ? user.fname : ''
 
   return (
-    <div className="flex min-h-screen bg-[#f5f0f1]">
+    <div className="flex h-screen bg-[#f5f0f1]">
       <Sidebar role="landlord" />
 
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="flex flex-col w-full h-full">
+        <CustomHeader title="Fees" />
+        <main className="flex-1 p-6 overflow-y-auto">
         <HeroBanner
           greeting={greeting()}
           name={fullName}
@@ -338,6 +341,7 @@ export default function FeesPage() {
           </div>
 
         </div>
+      </main>
       </div>
 
       {selectedFee && (
