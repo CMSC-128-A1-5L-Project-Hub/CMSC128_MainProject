@@ -653,7 +653,7 @@ const DesktopProfilePanel = ({
           <div key={item.label}>
             <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
             {"green" in item && item.green ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#3FA36C] bg-[#5E5A4D] text-[#cefad0] text-green-800"> 
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#3FA36C] bg-[#5E5A4D] text-[#cefad0] text-green-200"> 
                 {item.value}
               </span>
             ) : (
