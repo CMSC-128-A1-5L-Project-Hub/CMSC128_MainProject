@@ -226,8 +226,9 @@ export default function Applications() {
   const [expectedMoveOutDate, setExpectedMoveOutDate] = useState("");
 
   // fetch data and map it to the UI Interface
-  const { data: appsData = [], isLoading } = useQuery<Application[]>({
+  const { data: appsData = [], isLoading, refetch } = useQuery<Application[]>({
     queryKey: ["landlord-applications"],
+    staleTime: 0,
     queryFn: async () => {
       try {
         const res = await api.get("/applications/incoming");
@@ -271,39 +272,41 @@ export default function Applications() {
     },
   });
 
-  // fetch dynamic rooms for the selected application's accommodation
-  const { data: dynamicRooms = [], isLoading: isLoadingRooms } = useQuery({
-    queryKey: ["accommodation-rooms", selectedApp?.originalData?.accommodationId],
-    queryFn: async () => {
-      if (!selectedApp?.originalData?.accommodationId) return [];
+  // // fetch dynamic rooms for the selected application's accommodation
+  // const { data: dynamicRooms = [], isLoading: isLoadingRooms } = useQuery({
+  //   queryKey: ["accommodation-rooms", selectedApp?.originalData?.accommodationId],
+  //   queryFn: async () => {
+  //     if (!selectedApp?.originalData?.accommodationId) return [];
       
-      const res = await api.get(`/accommodations/${selectedApp.originalData.accommodationId}/rooms`);
-      return res.data;
-    },
-    enabled: !!selectedApp?.originalData?.accommodationId && (selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted"),
-  });
+  //     const res = await api.get(`/accommodations/${selectedApp.originalData.accommodationId}/rooms`);
+  //     return res.data;
+  //   },
+  //   enabled: !!selectedApp?.originalData?.accommodationId && (selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted"),
+  // });
 
   // setup Mutations for approving or rejecting
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, action, reason }: { id: number; action: "approve" | "reject"; reason?: string }) => {
-      try {
-        const res = await api.patch(`/applications/${id}/review`, { 
-          action: action, 
-          rejection_reason: reason 
-        });
-        return res.data;
-      } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to update application status");
+      mutationFn: async ({ id, action, reason }: { id: number; action: "approve" | "reject"; reason?: string }) => {
+          const targetStatus = action === "approve" ? "approved" : "rejected";
+
+          const res = await api.put(`/applications/${id}/status`, { 
+              status: targetStatus, 
+              ...(targetStatus === "rejected" && { rejectionReason: reason })
+          });
+          return res.data;
+      },
+      onSuccess: (data) => {
+          console.log("updateStatusMutation succeeded:", data);
+          console.log("Invalidating landlord-applications...");
+          queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
+          console.log("Invalidation called.");
+          setViewModalOpen(false);
+          setRemark("");
+      },
+      onError: (error) => {
+          console.error("updateStatusMutation failed:", error);
+          alert(`Error: ${error.message}`);
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
-      setViewModalOpen(false);
-      setRemark("");
-    },
-    onError: (error) => {
-      alert(`Error: ${error.message}`);
-    }
   });
 
   const total = scopedAppsData.length;
@@ -384,54 +387,58 @@ export default function Applications() {
     updateStatusMutation.mutate({ id: selectedApp.id, action: "approve" });
   };
 
-  // setup Mutation for assigning a room (at the moment, landlord can only accept and reject, not assign rooms)
-  const assignRoomMutation = useMutation({
-    mutationFn: async ({ roomId, applicationId, moveIn, expectedMoveOut }: { roomId: string | number; applicationId: number; moveIn: string; expectedMoveOut: string }) => {
-      try {
-        const res = await api.post("/assignments", {
-          roomId: roomId,
-          applicationId: applicationId,
-          moveIn: moveIn,
-          expectedMoveOut: expectedMoveOut
-        });
-        return res.data;
-      } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to assign room");
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["accommodation-rooms"] });
-      setViewModalOpen(false);
-      setSelectedRoom(null);
-    },
-    onError: (error) => {
-      alert(`Error assigning room: ${error.message}`);
-    }
-  });
+  // // setup Mutation for assigning a room (at the moment, landlord can only accept and reject, not assign rooms)
+  // const assignRoomMutation = useMutation({
+  //     mutationFn: async ({ roomId, applicationId, moveIn, expectedMoveOut }: { roomId: string | number; applicationId: number; moveIn: string; expectedMoveOut: string }) => {
+  //       try {
+  //         const res = await api.post("/assignments", {
+  //           roomId: roomId,
+  //           applicationId: applicationId,
+  //           moveIn: moveIn,
+  //           expectedMoveOut: expectedMoveOut
+  //         });
+  //         return res.data;
+  //       } catch (error: any) {
+  //         throw new Error(error.response?.data?.message || "Failed to assign room");
+  //       }
+  //     },
+  //     onSuccess: (data) => {
+  //       console.log("assignRoomMutation succeeded:", data);
+  //       console.log("Invalidating landlord-applications and accommodation-rooms...");
+  //       queryClient.invalidateQueries({ queryKey: ["landlord-applications"] });
+  //       queryClient.invalidateQueries({ queryKey: ["accommodation-rooms"] });
+  //       console.log("Invalidation called.");
+  //       setViewModalOpen(false);
+  //       setSelectedRoom(null);
+  //     },
+  //     onError: (error) => {
+  //       console.error("assignRoomMutation failed:", error);
+  //       alert(`Error assigning room: ${error.message}`);
+  //     }
+  // });
 
-  const handleSaveAssignment = () => {
-    if (!selectedApp || !selectedRoom) return;
-    if (!moveInDate || !expectedMoveOutDate) {
-      alert("Please select both a Move In and Expected Move Out date.");
-      return;
-    }
+  // const handleSaveAssignment = () => {
+  //   if (!selectedApp || !selectedRoom) return;
+  //   if (!moveInDate || !expectedMoveOutDate) {
+  //     alert("Please select both a Move In and Expected Move Out date.");
+  //     return;
+  //   }
 
-    // check if the student already has an assigned room that is different from the newly selected one
-    if (selectedApp.assignedRoom && selectedApp.assignedRoom !== selectedRoom.toString()) {
-      const confirmOverride = window.confirm(
-        "This applicant is already assigned to a room. Are you sure you want to release their old room and reassign them to this new one?"
-      );
-      if (!confirmOverride) return; // stop the function if they click cancel
-    }
+  //   // check if the student already has an assigned room that is different from the newly selected one
+  //   if (selectedApp.assignedRoom && selectedApp.assignedRoom !== selectedRoom.toString()) {
+  //     const confirmOverride = window.confirm(
+  //       "This applicant is already assigned to a room. Are you sure you want to release their old room and reassign them to this new one?"
+  //     );
+  //     if (!confirmOverride) return; // stop the function if they click cancel
+  //   }
 
-    assignRoomMutation.mutate({ 
-      roomId: selectedRoom, 
-      applicationId: selectedApp.id,
-      moveIn: moveInDate,
-      expectedMoveOut: expectedMoveOutDate
-    });
-  };
+  //   assignRoomMutation.mutate({ 
+  //     roomId: selectedRoom, 
+  //     applicationId: selectedApp.id,
+  //     moveIn: moveInDate,
+  //     expectedMoveOut: expectedMoveOutDate
+  //   });
+  // };
 
   const stats = [
     { 
@@ -653,10 +660,7 @@ export default function Applications() {
           <Modal
             open={viewModalOpen}
             onClose={() => setViewModalOpen(false)}
-            title={
-              selectedApp?.status === "Rejected" ? "Rejection Remarks" :
-              selectedApp?.status === "Under Review" ? "Application" : "Room Assignment"
-            }
+            title={selectedApp?.status === "Rejected" ? "Rejection Remarks" : "Application Details"}
             footer={
               <div className="w-full flex justify-end gap-3">
                 {selectedApp?.status === "Under Review" ? (
@@ -668,39 +672,20 @@ export default function Applications() {
                       {updateStatusMutation.isPending ? "Saving..." : "Accept"}
                     </button>
                   </>
-                ) : (selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted") ? (
+                ) : null} 
+                {/* : (selectedApp?.status === "Waitlisted" || selectedApp?.status === "Accepted") ? (
                   <button 
                     onClick={handleSaveAssignment} 
                     disabled={!selectedRoom || assignRoomMutation.isPending} 
                     className={`px-6 py-2 rounded-xl text-white font-bold text-xs md:text-sm shadow-lg transition-all ${(selectedRoom && !assignRoomMutation.isPending) ? 'bg-[#8C1535] shadow-[#8C1535]/20 hover:bg-[#6B0F2B]' : 'bg-gray-300 cursor-not-allowed'}`}
                   >
                     {assignRoomMutation.isPending ? "Saving..." : "Save"}
-                  </button>
-                ) : null}
+                  </button> */}
               </div>
             }
           >
             {selectedApp && (
-              <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-                <div className="bg-[#F7F3F5] rounded-2xl border border-[#6B0F2B]/10 p-4 md:p-5">
-                  <div className="mb-4">
-                    <p className="text-[16px] font-bold text-gray-900">{selectedApp.student}</p>
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Date Applied: {selectedApp.date}</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-[13px]">
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Applicant Details</p>
-                      <p className="font-bold text-gray-800">{selectedApp.email}</p>
-                      <p className="text-[11px] text-gray-500 font-medium">Data from original object can go here</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Occupancy Details</p>
-                      <p className="font-bold text-gray-800">{selectedApp.type ? selectedApp.type.replace('_', ' ') : 'N/A'}</p>
-                      <p className="text-[11px] text-gray-500 font-medium">Based on durationOfStayDays</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="space-y-4 pr-1">
 
                 {(selectedApp.status === "Under Review" || selectedApp.status === "Rejected") && (
                   <div className="space-y-1.5">
@@ -715,7 +700,7 @@ export default function Applications() {
                   </div>
                 )}
 
-                {showRoomAssignment && (
+                {/* {showRoomAssignment && (
                   <div className="space-y-3 pt-2">
                     <p className="text-[14px] font-bold text-black ml-1 uppercase tracking-tight">Available Room Assignments</p>
                     
@@ -785,7 +770,7 @@ export default function Applications() {
                       </div>
                     )}
                   </div>
-                )}
+                )} */}
               </div>
             )}
           </Modal>

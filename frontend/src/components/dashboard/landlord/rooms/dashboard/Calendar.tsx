@@ -45,7 +45,7 @@ function MiniCalendar({
   const today = new Date();
 
   const MIN_YEAR = today.getFullYear();
-  const MIN_MONTH = 0;
+  const MIN_MONTH = today.getMonth();
 
   const [viewYear, setViewYear] = useState(
     start?.year ?? today.getFullYear()
@@ -80,7 +80,7 @@ function MiniCalendar({
     const clicked = { year: viewYear, month: viewMonth, day };
 
     const clickedDate = new Date(viewYear, viewMonth, day);
-    const minDate = new Date(MIN_YEAR, 0, 1);
+    const minDate = new Date(MIN_YEAR, MIN_MONTH, today.getDate());
 
     if (clickedDate < minDate) return;
 
@@ -173,10 +173,12 @@ function MiniCalendar({
               return t > Math.min(s, e) && t < Math.max(s, e);
             })();
 
-          const disabled =
-            selecting === "end" &&
-            start &&
-            new Date(viewYear, viewMonth, day) < toJS(start)!;
+            const currentDate = new Date(viewYear, viewMonth, day);
+            const minDate = new Date(MIN_YEAR, MIN_MONTH, today.getDate());
+            const isPastDate = currentDate < minDate;
+            const disabled =
+                isPastDate ||
+                (selecting === "end" && start && currentDate < toJS(start)!);
 
           return (
             <div
@@ -201,11 +203,11 @@ function MiniCalendar({
                 disabled={!!disabled}
                 onClick={() => handleClick(day)}
                 className={[
-                  "relative z-10 w-7 h-7 flex items-center justify-center text-xs font-semibold rounded-full transition",
-                  isStart || isEnd
-                    ? "bg-[#6B0F2B] text-white" : inRange
-                    ? "text-[#6B0F2B]" : disabled
-                    ? "text-gray-200 cursor-not-allowed" : "text-gray-600 hover:bg-[#6B0F2B]/10 hover:text-[#6B0F2B]",
+                    "relative z-10 w-7 h-7 flex items-center justify-center text-xs font-semibold rounded-full transition",
+                    isStart || isEnd
+                        ? "bg-[#6B0F2B] text-white" : inRange
+                        ? "text-[#6B0F2B]" : disabled
+                        ? "text-gray-300 cursor-not-allowed opacity-40" : "text-gray-600 hover:bg-[#6B0F2B]/10 hover:text-[#6B0F2B]",
                 ].join(" ")}
               >
                 {day}

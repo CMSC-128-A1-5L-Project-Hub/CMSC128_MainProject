@@ -13,6 +13,7 @@ import { withPrimaryImageUrl, signImageUrl, withAllImageUrls } from '#services/i
 import ZipExportService from '#services/zip_export_service'
 import type { ZipEntry } from '#services/zip_export_service'
 import Room from '#models/room'
+import DocumentRequirement from '#models/document_requirement'
 
 export default class AccommodationController {
   private accommodationService = new AccommodationService()
@@ -698,6 +699,92 @@ async landlordIndex({ auth, response }: HttpContext) {
     )
 
     return response.ok(data)
+  }
+
+  // ─── GET /accommodations/:id/document-requirements ───────────────────────
+  // Public: list all document requirements for an accommodation
+  async listDocumentRequirements({ params, response }: HttpContext) {
+    const requirements = await DocumentRequirement.query()
+      .where('accommodationId', params.id)
+      .orderBy('createdAt', 'asc')
+
+    return response.ok(requirements)
+  }
+
+  // ─── POST /landlord/accommodations/:id/document-requirements ─────────────
+  // Role: Landlord — add a document requirement to their accommodation
+  async addDocumentRequirement({ params, request, auth, response }: HttpContext) {
+    const landlordId = auth.user!.id
+
+    const accommodation = await Accommodation.query()
+      .where('id', params.id)
+      .where('landlord_id', landlordId)
+      .first()
+
+    if (!accommodation) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Accommodation not found or you do not have access to it.',
+      })
+    }
+
+    const { requirement_name, accepted_format } = request.body()
+
+    if (!requirement_name || typeof requirement_name !== 'string' || !requirement_name.trim()) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: 'requirement_name is required.',
+      })
+    }
+
+    const validFormats = ['pdf', 'image', 'any']
+    const format = validFormats.includes(accepted_format) ? accepted_format : 'any'
+
+    const requirement = await DocumentRequirement.create({
+      accommodationId: accommodation.id,
+      requirementName: requirement_name.trim(),
+      acceptedFormat: format,
+    })
+
+    return response.created(requirement)
+  }
+
+  // ─── DELETE /landlord/accommodations/:id/document-requirements/:reqId ────
+  // Role: Landlord — remove a document requirement from their accommodation
+  async removeDocumentRequirement({ params, auth, response }: HttpContext) {
+    const landlordId = auth.user!.id
+
+    const accommodation = await Accommodation.query()
+      .where('id', params.id)
+      .where('landlord_id', landlordId)
+      .first()
+
+    if (!accommodation) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Accommodation not found or you do not have access to it.',
+      })
+    }
+
+    const requirement = await DocumentRequirement.query()
+      .where('id', params.reqId)
+      .where('accommodationId', accommodation.id)
+      .first()
+
+    if (!requirement) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Document requirement not found.',
+      })
+    }
+
+    await requirement.delete()
+
+    return response.ok({ message: 'Document requirement removed.' })
   }
 
   // Top 5 dorms by average rating, regardless of tenant restriction (for landing page)

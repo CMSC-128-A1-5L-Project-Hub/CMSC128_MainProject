@@ -35,7 +35,7 @@ export default function BillingDashboard() {
   const safeBills: Bill[] = Array.isArray(bills) ? bills : [];
 
   const currentResidence = safeBills[0]?.accommodation_name ?? '—';
-  const studentName = profile ? `${profile.fname} ${profile.lname}` : '';
+  const studentName = profile ? `${profile.fname}` : '';
 
   const pendingBills = safeBills.filter(b =>
     b.status === 'unpaid' || b.status === 'partial' || b.status === 'overdue'
