@@ -716,7 +716,7 @@ export default function FeesPage() {
         </div>
       </div>
 
-      {/* Overdue Fee Modal - Using Modal component */}
+      {/* Overdue Fee Modal */}
       <Modal
         open={!!selectedFee}
         onClose={() => setSelectedFee(null)}
