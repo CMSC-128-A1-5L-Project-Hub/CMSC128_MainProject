@@ -63,11 +63,11 @@ export default function PendingAccommodations({
             <table className="min-w-full border-collapse">
               <thead>
                 <tr className="border-y border-[#F2D9DF]">
-                  <th className="py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="w-[44%] py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
                     Accommodation
                   </th>
 
-                  <th className="py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="w-[29%] py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
                     Landlord
                   </th>
 
@@ -76,7 +76,6 @@ export default function PendingAccommodations({
                   </th>
                 </tr>
               </thead>
-
               <tbody>
                 {accommodations.slice(0, 5).map((item:any) => (
                   <tr
@@ -84,18 +83,19 @@ export default function PendingAccommodations({
                     className="hover:bg-[#FFF7F9]"
                   >
                     <td className="py-4">
-                      <div>
-                        <p className="font-medium text-[#2A0410]">
-                          {item.accommodationName}
-                        </p>
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042] flex items-center justify-center text-white font-semibold">
+                          {item.accommodationName?.[0]?.toUpperCase() ?? "A"}
+                        </div>
 
-                        <p className="text-sm text-[#A06B7C]">
-                          {item.accommodationAddress}
-                        </p>
+                        <div className="min-w-0">
+                          <p className="text-base font-medium text-[#2A0410] truncate">
+                            {item.accommodationName}
+                          </p>
+                        </div>
                       </div>
                     </td>
-
-                    <td className="py-4 text-sm">
+                    <td className="py-4 text-sm text-[#A06B7C]">
                       {item.landlord?.user
                         ? `${item.landlord.user.fname} ${item.landlord.user.lname}`
                         : "—"}
