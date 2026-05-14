@@ -443,6 +443,18 @@ export default class AccommodationController {
       await trx.commit()
       console.log(`[${Date.now() - startTime}ms] === TOTAL TIME: ${Date.now() - startTime}ms ===`)
 
+      try {
+        await LogService.record(
+          landlordId,
+          'accommodation',
+          accommodation.id,
+          'ACCOMMODATION_CREATED',
+          `Landlord ${landlordId} created accommodation "${accommodation.accommodationName}"`
+        )
+      } catch (e) {
+        console.error('Failed to log ACCOMMODATION_CREATED:', e)
+      }
+
       return response.ok(accommodation.serialize())
     } catch (error) {
       await trx.rollback()
