@@ -177,10 +177,16 @@ button {
   z-index: 4;
 }
 
+.thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
 .thumb::-webkit-slider-thumb {
   background-color: #fff;
   border-radius: 50%;
-  border: 3px solid #6B0F2B; /* updated */
+  border: 3px solid #6B0F2B; 
   cursor: pointer;
   height: 28px;
   width: 28px;
