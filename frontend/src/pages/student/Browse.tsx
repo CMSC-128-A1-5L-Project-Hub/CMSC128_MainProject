@@ -27,6 +27,7 @@ type FilterContextType = {
     origMin: number; origMax: number; setOrigMin: (v: number) => void; setOrigMax: (v: number) => void;
     setFilterInEffect: (v: boolean) => void; setSearched: (v: boolean) => void;
     setSliderResetKey: (v: number) => void; sliderResetKey: number;
+    setBookmarkedMap: React.Dispatch<React.SetStateAction<Record<number, boolean>>>
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
@@ -117,6 +118,7 @@ export default function BrowsePage() {
 
     const [flatDorms, setFlatDorms] = useState<Dorm[]>([])
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([])
+    const [bookmarkedMap, setBookmarkedMap] = useState<Record<number, boolean>>({})
 
     // Reset to first page when filters change
     useEffect(() => {
@@ -129,8 +131,9 @@ export default function BrowsePage() {
         let min = Infinity
         let max = -Infinity
         const tagSet = new Set<string>();
+        let bookmarkMapTemp: Record<number, boolean> = {}
 
-        accommodations.forEach(({ rooms, tags }) => {
+        accommodations.forEach(({ accommodationName, rooms, tags, bookmarks, id }) => {
             rooms.forEach((el: { roomRent: number }) => {
                 const rent = Number(el.roomRent)
                 if (rent < min) min = rent
@@ -140,6 +143,22 @@ export default function BrowsePage() {
             tags.forEach((el: { tagDetail: string }) => {
                 tagSet.add(el.tagDetail);
             });
+
+            let isBookmarked = false;
+            bookmarks.forEach((el: { studentNumber: string }) => {
+                if (el.studentNumber === studentNo) {
+                    console.log(accommodationName)
+                    isBookmarked = true;
+
+                }
+            })
+
+            if (isBookmarked) {
+                bookmarkMapTemp[id] = true;
+            }
+            else {
+                bookmarkMapTemp[id] = false;
+            }
         })
 
         const tags = Array.from(tagSet)
@@ -152,6 +171,8 @@ export default function BrowsePage() {
             ...prev,
         }));
 
+        console.log("success again")
+        setBookmarkedMap(bookmarkMapTemp)
         setMinPrice(min);
         setMaxPrice(max);
         setOrigMin(min)
@@ -193,6 +214,7 @@ export default function BrowsePage() {
 
         setFilterInEffect(false);
         setSearched(false)
+
 
         for (let i = 0; i < accommodations.length; i++) {
             const {
@@ -284,20 +306,20 @@ export default function BrowsePage() {
     Object.keys(filters).forEach(k => { if (filters[k]) activeChips.push(k) })
 
     const handleBookmarkToggle = async (accommodationId: number, currentState: boolean) => {
-  
+
         try {
             const data = await api.put(`/accommodations/${accommodationId}/bookmark`, {
-              studentNumber: studentNo,
-              favorite: currentState
+                studentNumber: studentNo,
+                favorite: currentState
             })
-            
+
             queryClient.invalidateQueries({
                 queryKey: ["accommodations"],
-              })
-   
-          } catch (error) {
+            })
+
+        } catch (error) {
             console.log("error")
-          }
+        }
     }
 
     /* RENDER */
@@ -310,7 +332,7 @@ export default function BrowsePage() {
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
             searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched,
-            setSliderResetKey, sliderResetKey
+            setSliderResetKey, sliderResetKey, setBookmarkedMap
         }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
                 {/* Main */}
@@ -387,18 +409,21 @@ export default function BrowsePage() {
                                                 </p>
                                             </div>
                                         ) : (
-                                            paginatedDorms.map(dorm => (
-                                                <DormTile
+                                            paginatedDorms.map(dorm => {
+                                                return <DormTile
+                                                    bookmarkMap={bookmarkedMap}
                                                     key={dorm.accommodationId}
+                                                    id={dorm.accommodationId}
                                                     dorm={dorm}
                                                     hovered={hoveredId === dorm.accommodationId}
                                                     onHover={setHoveredId}
+                                                    bookmarked={dorm.bookmarked}
                                                     onClick={() =>
                                                         navigate(`/student/roomview/${dorm.accommodationId}`)
                                                     }
                                                     onBookmarkToggle={handleBookmarkToggle}
                                                 />
-                                            ))
+                                            })
                                         )}
                                     </div>
 
@@ -474,38 +499,50 @@ export default function BrowsePage() {
    DORM TILE 
 ══════════════════════════════════════════════════════════════════════════════ */
 function DormTile({
-    dorm, hovered, onHover, onClick, onBookmarkToggle,
+    id, bookmarkMap, dorm, hovered, onHover, onClick, onBookmarkToggle, bookmarked
 }: {
+    id: number,
+    bookmarkMap: Record<number, boolean>,
+    bookmarked: boolean | undefined,
     dorm: Dorm
     hovered: boolean
     onHover: (id: number | null) => void
     onClick: () => void
     onBookmarkToggle?: (id: number, currentState: boolean) => Promise<void>
 }) {
+    const context = useContext(filterContext)
+    if (!context) throw new Error("FilterContext must be used within a Provider")
+    const { setBookmarkedMap } = context
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
-    const [isBookmarked, setIsBookmarked] = useState(dorm.bookmarked || false)
+    //const [isBookmarked, setIsBookmarked] = useState(bookmarkMap[id])
     const [isToggling, setIsToggling] = useState(false)
+
+    const isBookmarked = bookmarkMap[id] ?? false
 
     const handleHeartClick = async (e: React.MouseEvent) => {
         e.stopPropagation()
         e.preventDefault()
-        
+
         if (isToggling) return
-        
-        console.log("yow", dorm)
+
         const newState = !isBookmarked
         setIsToggling(true)
-        setIsBookmarked(newState) // Optimistic update
-        
+
+        setBookmarkedMap((prev: Record<number, boolean>) => ({
+            ...prev,
+            [id]: !prev[id]
+        }))
+        //setIsBookmarked(newState) // Optimistic update
+
         try {
             if (onBookmarkToggle) {
-                await onBookmarkToggle(dorm.accommodationId, newState)
+                await onBookmarkToggle(dorm.accommodationId, !isBookmarked)
             }
         } catch (error) {
             // Revert on error
-            setIsBookmarked(!newState)
+            //setIsBookmarked(!newState)
             console.error("Failed to update bookmark:", error)
         } finally {
             setIsToggling(false)
@@ -539,14 +576,14 @@ function DormTile({
                     onClick={handleHeartClick}
                     disabled={isToggling}
                     className={`absolute top-2 right-2 z-30 p-1.5 rounded-full transition-all duration-300 backdrop-blur-sm
-                        ${isBookmarked 
-                            ? "bg-rose-500/90 text-white" 
+                        ${isBookmarked
+                            ? "bg-rose-500/90 text-white"
                             : "bg-white/80 text-gray-500 hover:bg-rose-500/90 hover:text-white"
                         }`}
                 >
-                    <Heart 
-                        size={16} 
-                        fill={isBookmarked ? "currentColor" : "none"} 
+                    <Heart
+                        size={16}
+                        fill={isBookmarked ? "currentColor" : "none"}
                         strokeWidth={2}
                     />
                 </button>
