@@ -12,6 +12,7 @@ import SearchBar from '../../components/SearchBar';
 import { useFees } from '../../../hooks/useBillingQueries';
 import { useProfile } from '../../../hooks/useDashboardQueries';
 import CustomHeader from '../../components/CustomHeader';
+import Toast from '@/components/Toast';
 import UbleLoader from '../shared/LoadingPage';
 
 // ── Types ──────────────────────────────────────────────────────
@@ -114,6 +115,13 @@ export default function BillingDashboard() {
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [payOpen, setPayOpen] = useState(false);
 
+  const [toast, setToast] = useState<{
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+  }>({ show: false, type: "success", title: "" });
+
   if (billsLoading || profileLoading) {
       return <UbleLoader />
   }
@@ -158,7 +166,14 @@ export default function BillingDashboard() {
                 </p>
               </div>
               <button
-                onClick={() => { if (nextDueBill) { setSelectedBill(nextDueBill); setPayOpen(true); } }}
+                onClick={() => { 
+                  if (nextDueBill) { 
+                    setSelectedBill(nextDueBill); 
+                    setPayOpen(true); 
+                  } else {
+                    setToast({ show: true, type: "info", title: "No bills due", message: "You have no outstanding payments." });
+                  }
+                }}
                 className="flex shrink-0 justify-center items-center w-30 lg:w-14 h-10 flex-row text-[11px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25"
               >
                 <p className='lg:hidden'>Pay Now</p>
@@ -259,9 +274,25 @@ export default function BillingDashboard() {
         <BillingModal
           bill={selectedBill}
           onClose={() => { setPayOpen(false); setSelectedBill(null); }}
-          onSubmit={() => { setPayOpen(false); setSelectedBill(null); }}
+          onSubmit={(success: any) => { 
+            setPayOpen(false); 
+            setSelectedBill(null); 
+            setToast({
+              show: true,
+              type: success ? "success" : "error",
+              title: success ? "Payment Submitted!" : "Payment Failed",
+              message: success ? "Your payment is being verified." : "Please try again."
+            });
+          }}
         />
       )}
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </div>
   )
 }

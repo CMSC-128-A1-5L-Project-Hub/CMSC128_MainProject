@@ -12,7 +12,7 @@ import type { Bill } from '../../pages/student/BillingDashboard';
 interface BillingModalProps {
     bill: Bill;
     onClose: () => void;
-    onSubmit?: () => void;   // called after successful payment
+    onSubmit?: (success: boolean) => void;   // called after successful payment
 }
 
 export default function BillingModal({ bill, onClose, onSubmit }: BillingModalProps) {
@@ -36,9 +36,9 @@ export default function BillingModal({ bill, onClose, onSubmit }: BillingModalPr
                 receiptFile: paymentMethod === 'online' ? receiptFile : null,
             });
             onClose();
-            onSubmit?.();   // optional callback
+            onSubmit?.(true);   // optional callback
         } catch (err: any) {
-            alert('Payment failed: ' + (err.response?.data?.message ?? err.message));
+            onSubmit?.(false);
         }
     };
 
