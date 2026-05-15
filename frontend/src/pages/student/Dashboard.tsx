@@ -7,6 +7,7 @@ import { api } from "../../api/axios"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import defaultAccommodation from "@/assets/defaults/accommodation.png"
 import CustomHeader from '../../components/CustomHeader';
+import Toast from "@/components/Toast";
 import UbleLoader from "../shared/LoadingPage";
 import HeroBanner from "@/components/dashboard/HeroBanner";
 
@@ -702,6 +703,12 @@ export default function Dashboard() {
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const notifWrapperRef = useRef<HTMLDivElement>(null)
+  const [toast, setToast] = useState<{
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+  }>({ show: false, type: "success", title: "" });
 
   useEffect(() => {
     api.get('/notifications')
@@ -791,6 +798,7 @@ export default function Dashboard() {
       });
     } catch (error) {
       console.error("Failed to fetch profile:", error);
+      setToast({ show: true, type: "error", title: "Failed to load profile", message: "Please refresh the page." })
     } finally {
       setProfileLoading(false);
     }
@@ -854,6 +862,7 @@ useEffect(() => {
 
         } catch (error) {
         console.error("Failed to fetch notifications:", error);
+        setToast({ show: true, type: "error", title: "Failed to load notifications", message: "Please refresh the page." })
         }
     };
 
@@ -881,6 +890,7 @@ useEffect(() => {
         // console.log("PENDING COUNT:", pendingCount);
       } catch (error) {
         console.error("Failed to fetch applications:", error);
+        setToast({ show: true, type: "error", title: "Failed to fetch applications", message: "Please refresh the page." })
       } finally {
         setApplicationsLoading(false);
       }
@@ -901,6 +911,7 @@ useEffect(() => {
       setRecommendedDorms(data)
     } catch (error) {
       console.error('Failed to fetch recommended dorms:', error)
+      setToast({ show: true, type: "error", title: "Failed to fetch recommeded dorms", message: "Please refresh the page." })
     } finally {
       setRecommendedLoading(false); 
     }
@@ -995,6 +1006,7 @@ useEffect(() => {
       console.error("Failed to fetch billing:", error);
       setBillingOverviewData(null);
       setBillingStatementsData([]);
+      setToast({ show: true, type: "error", title: "Failed to fetch billing details", message: "Please refresh the page." })
     } finally {
       setBillingLoading(false);
     }
@@ -1041,6 +1053,7 @@ useEffect(() => {
       setDashboardMapAccommodations(pins)
     } catch (error) {
       console.error("Failed to fetch map accommodations:", error)
+      setToast({ show: true, type: "error", title: "Failed to load map accommodations", message: "Please refresh the page." })
     }
   }
 
