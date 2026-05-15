@@ -25,13 +25,17 @@ export default class WaitlistWorkflowService {
       .select('*')
 
     // Apply tenant restriction (gender)
-    const accRestriction = application.accommodation.tenantRestriction
-    const studentGender = application.student.gender
     const eligibleRooms = matchingRooms.filter(room => {
-      if (room.tenantRestriction === 'non-coed') {
-        if (accRestriction === 'male-only' && studentGender !== 'Male') return false
-        if (accRestriction === 'female-only' && studentGender !== 'Female') return false
-      }
+      const restriction = room.tenantRestriction // 'coed' or 'non-coed'
+      if (restriction === 'coed') return true
+
+      // non-coed room — check accommodation's gender restriction against student gender
+      const accRestriction = application.accommodation.tenantRestriction
+      const studentGender = application.student.gender.toLowerCase() // 'male' or 'female'
+
+      if (accRestriction === 'male-only' && studentGender !== 'male') return false
+      if (accRestriction === 'female-only' && studentGender !== 'female') return false
+
       return true
     })
 

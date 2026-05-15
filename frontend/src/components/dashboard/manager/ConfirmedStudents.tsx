@@ -58,13 +58,9 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
         const app = modalAssignment.student
         if (room.roomType !== app.applicationRoomType) return false
         if (room.roomStayType !== app.applicationStayType) return false
-        const accRestriction = app.accommodation.tenantRestriction || 'coed'
-        const studentGender = app.student.gender
-        if (accRestriction === 'male-only' && studentGender !== 'Male') return false
-        if (accRestriction === 'female-only' && studentGender !== 'Female') return false
         if (room.roomAvailability === 'maintenance') return false
         if (room.roomCurrentOccupancy >= room.roomCapacity) return false
-        return true
+        return true  
       })
     : []
 

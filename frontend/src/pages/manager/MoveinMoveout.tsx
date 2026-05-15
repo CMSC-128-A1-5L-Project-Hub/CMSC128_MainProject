@@ -196,6 +196,13 @@ export default function MoveinMoveout() {
         { value: "Building", label: "Building" },
         ]
 
+        const tableTitle =
+        filter === "move-in"
+            ? "Move in History"
+            : filter === "move-out"
+            ? "Move out History"
+            : "Move in & Move out History"
+
         const handleSort = (option: string) => {
             setSortBy(option)
             setCurrentPage(1)
@@ -322,7 +329,7 @@ export default function MoveinMoveout() {
                     <div className="flex items-start justify-between">
                         <div className="flex flex-col gap-1">
                             <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight whitespace-nowrap">
-                            Move in &amp; Move out History
+                              {tableTitle}
                             </h2>
                             <p className="text-xs text-gray-400">
                             {filtered.length} total move {filter === "all" ? "outs" : filter === "move-out" ? "outs" : "ins"}

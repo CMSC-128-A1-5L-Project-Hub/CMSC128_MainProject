@@ -4,9 +4,11 @@ import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { MapRef } from 'react-map-gl'
 import { UPLB } from '../constants/uplb'
-import { Crosshair, Star } from 'lucide-react';
+import { Crosshair, Maximize2, Star } from 'lucide-react';
 import UPLBMarker from './UPLBMarker'
 import { useAccommodationFormStore } from '../stores/useAccommodationFormStore'
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
+import { motion } from "framer-motion"
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -57,6 +59,7 @@ export default function AccommodationMap({
     onCardClick,
     centeredAccommodation,
 }: AccommodationMapProps) {
+    const navigate = useNavigate()
     const { accommodationLocation, latitude, longitude, setLocation } = useAccommodationFormStore()
 
     const [selectedPin, setSelectedPin] = useState<AccommodationPin | null>(null) // Stores currently accommodation selected
@@ -142,7 +145,7 @@ export default function AccommodationMap({
         if (travelMode === 'driving') return `${selectedPin.drivingDistance} min`
         return `${selectedPin.bikingDistance} min`
     }
- 
+
     return (
         <>
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -153,14 +156,13 @@ export default function AccommodationMap({
                     mapStyle="mapbox://styles/mapbox/standard"
                     mapboxAccessToken={MAPBOX_TOKEN}
                 >
-                    <button
-                        type="button"
-                        onClick={recenterToUPLB}
-                        title="Recenter to UPLB"
-                        className="absolute left-4 top-4 z-10 flex items-center gap-1.5 text-[10px] font-semibold text-[#7a001f] hover:text-[#6B0F2B] bg-white px-3 py-1.5 rounded-lg shadow-md border border-[#e5cfd4] hover:border-[#7a001f] transition-all"
-                    >
+                    <button type="button" onClick={recenterToUPLB} title="Recenter to UPLB" className="absolute left-4 top-4 z-10 flex items-center gap-1.5 text-[10px] font-semibold text-[#7a001f] hover:text-[#6B0F2B] bg-white px-3 py-1.5 rounded-lg shadow-md border border-[#e5cfd4] hover:border-[#7a001f] transition-all">
                         <Crosshair size={12} />
                         Recenter
+                    </button>
+                    <button type="button" onClick={() => navigate("/map")} title="Expand map" className="absolute left-4 top-14 z-10 flex items-center gap-1.5 text-[10px] font-semibold text-[#7a001f] hover:text-[#6B0F2B] bg-white px-3 py-1.5 rounded-lg shadow-md border border-[#e5cfd4] hover:border-[#7a001f] transition-all">
+                        <Maximize2 size={12} />
+                        Expand
                     </button>
                     <NavigationControl position="top-right" />
                     {/* Route Line */}
