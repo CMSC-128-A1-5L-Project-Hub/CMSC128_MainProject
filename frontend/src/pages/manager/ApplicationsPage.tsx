@@ -13,9 +13,15 @@ import Dropdown from "@/components/ApplicationStatus/Dropdown";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/ApplicationStatus/Pagination";
 
+
+
 import StylizedStatus from "@/components/BillingDashboard/StylizedStatus";
 import { DateTime } from 'luxon';
 import Button from "@/components/Button";
+
+import type { Accommodation } from "@/interfaces/accommodation";
+import type { Student } from '@/interfaces/student';
+import type { Application } from "@/interfaces/application";
 
 const rowStyles: Record<string, { bg: string; text: string }> = {
   approved:     { bg: '#1A7A4A', text: '#000000' },
@@ -61,134 +67,7 @@ const CLR = {
   ],
 } as const;
 
-type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected" | "under_review";
-
-interface User {
-  id: number;
-  accountStatus: string | null;
-  email: string;
-  facebookAccount: string | null;
-  fname: string;
-  mname: string | null;
-  lname: string;
-  suffix: string | null;
-  role: string;
-  otpCode: string | null;
-  otpExpiresAt: string | null;
-  pfpFileId: number | null;
-}
-
-interface Student {
-  studentNumber: string;
-  userId: number;
-  phone: number;
-  college: string;
-  degreeProgram: string;
-  gender: string;
-  yearLevel: string | null;
-  emergencyContactName: string | null;
-  emergencyContactNumber: string | null;
-  enrollmentProofFileId: number;
-  form5Renewal: boolean | null;
-  user: User;
-}
-
-interface Accommodation {
-  id: number;
-  landlordId: number;
-  managerId: number | null;
-  accommodationName: string;
-  accommodationType: string;
-  accommodationLocation: string;
-  latitude: string | null;
-  longitude: string | null;
-  accommodationCapacity: number;
-  status: string | null;
-  tenantRestriction: string;
-  businessPermitId: number;
-  primaryImageIndex: number | null;
-  applicationStartDate: string | null;
-  applicationEndDate: string | null;
-  walkingDistance: number | null;
-  bikingDistance: number | null;
-  drivingDistance: number | null;
-  invitedManagerEmail: string | null;
-}
-
-interface ApplicationResponse {
-  id: number;
-  accommodationId: number;
-  studentNumber: string;
-  applicationDate: string;
-  applicationRoomType: string;
-  applicationStayType: string;
-  applicationStatus: Status;
-  durationOfStayDays: number;
-  accommodation: Accommodation;
-  student: Student;
-}
-
-const mockApplications: ApplicationResponse[] = [
-  {
-    id: 1,
-    accommodationId: 1,
-    studentNumber: "2021-12345",
-    applicationDate: "2026-03-12T13:00:00Z",
-    applicationRoomType: "Shared Room",
-    applicationStayType: "Transient",
-    applicationStatus: "approved",
-    durationOfStayDays: 120,
-    accommodation: {
-      id: 1,
-      landlordId: 1,
-      managerId: null,
-      accommodationName: "Building 5",
-      accommodationType: "Dorm",
-      accommodationLocation: "Campus",
-      latitude: null,
-      longitude: null,
-      accommodationCapacity: 100,
-      status: "active",
-      tenantRestriction: "none",
-      businessPermitId: 1,
-      primaryImageIndex: null,
-      applicationStartDate: null,
-      applicationEndDate: null,
-      walkingDistance: null,
-      bikingDistance: null,
-      drivingDistance: null,
-      invitedManagerEmail: null,
-    },
-    student: {
-      studentNumber: "2021-12345",
-      userId: 1,
-      phone: 9171234567,
-      college: "CAS",
-      degreeProgram: "BSCS",
-      gender: "Female",
-      yearLevel: "3rd Year",
-      emergencyContactName: null,
-      emergencyContactNumber: null,
-      enrollmentProofFileId: 1,
-      form5Renewal: false,
-      user: {
-        id: 1,
-        accountStatus: "active",
-        email: "ana@test.com",
-        facebookAccount: null,
-        fname: "Ana",
-        mname: null,
-        lname: "Reyes",
-        suffix: null,
-        role: "student",
-        otpCode: null,
-        otpExpiresAt: null,
-        pfpFileId: null,
-      },
-    },
-  },
-  
-];
+type Status = Application['applicationStatus']
 
 const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> = {
   approved: { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" },
@@ -270,8 +149,8 @@ export default function ApplicationsPage() {
   const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [selectedApp, setSelectedApp] = useState<ApplicationResponse | null>(null);
-  const [rejectingApp, setRejectingApp] = useState<ApplicationResponse | null>(null);
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [rejectingApp, setRejectingApp] = useState<Application | null>(null);
   const [appStatuses, setAppStatuses] = useState<Record<number, Status>>({});
   const [rejectionRemarks, setRejectionRemarks] = useState<Record<number, string>>({});
 
@@ -302,16 +181,15 @@ export default function ApplicationsPage() {
       const res = await api.get("/applications/view-applicants");
       return res.data;
     },
-    enabled: !USE_MOCK,
   });
 
-  const applications: ApplicationResponse[] = USE_MOCK ? mockApplications : apiData;
+  const applications: Application[] = apiData;
 
   const total = useMemo(() => applications.length, [applications]);
 
   const counts = useMemo(
     () =>
-      applications.reduce((acc: Record<string, number>, a: ApplicationResponse) => {
+      applications.reduce((acc: Record<string, number>, a: Application) => {
         const s = a.applicationStatus || "unknown";
         acc[s] = (acc[s] || 0) + 1;
         return acc;
@@ -323,17 +201,17 @@ export default function ApplicationsPage() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    const res = applications.filter((a: ApplicationResponse) => {
-      const fullName = `${a.student.user.fname} ${a.student.user.lname}`.toLowerCase();
+    const res = applications.filter((a: Application) => {
+      const fullName = `${a.student?.user?.fname} ${a.student?.user?.lname}`.toLowerCase();
       return (
         fullName.includes(q) ||
-        a.student.user.lname.toLowerCase().includes(q) ||
-        a.accommodation.accommodationType.toLowerCase().includes(q) ||
-        a.accommodation.accommodationName.toLowerCase().includes(q)
+        a.student?.user?.lname.toLowerCase().includes(q) ||
+        a.accommodation?.accommodationType.toLowerCase().includes(q) ||
+        a.accommodation?.accommodationName.toLowerCase().includes(q)
       );
     });
 
-    return res.sort((a: ApplicationResponse, b: ApplicationResponse) => {
+    return res.sort((a: Application, b: Application) => {
         const diff = new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime();
         if (sortBy === "earliest") return diff;
         if (sortBy === "latest") return -diff;
@@ -341,7 +219,7 @@ export default function ApplicationsPage() {
     });
   }, [search, sortBy, applications]);
   
-  const getAppStatus = (app: ApplicationResponse): Status => {
+  const getAppStatus = (app: Application): Status => {
     return appStatuses[app.id] ?? app.applicationStatus;
   };
 
@@ -363,7 +241,7 @@ export default function ApplicationsPage() {
       }
   };
 
-  const handleStartReject = (app: ApplicationResponse) => {
+  const handleStartReject = (app: Application) => {
     setRejectingApp(app);
     setSelectedApp(null);
   };

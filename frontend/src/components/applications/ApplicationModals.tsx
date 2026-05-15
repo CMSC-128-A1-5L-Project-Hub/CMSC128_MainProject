@@ -10,13 +10,14 @@ import {
   IoDocumentTextSharp,
   IoIdCardSharp,
 } from "react-icons/io5";
+import type { Application } from "@/interfaces/application";
 
 // STATUS 
 const StatusBadge = ({
   status,
   statusConfig,
 }: {
-  status: any;
+  status: Application['applicationStatus'];
   statusConfig: Record<string, { color: string; bg: string; dot: string }>;
 }) => {
   const cfg = statusConfig[status];
@@ -61,14 +62,14 @@ const ApplicationModalContent = ({
   onReject,
   statusConfig,
 }: {
-  app: any;
-  status: any;
+  app: Application;
+  status: Application['applicationStatus'];
   rejectionRemark: string | null;
   onAccept: () => void;
   onReject: () => void;
   statusConfig: Record<string, { color: string; bg: string; dot: string }>;
 }) => {
-  const fullName = `${app.student.user.fname} ${app.student.user.lname}`;
+  const fullName = `${app.student?.user?.fname} ${app.student?.user?.lname}`;
 
   return (
     <Card
@@ -95,32 +96,32 @@ const ApplicationModalContent = ({
               <div className="grid grid-cols-2 gap-y-3">
                 <div className="col-span-2">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Email</p>
-                  <p className="text-[#1A0008] text-sm break-all">{app.student.user.email}</p>
+                  <p className="text-[#1A0008] text-sm break-all">{app.student?.user?.email}</p>
                 </div>
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Year Level</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.yearLevel || "N/A"}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student?.yearLevel || "N/A"}</p>
                 </div>
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Phone Number</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.phone || "N/A"}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student?.user?.phoneNumbers?.[0]?.contactNumber ?? 'N/A'}</p>
                 </div>
 
                 <div className="col-span-2">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Degree Program</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.degreeProgram.toUpperCase()}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student?.degreeProgram.toUpperCase()}</p>
                 </div>
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">College</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.college}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student?.college}</p>
                 </div>
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Student Number</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.studentNumber}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student?.studentNumber}</p>
                 </div>
               </div>
             </div>
@@ -175,7 +176,7 @@ const ApplicationModalContent = ({
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Facility</p>
-                  <p className="text-[#1A0008] text-sm">{app.accommodation.accommodationName}</p>
+                  <p className="text-[#1A0008] text-sm">{app.accommodation?.accommodationName}</p>
                 </div>
 
                 <div className="col-span-1">
@@ -189,7 +190,7 @@ const ApplicationModalContent = ({
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Location</p>
-                  <p className="text-[#1A0008] text-sm">{app.accommodation.accommodationLocation}</p>
+                  <p className="text-[#1A0008] text-sm">{app.accommodation?.accommodationLocation}</p>
                 </div>
               </div>
             </div>
@@ -215,7 +216,11 @@ const ApplicationModalContent = ({
 
                     <p className="text-[#1A0008] text-xs font-semibold">{doc.label}</p>
 
-                    <Button variant="reddishPink" size="sm">
+                    <Button
+                      variant="reddishPink"
+                      size="sm"
+                      onClick={() => handleView(app.id)}
+                    >
                       View
                     </Button>
                   </div>
