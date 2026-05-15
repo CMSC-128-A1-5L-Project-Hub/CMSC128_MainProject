@@ -184,7 +184,10 @@ export default function Dashboard() {
                 type="full"
               />
 
-              {/* Stats Row */}
+              {/* Tabs - MOVED UP */}
+              <FilterTabs active={activeTab} setActive={setActiveTab} />
+
+              {/* Stats Row - MOVED DOWN */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <DonutStatCard
                   title="Pending Approvals"
@@ -202,9 +205,6 @@ export default function Dashboard() {
                   total={100}
                 />
               </div>
-
-              {/* Tabs */}
-              <FilterTabs active={activeTab} setActive={setActiveTab} />
 
               {/* Mobile View */}
               <div className="flex flex-col gap-6 lg:hidden">
