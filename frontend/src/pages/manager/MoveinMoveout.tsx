@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { api } from "../../api/axios";
 import CustomHeader from '../../components/CustomHeader';
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import SearchBar from '../../components/SearchBar';
+import Toast from "@/components/Toast";
 
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
@@ -165,6 +166,19 @@ export default function MoveinMoveout() {
             },
             placeholderData: (prev) => prev,
         });
+
+    useEffect(() => {
+        if (isErrorList) {
+            setToast({ show: true, type: "error", title: "Failed to load data", message: "Could not fetch move-in/move-out records." });
+        }
+    }, [isErrorList]);
+
+    const [toast, setToast] = useState<{
+        show: boolean;
+        type: "success" | "error" | "info" | "warning" | "loading";
+        title: string;
+        message?: string;
+    }>({ show: false, type: "success", title: "" });
 
     //TABLE 
     const MoveInMoveOutTable = ({ records = assignments }: { records?: AssignmentResponse[] }) => {
@@ -566,6 +580,13 @@ export default function MoveinMoveout() {
                     <MoveInMoveOutTable records={[]} />
                 </main>
             </div>
+            <Toast
+                type={toast.type}
+                title={toast.title}
+                message={toast.message}
+                show={toast.show}
+                onClose={() => setToast(prev => ({ ...prev, show: false }))}
+            />
         </div>
     )
 }
