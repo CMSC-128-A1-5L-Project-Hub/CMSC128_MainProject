@@ -323,13 +323,13 @@ function OverdueRow({ fee, onView }: { fee: OverdueFee; onView: (fee: OverdueFee
         <p className="text-xs text-red-400">{timeAgo(fee.due_date)}</p>
       </td>
       <td className="px-4 py-3 text-right">
-      <Button 
-        variant="secondary" 
-        size="sm" 
-        onClick={() => onView(fee)}
-      >
-        View Details
-      </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => onView(fee)}
+        >
+          View Details
+        </Button>
       </td>
     </tr>
   )
@@ -389,15 +389,29 @@ export default function FeesPage() {
   const { user } = useUserStore()
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
+
+  // ── FIX: separate open flag from selected fee ──
   const [selectedFee, setSelectedFee] = useState<OverdueFee | null>(null)
+  const [feeModalOpen, setFeeModalOpen] = useState(false)
+
+  const handleViewFee = (fee: OverdueFee) => {
+    setSelectedFee(fee)
+    setFeeModalOpen(true)
+  }
+
+  const handleCloseFeeModal = () => {
+    setFeeModalOpen(false)                      // triggers exit animation
+    setTimeout(() => setSelectedFee(null), 350) // clears content after animation completes
+  }
+  // ───────────────────────────────────────────────
+
   const [activeTab, setActiveTab] = useState<ActiveTab>('Payment Verification')
   const [itemsPerPage, setItemsPerPage] = useState(6)
   const [currentPage, setCurrentPage] = useState(1)
   const [paymentSearch, setPaymentSearch] = useState('')
   const [accommodations, setAccommodations] = useState<{ id: number; accommodationName: string }[]>([])
   const [selectedAccomId, setSelectedAccomId] = useState<number | null>(null)
-  
-  // Toast state
+
   const [toast, setToast] = useState<{
     show: boolean;
     type: "success" | "error" | "info" | "warning" | "loading";
@@ -405,7 +419,6 @@ export default function FeesPage() {
     message?: string;
   }>({ show: false, type: "success", title: "" });
 
-  // ─── FETCH ACCOMMODATIONS ON MOUNT ───
   useEffect(() => {
     api.get('/landlord/accommodations').then((res) => {
       const list = res.data ?? []
@@ -416,12 +429,7 @@ export default function FeesPage() {
         setSelectedAccomId(match ? storedId : list[0].id)
       }
     }).catch(() => {
-      setToast({
-        show: true,
-        type: "error",
-        title: "Failed to Load",
-        message: "Could not load accommodations."
-      });
+      setToast({ show: true, type: "error", title: "Failed to Load", message: "Could not load accommodations." })
     })
   }, [])
 
@@ -437,27 +445,12 @@ export default function FeesPage() {
     enabled: !!selectedAccomId,
   })
 
-  // Show errors if any
   useEffect(() => {
-    if (overdueError) {
-      setToast({
-        show: true,
-        type: "error",
-        title: "Failed to Load Overdue Fees",
-        message: "Could not fetch overdue fees data."
-      });
-    }
+    if (overdueError) setToast({ show: true, type: "error", title: "Failed to Load Overdue Fees", message: "Could not fetch overdue fees data." })
   }, [overdueError])
 
   useEffect(() => {
-    if (paymentError) {
-      setToast({
-        show: true,
-        type: "error",
-        title: "Failed to Load Payments",
-        message: "Could not fetch pending payments data."
-      });
-    }
+    if (paymentError) setToast({ show: true, type: "error", title: "Failed to Load Payments", message: "Could not fetch pending payments data." })
   }, [paymentError])
 
   const verifyMutation = useMutation({
@@ -465,30 +458,14 @@ export default function FeesPage() {
     onSuccess: (data, variables) => {
       refetchPayments()
       refetchOverdue()
-      
       if (variables.action === 'approve') {
-        setToast({
-          show: true,
-          type: "success",
-          title: "Payment Approved!",
-          message: "The payment has been successfully verified."
-        });
+        setToast({ show: true, type: "success", title: "Payment Approved!", message: "The payment has been successfully verified." })
       } else {
-        setToast({
-          show: true,
-          type: "success",
-          title: "Payment Rejected",
-          message: "The payment has been rejected."
-        });
+        setToast({ show: true, type: "success", title: "Payment Rejected", message: "The payment has been rejected." })
       }
     },
     onError: (error: any) => {
-      setToast({
-        show: true,
-        type: "error",
-        title: "Action Failed",
-        message: error.response?.data?.message || "Could not process the payment verification."
-      });
+      setToast({ show: true, type: "error", title: "Action Failed", message: error.response?.data?.message || "Could not process the payment verification." })
     }
   })
 
@@ -496,7 +473,6 @@ export default function FeesPage() {
     verifyMutation.mutate({ id, action })
   }
 
-  // Filter and paginate overdue fees
   const filteredFees = overdueFees.filter((f) =>
     `${f.fname} ${f.lname}`.toLowerCase().includes(search.toLowerCase())
   )
@@ -504,215 +480,211 @@ export default function FeesPage() {
   const totalFeePages = Math.ceil(filteredFees.length / itemsPerPage)
   const paginatedFees = filteredFees.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-  // Filter pending payments
   const filteredPayments = pendingPayments.filter((p) =>
     p.fee?.studentNumber?.toLowerCase().includes(paymentSearch.toLowerCase()) ||
     p.fee?.student?.user?.fname?.toLowerCase().includes(paymentSearch.toLowerCase())
   )
 
   const fullName = user ? `${user.fname} ${user.lname}` : ''
-
   const totalOverdue = overdueFees.reduce((sum, f) => sum + (Number(f.fee_balance) || 0), 0)
   const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (p.paymentAmount || 0), 0)
 
   return (
     <div className="flex h-screen bg-[#F6F2F4]">
-
       <div className="flex flex-col w-full h-full">
         <CustomHeader title="Fees" />
         <main className="flex-1 p-6 overflow-y-auto">
-        <HeroBanner
-          greeting={greeting()}
-          name={fullName}
-          title="Check the billing status of your tenants"
-          subtitle="We make it easy for you to track the accommodation applications you manage."
-          type="mini"
-        />
+          <HeroBanner
+            greeting={greeting()}
+            name={fullName}
+            title="Check the billing status of your tenants"
+            subtitle="We make it easy for you to track the accommodation applications you manage."
+            type="mini"
+          />
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Total Overdue</p>
-            <p className="text-2xl font-bold text-red-600">₱{totalOverdue.toLocaleString()}</p>
-            <p className="text-xs text-gray-400 mt-1">{overdueFees.length} overdue accounts</p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Pending Verifications</p>
-            <p className="text-2xl font-bold text-amber-600">₱{totalPendingPayments.toLocaleString()}</p>
-            <p className="text-xs text-gray-400 mt-1">{pendingPayments.length} payments to review</p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Total Collections</p>
-            <p className="text-2xl font-bold text-green-600">—</p>
-            <p className="text-xs text-gray-400 mt-1">This month</p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Collection Rate</p>
-            <p className="text-2xl font-bold text-[#6B0F2B]">—</p>
-            <p className="text-xs text-gray-400 mt-1">Target: 95%</p>
-          </div>
-        </div>
-
-        <div className="mt-5 space-y-4">
-          {/* Tabs - No accommodation dropdown */}
-          <div className="flex justify-between items-center flex-wrap gap-3">
-            <FilterTabs active={activeTab} setActive={setActiveTab} />
-          </div>
-
-          {/* Payment Verification Panel */}
-          {activeTab === 'Payment Verification' && (
-            <div className="bg-white rounded-2xl shadow-sm p-5">
-              <div className="flex flex-row items-center mb-3">
-                <div>
-                  <h2 className="text-[16px] font-bold text-black">Payment Verification</h2>
-                  <p className="text-[12px] italic text-gray-500">{filteredPayments.length} pending payments</p>
-                </div>
-                <div className="flex items-end gap-3 ml-auto">
-                  <Dropdown
-                    title="No. of Items"
-                    items={[
-                      { label: "5", href: "" },
-                      { label: "10", href: "" },
-                      { label: "15", href: "" },
-                      { label: "20", href: "" },
-                    ]}
-                    direction="down"
-                    widthClass="w-29 lg:w-32"
-                    titleClass="text-[10px] lg:text-[11px]"
-                    selectedClass="text-[12px] lg:text-[13px]"
-                    onSelect={(label) => setItemsPerPage(Number(label))}
-                  />
-                  <SearchBar
-                    value={paymentSearch}
-                    onChange={(query) => setPaymentSearch(query)}
-                    onPageReset={() => setCurrentPage(1)}
-                  />
-                </div>
-              </div>
-
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-[10px] text-[#9A7080] uppercase tracking-widest font-bold text-left border-y border-[#6B0F2B]/10">
-                    <th className="px-4 py-2">Student</th>
-                    <th className="px-4 py-2">Amount</th>
-                    <th className="px-4 py-2">Date</th>
-                    <th className="px-4 py-2 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loadingPayments ? (
-                    <tr><td colSpan={4} className="text-center py-16 text-gray-400">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
-                      Loading...
-                    </td></tr>
-                  ) : filteredPayments.length === 0 ? (
-                    <tr><td colSpan={4} className="text-center py-16 text-gray-400">No pending payments.</td></tr>
-                  ) : (
-                    filteredPayments.map((payment) => (
-                      <PaymentRow 
-                        key={payment.id} 
-                        payment={payment} 
-                        onVerify={handleVerify}
-                        isPending={verifyMutation.isPending}
-                      />
-                    ))
-                  )}
-                </tbody>
-              </table>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Total Overdue</p>
+              <p className="text-2xl font-bold text-red-600">₱{totalOverdue.toLocaleString()}</p>
+              <p className="text-xs text-gray-400 mt-1">{overdueFees.length} overdue accounts</p>
             </div>
-          )}
-
-          {/* Overdue Fees Panel */}
-          {activeTab === 'Overdue Fees' && (
-            <div className="bg-white rounded-2xl shadow-sm p-5">
-              <div className="flex flex-row items-center mb-3">
-                <div>
-                  <h2 className="text-[16px] font-bold text-black">Overdue Fees</h2>
-                  <p className="text-[12px] italic text-gray-500">{filteredFees.length} overdue tenants</p>
-                </div>
-                <div className="flex items-end gap-3 ml-auto">
-                  <Dropdown
-                    title="No. of Items"
-                    items={[
-                      { label: "5", href: "" },
-                      { label: "10", href: "" },
-                      { label: "15", href: "" },
-                      { label: "20", href: "" },
-                    ]}
-                    direction="down"
-                    widthClass="w-29 lg:w-32"
-                    titleClass="text-[10px] lg:text-[11px]"
-                    selectedClass="text-[12px] lg:text-[13px]"
-                    onSelect={(label) => {
-                      setItemsPerPage(Number(label))
-                      setCurrentPage(1)
-                    }}
-                  />
-                  <SearchBar
-                    value={search}
-                    onChange={(query) => {
-                      setSearch(query)
-                      setCurrentPage(1)
-                    }}
-                    onPageReset={() => setCurrentPage(1)}
-                  />
-                </div>
-              </div>
-
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-[10px] text-[#9A7080] uppercase tracking-widest font-bold text-left border-y border-[#6B0F2B]/10">
-                    <th className="px-4 py-2">Student</th>
-                    <th className="px-4 py-2">Amount Due</th>
-                    <th className="px-4 py-2">Date</th>
-                    <th className="px-4 py-2 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loadingFees ? (
-                    <tr><td colSpan={4} className="text-center py-16 text-gray-400">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
-                      Loading...
-                    </td></tr>
-                  ) : paginatedFees.length === 0 ? (
-                    <tr><td colSpan={4} className="text-center py-16 text-gray-400">No overdue fees.</td></tr>
-                  ) : (
-                    paginatedFees.map((fee) => (
-                      <OverdueRow key={fee.id} fee={fee} onView={setSelectedFee} />
-                    ))
-                  )}
-                </tbody>
-              </table>
-
-              {totalFeePages > 1 && (
-                <div className="flex items-center justify-between px-2 mt-4 pt-3 border-t border-gray-100">
-                  <span className="text-xs text-gray-400">
-                    Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredFees.length)} of {filteredFees.length}
-                  </span>
-                  <Pagination currentPage={currentPage} totalPages={totalFeePages} onPageChange={setCurrentPage} />
-                </div>
-              )}
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Pending Verifications</p>
+              <p className="text-2xl font-bold text-amber-600">₱{totalPendingPayments.toLocaleString()}</p>
+              <p className="text-xs text-gray-400 mt-1">{pendingPayments.length} payments to review</p>
             </div>
-          )}
-        </div>
-      </main>
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Total Collections</p>
+              <p className="text-2xl font-bold text-green-600">—</p>
+              <p className="text-xs text-gray-400 mt-1">This month</p>
+            </div>
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Collection Rate</p>
+              <p className="text-2xl font-bold text-[#6B0F2B]">—</p>
+              <p className="text-xs text-gray-400 mt-1">Target: 95%</p>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-4">
+            <div className="flex justify-between items-center flex-wrap gap-3">
+              <FilterTabs active={activeTab} setActive={setActiveTab} />
+            </div>
+
+            {/* Payment Verification Panel */}
+            {activeTab === 'Payment Verification' && (
+              <div className="bg-white rounded-2xl shadow-sm p-5">
+                <div className="flex flex-row items-center mb-3">
+                  <div>
+                    <h2 className="text-[16px] font-bold text-black">Payment Verification</h2>
+                    <p className="text-[12px] italic text-gray-500">{filteredPayments.length} pending payments</p>
+                  </div>
+                  <div className="flex items-end gap-3 ml-auto">
+                    <Dropdown
+                      title="No. of Items"
+                      items={[
+                        { label: "5", href: "" },
+                        { label: "10", href: "" },
+                        { label: "15", href: "" },
+                        { label: "20", href: "" },
+                      ]}
+                      direction="down"
+                      widthClass="w-29 lg:w-32"
+                      titleClass="text-[10px] lg:text-[11px]"
+                      selectedClass="text-[12px] lg:text-[13px]"
+                      onSelect={(label) => setItemsPerPage(Number(label))}
+                    />
+                    <SearchBar
+                      value={paymentSearch}
+                      onChange={(query) => setPaymentSearch(query)}
+                      onPageReset={() => setCurrentPage(1)}
+                    />
+                  </div>
+                </div>
+
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[10px] text-[#9A7080] uppercase tracking-widest font-bold text-left border-y border-[#6B0F2B]/10">
+                      <th className="px-4 py-2">Student</th>
+                      <th className="px-4 py-2">Amount</th>
+                      <th className="px-4 py-2">Date</th>
+                      <th className="px-4 py-2 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loadingPayments ? (
+                      <tr><td colSpan={4} className="text-center py-16 text-gray-400">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
+                        Loading...
+                      </td></tr>
+                    ) : filteredPayments.length === 0 ? (
+                      <tr><td colSpan={4} className="text-center py-16 text-gray-400">No pending payments.</td></tr>
+                    ) : (
+                      filteredPayments.map((payment) => (
+                        <PaymentRow
+                          key={payment.id}
+                          payment={payment}
+                          onVerify={handleVerify}
+                          isPending={verifyMutation.isPending}
+                        />
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Overdue Fees Panel */}
+            {activeTab === 'Overdue Fees' && (
+              <div className="bg-white rounded-2xl shadow-sm p-5">
+                <div className="flex flex-row items-center mb-3">
+                  <div>
+                    <h2 className="text-[16px] font-bold text-black">Overdue Fees</h2>
+                    <p className="text-[12px] italic text-gray-500">{filteredFees.length} overdue tenants</p>
+                  </div>
+                  <div className="flex items-end gap-3 ml-auto">
+                    <Dropdown
+                      title="No. of Items"
+                      items={[
+                        { label: "5", href: "" },
+                        { label: "10", href: "" },
+                        { label: "15", href: "" },
+                        { label: "20", href: "" },
+                      ]}
+                      direction="down"
+                      widthClass="w-29 lg:w-32"
+                      titleClass="text-[10px] lg:text-[11px]"
+                      selectedClass="text-[12px] lg:text-[13px]"
+                      onSelect={(label) => {
+                        setItemsPerPage(Number(label))
+                        setCurrentPage(1)
+                      }}
+                    />
+                    <SearchBar
+                      value={search}
+                      onChange={(query) => {
+                        setSearch(query)
+                        setCurrentPage(1)
+                      }}
+                      onPageReset={() => setCurrentPage(1)}
+                    />
+                  </div>
+                </div>
+
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[10px] text-[#9A7080] uppercase tracking-widest font-bold text-left border-y border-[#6B0F2B]/10">
+                      <th className="px-4 py-2">Student</th>
+                      <th className="px-4 py-2">Amount Due</th>
+                      <th className="px-4 py-2">Date</th>
+                      <th className="px-4 py-2 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loadingFees ? (
+                      <tr><td colSpan={4} className="text-center py-16 text-gray-400">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
+                        Loading...
+                      </td></tr>
+                    ) : paginatedFees.length === 0 ? (
+                      <tr><td colSpan={4} className="text-center py-16 text-gray-400">No overdue fees.</td></tr>
+                    ) : (
+                      paginatedFees.map((fee) => (
+                        // ── FIX: use handleViewFee instead of setSelectedFee directly ──
+                        <OverdueRow key={fee.id} fee={fee} onView={handleViewFee} />
+                      ))
+                    )}
+                  </tbody>
+                </table>
+
+                {totalFeePages > 1 && (
+                  <div className="flex items-center justify-between px-2 mt-4 pt-3 border-t border-gray-100">
+                    <span className="text-xs text-gray-400">
+                      Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredFees.length)} of {filteredFees.length}
+                    </span>
+                    <Pagination currentPage={currentPage} totalPages={totalFeePages} onPageChange={setCurrentPage} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </main>
       </div>
 
-      {/* Overdue Fee Modal */}
+      {/* Overdue Fee Modal — FIX: open driven by feeModalOpen, content stays alive during exit animation */}
       <Modal
-        open={!!selectedFee}
-        onClose={() => setSelectedFee(null)}
+        open={feeModalOpen}
+        onClose={handleCloseFeeModal}
         title="OVERDUE FEE DETAILS"
         eyebrow="Payment Information"
         maxWidth={700}
         maxHeight={650}
       >
         {selectedFee && (
-          <OverdueFeeModalContent fee={selectedFee} onClose={() => setSelectedFee(null)} />
+          <OverdueFeeModalContent fee={selectedFee} onClose={handleCloseFeeModal} />
         )}
       </Modal>
 
-      {/* Toast Notifications */}
       <Toast
         type={toast.type}
         title={toast.title}
