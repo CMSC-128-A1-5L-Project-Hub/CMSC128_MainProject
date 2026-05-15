@@ -15,7 +15,8 @@
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "postinstall": "puppeteer browsers install chrome"
   },
   "engines": {
     "node": ">=24.0.0"
