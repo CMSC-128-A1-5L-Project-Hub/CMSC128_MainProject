@@ -12,6 +12,7 @@ import Sidebar from "../../components/Sidebar";
 import { useUserStore } from '../../stores/useUserStore';
 import femalePfp from "../../assets/defaults/female-pfp.png";
 import malePfp from "../../assets/defaults/male-pfp.png";
+import CustomHeader from '../../components/CustomHeader'
 
 // Icons
 import Camera from "../../assets/icons/camera.svg";
@@ -631,33 +632,29 @@ export default function ProfilePage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#FAF6F2] lg:flex font-['Plus_Jakarta_Sans'] text-[#2A1F1A]">
-      <Sidebar role="student" profile={sidebarProfile} />
+    <div className="min-h-screen bg-[#FAF6F2] lg:flex font-['Plus_Jakarta_Sans'] text-[#2A1F1A] overflow-y-auto">
 
       <div className="flex-1">
-        <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-3 pl-12 lg:pl-0">
-            <span className="h-6 w-1 rounded-full bg-[#3D0718]" />
-            <h1 className="font-serif text-3xl italic font-bold text-[#3D0718] md:text-4xl">Profile</h1>
-          </div>
-        </header>
+        <CustomHeader title="Profile"/>
 
         <main className="px-3 py-4 md:px-6 lg:px-8 lg:py-6">
           <section className="overflow-hidden rounded-[40px] border border-[#EADFD3] bg-white shadow-sm">
             <div className="p-6 md:p-10 lg:p-14">
               <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
-                
-                {/* Left Column - Avatar & Photo Controls */}
+
+                {/* ── Left Column ── */}
                 <div className="w-full lg:w-[320px] lg:shrink-0">
+
+                  {/* Avatar */}
                   <div className="relative aspect-square overflow-hidden rounded-[35px] bg-[#F9EBEE] border border-[#F2F2F2]">
-                    <img 
-                      src={profile.profilePictureUrl || defaultPfp} 
-                      className="h-full w-full object-cover" 
-                      alt="Profile" 
+                    <img
+                      src={profile.profilePictureUrl || defaultPfp}
+                      className="h-full w-full object-cover"
+                      alt="Profile"
                       onError={(e) => { (e.target as HTMLImageElement).src = defaultPfp; }}
                     />
-                    <button 
-                      onClick={() => !pfpUploading && fileInputRef.current?.click()} 
+                    <button
+                      onClick={() => !pfpUploading && fileInputRef.current?.click()}
                       disabled={pfpUploading}
                       className="absolute left-4 top-4 bg-white/90 p-2 rounded-xl shadow-sm border border-[#F2F2F2] hover:bg-white transition-colors disabled:opacity-50"
                     >
@@ -670,26 +667,22 @@ export default function ProfilePage() {
                     )}
                   </div>
 
+                  {/* Upload tiles */}
                   <div className="mt-6 grid grid-cols-2 gap-4">
-                    <div 
-                      onClick={() => !pfpUploading && fileInputRef.current?.click()} 
+                    <div
+                      onClick={() => !pfpUploading && fileInputRef.current?.click()}
                       className={`flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center transition-colors ${pfpUploading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-white'}`}
                     >
                       <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">PHOTO</p>
                       <p className="text-[9px] text-gray-400">JPG/PNG</p>
                     </div>
-
-                    <div className="mt-6 grid grid-cols-2 gap-4">
-                      <div onClick={() => fileInputRef.current?.click()} className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-pointer hover:bg-white transition-colors">
-                        <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">PHOTO</p>
-                        <p className="text-[9px] text-gray-400">JPG/PNG</p>
-                      </div>
-                      <div className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-not-allowed">
-                        <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">DOCUMENTS</p>
-                        <p className="text-[9px] text-gray-400">ID / Form 5</p>
-                      </div>
+                    <div className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-not-allowed">
+                      <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">DOCUMENTS</p>
+                      <p className="text-[9px] text-gray-400">ID / Form 5</p>
                     </div>
+                  </div>
 
+                  {/* Verified badge */}
                   {profile.accountStatus === "active" && (
                     <div className="mt-6 flex items-center gap-4 rounded-2xl bg-[#E6F4EA] px-6 py-4 border border-[#D0E6D5]">
                       <img src={BadgeCheck} className="h-5 w-5" alt="Verified" />
@@ -700,9 +693,12 @@ export default function ProfilePage() {
                     </div>
                   )}
                 </div>
+                {/* ── End Left Column ── */}
 
-                {/* Right Column - Profile Fields */}
+                {/* ── Right Column ── */}
                 <div className="min-w-0 flex-1">
+
+                  {/* Name + Edit/Save buttons */}
                   <div className="flex items-start justify-between gap-6 mb-12 flex-wrap">
                     <div className="min-w-0">
                       <p className="mb-2 text-[10px] font-bold tracking-[0.15em] text-[#A88993] uppercase">Full Name</p>
@@ -712,7 +708,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex gap-3">
                       {isEditing && (
-                        <button 
+                        <button
                           onClick={handleCancelEdit}
                           disabled={saveMutation.isPending}
                           className="inline-flex items-center gap-3 rounded-2xl border border-[#E6CAD3] px-8 py-3 text-sm font-bold text-[#2A1F1A] shadow-sm hover:bg-gray-100 transition-all disabled:opacity-50"
@@ -720,7 +716,7 @@ export default function ProfilePage() {
                           CANCEL
                         </button>
                       )}
-                      <button 
+                      <button
                         onClick={isEditing ? handleSave : () => setIsEditing(true)}
                         disabled={saveMutation.isPending || pfpUploading}
                         className="inline-flex items-center gap-3 rounded-2xl border border-[#E6CAD3] px-8 py-3 text-sm font-bold text-[#2A1F1A] shadow-sm hover:bg-[#8C1535] hover:text-white transition-all group disabled:opacity-50"
@@ -731,62 +727,62 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
+                  {/* Profile fields grid */}
                   <div className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
                     <Field label="UP Mail" value={profile.email} />
                     <Field label="College" value={profile.student?.college || ""} />
-                    
+
                     <Field label="Middle Name" value={profile.mname || ""} />
                     <Field label="Degree Program" value={profile.student?.degreeProgram || ""} />
 
-                    <EditableField 
-                      label="Primary Phone" 
-                      value={form.primaryPhone} 
-                      isEditing={isEditing} 
-                      onChange={(v) => patchForm({ primaryPhone: v })} 
+                    <EditableField
+                      label="Primary Phone"
+                      value={form.primaryPhone}
+                      isEditing={isEditing}
+                      onChange={(v) => patchForm({ primaryPhone: v })}
                     />
                     <Field label="Student Number" value={profile.student?.studentNumber || ""} />
-                    
-                    <EditableField 
-                      label="Secondary Phone" 
-                      value={form.secondaryPhone} 
-                      isEditing={isEditing} 
-                      onChange={(v) => patchForm({ secondaryPhone: v })} 
+
+                    <EditableField
+                      label="Secondary Phone"
+                      value={form.secondaryPhone}
+                      isEditing={isEditing}
+                      onChange={(v) => patchForm({ secondaryPhone: v })}
                     />
                     <Field label="Gender" value={profile.student?.gender || ""} isCaps />
 
-                    <EditableField 
-                      label="Facebook Link" 
-                      value={form.facebookAccount} 
-                      isEditing={isEditing} 
-                      onChange={(v) => patchForm({ facebookAccount: v })} 
+                    <EditableField
+                      label="Facebook Link"
+                      value={form.facebookAccount}
+                      isEditing={isEditing}
+                      onChange={(v) => patchForm({ facebookAccount: v })}
                     />
-                    
                     <Field label="Classification" value={profile.student?.classification || ""} isCaps />
 
-                    <EditableField 
-                      label="Emergency Contact" 
-                      value={form.emergencyContactName} 
-                      isEditing={isEditing} 
-                      onChange={(v) => patchForm({ emergencyContactName: v })} 
+                    <EditableField
+                      label="Emergency Contact"
+                      value={form.emergencyContactName}
+                      isEditing={isEditing}
+                      onChange={(v) => patchForm({ emergencyContactName: v })}
                     />
-                    
                     <Field label="Year Level" value={profile.student?.yearLevel || ""} isCaps />
 
-                    <EditableField 
-                      label="Emergency Contact #" 
-                      value={form.emergencyContactNumber} 
-                      isEditing={isEditing} 
-                      onChange={(v) => patchForm({ emergencyContactNumber: v })} 
+                    <EditableField
+                      label="Emergency Contact #"
+                      value={form.emergencyContactNumber}
+                      isEditing={isEditing}
+                      onChange={(v) => patchForm({ emergencyContactNumber: v })}
                     />
                   </div>
 
+                  {/* Current dorm + history */}
                   <div className="mt-14 border-t border-[#F2F2F2] pt-10">
                     <p className="mb-5 text-[10px] font-extrabold tracking-widest text-[#A88993] uppercase">Current Dorm</p>
                     <div className="flex items-center gap-6 rounded-3xl border border-[#EADFD3] bg-[#F8EFF2] p-5">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8C1535] text-lg font-bold text-white shadow-sm uppercase">
                         {currentDorm?.room.accommodation.accommodationName?.[0] || "D"}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="text-lg font-bold text-[#2A1F1A]">
                           {currentDorm?.room.accommodation.accommodationName || "No Assignment"}
                         </p>
@@ -795,22 +791,23 @@ export default function ProfilePage() {
                           {currentDorm && ` • ${formatSemester(currentDorm.moveIn)}`}
                         </p>
                       </div>
-                      <button onClick={() => setShowHistory(true)} className="mt-8 inline-flex items-center gap-3 rounded-2xl bg-[#4A0819] px-8 py-4 text-[11px] font-bold uppercase tracking-widest text-white shadow-lg">
-                        📜 Accommodation History
-                      </button>
                     </div>
-                    <button 
-                      onClick={() => setShowHistory(true)} 
+                    <button
+                      onClick={() => setShowHistory(true)}
                       className="mt-8 inline-flex items-center gap-3 rounded-2xl bg-[#4A0819] px-8 py-4 text-[11px] font-bold uppercase tracking-widest text-white shadow-lg hover:bg-[#6B0F2B] transition-colors"
                     >
                       📜 Accommodation History
                     </button>
                   </div>
+
                 </div>
+                {/* ── End Right Column ── */}
+
               </div>
-            </section>
-          </main>
-        </div>
+            </div>
+          </section>
+        </main>
+      </div>
 
       {showHistory && (
         <AccomHistoryModal
@@ -819,17 +816,17 @@ export default function ProfilePage() {
           onClose={() => setShowHistory(false)}
         />
       )}
-      
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        className="hidden" 
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
         accept="image/jpeg,image/png,image/webp"
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) pfpMutation.mutate(file);
           e.target.value = "";
-        }} 
+        }}
       />
     </div>
   );

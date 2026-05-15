@@ -8,12 +8,14 @@ import NotificationPanel, { type Notification } from "../../components/Notificat
 import Modal from "../../components/Modal";
 import Button from "../../components/Button";
 import Toast from "../../components/Toast";
+import CustomHeader from "../../components/CustomHeader";
 
 import Bell from "../../assets/icons/bell_icon.svg?react";
 import Camera from "../../assets/icons/camera.svg";
 import Pencil from "../../assets/icons/edit.svg";
 import FileUp from "../../assets/icons/upload.svg";
 import Save from "../../assets/icons/save.svg";
+import notif_icon from "../../assets/icons/notif_icon.svg";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface ProfileData {
@@ -301,29 +303,43 @@ export default function LandlordProfile() {
     const hasMore = profile.accommodations.length > 3;
 
     return (
-        <div className="min-h-screen bg-[#F5EEF0] text-[#2A1F1A] lg:flex">
+        <div className="min-h-screen bg-[#F5EEF0] text-[#2A1F1A] lg:flex overflow-y-auto">
             <div className="flex-1">
-                <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 pl-12 lg:pl-0">
-                            <span className="h-6 w-1 rounded-full bg-[#3D0718]" />
-                            <h1 className="font-serif text-3xl italic text-[#3D0718] md:text-4xl font-bold">Profile</h1>
-                        </div>
-                        <div className="relative" ref={notifWrapperRef}>
-                            <button aria-label="Notifications" onClick={() => setNotifOpen((prev) => !prev)}>
-                                <Bell className="h-10 w-10 text-[#3D0718] hover:text-[#8C1535] transition-colors" />
-                                {unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#8C1535] text-white text-[9px] font-bold flex items-center justify-center border-2 border-white">
-                                        {unreadCount}
-                                    </span>
-                                )}
-                            </button>
-                            <NotificationPanel open={notifOpen} notifications={notifications} unreadCount={unreadCount}
-                                onMarkAllRead={markAllRead} onMarkOneRead={markOneRead}
-                                onClose={() => setNotifOpen(false)} wrapperRef={notifWrapperRef} />
-                        </div>
+                <CustomHeader
+                    title="Profile"
+                    right={
+                    <div className="relative" ref={notifWrapperRef}>
+                        <button
+                        aria-label="Notifications"
+                        onClick={() => setNotifOpen((prev) => !prev)}
+                        className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative overflow-hidden
+                            transition-all duration-150
+                            bg-[#8C1535] hover:bg-[#8C1535]/80 active:bg-[#3D0718]
+                            hover:-translate-y-1 active:translate-y-0 active:scale-95"
+                        >
+                        <img
+                            src={notif_icon}
+                            alt="Notifications"
+                            className="w-full h-full object-contain scale-[2.5]"
+                        />
+                        {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
+                            {unreadCount}
+                            </span>
+                        )}
+                        </button>
+                        <NotificationPanel
+                        open={notifOpen}
+                        notifications={notifications}
+                        unreadCount={unreadCount}
+                        onMarkAllRead={markAllRead}
+                        onMarkOneRead={markOneRead}
+                        onClose={() => setNotifOpen(false)}
+                        wrapperRef={notifWrapperRef}
+                        />
                     </div>
-                </header>
+                    }
+                />
 
                 <main className="px-3 py-4 md:px-6 lg:px-8 lg:py-6">
                     <section className="overflow-hidden rounded-[28px] border border-[#EADFD3] bg-white shadow-sm">
