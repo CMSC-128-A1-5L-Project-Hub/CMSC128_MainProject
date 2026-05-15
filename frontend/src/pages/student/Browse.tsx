@@ -692,7 +692,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Show saved only</p>
             <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-[#F0E4E9] bg-[#F6F2F4]">
                 <div>
-                    <p className="text-[#1C0A11] font-semibold text-sm mb-0.5">Saved Rooms</p>
+                    <p className="text-[#1C0A11] font-semibold text-sm mb-0.5">Saved Accommodations</p>
                     <p className="text-[#9A7080] text-xs">Show only bookmarked dorms</p>
                 </div>
                 <button
