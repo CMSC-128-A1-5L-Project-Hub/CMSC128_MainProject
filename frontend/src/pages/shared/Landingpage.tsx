@@ -238,15 +238,29 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
   }, [isSuccess, accommodations])
 
   const handleSearch = () => {
-    navigate("/map", {
-      state: {
-        dormType,
-        minPrice,
-        maxPrice,
-        rating,
-        tags: [...activeTags, ...extraTags],
-      },
-    });
+    const params = new URLSearchParams()
+
+    // Dorm type → MapPage `type` param (matches AccommodationPin.accommodationType)
+    const typeMap: Record<string, string> = {
+      'On-campus': 'on-campus',
+      'Off-campus': 'off-campus',
+      'Partner-housing': 'partner_housing',
+    }
+    if (typeMap[dormType]) params.set('type', typeMap[dormType])
+
+    // Price range → MapPage `min_rent` / `max_rent`
+    if (minPrice > origMin) params.set('min_rent', String(minPrice))
+    if (maxPrice < origMax) params.set('max_rent', String(maxPrice))
+
+    // Min rating
+    if (rating > 0) params.set('rating', String(rating))
+
+    // Tags (active + extra) → comma-separated
+    const allTags = [...activeTags, ...extraTags]
+    if (allTags.length > 0) params.set('tags', allTags.join(','))
+
+    const qs = params.toString()
+    navigate(qs ? `/map?${qs}` : '/map')
   };
   const [range, setRange] = useState({ min: 0, max: 100 });
   const handleRangeChange = (value: { min: number; max: number }) => {
