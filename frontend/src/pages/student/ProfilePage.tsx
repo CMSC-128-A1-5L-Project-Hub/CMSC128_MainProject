@@ -713,7 +713,7 @@ export default function ProfilePage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FAF6F2] font-['Plus_Jakarta_Sans'] text-[#2A1F1A]">
+    <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-['Plus_Jakarta_Sans'] text-[#2A1F1A]">
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <CustomHeader title="Profile"/>
