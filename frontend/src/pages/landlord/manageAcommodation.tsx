@@ -12,7 +12,7 @@ import Sidebar from "../../components/Sidebar";
 import { setLandlordSidebarContext } from "../../components/Sidebar";
 import Toast from "../../components/Toast";
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel";
-import Bell from "../../assets/icons/bell_icon.svg?react";
+import notif_icon from "../../assets/icons/notif_icon.svg";
 import UbleLoader from "../shared/LoadingPage";
 import CustomHeader from "../../components/CustomHeader"
 
@@ -445,10 +445,18 @@ const ManageAccommodationDashboard: React.FC = () => {
             <button
               aria-label="Notifications"
               onClick={() => setNotifOpen((prev) => !prev)}
+              className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative overflow-hidden
+                transition-all duration-150
+                bg-[#8C1535] hover:bg-[#8C1535]/80 active:bg-[#3D0718]
+                hover:-translate-y-1 active:translate-y-0 active:scale-95"
             >
-              <Bell className="h-10 w-10 text-[#3D0718] hover:text-[#8C1535] transition-colors" />
+              <img
+                src={notif_icon}
+                alt="Notifications"
+                className="w-full h-full object-contain scale-[2.5]"
+              />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#8C1535] text-white text-[9px] font-bold flex items-center justify-center border-2 border-white">
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
                   {unreadCount}
                 </span>
               )}
