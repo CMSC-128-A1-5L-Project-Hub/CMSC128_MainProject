@@ -300,15 +300,20 @@ export default function BrowsePage() {
     Object.keys(filters).forEach(k => { if (filters[k]) activeChips.push(k) })
 
     const handleBookmarkToggle = async (accommodationId: number, currentState: boolean) => {
+  
         try {
-            const response = await api.post(`/accommodations/${accommodationId}/bookmark/toggle`)
-            // Invalidate and refetch accommodations to update the list
-            queryClient.invalidateQueries({ queryKey: ["accommodations"] })
-            return response.data
-        } catch (error) {
-            console.error("Failed to toggle bookmark:", error)
-            throw error
-        }
+            const data = await api.put(`/accommodations/${accommodationId}/bookmark`, {
+              studentNumber: studentNo,
+              favorite: currentState
+            })
+            
+            queryClient.invalidateQueries({
+                queryKey: ["accommodations"],
+              })
+   
+          } catch (error) {
+            console.log("error")
+          }
     }
 
     /* RENDER */
@@ -466,7 +471,8 @@ export default function BrowsePage() {
                                 onClick={() => setFilterPanelOpen(false)}
                                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#F5ECF0] text-[#6B0F2B] hover:bg-[#E8D4DF] transition-colors"
                             >
-                                <X size={18} />
+                                {/* <X size={18} /> */}
+                                X
                             </button>
                         </div>
                         <FilterForm origFilters={filters} onClose={() => {
@@ -511,6 +517,7 @@ function DormTile({
         
         if (isToggling) return
         
+        console.log("yow", dorm)
         const newState = !isBookmarked
         setIsToggling(true)
         setIsBookmarked(newState) // Optimistic update
@@ -708,7 +715,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Show saved only</p>
             <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-[#F0E4E9] bg-[#F6F2F4]">
                 <div>
-                    <p className="text-[#1C0A11] font-semibold text-sm mb-0.5">Saved Rooms</p>
+                    <p className="text-[#1C0A11] font-semibold text-sm mb-0.5">Saved Accommodations</p>
                     <p className="text-[#9A7080] text-xs">Show only bookmarked dorms</p>
                 </div>
                 <button
