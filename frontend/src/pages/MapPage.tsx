@@ -276,7 +276,7 @@ export default function MapPage() {
                             </svg>
                           </div>
                           <p className="text-sm font-bold text-gray-800 truncate">
-                            Saved Rooms
+                            Saved Accommodations
                             {favorites.size > 0 && (
                               <span className="ml-2 text-[10px] font-bold text-white bg-[#710A2B] px-1.5 py-0.5 rounded-full">
                                 {favorites.size}
