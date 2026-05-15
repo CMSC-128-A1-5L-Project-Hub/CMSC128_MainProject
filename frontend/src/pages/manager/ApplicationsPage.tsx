@@ -506,7 +506,7 @@ export default function ApplicationsPage() {
       />
       <div className="flex flex-col overflow-hidden w-full">
         <CustomHeader title="Applications" />
-        <div className="flex-1 flex flex-col overflow-hidden gap-4 lg:gap-6 p-4 lg:p-6">
+        <div className="flex-1 flex flex-col overflow-hidden gap-6 p-6">
           <div>
             <HeroBanner
               greeting="Good Day"

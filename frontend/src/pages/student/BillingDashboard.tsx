@@ -129,17 +129,26 @@ export default function BillingDashboard() {
   }
 
   return (
-    <>
-    <div className = "flex flex-col w-full">
-      <CustomHeader 
-        title = "Billing Dashboard">
-      </CustomHeader>
-      <div className="flex-1 flex flex-col overflow-hidden gap-4 lg:gap-6 p-4 lg:p-6">
-              {/* <div className='flex flex-row justify-start items-center mt-4'>
-                <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-5 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div>
-                <div className="flex flex-col justify-left gap-[1px]">
-                  <h1 className='font-serif font-bold italic text-[28.5px] lg:text-[31px] text-[#6B0F2B] pl-16 lg:p-0 leading-tight -mt-2'>Billing Dashboard</h1>
-                  <p className="text-[#9A7080] text-[13px] pl-16 lg:pl-0 -mt-1 lg:-mt-2">{currentResidence}</p>
+    <div className="bg-[#F5EEF0] h-screen overflow-hidden flex flex-row">
+      <div className = "flex flex-col w-full">
+          <CustomHeader 
+        title = "Billing Dashboard"></CustomHeader>
+        <div className="flex-1 flex flex-col overflow-hidden gap-6 p-6">
+                {/* <div className='flex flex-row justify-start items-center mt-4'>
+                  <div className='hidden lg:block w-2 h-6 rounded-xl bg-gradient-to-b ml-5 mr-3 mb-1 from-[#2A0410] via-[#6B0F2B] to-[#C05070]'></div>
+                  <div className="flex flex-col justify-left gap-[1px]">
+                    <h1 className='font-serif font-bold italic text-[28.5px] lg:text-[31px] text-[#6B0F2B] pl-16 lg:p-0 leading-tight -mt-2'>Billing Dashboard</h1>
+                    <p className="text-[#9A7080] text-[13px] pl-16 lg:pl-0 -mt-1 lg:-mt-2">{currentResidence}</p>
+                  </div>
+                </div> */}
+                <div>
+                  <HeroBanner
+                    greeting="Good Day"
+                    name={studentName}
+                    title="Manage your billing and payments"
+                    subtitle="Stay on top of your balances, track transactions, and view your payment history with ease"
+                    type="mini"
+                  />
                 </div>
               </div> */}
               <div>

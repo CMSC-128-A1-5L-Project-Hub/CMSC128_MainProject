@@ -140,20 +140,21 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
     }));
 
     return (
-        <div className = "flex flex-col overflow-hidden w-full">
-            <CustomHeader
-                title="Applications"></CustomHeader>
-            <div className="flex-1 flex flex-col overflow-hidden gap-4 lg:gap-6 p-4 lg:p-6">
-                <div>
-                    <HeroBanner
-                        greeting={heroContent.greeting}
-                        name={heroContent.name}
-                        title={heroContent.title}
-                        subtitle={heroContent.subtitle}
-                        type="mini"
-                    />
-                </div>
-                
+        <div className="bg-[#F5EEF0] h-screen overflow-hidden flex flex-row">
+            <div className = "flex flex-col overflow-hidden w-full">
+                <CustomHeader
+                    title="Applications"></CustomHeader>
+                <div className="flex-1 flex flex-col overflow-hidden gap-6 p-6">
+                    <div>
+                        <HeroBanner
+                            greeting={heroContent.greeting}
+                            name={heroContent.name}
+                            title={heroContent.title}
+                            subtitle={heroContent.subtitle}
+                            type="mini"
+                        />
+                    </div>
+                    
 
                 <StatsBanner stats={stats} total={trueTotal} cols={6}/>
 

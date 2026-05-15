@@ -431,8 +431,8 @@ export default function RoomAssignment() {
         <div className="flex flex-col w-full flex-1 min-w-0">
           <CustomHeader
             title="Room Assignment"></CustomHeader>
-          <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
-            <main className="flex-1 flex flex-col gap-4 lg:gap-6">
+          <div className="flex-1 flex flex-col p-6 overflow-y-auto">
+            <main className="flex-1 flex flex-col gap-6">
               <div>
                   <HeroBanner
                     greeting="Good Day"
