@@ -652,11 +652,6 @@ export default function Waitlist() {
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
-            <Sidebar role="manager" profile={{fullName: `${user?.fname} ${user?.lname}`,
-              shortName: `${user?.fname}`,
-              email: `${user?.email}`,
-              status: `${user?.manager?.managerStatus}`
-        }} />
 
             <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
                 <CustomHeader title="Waitlist" />

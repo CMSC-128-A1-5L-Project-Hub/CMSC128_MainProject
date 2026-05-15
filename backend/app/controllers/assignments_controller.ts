@@ -156,7 +156,29 @@ async store({ auth, request, response }: HttpContext) {
         assignment.moveIn.toISODate() ?? ''
       )
 
-      await LogService.record(user.id, 'assignment', assignment.id, 'LANDLORD_ASSIGNED_ROOM_OVERRIDE')
+      try {
+        if (existingAssignment && user.role === 'landlord') {
+          await LogService.record(
+            user.id,
+            'assignment',
+            assignment.id,
+            'LANDLORD_ASSIGNED_ROOM_OVERRIDE',
+            `Landlord ${user.id} overrode existing assignment ${existingAssignment.id} and assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding})`
+          )
+        } else {
+          const activityType =
+            user.role === 'manager' ? 'MANAGER_ASSIGNED_ROOM' : 'LANDLORD_ASSIGNED_ROOM'
+          await LogService.record(
+            user.id,
+            'assignment',
+            assignment.id,
+            activityType,
+            `${user.role === 'manager' ? 'Manager' : 'Landlord'} ${user.id} assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding}) at "${accommodation.accommodationName}"`
+          )
+        }
+      } catch (e) {
+        console.error('Failed to log assignment creation:', e)
+      }
       return response.ok(assignment)
 
     } catch (error) {
@@ -205,6 +227,93 @@ async store({ auth, request, response }: HttpContext) {
     await this.waitlistService.processMoveOut(accommodation.id, room)
 
     await LogService.record(user.id, 'assignment', assignment.id, 'MOVED_OUT')
+    return response.ok(assignment)
+  }
+
+  // ─── MANAGER/LANDLORD: TRANSFER active assignment to a different room ───
+  // PATCH /assignments/:id/transfer  body: { targetRoomId }
+  async transfer({ auth, params, request, response }: HttpContext) {
+    const user = auth.user!
+    const { targetRoomId } = request.body()
+
+    if (!targetRoomId) {
+      return response.badRequest({ message: 'targetRoomId is required' })
+    }
+
+    const assignment = await Assignment.query()
+      .where('id', params.id)
+      .preload('room', (q) => q.preload('accommodation'))
+      .firstOrFail()
+
+    if (assignment.confirmationStatus !== 'active') {
+      return response.badRequest({ message: 'Only active assignments can be transferred' })
+    }
+
+    const sourceRoom = assignment.room
+    const sourceAccommodation = sourceRoom.accommodation
+
+    if (user.role === 'manager' && sourceAccommodation.managerId !== user.id) {
+      return response.forbidden({ message: 'You do not manage this accommodation' })
+    }
+    if (user.role === 'landlord' && sourceAccommodation.landlordId !== user.id) {
+      return response.forbidden({ message: 'You do not own this accommodation' })
+    }
+
+    const targetRoom = await Room.query()
+      .where('id', targetRoomId)
+      .preload('accommodation')
+      .firstOrFail()
+
+    if (user.role === 'manager' && targetRoom.accommodation.managerId !== user.id) {
+      return response.forbidden({ message: 'You do not manage the target accommodation' })
+    }
+    if (user.role === 'landlord' && targetRoom.accommodation.landlordId !== user.id) {
+      return response.forbidden({ message: 'You do not own the target accommodation' })
+    }
+
+    if (targetRoom.id === sourceRoom.id) {
+      return response.badRequest({ message: 'Target room must differ from current room' })
+    }
+    if (targetRoom.roomType !== sourceRoom.roomType) {
+      return response.badRequest({ message: 'Target room type must match current room type' })
+    }
+    if (targetRoom.roomCurrentOccupancy >= targetRoom.roomCapacity) {
+      return response.conflict({ message: 'Target room is full' })
+    }
+
+    const trx = await db.transaction()
+    try {
+      sourceRoom.roomCurrentOccupancy = Math.max(0, sourceRoom.roomCurrentOccupancy - 1)
+      if (sourceRoom.roomAvailability === 'occupied' && sourceRoom.roomCurrentOccupancy < sourceRoom.roomCapacity) {
+        sourceRoom.roomAvailability = 'available'
+      }
+      await sourceRoom.useTransaction(trx).save()
+
+      targetRoom.roomCurrentOccupancy += 1
+      if (targetRoom.roomCurrentOccupancy >= targetRoom.roomCapacity) {
+        targetRoom.roomAvailability = 'occupied'
+      }
+      await targetRoom.useTransaction(trx).save()
+
+      assignment.roomId = targetRoom.id
+      await assignment.useTransaction(trx).save()
+
+      await trx.commit()
+    } catch (error) {
+      await trx.rollback()
+      throw error
+    }
+
+    await LogService.record(
+      user.id,
+      'assignment',
+      assignment.id,
+      'ASSIGNMENT_TRANSFERRED',
+      `Transferred assignment ${assignment.id} from room ${sourceRoom.id} to room ${targetRoom.id}`
+    )
+
+    await assignment.load('room', (q) => q.preload('accommodation'))
+    await assignment.load('student', (q) => q.preload('user'))
     return response.ok(assignment)
   }
 

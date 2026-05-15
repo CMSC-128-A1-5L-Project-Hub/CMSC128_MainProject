@@ -68,9 +68,14 @@ export async function uploadImageFromLocalPath(
   // Deterministic key — no UUID — so the same image always lives at the same B2 path.
   const b2Key = `${folder}/${originalName}`
 
-  const exists = await drive.use('s3').exists(b2Key)
+  let exists = false
+  try {
+    exists = await drive.use('s3').exists(b2Key)
+  } catch {
+    // B2 key may lack head/list permission — fall through and re-upload (PUT is idempotent by key).
+  }
   if (exists) {
-    return await drive.use('s3').getUrl(b2Key)
+    return await drive.use('s3').getSignedUrl(b2Key, { expiresIn: '5 hours' })
   }
 
   const buffer = readFileSync(localPath)

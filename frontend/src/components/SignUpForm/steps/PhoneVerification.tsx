@@ -138,7 +138,7 @@ export default function PhoneVerification({ data, setData, prevStep, submitForm,
                             name="phoneNumber"
                             value={data.phoneNumber}
                             onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, "")
+                                const val = e.target.value.replace(/\D/g, "").replace(/^0+/, "")
                                 setData({ ...data, phoneNumber: val })
                             }}
                             placeholder="9XXXXXXXXXX"

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Modal from "../../../Modal";
 import Button from "../../../Button";
 import { CheckCircle, CreditCard, FileText } from "lucide-react";
@@ -25,6 +25,11 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
   const [allowInstallments, setAllowInstallments] = useState(false);
   const [billingSuccess, setBillingSuccess] = useState(false);
 
+  // Hold the last known room so content doesn't wipe during close animation
+  const lastRoom = useRef<Room | null>(room);
+  if (room) lastRoom.current = room;
+  const displayRoom = lastRoom.current;
+
   useEffect(() => {
     if (open && room) {
       setBillingTenantId("all");
@@ -36,8 +41,7 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
     }
   }, [open, room]);
 
-  if (!open || !room) return null;
-
+  // No early return — let Modal handle its own visibility and animation
   const handleGenerate = async () => {
     await onGenerate({
       tenantId: billingTenantId,
@@ -50,10 +54,8 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
     setTimeout(() => onClose(), 2000);
   };
 
-  const amountNum = parseFloat(billingAmount) || 0;
-
   return (
-    <Modal open={open} onClose={onClose} title={`Generate Billing - ${room.name}`}>
+    <Modal open={open} onClose={onClose} title={displayRoom ? `Generate Billing - ${displayRoom.name}` : "Generate Billing"}>
       {billingSuccess ? (
         <div className="text-center py-6 sm:py-8">
           <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
@@ -62,7 +64,7 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
           <p className="text-base sm:text-lg font-semibold text-green-800">Billing statement generated!</p>
           <p className="text-xs sm:text-sm text-gray-500 mt-2">The statement has been sent to the tenant(s).</p>
         </div>
-      ) : (
+      ) : displayRoom ? (
         <div className="space-y-4 sm:space-y-5">
           <div className="bg-[#F9F6F7] rounded-xl p-3 sm:p-4 space-y-1.5 sm:space-y-2">
             <div className="flex items-center gap-1.5 sm:gap-2">
@@ -70,13 +72,13 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
               <span className="text-xs sm:text-sm font-semibold text-[#4A1F2D]">Room Summary</span>
             </div>
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
-              <div><p className="text-gray-500">Room</p><p className="font-semibold">{room.name}</p></div>
-              <div><p className="text-gray-500">Type</p><p className="font-semibold">{room.type}</p></div>
-              <div><p className="text-gray-500">Capacity</p><p className="font-semibold">{room.currentOccupancy}/{room.capacity}</p></div>
+              <div><p className="text-gray-500">Room</p><p className="font-semibold">{displayRoom.name}</p></div>
+              <div><p className="text-gray-500">Type</p><p className="font-semibold">{displayRoom.type}</p></div>
+              <div><p className="text-gray-500">Capacity</p><p className="font-semibold">{displayRoom.currentOccupancy}/{displayRoom.capacity}</p></div>
             </div>
           </div>
 
-          {room.currentOccupancy > 1 && (
+          {displayRoom.currentOccupancy > 1 && (
             <div className="flex flex-col gap-1">
               <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">BILL FOR</label>
               <select
@@ -85,7 +87,7 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
                 className="border border-[#e5cfd4] rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30"
               >
                 <option value="all">All tenants in this room</option>
-                {room.occupants.map(t => (
+                {displayRoom.occupants.map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
@@ -133,8 +135,8 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
             type="button"
             onClick={() => setAllowInstallments(!allowInstallments)}
             className={`w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 ${
-              allowInstallments 
-                ? "bg-emerald-50 border-emerald-300 shadow-sm" 
+              allowInstallments
+                ? "bg-emerald-50 border-emerald-300 shadow-sm"
                 : "bg-white border-[#e5cfd4] hover:border-gray-300"
             }`}
           >
@@ -158,9 +160,11 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
             </div>
           </button>
 
-          <Button className="w-full py-2 sm:py-2.5 mt-2 text-xs sm:text-sm" onClick={handleGenerate}>Generate Statement</Button>
+          <Button className="w-full py-2 sm:py-2.5 mt-2 text-xs sm:text-sm" onClick={handleGenerate}>
+            Generate Statement
+          </Button>
         </div>
-      )}
+      ) : null}
     </Modal>
   );
 }

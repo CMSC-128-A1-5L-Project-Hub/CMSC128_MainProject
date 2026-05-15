@@ -4,8 +4,10 @@ import RoomService from '#services/room_service'
 import { createRoomValidator, updateRoomValidator } from '#validators/room'
 import Room from '#models/room'
 import Accommodation from '#models/accommodation'
+import RoomIssue from '#models/room_issue'
 import LogService from '#services/log_service'
 import NotificationService from '#services/notification_service'
+import { DateTime } from 'luxon'
 
 @inject()
 export default class RoomsController {
@@ -36,6 +38,19 @@ export default class RoomsController {
     const landlordId = auth.user!.id
     const payload = await createRoomValidator.validate(request.all())
     const room = await this.roomService.createRoom(landlordId, params.accommodationId, payload)
+
+    try {
+      await LogService.record(
+        landlordId,
+        'room',
+        room.id,
+        'ROOM_CREATED',
+        `Room ${room.roomNumber} (building ${room.roomBuilding}) added to Accommodation ${params.accommodationId}`
+      )
+    } catch (e) {
+      console.error('Failed to log ROOM_CREATED:', e)
+    }
+
     return response.ok(room)
   }
 
@@ -44,6 +59,19 @@ export default class RoomsController {
     try {
       const payload = await updateRoomValidator.validate(request.all())
       const updatedRoom = await this.roomService.updateRoom(params.id, payload, auth.user!.id)
+
+      try {
+        await LogService.record(
+          auth.user!.id,
+          'room',
+          updatedRoom.id,
+          'ROOM_UPDATED',
+          `Room ${updatedRoom.roomNumber} (building ${updatedRoom.roomBuilding}) updated`
+        )
+      } catch (e) {
+        console.error('Failed to log ROOM_UPDATED:', e)
+      }
+
       return response.ok(updatedRoom)
     } catch (err) {
       const error = err as Error
@@ -57,7 +85,23 @@ export default class RoomsController {
   // ─── MANAGER: DELETE A ROOM ───
   async destroy({ params, auth, response }: HttpContext) {
     try {
+      const roomBeforeDelete = await Room.find(params.id)
       await this.roomService.deleteRoom(params.id, auth.user!.id)
+
+      try {
+        await LogService.record(
+          auth.user!.id,
+          'room',
+          Number(params.id),
+          'ROOM_DELETED',
+          roomBeforeDelete
+            ? `Room ${roomBeforeDelete.roomNumber} (building ${roomBeforeDelete.roomBuilding}) deleted from Accommodation ${roomBeforeDelete.accommodationId}`
+            : `Room ${params.id} deleted`
+        )
+      } catch (e) {
+        console.error('Failed to log ROOM_DELETED:', e)
+      }
+
       return response.ok({ message: 'Room deleted successfully.' })
     } catch (err) {
       const error = err as Error
@@ -106,6 +150,15 @@ export default class RoomsController {
       `Manager reported issue for room ${room.roomNumber} (building ${room.roomBuilding}): ${issueDetails}`
     )
 
+    const reporterRole: 'student' | 'manager' = user.role === 'student' ? 'student' : 'manager'
+    await RoomIssue.create({
+      roomId: room.id,
+      reporterId: user.id,
+      reporterRole,
+      issueDetails,
+      status: 'open',
+    })
+
     await room.load('accommodation', (q) =>
       q.preload('landlord', (l) => l.preload('user'))
     )
@@ -123,5 +176,60 @@ export default class RoomsController {
     }
 
     return response.ok({ message: 'Issue reported successfully' })
+  }
+
+  // ─── LANDLORD: LIST OPEN ROOM ISSUES ───
+  // GET /landlord/room-issues
+  async listIssues({ auth, response }: HttpContext) {
+    const user = auth.user!
+    const accommodations = await Accommodation.query().where('landlordId', user.id)
+    const accIds = accommodations.map((a) => a.id)
+    if (accIds.length === 0) return response.ok([])
+
+    const rooms = await Room.query().whereIn('accommodationId', accIds)
+    const roomIds = rooms.map((r) => r.id)
+    if (roomIds.length === 0) return response.ok([])
+
+    const issues = await RoomIssue.query()
+      .whereIn('roomId', roomIds)
+      .where('status', 'open')
+      .preload('room', (q) => q.preload('accommodation'))
+      .preload('reporter')
+      .orderBy('createdAt', 'desc')
+
+    return response.ok(issues)
+  }
+
+  // ─── LANDLORD: RESOLVE A ROOM ISSUE ───
+  // PATCH /room-issues/:id/resolve
+  async resolveIssue({ auth, params, response }: HttpContext) {
+    const user = auth.user!
+    const issue = await RoomIssue.query()
+      .where('id', params.id)
+      .preload('room', (q) => q.preload('accommodation'))
+      .firstOrFail()
+
+    if (issue.room.accommodation.landlordId !== user.id) {
+      return response.forbidden({ message: 'You do not own this accommodation' })
+    }
+
+    if (issue.status === 'resolved') {
+      return response.badRequest({ message: 'Issue already resolved' })
+    }
+
+    issue.status = 'resolved'
+    issue.resolvedBy = user.id
+    issue.resolvedAt = DateTime.now()
+    await issue.save()
+
+    await LogService.record(
+      user.id,
+      'room',
+      issue.roomId,
+      'ROOM_ISSUE_RESOLVED',
+      `Landlord resolved issue ${issue.id} for room ${issue.room.roomNumber}`
+    )
+
+    return response.ok(issue)
   }
 }

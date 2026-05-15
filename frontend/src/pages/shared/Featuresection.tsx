@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import MiniAuthModal from "../../components/MiniAuthModal";
+import { api } from "../../api/axios";
 
 type Role = "student" | "dormitory" | "administrator";
 
@@ -19,6 +22,7 @@ const ROLES = [
     cta: "Get Started →",
     image: "/images/forStudents.png",
     bg: "linear-gradient(155deg, #8C1A38 0%, #6B1228 42%, #4A0D1E 100%)",
+    redirectPath: "/student/browse",
   },
   {
     id: "dormitory" as Role,
@@ -34,6 +38,7 @@ const ROLES = [
     cta: "Manage Dorm →",
     image: "/images/forManagers.png",
     bg: "linear-gradient(155deg, #9E2040 0%, #7A1530 42%, #521020 100%)",
+    redirectPath: "/landlord/dashboard",
   },
   {
     id: "administrator" as Role,
@@ -49,6 +54,7 @@ const ROLES = [
     cta: "Admin Portal →",
     image: "/images/forAdmins.png",
     bg: "linear-gradient(155deg, #B02245 0%, #8C1A38 42%, #5E1225 100%)",
+    redirectPath: "/admin/dashboard",
   },
 ];
 
@@ -81,26 +87,25 @@ function GrainOverlay() {
 
 // ─── Static Image (centered, no hover effect, prevents GIF from restarting) ───
 function StaticImage({ src, alt, isActive }: { src: string; alt: string; isActive: boolean }) {
-  // Use a key that doesn't change when role switches to prevent GIF restart
   const [imageLoaded, setImageLoaded] = useState(false);
   
   return (
-        <div style={{ 
-        width: "100%", 
-        height: "100%", 
-        display: "flex", 
-        alignItems: "flex-end", 
-        justifyContent: "center",
-        position: "relative",
-        overflow: "hidden",
-        paddingBottom: "100px",
-        marginRight: "50px"
-        }}>
+    <div style={{ 
+      width: "100%", 
+      height: "100%", 
+      display: "flex", 
+      alignItems: "flex-end", 
+      justifyContent: "center",
+      position: "relative",
+      overflow: "hidden",
+      paddingBottom: "100px",
+      marginRight: "50px"
+    }}>
       {(isActive || imageLoaded) && (
         <img
-        src={src}
-        alt={alt}
-        style={{
+          src={src}
+          alt={alt}
+          style={{
             width: "100%",
             height: "78%",
             objectFit: "contain",
@@ -108,8 +113,8 @@ function StaticImage({ src, alt, isActive }: { src: string; alt: string; isActiv
             transition: "opacity 0.45s ease",
             opacity: isActive ? 1 : 0,
             display: "block",
-        }}
-        onLoad={() => setImageLoaded(true)}
+          }}
+          onLoad={() => setImageLoaded(true)}
         />
       )}
     </div>
@@ -121,7 +126,11 @@ export default function FeaturesSection() {
   const [active, setActive] = useState<Role>("student");
   const [animating, setAnimating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const navigate = useNavigate();
+  
   // Preload all images to keep GIFs running
   useEffect(() => {
     ROLES.forEach(role => {
@@ -151,6 +160,14 @@ export default function FeaturesSection() {
     return () => { if (sectionRef.current) observer.unobserve(sectionRef.current); };
   }, []);
 
+  const handleCtaClick = async (role: typeof ROLES[0]) => {
+    // Store the redirect path
+    sessionStorage.setItem("redirectAfterAuth", role.redirectPath);
+    setPendingRedirect(role.redirectPath);
+    // Show the auth modal
+    setAuthModalOpen(true);
+  };
+
   return (
     <>
       <style>{`
@@ -171,7 +188,7 @@ export default function FeaturesSection() {
           transition-delay: 0.1s;
         }
         .fs-wrap.visible .fs-tag-row { opacity: 1; transform: scale(1); }
-        .fs-tag-line { height:1.5px; width:36px; background:#C9973A; border-radius:99px; }
+        .fs-tag-line { height:1.5px; width:36px; background:#C9973A; borderRadius:99px; }
         .fs-tag-lbl  { font-family:'Plus Jakarta Sans',sans-serif; font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:#C9973A; }
         
         .fs-h2 { 
@@ -294,13 +311,13 @@ export default function FeaturesSection() {
 
         /* ── image pane styling ── */
         .fs-img-pane {
-        width: 380px;          
-        flex-shrink: 0;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        align-items: center;  
-        justify-content: center;
+          width: 380px;          
+          flex-shrink: 0;
+          position: relative;
+          overflow: hidden;
+          display: flex;
+          align-items: center;  
+          justify-content: center;
         }
 
         @keyframes fsFadeUp {
@@ -388,7 +405,15 @@ export default function FeaturesSection() {
                         </div>
                       ))}
                     </div>
-                    <button className="fs-cta">{role.cta}</button>
+                    <button
+                      className="fs-cta"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCtaClick(role);
+                      }}
+                    >
+                      {role.cta}
+                    </button>
                   </div>
 
                   <div className="fs-img-pane">
@@ -400,6 +425,15 @@ export default function FeaturesSection() {
           })}
         </div>
       </section>
+
+      {/* Mini Auth Modal */}
+      <MiniAuthModal
+        open={authModalOpen}
+        onClose={() => {
+          setAuthModalOpen(false);
+          setPendingRedirect(null);
+        }}
+      />
     </>
   );
 }

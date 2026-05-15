@@ -77,7 +77,7 @@ interface HistoryRecord {
 // ]
 
 const ROOMS_PER_PAGE = 3
-const HISTORY_PER_PAGE = 3
+const HISTORY_PER_PAGE = 5
 const SORT_OPTS = ["Room Type", "Room No.", "Date", "Action"]
 
 const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:string}) => {
@@ -545,10 +545,10 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
                                 </td>
                             </tr>
                             )) : (
-                            <div></div>
-                                // <tr>
-                            //     <td colSpan={6} className="text-sm text-[#9A7080] py-6">No records found.</td>
-                            // </tr>
+                            <div className="flex flex-col justify-center items-center h-full  text-center">
+                                <p className="text-[#9A7080] font-medium text-lg">No occupants found</p>
+                                <p className="text-[#9A7080]/60 text-sm mt-1">When an applicant gets accepted, they will appear here</p>
+                            </div>
                         )}
                     </tbody>
                 </table>
@@ -556,10 +556,6 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
             
 
             {/* Footer */}
-            <div className={`${records.length === 0 ? "flex flex-col" : "hidden"} justify-center items-center h-full  text-center`}>
-                <p className="text-[#9A7080] font-medium text-lg">No occupants found</p>
-                <p className="text-[#9A7080]/60 text-sm mt-1">When an applicant gets accepted, they will appear here</p>
-            </div>
             <div className={`${records.length === 0 ? "hidden" : "flex"} items-center justify-between mt-3 pt-2 border-t border-[#F5ECF0]`}>
                 <p className="text-xs text-[#9A7080]">
                     Showing {sorted.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + itemsPerPage, sorted.length)} of {sorted.length} records
@@ -627,7 +623,6 @@ export default function OccupancyRecords() {
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
-            <Sidebar role="manager" profile={profile as any}/>
             <div className = "flex flex-col flex-1 min-w-0">
                 <CustomHeader
                     title="Occupancy Records"></CustomHeader>

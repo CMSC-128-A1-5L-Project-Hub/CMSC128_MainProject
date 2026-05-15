@@ -3,6 +3,7 @@ import User from '#models/user'
 import ProfileService from '#services/profile_service'
 import NotificationService from '#services/notification_service'
 import { setupProfileValidator } from '#validators/profile'
+import { DateTime } from 'luxon'
 
 export default class SetupController {
   private profileService = new ProfileService()
@@ -26,6 +27,8 @@ export default class SetupController {
       const validatedData = await request.validateUsing(setupProfileValidator)
       const result = await this.profileService.setupProfile(user, validatedData)
 
+      user.submittedAt = DateTime.now()
+      await user.save()
       await user.refresh()
 
       // Only notify admins when the user still needs manual review

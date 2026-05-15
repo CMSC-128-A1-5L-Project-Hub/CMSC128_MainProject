@@ -2,15 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
 import GradientPillSelect from "../../components/DropDownGradient.tsx";
 import UbleLoader from "../shared/LoadingPage.tsx";
 import { api } from "../../api/axios";
 import defaultAccommodation from "@/assets/defaults/accommodation.png";
+import { Crosshair, Minimize2, Maximize2  } from 'lucide-react';
 
+<i data-lucide="expand"></i>  
 
 //MapBox Imports
+//
 import Map, { Marker, NavigationControl, Source, Layer } from 'react-map-gl'
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -18,6 +22,7 @@ import ApplicationModals from "@/components/applications/ApplicationModals.tsx";
 import RoomApplicationModal from "@/components/RoomApplicationModal.tsx";
 import ShareModal from "@/components/ShareModal.tsx";
 import ReportAccommodationModal from "@/components/RoomViewReportModal.tsx";
+import Toast from "@/components/Toast"
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const UPLB_COORDS = { longitude: 121.2436, latitude: 14.1654 }
@@ -34,7 +39,7 @@ const CLR = {
   gold: "#C9973A",
   goldLt: "#E8C37A",
 } as const;
-const GRID_COLS = "grid grid-cols-1 lg:grid-cols-[1.75fr_1fr] gap-3";
+const GRID_COLS = "grid grid-cols-1 lg:grid-cols-[minmax(0,_1.75fr)_minmax(0,_1fr)] gap-3";
 
 interface AccomID {
   accomodation_id: number;
@@ -94,6 +99,7 @@ interface Review {
 }
 
 interface Accommodation {
+  bookmarks: any;
   id: number;
   accommodationName: string;
   accommodationLocation: string;
@@ -122,15 +128,6 @@ interface Accommodation {
   };
 }
 
-//Mock data for requirements
-
-const MOCK_REQUIREMENTS = [
-  { id: 1, name: "Parent's Consent Form", size: "256 KB", dateModified: "04/05/26 at 1:02PM" },
-  { id: 2, name: "Dormitory Agreement Form", size: "189 KB", dateModified: "04/05/26 at 1:02PM" },
-  { id: 3, name: "Medical Certificate Template", size: "98 KB", dateModified: "04/03/26 at 9:00AM" },
-  { id: 4, name: "Parent's Valid ID", size: "—", dateModified: "—" },
-  { id: 5, name: "Enrollment Form / COR", size: "—", dateModified: "—" },
-];
 
 
 //Inline icons
@@ -208,6 +205,7 @@ const IconVerified = () => (
 );
 
 type TabKey = "Features" | "Location" | "Reviews" | "Requirements";
+
 
 
 const StarRating = ({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) => {
@@ -386,7 +384,7 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
     : null;
 
   return (
-    <div ref={ref} className="relative w-full">
+    <div ref={ref} className="relative w-full pb-2">
       {/* ── Saved State ── */}
       {isSet && !editing && (
         <div className="bg-[#6B0F2B] rounded-2xl overflow-hidden">
@@ -579,20 +577,19 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
           {/* Thumbnail strip */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-3 py-2 bg-black/40 rounded-full overflow-x-auto max-w-[90vw]">
             {photos.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt={`Thumb ${i + 1}`}
-              onClick={() => setLightboxIndex(i)}
-              className={`w-10 h-10 object-cover rounded-lg cursor-pointer flex-shrink-0 transition-all ${
-                i === lightboxIndex ? "opacity-100" : "opacity-50 hover:opacity-75"
-              }`}
-              style={
-                i === lightboxIndex
-                  ? { border: `2px solid ${CLR.mid}` }
-                  : { border: "2px solid transparent" }
-              }
-            />
+              <img
+                key={i}
+                src={src}
+                alt={`Thumb ${i + 1}`}
+                onClick={() => setLightboxIndex(i)}
+                className={`w-10 h-10 object-cover rounded-lg cursor-pointer flex-shrink-0 transition-all ${i === lightboxIndex ? "opacity-100" : "opacity-50 hover:opacity-75"
+                  }`}
+                style={
+                  i === lightboxIndex
+                    ? { border: `2px solid ${CLR.mid}` }
+                    : { border: "2px solid transparent" }
+                }
+              />
             ))}
           </div>
         </div>
@@ -772,6 +769,7 @@ const routeLayerStyle = (mode: TravelMode): LayerProps => ({
 
 function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
+  const mapRef = useRef<any>(null)
   // only keep destination selector (optional)
   const [destIndex, setDestIndex] = useState(0)
 
@@ -787,9 +785,9 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   //Raw text for user to find a specific location
   const [searchQuery, setSearchQuery] = useState('')
   //Place suggestions
-  const [suggestions, setSuggestions] = useState<{ label: string; lat: number; lng: number }[]>([])
+  const [suggestions, setSuggestions] = useState<{ label: string; mapbox_id?: string; lat: number | null; lng: number | null }[]>([])
   //The actual destination the user sets.
-  const [selectedDest, setSelectedDest] = useState<{ label: String; lat: number; lng: number } | null>(null)
+  const [selectedDest, setSelectedDest] = useState<{ label: string; lat: number; lng: number } | null>(null)
 
   //Show suggestion bar
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -809,9 +807,10 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
   const hasValidCoordinates =
     !Number.isNaN(accomLat) && !Number.isNaN(accomLng)
 
+  const sessionTokenRef = useRef(crypto.randomUUID())
+
   const handleSearch = (val: string) => {
     setSearchQuery(val)
-
     setSelectedDest(null)
     setPreviewed(false)
     setRouteGeoJSON(null)
@@ -819,23 +818,29 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
     if (searchTimeout.current) clearTimeout(searchTimeout.current)
 
-    //Debounce - 
+    if (!val.trim()) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+
     searchTimeout.current = setTimeout(async () => {
       setLoadingSuggestions(true)
       try {
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(val)}.json?access_token=${MAPBOX_TOKEN}&autocomplete=true&limit=5&proximity=121.2436,14.1654`
-
+        // ✅ Search Box suggest endpoint (has POI coverage)
+        const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(val)}&access_token=${MAPBOX_TOKEN}&session_token=${sessionTokenRef.current}&proximity=121.2436,14.1654&bbox=121.15,14.10,121.35,14.25&country=PH&limit=5`
         const res = await fetch(url)
         const data = await res.json()
 
-        const results = (data.features ?? []).map((f: any) => ({
-          label: f.place_name,
-          lng: f.center[0],
-          lat: f.center[1],
+        const results = (data.suggestions ?? []).map((s: any) => ({
+          label: s.name + (s.place_formatted ? `, ${s.place_formatted}` : ''),
+          mapbox_id: s.mapbox_id,
+          lat: null,
+          lng: null,
         }))
 
         setSuggestions(results)
-        setShowSuggestions(true)
+        setShowSuggestions(results.length > 0)
       } catch {
         setSuggestions([])
       } finally {
@@ -844,17 +849,39 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
     }, 350)
   }
 
-  const selectSuggestion = (s: { label: string; lat: number; lng: number }) => {
-    setSelectedDest(s)
+  const selectSuggestion = async (s: any) => {
     setSearchQuery(s.label)
     setSuggestions([])
     setShowSuggestions(false)
+
+    if (s.lat !== null) {
+      setSelectedDest(s)
+      return
+    }
+
+    // Retrieve full coordinates from mapbox_id
+    try {
+      const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${s.mapbox_id}?access_token=${MAPBOX_TOKEN}&session_token=${sessionTokenRef.current}`
+      const res = await fetch(url)
+      const data = await res.json()
+      const feature = data.features?.[0]
+      if (feature) {
+        const [lng, lat] = feature.geometry.coordinates
+        const dest = { label: s.label, lng, lat }
+        setSelectedDest(dest)
+        // Refresh session token after a complete suggest→retrieve cycle
+        sessionTokenRef.current = crypto.randomUUID()
+      }
+    } catch (err) {
+      console.error('Failed to retrieve location:', err)
+    }
   }
 
   //Data for modes:
   const fetchModes = async (destLang: number, destLat: number) => {
     setLoadingRoute(true)
     setPreviewed(true)
+    setCardCollapsed(true)
 
     try {
       const origin = `${accomLng},${accomLat}`
@@ -928,15 +955,10 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
 
   return (
     <div
-      className="mt-4"
-      style={{
-        height: 460,
-        position: 'relative',
-        borderRadius: 16,
-        overflow: 'hidden'
-      }}
+      className="mt-4 relative rounded-2xl overflow-hidden h-[520px] sm:h-[460px]"
     >
       <Map
+        ref={mapRef}
         initialViewState={{
           longitude: accomLng,
           latitude: accomLat,
@@ -1008,27 +1030,38 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
         )}
       </Map>
 
+      <button
+        onClick={() => setCardCollapsed(c => !c)}
+        title={cardCollapsed ? 'Expand directions' : 'Minimize directions'}
+        style={{
+          position: 'absolute', top: 12, left: 16, zIndex: 11,
+          background: CLR.dark, border: 'none', borderRadius: '50%',
+          width: 44, height: 44,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+        }}
+        >
+        {cardCollapsed ? (
+          <div style={{ transform: 'scale(1)' }}>
+            <Maximize2 size={18} color="white" strokeWidth={2} />
+          </div>
+        ) : (
+          <div style={{ transform: 'scale(1)' }}>
+            <Minimize2 size={18} color="white" strokeWidth={2} />
+          </div>
+        )}
+      </button>
+
+
       {!cardCollapsed && (
         <div style={{
           position: 'absolute', top: 35, left: 16,
           background: 'white', borderRadius: 20,
           padding: '16px 18px 18px',
           boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-          width: 280, zIndex: 10,
+          width: 'calc(100% - 32px)', maxWidth: 280, zIndex: 10,
           display: 'flex', flexDirection: 'column', gap: 10,
         }}>
-
-          <div style={{
-            position: 'absolute', top: -18, left: 16,
-            background: CLR.dark, borderRadius: '50%',
-            width: 40, height: 40,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
-            </svg>
-          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
             {/* House icon */}
@@ -1208,8 +1241,47 @@ function LocationTab({ accommodation }: { accommodation: Accommodation }) {
               </div>
             )}
           </div>
+
+          <button
+            onClick={() => mapRef.current?.flyTo({
+              center: [accomLng, accomLat],
+              zoom: 15,
+              pitch: 40,
+              duration: 1200,
+            })}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'white',
+              border: `1.5px solid ${CLR.mid}`,
+              borderRadius: 999,
+              padding: '7px 14px',
+              fontSize: 12,
+              fontWeight: 700,
+              color: CLR.mid,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = CLR.mid
+              e.currentTarget.style.color = 'white'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'white'
+              e.currentTarget.style.color = CLR.mid
+            }}
+          >
+            <div style={{flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13, fontWeight: 700,}}>
+              <Crosshair size={12} />
+              Recenter
+            </div>
+
+          </button>
         </div>
       )}
+
+
 
 
 
@@ -1290,49 +1362,56 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
 
         {/* Review details */}
         <div className="space-y-3 font-sans">
-          {sortedReviews.map((review) => ( // ← sortedReviews, not reviews
-            <div key={review.id} className="bg-[#F7EFF2] border border-[#EFE3E8] p-4">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                    style={{ background: "#D1C4C9" }}
-                  >
-                    {review.student?.user?.fname?.[0] ?? "?"}
-                  </div>
-                  <div>
-                    <p className="text-[15px] font-bold text-gray-800">
-                      {review.student?.user
-                        ? `${review.student?.user?.fname} ${review.student?.user?.lname}`
-                        : "Anonymous"}
-                    </p>
-                    {review.createdAt && (
-                      <p className="text-[8px] font-light text-gray-800">
-                        {new Date(review.createdAt).toLocaleDateString("en-PH", {
-                          month: "long",
-                          day: "2-digit",
-                          year: "numeric",
-                        })}
+          {sortedReviews.length === 0 ? (
+            <div className="flex items-center justify-center py-10">
+              <p className="text-[11px] text-gray-400 italic">No reviews yet.</p>
+            </div>
+          ) : (
+            sortedReviews.map((review) => ( // ← sortedReviews, not reviews
+              <div key={review.id} className="bg-[#F7EFF2] border border-[#EFE3E8] p-4">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                      style={{ background: "#D1C4C9" }}
+                    >
+                      {review.student?.user?.fname?.[0] ?? "?"}
+                    </div>
+                    <div>
+                      <p className="text-[15px] font-bold text-gray-800">
+                        {review.student?.user
+                          ? `${review.student?.user?.fname} ${review.student?.user?.lname}`
+                          : "Anonymous"}
                       </p>
-                    )}
+                      {review.createdAt && (
+                        <p className="text-[8px] font-light text-gray-800">
+                          {new Date(review.createdAt).toLocaleDateString("en-PH", {
+                            month: "long",
+                            day: "2-digit",
+                            year: "numeric",
+                          })}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <span className="text-[15px] font-bold" style={{ color: CLR.gold }}>
-                    {review.rating}
-                  </span>
-                  <div className="ml-5">
-                    <StarRating rating={review.rating} size="md"/>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <span className="text-[15px] font-bold" style={{ color: CLR.gold }}>
+                      {review.rating}
+                    </span>
+                    <div className="ml-5">
+                      <StarRating rating={review.rating} size="md" />
+
+                    </div>
 
                   </div>
-                  
                 </div>
+                {review.content && (
+                  <p className="text-[10px] text-gray-600">{review.content}</p>
+                )}
               </div>
-              {review.content && (
-                <p className="text-[10px] text-gray-600">{review.content}</p>
-              )}
-            </div>
-          ))}
+            ))
+          )}
+
         </div>
         {/* End of review details */}
 
@@ -1341,14 +1420,20 @@ function ReviewsTab({ reviews, avgRating }: { reviews: Review[]; avgRating: numb
   );
 }
 
-function RequirementsTab() {
-  const [downloaded, setDownloaded] = useState<Set<number>>(new Set());
+function RequirementsTab({ accommodationId }: { accommodationId: number }) {
+  const { data: requirements = [], isLoading } = useQuery<{ id: number; requirementName: string; acceptedFormat: string }[]>({
+    queryKey: ["doc-requirements", accommodationId],
+    queryFn: () => api.get(`/accommodations/${accommodationId}/document-requirements`).then((r) => r.data),
+    enabled: !!accommodationId,
+  });
+
+  const formatLabel: Record<string, string> = { pdf: "PDF", image: "JPEG / PNG", any: "Any" };
 
   return (
-    <div className="space y-4 font-sans mt-4">
+    <div className="space-y-4 font-sans mt-4">
       <div>
         <p className="text-[15px] font-bold text-[#6B0F2B] mt-3">
-          Please download and fill-up the necessary files before filing for an application.
+          Please prepare the following documents before filing for an application.
         </p>
         <p className="text-[12px] text-gray-500 mt-1 flex items-start gap-1">
           <span className="mt-0.5">ⓘ</span>
@@ -1356,68 +1441,36 @@ function RequirementsTab() {
             To help manage your accommodation, assigned dormitory personnel may also be able to view your login
             information. Files and credentials are only used for housing and administrative support. See our data privacy
             clause.
-            {/*<button className="font-semibold underline text-[#6B0F2B] mt-1">here</button>.*/}
           </span>
         </p>
       </div>
-      {/*https://tailwindcss.com/docs/table-layout*/}
       <div className="w-full overflow-x-auto rounded-md border border-[#F0E8EC] mt-5">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[#F7EFF2]">
               <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Requirement</th>
-              <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Size</th>
-              <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Date Modified</th>
-              <th className="text-right px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Action</th>
+              <th className="text-left px-4 py-3 text-[13px] font-semibold text-[#6B0F2B]">Accepted Format</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#F0E8EC]">
-            {MOCK_REQUIREMENTS.map((req) => {
-              const isDownloaded = downloaded.has(req.id);
-              const hasAttachment = req.size !== "—";
-
-              return (
+            {isLoading ? (
+              <tr>
+                <td colSpan={2} className="px-4 py-6 text-center text-[11px] text-gray-400">Loading requirements…</td>
+              </tr>
+            ) : requirements.length === 0 ? (
+              <tr>
+                <td colSpan={2} className="px-4 py-6 text-center text-[11px] text-gray-400 italic">No specific document requirements set.</td>
+              </tr>
+            ) : (
+              requirements.map((req) => (
                 <tr key={req.id} className="bg-white hover:bg-[#FDF8FA] transition-colors">
-                  <td className="px-4 py-3 text-[11px] font-medium text-[#3D0718]">{req.name}</td>
-                  <td className="px-4 py-3 text-[11px] text-gray-500">{req.size}</td>
-                  <td className="px-4 py-3 text-[11px] text-gray-500">{req.dateModified}</td>
-                  <td className="px-4 py-3 text-right">
-                    {hasAttachment ? (
-                      <button
-                        onClick={() => setDownloaded((prev) => new Set([...prev, req.id]))}
-                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-semibold text-white transition-colors"
-                        style={{ background: isDownloaded ? "linear-gradient(135deg, #1A7A4A, #2D9A5F" : "linear-gradient(130deg, #6B0F2B, #9A7080)" }}
-                      >
-                        {isDownloaded ? (
-                          <>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Downloaded
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            Download
-                          </>
-                        )}
-                      </button>
-                    ) : (
-                      <span className="text-[10px] text-gray-400 italic">To be submitted</span>
-                    )}
-                  </td>
+                  <td className="px-4 py-3 text-[11px] font-medium text-[#3D0718]">{req.requirementName}</td>
+                  <td className="px-4 py-3 text-[11px] text-gray-500">{formatLabel[req.acceptedFormat] ?? req.acceptedFormat}</td>
                 </tr>
-              )
-            })}
-
+              ))
+            )}
           </tbody>
-
-
         </table>
-
-
       </div>
     </div>
   )
@@ -1429,8 +1482,56 @@ function RequirementsTab() {
 export default function RoomView() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const currentAccommodationId = Number(id);
 
+  const { data: user, isError, isSuccess } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+      const res = await api.get("/me")
+      // console.log("me:", res.data);
+      // console.log("student:", res.data.student);
+      // console.log("gender:", res.data.student?.gender);
+      return res.data
+    },
+  })
+
+  const name = user ? `${user.fname}` : ""
+  const studentNo = user?.student?.studentNumber ?? ""
+
+
+
+  const { data: myApplications = [] } = useQuery({
+    queryKey: ["student-applications"],
+    queryFn: async () => {
+      try {
+        const res = await api.get("/applications/my-applications");
+        return res.data;
+      } catch (error: any) {
+        if (error.response?.status === 404) return [];
+        throw error;
+      }
+    }
+  });
+
+  
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  useEffect(() => {
+    if (!isSuccess || accommodation == null) return
+
+    const bookmarks = accommodation.bookmarks
+    for (let i = 0; i < bookmarks.length; i++)
+    {
+      if (bookmarks[i].studentNumber == studentNo)
+      {
+        setIsFavorited(true);
+        break;
+      }
+    }
+
+  }, [isSuccess, accommodation])
+
   const [loading, setLoading] = useState(true);
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
@@ -1442,10 +1543,11 @@ export default function RoomView() {
   const [reportType, setReportType] = useState<"dorm" | "manager">("dorm")
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
+  const [reportOpen, setReportOpen] = useState(false)
+
   const [selectedTab, setselectedTab] = useState<TabKey>("Features");
-  // const [isFavorited, setIsFavorited] = useState(false);
-  // const [moveIn, setMoveIn] = useState("");
-  // const [moveOut, setMoveOut] = useState("");
+  const [moveIn, setMoveIn] = useState("");
+  const [moveOut, setMoveOut] = useState("");
   const [current, setCurrent] = useState(0);
   const [showAllPhotos, setShowAllPhotosModal] = useState(false);
 
@@ -1454,6 +1556,9 @@ export default function RoomView() {
   const [selectedArrangement, setSelectedArrangement] = useState<Room["room_type"]>("single");
   const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
   const [hasSelectedRoomFilters, setHasSelectedRoomFilters] = useState(false);
+  const [toast, setToast] = useState<{
+  show: boolean; type: "success" | "error"; title: string; message?: string
+  }>({ show: false, type: "success", title: "" })
 
   useEffect(() => {
     const fetchAccommodation = async () => {
@@ -1461,7 +1566,6 @@ export default function RoomView() {
         const res = await api.get(`/accommodations/${id}`);
         const data = res.data.data ?? res.data;
 
-        console.log("ACCOMMODATION DETAILS:", data);
         setAccommodation(data);
 
         if (data.rooms?.length) {
@@ -1486,7 +1590,7 @@ export default function RoomView() {
   }, [selectedTenantRestriction, selectedStayType, selectedArrangement]);
 
   if (loading) {
-      return <UbleLoader />
+    return <UbleLoader />
   }
 
   if (!accommodation) {
@@ -1608,6 +1712,50 @@ export default function RoomView() {
       ?.map((tag: any) => tag.tagDetail ?? tag.tag_detail)
       .filter(Boolean) ?? [];
 
+  const hasAlreadyApplied = myApplications.some(
+    (app: any) =>
+      app.accommodationId === currentAccommodationId &&
+      ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
+  );
+  
+
+  const studentGender = String(user?.student?.gender ?? user?.gender ?? "").toLowerCase();
+  const accommodationRestriction = String((accommodation as any)?.tenantRestriction ?? "").trim().toLowerCase();
+  // console.log({
+  //   user,
+  //   student: user?.student,
+  //   studentGender,
+  //   accommodation,
+  //   accommodationRestriction,
+  // });
+
+  const genderBlocked =
+    (accommodationRestriction === "female-only" && studentGender === "male") ||
+    (accommodationRestriction === "male-only" && studentGender === "female");
+
+  //   console.log({
+  //   studentGender,
+  //   accommodationRestriction,
+  //   genderBlocked,
+  // });
+  // console.log("accommodation keys:", Object.keys(accommodation ?? {}));
+  // console.log("restriction candidates:", {
+  //   tenantRestriction: (accommodation as any)?.tenantRestriction,
+  //   tenant_restriction: (accommodation as any)?.tenant_restriction,
+  //   restriction: (accommodation as any)?.restriction,
+  //   tenantPreference: (accommodation as any)?.tenantPreference,
+  // });
+
+  const cannotApplyReason = hasAlreadyApplied
+    ? "You already have an active application for this dorm."
+    : genderBlocked
+      ? `This dorm is for ${accommodationRestriction === "female-only" ? "female" : "male"} students only.`
+      : !selectedRoom
+        ? "No matching room is currently available."
+        : "";
+
+  const cannotApply = hasAlreadyApplied || genderBlocked || !selectedRoom;
+
   const selectedRoomTags = selectedRoom?.tags ?? [];
 
   const roomInclusions = selectedRoomTags
@@ -1639,6 +1787,7 @@ export default function RoomView() {
   //     : accommodation.pricing?.overallStartingPrice ??
   //       accommodation.cheapestRoomOverall;
 
+
   const isTransient = selectedRoom?.stay === "transient";
 
   const reservationFeeType = selectedRoom?.reservationFeeType;
@@ -1655,8 +1804,6 @@ export default function RoomView() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
-      <Sidebar role="student" />
-
       <main className="flex-1 overflow-y-auto p-6">
 
         <button onClick={() => navigate(-1)}
@@ -1673,10 +1820,10 @@ export default function RoomView() {
 
           {/* Main image — col 1 */}
           <div className="relative overflow-hidden rounded-2xl" style={{ height: 300 }}>
-            <img src={displayPhotos[current]} alt="Main room" className="w-full h-full object-cover" />
+            <img src={displayPhotos[current] || defaultAccommodation} alt="Main room" className="w-full h-full object-cover" onError={(e) => {e.currentTarget.src = defaultAccommodation; }}/>
             <button
               onClick={() => setCurrent((c) => (c - 1 + displayPhotos.length) % displayPhotos.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-[999] transition-all hover:scale-110 active:scale-95"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-10 transition-all hover:scale-110 active:scale-95"
               style={{ background: CLR.mid }}
             >
               <span className="text-white text-xl font-bold pb-1 pr-0.5" style={{ lineHeight: 0 }}>
@@ -1686,7 +1833,7 @@ export default function RoomView() {
 
             <button
               onClick={() => setCurrent((c) => (c + 1) % displayPhotos.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-[999] transition-all hover:scale-110 active:scale-95"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-10 transition-all hover:scale-110 active:scale-95"
               style={{ background: CLR.mid }}
             >
               <span className="text-white text-xl font-bold pb-1 pl-0.5" style={{ lineHeight: 0 }}>
@@ -1699,15 +1846,15 @@ export default function RoomView() {
           <div className="hidden lg:grid grid-rows-2 gap-3" style={{ height: 300 }}>
             {/* Top-right */}
             <div className="overflow-hidden rounded-2xl cursor-pointer" onClick={() => setCurrent(1)}>
-              <img src={displayPhotos[1]} alt="Thumb 2" className="w-full h-full object-cover" />
+              <img src={displayPhotos[1] || defaultAccommodation } alt="Thumb 2" className="w-full h-full object-cover" onError={(e) => {e.currentTarget.src = defaultAccommodation; }}/>
             </div>
             {/* Bottom-right: two small */}
             <div className="grid grid-cols-2 gap-3">
               <div className="overflow-hidden rounded-2xl cursor-pointer" onClick={() => setCurrent(2)}>
-                <img src={displayPhotos[2]} alt="Thumb 3" className="w-full h-full object-cover" />
+                <img src={displayPhotos[2] || defaultAccommodation } alt="Thumb 3" className="w-full h-full object-cover" onError={(e) => {e.currentTarget.src = defaultAccommodation; }}/>
               </div>
               <div className="relative overflow-hidden rounded-2xl cursor-pointer" onClick={() => setCurrent(3)}>
-                <img src={displayPhotos[3]} alt="Thumb 4" className="w-full h-full object-cover" />
+                <img src={displayPhotos[3] || defaultAccommodation} alt="Thumb 4" className="w-full h-full object-cover" onError={(e) => {e.currentTarget.src = defaultAccommodation; }}/>
                 <div className="absolute inset-0 bg-[#6B0F2B]/70 flex items-center justify-center">
                   <button onClick={(e) => { e.stopPropagation(); setShowAllPhotosModal(true); }}
                     className="bg-white text-gray-900 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow">
@@ -1722,17 +1869,50 @@ export default function RoomView() {
 
           <div className="bg-white rounded-2xl shadow-sm p-6 px-8">
             <div className="flex items-center gap-2 flex-wrap mb-2">
-              <StarRating rating={avgRating} size="md" />
-              <span className="text-[15px] font- text-[#9A7080] font-semibold mr-5">
-                {avgRating.toFixed(1)} ({accommodation.reviews.length})
-              </span>
-              <div className="ml-auto flex items-center gap-1">
-                {/* <button onClick={() => setIsFavorited((f) => !f)} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
+              
+              <div className="flex md:hidden items-center gap-1 shrink-0">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" style={{ color: CLR.gold }}>
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="text-[14px] text-[#9A7080] font-semibold">
+                  {avgRating.toFixed(1)} ({accommodation.reviews.length})
+                </span>
+              </div>
+
+              <div className="hidden md:flex items-center gap-2 shrink-0">
+                <StarRating rating={avgRating} size="md" />
+                <span className="text-[15px] text-[#9A7080] font-semibold">
+                  {avgRating.toFixed(1)} ({accommodation.reviews.length})
+                </span>
+              </div>
+
+
+              <div className="ml-auto flex items-center gap-1 shrink-0">
+                <button onClick={async () => {
+
+                  try {
+                    await api.put(`/accommodations/${accommodation.id}/bookmark`, {
+                      studentNumber: studentNo,
+                      favorite: !isFavorited
+                    })
+                    setIsFavorited((f) => !f)
+                    setToast({
+                      show: true,
+                      type: "success",
+                      title: isFavorited ? "Removed from favorites" : "Added to favorites!",
+                      message: isFavorited ? undefined : `${accommodation.accommodationName} has been saved.`
+                    })
+                  } catch (error) {
+                    setToast({ show: true, type: "error", title: "Something went wrong", message: "Please try again." })
+                  }
+
+
+                }} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition">
                   <IconHeart filled={isFavorited} />
-                    <span className="hidden md:inline text-sm font-semibold">
-                      Favorite
-                    </span>
-                </button> */}
+                  <span className="hidden md:inline text-sm font-semibold">
+                    Favorite
+                  </span>
+                </button>
                 <button
                   onClick={() => setIsShareModalOpen(true)}
                   className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
@@ -1741,11 +1921,17 @@ export default function RoomView() {
                   <span className="hidden md:inline text-sm font-semibold">Share</span>
                 </button>
                 <button
-                  onClick={() => { setReportType("dorm"); setIsReportModalOpen(true) }}
+                  onClick={() => {
+                    setReportType("dorm")
+                    setReportOpen(true)
+                    
+                  }}
                   className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
                 >
                   <IconReport />
-                  <span className="hidden md:inline text-sm font-semibold">Report</span>
+                  <span className="hidden md:inline text-sm font-semibold">
+                    Report
+                  </span>
                 </button>
               </div>
             </div>
@@ -1805,7 +1991,7 @@ export default function RoomView() {
               />
             )}
             {selectedTab == "Reviews" && <ReviewsTab reviews={accommodation.reviews} avgRating={avgRating} />}
-            {selectedTab === "Requirements" && <RequirementsTab />}
+            {selectedTab === "Requirements" && <RequirementsTab accommodationId={currentAccommodationId} />}
             {selectedTab === 'Location' && <LocationTab accommodation={accommodation} />}
 
           </div>
@@ -1842,7 +2028,7 @@ export default function RoomView() {
 
                 {/* Inclusions */}
                 <p className="text-[15px] font-bold text-[#9A7080] mt-2">Inclusions:</p>
-                <div className="flex gap-2 mb-4 mt-2">
+                <div className="flex flex-wrap gap-2 mb-4 mt-2">
                   {roomInclusions.length > 0 ? (
                     roomInclusions.map((inc: string) => (
                       <span key={inc} className="flex items-center gap-1.5 text-sm font-medium text-[white] bg-[#6B0F2B] truncate px-3 py-1 rounded-full">
@@ -1906,7 +2092,10 @@ export default function RoomView() {
                     </p>
                     <div className="flex gap-3 mt-2 border-t border-gray-100 pt-2 w-full justify-center">
                       <button
-                        onClick={() => { setReportType("manager"); setIsReportModalOpen(true) }}
+                        onClick={() => {
+                          setReportType("manager")
+                          setReportOpen(true)
+                        }}
                         className="flex items-center gap-1 text-[14px] font-semibold text-[#6B0F2B] px-2"
                       >
                         <IconReport />
@@ -1919,13 +2108,21 @@ export default function RoomView() {
 
                 {/* Apply */}
                 <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors"
-                  style={{ background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = CLR.mid)}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = CLR.dark)}>
-                  Apply for Occupancy
+                  onClick={() => !cannotApply && setIsModalOpen(true)}
+                  disabled={cannotApply}
+                  className={`w-full text-white text-[15px] font-bold py-3.5 rounded-xl transition-colors ${
+                    cannotApply ? "bg-gray-400 cursor-not-allowed" : "shadow-md"
+                  }`}
+                  style={cannotApply ? {} : { background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
+                >
+                  {hasAlreadyApplied ? "Already Applied" : "Apply for Occupancy"}
                 </button>
+
+                {cannotApplyReason && (
+                  <p className="mt-2 text-[12px] text-[#8C1535] italic text-center">
+                    {cannotApplyReason}
+                  </p>
+                )}
 
                 <RoomApplicationModal
                   open={isModalOpen}
@@ -1957,13 +2154,43 @@ export default function RoomView() {
                 />
 
                 <ReportAccommodationModal
-                  open={isReportModalOpen}
-                  onClose={() => setIsReportModalOpen(false)}
+                  open={reportOpen}
+                  onClose={() => setReportOpen(false)}
                   reportType={reportType}
+                  reportableId={
+                    reportType === "dorm"
+                      ? accommodation.id
+                      : accommodation.manager.userId
+                  }
                   accommodationName={accommodation.accommodationName}
-                  managerName={managerUser ? `${managerUser.fname} ${managerUser.lname}` : undefined}
+                  managerName={
+                    accommodation.manager?.user
+                      ? `${accommodation.manager.user.fname} ${accommodation.manager.user.lname}`
+                      : undefined
+                  }
+                  onSuccess={() => setToast({
+                    show: true,
+                    type: "success",
+                    title: "Report submitted",
+                    message: reportType === "dorm"
+                      ? `Your report on ${accommodation.accommodationName} has been sent.`
+                      : `Your report on the manager has been sent.`
+                  })}
+                  onError={() => setToast({
+                    show: true,
+                    type: "error",
+                    title: "Report failed",
+                    message: "Something went wrong. Please try again."
+                  })}
                 />
 
+                <Toast
+                  type={toast.type}
+                  title={toast.title}
+                  message={toast.message}
+                  show={toast.show}
+                  onClose={() => setToast(prev => ({ ...prev, show: false }))}
+                />
               </div>
 
             </div>
@@ -1975,6 +2202,10 @@ export default function RoomView() {
       {showAllPhotos && (
         <AllPhotosModal photos={displayPhotos} onClose={() => setShowAllPhotosModal(false)} />
       )}
+
+      
+
+
     </div>
   );
 }

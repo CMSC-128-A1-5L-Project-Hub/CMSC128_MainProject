@@ -38,13 +38,16 @@ export default class User extends BaseModel {
   declare role: 'student' | 'landlord' | 'manager' | 'unassigned' | 'super_admin'
 
   @column()
-  declare accountStatus: 'pending' | 'active' | 'suspended' | null
+  declare accountStatus: 'pending' | 'active' | 'suspended' | 'rejected' | null
 
   @column()
   declare otpCode: string | null
 
   @column.dateTime()
   declare otpExpiresAt: DateTime | null
+
+  @column.dateTime()
+  declare submittedAt: DateTime | null
 
   @belongsTo(() => FileMetadata, { foreignKey: 'pfpFileId' })
   declare profilePicture: BelongsTo<typeof FileMetadata>

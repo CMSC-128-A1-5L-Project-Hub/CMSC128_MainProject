@@ -1,4 +1,3 @@
-// app/controllers/manager_handover_controller.ts
 import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
 import Manager from '#models/manager'
@@ -52,7 +51,6 @@ export default class ManagerHandoverController {
     accommodation.freezeStartedAt = new Date() as any
     await accommodation.save()
 
-    // Log the freeze action
     await LogService.record(
       user.id,
       'accommodation',
@@ -61,7 +59,6 @@ export default class ManagerHandoverController {
       `Accommodation frozen by landlord. Reason: ${freeze_reason}`
     )
 
-    // Notify current manager that accommodation is frozen
     if (accommodation.manager?.user) {
       await this.notificationService.sendManagerFreezeNotification(
         accommodation.manager.user,
@@ -72,7 +69,7 @@ export default class ManagerHandoverController {
 
     return response.ok({
       status: 200,
-      message: 'Accommodation frozen successfully. Applications will still be accepted but cannot be processed until unfrozen.',
+      message: 'Accommodation frozen successfully.',
       data: {
         accommodationId: accommodation.id,
         isFrozen: accommodation.isFrozen,
@@ -142,6 +139,19 @@ export default class ManagerHandoverController {
         })
       }
 
+      // Deactivate old manager
+      if (oldManagerId) {
+        const oldManagerRecord = await Manager.findBy('userId', oldManagerId)
+        if (oldManagerRecord) {
+          oldManagerRecord.managerStatus = 'inactive'
+          await oldManagerRecord.save()
+        }
+      }
+
+      // Activate/reactivate new manager
+      newManager.managerStatus = 'active'
+      await newManager.save()
+
       // Replace manager
       accommodation.managerId = new_manager_id
 
@@ -169,7 +179,6 @@ export default class ManagerHandoverController {
     accommodation.freezeStartedAt = null
     await accommodation.save()
 
-    // Log unfreeze
     await LogService.record(
       user.id,
       'accommodation',
@@ -186,7 +195,6 @@ export default class ManagerHandoverController {
       )
     }
 
-    // Count piled up pending applications for the response
     const pendingCount = await Application.query()
       .where('accommodation_id', accommodation.id)
       .where('application_status', 'pending')
@@ -204,8 +212,7 @@ export default class ManagerHandoverController {
     })
   }
 
-  // ─── GET /landlord/accommodations/:id/freeze-status ──────────────────────
-  // Landlord: check current freeze status
+  // GET /landlord/accommodations/:id/freeze-status
   async status({ params, auth, response }: HttpContext) {
     const user = auth.user!
 

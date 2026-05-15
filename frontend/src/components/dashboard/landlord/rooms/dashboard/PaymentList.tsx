@@ -1,5 +1,6 @@
 import Card from "../../../../ui/Card";
 import Button from "../../../../Button";
+import { useNavigate } from "react-router-dom";
 
 interface DelinquentStudent {
   fee_id: number
@@ -37,6 +38,7 @@ function fmt(dateStr: string) {
 }
 
 export default function PaymentList({ delinquent = [], pendingPayments = [], isLoading }: PaymentListProps) {
+  const navigate = useNavigate();
   const totalOverdue = delinquent.reduce((sum, d) => sum + d.balance, 0);
   const uniqueStudents = new Set(delinquent.map((d) => d.student_number)).size;
   const oldestDue = delinquent.length > 0 ? delinquent[0].due_date : null; // already sorted asc
@@ -102,9 +104,9 @@ export default function PaymentList({ delinquent = [], pendingPayments = [], isL
 
       {/* PAYMENT VERIFICATIONS */}
       <Card>
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex justify-between items-center mb-2">
           <h3 className="font-bold text-sm">Payment Verifications</h3>
-          <span className="text-xs font-bold text-[#6B0F2B] cursor-pointer">View all →</span>
+          <span className="text-xs font-bold text-[#6B0F2B] cursor-pointer hover:underline" onClick={() => navigate('/landlord/fees')}>View all →</span>
         </div>
         <hr className="border-gray-100 mb-2" />
         <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">

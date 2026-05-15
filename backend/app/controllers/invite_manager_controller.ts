@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
 import User from '#models/user'
+import Manager from '#models/manager'
 import NotificationService from '#services/notification_service'
 import { inject } from '@adonisjs/core'
 
@@ -35,18 +36,134 @@ export default class InviteManagerController {
       })
     }
 
+    const previousManagerId = accommodation.managerId
     const landlordName = `${user.fname} ${user.lname}`
 
+    // Helper to notify outgoing manager
+    const notifyOutgoing = async () => {
+      if (!previousManagerId) return
+      const outgoing = await User.find(previousManagerId)
+      if (outgoing) {
+        await this.notificationService.sendManagerRemovedNotification(
+          outgoing,
+          accommodation.accommodationName
+        )
+      }
+    }
+
     const existingUser = await User.findBy('email', manager_email)
+
     if (existingUser) {
-      return response.badRequest({
-        status: 400,
-        error: 'Bad Request',
-        message:
-          'This account is already registered under a different role. Please use a fresh email.',
+      const existingManager = await Manager.findBy('userId', existingUser.id)
+
+      // If user is already a manager, check their status
+      if (existingManager) {
+        // Allow inactive managers to be re-invited
+        if (existingManager.managerStatus === 'inactive') {
+          // Check if they're assigned to another accommodation
+          const alreadyAssigned = await Accommodation.query()
+            .where('manager_id', existingUser.id)
+            .whereNot('id', accommodation.id)
+            .first()
+
+          if (alreadyAssigned) {
+            return response.badRequest({
+              status: 400,
+              error: 'Bad Request',
+              message: 'This manager is already assigned to another accommodation.',
+            })
+          }
+
+          // Reactivate the inactive manager
+          existingManager.managerStatus = 'active'
+          await existingManager.save()
+
+          // Deactivate old manager if exists
+          if (previousManagerId) {
+            const oldManager = await Manager.findBy('userId', previousManagerId)
+            if (oldManager) {
+              oldManager.managerStatus = 'inactive'
+              await oldManager.save()
+            }
+          }
+
+          // Assign to accommodation
+          accommodation.managerId = existingUser.id
+          accommodation.invitedManagerEmail = null
+          await accommodation.save()
+
+          await this.notificationService.sendManagerAssignmentEmailNotification(
+            existingUser,
+            accommodation.accommodationName
+          )
+          await notifyOutgoing()
+
+          return response.ok({
+            status: 200,
+            message: 'Inactive manager reactivated and assigned successfully.',
+            assigned: true,
+          })
+        }
+
+        // Active manager - check if already assigned elsewhere
+        const alreadyAssigned = await Accommodation.query()
+          .where('manager_id', existingUser.id)
+          .whereNot('id', accommodation.id)
+          .first()
+
+        if (alreadyAssigned) {
+          return response.badRequest({
+            status: 400,
+            error: 'Bad Request',
+            message: 'This manager is already assigned to another accommodation.',
+          })
+        }
+
+        // Deactivate old manager
+        if (previousManagerId) {
+          const oldManager = await Manager.findBy('userId', previousManagerId)
+          if (oldManager) {
+            oldManager.managerStatus = 'inactive'
+            await oldManager.save()
+          }
+        }
+
+        // Assign active manager
+        accommodation.managerId = existingUser.id
+        accommodation.invitedManagerEmail = null
+        await accommodation.save()
+
+        await this.notificationService.sendManagerAssignmentEmailNotification(
+          existingUser,
+          accommodation.accommodationName
+        )
+        await notifyOutgoing()
+
+        return response.ok({
+          status: 200,
+          message: 'Manager assigned successfully.',
+          assigned: true,
+        })
+      }
+
+      // User exists but is not yet a manager — store invite, promote on next sign-in
+      accommodation.invitedManagerEmail = manager_email
+      await accommodation.save()
+
+      await this.notificationService.sendManagerInvitationEmail(
+        manager_email,
+        accommodation.accommodationName,
+        landlordName
+      )
+
+      return response.ok({
+        status: 200,
+        message: 'Invitation sent. User will be promoted to manager on next sign-in.',
+        assigned: false,
       })
     }
 
+    // Email not registered — store invite and send email
     accommodation.invitedManagerEmail = manager_email
     await accommodation.save()
 

@@ -11,6 +11,14 @@ import Pencil from "../../assets/icons/edit.svg";
 import BadgeCheck from "../../assets/icons/verify.svg";
 import FileUp from "../../assets/icons/upload.svg";
 import Save from "../../assets/icons/save.svg";
+import defaultPfp from "../../assets/defaults/male-pfp.png";
+
+interface ProfilePicture {
+  id: number
+  fileName: string
+  filePath: string
+  fileType: 'document' | 'image'
+}
 
 interface ProfileData {
   fullName: string;
@@ -22,6 +30,9 @@ interface ProfileData {
   verifiedSince: string;
   currentDorm: string;
   dormMeta: string;
+
+  pfpFileId: number | null
+  profilePicture: ProfilePicture | null
 }
 
 const formatAccommodationType = (value: string) => {
@@ -80,16 +91,20 @@ export default function Profile() {
         const data = res.data;
 
         setProfile({
-        fullName: data.fullName ?? "NONE",
-        email: data.email ?? "NONE",
-        facebook: data.facebook ?? "NONE",
-        phone: data.phone ?? "NONE",
-        employer: data.employer ?? "NONE",
-        altPhone: data.altPhone ?? "NONE",
-        verifiedSince: data.verifiedSince ?? "NONE",
-        currentDorm: data.currentDorm ?? "No assigned dorm yet",
-        dormMeta: formatAccommodationType(data.dormMeta ?? ""),
-      });
+          fullName: data.fullName ?? "NONE",
+          email: data.email ?? "NONE",
+          facebook: data.facebook ?? "NONE",
+          phone: data.phone ?? "NONE",
+          employer: data.employer ?? "NONE",
+          altPhone: data.altPhone ?? "NONE",
+          verifiedSince: data.verifiedSince ?? "NONE",
+          currentDorm: data.currentDorm ?? "No assigned dorm yet",
+          dormMeta: formatAccommodationType(data.dormMeta ?? ""),
+
+          // profile picture
+          pfpFileId: data.pfpFileId ?? null,
+          profilePicture: data.profilePicture ?? null,
+        });
       } catch (error) {
         console.error("Failed to fetch profile:", error);
       } finally {
@@ -143,8 +158,6 @@ if (profileLoading) {
 
   return (
     <div className="min-h-screen bg-[#FAF6F2] text-[#2A1F1A] lg:flex">
-      <Sidebar role="manager" />
-
       <div className="flex-1">
         <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -175,13 +188,19 @@ if (profileLoading) {
                     <div className="relative h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px]">
                       <button
                         aria-label="Change photo"
-                        // className="absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-[#EADFD3] bg-white"
+                        className="absolute left-2 top-2"
                       >
-                        <img src={Camera} alt="" className="h-7 w-7" />
+                        <img src={Camera} alt="" className="h-6 w-6" />
                       </button>
 
-                      <div className="flex h-full items-end justify-center">
-                        <div className="h-[110px] w-[70px] rounded-t-full bg-[#7A2948] md:h-[150px] md:w-[90px] lg:h-[210px] lg:w-[140px]" />
+                      <div className="flex h-full items-center justify-center">
+                        <img
+                          src={profile.profilePicture?.filePath ?? defaultPfp}
+                          alt="Profile Picture"
+                          onError={(e) => {
+                            e.currentTarget.src = defaultPfp;
+                          }}
+                        />
                       </div>
                     </div>
 
@@ -301,10 +320,10 @@ if (profileLoading) {
 
                   <div className="mt-5 hidden grid-cols-1 gap-x-10 gap-y-5 md:grid-cols-2 lg:mt-6 lg:grid">
                     <Field
-                      label="UP MAIL"
+                      label="Email Address"
                       value={profile.email}
-                      editing={editing}
-                      onChange={(v) => update("email", v)}
+                      editing={false}
+                      onChange={(v) => {}}
                     />
                     <Field
                       label="FACEBOOK LINK"
