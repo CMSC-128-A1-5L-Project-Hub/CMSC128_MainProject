@@ -478,7 +478,7 @@ export default function Waitlist() {
           )}
       </Modal>
 
-        <div className={`bg-[#F6F2F4] rounded-2xl p-6 shadow-sm flex flex-col h-full overflow-hidden ${className ?? ""}`}>
+        <div className={`bg-white rounded-2xl p-6 shadow-sm flex flex-col h-full overflow-hidden ${className ?? ""}`}>
             {/* Header row */}
             <div className="flex items-center justify-between">
               {/* LEFT: grouped */}
