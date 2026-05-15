@@ -32,7 +32,10 @@ export default function PhoneNumber({
                         type="tel"
                         name={name}
                         value={value}
-                        onChange={onChange}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, "").replace(/^0+/, "")
+                            onChange({ target: { name: e.target.name, value: val } })
+                        }}
                         placeholder="9XXXXXXXXXX"
                         maxLength={10}
                         className={`min-w-0 flex-1 border rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-gray-300 focus:outline-none focus:ring-2 transition
