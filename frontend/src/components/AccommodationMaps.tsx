@@ -31,17 +31,43 @@ const MIN_ZOOM = 6
 // Below this zoom level, marker shows rating only (no name)
 const NAME_ZOOM_THRESHOLD = 15
 
-// Global pin size multiplier. 1 = default ladder below. Bump up/down to resize ALL pins.
-const PIN_SIZE_MULTIPLIER = 1.1
+// Global pin size multiplier. Bumps the whole curve up/down without changing its shape.
+const PIN_SIZE_MULTIPLIER = 1
 
-// Pin scale by zoom — shrinks when zoomed out so far-away pins don't clutter
+// Pin scaling — exponential in zoom (matches Mapbox's log-scale zoom).
+//   scale = SCALE_PER_STEP ^ (REF_ZOOM - z), clamped to [MIN_SCALE, MAX_SCALE]
+// At z = REF_ZOOM, raw scale is 1. SCALE_PER_STEP < 1 shrinks as you zoom out;
+// the smaller it is (e.g. 0.6), the more aggressive the shrink per zoom level.
+const PIN_REF_ZOOM = 15
+const PIN_SCALE_PER_STEP = 0.9
+const PIN_MIN_SCALE = 0.35
+const PIN_MAX_SCALE = 1.6
+
 function scaleForZoom(z: number): number {
-  let base: number
-  if (z >= 15) base = 1
-  else if (z >= 14) base = 0.9
-  else if (z >= 13) base = 0.7
-  else base = 0.5
-  return base * PIN_SIZE_MULTIPLIER
+  const raw = Math.pow(PIN_SCALE_PER_STEP, PIN_REF_ZOOM - z)
+  const clamped = Math.max(PIN_MIN_SCALE, Math.min(PIN_MAX_SCALE, raw))
+  return clamped * PIN_SIZE_MULTIPLIER
+}
+
+// Depth-sort z-index for non-selected pins. With pitch tilting the camera north,
+// southern (lower-lat) pins should overlap northern ones. Eastward bias is for
+// when bearing rotates the view; keep it small (or 0) for bearing=0.
+const DEPTH_Z_BASE = 100   // lowest z assigned to a pin
+const DEPTH_Z_RANGE = 300  // spread; stays below selected (497) / UPLB (498) / popup (499)
+const DEPTH_LAT_WEIGHT = 0.85
+const DEPTH_LNG_WEIGHT = 0.15
+
+function depthZForPin(lat: number, lng: number): number {
+  // Normalize to [0, 1] within our bounded area (1 = south or east)
+  const [[westLng, southLat], [eastLng, northLat]] = LOS_BANOS_BOUNDS as [[number, number], [number, number]]
+  const tLat = clamp01((northLat - lat) / (northLat - southLat))
+  const tLng = clamp01((lng - westLng) / (eastLng - westLng))
+  const blend = DEPTH_LAT_WEIGHT * tLat + DEPTH_LNG_WEIGHT * tLng
+  return Math.floor(DEPTH_Z_BASE + DEPTH_Z_RANGE * blend)
+}
+
+function clamp01(x: number): number {
+  return Math.max(0, Math.min(1, x))
 }
 
 export interface AccommodationReview {
@@ -123,7 +149,7 @@ const AccommodationPinMarker = memo(function AccommodationPinMarker({
       longitude={acc.longitude}
       latitude={acc.latitude}
       anchor="bottom"
-      style={{ zIndex: isSelected ? 497 : 1 }}
+      style={{ zIndex: isSelected ? 497 : depthZForPin(acc.latitude, acc.longitude) }}
       onClick={(e) => {
         e.originalEvent.stopPropagation()
         onSelect(acc, isSelected)
