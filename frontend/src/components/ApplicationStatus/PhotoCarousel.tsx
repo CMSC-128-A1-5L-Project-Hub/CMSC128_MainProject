@@ -32,12 +32,16 @@ const [currentPhoto, setCurrentPhoto] = useState(0);
                     {photos.length > 1 && (
                         <>
                             <button
-                                onClick={() => setCurrentPhoto(i => (i - 1 + photos.length) % photos.length)}
+                                onClick={(e) => 
+                                    {e.stopPropagation()
+                                    setCurrentPhoto(i => (i - 1 + photos.length) % photos.length)}}
                                 className="absolute left-2 top-1/2 p-0 -translate-y-1/2 bg-[#6B0F2B]/40 text-white rounded-full w-8 h-8 flex items-center justify-center">
                                 <p className="-mt-1 font-bold">‹</p>
                             </button>
                             <button
-                                onClick={() => setCurrentPhoto(i => (i + 1) % photos.length)}
+                                onClick={(e) => 
+                                    {e.stopPropagation()
+                                    setCurrentPhoto(i => (i + 1) % photos.length)}}
                                 className="absolute right-2 top-1/2 p-0 -translate-y-1/2 bg-[#6B0F2B]/40 text-white rounded-full w-8 h-8 flex items-center justify-center">
                                 <p className="-mt-1 font-bold">›</p>
                             </button>
@@ -45,7 +49,9 @@ const [currentPhoto, setCurrentPhoto] = useState(0);
                                 {photos.map((_, i) => (
                                     <div
                                         key={i}
-                                        onClick={() => setCurrentPhoto(i)}
+                                        onClick={(e) => 
+                                            {e.stopPropagation()
+                                            setCurrentPhoto(i)}}
                                         className={`w-1.5 h-1.5 rounded-full cursor-pointer ${i === currentPhoto ? 'bg-white' : 'bg-white/50'}`}
                                     />
                                 ))}
