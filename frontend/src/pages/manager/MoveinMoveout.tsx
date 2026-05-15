@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { api } from "../../api/axios";
 import CustomHeader from '../../components/CustomHeader';
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import SearchBar from '../../components/SearchBar';
+import Toast from "@/components/Toast";
 
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
@@ -165,6 +166,19 @@ export default function MoveinMoveout() {
             },
             placeholderData: (prev) => prev,
         });
+
+    useEffect(() => {
+        if (isErrorList) {
+            setToast({ show: true, type: "error", title: "Failed to load data", message: "Could not fetch move-in/move-out records." });
+        }
+    }, [isErrorList]);
+
+    const [toast, setToast] = useState<{
+        show: boolean;
+        type: "success" | "error" | "info" | "warning" | "loading";
+        title: string;
+        message?: string;
+    }>({ show: false, type: "success", title: "" });
 
     //TABLE 
     const MoveInMoveOutTable = ({ records = assignments }: { records?: AssignmentResponse[] }) => {
@@ -550,22 +564,32 @@ export default function MoveinMoveout() {
     }
 
     return (
-        <div className="flex flex-col flex-1 min-w-0 w-full">
-            <CustomHeader
-                title="Move In & Move Out"></CustomHeader>    
-            <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
-                <main className="flex-1 flex flex-col gap-4">
-                    <HeroBanner
-                        greeting="Good Day"
-                        name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-                        title="Check your applicants"
-                        subtitle="We make it easy for you to track the accommodation applications you manage."
-                        type="mini"
-                    />
-                    {/* TABLE */}
-                    <MoveInMoveOutTable records={[]} />
-                </main>
+        <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
+            {/* CONTENT */}
+            <div className="flex flex-col flex-1 min-w-0 w-full">
+                <CustomHeader
+                    title="Move In & Move Out"></CustomHeader>    
+                <div className="flex-1 flex flex-col p-6 overflow-y-auto">
+                    <main className="flex-1 flex flex-col gap-6">
+                        <HeroBanner
+                            greeting="Good Day"
+                            name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
+                            title="Check your applicants"
+                            subtitle="We make it easy for you to track the accommodation applications you manage."
+                            type="mini"
+                        />
+                        {/* TABLE */}
+                        <MoveInMoveOutTable records={[]} />
+                    </main>
+                </div>
             </div>
+            <Toast
+                type={toast.type}
+                title={toast.title}
+                message={toast.message}
+                show={toast.show}
+                onClose={() => setToast(prev => ({ ...prev, show: false }))}
+            />
         </div>
     )
 }
