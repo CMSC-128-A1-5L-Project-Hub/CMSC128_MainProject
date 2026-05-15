@@ -23,6 +23,7 @@ import { useQuery } from "@tanstack/react-query"
 import { DateTime } from "luxon"
 import Dropdown from "@/components/ApplicationStatus/Dropdown"
 import SearchBar from "@/components/SearchBar"
+import SuccessIndicator from "@/components/ui/SuccessIndicator"
 
 type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected";
 

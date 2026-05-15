@@ -9,6 +9,7 @@ import AccommodationMap, { type AccommodationPin, type AccommodationReview } fro
 import { api } from '../api/axios'
 import { motion } from "framer-motion"
 import { useUserStore } from '../stores/useUserStore'
+import MiniAuthModal from '../components/MiniAuthModal'
 
 const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
   const res = await api.get('/accommodations')
@@ -89,6 +90,7 @@ export default function MapPage() {
   const [showAllTags, setShowAllTags] = useState(false)
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
 
   // ─── Favorites (persisted to localStorage) ────────────────────────────────
   const [favorites, setFavorites] = useState<Set<number>>(() => {
@@ -536,7 +538,15 @@ export default function MapPage() {
                 <AccommodationMap
                   accommodations={filtered}
                   centeredAccommodation={centeredAccommodation}
-                  onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
+                  onCardClick={(acc) => {
+                    const target = `/student/roomview/${acc.accommodationId}`
+                    if (isLoggedIn) {
+                      navigate(target)
+                    } else {
+                      sessionStorage.setItem('redirectAfterAuth', target)
+                      setAuthModalOpen(true)
+                    }
+                  }}
                   favorites={isLoggedIn ? favorites : new Set()}
                   onToggleFavorite={isLoggedIn ? toggleFavorite : undefined}
                 />
@@ -545,6 +555,7 @@ export default function MapPage() {
           </div>
         </div>
       </motion.div>
+      <MiniAuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </motion.div>
 
   )
