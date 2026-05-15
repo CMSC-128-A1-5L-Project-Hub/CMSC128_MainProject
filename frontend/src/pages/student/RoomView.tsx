@@ -1800,10 +1800,19 @@ export default function RoomView() {
   //   tenantPreference: (accommodation as any)?.tenantPreference,
   // });
 
+  const stayTypeLabel =
+    selectedStayType === "non_transient"
+      ? "non-transient"
+      : "transient";
+
   const cannotApplyReason = hasAlreadyApplied
-    ? "You already have an active application for this dorm."
+    ? `You already have an active ${stayTypeLabel} application for this dorm.`
     : genderBlocked
-      ? `This dorm is for ${accommodationRestriction === "female-only" ? "female" : "male"} students only.`
+      ? `This dorm is for ${
+          accommodationRestriction === "female-only"
+            ? "female"
+            : "male"
+        } students only.`
       : !selectedRoom
         ? "No matching room is currently available."
         : "";
