@@ -53,6 +53,32 @@ function formatTime(dateString: string) {
   }).format(date);
 }
 
+// VIEW DOCUMENTS
+const handleView = async (
+  applicationId: number,
+  requirementName: string
+) => {
+  try {
+    const res = await fetch(`/applications/${applicationId}/documents`)
+    const docs = await res.json()
+
+    const doc = docs.find(
+      (d: any) => d.requirementName === requirementName
+    )
+
+    if (!doc || !doc.url) {
+      alert('Document not found')
+      return
+    }
+
+    // open file in new tab (view)
+    window.open(doc.url, '_blank')
+  } catch (err) {
+    console.error(err)
+    alert('Failed to load document')
+  }
+}
+
 // MAIN CONTENT INSIDE MODAL 
 const ApplicationModalContent = ({
   app,
@@ -219,7 +245,7 @@ const ApplicationModalContent = ({
                     <Button
                       variant="reddishPink"
                       size="sm"
-                      onClick={() => handleView(app.id)}
+                      onClick={() => handleView(app.id, doc.label)}
                     >
                       View
                     </Button>
