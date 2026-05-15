@@ -8,6 +8,7 @@ import Modal from "../../components/Modal"
 import CustomHeader from '../../components/CustomHeader';
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import SearchBar from '../../components/SearchBar';
+import Toast from "@/components/Toast"
 import { api } from "../../api/axios"
 import { useProfile } from "../../../hooks/useDashboardQueries"
 
@@ -597,6 +598,13 @@ export default function OccupancyRecords() {
     const [error, setError] = useState("")
     const [historyRecords, setHistoryRecords] = useState<HistoryRecord[]>([])
 
+    const [toast, setToast] = useState<{
+        show: boolean;
+        type: "success" | "error" | "info" | "warning" | "loading";
+        title: string;
+        message?: string;
+    }>({ show: false, type: "success", title: "" });
+
     useEffect(() => {
         const fetchOccupancyData = async () => {
             try {
@@ -605,6 +613,7 @@ export default function OccupancyRecords() {
             } catch (err: any) {
                 console.error("Rooms error:", err)
                 setError(err.response?.data?.message || "Could not load rooms.")
+                setToast({ show: true, type: "error", title: "Failed to load rooms", message: err.response?.data?.message || "Could not load rooms."})
             }
 
             try {
@@ -613,6 +622,7 @@ export default function OccupancyRecords() {
             } catch (err: any) {
                 console.error("History error:", err)
                 setHistoryRecords([])
+                setToast({ show: true, type: "error", title: "Failed to load history", message: "Occupancy history could not be retrieved." })
             } finally {
                 setLoading(false)
             }
@@ -682,7 +692,13 @@ export default function OccupancyRecords() {
                     </main>
                 </div>
             </div>
-            
+            <Toast
+                type={toast.type}
+                title={toast.title}
+                message={toast.message}
+                show={toast.show}
+                onClose={() => setToast(prev => ({ ...prev, show: false }))}
+            />
         </div>
     )
 }
