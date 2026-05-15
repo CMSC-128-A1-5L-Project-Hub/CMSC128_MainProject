@@ -626,6 +626,7 @@ export default function Dashboard() {
         showReplaceButton
         accommodationId={accommodationId}
         onManagerReplaced={() => queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] })}
+        setToast={setToast}
       />
       <ApplicationPeriod
         initialStart={accommodation?.applicationStartDate}

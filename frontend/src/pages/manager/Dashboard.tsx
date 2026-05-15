@@ -267,6 +267,7 @@ export default function Dashboard() {
               dormitory={profile?.dormitory ?? 'Loading...'}
               status={profile?.accountStatus ?? 'pending'}
               onNotification={() => {}}
+              setToast={setToast}
             />
             <AvailableRooms
               totalRooms={rooms.length}

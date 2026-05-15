@@ -21,6 +21,7 @@ type ProfileCardProps = {
     showReplaceButton?: boolean
     accommodationId?: number
     onManagerReplaced?: () => void
+    setToast?: (t: { show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string }) => void
 }
 
 const CLR = {
@@ -43,6 +44,7 @@ export default function ProfileCard({
     showReplaceButton = false,
     accommodationId,
     onManagerReplaced,
+    setToast
 }: ProfileCardProps) {
     const [reportOpen, setReportOpen] = useState(false)
     const [editModalOpen, setEditModalOpen] = useState(false)
@@ -68,8 +70,10 @@ export default function ProfileCard({
             setEditModalOpen(false)
             setReplacementEmail("")
             onManagerReplaced?.()
+            setToast?.({ show: true, type: "success", title: "Invite Sent!", message: "The manager invitation has been sent successfully." })
         } catch (e: any) {
             setInviteError(e?.response?.data?.message ?? "Failed to send invite.")
+            setToast?.({ show: true, type: "error", title: "Invite Failed", message: e?.response?.data?.message ?? "Could not send the invitation." })
         } finally {
             setInviteSubmitting(false)
         }
@@ -90,7 +94,10 @@ export default function ProfileCard({
                     read: n.readStatus === 'read',
                 }))
             )
-        }).catch(console.error)
+        }).catch((e) => {
+            console.error(e)
+            setToast?.({ show: true, type: "error", title: "Failed to load notifications", message: "Could not fetch your notifications." })
+        })
     }, [])
 
     const unreadCount = notifications.filter((n) => !n.read).length
