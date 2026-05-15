@@ -164,6 +164,7 @@ const PriceRangeSlider = ({
                     onChange={handleMaxChange}
                     className="thumb thumb-right"
                     style={{
+
                         width: sliderWidth,
                         zIndex: minVal > max - 100 || minVal === maxVal ? 4 : undefined,
                     }}

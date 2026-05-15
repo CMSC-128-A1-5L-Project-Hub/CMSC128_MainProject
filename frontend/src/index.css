@@ -177,10 +177,10 @@ button {
   z-index: 4;
 }
 
-.thumb {
+.thumb,
+.thumb::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .thumb::-webkit-slider-thumb {
