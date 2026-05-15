@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query'
 import AccommodationMap, { type AccommodationPin, type AccommodationReview } from '../components/AccommodationMaps'
 import { api } from '../api/axios'
 import { motion } from "framer-motion"
+import { useUserStore } from '../stores/useUserStore'
 
 const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
   const res = await api.get('/accommodations')
@@ -62,6 +63,8 @@ const DEFAULT_MAX_RENT = 15000
 export default function MapPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const user = useUserStore((s) => s.user)
+  const isLoggedIn = !!user
 
   const { data: accommodations = [], isLoading, isError } = useQuery({
     queryKey: ['accommodations'],
@@ -257,6 +260,7 @@ export default function MapPage() {
                   </div>
 
                   {/* Favorites toggle */}
+                  {isLoggedIn && (
                   <div className="max-md:col-span-2 space-y-2">
                     <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Show Favorites Only</label>
                     <div className="h-[46px] flex items-center justify-between p-3 bg-[#FDF7F8] rounded-2xl border border-[#F5EBEB]">
@@ -289,6 +293,7 @@ export default function MapPage() {
                       </label>
                     </div>
                   </div>
+                  )}
 
                   {/* Dorm Type */}
                   <div className="max-md:col-span-1 space-y-2">
@@ -542,8 +547,8 @@ export default function MapPage() {
                 accommodations={filtered}
                 centeredAccommodation={centeredAccommodation}
                 onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
-                favorites={favorites}
-                onToggleFavorite={toggleFavorite}
+                favorites={isLoggedIn ? favorites : new Set()}
+                onToggleFavorite={isLoggedIn ? toggleFavorite : undefined}
               />
             </div>
           </div>
