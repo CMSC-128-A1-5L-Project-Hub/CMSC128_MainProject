@@ -232,6 +232,13 @@ export default function MapPage() {
                       <p className="text-sm -mt-1 text-white/60">
                         {isLoading ? 'Loading...' : `${filtered.length} of ${accommodations.length} shown`}
                       </p>
+                      <button
+                        onClick={() => window.history.back()}
+                        className="mb-3 text-sm font-semibold text-white/80 hover:text-white flex items-center gap-1"
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                      >
+                        ← Back
+                      </button>
                     </div>
 
                   </div>
