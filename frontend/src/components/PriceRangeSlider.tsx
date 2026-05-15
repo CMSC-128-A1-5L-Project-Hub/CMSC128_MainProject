@@ -73,7 +73,7 @@ const PriceRangeSlider = ({
     }, [minVal, maxVal, onChange]);
 
     return (
-        <div className='w-full flex items-center justify-center flex-col space-y-14'>
+        <div className='w-full flex items-center justify-center flex-col space-y-3'>
 
             {/* Display Price Value */}
             {!mobileScreen ? <div className="w-[300px] px-4 flex items-center justify-between gap-x-5">

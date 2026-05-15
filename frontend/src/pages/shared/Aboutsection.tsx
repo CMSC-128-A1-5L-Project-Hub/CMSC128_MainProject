@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import DormCard from "../../components/DormCard";
+import MiniAuthModal from "../../components/MiniAuthModal";
 import { api } from "../../api/axios";
 
 const KF = `
@@ -22,7 +23,6 @@ const KF = `
   @keyframes f11 { 0%,100%{transform:translateY(0) rotate(5deg)}   50%{transform:translateY(-9px)  rotate(5deg)}   }
   @keyframes fdot{ 0%,100%{transform:translateY(0)}                50%{transform:translateY(-6px)}                 }
 
-  /* Stats wrapper responsive */
   @media (max-width: 960px) {
     .stats-outer-wrapper {
       justify-content: center !important;
@@ -36,23 +36,49 @@ const KF = `
     }
   }
 
-  /* MOBILE ONLY — hide cards, stack text */
-  @media (max-width: 768px) {
+  @media (max-width: 1180px) {
+    .cards-grid {
+      display: none !important;
+    }
     .about-outer-grid {
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
       text-align: center !important;
-      padding: 40px 24px 60px !important;
+      padding: 52px 24px 100px !important;
     }
     .text-container {
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
       margin-bottom: 0 !important;
+      max-width: 780px !important;
     }
-    .cards-grid {
-      display: none !important;
+    .text-container h2 {
+      font-size: clamp(32px, 5vw, 52px) !important;
+    }
+    .text-container p {
+      font-size: 16px !important;
+      max-width: 640px !important;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .about-outer-grid {
+      padding: 40px 20px 60px !important;
+    }
+    .text-container h2 {
+      font-size: clamp(28px, 7vw, 38px) !important;
+    }
+    .text-container p {
+      font-size: 14px !important;
+    }
+    .stat-item-box {
+      padding-left: clamp(12px, 3vw, 30px) !important;
+      padding-right: clamp(12px, 3vw, 30px) !important;
+    }
+    .stats-outer-wrapper {
+      gap: clamp(8px, 3vw, 20px) !important;
     }
   }
 `;
@@ -101,33 +127,13 @@ function Pill({ label, bg, color, border, anim, delay, dur, style, isAnchor, isC
   };
   if (isCircle)
     return (
-      <span
-        style={{
-          ...base,
-          width: 28,
-          height: 28,
-          borderRadius: "50%",
-          fontSize: 6.5,
-          fontWeight: 800,
-          letterSpacing: "0.05em",
-          flexDirection: "column",
-          padding: 0,
-        }}
-      >
+      <span style={{ ...base, width: 28, height: 28, borderRadius: "50%", fontSize: 6.5, fontWeight: 800, letterSpacing: "0.05em", flexDirection: "column", padding: 0 }}>
         {label}
       </span>
     );
   if (isAnchor)
     return (
-      <span
-        style={{
-          ...base,
-          flexDirection: "column",
-          borderRadius: 999,
-          padding: "4px 8px",
-          gap: 1,
-        }}
-      >
+      <span style={{ ...base, flexDirection: "column", borderRadius: 999, padding: "4px 8px", gap: 1 }}>
         <span style={{ fontSize: 5.5, letterSpacing: "0.14em", color: "#fff", textTransform: "uppercase" }}>UBLE</span>
         <span style={{ fontSize: 10.5, fontWeight: 700, color: "#fff" }}>Find Your Home</span>
       </span>
@@ -194,7 +200,6 @@ function RoomsCard() {
 
 function OccCard() {
   const [occupancy, setOccupancy] = useState<{ id: number; name: string; occupancyRate: number }[]>([]);
-
   useEffect(() => {
     const fetchOccupancy = async () => {
       try {
@@ -224,21 +229,7 @@ function OccCard() {
       </div>
       {OCC.map(({ label, pct }) => (
         <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span
-            style={{
-              fontSize: 10.5,
-              fontWeight: 600,
-              color: "#2A0410",
-              width: 92,
-              minWidth: 92,
-              lineHeight: 1.2,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              wordBreak: "break-word",
-            }}
-          >
+          <span style={{ fontSize: 10.5, fontWeight: 600, color: "#2A0410", width: 92, minWidth: 92, lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", wordBreak: "break-word" }}>
             {label}
           </span>
           <div style={{ flex: 1, height: 7, borderRadius: 999, background: "#F5ECF0", overflow: "hidden" }}>
@@ -280,9 +271,7 @@ function Stat({ value, l1, l2, border }: { value: string; l1: string; l2: string
       <div className="stat-item-box" style={{ padding: "22px 44px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <span style={{ fontFamily: "Georgia, serif", fontSize: "clamp(32px, 5vw, 58px)", fontWeight: 700, color: "#6B0F2B", lineHeight: 1 }}>{value}</span>
         <span style={{ fontSize: "clamp(8px, 1.6vw, 10px)", fontWeight: 700, letterSpacing: "0.14em", color: "#8A5060", marginTop: 7, lineHeight: 1.5, textAlign: "center" }}>
-          {l1}
-          <br />
-          {l2}
+          {l1}<br />{l2}
         </span>
       </div>
       {border && <div className="stat-divider" style={{ width: 1, background: "#E8DFE3", margin: "18px 0" }} />}
@@ -291,14 +280,39 @@ function Stat({ value, l1, l2, border }: { value: string; l1: string; l2: string
 }
 
 export default function AboutSection() {
-  const scrollRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: scrollRef,
-    offset: ["start end", "end start"],
-  });
+  const scrollRef = useRef<HTMLElement>(null);
 
   const [topRatedDorms, setTopRatedDorms] = useState<any[]>([]);
   const [stats, setStats] = useState({ dorms: 0, rooms: 0, rating: 0 });
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  // Manual scroll-based parallax — uses window.scrollY directly so that
+  // body overflow:hidden (from modal) never affects the computed values.
+  const [yColB, setYColB] = useState(100);
+  const [yColC, setYColC] = useState(40);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const el = scrollRef.current;
+      if (!el) return;
+      const sectionTop = el.offsetTop;
+      const sectionHeight = el.offsetHeight;
+      const progress = Math.min(
+        Math.max(
+          (window.scrollY - sectionTop + window.innerHeight) /
+            (sectionHeight + window.innerHeight),
+          0
+        ),
+        1
+      );
+      setYColB(100 + progress * -280); // 100 → -180
+      setYColC(40 + progress * -120);  // 40  → -80
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // set initial values
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchTopRatedDorms = async () => {
@@ -309,7 +323,6 @@ export default function AboutSection() {
         console.error("Failed to fetch top rated dorms:", error);
       }
     };
-
     const fetchStats = async () => {
       try {
         const [dormsRes, roomsRes, ratingsRes] = await Promise.all([
@@ -326,31 +339,18 @@ export default function AboutSection() {
         console.error("Failed to fetch stats:", error);
       }
     };
-
     fetchTopRatedDorms();
     fetchStats();
   }, []);
 
   const featuredDorm = topRatedDorms[0];
 
-  // Scroll parallax — only active on desktop where cards are visible
-  const yColA = useTransform(scrollYProgress, [0, 1], [0, 0]);
-  const yColB = useTransform(scrollYProgress, [0, 1], [100, -180]);
-  const yColC = useTransform(scrollYProgress, [0, 1], [40, -80]);
-
   const handleViewDorm = async () => {
     if (!featuredDorm?.id) return;
-    try {
-      const res = await api.get("/me");
-      const user = res.data.user ?? res.data;
-      if (user?.role !== "student") {
-        window.location.href = "/auth/signin";
-        return;
-      }
-      window.location.href = `/student/roomview/${featuredDorm.id}`;
-    } catch {
-      window.location.href = "/auth/signin";
-    }
+    // Store the redirect path
+    sessionStorage.setItem("redirectAfterAuth", `/student/roomview/${featuredDorm.id}`);
+    // Just show the mini auth modal - no login check
+    setAuthModalOpen(true);
   };
 
   return (
@@ -390,10 +390,8 @@ export default function AboutSection() {
           style={{
             maxWidth: 1200,
             margin: "0 auto",
-            // horizontal padding so content never flushes the viewport edges
             padding: "52px 24px 100px",
             display: "grid",
-            // fluid columns — left text col is fixed at 360px, cards take the rest
             gridTemplateColumns: "360px 1fr",
             gap: "clamp(20px, 4vw, 64px)",
             alignItems: "center",
@@ -423,22 +421,19 @@ export default function AboutSection() {
             </p>
           </motion.div>
 
-          {/* ── Cards grid — hidden on mobile via .cards-grid media query ── */}
+          {/* ── Cards grid ── */}
           <div
             className="cards-grid"
             style={{
-              // 3 fluid columns that scale together
               display: "grid",
               gridTemplateColumns: "1fr 1.3fr 1fr",
               gap: 16,
               alignItems: "end",
-              // prevent columns from getting too narrow on mid-range laptops
               minWidth: 0,
             }}
           >
-            {/* Col 1 — DormCard */}
+            {/* Col 1 — DormCard (no parallax) */}
             <motion.div
-              style={{ y: yColA as any }}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -466,7 +461,7 @@ export default function AboutSection() {
 
             {/* Col 2 — Tags + RoomsCard */}
             <motion.div
-              style={{ position: "relative", paddingTop: 190, y: yColB as any }}
+              style={{ position: "relative", paddingTop: 190, y: yColB }}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -480,7 +475,7 @@ export default function AboutSection() {
 
             {/* Col 3 — OccCard + ReviewCard */}
             <motion.div
-              style={{ display: "flex", flexDirection: "column", gap: 14, y: yColC as any }}
+              style={{ display: "flex", flexDirection: "column", gap: 14, y: yColC }}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -496,6 +491,11 @@ export default function AboutSection() {
           </div>
         </div>
       </section>
+
+      <MiniAuthModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+      />
     </>
   );
 }

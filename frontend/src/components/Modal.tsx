@@ -37,29 +37,31 @@ export function Modal({
   // Handle animation timing
   useEffect(() => {
     if (open) {
-        setShouldRender(true);
+      setShouldRender(true);
+      requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                setIsAnimating(true);
-            });
+          setIsAnimating(true);
         });
+      });
     } else {
       setIsAnimating(false);
-      // Wait for animation to complete before removing from DOM
       const timer = setTimeout(() => setShouldRender(false), 300);
       return () => clearTimeout(timer);
     }
   }, [open]);
 
-  // Lock scroll
   useEffect(() => {
     if (open) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
     } else {
       document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
     }
     return () => {
       document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
     };
   }, [open]);
 
@@ -167,7 +169,7 @@ export function Modal({
             </div>
           )}
 
-          {/* ── Body ── */}
+          {/* BODY */}
           <div
             style={{
               padding: "24px 28px",
