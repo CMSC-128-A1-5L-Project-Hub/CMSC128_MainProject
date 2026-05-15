@@ -8,6 +8,7 @@ import CustomHeader from '../../components/CustomHeader'
 import PriceRangeSlider from "../../components/PriceRangeSlider"
 import HeroBanner from "@/components/dashboard/HeroBanner"
 import Pagination from "@/components/ApplicationStatus/Pagination"
+import Toast from "@/components/Toast"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../api/axios"
 import UbleLoader from "../shared/LoadingPage"
@@ -124,9 +125,23 @@ export default function BrowsePage() {
             console.error(error)
         }
     }
+    const [toast, setToast] = useState<{
+        show: boolean;
+        type: "success" | "error" | "info" | "warning" | "loading";
+        title: string;
+        message?: string;
+    }>({ show: false, type: "success", title: "" });
 
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
     useEffect(() => { if (user && user.role !== "student") navigate("/auth/signin") }, [user, navigate])
+    useEffect(() => {
+        if (accommodationsError)
+            setToast({
+                show: true, type: "error",
+                title: "Failed to load accommodations",
+                message: "Please check your connection and try again."
+            })
+    }, [accommodationsError])
 
     const [flatDorms, setFlatDorms] = useState<Dorm[]>([])
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([])
@@ -496,6 +511,13 @@ export default function BrowsePage() {
                         }} />
                     </div>
                 </div>
+                <Toast
+                    type={toast.type}
+                    title={toast.title}
+                    message={toast.message}
+                    show={toast.show}
+                    onClose={() => setToast(prev => ({ ...prev, show: false }))}
+                />
             </div>
         </filterContext.Provider>
     )

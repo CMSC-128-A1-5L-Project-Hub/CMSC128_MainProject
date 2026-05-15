@@ -1507,6 +1507,7 @@ export default function RoomView() {
         const res = await api.get("/applications/my-applications");
         return res.data;
       } catch (error: any) {
+        setToast({ show: true, type: "error", title: "Failed to load applications", message: "Refresh the page and try again." })
         if (error.response?.status === 404) return [];
         throw error;
       }
@@ -1575,6 +1576,7 @@ export default function RoomView() {
         }
       } catch (error) {
         console.error("Failed to fetch accommodation:", error);
+        setToast({ show: true, type: "error", title: "Failed to load accommodation", message: "Refresh the page and try again." })
       } finally {
         setLoading(false);
       }
