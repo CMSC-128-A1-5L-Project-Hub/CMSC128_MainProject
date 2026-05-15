@@ -571,7 +571,7 @@ export default function MoveinMoveout() {
     }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#F5EEF0] font-sans">
+        <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
             {/* CONTENT */}
             <div className="flex flex-col flex-1 min-w-0 w-full">
                 <CustomHeader
