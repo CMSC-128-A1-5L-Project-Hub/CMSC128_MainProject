@@ -1709,6 +1709,40 @@ export default function RoomView() {
   //       )
   //     : null;
 
+  const snapToValidRoomFilters = ({
+    tenant = selectedTenantRestriction,
+    stay = selectedStayType,
+    type = selectedArrangement,
+  }: {
+    tenant?: string;
+    stay?: string;
+    type?: string;
+  }) => {
+    let room = normalizedRooms.find(
+      (r) => r.tenant === tenant && r.stay === stay && r.type === type
+    );
+
+    if (!room) {
+      room = normalizedRooms.find(
+        (r) => r.stay === stay && r.type === type
+      );
+    }
+
+    if (!room) {
+      room = normalizedRooms.find(
+        (r) => r.stay === stay
+      );
+    }
+
+    if (!room) return;
+
+    setselectedTenantRestriction(room.tenant);
+    setSelectedStayType(room.stay);
+    setSelectedArrangement(room.type);
+    setSelectedPreferences([]);
+    setHasSelectedRoomFilters(true);
+  };
+
   const accommodationTags =
     accommodation.tags
       ?.map((tag: any) => tag.tagDetail ?? tag.tag_detail)
@@ -1994,19 +2028,28 @@ export default function RoomView() {
                 selectedPreferences={selectedPreferences}
                 setSelectedPreferences={setSelectedPreferences}
                 selectedTenantRestriction={selectedTenantRestriction}
+                // setselectedTenantRestriction={(v) => {
+                //   setselectedTenantRestriction(v);
+                //   setHasSelectedRoomFilters(true);
+                // }}
                 setselectedTenantRestriction={(v) => {
-                  setselectedTenantRestriction(v);
-                  setHasSelectedRoomFilters(true);
+                  snapToValidRoomFilters({ tenant: v });
                 }}
                 selectedStayType={selectedStayType}
+                // setSelectedStayType={(v) => {
+                //   setSelectedStayType(v);
+                //   setHasSelectedRoomFilters(true);
+                // }}
                 setSelectedStayType={(v) => {
-                  setSelectedStayType(v);
-                  setHasSelectedRoomFilters(true);
+                  snapToValidRoomFilters({ stay: v });
                 }}
                 selectedArrangement={selectedArrangement}
+                // setSelectedArrangement={(v) => {
+                //   setSelectedArrangement(v);
+                //   setHasSelectedRoomFilters(true);
+                // }}
                 setSelectedArrangement={(v) => {
-                  setSelectedArrangement(v);
-                  setHasSelectedRoomFilters(true);
+                  snapToValidRoomFilters({ type: v });
                 }}
               />
             )}
