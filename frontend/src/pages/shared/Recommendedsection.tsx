@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { api } from "../../api/axios";
 import { useNavigate } from "react-router-dom";
@@ -82,44 +83,47 @@ const RESIDENCES: Residence[] = [
 ];
 
 // ─── Residence Card Component ────────────────────────────────────────────────
+const CARD_HEIGHT_PX = 460;
+
 function ResidenceCard({
   residence,
   isActive,
   onClick,
-  position,
   onLearnMore,
 }: {
   residence: Residence;
   isActive: boolean;
   onClick: () => void;
-  position: "left" | "center" | "right";
   onLearnMore: (residence: Residence) => void;
 }) {
-  // Determine classes based on position and active state
-  const getPositionClasses = () => {
-    if (position === "center") {
-      return "scale-100 translate-y-0";
-    }
-    return "scale-[0.92] translate-y-6";
-  };
-
   return (
     <div
       onClick={onClick}
-      className={`
-        flex-shrink-0 w-[320px] sm:w-[360px] rounded-3xl p-5 sm:p-6
-        transition-all duration-500 ease-out cursor-pointer relative overflow-hidden
-        ${getPositionClasses()}
-        ${isActive
-          ? "bg-gradient-to-br from-[#8B1A2E] to-[#5E1020] shadow-[0_30px_60px_rgba(139,26,46,0.3)] opacity-100 z-20"
-          : "bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)] opacity-85 hover:opacity-100 z-5"
-        }
-      `}
+      className="flex-shrink-0 w-[320px] sm:w-[360px] rounded-3xl p-5 sm:p-6 cursor-pointer relative overflow-hidden bg-white"
+      style={{
+        height: CARD_HEIGHT_PX,
+        boxShadow: isActive
+          ? "0 30px 60px rgba(139,26,46,0.3)"
+          : "0 8px 30px rgba(0,0,0,0.08)",
+        transition: "box-shadow 500ms ease-out",
+      }}
     >
+      {/* Red gradient overlay — tweens in/out smoothly */}
+      <motion.div
+        className="absolute inset-0 rounded-3xl pointer-events-none bg-gradient-to-br from-[#8B1A2E] to-[#5E1020]"
+        animate={{ opacity: isActive ? 1 : 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      />
+
       {/* Shimmer effect on active */}
-      {isActive && (
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_20%_15%,rgba(255,255,255,0.12)_0%,transparent_70%)]" />
-      )}
+      <motion.div
+        className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_20%_15%,rgba(255,255,255,0.12)_0%,transparent_70%)]"
+        animate={{ opacity: isActive ? 1 : 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      />
+
+      {/* All content sits above the overlays */}
+      <div className="relative z-10 h-full flex flex-col">
 
       {/* Featured pill */}
       <div
@@ -165,12 +169,18 @@ function ResidenceCard({
         {residence.name}
       </h3>
 
-      {/* Description */}
+      {/* Description — clamped to 2 lines for height consistency */}
       <p
         className={`
           text-[0.8rem] leading-relaxed mb-3 transition-all duration-300 ease-out
           ${isActive ? "text-white/75" : "text-[#6B6059]"}
         `}
+        style={{
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+        }}
       >
         {residence.desc}
       </p>
@@ -245,15 +255,19 @@ function ResidenceCard({
         Learn More {isActive && "→"}
       </button>
 
-      {/* Verified badge - only on active */}
-      {isActive && (
-        <div className="flex items-center gap-1.5 text-[0.7rem] text-white/65 mt-2.5 opacity-100 translate-y-0 transition-all duration-300 ease-out delay-100">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          Verified · ★ {residence.rating}
-        </div>
-      )}
+      {/* Verified badge — fades in on active */}
+      <motion.div
+        className="flex items-center gap-1.5 text-[0.7rem] text-white/65 mt-2.5"
+        animate={{ opacity: isActive ? 1 : 0 }}
+        transition={{ duration: 0.4, ease: "easeOut", delay: isActive ? 0.1 : 0 }}
+        style={{ pointerEvents: isActive ? "auto" : "none" }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        Verified · ★ {residence.rating}
+      </motion.div>
+      </div>
     </div>
   );
 }
@@ -293,6 +307,8 @@ function NavBtn({
 // ─── Main Export ──────────────────────────────────────────────────────────────
 export default function ResidenceCarousel() {
   const [current, setCurrent] = useState(0);
+  // direction: 1 = next/forward (slide left-out, in-from-right), -1 = prev
+  const [direction, setDirection] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [pendingResidenceId, setPendingResidenceId] = useState<number | null>(null);
@@ -326,16 +342,26 @@ export default function ResidenceCarousel() {
   }, []);
 
   const goTo = useCallback(
-    (idx: number) => setCurrent(((idx % total) + total) % total),
+    (idx: number, dir: number = 1) => {
+      setDirection(dir);
+      setCurrent(((idx % total) + total) % total);
+    },
     [total]
+  );
+
+  const goNext = useCallback(() => goTo(current + 1, 1), [goTo, current]);
+  const goPrev = useCallback(() => goTo(current - 1, -1), [goTo, current]);
+  const goIdx = useCallback(
+    (idx: number) => goTo(idx, idx > current ? 1 : -1),
+    [goTo, current]
   );
 
   const resetAuto = useCallback(() => {
     if (autoRef.current) clearInterval(autoRef.current);
-    autoRef.current = setInterval(
-      () => setCurrent((c) => (c + 1) % total),
-      5000
-    );
+    autoRef.current = setInterval(() => {
+      setDirection(1);
+      setCurrent((c) => (c + 1) % total);
+    }, 5000);
   }, [total]);
 
   useEffect(() => {
@@ -345,12 +371,12 @@ export default function ResidenceCarousel() {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") { goTo(current - 1); resetAuto(); }
-      if (e.key === "ArrowRight") { goTo(current + 1); resetAuto(); }
+      if (e.key === "ArrowLeft") { goPrev(); resetAuto(); }
+      if (e.key === "ArrowRight") { goNext(); resetAuto(); }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [current, goTo, resetAuto]);
+  }, [goNext, goPrev, resetAuto]);
 
   useEffect(() => {
     const fetchTopRated = async () => {
@@ -400,8 +426,30 @@ export default function ResidenceCarousel() {
     setAuthModalOpen(true);
   };
   
-  const prevIdx = (current - 1 + total) % total;
-  const nextIdx = (current + 1) % total;
+  // Compute shortest-path offset for wraparound smoothness:
+  // raw distance, wrapped so the carousel never has to traverse the long way around.
+  const visualOffset = (i: number) => {
+    let d = i - current;
+    if (d > total / 2) d -= total;
+    if (d < -total / 2) d += total;
+    return d;
+  };
+
+  // Drag-to-swipe handler
+  const handleDragEnd = (
+    _: MouseEvent | TouchEvent | PointerEvent,
+    info: { offset: { x: number }; velocity: { x: number } }
+  ) => {
+    const SWIPE_THRESHOLD = 80;
+    const VELOCITY_THRESHOLD = 400;
+    if (info.offset.x < -SWIPE_THRESHOLD || info.velocity.x < -VELOCITY_THRESHOLD) {
+      goNext();
+      resetAuto();
+    } else if (info.offset.x > SWIPE_THRESHOLD || info.velocity.x > VELOCITY_THRESHOLD) {
+      goPrev();
+      resetAuto();
+    }
+  };
 
   return (
     <>
@@ -464,59 +512,86 @@ export default function ResidenceCarousel() {
             <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-6">
               {/* Previous button - desktop */}
               <div className="hidden sm:block">
-                <NavBtn 
-                  variant="prev" 
-                  label="Previous" 
-                  onClick={() => { goTo(current - 1); resetAuto(); }}
+                <NavBtn
+                  variant="prev"
+                  label="Previous"
+                  onClick={() => { goPrev(); resetAuto(); }}
                   icon={<MdChevronLeft size={32} />}
                 />
               </div>
 
-              {/* Cards */}
-              <div className="flex-1 overflow-visible flex justify-center">
-                {/* Mobile: Single card */}
-                <div className="block sm:hidden">
-                  <ResidenceCard
-                    residence={displayResidences[current]}
-                    isActive={true}
-                    onClick={() => {}}
-                    position="center"
-                    onLearnMore={handleLearnMore}
-                  />
-                </div>
+              {/* Cards — positional strip; cards slide between left/center/right slots */}
+              <div
+                className="flex-1 flex justify-center select-none"
+                style={{ touchAction: "pan-y" }}
+              >
+                <motion.div
+                  className="relative"
+                  style={{
+                    width: "min(1100px, 100%)",
+                    height: CARD_HEIGHT_PX + 40,
+                  }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.18}
+                  onDragEnd={handleDragEnd}
+                >
+                  {displayResidences.map((res, i) => {
+                    const offset = visualOffset(i);
+                    const isCenter = offset === 0;
+                    const isVisible = Math.abs(offset) <= 1;
+                    // Mobile: only center is visible. Desktop: 3 visible slots.
+                    const isMobileVisible = isCenter;
 
-                {/* Desktop: Three cards */}
-                <div className="hidden sm:flex items-center justify-center gap-4 md:gap-2">
-                  <ResidenceCard
-                    residence={displayResidences[prevIdx]}
-                    isActive={false}
-                    onClick={() => { goTo(prevIdx); resetAuto(); }}
-                    position="left"
-                    onLearnMore={handleLearnMore}
-                  />
-                  <ResidenceCard
-                    residence={displayResidences[current]}
-                    isActive={true}
-                    onClick={() => {}}
-                    position="center"
-                    onLearnMore={handleLearnMore}
-                  />
-                  <ResidenceCard
-                    residence={displayResidences[nextIdx]}
-                    isActive={false}
-                    onClick={() => { goTo(nextIdx); resetAuto(); }}
-                    position="right"
-                    onLearnMore={handleLearnMore}
-                  />
-                </div>
+                    // Slot spacing: cards are 360px wide on desktop; place side cards
+                    // partially behind the center via 280px offset for an overlap effect.
+                    const slotPx = 280;
+
+                    return (
+                      <motion.div
+                        key={res.id ?? `card-${i}`}
+                        className={`absolute top-0 left-1/2 ${
+                          isVisible ? "" : "pointer-events-none"
+                        }`}
+                        style={{
+                          marginLeft: -180, // half of card width (~360)
+                        }}
+                        animate={{
+                          x: offset * slotPx,
+                          scale: isCenter ? 1 : 0.9,
+                          y: isCenter ? 0 : 24,
+                          opacity: isVisible ? (isCenter ? 1 : 0.7) : 0,
+                          zIndex: isCenter ? 20 : 10 - Math.abs(offset),
+                        }}
+                        transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
+                        onClick={() => {
+                          if (isCenter) return;
+                          // Clicking a side preview advances to it
+                          goTo(i, offset > 0 ? 1 : -1);
+                          resetAuto();
+                        }}
+                      >
+                        {/* On mobile hide side previews to avoid clutter */}
+                        <div className={isMobileVisible ? "" : "hidden sm:block"}>
+                          <ResidenceCard
+                            residence={res}
+                            isActive={isCenter}
+                            onClick={() => {}}
+                            onLearnMore={handleLearnMore}
+                          />
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
               </div>
 
               {/* Next button - desktop */}
               <div className="hidden sm:block">
-                <NavBtn 
-                  variant="next" 
-                  label="Next" 
-                  onClick={() => { goTo(current + 1); resetAuto(); }}
+                <NavBtn
+                  variant="next"
+                  label="Next"
+                  onClick={() => { goNext(); resetAuto(); }}
                   icon={<MdChevronRight size={32} />}
                 />
               </div>
@@ -525,13 +600,13 @@ export default function ResidenceCarousel() {
             {/* Mobile navigation buttons */}
             <div className="flex items-center justify-center gap-6 mt-6 sm:hidden">
               <button
-                onClick={() => { goTo(current - 1); resetAuto(); }}
+                onClick={() => { goPrev(); resetAuto(); }}
                 className="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center text-[#1a1a1a] active:scale-95 transition-all duration-200 ease-out border border-gray-100"
               >
                 <MdChevronLeft size={32} />
               </button>
               <button
-                onClick={() => { goTo(current + 1); resetAuto(); }}
+                onClick={() => { goNext(); resetAuto(); }}
                 className="w-14 h-14 rounded-full bg-[#8B1A2E] shadow-md flex items-center justify-center text-white active:scale-95 transition-all duration-200 ease-out"
               >
                 <MdChevronRight size={32} />
@@ -543,7 +618,7 @@ export default function ResidenceCarousel() {
               {displayResidences.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => { goTo(i); resetAuto(); }}
+                  onClick={() => { goIdx(i); resetAuto(); }}
                   aria-label={`Go to slide ${i + 1}`}
                   className={`transition-all duration-300 ease-out cursor-pointer border-0 p-0 ${
                     i === current ? "bg-[#8B1A2E]" : "bg-[#D4C9C1]"
