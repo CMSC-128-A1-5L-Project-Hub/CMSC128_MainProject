@@ -592,8 +592,10 @@ const DesktopProfilePanel = ({
         <button
           type="button"
           onClick={() => setNotifOpen((prev) => !prev)}
-          className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.08)" }}
+          className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
+            transition-all duration-150
+            bg-white/10 hover:bg-white/20 active:bg-white/30
+            hover:-translate-y-1 active:translate-y-0 active:scale-95"
         >
           <img
             src={notif_icon}

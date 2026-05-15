@@ -163,122 +163,6 @@ function MobileDrawer({ open, onClose, activeNav, setActiveNav, scrollTo }: {
   );
 }
 
-// ─── Dual Range Slider ────────────────────────────────────────────────────────
-function DualRangeSlider({
-  minVal, maxVal,
-  onMinChange, onMaxChange,
-  dataMin, dataMax,
-}: {
-  minVal: number; maxVal: number;
-  onMinChange: (v: number) => void; onMaxChange: (v: number) => void;
-  dataMin: number; dataMax: number;
-}) {
-  const STEP = 100;
-  const range = dataMax - dataMin;
-  const minPct = ((minVal - dataMin) / range) * 100;
-  const maxPct = ((maxVal - dataMin) / range) * 100;
-
-  return (
-    <div style={{ position: "relative", width: "100%", height: 28 }}>
-      {/* Track */}
-      <div style={{
-        position: "absolute",
-        top: "50%", left: 0, right: 0,
-        height: 6,
-        borderRadius: 99,
-        background: "#ede8ea",
-        transform: "translateY(-50%)",
-      }} />
-
-      {/* Fill */}
-      <div style={{
-        position: "absolute",
-        top: "50%",
-        left: `${minPct}%`,
-        width: `${maxPct - minPct}%`,
-        height: 6,
-        borderRadius: 99,
-        background: "linear-gradient(90deg, #6B0F2B, #B5344F)",
-        transform: "translateY(-50%)",
-      }} />
-
-      {/* Min Thumb */}
-      <input
-        type="range"
-        min={dataMin}
-        max={dataMax}
-        step={STEP}
-        value={minVal}
-        onChange={(e) => onMinChange(Number(e.target.value))}
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: 0,
-          width: "100%",
-          height: 28,
-          transform: "translateY(-50%)",
-          opacity: 0,
-          cursor: "pointer",
-          zIndex: 10,
-          WebkitAppearance: "none",
-        }}
-      />
-
-      {/* Max Thumb */}
-      <input
-        type="range"
-        min={dataMin}
-        max={dataMax}
-        step={STEP}
-        value={maxVal}
-        onChange={(e) => onMaxChange(Number(e.target.value))}
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: 0,
-          width: "100%",
-          height: 28,
-          transform: "translateY(-50%)",
-          opacity: 0,
-          cursor: "pointer",
-          zIndex: 10,
-          WebkitAppearance: "none",
-        }}
-      />
-
-      {/* Visual Circles */}
-      <div style={{
-        position: "absolute",
-        top: "50%",
-        left: `${minPct}%`,
-        transform: "translate(-50%, -50%)",
-        width: 22,
-        height: 22,
-        borderRadius: "50%",
-        background: "white",
-        border: "3px solid #6B0F2B",
-        pointerEvents: "none",
-        zIndex: 5,
-      }} />
-
-      <div style={{
-        position: "absolute",
-        top: "50%",
-        left: `${maxPct}%`,
-        transform: "translate(-50%, -50%)",
-        width: 22,
-        height: 22,
-        borderRadius: "50%",
-        background: "white",
-        border: "3px solid #6B0F2B",
-        pointerEvents: "none",
-        zIndex: 5,
-      }} />
-    </div>
-  );
-}
-
-
 // ─── Search Bar ───────────────────────────────────────────────────────────────
 const labelStyle: React.CSSProperties = { fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9A7080", marginBottom: 6, fontFamily: "'Plus Jakarta Sans',sans-serif" };
 const selectStyle: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: "#2a1018", background: "transparent", border: "none", outline: "none", width: "100%", cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif" };
@@ -403,15 +287,13 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
             </select>
           </div>
 
-          {/* Price Range — dual slider */}
-          <div style={{ padding: "14px 16px", borderRight: "1px solid #f0eaea" }}>
-            <p style={labelStyle}>
-              Price Range
-            </p>
+          {/* Price Range — dual slider - moved up */}
+          <div style={{ padding: "14px 16px", borderRight: "1px solid #f0eaea", marginTop: "-4px" }}>
+            <p style={{ ...labelStyle, marginBottom: 4 }}>Price Range</p>
 
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
-              marginBottom: 10,
+              marginTop: "4px",
             }}>
               <PriceRangeSlider
                 key={sliderResetKey}
@@ -419,6 +301,9 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
                 max={origMax}
                 mobileScreen={true}
                 onChange={handleRangeChange}
+                trackColor="linear-gradient(90deg, #E8A0AA, #B5344F, #6B0F2B)"
+                rangeColor="#8C1535"
+                width="100%" 
               />
             </div>
           </div>
@@ -528,7 +413,7 @@ export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
   const [activeNav, setActiveNav] = useState("HOME");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false); // Default to false (desktop)
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const [semesterLabel, setSemesterLabel] = useState("Now Accepting Applications · AY 2025–2026");
   const [isAboutVisible, setIsAboutVisible] = useState(false);
 
@@ -542,10 +427,9 @@ export default function LandingPage() {
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
 
-  // Check mobile status immediately and on resize
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 768);
-    check(); // Run immediately
+    check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
@@ -556,7 +440,6 @@ export default function LandingPage() {
     return () => { document.body.style.overflow = ""; };
   }, [drawerOpen]);
 
-  // Fetch semester from backend
   useEffect(() => {
     const fetchSystemSettings = async () => {
       try {

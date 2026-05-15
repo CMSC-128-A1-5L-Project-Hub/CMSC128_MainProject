@@ -20,9 +20,11 @@ type ManagerRoom = {
 type ReportModalProps = {
     open: boolean
     onClose: () => void
+    onSuccess?: () => void
+    onError?: () => void
 }
 
-export default function ReportModal({ open, onClose }: ReportModalProps) {
+export default function ReportModal({ open, onClose, onSuccess, onError }: ReportModalProps) {
     const [form, setForm]     = useState<RoomIssueReport>({ building: "", roomId: "", issueDetails: "" })
     const [errors, setErrors] = useState({ building: false, roomId: false, issueDetails: false })
     const [rooms, setRooms]   = useState<ManagerRoom[]>([])
@@ -72,6 +74,9 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
         try {
             await api.post(`/rooms/${form.roomId}/report-issue`, { issueDetails: form.issueDetails })
             handleClose()
+            onSuccess?.()
+        } catch {
+            onError?.()
         } finally {
             setSubmitting(false)
         }
