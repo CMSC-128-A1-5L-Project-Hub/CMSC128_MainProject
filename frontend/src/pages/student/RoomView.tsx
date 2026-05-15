@@ -475,21 +475,47 @@ function ApplicationPeriod({ onPeriodChange }: { onPeriodChange: (start: any, en
 
 function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => void }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isGridVisible, setIsGridVisible] = useState(false);
 
-  const openLightbox = (i: number) => setLightboxIndex(i);
-  const closeLightbox = () => setLightboxIndex(null);
+  // Animation on mount
+  useEffect(() => {
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => setIsVisible(true), 10);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const openLightbox = (i: number) => {
+    setIsGridVisible(false);
+    setTimeout(() => {
+      setLightboxIndex(i);
+      setIsGridVisible(true);
+    }, 200);
+  };
+  
+  const closeLightbox = () => {
+    setIsGridVisible(false);
+    setTimeout(() => {
+      setLightboxIndex(null);
+    }, 200);
+  };
+
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
 
   const prev = () =>
     setLightboxIndex((i) => (i === null ? 0 : (i - 1 + photos.length) % photos.length));
   const next = () =>
     setLightboxIndex((i) => (i === null ? 0 : (i + 1) % photos.length));
 
-  // Close lightbox on backdrop click, not on image click
   const handleLightboxBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) closeLightbox();
   };
 
-  // Keyboard navigation
   useEffect(() => {
     if (lightboxIndex === null) return;
     const handler = (e: KeyboardEvent) => {
@@ -503,18 +529,29 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
 
   return (
     <>
-      {/* Grid modal */}
+      {/* Grid modal - with fade animation */}
       <div
-        className="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4"
-        onClick={onClose}
+        className="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4 transition-all duration-300"
+        style={{
+          opacity: isVisible ? 1 : 0,
+          backdropFilter: isVisible ? "blur(4px)" : "blur(0px)",
+          pointerEvents: isVisible ? "auto" : "none",
+        }}
+        onClick={handleClose}
       >
         <div
-          className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-auto p-5"
+          className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-auto p-5 transition-all duration-300"
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? "translateY(0) scale(1)" : "translateY(20px) scale(0.95)",
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-base font-bold text-gray-900">All Photos</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-xl">✕</button>
+            <button onClick={handleClose} className="text-gray-500 hover:text-gray-800 text-xl transition-transform hover:scale-110">
+              ✕
+            </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {photos.map((src, i) => (
@@ -522,7 +559,7 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
                 key={i}
                 src={src}
                 alt={`Photo ${i + 1}`}
-                className="w-full h-44 object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
+                className="w-full h-44 object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity hover:scale-105 duration-200"
                 onClick={() => openLightbox(i)}
               />
             ))}
@@ -530,15 +567,20 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
         </div>
       </div>
 
+      {/* Lightbox - with fade animation */}
       {lightboxIndex !== null && (
         <div
-          className="fixed inset-0 bg-black/90 z-[1000] flex items-center justify-center"
+          className="fixed inset-0 bg-black/90 z-[1000] flex items-center justify-center transition-all duration-300"
+          style={{
+            opacity: isGridVisible ? 1 : 0,
+            pointerEvents: isGridVisible ? "auto" : "none",
+          }}
           onClick={handleLightboxBackdrop}
         >
           {/* Close button */}
           <button
             onClick={closeLightbox}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl transition-colors"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl transition-all duration-200 hover:scale-110"
           >
             ✕
           </button>
@@ -551,7 +593,7 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
           {/* Prev button */}
           <button
             onClick={prev}
-            className="absolute left-4 w-11 h-11 rounded-full flex items-center justify-center text-white transition-colors hover:bg-white/20"
+            className="absolute left-4 w-11 h-11 rounded-full flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95"
             style={{ background: CLR.mid }}
           >
             <span className="text-white text-xl font-bold pb-0.5 pr-0.5" style={{ lineHeight: 0 }}>{"<"}</span>
@@ -561,14 +603,18 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
           <img
             src={photos[lightboxIndex]}
             alt={`Photo ${lightboxIndex + 1}`}
-            className="max-h-[85vh] max-w-[80vw] object-contain rounded-xl select-none"
+            className="max-h-[85vh] max-w-[80vw] object-contain rounded-xl select-none transition-all duration-300"
+            style={{
+              opacity: isGridVisible ? 1 : 0,
+              transform: isGridVisible ? "scale(1)" : "scale(0.95)",
+            }}
             onClick={(e) => e.stopPropagation()}
           />
 
           {/* Next button */}
           <button
             onClick={next}
-            className="absolute right-4 w-11 h-11 rounded-full flex items-center justify-center text-white transition-colors hover:bg-white/20"
+            className="absolute right-4 w-11 h-11 rounded-full flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95"
             style={{ background: CLR.mid }}
           >
             <span className="text-white text-xl font-bold pb-0.5 pl-0.5" style={{ lineHeight: 0 }}>{">"}</span>
@@ -582,8 +628,9 @@ function AllPhotosModal({ photos, onClose }: { photos: string[]; onClose: () => 
                 src={src}
                 alt={`Thumb ${i + 1}`}
                 onClick={() => setLightboxIndex(i)}
-                className={`w-10 h-10 object-cover rounded-lg cursor-pointer flex-shrink-0 transition-all ${i === lightboxIndex ? "opacity-100" : "opacity-50 hover:opacity-75"
-                  }`}
+                className={`w-10 h-10 object-cover rounded-lg cursor-pointer flex-shrink-0 transition-all duration-200 hover:scale-110 ${
+                  i === lightboxIndex ? "opacity-100 scale-105" : "opacity-50 hover:opacity-75"
+                }`}
                 style={
                   i === lightboxIndex
                     ? { border: `2px solid ${CLR.mid}` }
@@ -1943,8 +1990,7 @@ export default function RoomView() {
               {selectedRoom?.size != null ? Number(selectedRoom.size).toFixed(1) : "—"}{" "} m² · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
             </p>
             {/* Tabs*/}
-            <div className="flex overflow-x-auto sm:justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-none">
-              {tabs.map((t) => (
+              <div className="flex overflow-x-auto overflow-y-hidden justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-hide">              {tabs.map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setselectedTab(t.key)}
