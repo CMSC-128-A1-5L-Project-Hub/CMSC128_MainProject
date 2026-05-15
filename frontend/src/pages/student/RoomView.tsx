@@ -1714,11 +1714,29 @@ export default function RoomView() {
       ?.map((tag: any) => tag.tagDetail ?? tag.tag_detail)
       .filter(Boolean) ?? [];
 
-  const hasAlreadyApplied = myApplications.some(
-    (app: any) =>
-      app.accommodationId === currentAccommodationId &&
-      ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
-  );
+ const activeStatuses = [
+    "pending",
+    "under_review",
+    "approved",
+    "waitlisted",
+  ];
+
+  const hasAlreadyApplied = myApplications.some((app: any) => {
+    const appAccommodationId =
+      app.accommodationId ?? app.accommodation_id;
+
+    const appStayType =
+      app.applicationStayType ?? app.application_stay_type;
+
+    const appStatus =
+      app.applicationStatus ?? app.application_status;
+
+    return (
+      Number(appAccommodationId) === Number(currentAccommodationId) &&
+      appStayType === selectedStayType &&
+      activeStatuses.includes(appStatus)
+    );
+  });
   
 
   const studentGender = String(user?.student?.gender ?? user?.gender ?? "").toLowerCase();
