@@ -391,7 +391,7 @@ export default function BrowsePage() {
 
                                 <div className="flex flex-col min-h-0 flex-1">
                                     {/* Scrollable cards */}
-                                    <div className="flex flex-col gap-3 overflow-y-auto pr-2 min-h-0 flex-1">
+                                    <div className="flex flex-col gap-3 overflow-y-auto overflow-x-visible pr-2 pl-1 pb-1 min-h-0 flex-1">
                                         {paginatedDorms.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center h-72 gap-3 text-[#9A7080]">
                                                 <MapPin size={40} strokeWidth={1.3} />
@@ -540,7 +540,7 @@ function DormTile({
             onMouseEnter={() => onHover(dorm.accommodationId)}
             onMouseLeave={() => onHover(null)}
             onClick={onClick}
-            className={`group flex flex-col sm:flex-row gap-0 bg-white rounded-2xl border cursor-pointer transition-all duration-200 min-h-[150px]                
+            className={`group flex flex-col sm:flex-row gap-0 bg-white rounded-2xl border cursor-pointer transition-all duration-200 min-h-[150px] my-0.5                
                 ${hovered
                     ? "border-[#6B0F2B] shadow-lg shadow-[#6B0F2B]/10 -translate-y-0.5"
                     : "border-[#E8D4DF] shadow-sm hover:border-[#6B0F2B]/40 hover:shadow-md hover:-translate-y-0.5"
