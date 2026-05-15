@@ -72,11 +72,11 @@ export default function BrowsePage() {
 
     const location = useLocation();
     const landingFilters = location.state as {
-    dormType?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    rating?: number;
-    tags?: string[];
+        dormType?: string;
+        minPrice?: number;
+        maxPrice?: number;
+        rating?: number;
+        tags?: string[];
     } | null;
 
     const { data: accommodations = [], isError: accommodationsError, isSuccess, isLoading: accLoading } = useQuery({
@@ -113,17 +113,17 @@ export default function BrowsePage() {
 
     const updateAccommodation = async () => {
         try {
-          const response = await api.put("/accommodations/1", {
-            accommodation_name: "Dorm A",
-            accommodation_location: "UPLB",
-            accommodation_capacity: 4,
-          })
-      
-          console.log(response.data)
+            const response = await api.put("/accommodations/1", {
+                accommodation_name: "Dorm A",
+                accommodation_location: "UPLB",
+                accommodation_capacity: 4,
+            })
+
+            console.log(response.data)
         } catch (error) {
-          console.error(error)
+            console.error(error)
         }
-      }
+    }
 
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
     useEffect(() => { if (user && user.role !== "student") navigate("/auth/signin") }, [user, navigate])
@@ -167,8 +167,8 @@ export default function BrowsePage() {
         // setMinPrice(min)
         // setMaxPrice(max)
         setFilters(prev => ({
-        ...tagObject,
-        ...prev,
+            ...tagObject,
+            ...prev,
         }));
 
         setMinPrice(min);
@@ -192,10 +192,10 @@ export default function BrowsePage() {
 
         if (landingFilters.tags?.length) {
             setFilters(prev => ({
-            ...prev,
-            ...Object.fromEntries(
-                landingFilters.tags!.map(tag => [tag, true])
-            ),
+                ...prev,
+                ...Object.fromEntries(
+                    landingFilters.tags!.map(tag => [tag, true])
+                ),
             }));
         }
 
@@ -249,7 +249,7 @@ export default function BrowsePage() {
                 if (Number(el.rating) < Number(rating))
                     rating = Number(el.rating).toFixed(1)
             })
-            
+
             bookmarks.forEach((el: { studentNumber: string }) => {
                 if (el.studentNumber === studentNo) bookmarked = true
             })
@@ -336,14 +336,13 @@ export default function BrowsePage() {
     }
 
     return (
-            <filterContext.Provider value={{
+        <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
             searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched,
             setSliderResetKey, sliderResetKey
-            }}>
+        }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
-
                 {/* Main */}
                 <div className="flex flex-col w-full min-w-0 h-screen overflow-hidden">
                     <CustomHeader title="Browse Rooms" />
@@ -351,9 +350,9 @@ export default function BrowsePage() {
                     {/* Scrollable content */}
                     <div className="flex-1 overflow-y-auto">
 
-                        
+
                         {/* Hero */}
-                        <div className="w-full px-4 sm:px-6 pt-6 pb-2">
+                        <div className="w-full px-6 pt-6 pb-2">
                             <HeroBanner
                                 greeting="Good Day" name={name}
                                 title="Browse available rooms"
@@ -458,11 +457,13 @@ export default function BrowsePage() {
                                     </span>
                                 </div>
                                 <div className="flex-1 min-h-0">
-                                    <AccommodationMap
-                                        accommodations={mapAccommodations}
-                                        centeredAccommodation={centeredAccommodation}
-                                        onCardClick={acc => navigate(`/student/roomview/${acc.accommodationId}`)}
-                                    />
+                                    <motion.div layoutId="map" className="w-full h-full" transition={{ type: "spring", stiffness: 140, damping: 25, mass: 0.8 }} initial={{ opacity: 1 }}>
+                                        <AccommodationMap
+                                            accommodations={mapAccommodations}
+                                            centeredAccommodation={centeredAccommodation}
+                                            onCardClick={acc => navigate(`/student/roomview/${acc.accommodationId}`)}
+                                        />
+                                    </motion.div>
                                 </div>
                             </div>
                         </div>
@@ -511,7 +512,7 @@ function DormTile({
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
-    
+
 
     return (
         <div
@@ -532,7 +533,7 @@ function DormTile({
                     className="w-full h-full object-cover"
                     onError={(e) => {
                         e.currentTarget.src = defaultAccommodation;
-                      }}
+                    }}
                 />
             </div>
 
@@ -631,7 +632,7 @@ function SearchBar() {
                     setSearched(true)
                 }}
             />
-       
+
         </div>
     )
 }
@@ -666,7 +667,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
         setFilterPanelOpen(false); setFilterInEffect(true); setSliderResetKey(temp + 1);
         setSelectedDorm("All"); setSelectedRoom("All");
     }
-    
+
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
     const [minimumOrig, setMinimumOrig] = useState(origMin);
     const [maximumOrig, setMaximumOrig] = useState(origMax);
@@ -823,58 +824,58 @@ interface DropdownProps {
     selected: string;
     setSelected: (label: string) => void;
     open: boolean;
-  }
-  
-  function Dropdown({ showTitle = true, title, items, onSelect, direction = "down", widthClass = "w-32", titleClass = "text-[10px]", selectedClass = "text-[12px]", setOpen, setClose, open, setSelected, selected }: DropdownProps) {
-    
+}
+
+function Dropdown({ showTitle = true, title, items, onSelect, direction = "down", widthClass = "w-32", titleClass = "text-[10px]", selectedClass = "text-[12px]", setOpen, setClose, open, setSelected, selected }: DropdownProps) {
+
     const [isMobile, setIsMobile] = useState(false);
-  
+
     useEffect(() => {
-      const check = () => setIsMobile(window.innerWidth < 1024);
-      check();
-      window.addEventListener('resize', check);
-      return () => window.removeEventListener('resize', check);
+        const check = () => setIsMobile(window.innerWidth < 1024);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
     }, []);
-  
+
     return (
-      <div className="relative h-12">
-        <button
-          onClick={() => {
-            setClose(false)
-            setOpen(!open)}}
-          type="button"
-          className={`h-full px-2 py-1 border-2 lg:border-3 border-[#6B0F2B] border-opacity-10 bg-white rounded-[8.8px] flex items-center justify-between gap-4 ${widthClass}`}
-        >
-          <div className="flex flex-col items-start overflow-hidden w-full">
-            <span className={showTitle ? `${titleClass} text-[#9A7080] uppercase` : 'hidden'}>{title}</span>
-            <span className={`${selectedClass} font-medium text-gray-800 truncate w-full`}>{selected}</span>
-          </div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 9-7 7-7-7"/>
-          </svg>
-        </button>
-  
-        {open && (
-          <div className={`absolute mt-1 bg-white w-full border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-30 ${
-            direction === "up" ? "bottom-full mb-1" : "top-full mt-1" }`}>
-            <ul className="p-2 text-sm">
-              {items.map((item) => (
-                <li key={item.label}>
-                  <a
-                    onClick={() => { 
-                      setSelected(item.label); 
-                      setOpen(false); 
-                      onSelect?.(item.label);
-                    }}
-                    className="text-[12px] block p-2 justify-start hover:bg-[#6B0F2B] hover:text-white transition-all rounded w-50"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+        <div className="relative h-12">
+            <button
+                onClick={() => {
+                    setClose(false)
+                    setOpen(!open)
+                }}
+                type="button"
+                className={`h-full px-2 py-1 border-2 lg:border-3 border-[#6B0F2B] border-opacity-10 bg-white rounded-[8.8px] flex items-center justify-between gap-4 ${widthClass}`}
+            >
+                <div className="flex flex-col items-start overflow-hidden w-full">
+                    <span className={showTitle ? `${titleClass} text-[#9A7080] uppercase` : 'hidden'}>{title}</span>
+                    <span className={`${selectedClass} font-medium text-gray-800 truncate w-full`}>{selected}</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 9-7 7-7-7" />
+                </svg>
+            </button>
+
+            {open && (
+                <div className={`absolute mt-1 bg-white w-full border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-30 ${direction === "up" ? "bottom-full mb-1" : "top-full mt-1"}`}>
+                    <ul className="p-2 text-sm">
+                        {items.map((item) => (
+                            <li key={item.label}>
+                                <a
+                                    onClick={() => {
+                                        setSelected(item.label);
+                                        setOpen(false);
+                                        onSelect?.(item.label);
+                                    }}
+                                    className="text-[12px] block p-2 justify-start hover:bg-[#6B0F2B] hover:text-white transition-all rounded w-50"
+                                >
+                                    {item.label}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
     );
-  }
+}

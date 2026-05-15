@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react"
+import React, { useState, useMemo, useRef, useEffect } from "react"
 
 import Sidebar from "../../components/Sidebar"
 import HeroBanner from "../../components/dashboard/HeroBanner"
@@ -7,6 +7,7 @@ import Button from "../../components/Button"
 import Modal from "../../components/Modal"
 import StatusBadge from "../../components/ui/StatusBadge"
 import CustomHeader from '../../components/CustomHeader';
+import Toast from "@/components/Toast"
 
 
 import { 
@@ -208,6 +209,19 @@ export default function Waitlist() {
         return res.data;
         },
     });
+
+    useEffect(() => {
+    if (isErrorList) {
+        setToast({ show: true, type: "error", title: "Failed to load waitlist", message: "Could not fetch waitlisted applications." });
+    }
+    }, [isErrorList]);
+
+    const [toast, setToast] = useState<{
+        show: boolean;
+        type: "success" | "error" | "info" | "warning" | "loading";
+        title: string;
+        message?: string;
+    }>({ show: false, type: "success", title: "" });
 
     const WaitlistHistory = ({ records = waitlistRecords, className }: { records?: WaitlistedResponse[], className?: string }) => {
     const [selectedRecord, setSelectedRecord] = useState<WaitlistedResponse | null>(null)
@@ -674,6 +688,13 @@ export default function Waitlist() {
                         </main>
                     </div>
             </div>
+            <Toast
+                type={toast.type}
+                title={toast.title}
+                message={toast.message}
+                show={toast.show}
+                onClose={() => setToast(prev => ({ ...prev, show: false }))}
+            />
         </div>
     )
 }

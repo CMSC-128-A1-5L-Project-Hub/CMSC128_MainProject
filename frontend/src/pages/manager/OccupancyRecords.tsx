@@ -8,6 +8,7 @@ import Modal from "../../components/Modal"
 import CustomHeader from '../../components/CustomHeader';
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import SearchBar from '../../components/SearchBar';
+import Toast from "@/components/Toast"
 import { api } from "../../api/axios"
 import { useProfile } from "../../../hooks/useDashboardQueries"
 
@@ -329,7 +330,7 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
             <h2 className="text-[#1A0008] font-bold text-base mb-3">
                 Occupancy Rooms
             </h2>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col lg:flex-row items-center justify-center gap-8 h-full -mt-7">
                 {/* Donut SVG */}
                 <div className="relative flex-shrink-0">
                     <svg width="180" height="180" viewBox="0 0 120 120">
@@ -366,7 +367,7 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
                 </div>
 
                 {/* Legend */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-4 justify-center">
                     {[
                         { label: "Fully Occupied Rooms",    value: full,      color: "#3D0A1A" },
                         { label: "Partially Occupied Rooms", value: partial,  color: "#9E2040" },
@@ -597,6 +598,13 @@ export default function OccupancyRecords() {
     const [error, setError] = useState("")
     const [historyRecords, setHistoryRecords] = useState<HistoryRecord[]>([])
 
+    const [toast, setToast] = useState<{
+        show: boolean;
+        type: "success" | "error" | "info" | "warning" | "loading";
+        title: string;
+        message?: string;
+    }>({ show: false, type: "success", title: "" });
+
     useEffect(() => {
         const fetchOccupancyData = async () => {
             try {
@@ -605,6 +613,7 @@ export default function OccupancyRecords() {
             } catch (err: any) {
                 console.error("Rooms error:", err)
                 setError(err.response?.data?.message || "Could not load rooms.")
+                setToast({ show: true, type: "error", title: "Failed to load rooms", message: err.response?.data?.message || "Could not load rooms."})
             }
 
             try {
@@ -613,6 +622,7 @@ export default function OccupancyRecords() {
             } catch (err: any) {
                 console.error("History error:", err)
                 setHistoryRecords([])
+                setToast({ show: true, type: "error", title: "Failed to load history", message: "Occupancy history could not be retrieved." })
             } finally {
                 setLoading(false)
             }
@@ -626,8 +636,8 @@ export default function OccupancyRecords() {
             <div className = "flex flex-col flex-1 min-w-0">
                 <CustomHeader
                     title="Occupancy Records"></CustomHeader>
-                <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
-                    <main className="flex-1 flex flex-col gap-4 lg:gap-6">
+                <div className="flex-1 flex flex-col p-6 overflow-y-auto">
+                    <main className="flex-1 flex flex-col gap-6">
                         <div>
                             <HeroBanner 
                                 greeting="Good Day"
@@ -682,7 +692,13 @@ export default function OccupancyRecords() {
                     </main>
                 </div>
             </div>
-            
+            <Toast
+                type={toast.type}
+                title={toast.title}
+                message={toast.message}
+                show={toast.show}
+                onClose={() => setToast(prev => ({ ...prev, show: false }))}
+            />
         </div>
     )
 }

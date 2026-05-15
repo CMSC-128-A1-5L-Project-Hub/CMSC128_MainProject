@@ -11,9 +11,10 @@ type Props = {
   allRooms: RawRoom[]
   onAssigned: () => void
   className?: string
+  setToast: (t: { show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string }) => void
 }
 
-export default function ConfirmedStudents({ data, allRooms, onAssigned, className = "" }: Props) {
+export default function ConfirmedStudents({ data, allRooms, onAssigned, className = "", setToast }: Props) {
   const navigate = useNavigate()
   const getInitials = (name: string) => name[0]
 
@@ -57,13 +58,9 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
         const app = modalAssignment.student
         if (room.roomType !== app.applicationRoomType) return false
         if (room.roomStayType !== app.applicationStayType) return false
-        const accRestriction = app.accommodation.tenantRestriction || 'coed'
-        const studentGender = app.student.gender
-        if (accRestriction === 'male-only' && studentGender !== 'Male') return false
-        if (accRestriction === 'female-only' && studentGender !== 'Female') return false
         if (room.roomAvailability === 'maintenance') return false
         if (room.roomCurrentOccupancy >= room.roomCapacity) return false
-        return true
+        return true  
       })
     : []
 
@@ -143,8 +140,9 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                           if (res.status === 200 || res.status === 201) {
                             closeModal()
                             onAssigned()
+                            setToast({ show: true, type: "success", title: "Room Assigned!", message: "The student has been successfully assigned to the room." })
                           } else {
-                            alert(res.data?.message || 'Assignment failed')
+                            setToast({ show: true, type: "error", title: "Assignment Failed", message: res.data?.message || "Could not assign the room." })
                           }
                         } catch (err: any) {
                         console.error(err)
@@ -153,7 +151,7 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                             err?.response?.data?.error ??
                             err.message ??
                             'Network error'
-                        alert(msg)
+                        setToast({ show: true, type: "error", title: "Network Error", message: msg })
                         }
                       }} className="w-full sm:w-auto">Assign Room</Button>
                     </div>

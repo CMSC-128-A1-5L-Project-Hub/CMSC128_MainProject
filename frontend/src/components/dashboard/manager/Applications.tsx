@@ -16,6 +16,7 @@ type Props = {
   data: TransformedApp[]
   className?: string
   onAction: () => void
+  setToast: (t: { show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string }) => void
 }
 
 type RejectionModalProps = {
@@ -66,7 +67,7 @@ function RejectionModal({ open, target, loading, onCancel, onConfirm }: Rejectio
   )
 }
 
-export default function Applications({ data, className = "", onAction }: Props) {
+export default function Applications({ data, className = "", onAction, setToast }: Props) {
   const navigate = useNavigate()
   const [selectedApplication, setSelectedApplication] = useState<TransformedApp | null>(null)
   const [modalApplication, setModalApplication] = useState<TransformedApp | null>(null)
@@ -95,10 +96,11 @@ export default function Applications({ data, className = "", onAction }: Props) 
       if (res.status === 200) {
         closeModal()
         onAction()
+        setToast({ show: true, type: "success", title: "Application Accepted!", message: "The student has been approved." })
       }
     } catch (e) {
       console.error(e)
-      alert('Network error')
+      setToast({ show: true, type: "error", title: "Network Error", message: "Could not accept the application." })
     } finally {
       setLoading(false)
     }
@@ -111,9 +113,10 @@ export default function Applications({ data, className = "", onAction }: Props) 
       await api.patch(`/applications/${rejectionTarget.id}/review`, { action: 'reject', rejection_reason: reason })
       setRejectionTarget(null)
       onAction()
+      setToast({ show: true, type: "success", title: "Application Rejected!", message: "The student's application has been rejected." })
     } catch (e) {
       console.error(e)
-      alert('Network error')
+      setToast({ show: true, type: "error", title: "Network Error", message: "Could not reject the application." })
     } finally {
       setLoading(false)
     }
@@ -235,14 +238,14 @@ export default function Applications({ data, className = "", onAction }: Props) 
                               if (res.status === 200) {
                                 window.open(res.data.url, '_blank')
                               } else {
-                                alert('Enrollment proof not available')
+                                setToast({ show: true, type: "error", title: "Unavailable", message: "Enrollment proof not available." })
                               }
                             } catch (err) {
                               console.error(err)
-                              alert('Could not fetch document')
+                              setToast({ show: true, type: "error", title: "Error", message: "Could not fetch document." })
                             }
                           } else {
-                            alert('Valid ID not yet uploaded')
+                            setToast({ show: true, type: "error", title: "Unavailable", message: "Valid ID not yet uploaded." })
                           }
                         }}>View</Button>
                       </div>

@@ -1,12 +1,48 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback, memo } from "react";
 import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl'
-import type { MapRef } from 'react-map-gl'
+import type { MapRef, LngLatBoundsLike } from 'react-map-gl'
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { UPLB } from '../constants/uplb'
 import UPLBMarker from './UPLBMarker'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
+
+// ── Perf knobs ───────────────────────────────────────────────────────────────
+// Flip these back to revert #1 / #2 and compare visuals.
+// #1 — map style. `standard` = pretty 3D buildings + fog (heavy).
+//      `streets-v12` / `light-v11` = flat 2D (cheap).
+const MAP_STYLE = 'mapbox://styles/mapbox/standard'
+// const MAP_STYLE = 'mapbox://styles/mapbox/standard'  // original
+
+// #2 — camera tilt. 0 = top-down (cheap). 45/60 = oblique 3D (heavy).
+const DEFAULT_PITCH: number = 60
+const CENTERED_PITCH: number = 45
+// const DEFAULT_PITCH = 60   // original
+// const CENTERED_PITCH = 45  // original
+
+// #3 — keep tiles confined to Los Baños area (~10km box around UPLB)
+const LOS_BANOS_BOUNDS: LngLatBoundsLike = [
+  [UPLB.longitude - 0.09, UPLB.latitude - 0.09],
+  [UPLB.longitude + 0.09, UPLB.latitude + 0.09],
+]
+const MIN_ZOOM = 6
+
+// Below this zoom level, marker shows rating only (no name)
+const NAME_ZOOM_THRESHOLD = 15
+
+// Pin scale by zoom — shrinks when zoomed out so far-away pins don't clutter
+function scaleForZoom(z: number): number {
+  if (z >= 15) return 1
+  if (z >= 14) return 0.85
+  if (z >= 13) return 0.7
+  if (z >= 12) return 0.6
+  if (z >= 11) return 0.5
+  if (z >= 10) return 0.4
+  if (z >= 9) return 0.3
+  if (z >= 8) return 0.2
+  return 0.01
+}
 
 export interface AccommodationReview {
   id: number;
@@ -66,6 +102,67 @@ function getAvgRating(pin: AccommodationPin): number {
   return pin.rating ?? 0
 }
 
+interface AccommodationPinMarkerProps {
+  acc: AccommodationPin
+  isSelected: boolean
+  showName: boolean
+  pinScale: number
+  onSelect: (acc: AccommodationPin, isSelected: boolean) => void
+}
+
+const AccommodationPinMarker = memo(function AccommodationPinMarker({
+  acc,
+  isSelected,
+  showName,
+  pinScale,
+  onSelect,
+}: AccommodationPinMarkerProps) {
+  const accAvgRating = getAvgRating(acc)
+  return (
+    <Marker
+      longitude={acc.longitude}
+      latitude={acc.latitude}
+      anchor="bottom"
+      style={{ zIndex: isSelected ? 498 : 1 }}
+      onClick={(e) => {
+        e.originalEvent.stopPropagation()
+        onSelect(acc, isSelected)
+      }}
+    >
+      <div
+        className="relative flex flex-col items-center cursor-pointer transition-transform duration-300 ease-in-out origin-bottom"
+        style={{
+          transform: isSelected
+            ? `scale(${pinScale * 1.25}) translateY(-5px)`
+            : `scale(${pinScale})`,
+        }}
+      >
+        {/* Capsule */}
+        <div className={`h-auto ${showName ? 'min-w-[70px]' : ''} px-3 py-1.5 rounded-full flex flex-row items-center justify-center gap-1.5 shadow-lg border ${isSelected ? 'bg-[#6B0F2B] border-white' : 'bg-[#801831] border-white/20'}`}>
+          <div className="flex items-center gap-1">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
+              <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192L12 .587z" />
+            </svg>
+            <span className="text-white text-[10px] font-medium leading-none">
+              {accAvgRating > 0 ? accAvgRating.toFixed(1) : '—'}
+            </span>
+          </div>
+          {showName && (
+            <>
+              <div className="w-[1px] h-3 bg-white/30" />
+              <span className="text-white text-[10px] font-bold whitespace-nowrap leading-none">
+                {acc.accommodationName.split(' ')[0]}
+              </span>
+            </>
+          )}
+        </div>
+        {/* Triangle pointer (downward) */}
+        <div className={`w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] transition-colors duration-300 ${isSelected ? 'border-t-[#6B0F2B]' : 'border-t-[#801831]'}`} />
+      </div>
+    </Marker>
+  )
+})
+
 export default function AccommodationMap({
   accommodations,
   onCardClick,
@@ -74,14 +171,48 @@ export default function AccommodationMap({
   onToggleFavorite,
 }: AccommodationMapProps) {
   const [selectedPin, setSelectedPin] = useState<AccommodationPin | null>(null)
+  const [uplbSelected, setUplbSelected] = useState(false)
   const [travelMode, setTravelMode] = useState<TravelMode>('walking')
   const [routeGeoJSON, setRouteGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null)
   const [loadingRoute, setLoadingRoute] = useState(false)
+  const [liveDurationMin, setLiveDurationMin] = useState<number | null>(null)
   const mapRef = useRef<MapRef>(null)
 
+  const initialZoom = centeredAccommodation ? 16 : 15
+  const [currentZoom, setCurrentZoom] = useState(initialZoom)
+  const showNames = currentZoom >= NAME_ZOOM_THRESHOLD
+  const pinScale = scaleForZoom(currentZoom)
+
   const initialView = centeredAccommodation
-    ? { longitude: centeredAccommodation.longitude, latitude: centeredAccommodation.latitude, zoom: 16, pitch: 45, bearing: 0 }
-    : { longitude: UPLB.longitude, latitude: UPLB.latitude, zoom: 15, pitch: 60, bearing: 0 }
+    ? { longitude: centeredAccommodation.longitude, latitude: centeredAccommodation.latitude, zoom: 16, pitch: CENTERED_PITCH, bearing: 0 }
+    : { longitude: UPLB.longitude, latitude: UPLB.latitude, zoom: 15, pitch: DEFAULT_PITCH, bearing: 0 }
+
+  const handleZoom = useCallback(() => {
+    const z = mapRef.current?.getZoom()
+    if (typeof z !== 'number') return
+    // Bucket to integer zoom so re-renders only fire when bucket changes
+    const bucket = Math.round(z)
+    setCurrentZoom((prev) => (prev === bucket ? prev : bucket))
+  }, [])
+
+  const handleMarkerSelect = useCallback((acc: AccommodationPin, isSelected: boolean) => {
+    setUplbSelected(false)
+    setSelectedPin(isSelected ? null : acc)
+  }, [])
+
+  const handleMapClick = useCallback(() => {
+    setSelectedPin(null)
+    setUplbSelected(false)
+  }, [])
+
+  const handleUplbOpen = useCallback(() => {
+    setSelectedPin(null)
+    setUplbSelected(true)
+  }, [])
+
+  const handleUplbClose = useCallback(() => {
+    setUplbSelected(false)
+  }, [])
 
   useEffect(() => {
     if (!selectedPin) return
@@ -94,10 +225,12 @@ export default function AccommodationMap({
   useEffect(() => {
     if (!selectedPin) {
       setRouteGeoJSON(null)
+      setLiveDurationMin(null)
       return
     }
     const fetchRoute = async () => {
       setLoadingRoute(true)
+      setLiveDurationMin(null)
       try {
         const origin = `${selectedPin.longitude},${selectedPin.latitude}`
         const destination = `${UPLB.longitude},${UPLB.latitude}`
@@ -109,6 +242,8 @@ export default function AccommodationMap({
             type: 'FeatureCollection',
             features: [{ type: 'Feature', geometry: data.routes[0].geometry, properties: {} }],
           })
+          const dur = data.routes[0].duration
+          if (typeof dur === 'number') setLiveDurationMin(Math.round(dur / 60))
         }
       } catch (error) {
         console.error('Failed to fetch route:', error)
@@ -127,9 +262,13 @@ export default function AccommodationMap({
 
   const currentDistance = () => {
     if (!selectedPin) return null
-    if (travelMode === 'walking') return `${selectedPin.walkingDistance} min`
-    if (travelMode === 'driving') return `${selectedPin.drivingDistance} min`
-    return `${selectedPin.bikingDistance} min`
+    const stored =
+      travelMode === 'walking' ? selectedPin.walkingDistance
+      : travelMode === 'driving' ? selectedPin.drivingDistance
+      : selectedPin.bikingDistance
+    if (stored && stored > 0) return `${stored} min`
+    if (liveDurationMin != null) return `${liveDurationMin} min`
+    return loadingRoute ? '…' : null
   }
 
   const recenterToUPLB = () => {
@@ -148,13 +287,24 @@ export default function AccommodationMap({
         ref={mapRef}
         initialViewState={initialView}
         style={{ width: '100%', height: '100%' }}
-        mapStyle="mapbox://styles/mapbox/standard"
+        mapStyle={MAP_STYLE}
         mapboxAccessToken={MAPBOX_TOKEN}
+        maxBounds={LOS_BANOS_BOUNDS}
+        minZoom={MIN_ZOOM}
+        maxPitch={DEFAULT_PITCH === 0 ? 0 : 85}
+        reuseMaps
+        onZoom={handleZoom}
+        onClick={handleMapClick}
       >
         <NavigationControl position="top-right" />
 
         {/* UPLB Pin */}
-        <UPLBMarker onSelect={() => setSelectedPin(null)} />
+        <UPLBMarker
+          selected={uplbSelected}
+          onOpen={handleUplbOpen}
+          onClose={handleUplbClose}
+          compact={!showNames}
+        />
 
         {/* Route Line */}
         {routeGeoJSON && (
@@ -175,7 +325,7 @@ export default function AccommodationMap({
             closeOnClick={false}
             maxWidth="300px"
             offset={[85, 5] as [number, number]}
-            style={{ zIndex: 498 }}
+            style={{ zIndex: 497 }}
           >
             <div
               className="font-sans overflow-hidden rounded-2xl bg-white shadow-2xl cursor-pointer"
@@ -198,25 +348,27 @@ export default function AccommodationMap({
 
               {/* Content */}
               <div className="p-4 pt-3 relative">
-                <button
-                  className="absolute top-3 right-4 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onToggleFavorite?.(selectedPin.accommodationId)
-                  }}
-                  title={favorites.has(selectedPin.accommodationId) ? 'Remove from favorites' : 'Add to favorites'}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke={favorites.has(selectedPin.accommodationId) ? '#710A2B' : 'currentColor'}
-                    fill={favorites.has(selectedPin.accommodationId) ? '#710A2B' : 'none'}
-                    className={`w-5 h-5 transition-all duration-200 ${favorites.has(selectedPin.accommodationId) ? 'scale-110' : 'text-gray-400 hover:text-red-500'}`}
+                {onToggleFavorite && (
+                  <button
+                    className="absolute top-3 right-4 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onToggleFavorite(selectedPin.accommodationId)
+                    }}
+                    title={favorites.has(selectedPin.accommodationId) ? 'Remove from favorites' : 'Add to favorites'}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                  </svg>
-                </button>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke={favorites.has(selectedPin.accommodationId) ? '#710A2B' : 'currentColor'}
+                      fill={favorites.has(selectedPin.accommodationId) ? '#710A2B' : 'none'}
+                      className={`w-5 h-5 transition-all duration-200 ${favorites.has(selectedPin.accommodationId) ? 'scale-110' : 'text-gray-400 hover:text-red-500'}`}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                    </svg>
+                  </button>
+                )}
 
                 <div className="mb-2">
                   <span className="inline-block bg-[#C69C3B] text-white text-[11px] px-3 py-1 rounded-full font-medium">
@@ -260,7 +412,7 @@ export default function AccommodationMap({
                     ? selectedPin.amenities.map(tag => (
                       <span key={tag} className="bg-[#F5EBEB] text-[#710A2B] text-[11px] px-3 py-1 rounded-full font-medium">{tag}</span>
                     ))
-                    : <span className="text-[11px] text-gray-400">🚶 {selectedPin.walkingDistance} min walk to campus</span>
+                    : <span className="text-[11px] text-gray-400">🚶 {selectedPin.walkingDistance > 0 ? selectedPin.walkingDistance : (travelMode === 'walking' && liveDurationMin != null ? liveDurationMin : '…')} min walk to campus</span>
                   }
                 </div>
 
@@ -274,50 +426,16 @@ export default function AccommodationMap({
         )}
 
         {/* Accommodation Pins */}
-        {accommodations.map((acc) => {
-          const isSelected = selectedPin?.accommodationId === acc.accommodationId
-          const accAvgRating = getAvgRating(acc)
-          return (
-            <Marker
-              key={acc.accommodationId}
-              longitude={acc.longitude}
-              latitude={acc.latitude}
-              anchor="bottom"
-              style={{ zIndex: isSelected ? 499 : 1 }}
-              onClick={(e) => {
-                e.originalEvent.stopPropagation()
-                if (isSelected) {
-                  setSelectedPin(null)
-                } else {
-                  setSelectedPin(acc)
-                }
-              }}
-            >
-              <div
-                className="relative flex flex-col items-center cursor-pointer transition-all duration-300 ease-in-out"
-                style={{ transform: isSelected ? 'scale(1.25) translateY(-5px)' : 'scale(1)' }}
-              >
-                {/* Capsule */}
-                <div className={`h-auto min-w-[70px] px-3 py-1.5 rounded-full flex flex-row items-center justify-center gap-1.5 shadow-lg border ${isSelected ? 'bg-[#6B0F2B] border-white' : 'bg-[#801831] border-white/20'}`}>
-                  <div className="flex items-center gap-1">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                      <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192L12 .587z" />
-                    </svg>
-                    <span className="text-white text-[10px] font-medium leading-none">
-                      {accAvgRating > 0 ? accAvgRating.toFixed(1) : '—'}
-                    </span>
-                  </div>
-                  <div className="w-[1px] h-3 bg-white/30" />
-                  <span className="text-white text-[10px] font-bold whitespace-nowrap leading-none">
-                    {acc.accommodationName.split(' ')[0]}
-                  </span>
-                </div>
-                {/* Triangle pointer (downward) */}
-                <div className={`w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] transition-colors duration-300 ${isSelected ? 'border-t-[#6B0F2B]' : 'border-t-[#801831]'}`} />
-              </div>
-            </Marker>
-          )
-        })}
+        {accommodations.map((acc) => (
+          <AccommodationPinMarker
+            key={acc.accommodationId}
+            acc={acc}
+            isSelected={selectedPin?.accommodationId === acc.accommodationId}
+            showName={showNames}
+            pinScale={pinScale}
+            onSelect={handleMarkerSelect}
+          />
+        ))}
       </Map>
 
       {/* Travel Mode Toggle */}
