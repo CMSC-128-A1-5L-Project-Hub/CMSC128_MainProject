@@ -233,6 +233,7 @@ export default function Dashboard() {
                     data={pendingApps}
                     className="col-span-1 lg:col-span-1 xl:col-span-2"
                     onAction={refreshDashboard}
+                    setToast={setToast}
                   />
                   <Waitlist waitlists={waitlistedApps} className="col-span-1" />
                 </div>
@@ -246,6 +247,7 @@ export default function Dashboard() {
                     allRooms={rooms}
                     onAssigned={refreshDashboard}
                     className="col-span-1 lg:col-span-2 xl:col-span-3"
+                    setToast={setToast}
                   />
                   <Moves data={moves} className="col-span-1 lg:col-span-2 xl:col-span-3" />
                 </div>
@@ -265,6 +267,7 @@ export default function Dashboard() {
               dormitory={profile?.dormitory ?? 'Loading...'}
               status={profile?.accountStatus ?? 'pending'}
               onNotification={() => {}}
+              setToast={setToast}
             />
             <AvailableRooms
               totalRooms={rooms.length}

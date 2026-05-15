@@ -353,7 +353,7 @@ export default function BrowsePage() {
 
                         
                         {/* Hero */}
-                        <div className="w-full px-4 sm:px-6 pt-6 pb-2">
+                        <div className="w-full px-6 pt-6 pb-2">
                             <HeroBanner
                                 greeting="Good Day" name={name}
                                 title="Browse available rooms"
