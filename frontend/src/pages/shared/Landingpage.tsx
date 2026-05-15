@@ -1,7 +1,7 @@
 // src/pages/Landingpage.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import SeeMoreModal from "../../components/SeeMoreModal";
 import uplbLogo from "../../assets/logos/uplb.png";
 import casLogo from "../../assets/logos/cas.png";
@@ -269,6 +269,20 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
     setMaxPrice(value.max)
   };
 
+  const snapPoints = useMemo(() => {
+    if (origMin === Infinity || origMax === -Infinity) return [];
+    
+    const STEP = 500; // interval between snap points
+    const start = Math.floor(origMin / STEP) * STEP;
+    const end = Math.ceil(origMax / STEP) * STEP;
+    
+    const points: number[] = [];
+    for (let v = start; v <= end; v += STEP) {
+        points.push(v);
+    }
+    return points;
+  }, [origMin, origMax]);
+
   return (
     <>
       <SeeMoreModal open={modalOpen} onClose={() => setModalOpen(false)} extraTags={extraTags} setExtraTags={setExtraTags} />
@@ -314,6 +328,7 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
                 min={origMin}
                 max={origMax}
                 mobileScreen={true}
+                snapPoints={snapPoints}
                 onChange={handleRangeChange}
                 trackColor="linear-gradient(90deg, #E8A0AA, #B5344F, #6B0F2B)"
                 rangeColor="#8C1535"
