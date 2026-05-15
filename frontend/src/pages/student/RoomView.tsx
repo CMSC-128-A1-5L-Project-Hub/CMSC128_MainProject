@@ -2147,6 +2147,7 @@ export default function RoomView() {
                   setSelectedStayType={setSelectedStayType}
                   selectedArrangement={selectedArrangement}
                   setSelectedArrangement={setSelectedArrangement}
+                  setToast={setToast}
                 />
 
                 <ShareModal
