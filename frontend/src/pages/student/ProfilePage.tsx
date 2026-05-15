@@ -11,6 +11,7 @@ import Sidebar from "../../components/Sidebar";
 import Modal from "../../components/Modal";
 import Button from "../../components/Button";
 import Toast from "../../components/Toast";
+import CustomHeader from "../../components/CustomHeader";
 import { useUserStore } from '../../stores/useUserStore';
 import femalePfp from "../../assets/defaults/female-pfp.png";
 import malePfp from "../../assets/defaults/male-pfp.png";
@@ -713,15 +714,9 @@ export default function ProfilePage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#FAF6F2] font-['Plus_Jakarta_Sans'] text-[#2A1F1A]">
-      <Sidebar role="student" profile={sidebarProfile} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex-shrink-0 border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-3 pl-12 lg:pl-0">
-            <span className="h-6 w-1 rounded-full bg-[#3D0718]" />
-            <h1 className="font-serif text-3xl italic font-bold text-[#3D0718] md:text-4xl">Profile</h1>
-          </div>
-        </header>
+        <CustomHeader title="Profile"/>
 
         <main className="flex-1 overflow-y-auto px-3 py-4 md:px-6 lg:px-8 lg:py-6">
           <section className="overflow-hidden rounded-[40px] border border-[#EADFD3] bg-white shadow-sm">
