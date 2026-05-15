@@ -81,9 +81,11 @@ export default function MapPage() {
   const minCapacity = Number(searchParams.get('min_capacity') ?? 0)
   const stayType = searchParams.get('stay_type') ?? 'all'
 
+  // ─── URL-driven multi/numeric filters ─────────────────────────────────────
+  const minRating = Number(searchParams.get('rating') ?? 0)
+  const selectedTags = (searchParams.get('tags') ?? '').split(',').filter(Boolean)
+
   // ─── Local UI state ────────────────────────────────────────────────────────
-  const [minRating, setMinRating] = useState(0)
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [showAllTags, setShowAllTags] = useState(false)
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -138,13 +140,27 @@ export default function MapPage() {
     const params = new URLSearchParams()
     if (centerId) params.set('center', centerId)
     setSearchParams(params, { replace: true })
-    setMinRating(0)
-    setSelectedTags([])
     setShowFavoritesOnly(false)
   }
 
+  const setRating = (value: number) => {
+    updateFilter('rating', value)
+  }
+
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
+    const next = selectedTags.includes(tag)
+      ? selectedTags.filter(t => t !== tag)
+      : [...selectedTags, tag]
+    const params = new URLSearchParams(searchParams)
+    if (next.length === 0) params.delete('tags')
+    else params.set('tags', next.join(','))
+    setSearchParams(params, { replace: true })
+  }
+
+  const clearTags = () => {
+    const params = new URLSearchParams(searchParams)
+    params.delete('tags')
+    setSearchParams(params, { replace: true })
   }
 
   // ─── Filtering (all filters are reactive) ────────────────────────────────
@@ -244,6 +260,7 @@ export default function MapPage() {
                     </div>
 
                     {/* Favorites toggle */}
+                    {isLoggedIn && (
                     <div className="max-md:col-span-2 space-y-2">
                       <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Show Favorites Only</label>
                       <div className="h-[46px] flex items-center justify-between p-3 bg-[#FDF7F8] rounded-2xl border border-[#F5EBEB]">
@@ -276,6 +293,7 @@ export default function MapPage() {
                         </label>
                       </div>
                     </div>
+                    )}
 
                     {/* Dorm Type */}
                     <div className="max-md:col-span-1 space-y-2">
@@ -329,7 +347,7 @@ export default function MapPage() {
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
                               key={star}
-                              onClick={() => setMinRating(star === minRating ? 0 : star)}
+                              onClick={() => setRating(star === minRating ? 0 : star)}
                               className="p-0 border-none bg-transparent outline-none transition-transform active:scale-90"
                             >
                               <svg viewBox="0 0 24 24" fill={star <= minRating ? '#C69C3B' : '#F5EBEB'} className="w-6 h-6 transition-colors">
@@ -420,7 +438,7 @@ export default function MapPage() {
                         <label className="text-[10px] font-bold text-[#9A7080] uppercase tracking-widest">Amenities</label>
                         {selectedTags.length > 0 && (
                           <button
-                            onClick={() => setSelectedTags([])}
+                            onClick={clearTags}
                             className="text-[9px] font-bold uppercase text-gray-400 hover:text-[#710A2B]"
                             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                           >
@@ -519,8 +537,8 @@ export default function MapPage() {
                   accommodations={filtered}
                   centeredAccommodation={centeredAccommodation}
                   onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
-                  favorites={favorites}
-                  onToggleFavorite={toggleFavorite}
+                  favorites={isLoggedIn ? favorites : new Set()}
+                  onToggleFavorite={isLoggedIn ? toggleFavorite : undefined}
                 />
               </div>
             </div>
