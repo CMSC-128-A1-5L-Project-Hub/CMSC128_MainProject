@@ -516,7 +516,7 @@ export default function FeesPage() {
   const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (p.paymentAmount || 0), 0)
 
   return (
-    <div className="flex h-screen bg-[#f5f0f1]">
+    <div className="flex h-screen bg-[#F6F2F4]">
 
       <div className="flex flex-col w-full h-full">
         <CustomHeader title="Fees" />

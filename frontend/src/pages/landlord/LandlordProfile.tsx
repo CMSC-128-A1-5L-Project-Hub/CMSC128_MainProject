@@ -331,7 +331,7 @@ export default function LandlordProfile() {
     const hasMore = profile.accommodations.length > 3;
 
     return (
-        <div className="min-h-screen bg-[#F5EEF0] text-[#2A1F1A] lg:flex overflow-y-auto">
+        <div className="min-h-screen bg-[#F6F2F4] text-[#2A1F1A] lg:flex overflow-y-auto">
             <div className="flex-1">
                 <CustomHeader
                     title="Profile"
