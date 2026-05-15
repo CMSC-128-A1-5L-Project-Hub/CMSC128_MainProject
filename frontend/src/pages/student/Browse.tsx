@@ -284,15 +284,20 @@ export default function BrowsePage() {
     Object.keys(filters).forEach(k => { if (filters[k]) activeChips.push(k) })
 
     const handleBookmarkToggle = async (accommodationId: number, currentState: boolean) => {
+  
         try {
-            const response = await api.post(`/accommodations/${accommodationId}/bookmark/toggle`)
-            // Invalidate and refetch accommodations to update the list
-            queryClient.invalidateQueries({ queryKey: ["accommodations"] })
-            return response.data
-        } catch (error) {
-            console.error("Failed to toggle bookmark:", error)
-            throw error
-        }
+            const data = await api.put(`/accommodations/${accommodationId}/bookmark`, {
+              studentNumber: studentNo,
+              favorite: currentState
+            })
+            
+            queryClient.invalidateQueries({
+                queryKey: ["accommodations"],
+              })
+   
+          } catch (error) {
+            console.log("error")
+          }
     }
 
     /* RENDER */
@@ -450,7 +455,8 @@ export default function BrowsePage() {
                                 onClick={() => setFilterPanelOpen(false)}
                                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#F5ECF0] text-[#6B0F2B] hover:bg-[#E8D4DF] transition-colors"
                             >
-                                <X size={18} />
+                                {/* <X size={18} /> */}
+                                X
                             </button>
                         </div>
                         <FilterForm origFilters={filters} onClose={() => {
@@ -488,6 +494,7 @@ function DormTile({
         
         if (isToggling) return
         
+        console.log("yow", dorm)
         const newState = !isBookmarked
         setIsToggling(true)
         setIsBookmarked(newState) // Optimistic update

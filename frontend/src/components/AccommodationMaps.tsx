@@ -5,6 +5,8 @@ import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { UPLB } from '../constants/uplb'
 import UPLBMarker from './UPLBMarker'
+import { Minimize2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -170,6 +172,7 @@ export default function AccommodationMap({
   favorites = new Set(),
   onToggleFavorite,
 }: AccommodationMapProps) {
+  const navigate = useNavigate()
   const [selectedPin, setSelectedPin] = useState<AccommodationPin | null>(null)
   const [uplbSelected, setUplbSelected] = useState(false)
   const [travelMode, setTravelMode] = useState<TravelMode>('walking')
@@ -264,8 +267,8 @@ export default function AccommodationMap({
     if (!selectedPin) return null
     const stored =
       travelMode === 'walking' ? selectedPin.walkingDistance
-      : travelMode === 'driving' ? selectedPin.drivingDistance
-      : selectedPin.bikingDistance
+        : travelMode === 'driving' ? selectedPin.drivingDistance
+          : selectedPin.bikingDistance
     if (stored && stored > 0) return `${stored} min`
     if (liveDurationMin != null) return `${liveDurationMin} min`
     return loadingRoute ? '…' : null
@@ -532,6 +535,20 @@ export default function AccommodationMap({
           <line x1="21" y1="12" x2="24" y2="12" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       </button>
+      {onToggleFavorite !== undefined && (
+        <button
+          type="button"
+          onClick={() => navigate("/student/browse")}
+          title="Expand map"
+          style={{
+            background: 'linear-gradient(135deg, #710A2B, #3D0718)',
+            boxShadow: '0 4px 16px rgba(113,10,43,0.35)',
+          }}
+          className="absolute bottom-[32px] right-[80px] z-10 w-[48px] h-[48px] rounded-full border-none cursor-pointer flex items-center justify-center bg-white shadow-md border border-[#e5cfd4] hover:border-[#7a001f] transition-all"
+        >
+          <Minimize2 size={12} color="#fff" />
+        </button>
+      )}
     </div>
   )
 }
