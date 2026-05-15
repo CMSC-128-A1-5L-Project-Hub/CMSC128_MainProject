@@ -131,13 +131,13 @@ export default function MapPage() {
     } else {
       params.set(key, String(value))
     }
-    setSearchParams(params)
+    setSearchParams(params, { replace: true })
   }
 
   const resetFilters = () => {
     const params = new URLSearchParams()
     if (centerId) params.set('center', centerId)
-    setSearchParams(params)
+    setSearchParams(params, { replace: true })
     setMinRating(0)
     setSelectedTags([])
     setShowFavoritesOnly(false)
