@@ -261,7 +261,8 @@ export default function RoomApplicationModal({
         } catch (err: any) {
             console.error("Submit failed status:", err.response?.status);
             console.error("Submit failed data:", err.response?.data);
-            setToast({ show: true, type: "error", title: "Failed to submit application", message: "Please try again later."})
+            setToast({ show: true, type: "error", title: "Failed to submit application", message: err.response?.data?.message ?? err.response?.data?.error ?? "Something went wrong."})
+            handleClose();
         } finally {
             setIsSubmitting(false);
         }
