@@ -16,7 +16,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "postinstall": "puppeteer browsers install chrome"
+    "postinstall": "rimraf node_modules/.cache/puppeteer && puppeteer browsers install chrome"
   },
   "engines": {
     "node": ">=24.0.0"
@@ -92,7 +92,8 @@
     "node-cron": "^4.2.1",
     "pdfkit": "^0.18.0",
     "puppeteer": "^24.43.1",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "rimraf": "^6.0.1"
   },
   "hotHook": {
     "boundaries": [
