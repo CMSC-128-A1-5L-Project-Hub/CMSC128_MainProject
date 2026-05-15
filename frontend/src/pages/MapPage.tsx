@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query'
 import AccommodationMap, { type AccommodationPin, type AccommodationReview } from '../components/AccommodationMaps'
 import { api } from '../api/axios'
 import { motion } from "framer-motion"
+import { useUserStore } from '../stores/useUserStore'
 
 const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
   const res = await api.get('/accommodations')
@@ -62,6 +63,8 @@ const DEFAULT_MAX_RENT = 15000
 export default function MapPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const user = useUserStore((s) => s.user)
+  const isLoggedIn = !!user
 
   const { data: accommodations = [], isLoading, isError } = useQuery({
     queryKey: ['accommodations'],
@@ -229,11 +232,6 @@ export default function MapPage() {
                       <p className="text-sm -mt-1 text-white/60">
                         {isLoading ? 'Loading...' : `${filtered.length} of ${accommodations.length} shown`}
                       </p>
-                      <button
-                        onClick={() => window.history.back()}
-                        className='mt-4 p-0 flex items-center text-white text-xs hover:underline hover:scale-105 transition-all'>
-                        ← Back
-                      </button>
                     </div>
 
                   </div>

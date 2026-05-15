@@ -14,6 +14,7 @@ import ReportsPanel from "../../components/dashboard/landlord/rooms/dashboard/Re
 import ApplicationPeriod from "../../components/dashboard/landlord/rooms/dashboard/Calendar";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
+import CustomHeader from "../../components/CustomHeader";
 import Card from "../../components/ui/Card";
 import Toast from "../../components/Toast";
 import { DateTime } from 'luxon';
@@ -626,6 +627,7 @@ export default function Dashboard() {
         showReplaceButton
         accommodationId={accommodationId}
         onManagerReplaced={() => queryClient.invalidateQueries({ queryKey: ["landlord-accommodations"] })}
+        setToast={setToast}
       />
       <ApplicationPeriod
         initialStart={accommodation?.applicationStartDate}
@@ -639,29 +641,38 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex h-screen bg-[#FAF8F9] overflow-hidden">
-      <div className="flex flex-1 overflow-hidden min-w-0">
-        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 min-w-0">
-          <div className="space-y-4">
-            {/* NAVBAR */}
-            <div className="flex items-center gap-3 pl-16 lg:pl-0">
-              <Button variant="secondary" size="sm" onClick={() => navigate("/landlord/dashboard")}>
-                ← Back
-              </Button>
-              <span className="text-gray-300">|</span>
-              <h2 className="font-semibold text-lg">Dashboard</h2>
-            </div>
+    <div className="flex h-screen bg-[#F5EEF0] overflow-hidden">
+
+      {/* Everything right of sidebar: header + (main + right panel) */}
+      <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+        <CustomHeader
+          title="Dashboard"
+          left={
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate("/landlord/dashboard")}
+            >
+              ← Back
+            </Button>
+          }
+        />
+
+        <div className="flex flex-1 overflow-hidden min-w-0">
+          {/* MAIN — grows to fill all space between sidebar and right panel */}
+          <main className="flex-1 overflow-y-auto p-6 min-w-0">
+            <div className="space-y-4">
 
             {/* HERO */}
             <HeroBanner
-              greeting={greeting()}
+              greeting="Good Day"
               title="Efficiently manage applicants & housing accommodation"
               subtitle={
                 underReviewApps.length > 0
                   ? `You have ${underReviewApps.length} application${underReviewApps.length !== 1 ? "s" : ""} awaiting your review`
                   : "Everything is up to date"
               }
-              name={user ? user.fname : ""}
+              name={user ? `${user.fname} ${user.lname}` : ""}
               type="full"
             />
 
@@ -927,6 +938,7 @@ export default function Dashboard() {
         <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#FAF8F9] overflow-y-auto">
           <RightPanel />
         </aside>
+        </div>
       </div>
 
       {/* ADD DOCUMENT MODAL */}

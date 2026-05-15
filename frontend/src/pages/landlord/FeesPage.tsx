@@ -4,6 +4,7 @@ import { api } from '../../api/axios'
 import { useUserStore } from '../../stores/useUserStore'
 import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
+import CustomHeader from '../../components/CustomHeader';
 import Dropdown from "@/components/ApplicationStatus/Dropdown"
 import SearchBar from "@/components/SearchBar"
 import Toast from "@/components/Toast"
@@ -515,8 +516,11 @@ export default function FeesPage() {
   const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (p.paymentAmount || 0), 0)
 
   return (
-    <div className="flex min-h-screen bg-[#f5f0f1]">
-      <div className="flex-1 p-6 overflow-y-auto">
+    <div className="flex h-screen bg-[#f5f0f1]">
+
+      <div className="flex flex-col w-full h-full">
+        <CustomHeader title="Fees" />
+        <main className="flex-1 p-6 overflow-y-auto">
         <HeroBanner
           greeting={greeting()}
           name={fullName}
@@ -691,6 +695,7 @@ export default function FeesPage() {
             </div>
           )}
         </div>
+      </main>
       </div>
 
       {/* Overdue Fee Modal */}

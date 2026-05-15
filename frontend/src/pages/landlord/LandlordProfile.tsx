@@ -13,7 +13,6 @@ import CustomHeader from "../../components/CustomHeader";
 import Bell from "../../assets/icons/bell_icon.svg?react";
 import Camera from "../../assets/icons/camera.svg";
 import Pencil from "../../assets/icons/edit.svg";
-import FileUp from "../../assets/icons/upload.svg";
 import Save from "../../assets/icons/save.svg";
 import notif_icon from "../../assets/icons/notif_icon.svg";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -25,6 +24,20 @@ interface ProfileData {
     phone: string;
     altPhone: string;
     accommodations: { name: string; type: string }[];
+}
+
+async function checkPhoneDuplicate(phone: string): Promise<boolean> {
+    try {
+        const res = await api.get(`/check-phone/${phone}`);
+        return res.data.exists;
+    } catch {
+        return false;
+    }
+}
+
+function isValidPhilippinePhone(phone: string): boolean {
+    const cleaned = phone.replace(/\D/g, "");
+    return cleaned.length === 11 && cleaned.startsWith("09");
 }
 
 export default function LandlordProfile() {
@@ -47,7 +60,7 @@ export default function LandlordProfile() {
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
     // Toast state
-    const [toast, setToast] = useState<{ show: boolean; type: "success" | "error"; title: string; message?: string }>({
+    const [toast, setToast] = useState<{ show: boolean; type: "success" | "error" | "info"; title: string; message?: string }>({
         show: false, type: "success", title: ""
     });
 
@@ -74,6 +87,11 @@ export default function LandlordProfile() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["me"] });
+            setTempImage(null);
+            setToast({ show: true, type: "success", title: "Photo Updated!", message: "Your profile picture has been updated." });
+        },
+        onError: () => {
+            setToast({ show: true, type: "error", title: "Upload Failed", message: "Failed to upload photo." });
         },
     });
 
@@ -87,6 +105,14 @@ export default function LandlordProfile() {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            if (!file.type.startsWith("image/")) {
+                setToast({ show: true, type: "error", title: "Invalid File", message: "Please upload an image file (JPG, PNG, or WEBP)." });
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                setToast({ show: true, type: "error", title: "File Too Large", message: "Image must be under 5MB." });
+                return;
+            }
             const imageUrl = URL.createObjectURL(file);
             setTempImage(imageUrl);
             uploadPfpMutation.mutate(file);
@@ -103,19 +129,11 @@ export default function LandlordProfile() {
         update("altPhone", cleaned);
     };
 
-    const checkPhoneDuplicate = async (phone: string): Promise<boolean> => {
-        try {
-            const res = await api.get(`/check-phone/${phone}`);
-            return res.data.exists;
-        } catch {
-            return false;
-        }
-    };
-
     const handleSendOtp = async () => {
         const phone = pendingPhone.replace(/\D/g, "");
-        if (phone.length !== 11) {
-            setOtpError("Please enter a valid 11-digit phone number.");
+        
+        if (!isValidPhilippinePhone(phone)) {
+            setOtpError("Phone number must be 11 digits and start with 09 (e.g., 09123456789).");
             return;
         }
 
@@ -130,6 +148,7 @@ export default function LandlordProfile() {
         try {
             await api.post("/auth/send-otp", { phoneNumber: phone });
             setOtpSent(true);
+            setToast({ show: true, type: "info", title: "OTP Sent", message: "A verification code has been sent to your phone." });
         } catch (err: any) {
             setOtpError(err?.response?.data?.message || "Failed to send OTP. Please try again.");
         } finally {
@@ -151,11 +170,20 @@ export default function LandlordProfile() {
             setOtpModalOpen(false);
             setOtpSent(false);
             setOtpCode("");
-
+            
+            // Update profile with new phone
             setProfile((prev) => (prev ? { ...prev, phone: pendingPhone } : null));
+            
+            // Save to backend
+            await api.patch("/landlord/profile", {
+                facebook: profile?.facebook,
+                phone: pendingPhone,
+                altPhone: profile?.altPhone || "",
+            });
+            
+            setEditing(false);
+            setPendingPhone("");
             setToast({ show: true, type: "success", title: "Phone Verified!", message: "Your phone number has been updated successfully." });
-
-            await saveProfileWithPhone(pendingPhone);
         } catch {
             setOtpError("Invalid OTP code. Please try again.");
         } finally {
@@ -163,10 +191,9 @@ export default function LandlordProfile() {
         }
     };
 
-    const handleSaveClick = () => {
+    const handleSaveClick = async () => {
         if (!editing || !profile) return;
 
-        // pendingPhone is always the source of truth for primary during edit
         const primary = pendingPhone;
         const secondary = profile.altPhone || "";
 
@@ -175,13 +202,40 @@ export default function LandlordProfile() {
             return;
         }
 
+        if (!isValidPhilippinePhone(primary)) {
+            setToast({ show: true, type: "error", title: "Invalid Phone Number", message: "Primary phone must be 11 digits and start with 09 (e.g., 09123456789)." });
+            return;
+        }
+
+        if (secondary && !isValidPhilippinePhone(secondary)) {
+            setToast({ show: true, type: "error", title: "Invalid Phone Number", message: "Secondary phone must be 11 digits and start with 09 (e.g., 09123456789)." });
+            return;
+        }
+
         if (secondary && primary === secondary) {
             setToast({ show: true, type: "error", title: "Duplicate Phone", message: "Primary and secondary cannot be the same." });
             return;
         }
 
+        // Check if secondary phone is duplicate (only if it's changed and not empty)
+        if (secondary && secondary !== profile.altPhone) {
+            const isSecondaryDuplicate = await checkPhoneDuplicate(secondary);
+            if (isSecondaryDuplicate) {
+                setToast({ show: true, type: "error", title: "Duplicate Phone", message: "This secondary phone number is already registered to another account." });
+                return;
+            }
+        }
+
         // If primary phone changed from original, require OTP verification
         if (pendingPhone !== profile.phone) {
+            const isPrimaryDuplicate = await checkPhoneDuplicate(pendingPhone);
+            if (isPrimaryDuplicate) {
+                setOtpError("This phone number is already registered to another account.");
+                setOtpModalOpen(true);
+                setOtpSent(false);
+                setOtpCode("");
+                return;
+            }
             setOtpModalOpen(true);
             setOtpSent(false);
             setOtpCode("");
@@ -189,25 +243,15 @@ export default function LandlordProfile() {
             return;
         }
 
+        // No phone change, save directly
         saveProfile();
     };
 
     const saveProfile = async () => {
         if (!profile) return;
 
-        // Always use pendingPhone as source of truth for primary
         const primary = pendingPhone;
         const secondary = profile.altPhone || "";
-
-        if (!primary) {
-            setToast({ show: true, type: "error", title: "Validation Error", message: "Primary phone number is required." });
-            return;
-        }
-
-        if (secondary && primary === secondary) {
-            setToast({ show: true, type: "error", title: "Duplicate Phone", message: "Primary and secondary cannot be the same." });
-            return;
-        }
 
         try {
             await api.patch("/landlord/profile", {
@@ -225,22 +269,6 @@ export default function LandlordProfile() {
         }
     };
 
-    const saveProfileWithPhone = async (phone: string) => {
-        if (!profile) return;
-        try {
-            await api.patch("/landlord/profile", {
-                facebook: profile.facebook,
-                phone: phone,
-                altPhone: profile.altPhone || "",
-            });
-            setProfile((prev) => (prev ? { ...prev, phone } : null));
-            setPendingPhone("");
-            setEditing(false);
-        } catch (error) {
-            console.error("Failed to update profile:", error);
-        }
-    };
-
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -254,7 +282,6 @@ export default function LandlordProfile() {
                     fullName: data.fullName ?? "",
                     email: data.email ?? "",
                     facebook: data.facebook ?? "",
-                    // sanitize "NONE" strings from backend
                     phone: data.phone && data.phone !== "NONE" ? data.phone : "",
                     altPhone: data.altPhone && data.altPhone !== "NONE" ? data.altPhone : "",
                     accommodations: accData.map((a: any) => ({
@@ -262,6 +289,7 @@ export default function LandlordProfile() {
                         type: a.accommodationType ?? "",
                     })),
                 });
+                setPendingPhone(data.phone && data.phone !== "NONE" ? data.phone : "");
             } catch (error) {
                 console.error("Failed to fetch profile:", error);
             } finally {
@@ -402,8 +430,24 @@ export default function LandlordProfile() {
                                     <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 sm:gap-x-10 gap-y-4 sm:gap-y-5">
                                         <Field label="EMAIL ADDRESS" value={profile.email} editing={false} onChange={() => { }} />
                                         <Field label="FACEBOOK LINK" value={profile.facebook} editing={editing} onChange={(v) => update("facebook", v)} />
-                                        <Field label="PHONE NUMBER" value={editing ? pendingPhone : profile.phone} editing={editing} onChange={handlePhoneChange} type="tel" />
-                                        <Field label="2ND PHONE NUMBER" value={profile.altPhone} editing={editing} onChange={handleAltPhoneChange} type="tel" />
+                                        <Field 
+                                            label="PHONE NUMBER" 
+                                            value={editing ? pendingPhone : profile.phone} 
+                                            editing={editing} 
+                                            onChange={handlePhoneChange} 
+                                            type="tel" 
+                                            maxLength={11}
+                                            placeholder="09123456789"
+                                        />
+                                        <Field 
+                                            label="2ND PHONE NUMBER" 
+                                            value={profile.altPhone} 
+                                            editing={editing} 
+                                            onChange={handleAltPhoneChange} 
+                                            type="tel"
+                                            maxLength={11}
+                                            placeholder="09123456789"
+                                        />
                                     </div>
                                     <div className="mt-6 border-t border-[#EADFD3] pt-6">
                                         <p className="mb-3 text-sm font-semibold tracking-wide text-[#A88993]">ACCOMMODATIONS ({profile.accommodations.length})</p>
@@ -438,6 +482,7 @@ export default function LandlordProfile() {
                 onClose={() => { setOtpModalOpen(false); setOtpSent(false); setOtpCode(""); setOtpError(null); }}
                 title="Verify Phone Number"
                 eyebrow="OTP VERIFICATION"
+                maxWidth={480}
                 footer={
                     <div className="flex flex-row justify-end w-full">
                         <Button variant="reddishPink" onClick={otpSent ? handleVerifyOtp : handleSendOtp} disabled={isSendingOtp || isVerifyingOtp}>
@@ -446,7 +491,7 @@ export default function LandlordProfile() {
                     </div>
                 }
             >
-                <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-5 py-2">
                     <div>
                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Phone Number</p>
                         <p className="text-base font-bold text-[#2A1F1A]">{pendingPhone}</p>
@@ -497,17 +542,29 @@ export default function LandlordProfile() {
 }
 
 interface FieldProps {
-    label: string; value: string; editing: boolean; onChange: (v: string) => void; type?: string;
+    label: string; 
+    value: string; 
+    editing: boolean; 
+    onChange: (v: string) => void; 
+    type?: string;
+    maxLength?: number;
+    placeholder?: string;
 }
 
-function Field({ label, value, editing, onChange, type = "text" }: FieldProps) {
+function Field({ label, value, editing, onChange, type = "text", maxLength, placeholder }: FieldProps) {
     return (
         <div className="min-w-0">
             <p className="mb-1 text-xs sm:text-sm font-semibold uppercase tracking-wide text-[#A88993]">{label}</p>
             {editing ? (
-                <input value={value} onChange={(e) => onChange(e.target.value)} type={type}
-                    inputMode={type === "tel" ? "numeric" : undefined} maxLength={type === "tel" ? 11 : undefined}
-                    className="w-full rounded-xl border border-[#E6CAD3] bg-[#FBF5F7] px-3 py-2 text-sm text-[#2A1F1A] outline-none focus:border-[#A04E66]" />
+                <input 
+                    value={value} 
+                    onChange={(e) => onChange(e.target.value)} 
+                    type={type}
+                    maxLength={maxLength}
+                    placeholder={placeholder}
+                    inputMode={type === "tel" ? "numeric" : undefined}
+                    className="w-full rounded-xl border border-[#E6CAD3] bg-[#FBF5F7] px-3 py-2 text-sm text-[#2A1F1A] outline-none focus:border-[#A04E66]" 
+                />
             ) : (
                 <div className="text-sm sm:text-[15px] text-[#4A3940]">{value || "—"}</div>
             )}
