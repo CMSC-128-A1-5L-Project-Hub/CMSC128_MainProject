@@ -29,7 +29,8 @@ export function Modal({
 }: ModalProps) {
   const [mounted, setMounted] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
   // Mount check (for Next.js / SSR)
   useEffect(() => setMounted(true), []);
@@ -37,21 +38,31 @@ export function Modal({
   // Handle animation timing
   useEffect(() => {
     if (open) {
+      // Reset animation-out flag
+      setIsAnimatingOut(false);
+      // Render the modal first (hidden)
       setShouldRender(true);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setIsAnimating(true);
-        });
-      });
+      // Use setTimeout to ensure DOM is ready before showing
+      const showTimer = setTimeout(() => {
+        setIsVisible(true);
+      }, 10);
+      return () => clearTimeout(showTimer);
     } else {
-      setIsAnimating(false);
-      const timer = setTimeout(() => setShouldRender(false), 300);
-      return () => clearTimeout(timer);
+      // Start closing animation
+      setIsVisible(false);
+      setIsAnimatingOut(true);
+      // Wait for animation to complete before unmounting
+      const hideTimer = setTimeout(() => {
+        setShouldRender(false);
+        setIsAnimatingOut(false);
+      }, 350); // Slightly longer than transition
+      return () => clearTimeout(hideTimer);
     }
   }, [open]);
 
+  // Body scroll lock
   useEffect(() => {
-    if (open) {
+    if (open && shouldRender) {
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
       document.body.style.paddingRight = `${scrollbarWidth}px`;
@@ -63,7 +74,7 @@ export function Modal({
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
     };
-  }, [open]);
+  }, [open, shouldRender]);
 
   if (!mounted || !shouldRender) return null;
 
@@ -76,10 +87,10 @@ export function Modal({
           position: "fixed",
           inset: 0,
           zIndex: 9998,
-          backgroundColor: isAnimating ? "rgba(10,2,6,0.72)" : "rgba(10,2,6,0)",
-          backdropFilter: isAnimating ? "blur(8px)" : "blur(0px)",
+          backgroundColor: isVisible ? "rgba(10,2,6,0.72)" : "rgba(10,2,6,0)",
+          backdropFilter: isVisible ? "blur(8px)" : "blur(0px)",
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          pointerEvents: isAnimating ? "auto" : "none",
+          pointerEvents: isVisible ? "auto" : "none",
         }}
       />
 
@@ -96,7 +107,7 @@ export function Modal({
           alignItems: "center",
           justifyContent: "center",
           padding: "20px",
-          pointerEvents: isAnimating ? "auto" : "none",
+          pointerEvents: isVisible ? "auto" : "none",
         }}
       >
         {/* CARD */}
@@ -111,9 +122,9 @@ export function Modal({
             borderRadius: 24,
             overflow: "hidden",
             boxShadow: "0 40px 100px rgba(26,10,15,0.55), 0 8px 32px rgba(26,10,15,0.25)",
-            opacity: isAnimating ? 1 : 0,
-            transform: isAnimating ? "translateY(0) scale(1)" : "translateY(32px) scale(0.95)",
-            transition: "opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? "translateY(0) scale(1)" : "translateY(32px) scale(0.95)",
+            transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           {/* HEADER */}
