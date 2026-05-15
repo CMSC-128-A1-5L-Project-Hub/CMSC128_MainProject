@@ -62,14 +62,15 @@ const CONTENT_RATING_1_2 = [
 const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 const randItem = <T>(arr: T[]): T => arr[rand(0, arr.length - 1)];
 
-// Weighted rating: positively skewed (people who stayed long enough to review
-// tend to lean positive). Roughly: 5: 40%, 4: 30%, 3: 15%, 2: 10%, 1: 5%.
+// Weighted rating tuned so E[rating] ≈ 4.5:
+//   5: 65%, 4: 25%, 3: 5%, 2: 3%, 1: 2%
+//   → 5*0.65 + 4*0.25 + 3*0.05 + 2*0.03 + 1*0.02 = 4.48
 const weightedRating = (): number => {
     const r = Math.random();
-    if (r < 0.40) return 5;
-    if (r < 0.70) return 4;
-    if (r < 0.85) return 3;
-    if (r < 0.95) return 2;
+    if (r < 0.65) return 5;
+    if (r < 0.90) return 4;
+    if (r < 0.95) return 3;
+    if (r < 0.98) return 2;
     return 1;
 };
 

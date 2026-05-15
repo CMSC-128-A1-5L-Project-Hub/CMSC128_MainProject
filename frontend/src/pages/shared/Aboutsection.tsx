@@ -298,7 +298,22 @@ function ReviewCard({ review, onCycle, canCycle }: { review: FeaturedReview; onC
           </button>
         )}
       </div>
-      <p style={{ fontSize: 11.5, fontStyle: "italic", lineHeight: 1.65, color: "#3A1020", fontFamily: "Georgia,serif" }}>
+      <p
+        style={{
+          fontSize: 11.5,
+          fontStyle: "italic",
+          lineHeight: 1.65,
+          color: "#3A1020",
+          fontFamily: "Georgia,serif",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          margin: 0,
+          minHeight: `calc(11.5px * 1.65 * 2)`,
+        }}
+      >
         {review.content ?? "Great place to stay."}
       </p>
       <div style={{ height: 1, background: "#F0E8EC" }} />
