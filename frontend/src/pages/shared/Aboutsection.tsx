@@ -242,23 +242,71 @@ function OccCard() {
   );
 }
 
-function ReviewCard() {
+type FeaturedReview = {
+  id: number;
+  rating: number;
+  content: string | null;
+  student: {
+    fname: string | null;
+    lname: string | null;
+    college: string | null;
+    degreeProgram: string | null;
+  } | null;
+  accommodation: { id: number; name: string | null } | null;
+};
+
+const FALLBACK_REVIEW: FeaturedReview = {
+  id: -1,
+  rating: 5,
+  content: "Found my room in one afternoon. Kamia was exactly what I needed.",
+  student: { fname: "Ana", lname: "Reyes", college: "cas", degreeProgram: "BS Biology" },
+  accommodation: null,
+};
+
+function ReviewCard({ review, onCycle, canCycle }: { review: FeaturedReview; onCycle: () => void; canCycle: boolean }) {
+  const fname = review.student?.fname ?? "Anonymous";
+  const lname = review.student?.lname ?? "";
+  const initial = (fname?.[0] ?? "A").toUpperCase();
+  const fullName = `${fname}${lname ? " " + lname : ""}`.trim();
+  const program = review.student?.degreeProgram ?? "UPLB Student";
+
   return (
-    <div style={{ background: "#fff", borderRadius: 18, padding: "18px", boxShadow: "0 6px 28px rgba(26,10,15,0.09)", display: "flex", flexDirection: "column", gap: 8 }}>
-      <div style={{ display: "flex", gap: 2 }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <span key={i} style={{ fontSize: 15, color: "#C9973A" }}>★</span>
-        ))}
+    <div style={{ background: "#fff", borderRadius: 18, padding: "18px", boxShadow: "0 6px 28px rgba(26,10,15,0.09)", display: "flex", flexDirection: "column", gap: 8, position: "relative" }}>
+      <div style={{ display: "flex", gap: 2, alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", gap: 2 }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span key={i} style={{ fontSize: 15, color: i < review.rating ? "#C9973A" : "#E8DFE3" }}>★</span>
+          ))}
+        </div>
+        {canCycle && (
+          <button
+            type="button"
+            onClick={onCycle}
+            aria-label="Show another review"
+            title="Show another review"
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 14,
+              color: "#8A5060",
+              padding: 2,
+              lineHeight: 1,
+            }}
+          >
+            ↻
+          </button>
+        )}
       </div>
       <p style={{ fontSize: 11.5, fontStyle: "italic", lineHeight: 1.65, color: "#3A1020", fontFamily: "Georgia,serif" }}>
-        Found my room in one afternoon. Kamia was exactly what I needed.
+        {review.content ?? "Great place to stay."}
       </p>
       <div style={{ height: 1, background: "#F0E8EC" }} />
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#7B3020", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 700 }}>A</div>
+        <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#7B3020", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 700 }}>{initial}</div>
         <div>
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#2A0410" }}>Ana Reyes</p>
-          <p style={{ fontSize: 10, color: "#8A5060" }}>BS Biology · UPLB</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "#2A0410" }}>{fullName || "Anonymous"}</p>
+          <p style={{ fontSize: 10, color: "#8A5060" }}>{program} · UPLB</p>
         </div>
       </div>
     </div>
@@ -285,6 +333,8 @@ export default function AboutSection() {
   const [topRatedDorms, setTopRatedDorms] = useState<any[]>([]);
   const [stats, setStats] = useState({ dorms: 0, rooms: 0, rating: 0 });
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [featuredReviews, setFeaturedReviews] = useState<FeaturedReview[]>([]);
+  const [reviewIndex, setReviewIndex] = useState(0);
 
   // Manual scroll-based parallax — uses window.scrollY directly so that
   // body overflow:hidden (from modal) never affects the computed values.
@@ -339,9 +389,30 @@ export default function AboutSection() {
         console.error("Failed to fetch stats:", error);
       }
     };
+    const fetchFeaturedReviews = async () => {
+      try {
+        const res = await api.get("/reviews/featured", { params: { minRating: 4, limit: 20 } });
+        const list: FeaturedReview[] = Array.isArray(res.data?.data) ? res.data.data : [];
+        if (list.length > 0) {
+          setFeaturedReviews(list);
+          setReviewIndex(Math.floor(Math.random() * list.length));
+        }
+      } catch (error) {
+        console.error("Failed to fetch featured reviews:", error);
+      }
+    };
     fetchTopRatedDorms();
     fetchStats();
+    fetchFeaturedReviews();
   }, []);
+
+  const currentReview: FeaturedReview =
+    featuredReviews.length > 0 ? featuredReviews[reviewIndex] : FALLBACK_REVIEW;
+
+  const cycleReview = () => {
+    if (featuredReviews.length < 2) return;
+    setReviewIndex((i) => (i + 1) % featuredReviews.length);
+  };
 
   const featuredDorm = topRatedDorms[0];
 
@@ -485,7 +556,11 @@ export default function AboutSection() {
                 <OccCard />
               </motion.div>
               <motion.div whileHover={{ scale: 1.03 }}>
-                <ReviewCard />
+                <ReviewCard
+                  review={currentReview}
+                  onCycle={cycleReview}
+                  canCycle={featuredReviews.length > 1}
+                />
               </motion.div>
             </motion.div>
           </div>
