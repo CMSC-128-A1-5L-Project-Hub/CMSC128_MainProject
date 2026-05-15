@@ -540,7 +540,7 @@ function DormTile({
             onMouseEnter={() => onHover(dorm.accommodationId)}
             onMouseLeave={() => onHover(null)}
             onClick={onClick}
-            className={`group flex flex-col sm:flex-row gap-0 bg-white rounded-2xl border cursor-pointer transition-all duration-200 min-h-[150px] my-0.5                
+            className={`group flex flex-col sm:flex-row gap-0 bg-white rounded-2xl border cursor-pointer transition-all duration-200 min-h-[150px] my-0.5                   
                 ${hovered
                     ? "border-[#6B0F2B] shadow-lg shadow-[#6B0F2B]/10 -translate-y-0.5"
                     : "border-[#E8D4DF] shadow-sm hover:border-[#6B0F2B]/40 hover:shadow-md hover:-translate-y-0.5"
