@@ -330,7 +330,7 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
             <h2 className="text-[#1A0008] font-bold text-base mb-3">
                 Occupancy Rooms
             </h2>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col lg:flex-row items-center justify-center gap-8 h-full -mt-7">
                 {/* Donut SVG */}
                 <div className="relative flex-shrink-0">
                     <svg width="180" height="180" viewBox="0 0 120 120">
@@ -367,7 +367,7 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
                 </div>
 
                 {/* Legend */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-4 justify-center">
                     {[
                         { label: "Fully Occupied Rooms",    value: full,      color: "#3D0A1A" },
                         { label: "Partially Occupied Rooms", value: partial,  color: "#9E2040" },
