@@ -174,7 +174,6 @@ export default function Dashboard() {
       <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">     
         <div className="flex-1 flex flex-col overflow-hidden">
           <CustomHeader title="Dashboard" />
-          
           <div className="flex-1 overflow-y-auto p-6">
             <main className="flex flex-col gap-6">
               <HeroBanner
@@ -185,7 +184,10 @@ export default function Dashboard() {
                 type="full"
               />
 
-              {/* Stats Row */}
+              {/* Tabs - MOVED UP */}
+              <FilterTabs active={activeTab} setActive={setActiveTab} />
+
+              {/* Stats Row - MOVED DOWN */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <DonutStatCard
                   title="Pending Approvals"
@@ -203,9 +205,6 @@ export default function Dashboard() {
                   total={100}
                 />
               </div>
-
-              {/* Tabs */}
-              <FilterTabs active={activeTab} setActive={setActiveTab} />
 
               {/* Mobile View */}
               <div className="flex flex-col gap-6 lg:hidden">
@@ -258,7 +257,7 @@ export default function Dashboard() {
 
         {/* Right Sidebar  */}
         <aside className="hidden lg:flex lg:w-[380px] xl:w-[420px] flex-shrink-0 flex-col bg-[#F5EEF0] overflow-y-auto">
-          <div className="flex flex-col gap-4 p-4">
+          <div className="flex flex-col gap-4 px-4">
             <ProfileCard
               fullName={fullName}
               role="Dormitory Manager"

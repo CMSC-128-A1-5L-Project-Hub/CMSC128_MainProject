@@ -641,7 +641,7 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex h-screen bg-[#F5EEF0] overflow-hidden">
+    <div className="flex h-screen bg-[#F6F2F4] overflow-hidden">
 
       {/* Everything right of sidebar: header + (main + right panel) */}
       <div className="flex flex-col flex-1 overflow-hidden min-w-0">
@@ -934,12 +934,11 @@ export default function Dashboard() {
             )}
           </div>
         </main>
-
-        <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#FAF8F9] overflow-y-auto">
-          <RightPanel />
-        </aside>
         </div>
       </div>
+      <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#FAF8F9] overflow-y-auto">
+        <RightPanel />
+      </aside>
 
       {/* ADD DOCUMENT MODAL */}
       <Modal 

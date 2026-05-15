@@ -170,7 +170,7 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
         <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-6 shadow-sm w-full h-full flex flex-col">
           <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
             <p className="text-[#1A0008] font-bold">Room Assignment</p>
-            <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/assignments")}>
+            <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/room-assignment")}>
               View all →
             </p>
           </div>
