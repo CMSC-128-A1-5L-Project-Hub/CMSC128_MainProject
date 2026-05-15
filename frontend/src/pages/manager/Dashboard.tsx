@@ -256,7 +256,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right Sidebar  */}
-        <aside className="hidden lg:flex lg:w-[380px] xl:w-[420px] flex-shrink-0 flex-col bg-[#F5EEF0] overflow-y-auto">
+        <aside className="hidden lg:flex lg:w-[380px] xl:w-[420px] flex-shrink-0 flex-col bg-[#F5EEF0] overflow-y-auto pb-4">
           <div className="flex flex-col gap-4 px-4">
             <ProfileCard
               fullName={fullName}
