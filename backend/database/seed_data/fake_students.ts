@@ -6,7 +6,7 @@ import { UserSeedData, StudentSeedData } from "./users.ts";
     For testing purposes only
 */
 
-export const FakeUsers: UserSeedData[] = [
+const HARDCODED_FAKE_USERS: UserSeedData[] = [
     { email: 'aabad@up.edu.ph', fname: 'Andrea', lname: 'Abad', role: 'student' },
     { email: 'balonzo@up.edu.ph', fname: 'Bryan', lname: 'Alonzo', role: 'student' },
     { email: 'caquino@up.edu.ph', fname: 'Christine', lname: 'Aquino', role: 'student' },
@@ -121,10 +121,111 @@ export const FakeUsers: UserSeedData[] = [
     { email: 'ttiongson@up.edu.ph', fname: 'Tina', lname: 'Tiongson', role: 'student' }
 ]
 
-export const FakeStudents: StudentSeedData[] = FakeUsers.map((user, index) => ({
-    email: user.email,
-    studentNumber: `2023-${String(70001 + index).padStart(5, '0')}`,
-    college: 'cas',
-    degreeProgram: 'BS Computer Science',
-    gender: index % 2 === 0 ? 'female' : 'male'
-}));
+/*
+    Procedurally generated additions — appended to HARDCODED_FAKE_USERS to scale
+    the fake student pool past 100. Deterministic (seeded LCG, no Math.random) so
+    re-runs produce the same students.
+
+    Email scheme: first letter of fname + lowercase lname (+ numeric suffix on collision).
+*/
+const FIRST_NAMES: { name: string; gender: 'male' | 'female' }[] = [
+    { name: 'Aldrin',   gender: 'male'   }, { name: 'Beatrice', gender: 'female' },
+    { name: 'Carmela',  gender: 'female' }, { name: 'Dominic',  gender: 'male'   },
+    { name: 'Elise',    gender: 'female' }, { name: 'Francis',  gender: 'male'   },
+    { name: 'Geraldine',gender: 'female' }, { name: 'Hiro',     gender: 'male'   },
+    { name: 'Imelda',   gender: 'female' }, { name: 'Jeric',    gender: 'male'   },
+    { name: 'Kaila',    gender: 'female' }, { name: 'Lorenzo',  gender: 'male'   },
+    { name: 'Mariel',   gender: 'female' }, { name: 'Nathaniel',gender: 'male'   },
+    { name: 'Odette',   gender: 'female' }, { name: 'Patricio', gender: 'male'   },
+    { name: 'Queenie',  gender: 'female' }, { name: 'Renz',     gender: 'male'   },
+    { name: 'Stephanie',gender: 'female' }, { name: 'Tomas',    gender: 'male'   },
+    { name: 'Ursula',   gender: 'female' }, { name: 'Vicente',  gender: 'male'   },
+    { name: 'Wilma',    gender: 'female' }, { name: 'Xander',   gender: 'male'   },
+    { name: 'Yvette',   gender: 'female' }, { name: 'Zaldy',    gender: 'male'   },
+    { name: 'Anika',    gender: 'female' }, { name: 'Benjie',   gender: 'male'   },
+    { name: 'Celine',   gender: 'female' }, { name: 'Dario',    gender: 'male'   },
+];
+
+const LAST_NAMES = [
+    'Aguilar', 'Buenaventura', 'Concepcion', 'Diokno', 'Enriquez',
+    'Fernandez', 'Galicia', 'Hernandez', 'Inocencio', 'Jocson',
+    'Kalaw', 'Laurel', 'Manalo', 'Nepomuceno', 'Olivar',
+    'Paguio', 'Quirino', 'Roxas', 'Salonga', 'Tolentino',
+    'Umali', 'Velasquez', 'Walang', 'Yulo', 'Zaragoza',
+    'Abello', 'Bayani', 'Caparas', 'Domingo', 'Esguerra',
+    'Fajardo', 'Guevara', 'Hilado', 'Ilagan', 'Jalandoni',
+    'Katindig', 'Lansangan', 'Macaraeg', 'Nantes', 'Ocampo',
+    'Padilla', 'Quiamco', 'Romero', 'Sebastian', 'Trinidad',
+    'Uy', 'Villarosa', 'Wong', 'Yap', 'Zabala',
+];
+
+// Simple LCG for deterministic pseudo-random sequencing
+const makeLcg = (seed: number) => {
+    let s = seed >>> 0;
+    return () => {
+        s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+        return s;
+    };
+};
+
+const TARGET_GENERATED = 100;
+
+const GENERATED_FAKE_USERS: UserSeedData[] = (() => {
+    const rng = makeLcg(20240515);
+    const usedEmails = new Set(HARDCODED_FAKE_USERS.map((u) => u.email));
+    const out: UserSeedData[] = [];
+
+    // Walk a deterministic combinatorial path: stride through FIRST_NAMES x LAST_NAMES
+    // with co-prime offsets so we cover diverse pairings without repeats.
+    const fLen = FIRST_NAMES.length;
+    const lLen = LAST_NAMES.length;
+
+    let safety = 0;
+    while (out.length < TARGET_GENERATED && safety < TARGET_GENERATED * 50) {
+        safety++;
+        const fi = rng() % fLen;
+        const li = rng() % lLen;
+        const first = FIRST_NAMES[fi];
+        const last = LAST_NAMES[li];
+        const base = `${first.name[0].toLowerCase()}${last.toLowerCase().replace(/\s+/g, '')}`;
+
+        let email = `${base}@up.edu.ph`;
+        let suffix = 2;
+        while (usedEmails.has(email)) {
+            email = `${base}${suffix}@up.edu.ph`;
+            suffix++;
+        }
+        usedEmails.add(email);
+
+        out.push({
+            email,
+            fname: first.name,
+            lname: last,
+            role: 'student',
+        });
+    }
+
+    return out;
+})();
+
+export const FakeUsers: UserSeedData[] = [...HARDCODED_FAKE_USERS, ...GENERATED_FAKE_USERS];
+
+export const FakeStudents: StudentSeedData[] = FakeUsers.map((user, index) => {
+    // Hardcoded entries (first 100) keep their original alternating gender pattern.
+    // Generated entries use the gender from FIRST_NAMES via lookup on fname.
+    let gender: string;
+    if (index < HARDCODED_FAKE_USERS.length) {
+        gender = index % 2 === 0 ? 'female' : 'male';
+    } else {
+        const match = FIRST_NAMES.find((f) => f.name === user.fname);
+        gender = match?.gender ?? (index % 2 === 0 ? 'female' : 'male');
+    }
+
+    return {
+        email: user.email,
+        studentNumber: `2023-${String(70001 + index).padStart(5, '0')}`,
+        college: 'cas',
+        degreeProgram: 'BS Computer Science',
+        gender,
+    };
+});
