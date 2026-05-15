@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { motion } from "framer-motion";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
@@ -7,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import defaultAccommodation from "@/assets/defaults/accommodation.png"
 import CustomHeader from '../../components/CustomHeader';
 import UbleLoader from "../shared/LoadingPage";
+import HeroBanner from "@/components/dashboard/HeroBanner";
 
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
@@ -79,7 +81,7 @@ const CLR = {
 } as const;
 
 // ── Types ──────────────────────────────────────────────────────────────────
-type ApplicationStatus = "Approved" | "Pending" | "In Review";
+type ApplicationStatus = "Approved" | "Pending" | "In Review" | "Rejected" | "Cancelled" | "Waitlisted" | "Confirmed";
 
 interface Application {
   id: number;
@@ -318,10 +320,15 @@ const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
     Approved: "bg-green-100 text-green-700 border border-green-200",
     Pending: "bg-amber-100 text-amber-700 border border-amber-200",
     "In Review": "bg-sky-100 text-sky-700 border border-sky-200",
+    Rejected: "bg-red-100 text-red-700 border border-red-200",
+    Cancelled: "bg-gray-100 text-gray-600 border border-gray-200",
+    Waitlisted: "bg-purple-100 text-purple-700 border border-purple-200",
+    Confirmed: "bg-emerald-100 text-emerald-700 border border-emerald-200",
   };
 
+
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${styles[status]}`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${styles[status] || styles["In Review"]}`}>
       {status}
     </span>
   );
@@ -585,8 +592,10 @@ const DesktopProfilePanel = ({
         <button
           type="button"
           onClick={() => setNotifOpen((prev) => !prev)}
-          className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.08)" }}
+          className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
+            transition-all duration-150
+            bg-white/10 hover:bg-white/20 active:bg-white/30
+            hover:-translate-y-1 active:translate-y-0 active:scale-95"
         >
           <img
             src={notif_icon}
@@ -653,7 +662,7 @@ const DesktopProfilePanel = ({
           <div key={item.label}>
             <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
             {"green" in item && item.green ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#3FA36C] bg-[#5E5A4D] text-[#cefad0] text-green-800"> 
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#3FA36C] bg-[#5E5A4D] text-[#cefad0] text-green-200"> 
                 {item.value}
               </span>
             ) : (
@@ -1055,398 +1064,386 @@ if (!profile || !user || user.role !== "student") {
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
-      {/* Reusable Sidebar */}
-      <Sidebar role="student" profile={profile} />
+      <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div className="flex-1 overflow-y-auto px-4 lg:px-6 pt-0 pb-4 lg:pb-5 space-y-4 lg:space-y-5">
-          <div className="-mx-4 lg:-mx-6">
-            <CustomHeader title="Dashboard" />
-          </div>
-          <div
-            className="relative rounded-2xl overflow-hidden flex items-center min-h-[140px] sm:min-h-[176px]"
-            style={{ background: `linear-gradient(135deg, ${CLR.dark} 0%, ${CLR.accent} 60%, ${CLR.mid} 100%)` }}
-          >
-            <div className="relative z-10 px-5 sm:px-8 py-6">
-              <p className="text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1" style={{ color: CLR.goldLt }}>
-                {heroContent.greeting}, {profile.shortName}
-              </p>
-              <h2 className="text-white font-bold text-lg sm:text-2xl leading-snug mb-1.5 max-w-xs sm:max-w-sm">
-                {heroContent.title}
-              </h2>
-              <p className="text-white/60 text-xs sm:text-sm">
-                You have {pendingApplicationsCount} pending application{pendingApplicationsCount !== 1 && "s"} and {notificationsTodayCount} new notification{notificationsTodayCount !== 1 && "s"} today.              
-              </p>
+        {/* Main content */}
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-4 lg:px-6 pt-0 pb-4 lg:pb-5 space-y-4 lg:space-y-5">
+            <div className="-mx-4 lg:-mx-6">
+              <CustomHeader title="Dashboard" />
             </div>
+            <HeroBanner
+              greeting="Good Day"
+              name={profile.shortName}
+              title={heroContent.title}
+              subtitle={`You have ${pendingApplicationsCount} pending application${pendingApplicationsCount !== 1 && "s"} and ${notificationsTodayCount} new notification${notificationsTodayCount !== 1 && "s"} today. `}
+              type="full"
+            />
 
-            <div className="absolute right-0 bottom-0 h-full flex items-end pointer-events-none">
-              <img src={house_icon} alt="" className="w-[130px] h-[130px]" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-[22px] shadow-sm border border-gray-100 overflow-hidden">
-            <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
-              <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
-             <button
-              type="button"
-              onClick={() => navigate('/student/applications')}
-              className="text-sm font-bold hover:underline my-auto flex items-center gap-1"
-              style={{ color: CLR.mid }}
-            >
-              View all <IconChevronRight className="w-4 h-4" />
-            </button>
-            </div>
-
-            <div className="overflow-x-auto p-4">
-              <table className="w-full text-sm min-w-[540px] border-b -mt-1 border-[#6B0F2B]/10">
-                <thead>
-                  <tr className="border-y border-[#6B0F2B]/10">
-                    {["DORM", "TYPE", "APPLIED", "LOCATION", "STATUS", "ACTION"].map((h) => (
-                      <th
-                        key={h}
-                        className="px-4 text-left text-[#9A7080] text-[12px] tracking-widest font-bold uppercase whitespace-nowrap"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {applications.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-10 text-center text-gray-500"
-                      >
-                        <div className="flex flex-col items-center gap-2">
-                          <p className="text-[#9A7080] font-medium">
-                            No current applications
-                          </p>
-                          <p className="text-[#9A7080]/60 text-sm mt-1">
-                            Browse accommodations and apply to get started.
-                          </p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    applications.map((app: any) => (
-                      <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-4 sm:px-6 py-3 sm:py-4">
-                          <div className="flex items-center gap-2.5">
-                            <div
-                              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0"
-                              style={{ background: CLR.mid }}
-                            />
-                            <span className="font-medium text-[#2A0410] whitespace-nowrap">
-                              {app.accommodation?.accommodationName}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
-                          {formatStayType(app.applicationStayType)}
-                        </td>
-
-                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
-                          {formatDate(app.applicationDate)}
-                        </td>
-
-                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
-                          {capitalize(app.accommodation?.accommodationType)}
-                        </td>
-
-                        <td className="px-4 sm:px-6 py-3 sm:py-4">
-                          <StatusBadge
-                            status={
-                              app.applicationStatus === "approved"
-                                ? "Approved"
-                                : app.applicationStatus === "pending"
-                                ? "Pending"
-                                : "In Review"
-                            }
-                          />
-                        </td>
-
-                        <td className="px-4 sm:px-6 py-3 sm:py-4">
-                          <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                            <IconMoreHorizontal />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="sm:col-span-1 lg:col-span-3 bg-white rounded-[28px] shadow-[0_10px_24px_rgba(61,7,24,0.12)] border border-[#EFE5E8] p-6">
-              <div className="flex items-center justify-between pb-4 border-b border-[#F1E5EA]">
-                <h3 className="font-bold text-[#1B2233] text-base">Recommended</h3>
-                <button
-                  type="button"
-                  onClick={() => navigate('/student/browse')}
-                  className="text-[14px] font-bold flex items-center gap-1"
-                  style={{ color: CLR.mid }}
-                >
-                  View all <IconChevronRight className="w-4 h-4" />
-                </button>
+            <div className="bg-white rounded-[22px] shadow-sm border border-gray-100 overflow-hidden">
+              <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
+                <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
+              <button
+                type="button"
+                onClick={() => navigate('/student/applications')}
+                className="text-sm font-bold hover:underline my-auto flex items-center gap-1"
+                style={{ color: CLR.mid }}
+              >
+                View all <IconChevronRight className="w-4 h-4" />
+              </button>
               </div>
 
-              <div className="flex items-center gap-4 pt-5">
-                <div
-                  ref={recommendedScrollRef}
-                  className="flex gap-4 flex-1 min-w-0 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth"
-                >
-                  {recommendedLoading ? (
-                    <div className="px-2 text-sm text-gray-500">Loading recommended dorms...</div>
-                  ) : recommendedDorms.length === 0 ? (
-                    <div className="px-2 text-sm text-gray-500">No recommended dorms found.</div>
-                  ) : (
-                    recommendedDorms.map((dorm: any) => (
-                      <button
-                        key={dorm.id}
-                        type="button"
-                        onClick={() => {
-                          const id = dorm.id ?? dorm.accommodationId ?? dorm.accommodation_id
-
-                          // console.log("RECOMMENDED DORM CLICKED:", dorm)
-                          // console.log("NAVIGATING TO ID:", id)
-
-                          navigate(`/student/roomview/${id}`)
-                        }}
-                        className="min-w-[280px] max-w-[280px] text-left flex-shrink-0 rounded-[24px] border border-[#EFE5E8] bg-white shadow-[0_8px_18px_rgba(61,7,24,0.06)] overflow-hidden transition hover:-translate-y-0.5 snap-start"
-                      >
-                      <div className="px-4 pt-4 pb-4">
-                        <div className="relative h-[132px] rounded-[18px] overflow-hidden">
-                          <img
-                            src={dorm.primaryImageUrl ?? defaultAccommodation}
-                            onError={(e) => { e.currentTarget.src = defaultAccommodation }}
-                            alt={dorm.accommodation_name ?? dorm.accommodationName}
-                            className="absolute inset-0 w-full h-full object-cover"
-                          />
-                          
-                          <div className="absolute top-0 left--3 bg-white/95 rounded-full px-2 py-1 shadow-sm flex items-center gap-0.5">
-                            <div className="absolute top-3 left-3 bg-white rounded-full px-3 py-1.5 shadow-sm flex items-center gap-1">
-                              <span className="text-[11px] font-bold" style={{ color: CLR.gold }}>
-                                {formatRating(dorm.average_rating ?? dorm.averageRating)}
+              <div className="overflow-x-auto p-4">
+                <table className="w-full text-sm min-w-[540px] border-b -mt-1 border-[#6B0F2B]/10">
+                  <thead>
+                    <tr className="border-y border-[#6B0F2B]/10">
+                      {["DORM", "TYPE", "APPLIED", "LOCATION", "STATUS", "ACTION"].map((h) => (
+                        <th
+                          key={h}
+                          className="px-4 text-left text-[#9A7080] text-[12px] tracking-widest font-bold uppercase whitespace-nowrap"
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {applications.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="px-6 py-10 text-center text-gray-500"
+                        >
+                          <div className="flex flex-col items-center gap-2">
+                            <p className="text-[#9A7080] font-medium">
+                              No current applications
+                            </p>
+                            <p className="text-[#9A7080]/60 text-sm mt-1">
+                              Browse accommodations and apply to get started.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      applications.map((app: any) => (
+                        <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-4 sm:px-6 py-3 sm:py-4">
+                            <div className="flex items-center gap-2.5">
+                              <div
+                                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0"
+                                style={{ background: CLR.mid }}
+                              />
+                              <span className="font-medium text-[#2A0410] whitespace-nowrap">
+                                {app.accommodation?.accommodationName}
                               </span>
+                            </div>
+                          </td>
 
-                              <div className="flex items-center gap-[1px]">
-                                {Array.from({ length: 5 }).map((_, i) => {
-                                  const rating = Math.round(
-                                    Number(dorm.average_rating ?? dorm.averageRating ?? 0)
-                                  )
+                          <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                            {formatStayType(app.applicationStayType)}
+                          </td>
 
-                                  return (
-                                    <svg
-                                      key={i}
-                                      className={`w-3 h-3 ${
-                                        i < rating ? "text-amber-400" : "text-gray-300"
-                                      }`}
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                  )
-                                })}
+                          <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                            {formatDate(app.applicationDate)}
+                          </td>
+
+                          <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                            {capitalize(app.accommodation?.accommodationType)}
+                          </td>
+
+                          <td className="px-4 sm:px-6 py-3 sm:py-4">
+                            <StatusBadge
+                                status={
+                                    app.applicationStatus === "approved" ? "Approved"
+                                    : app.applicationStatus === "pending" ? "Pending"
+                                    : app.applicationStatus === "under_review" ? "In Review"
+                                    : app.applicationStatus === "rejected" ? "Rejected"
+                                    : app.applicationStatus === "cancelled" ? "Cancelled"
+                                    : app.applicationStatus === "waitlisted" ? "Waitlisted"
+                                    : app.applicationStatus === "confirmed" ? "Confirmed"
+                                    : "Pending" // fallback
+                                }
+                            />
+                          </td>
+
+                          <td className="px-4 sm:px-6 py-3 sm:py-4">
+                            <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                              <IconMoreHorizontal />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="sm:col-span-1 lg:col-span-3 bg-white rounded-[28px] shadow-[0_10px_24px_rgba(61,7,24,0.12)] border border-[#EFE5E8] p-6">
+                <div className="flex items-center justify-between pb-4 border-b border-[#F1E5EA]">
+                  <h3 className="font-bold text-[#1B2233] text-base">Recommended</h3>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/student/browse')}
+                    className="text-[14px] font-bold flex items-center gap-1"
+                    style={{ color: CLR.mid }}
+                  >
+                    View all <IconChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-4 pt-5">
+                  <div
+                    ref={recommendedScrollRef}
+                    className="flex gap-4 flex-1 min-w-0 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth"
+                  >
+                    {recommendedLoading ? (
+                      <div className="px-2 text-sm text-gray-500">Loading recommended dorms...</div>
+                    ) : recommendedDorms.length === 0 ? (
+                      <div className="px-2 text-sm text-gray-500">No recommended dorms found.</div>
+                    ) : (
+                      recommendedDorms.map((dorm: any) => (
+                        <button
+                          key={dorm.id}
+                          type="button"
+                          onClick={() => {
+                            const id = dorm.id ?? dorm.accommodationId ?? dorm.accommodation_id
+
+                            // console.log("RECOMMENDED DORM CLICKED:", dorm)
+                            // console.log("NAVIGATING TO ID:", id)
+
+                            navigate(`/student/roomview/${id}`)
+                          }}
+                          className="min-w-[280px] max-w-[280px] text-left flex-shrink-0 rounded-[24px] border border-[#EFE5E8] bg-white shadow-[0_8px_18px_rgba(61,7,24,0.06)] overflow-hidden transition hover:-translate-y-0.5 snap-start"
+                        >
+                        <div className="px-4 pt-4 pb-4">
+                          <div className="relative h-[132px] rounded-[18px] overflow-hidden">
+                            <img
+                              src={dorm.primaryImageUrl ?? defaultAccommodation}
+                              onError={(e) => { e.currentTarget.src = defaultAccommodation }}
+                              alt={dorm.accommodation_name ?? dorm.accommodationName}
+                              className="absolute inset-0 w-full h-full object-cover"
+                            />
+                            
+                            <div className="absolute top-0 left--3 bg-white/95 rounded-full px-2 py-1 shadow-sm flex items-center gap-0.5">
+                              <div className="absolute top-3 left-3 bg-white rounded-full px-3 py-1.5 shadow-sm flex items-center gap-1">
+                                <span className="text-[11px] font-bold" style={{ color: CLR.gold }}>
+                                  {formatRating(dorm.average_rating ?? dorm.averageRating)}
+                                </span>
+
+                                <div className="flex items-center gap-[1px]">
+                                  {Array.from({ length: 5 }).map((_, i) => {
+                                    const rating = Math.round(
+                                      Number(dorm.average_rating ?? dorm.averageRating ?? 0)
+                                    )
+
+                                    return (
+                                      <svg
+                                        key={i}
+                                        className={`w-3 h-3 ${
+                                          i < rating ? "text-amber-400" : "text-gray-300"
+                                        }`}
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                      >
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                      </svg>
+                                    )
+                                  })}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="mt-3">
-                          <span
-                            className="inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-bold leading-none"
-                            style={{
-                              background: "#D4A137",
-                              color: "#3D0718",
-                            }}
-                          >
-                             {formatRestriction(dorm.tenant_restriction ?? dorm.tenantRestriction)}
-                          </span>
-                        </div>
-
-                        <h4 className="mt-3 text-[15px] font-bold leading-tight" style={{ color: CLR.dark }}>
-                          {dorm.accommodation_name ?? dorm.accommodationName}
-                        </h4>
-
-                        <p className="mt-1 leading-tight text-sm text-[#8C6A75]">
-                          {formatAccommodationType(dorm.accommodation_type ?? dorm.accommodationType)} ·{" "}
-                          {dorm.accommodation_location ?? dorm.accommodationLocation}
-                        </p>
-
-                        {dorm.lowestRent != null && (
-                          <p className="mt-2 text-[15px] font-bold leading-none" style={{ color: CLR.gold }}>
-                            ₱{Number(dorm.lowestRent).toLocaleString()}
-                            <span className="ml-1 font-normal text-[13px] text-[#8C6A75]">/ month</span>
-                          </p>
-                        )}
-
-                        <div className="mt-4 h-px bg-[#F1E5EA]" />
-{/* 
-                        <div className="mt-3 flex items-center justify-between">
-                          <div className="flex items-center gap-1">
-                            {Array.from({ length: 5 }).map((_, i) => {
-                              const rating = Math.round(Number(dorm.average_rating ?? dorm.averageRating ?? 0));
-                              return (
-                                <svg
-                                  key={i}
-                                  className={`w-4 h-4 ${i < rating ? "text-amber-400" : "text-gray-300"}`}
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                              );
-                            })}
+                          <div className="mt-3">
+                            <span
+                              className="inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-bold leading-none"
+                              style={{
+                                background: "#D4A137",
+                                color: "#3D0718",
+                              }}
+                            >
+                              {formatRestriction(dorm.tenant_restriction ?? dorm.tenantRestriction)}
+                            </span>
                           </div>
 
-                          <span className="text-[11px] text-[#9E7A86]">
-                            Top rated
-                          </span>
-                        </div> */}
+                          <h4 className="mt-3 text-[15px] font-bold leading-tight" style={{ color: CLR.dark }}>
+                            {dorm.accommodation_name ?? dorm.accommodationName}
+                          </h4>
 
-                        {dorm.sampleReview && (
-                          <p
-                            className="mt-3 text-[12px] italic leading-[1.35] text-[#4B2431]"
-                            style={{
-                              display: "-webkit-box",
-                              WebkitLineClamp: 4,
-                              WebkitBoxOrient: "vertical",
-                              overflow: "hidden",
-                            }}
-                          >
-                            {dorm.sampleReview}
+                          <p className="mt-1 leading-tight text-sm text-[#8C6A75]">
+                            {formatAccommodationType(dorm.accommodation_type ?? dorm.accommodationType)} ·{" "}
+                            {dorm.accommodation_location ?? dorm.accommodationLocation}
                           </p>
-                        )}
 
-                        <div className="mt-4 flex justify-center gap-1.5">
-                          {[0, 1, 2, 3, 4].map((dot) => (
-                            <span
-                              key={dot}
-                              className="w-2.5 h-2.5 rounded-full"
-                              style={{ background: dot === 0 ? CLR.gold : "#D7D7D7" }}
-                            />
-                          ))}
+                          {dorm.lowestRent != null && (
+                            <p className="mt-2 text-[15px] font-bold leading-none" style={{ color: CLR.gold }}>
+                              ₱{Number(dorm.lowestRent).toLocaleString()}
+                              <span className="ml-1 font-normal text-[13px] text-[#8C6A75]">/ month</span>
+                            </p>
+                          )}
+
+                          <div className="mt-4 h-px bg-[#F1E5EA]" />
+  {/* 
+                          <div className="mt-3 flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                              {Array.from({ length: 5 }).map((_, i) => {
+                                const rating = Math.round(Number(dorm.average_rating ?? dorm.averageRating ?? 0));
+                                return (
+                                  <svg
+                                    key={i}
+                                    className={`w-4 h-4 ${i < rating ? "text-amber-400" : "text-gray-300"}`}
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                  </svg>
+                                );
+                              })}
+                            </div>
+
+                            <span className="text-[11px] text-[#9E7A86]">
+                              Top rated
+                            </span>
+                          </div> */}
+
+                          {dorm.sampleReview && (
+                            <p
+                              className="mt-3 text-[12px] italic leading-[1.35] text-[#4B2431]"
+                              style={{
+                                display: "-webkit-box",
+                                WebkitLineClamp: 4,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {dorm.sampleReview}
+                            </p>
+                          )}
+
+                          <div className="mt-4 flex justify-center gap-1.5">
+                            {[0, 1, 2, 3, 4].map((dot) => (
+                              <span
+                                key={dot}
+                                className="w-2.5 h-2.5 rounded-full"
+                                style={{ background: dot === 0 ? CLR.gold : "#D7D7D7" }}
+                              />
+                            ))}
+                          </div>
+
+                          <div className="mt-3 h-px bg-[#F1E5EA]" />
                         </div>
-
-                        <div className="mt-3 h-px bg-[#F1E5EA]" />
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-              {/* <button
-                type="button"
-                onClick={scrollRecommendedRight}
-                className="hidden md:flex w-14 h-14 rounded-full text-white items-center justify-center shadow-[0_10px_24px_rgba(61,7,24,0.18)] flex-shrink-0"
-                style={{ background: `linear-gradient(135deg, ${CLR.accent} 0%, ${CLR.mid} 100%)` }}
-              >
-                <IconArrowNext className="w-5 h-5" />
-              </button> */}
-              </div>
-
-              
-            </div>
-
-            <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-[22px] shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
-              <div className="h-[320px] rounded-2xl overflow-hidden">
-                <AccommodationMap
-                  accommodations={filteredDashboardMapAccommodations}
-                  centeredAccommodation={null}
-                  onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
-                />
-              </div>
-
-              <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">
-                  Dorm Type
-                </p>
-
-                <div className="relative mb-3">
-                  <select
-                    value={activeFilter}
-                    onChange={(e) => setActiveFilter(e.target.value)}
-                    className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition"
-                  >
-                    <option value="All">All Types</option>
-                    <option value="On-Campus">On-Campus</option>
-                    <option value="Off-Campus">Off-Campus</option>
-                    <option value="UPLB Partner">UPLB Partner</option>
-                  </select>
-
-                  <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      </button>
+                    ))
+                  )}
                 </div>
-
-                <div className="hidden sm:flex flex-wrap gap-1.5 mb-3 lg:hidden xl:flex">
-                  {mapFilters.map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      onClick={() => setActiveFilter(f)}
-                      className="px-2.5 py-1 rounded-full text-xs font-semibold transition-all"
-                      style={
-                        activeFilter === f
-                          ? { background: CLR.mid, color: "#fff" }
-                          : { background: "#f3f4f6", color: "#4b5563" }
-                      }
-                    >
-                      {f}
-                    </button>
-                  ))}
-                </div>
-
-                <button
+                {/* <button
                   type="button"
-                  onClick={() => navigate("/student/browse")}
-                  className="w-full text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-sm"
-                  style={{ background: CLR.mid }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = CLR.dark)}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = CLR.mid)}
+                  onClick={scrollRecommendedRight}
+                  className="hidden md:flex w-14 h-14 rounded-full text-white items-center justify-center shadow-[0_10px_24px_rgba(61,7,24,0.18)] flex-shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${CLR.accent} 0%, ${CLR.mid} 100%)` }}
                 >
-                  View Interactive Map <IconChevronRight />
-                </button>
-              </div>
-            </div>
-            </div>
-          <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
-            {billingLoading ? (
-              <div className="bg-white rounded-2xl p-4">
-                <p className="text-sm text-gray-500">Loading billing...</p>
-              </div>
-            ) : billingOverviewData ? (
-              <BillingSection
-                overview={billingOverviewData ?? emptyBilling}
-                statements={billingStatementsData}
-                navigate={navigate}
-              />
-            ) : (
-              <div className="bg-white rounded-2xl p-4">
-                <p className="text-sm text-gray-500">No billing data found.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </main> 
+                  <IconArrowNext className="w-5 h-5" />
+                </button> */}
+                </div>
 
-      <DesktopProfilePanel
-        profile={profile}
-        billing={billingOverviewData ?? emptyBilling}
-        statements={billingStatementsData}
-        navigate={navigate}
-        notifOpen={notifOpen}
-        setNotifOpen={setNotifOpen}
-        notifications={notifications}
-        unreadCount={unreadCount}
-        markAllRead={markAllRead}
-        markOneRead={markOneRead}
-        notifWrapperRef={notifWrapperRef}
-      />
-    </div>
+                
+              </div>
+
+              <div className="sm:col-span-1 lg:col-span-2 bg-white rounded-[22px] shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
+                <div className="h-[320px] rounded-2xl overflow-hidden">
+                  <AccommodationMap
+                    accommodations={filteredDashboardMapAccommodations}
+                    centeredAccommodation={null}
+                    onCardClick={(acc) => navigate(`/student/roomview/${acc.accommodationId}`)}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">
+                    Dorm Type
+                  </p>
+
+                  <div className="relative mb-3">
+                    <select
+                      value={activeFilter}
+                      onChange={(e) => setActiveFilter(e.target.value)}
+                      className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A] transition"
+                    >
+                      <option value="All">All Types</option>
+                      <option value="On-Campus">On-Campus</option>
+                      <option value="Off-Campus">Off-Campus</option>
+                      <option value="UPLB Partner">UPLB Partner</option>
+                    </select>
+
+                    <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  </div>
+
+                  <div className="hidden sm:flex flex-wrap gap-1.5 mb-3 lg:hidden xl:flex">
+                    {mapFilters.map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setActiveFilter(f)}
+                        className="px-2.5 py-1 rounded-full text-xs font-semibold transition-all"
+                        style={
+                          activeFilter === f
+                            ? { background: CLR.mid, color: "#fff" }
+                            : { background: "#f3f4f6", color: "#4b5563" }
+                        }
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/student/browse")}
+                    className="w-full text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-sm"
+                    style={{ background: CLR.mid }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = CLR.dark)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = CLR.mid)}
+                  >
+                    View Interactive Map <IconChevronRight />
+                  </button>
+                </div>
+              </div>
+              </div>
+            <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
+              {billingLoading ? (
+                <div className="bg-white rounded-2xl p-4">
+                  <p className="text-sm text-gray-500">Loading billing...</p>
+                </div>
+              ) : billingOverviewData ? (
+                <BillingSection
+                  overview={billingOverviewData ?? emptyBilling}
+                  statements={billingStatementsData}
+                  navigate={navigate}
+                />
+              ) : (
+                <div className="bg-white rounded-2xl p-4">
+                  <p className="text-sm text-gray-500">No billing data found.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </main> 
+
+        <DesktopProfilePanel
+          profile={profile}
+          billing={billingOverviewData ?? emptyBilling}
+          statements={billingStatementsData}
+          navigate={navigate}
+          notifOpen={notifOpen}
+          setNotifOpen={setNotifOpen}
+          notifications={notifications}
+          unreadCount={unreadCount}
+          markAllRead={markAllRead}
+          markOneRead={markOneRead}
+          notifWrapperRef={notifWrapperRef}
+        />
+      </div>
   );
 }

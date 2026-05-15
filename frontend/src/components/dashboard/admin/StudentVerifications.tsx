@@ -129,16 +129,24 @@ export default function StudentVerifications({
         {isLoading ? (
           <p className="text-sm text-gray-500">Loading...</p>
         ) : students.length === 0 ? (
-          <p className="text-sm text-gray-500">No pending students.</p>
-        ) : (
+          <>
+            <hr className="border-[#F2D9DF]" />
+
+            <div className="flex items-center justify-center py-10">
+              <p className="text-lg text-[#9A7080] text-center">
+                No pending student applications
+              </p>
+            </div>
+          </>
+          ) : (
           <div className="max-h-[320px] overflow-y-auto">
             <table className="min-w-full border-collapse">
               <thead>
                 <tr className="border-y border-[#F2D9DF]">
-                  <th className="py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="w-[44%] py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
                     Student
                   </th>
-                  <th className="py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="w-[29%] py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
                     Applied
                   </th>
                   <th className="py-3 text-center text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
@@ -148,7 +156,7 @@ export default function StudentVerifications({
               </thead>
               <tbody>
                 {students.slice(0, 5).map((item: any) => (
-                  <tr key={item.user.id}>
+                  <tr key={item.user.id} className="hover:bg-[#FFF7F9]">
                     <td className="py-4">
                       <div className="flex items-center gap-4">
                         <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042] flex items-center justify-center text-white font-semibold">
@@ -163,7 +171,6 @@ export default function StudentVerifications({
                       {formatDate(item.user.submittedAt)}
                     </td>
                     <td className="py-4 text-center">
-                      {/* ← only change: onClick opens modal instead of approving directly */}
                       <button
                         onClick={() => handleReview(item)}
                         disabled={processingUserId === item.user.id}

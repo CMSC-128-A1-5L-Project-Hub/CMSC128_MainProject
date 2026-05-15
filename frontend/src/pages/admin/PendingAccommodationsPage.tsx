@@ -2,23 +2,31 @@ import { useEffect, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
 import { api } from "../../api/axios"
-import Sidebar from "../../components/Sidebar"
 import HeroBanner from "@/components/dashboard/HeroBanner"
 import Card from "@/components/ui/Card"
 import { FiSearch } from "react-icons/fi"
-import StudentVerificationsModal from "@/components/dashboard/admin/StudentVerificationsModal"
+import AccommodationVerificationModal from "@/components/dashboard/admin/PendingAccommodationsModal"
 
-export default function StudentVerificationsPage() {
+export default function PendingAccommodationsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const [processingUserId, setProcessingUserId] = useState<number | null>(null)
-  const [processingAction, setProcessingAction] = useState<"approve" | "reject" | null>(null)
+  const [verifyingAccommodationId, setVerifyingAccommodationId] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [sortOrder, setSortOrder] = useState("latest")
   const [isSortOpen, setIsSortOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedItem(null)
+  }
+
+  const handleOpenModal = (item: any) => {
+    setSelectedItem(item)
+    setIsModalOpen(true)
+  }
 
   const { data: user, isLoading: isUserLoading, isError } = useQuery({
     queryKey: ["me"],
@@ -30,65 +38,42 @@ export default function StudentVerificationsPage() {
   })
 
   const {
-    data: pendingUsersRaw,
+    data: pendingAccommodationsRaw,
     isLoading,
     isError: isPendingError,
   } = useQuery({
-    queryKey: ["admin-pending-users"],
+    queryKey: ["admin-pending-accommodations"],
     queryFn: async () => {
-      const res = await api.get("/admin/users/pending")
+      const res = await api.get("/admin/accommodations/pending")
       return res.data
     },
   })
 
-  const verifyUserMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      setProcessingUserId(userId)
-      setProcessingAction("approve")
+  const verifyAccommodationMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      setVerifyingAccommodationId(id)
 
-      const res = await api.patch(`/admin/users/${userId}/verify`, {
-        roleToAssign: "student",
+      const res = await api.patch(`/admin/accommodations/${id}/verify`, {
+        status,
       })
 
       return res.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
-      queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
+      queryClient.invalidateQueries({
+        queryKey: ["admin-pending-accommodations"],
+      })
     },
     onSettled: () => {
-      setProcessingUserId(null)
-      setProcessingAction(null)
+      setVerifyingAccommodationId(null)
     },
   })
 
-  const rejectUserMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      setProcessingUserId(userId)
-      setProcessingAction("reject")
-
-      const res = await api.patch(`/admin/users/${userId}/reject`)
-      return res.data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
-      queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
-    },
-    onSettled: () => {
-      setProcessingUserId(null)
-      setProcessingAction(null)
-    },
-  })
-
-  const pendingUsers = Array.isArray(pendingUsersRaw)
-    ? pendingUsersRaw
-    : Array.isArray(pendingUsersRaw?.data)
-    ? pendingUsersRaw.data
+  const pendingAccommodations = Array.isArray(pendingAccommodationsRaw)
+    ? pendingAccommodationsRaw
+    : Array.isArray(pendingAccommodationsRaw?.data)
+    ? pendingAccommodationsRaw.data
     : []
-
-  const studentPending = pendingUsers.filter(
-    (item: any) => item.requestedRole === "student"
-  )
 
   const formatAppliedDate = (timestamp?: string) => {
     if (!timestamp) return "N/A"
@@ -122,71 +107,56 @@ export default function StudentVerificationsPage() {
     return null
   }
 
-  const filteredStudents = studentPending
+  const filteredAccommodations = pendingAccommodations
     .filter((item: any) => {
-      const fullName = `${item.user.fname} ${item.user.lname}`.toLowerCase()
-      const email = item.user.email?.toLowerCase() ?? ""
+      const name = (item.accommodationName ?? "").toLowerCase()
+      const location = (item.accommodationLocation ?? "").toLowerCase()
+      const landlordName = item.landlord?.user
+        ? `${item.landlord.user.fname ?? ""} ${item.landlord.user.lname ?? ""}`.toLowerCase()
+        : ""
 
-      return (
-        fullName.includes(searchTerm.toLowerCase()) ||
-        email.includes(searchTerm.toLowerCase())
-      )
+      const q = searchTerm.toLowerCase()
+      return name.includes(q) || location.includes(q) || landlordName.includes(q)
     })
     .sort((a: any, b: any) => {
-      const dateA = new Date(a.user.createdAt ?? 0).getTime()
-      const dateB = new Date(b.user.createdAt ?? 0).getTime()
+      const dateA = new Date(a.createdAt ?? 0).getTime()
+      const dateB = new Date(b.createdAt ?? 0).getTime()
 
       return sortOrder === "latest" ? dateB - dateA : dateA - dateB
     })
-
-    const handleOpenModal = (item: any) => {
-      setSelectedItem(item)
-      setIsModalOpen(true)
-    }
-
-    const handleCloseModal = () => {
-      setIsModalOpen(false)
-      setSelectedItem(null)
-    }
 
   return (
     <div className="flex min-h-screen bg-[#F9F4F5]">
 
       <main className="mt-12 flex-1 overflow-x-hidden p-5 lg:mt-0 lg:p-8">
         <div className="space-y-6">
-          {/* TITLE */}
           <div className="relative mb-2 flex items-center border-b border-[#6B0F2B]/7 pb-1 pl-10 lg:pl-0">
             <div className="mr-2 mt-1 hidden h-8 w-2 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] lg:inline" />
             <h1 className="font-serif text-4xl font-bold italic text-[#6B0F2B]">
-              Student Verifications
+              Pending Accommodations
             </h1>
           </div>
 
-          {/* HERO */}
           <HeroBanner
             greeting="Good day"
             name={user?.fname ?? "Admin"}
-            title="Review pending student requests"
-            subtitle="Approve student account verification requests."
+            title="Review pending accommodation submissions"
+            subtitle="Approve or reject accommodations submitted by housing administrators."
             type="mini"
           />
 
-          {/* CARD */}
           <Card className="flex min-h-[620px] flex-col rounded-3xl border border-[#F2D9DF] bg-white p-8 shadow-sm">
-            {/* HEADER */}
             <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h4 className="text-xl font-semibold text-[#2A0410]">
-                  Student Verifications
+                  Pending Accommodations
                 </h4>
                 <p className="mt-1 text-sm text-[#A06B7C]">
-                  {filteredStudents.length} pending student requests
+                  {filteredAccommodations.length} pending accommodation submissions
                 </p>
               </div>
 
-              {/* SORT + SEARCH */}
               <div className="flex items-center gap-3">
-                {/* SORT */}
                 <div className="relative w-[200px]">
                   <button
                     onClick={(e) => {
@@ -241,7 +211,6 @@ export default function StudentVerificationsPage() {
                   )}
                 </div>
 
-                {/* SEARCH */}
                 <div className="relative">
                   <FiSearch className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A6B3]" />
 
@@ -249,39 +218,37 @@ export default function StudentVerificationsPage() {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search students..."
-                    className="h-[68px] w-[220px] rounded-2xl border border-[#F2D9DF] bg-[#FFF7F9] pl-11 pr-4 text-sm text-[#2A0410] outline-none placeholder:text-[#C9A6B3] focus:ring-2 focus:ring-[#D9B8C4]"
+                    placeholder="Search accommodations..."
+                    className="h-[68px] w-[280px] rounded-2xl border border-[#F2D9DF] bg-[#FFF7F9] pl-11 pr-4 text-sm text-[#2A0410] outline-none placeholder:text-[#C9A6B3] focus:ring-2 focus:ring-[#D9B8C4]"
                   />
                 </div>
               </div>
             </div>
 
-            {/* CONTENT */}
             {isLoading ? (
               <p className="text-sm text-gray-500">Loading...</p>
             ) : isPendingError ? (
               <p className="text-sm text-red-500">Error loading requests.</p>
-            ) : filteredStudents.length === 0 ? (
+            ) : filteredAccommodations.length === 0 ? (
               <div className="flex h-[390px] items-center justify-center border-t border-[#F2D9DF]">
                 <p className="text-lg font-medium text-[#9A7080] text-center">
-                  No pending student applications
+                  No pending accommodations
                 </p>
               </div>
             ) : (
               <>
-                {/* TABLE */}
                 <div className="-mx-6">
                   <table className="min-w-full border-collapse">
                     <thead className="bg-[#FFF7F9]">
                       <tr className="border-y border-[#F2D9DF]">
                         <th className="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                          Student
+                          Accommodation
                         </th>
                         <th className="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                          Applied
+                          Submitted
                         </th>
                         <th className="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                          Email
+                          Landlord
                         </th>
                         <th className="px-8 py-4 text-center text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
                           Status
@@ -293,34 +260,36 @@ export default function StudentVerificationsPage() {
                     </thead>
 
                     <tbody>
-                      {filteredStudents.map((item: any) => (
+                      {filteredAccommodations.map((item: any) => (
                         <tr
-                          key={item.user.id}
+                          key={item.id}
                           className="border-b border-[#F2D9DF] hover:bg-[#FFF7F9]"
                         >
                           <td className="px-8 py-5">
                             <div className="flex items-center gap-4">
                               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042] font-bold text-white">
-                                {item.user.fname?.[0]?.toUpperCase() ?? "S"}
+                                {item.accommodationName?.[0]?.toUpperCase() ?? "A"}
                               </div>
 
                               <div>
                                 <p className="text-base font-semibold text-[#2A0410]">
-                                  {item.user.fname} {item.user.lname}
+                                  {item.accommodationName}
                                 </p>
                                 <p className="text-xs text-[#A06B7C]">
-                                  Student Account
+                                  {item.accommodationLocation ?? "—"}
                                 </p>
                               </div>
                             </div>
                           </td>
 
                           <td className="px-8 py-5 text-sm text-[#A06B7C]">
-                            {formatAppliedDate(item.user.submittedAt)}
+                            {formatAppliedDate(item.createdAt)}
                           </td>
 
                           <td className="px-8 py-5 text-sm text-gray-600">
-                            {item.user.email}
+                            {item.landlord?.user
+                              ? `${item.landlord.user.fname} ${item.landlord.user.lname}`
+                              : "—"}
                           </td>
 
                           <td className="px-8 py-5 text-center">
@@ -343,11 +312,10 @@ export default function StudentVerificationsPage() {
                   </table>
                 </div>
 
-                {/* PAGINATION */}
                 <div className="mt-auto flex items-center justify-between pt-5">
                   <p className="text-sm text-[#A06B7C]">
-                    Showing 1–{filteredStudents.length} of{" "}
-                    {filteredStudents.length} requests
+                    Showing 1–{filteredAccommodations.length} of{" "}
+                    {filteredAccommodations.length} accommodations
                   </p>
 
                   <div className="flex items-center gap-2">
@@ -361,18 +329,18 @@ export default function StudentVerificationsPage() {
           </Card>
         </div>
       </main>
-      <StudentVerificationsModal
+
+      <AccommodationVerificationModal
         open={isModalOpen}
         onClose={handleCloseModal}
         selectedItem={selectedItem}
-        verifyingUserId={processingUserId}
-        processingAction={processingAction}
-        onApprove={async (userId) => {
-          await verifyUserMutation.mutateAsync(userId)
+        verifyingAccommodationId={verifyingAccommodationId}
+        onApprove={async (id) => {
+          await verifyAccommodationMutation.mutateAsync({ id, status: "verified" })
           handleCloseModal()
         }}
-        onReject={async (userId) => {
-          await rejectUserMutation.mutateAsync(userId)
+        onReject={async (id) => {
+          await verifyAccommodationMutation.mutateAsync({ id, status: "rejected" })
           handleCloseModal()
         }}
       />

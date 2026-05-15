@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import DormCard from "../../components/DormCard";
+import MiniAuthModal from "../../components/MiniAuthModal";
 import { api } from "../../api/axios";
 
 const KF = `
@@ -22,23 +23,6 @@ const KF = `
   @keyframes f11 { 0%,100%{transform:translateY(0) rotate(5deg)}   50%{transform:translateY(-9px)  rotate(5deg)}   }
   @keyframes fdot{ 0%,100%{transform:translateY(0)}                50%{transform:translateY(-6px)}                 }
 
-  @media (max-width: 1200px) {
-    .about-outer-grid {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      text-align: center !important;
-      padding: 40px 24px !important;
-    }
-
-    .text-container {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      margin-bottom: 40px !important;
-    }
-  }
-
   @media (max-width: 960px) {
     .stats-outer-wrapper {
       justify-content: center !important;
@@ -46,100 +30,84 @@ const KF = `
       gap: clamp(10px, 4vw, 30px) !important;
       padding: 0 20px !important;
     }
-    
     .stat-item-box {
       padding-left: clamp(15px, 3vw, 44px) !important;
       padding-right: clamp(15px, 3vw, 44px) !important;
     }
   }
 
-  /* ONLY ON SMALL SCREENS - rearrange layout */
-  @media (max-width: 900px) {
-    .about-inner-grid {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      gap: 24px !important;
-      width: 100% !important;
-    }
-    
-    /* Top row wrapper - DormCard and RoomsCard side by side */
-    .top-row-cards {
-      display: flex !important;
-      flex-direction: row !important;
-      justify-content: center !important;
-      gap: 20px !important;
-      width: 100% !important;
-      flex-wrap: wrap !important;
-    }
-    
-    /* Bottom row wrapper - OccCard and ReviewCard side by side */
-    .bottom-row-cards {
-      display: flex !important;
-      flex-direction: row !important;
-      justify-content: center !important;
-      gap: 20px !important;
-      width: 100% !important;
-      flex-wrap: wrap !important;
-    }
-    
-    .top-row-cards > div,
-    .bottom-row-cards > div {
-      flex: 1 !important;
-      min-width: 250px !important;
-      max-width: 320px !important;
-    }
-    
-    .rooms-card-wrapper {
-      padding-top: 0 !important;
-      position: relative !important;
-    }
-    
-    /* Hide the original grid layout */
-    .original-grid-layout {
+  @media (max-width: 1180px) {
+    .cards-grid {
       display: none !important;
     }
+    .about-outer-grid {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      text-align: center !important;
+      padding: 52px 24px 100px !important;
+    }
+    .text-container {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      margin-bottom: 0 !important;
+      max-width: 780px !important;
+    }
+    .text-container h2 {
+      font-size: clamp(32px, 5vw, 52px) !important;
+    }
+    .text-container p {
+      font-size: 16px !important;
+      max-width: 640px !important;
+    }
   }
-  
-  /* On very small screens, stack each row vertically */
-  @media (max-width: 600px) {
-    .top-row-cards {
-      flex-direction: column !important;
-      align-items: center !important;
+
+  @media (max-width: 640px) {
+    .about-outer-grid {
+      padding: 40px 20px 60px !important;
     }
-    
-    .bottom-row-cards {
-      flex-direction: column !important;
-      align-items: center !important;
+    .text-container h2 {
+      font-size: clamp(28px, 7vw, 38px) !important;
     }
-    
-    .top-row-cards > div,
-    .bottom-row-cards > div {
-      width: 100% !important;
-      max-width: 320px !important;
+    .text-container p {
+      font-size: 14px !important;
+    }
+    .stat-item-box {
+      padding-left: clamp(12px, 3vw, 30px) !important;
+      padding-right: clamp(12px, 3vw, 30px) !important;
+    }
+    .stats-outer-wrapper {
+      gap: clamp(8px, 3vw, 20px) !important;
     }
   }
 `;
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const } 
-  }
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const },
+  },
 };
 
 const staggerContainer = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.12 } }
+  visible: { opacity: 1, transition: { staggerChildren: 0.12 } },
 };
 
 type PillProps = {
-  label?: string; bg: string; color: string; border?: string;
-  anim: string; delay: string; dur: string;
+  label?: string;
+  bg: string;
+  color: string;
+  border?: string;
+  anim: string;
+  delay: string;
+  dur: string;
   style?: React.CSSProperties;
-  isAnchor?: boolean; isCircle?: boolean;
+  isAnchor?: boolean;
+  isCircle?: boolean;
 };
 
 function Pill({ label, bg, color, border, anim, delay, dur, style, isAnchor, isCircle }: PillProps) {
@@ -157,9 +125,24 @@ function Pill({ label, bg, color, border, anim, delay, dur, style, isAnchor, isC
     whiteSpace: "nowrap",
     ...style,
   };
-  if (isCircle) return <span style={{ ...base, width: 28, height: 28, borderRadius: "50%", fontSize: 6.5, fontWeight: 800, letterSpacing: "0.05em", flexDirection: "column", padding: 0 }}>{label}</span>;
-  if (isAnchor) return <span style={{ ...base, flexDirection: "column", borderRadius: 999, padding: "4px 8px", gap: 1 }}><span style={{ fontSize: 5.5, letterSpacing: "0.14em", color: "#fff", textTransform: "uppercase" }}>UBLE</span><span style={{ fontSize: 10.5, fontWeight: 700, color: "#fff" }}>Find Your Home</span></span>;
-  return <span style={{ ...base, borderRadius: 999, padding: "3px 10px", fontSize: 8.5, fontWeight: 650 }}>{label}</span>;
+  if (isCircle)
+    return (
+      <span style={{ ...base, width: 28, height: 28, borderRadius: "50%", fontSize: 6.5, fontWeight: 800, letterSpacing: "0.05em", flexDirection: "column", padding: 0 }}>
+        {label}
+      </span>
+    );
+  if (isAnchor)
+    return (
+      <span style={{ ...base, flexDirection: "column", borderRadius: 999, padding: "4px 8px", gap: 1 }}>
+        <span style={{ fontSize: 5.5, letterSpacing: "0.14em", color: "#fff", textTransform: "uppercase" }}>UBLE</span>
+        <span style={{ fontSize: 10.5, fontWeight: 700, color: "#fff" }}>Find Your Home</span>
+      </span>
+    );
+  return (
+    <span style={{ ...base, borderRadius: 999, padding: "3px 10px", fontSize: 8.5, fontWeight: 650 }}>
+      {label}
+    </span>
+  );
 }
 
 function TagsCloud() {
@@ -196,7 +179,6 @@ function RoomsCard() {
         console.error("Failed to fetch facility count:", error);
       }
     };
-
     fetchFacilityCount();
   }, []);
 
@@ -204,7 +186,8 @@ function RoomsCard() {
     <div style={{ background: "#fff", borderRadius: 18, padding: "18px", boxShadow: "0 6px 28px rgba(26,10,15,0.09)", display: "flex", flexDirection: "column", gap: 6 }}>
       <div style={{ width: 48, height: 48, borderRadius: 12, background: "#6B0F2B", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 4 }}>
         <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/>
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+          <path d="M9 21V12h6v9" />
         </svg>
       </div>
       <p style={{ fontSize: 10.5, color: "#8A5060" }}>Available Rooms</p>
@@ -216,34 +199,28 @@ function RoomsCard() {
 }
 
 function OccCard() {
-  const [occupancy, setOccupancy] = useState<
-      { id: number; name: string; occupancyRate: number }[]
-    >([]);
+  const [occupancy, setOccupancy] = useState<{ id: number; name: string; occupancyRate: number }[]>([]);
+  useEffect(() => {
+    const fetchOccupancy = async () => {
+      try {
+        const res = await api.get("/occupancy/dorms");
+        setOccupancy(Array.isArray(res.data) ? res.data : []);
+      } catch (error) {
+        console.error("Failed to fetch dorm occupancy:", error);
+      }
+    };
+    fetchOccupancy();
+  }, []);
 
-    useEffect(() => {
-      const fetchOccupancy = async () => {
-        try {
-          const res = await api.get("/occupancy/dorms");
-          setOccupancy(Array.isArray(res.data) ? res.data : []);
-        } catch (error) {
-          console.error("Failed to fetch dorm occupancy:", error);
-        }
-      };
+  const OCC = occupancy.length
+    ? occupancy.map((item) => ({ label: item.name, pct: item.occupancyRate }))
+    : [
+        { label: "Kamia", pct: 88 },
+        { label: "Narra", pct: 64 },
+        { label: "Molave", pct: 75 },
+        { label: "Yakal", pct: 81 },
+      ];
 
-      fetchOccupancy();
-    }, []);
-
-    const OCC = occupancy.length
-      ? occupancy.map(item => ({
-          label: item.name,
-          pct: item.occupancyRate,
-        }))
-      : [
-          { label: "Kamia", pct: 88 },
-          { label: "Narra", pct: 64 },
-          { label: "Molave", pct: 75 },
-          { label: "Yakal", pct: 81 },
-        ];
   return (
     <div style={{ background: "#fff", borderRadius: 18, padding: "18px", boxShadow: "0 6px 28px rgba(26,10,15,0.09)", display: "flex", flexDirection: "column", gap: 10 }}>
       <div>
@@ -252,22 +229,7 @@ function OccCard() {
       </div>
       {OCC.map(({ label, pct }) => (
         <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {/* <span style={{ fontSize: 10.5, fontWeight: 600, color: "#2A0410", width: 46 }}>{label}</span> */}
-          <span
-            style={{
-              fontSize: 10.5,
-              fontWeight: 600,
-              color: "#2A0410",
-              width: 92,
-              minWidth: 92,
-              lineHeight: 1.2,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              wordBreak: "break-word",
-            }}
-          >
+          <span style={{ fontSize: 10.5, fontWeight: 600, color: "#2A0410", width: 92, minWidth: 92, lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", wordBreak: "break-word" }}>
             {label}
           </span>
           <div style={{ flex: 1, height: 7, borderRadius: 999, background: "#F5ECF0", overflow: "hidden" }}>
@@ -283,8 +245,14 @@ function OccCard() {
 function ReviewCard() {
   return (
     <div style={{ background: "#fff", borderRadius: 18, padding: "18px", boxShadow: "0 6px 28px rgba(26,10,15,0.09)", display: "flex", flexDirection: "column", gap: 8 }}>
-      <div style={{ display: "flex", gap: 2 }}>{[0,1,2,3,4].map(i => <span key={i} style={{ fontSize: 15, color: "#C9973A" }}>★</span>)}</div>
-      <p style={{ fontSize: 11.5, fontStyle: "italic", lineHeight: 1.65, color: "#3A1020", fontFamily: "Georgia,serif" }}>Found my room in one afternoon. Kamia was exactly what I needed.</p>
+      <div style={{ display: "flex", gap: 2 }}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span key={i} style={{ fontSize: 15, color: "#C9973A" }}>★</span>
+        ))}
+      </div>
+      <p style={{ fontSize: 11.5, fontStyle: "italic", lineHeight: 1.65, color: "#3A1020", fontFamily: "Georgia,serif" }}>
+        Found my room in one afternoon. Kamia was exactly what I needed.
+      </p>
       <div style={{ height: 1, background: "#F0E8EC" }} />
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#7B3020", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 700 }}>A</div>
@@ -302,7 +270,9 @@ function Stat({ value, l1, l2, border }: { value: string; l1: string; l2: string
     <motion.div variants={fadeInUp} style={{ display: "flex", alignItems: "stretch" }}>
       <div className="stat-item-box" style={{ padding: "22px 44px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <span style={{ fontFamily: "Georgia, serif", fontSize: "clamp(32px, 5vw, 58px)", fontWeight: 700, color: "#6B0F2B", lineHeight: 1 }}>{value}</span>
-        <span style={{ fontSize: "clamp(8px, 1.6vw, 10px)", fontWeight: 700, letterSpacing: "0.14em", color: "#8A5060", marginTop: 7, lineHeight: 1.5, textAlign: "center" }}>{l1}<br />{l2}</span>
+        <span style={{ fontSize: "clamp(8px, 1.6vw, 10px)", fontWeight: 700, letterSpacing: "0.14em", color: "#8A5060", marginTop: 7, lineHeight: 1.5, textAlign: "center" }}>
+          {l1}<br />{l2}
+        </span>
       </div>
       {border && <div className="stat-divider" style={{ width: 1, background: "#E8DFE3", margin: "18px 0" }} />}
     </motion.div>
@@ -310,13 +280,39 @@ function Stat({ value, l1, l2, border }: { value: string; l1: string; l2: string
 }
 
 export default function AboutSection() {
-  const scrollRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: scrollRef,
-    offset: ["start end", "end start"]
-  });
+  const scrollRef = useRef<HTMLElement>(null);
 
   const [topRatedDorms, setTopRatedDorms] = useState<any[]>([]);
+  const [stats, setStats] = useState({ dorms: 0, rooms: 0, rating: 0 });
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  // Manual scroll-based parallax — uses window.scrollY directly so that
+  // body overflow:hidden (from modal) never affects the computed values.
+  const [yColB, setYColB] = useState(100);
+  const [yColC, setYColC] = useState(40);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const el = scrollRef.current;
+      if (!el) return;
+      const sectionTop = el.offsetTop;
+      const sectionHeight = el.offsetHeight;
+      const progress = Math.min(
+        Math.max(
+          (window.scrollY - sectionTop + window.innerHeight) /
+            (sectionHeight + window.innerHeight),
+          0
+        ),
+        1
+      );
+      setYColB(100 + progress * -280); // 100 → -180
+      setYColC(40 + progress * -120);  // 40  → -80
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // set initial values
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchTopRatedDorms = async () => {
@@ -327,22 +323,43 @@ export default function AboutSection() {
         console.error("Failed to fetch top rated dorms:", error);
       }
     };
-
+    const fetchStats = async () => {
+      try {
+        const [dormsRes, roomsRes, ratingsRes] = await Promise.all([
+          api.get("/facilities/count"),
+          api.get("/rooms/available/count"),
+          api.get("/reviews/average-rating"),
+        ]);
+        setStats({
+          dorms: dormsRes.data.total ?? 0,
+          rooms: roomsRes.data.total ?? 0,
+          rating: Number(Number(ratingsRes.data.average ?? 0).toFixed(1)),
+        });
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      }
+    };
     fetchTopRatedDorms();
+    fetchStats();
   }, []);
 
   const featuredDorm = topRatedDorms[0];
 
-  const yColA = useTransform(scrollYProgress, [0, 1], [0, 0]);
-  const yColB = useTransform(scrollYProgress, [0, 1], [100, -180]); 
-  const yColC = useTransform(scrollYProgress, [0, 1], [40, -80]);
+  const handleViewDorm = async () => {
+    if (!featuredDorm?.id) return;
+    // Store the redirect path
+    sessionStorage.setItem("redirectAfterAuth", `/student/roomview/${featuredDorm.id}`);
+    // Just show the mini auth modal - no login check
+    setAuthModalOpen(true);
+  };
 
   return (
     <>
       <style>{KF}</style>
       <section ref={scrollRef} id="about" style={{ width: "100%", background: "#fff", position: "relative", overflow: "hidden" }}>
-        
-        <motion.div 
+
+        {/* ── ABOUT label ── */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -353,122 +370,132 @@ export default function AboutSection() {
           <div style={{ height: 2, width: 48, background: "#C9973A" }} />
         </motion.div>
 
-        <motion.div 
+        {/* ── Stats row ── */}
+        <motion.div
           className="stats-outer-wrapper"
-          variants={staggerContainer} 
-          initial="hidden" 
-          whileInView="visible" 
-          viewport={{ once: true, amount: 0.3 }} 
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
           style={{ display: "flex", justifyContent: "center", width: "100%", gap: "20px" }}
         >
-          <Stat value="24+"  l1="PARTNERED" l2="DORMS"  border />
-          <Stat value="480+" l1="TOTAL"     l2="ROOMS"  border />
-          <Stat value="4.9★" l1="AVERAGE"   l2="RATING" />
+          <Stat value={`${stats.dorms}✧`}       l1="PARTNERED" l2="DORMS"  border />
+          <Stat value={`˗ˏˋ${stats.rooms}ˎˊ˗`} l1="TOTAL"     l2="ROOMS"  border />
+          <Stat value={`${stats.rating}★`}       l1="AVERAGE"   l2="RATING" />
         </motion.div>
 
-        <div className="about-outer-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "52px 2px 100px", display: "grid", gridTemplateColumns: "400px 1fr", gap: "clamp(20px, 5vw, 80px)", alignItems: "center" }}>
-          
-          <motion.div className="text-container" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
+        {/* ── Main grid: text + cards ── */}
+        <div
+          className="about-outer-grid"
+          style={{
+            maxWidth: 1200,
+            margin: "0 auto",
+            padding: "52px 24px 100px",
+            display: "grid",
+            gridTemplateColumns: "360px 1fr",
+            gap: "clamp(20px, 4vw, 64px)",
+            alignItems: "center",
+          }}
+        >
+          {/* ── Text ── */}
+          <motion.div
+            className="text-container"
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <div style={{ height: 2, width: 24, background: "#C9973A" }} />
               <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.18em", color: "#8A5060" }}>WHY UBLE</span>
             </div>
             <h2 style={{ fontFamily: "Cormorant Garamond", fontSize: "clamp(24px, 2.4vw, 34px)", fontWeight: 700, color: "#1A0A0F", lineHeight: 1.2, marginBottom: 14 }}>
-              Built for students,<br />
+              Built for students,
+              <br />
               by people who <em style={{ fontStyle: "italic", color: "#C9973A" }}>get it</em>
             </h2>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, lineHeight: 1.85, color: "#5A3040", fontWeight: 400 }}>
               We know what it's like—scrolling endlessly, messaging listings, and still not being sure if a place is right. Housing shouldn't feel like a gamble.
-              UBLE was created to change that. By connecting students with trusted dorms and clear, reliable information, we take the guesswork out of the process. No more uncertainty—just real options, made for real student needs.
-              Because your university experience deserves a home that supports it.
+              UBLE was created to change that. By connecting students with trusted dorms and clear, reliable information, we take the guesswork out of the process.
+              No more uncertainty—just real options, made for real student needs. Because your university experience deserves a home that supports it.
             </p>
           </motion.div>
 
-          {/* DESKTOP: Original 3-column grid layout */}
-          <div className="original-grid-layout" style={{ display: "grid", gridTemplateColumns: "220px 280px 220px", gap: 16, alignItems: "end" }}>
-            <motion.div style={{ y: yColA as any }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          {/* ── Cards grid ── */}
+          <div
+            className="cards-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1.3fr 1fr",
+              gap: 16,
+              alignItems: "end",
+              minWidth: 0,
+            }}
+          >
+            {/* Col 1 — DormCard (no parallax) */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
               <DormCard
-                  image={featuredDorm?.primaryImageUrl}
-                  imageName={featuredDorm?.name ?? "Featured Dorm"}
-                  name={featuredDorm?.name ?? "Featured Dorm"}
-                  subtitle={featuredDorm?.subtitle ?? ""}
-                  meta={
-                    featuredDorm?.meta
-                      ?.split("-")
-                      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join("-") ?? ""
-                  }
-                  price={featuredDorm?.price ?? 0}
-                  priceUnit="/ month"
-                  featured
-                  chips={featuredDorm?.chips ?? []}
-                  rating={featuredDorm?.rating == 0 ? 'unrated' : featuredDorm?.rating ?? 'unrated'}
-                  verified
-                  onView={() => {
-                    if (featuredDorm?.id) {
-                      window.location.href = `/student/roomview/${featuredDorm.id}`;
-                    }
-                  }}
-                />
+                image={featuredDorm?.primaryImageUrl}
+                imageName={featuredDorm?.name ?? "Featured Dorm"}
+                name={featuredDorm?.name ?? "Featured Dorm"}
+                subtitle={featuredDorm?.subtitle ?? ""}
+                meta={
+                  featuredDorm?.meta
+                    ?.split("-")
+                    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join("-") ?? ""
+                }
+                price={featuredDorm?.price ?? 0}
+                priceUnit="/ month"
+                featured
+                chips={featuredDorm?.chips ?? []}
+                rating={featuredDorm?.rating == 0 ? "unrated" : featuredDorm?.rating ?? "unrated"}
+                verified
+                onView={handleViewDorm}
+              />
             </motion.div>
 
-            <motion.div style={{ position: "relative", paddingTop: 190, y: yColB as any }} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+            {/* Col 2 — Tags + RoomsCard */}
+            <motion.div
+              style={{ position: "relative", paddingTop: 190, y: yColB }}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
               <TagsCloud />
-              <motion.div whileHover={{ scale: 1.03 }}><RoomsCard /></motion.div>
-            </motion.div>
-
-            <motion.div style={{ display: "flex", flexDirection: "column", gap: 14, y: yColC as any }} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
-              <motion.div whileHover={{ scale: 1.03 }}><OccCard /></motion.div>
-              <motion.div whileHover={{ scale: 1.03 }}><ReviewCard /></motion.div>
-            </motion.div>
-          </div>
-
-          {/* MOBILE: Rearranged layout (hidden on desktop, shown on small screens) */}
-          <div className="mobile-rearranged-layout" style={{ display: "none", flexDirection: "column", gap: 24 }}>
-            {/* Top row: DormCard and RoomsCard side by side */}
-            <div className="top-row-cards" style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-              <motion.div style={{ y: yColA as any }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              <DormCard
-                  name={featuredDorm?.name ?? "Featured Dorm"}
-                  subtitle={featuredDorm?.subtitle ?? ""}
-                  meta={
-                    featuredDorm?.meta
-                      ?.split("-")
-                      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join("-") ?? ""
-                  }
-                  price={featuredDorm?.price ?? 0}
-                  priceUnit="/ month"
-                  featured
-                  chips={featuredDorm?.chips ?? []}
-                  rating={featuredDorm?.rating == 0 ? 'unrated' : featuredDorm?.rating ?? 'unrated'}
-                  verified
-                  onView={() => {
-                    if (featuredDorm?.id) {
-                      window.location.href = `/student/roomview/${featuredDorm.id}`;
-                    }
-                  }}
-                />              </motion.div>
-
-              <motion.div className="rooms-card-wrapper" style={{ position: "relative", paddingTop: 0, y: yColB as any }} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
-                <TagsCloud />
-                <motion.div whileHover={{ scale: 1.03 }}><RoomsCard /></motion.div>
+              <motion.div whileHover={{ scale: 1.03 }}>
+                <RoomsCard />
               </motion.div>
-            </div>
+            </motion.div>
 
-            {/* Bottom row: OccCard and ReviewCard side by side */}
-            <div className="bottom-row-cards" style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-              <motion.div whileHover={{ scale: 1.03 }} style={{ y: yColC as any, width: "100%" }} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+            {/* Col 3 — OccCard + ReviewCard */}
+            <motion.div
+              style={{ display: "flex", flexDirection: "column", gap: 14, y: yColC }}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <motion.div whileHover={{ scale: 1.03 }}>
                 <OccCard />
               </motion.div>
-              <motion.div whileHover={{ scale: 1.03 }} style={{ y: yColC as any, width: "100%" }} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+              <motion.div whileHover={{ scale: 1.03 }}>
                 <ReviewCard />
               </motion.div>
-            </div>
+            </motion.div>
           </div>
-
         </div>
       </section>
+
+      <MiniAuthModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+      />
     </>
   );
 }

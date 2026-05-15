@@ -1,9 +1,13 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import Modal from "./Modal";
 import Button from "./Button";
 import Card from "./ui/Card";
+import defaultAccommodation from "@/assets/defaults/accommodation.png";
+
 import {
     IoStar,
     IoCloudUploadOutline,
@@ -13,6 +17,7 @@ import {
 } from "react-icons/io5";
 import GradientPillSelect from "./DropDownGradient.tsx";
 import { api } from "../api/axios";
+
 
 interface ApplyModalProps {
     open: boolean;
@@ -58,6 +63,9 @@ export default function RoomApplicationModal({
     type StayType = "transient" | "non_transient";
     type Arrangement = "single" | "double" | "shared";
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const queryClient = useQueryClient();
+
     const stayTypes: StayType[] = [
         ...new Set(
             (accommodation?.rooms ?? [])
@@ -78,14 +86,75 @@ export default function RoomApplicationModal({
     const [moveOutDate, setMoveOutDate] = useState("");
     const [declaration, setDeclaration] = useState<"accept" | "retract" | null>(null);
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [uploadedFiles, setUploadedFiles] = useState<{ name: string; size: string; progress: number; status: string }[]>([]);
+    // ── Per-requirement document state ────────────────────────────────────────
+    type DocRequirement = { id: number; requirementName: string; acceptedFormat: 'pdf' | 'image' | 'any' }
+    type DocSlot = { file: File | null; name: string; size: string }
+
+    const { data: docRequirements = [] } = useQuery<DocRequirement[]>({
+        queryKey: ["doc-requirements", accommodation?.id],
+        queryFn: () => api.get(`/accommodations/${accommodation?.id}/document-requirements`).then((r) => r.data),
+        enabled: open && !!accommodation?.id,
+    });
+    const hasDocRequirements = docRequirements.length > 0
+
+    // slots: Record<requirementId, DocSlot[]> — starts with one empty slot per requirement
+    const makeEmptySlot = (): DocSlot => ({ file: null, name: '', size: '' })
+    const [docSlots, setDocSlots] = useState<Record<number, DocSlot[]>>({})
+
+    // Sync slots when requirements change (modal open/close, accommodation change, or fetch lands)
+    useEffect(() => {
+        if (!open) return
+        const initial: Record<number, DocSlot[]> = {}
+        docRequirements.forEach(req => { initial[req.id] = [makeEmptySlot()] })
+        setDocSlots(initial)
+    }, [open, accommodation?.id, docRequirements.length])
+
+    const slotInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+
+    const handleSlotFileSelect = (reqId: number, slotIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+        setDocSlots(prev => {
+            const slots = [...(prev[reqId] ?? [makeEmptySlot()])]
+            slots[slotIndex] = { file, name: file.name, size: (file.size / 1024).toFixed(0) + 'kb' }
+            return { ...prev, [reqId]: slots }
+        })
+        e.target.value = ''
+    }
+
+    const removeSlotFile = (reqId: number, slotIndex: number) => {
+        setDocSlots(prev => {
+            const slots = [...(prev[reqId] ?? [])]
+            slots[slotIndex] = makeEmptySlot()
+            return { ...prev, [reqId]: slots }
+        })
+    }
+
+    const addSlot = (reqId: number) => {
+        setDocSlots(prev => ({
+            ...prev,
+            [reqId]: [...(prev[reqId] ?? []), makeEmptySlot()],
+        }))
+    }
+
+    const removeSlot = (reqId: number, slotIndex: number) => {
+        setDocSlots(prev => {
+            const slots = (prev[reqId] ?? []).filter((_, i) => i !== slotIndex)
+            return { ...prev, [reqId]: slots.length > 0 ? slots : [makeEmptySlot()] }
+        })
+    }
+
+    // All filled = every requirement has at least one slot with a file
+    const allDocsFilled = !hasDocRequirements || docRequirements.every(req =>
+        (docSlots[req.id] ?? []).some(s => s.file !== null)
+    )
+
+    const totalRequiredCount = docRequirements.length
 
     const paymentInputRef = useRef<HTMLInputElement>(null);
     const [paymentFile, setPaymentFile] = useState<{ name: string; size: string; progress: number; status: string } | null>(null);
 
     const isTransient = selectedStayType === "transient";
-    const requiredDocsCount = isTransient ? 2 : 3;
 
     useEffect(() => {
         if (open) {
@@ -112,98 +181,171 @@ export default function RoomApplicationModal({
         }
     }, [moveInDate, moveOutDate, isTransient]);
 
-    useEffect(() => {
-        setSelectedPreferences((prev) =>
-            prev.filter((p) => allPreferences.includes(p))
-        );
-    }, [selectedStayType, selectedArrangement]);
+    const handleSubmit = async () => {
+        if (isSubmitting) return;
 
-    const modalFooter = (
-        <div className="flex flex-row justify-end items-center w-full">
-            {(uploadedFiles.length < requiredDocsCount || (isTransient && (!moveInDate || !moveOutDate))) && (
-                <p className="text-[11px] font-bold items-center justify-center mr-4 text-[#6B0F2B]">
-                    {isTransient && (!moveInDate || !moveOutDate)
-                        ? "Please select stay dates to proceed."
-                        : `Please upload all ${requiredDocsCount} required documents to proceed.`}
-                </p>
-            )}
-            <Button
-                variant="primary"
-                size="lg"
-                className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
-                onClick={() => setStep("verify")}
-                disabled={uploadedFiles.length < requiredDocsCount || (isTransient && (!moveInDate || !moveOutDate))}
-            >
-                Submit
-            </Button>
-        </div>
-    )
+        setIsSubmitting(true);
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFiles = Array.from(e.target.files || []);
-        if (selectedFiles.length === 0) return;
+        try {
+            const formData = new FormData();
 
-        setUploadedFiles(prev => {
-            const availableSlots = 3 - prev.length;
-            if (availableSlots <= 0) return prev;
-            const filesToAdd = selectedFiles.slice(0, availableSlots).map(file => ({
-                name: file.name,
-                size: (file.size / 1024).toFixed(0) + "kb",
-                progress: 100,
-                status: "Completed"
-            }));
-            return [...prev, ...filesToAdd];
-        });
+            formData.append("accommodationId", String(accommodation.id));
+
+            if (currentRoom?.id != null) {
+                formData.append("roomId", String(currentRoom.id));
+            }
+
+            formData.append("applicationRoomType", selectedArrangement);
+            formData.append("applicationStayType", selectedStayType);
+
+            if (isTransient) {
+                formData.append("durationOfStayDays", String(numberOfDays));
+                formData.append("moveInDate", moveInDate);
+                formData.append("moveOutDate", moveOutDate);
+                formData.append("reservationFee", String(reservationFee));
+            } else {
+                formData.append("moveInFee", String(moveInFee));
+            }
+
+            if (selectedPreferences.length > 0) {
+                formData.append(
+                    "preferredTags",
+                    JSON.stringify(selectedPreferences)
+                );
+            }
+
+            // Attach documents
+            const reqIds: (number | null)[] = [];
+            const reqNames: string[] = [];
+
+            for (const req of docRequirements) {
+                const slots = docSlots[req.id] ?? [];
+
+                for (const slot of slots) {
+                    if (!slot.file) continue;
+
+                    formData.append("documents", slot.file);
+                    reqIds.push(req.id);
+                    reqNames.push(req.requirementName);
+                }
+            }
+
+            if (reqIds.length > 0) {
+                formData.append("requirement_ids", JSON.stringify(reqIds));
+                formData.append("requirement_names", JSON.stringify(reqNames));
+            }
+
+            const res = await api.post("/applications", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            console.log("Application submitted:", res.data);
+
+            await queryClient.invalidateQueries({
+                queryKey: ["applications"],
+            });
+
+            await queryClient.invalidateQueries({
+                queryKey: ["student-applications"],
+            });
+
+            await queryClient.invalidateQueries({
+                queryKey: ["landlord-applications"],
+            });
+
+            handleClose();
+        } catch (err: any) {
+            console.error("Submit failed status:", err.response?.status);
+            console.error("Submit failed data:", err.response?.data);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const handlePaymentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const modalFooter = (
+        <div className="flex flex-row justify-end items-center w-full gap-3">
+            {step === "apply" ? (
+                <>
+                    {(!allDocsFilled ||
+                        (isTransient && (!moveInDate || !moveOutDate))) && (
+                        <p className="text-[11px] font-bold mr-2 text-[#6B0F2B]">
+                            {isTransient &&
+                            (!moveInDate || !moveOutDate)
+                                ? "Please select stay dates to proceed."
+                                : `Please upload all ${totalRequiredCount} required document${
+                                    totalRequiredCount !== 1 ? "s" : ""
+                                } to proceed.`}
+                        </p>
+                    )}
+
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        className="rounded-full px-16 bg-[#8C1533] disabled:opacity-50 disabled:grayscale"
+                        onClick={() => setStep("verify")}
+                        disabled={
+                            !allDocsFilled ||
+                            (isTransient &&
+                                (!moveInDate || !moveOutDate))
+                        }
+                    >
+                        Next
+                    </Button>
+                </>
+            ) : (
+                <>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setStep("apply")}
+                        className="px-10 rounded-full"
+                    >
+                        Back
+                    </Button>
+
+                    <Button
+                        onClick={handleSubmit}
+                        variant="primary"
+                        size="lg"
+                        className={`px-16 rounded-full text-white transition-all ${
+                            declaration === "accept" &&
+                            (!isTransient || paymentFile) &&
+                            !isSubmitting
+                                ? "bg-emerald-500"
+                                : "bg-[#8C1533] opacity-50 grayscale"
+                        }`}
+                        disabled={
+                            isSubmitting ||
+                            declaration !== "accept" ||
+                            (isTransient && !paymentFile)
+                        }
+                    >
+                        {isSubmitting ? "Submitting..." : "Submit"}
+                    </Button>
+                </>
+            )}
+        </div>
+    );
+
+    const handlePaymentSelect = (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
         const file = e.target.files?.[0];
+
         if (!file) return;
 
         setPaymentFile({
             name: file.name,
             size: (file.size / 1024).toFixed(0) + "kb",
             progress: 100,
-            status: "Completed"
+            status: "Completed",
         });
     };
 
-    const handleSubmit = async () => {
-        try {
-            const payload = {
-                accommodationId: accommodation.id,
-                roomId: currentRoom?.id,
-                applicationRoomType: selectedArrangement,
-                applicationStayType: selectedStayType,
-                durationOfStayDays: isTransient ? numberOfDays : null,
-                preferredTags:
-                    selectedPreferences.length > 0 ? selectedPreferences : null,
-                moveInDate: isTransient ? moveInDate : null,
-                moveOutDate: isTransient ? moveOutDate : null,
-                reservationFee: isTransient ? reservationFee : null,
-                moveInFee: !isTransient ? moveInFee : null,
-            };
-
-            console.log("Submitting payload:", payload);
-
-            try {
-                const res = await api.post("/applications", payload);
-                console.log("Application submitted:", res.data);
-                handleClose();
-            } catch (err: any) {
-                console.error("Submit failed status:", err.response?.status);
-                console.error("Submit failed data:", err.response?.data);
-            }
-
-            handleClose(); // close modal after success
-        } catch (err) {
-            console.error("Submit failed:", err);
-        }
-    };
-
-    const removeFile = (index: number) => {
-        setUploadedFiles(prev => prev.filter((_, i) => i !== index));
-    };
+    // const removeFile = (index: number) => {
+    //     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    // };
 
     const currentRoom =
         rooms.find((room: any) => {
@@ -282,6 +424,13 @@ export default function RoomApplicationModal({
         )
     );
 
+    // Must live after allPreferences is defined
+    useEffect(() => {
+        setSelectedPreferences((prev) =>
+            prev.filter((p) => allPreferences.includes(p))
+        );
+    }, [selectedStayType, selectedArrangement]);
+
     const commonPreferences = allPreferences.filter((pref: string) =>
         matchingRooms.every((r: any) =>
             (r.tags ?? [])
@@ -303,7 +452,7 @@ export default function RoomApplicationModal({
         setStep("apply");
         setMoveInDate("");
         setMoveOutDate("");
-        setUploadedFiles([]);
+        setDocSlots({});
         setPaymentFile(null);
         setDeclaration(null);
         onClose();
@@ -329,9 +478,10 @@ export default function RoomApplicationModal({
                         <div className="flex flex-col md:flex-row gap-6 items-start">
                             <div className="w-full md:w-[320px] h-[180px] rounded-3xl overflow-hidden shadow-sm flex-shrink-0">
                                 <img
-                                    src={accommodation?.imageUrls?.[0] ?? accommodation?.primaryImageUrl ?? "/default-accommodation.png"}
+                                    src={accommodation?.imageUrls?.[0] ?? accommodation?.primaryImageUrl ?? defaultAccommodation}
                                     alt={accommodation?.accommodationName}
                                     className="w-full h-full object-cover"
+                                    onError={(e) => { e.currentTarget.src = defaultAccommodation; }}
                                 />
                             </div>
                             <div className="flex-1 w-full">
@@ -499,64 +649,159 @@ export default function RoomApplicationModal({
                             </div>
                         </div>
 
-                        <hr className="border-[#F5ECF0]" />
+                        {hasDocRequirements && <hr className="border-[#F5ECF0]" />}
 
-                        {/* Documents Section */}
-                        <div className="">
-                            <h4 className="text-[12px] font-black text-[#6B0F2B] uppercase tracking-[0.15em]">Supporting Documents</h4>
-                            <div className="flex gap-2">
-                                {(isTransient
-                                    ? ["Companion's Valid ID", "Dormitory Agreement Form"]
-                                    : ["Parent's Consent Form", "Parent's Valid ID", "Dormitory Agreement"]
-                                ).map((doc) => (
-                                    <span key={doc} className="px-3 py-1 bg-[#FDF2F4] text-[#6B0F2B] text-[11px] mt-2 font-bold rounded-full border border-[#F2D9DF]">{doc}</span>
-                                ))}
-                            </div>
+                        {/* Documents Section — only shown when there are requirements */}
+                        {hasDocRequirements && (
+                            <div className="">
+                                <h4 className="text-[12px] font-black text-[#6B0F2B] uppercase tracking-[0.15em]">Supporting Documents</h4>
 
-                            <Card className="bg-[#FAF7F8] border-[#F2D9DF] flex flex-col lg:flex-row gap-6 rounded-3xl min-h-[160px]">
-                                <input type="file" hidden ref={fileInputRef} onChange={handleFileSelect} multiple />
-                                <div onClick={() => fileInputRef.current?.click()} className="flex-1 border-2 border-dashed border-[#D4B0BA] rounded-2xl p-6 flex flex-col items-center justify-center text-center bg-white hover:bg-[#FFFDFE] cursor-pointer transition-all">
-                                    <IoCloudUploadOutline className="text-[#6B0F2B] mb-2" size={28} />
-                                    <p className="text-sm font-black text-[#1A0008]">Upload Files</p>
-                                    <p className="text-[9px] text-[#C8B0B8] uppercase font-bold">PDF, JPG or PNG • Max 5MB</p>
+                                {/* Dynamic requirement bubbles */}
+                                <div className="flex flex-wrap gap-2 mt-2 mb-4">
+                                    {docRequirements.map((req) => {
+                                        const filled = (docSlots[req.id] ?? []).some(s => s.file !== null)
+                                        return (
+                                            <span
+                                                key={req.id}
+                                                className={`px-3 py-1 text-[11px] font-bold rounded-full border flex items-center gap-1.5 transition-all ${
+                                                    filled
+                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                        : 'bg-[#FDF2F4] text-[#6B0F2B] border-[#F2D9DF]'
+                                                }`}
+                                            >
+                                                {filled
+                                                    ? <IoCheckmarkCircle size={12} className="text-emerald-500 shrink-0" />
+                                                    : <span className="w-2 h-2 rounded-full border border-[#D4B0BA] inline-block shrink-0" />
+                                                }
+                                                {req.requirementName}
+                                                <span className="text-[9px] opacity-60 uppercase ml-0.5">
+                                                    {req.acceptedFormat === 'pdf' ? '· PDF' : req.acceptedFormat === 'image' ? '· IMG' : ''}
+                                                </span>
+                                            </span>
+                                        )
+                                    })}
                                 </div>
 
-                                <div className="flex-[1.5] space-y-2 max-h-[150px] overflow-y-auto pr-2">
-                                    {uploadedFiles.length > 0 ? (
-                                        uploadedFiles.map((file, i) => (
-                                            <div key={`${file.name}-${i}`} className="bg-white border border-[#F2D9DF] rounded-xl p-2.5 flex items-center gap-3">
-                                                <div className="bg-[#FDF2F4] px-2 py-1 rounded text-[#6B0F2B] font-bold text-[8px]">FILE</div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex justify-between items-center">
-                                                        <p className="text-[10px] font-bold text-[#1A0008] truncate">{file.name}</p>
-                                                        <button type="button" onClick={(e) => { e.stopPropagation(); removeFile(i); }} className="text-[#D4B0BA] hover:text-red-500"><IoCloseOutline size={16} /></button>
-                                                    </div>
-                                                    <span className="text-[8px] text-[#C8B0B8] font-bold uppercase">{file.size} • <span className="text-emerald-500">{file.status}</span></span>
-                                                    <div className="w-full bg-[#F5ECF0] h-1 rounded-full mt-1 overflow-hidden">
-                                                        <div className="h-full bg-[#6B0F2B]" style={{ width: `${file.progress}%` }} />
-                                                    </div>
+                                {/* One upload card per requirement */}
+                                <div className="space-y-4">
+                                    {docRequirements.map((req) => {
+                                        const slots = docSlots[req.id] ?? [makeEmptySlot()]
+                                        const acceptAttr = req.acceptedFormat === 'pdf'
+                                            ? 'application/pdf'
+                                            : req.acceptedFormat === 'image'
+                                                ? 'image/*'
+                                                : 'application/pdf,image/*'
+                                        const formatLabel = req.acceptedFormat === 'pdf'
+                                            ? 'PDF only'
+                                            : req.acceptedFormat === 'image'
+                                                ? 'Image only (JPG/PNG)'
+                                                : 'PDF or Image'
+
+                                        return (
+                                            <div key={req.id}>
+                                                <p className="text-[10px] font-black text-[#9A7080] uppercase tracking-widest mb-2">
+                                                    {req.requirementName}
+                                                </p>
+                                                <div className="space-y-2">
+                                                    {slots.map((slot, slotIndex) => {
+                                                        const inputKey = `${req.id}-${slotIndex}`
+                                                        return (
+                                                            <Card key={slotIndex} className="bg-[#FAF7F8] border-[#F2D9DF] flex flex-col lg:flex-row gap-4 rounded-2xl !p-4">
+                                                                {/* Hidden input */}
+                                                                <input
+                                                                    type="file"
+                                                                    hidden
+                                                                    accept={acceptAttr}
+                                                                    ref={el => { slotInputRefs.current[inputKey] = el }}
+                                                                    onChange={(e) => handleSlotFileSelect(req.id, slotIndex, e)}
+                                                                />
+
+                                                                {/* Upload zone */}
+                                                                <div
+                                                                    onClick={() => slotInputRefs.current[inputKey]?.click()}
+                                                                    className="w-full lg:w-[140px] shrink-0 border-2 border-dashed border-[#D4B0BA] rounded-xl p-4 flex flex-col items-center justify-center text-center bg-white hover:bg-[#FFFDFE] cursor-pointer transition-all"
+                                                                >
+                                                                    <IoCloudUploadOutline className="text-[#6B0F2B] mb-1" size={22} />
+                                                                    <p className="text-[10px] font-black text-[#1A0008]">
+                                                                        {slot.file ? 'Replace' : 'Upload'}
+                                                                    </p>
+                                                                    <p className="text-[8px] text-[#C8B0B8] uppercase font-bold mt-0.5">{formatLabel} · Max 5MB</p>
+                                                                </div>
+
+                                                                {/* File preview */}
+                                                                <div className="flex-1 flex items-center">
+                                                                    {slot.file ? (
+                                                                        <div className="w-full bg-white border border-[#F2D9DF] rounded-xl p-3 flex items-center gap-3">
+                                                                            <div className="bg-[#FDF2F4] px-2 py-1 rounded text-[#6B0F2B] font-bold text-[8px] shrink-0">
+                                                                                {req.acceptedFormat === 'pdf' ? 'PDF' : req.acceptedFormat === 'image' ? 'IMG' : 'FILE'}
+                                                                            </div>
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <p className="text-[10px] font-bold text-[#1A0008] truncate">{slot.name}</p>
+                                                                                <span className="text-[8px] text-[#C8B0B8] font-bold uppercase">
+                                                                                    {slot.size} · <span className="text-emerald-500">Ready</span>
+                                                                                </span>
+                                                                                <div className="w-full bg-[#F5ECF0] h-1 rounded-full mt-1 overflow-hidden">
+                                                                                    <div className="h-full bg-[#6B0F2B] w-full" />
+                                                                                </div>
+                                                                            </div>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => removeSlotFile(req.id, slotIndex)}
+                                                                                className="text-[#D4B0BA] hover:text-red-500 shrink-0"
+                                                                            >
+                                                                                <IoCloseOutline size={16} />
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="w-full border border-dashed border-[#F2D9DF] rounded-xl py-5 flex items-center justify-center bg-white/50">
+                                                                            <p className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest">Waiting for upload…</p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Remove extra slot button (only for slots beyond the first) */}
+                                                                {slotIndex > 0 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeSlot(req.id, slotIndex)}
+                                                                        className="self-center text-[#D4B0BA] hover:text-red-500 transition-colors shrink-0"
+                                                                        title="Remove this slot"
+                                                                    >
+                                                                        <IoCloseOutline size={20} />
+                                                                    </button>
+                                                                )}
+                                                            </Card>
+                                                        )
+                                                    })}
                                                 </div>
+
+                                                {/* Add another file for same requirement */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => addSlot(req.id)}
+                                                    className="mt-2 text-[10px] font-bold text-[#6B0F2B] hover:text-[#3D0718] flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
+                                                >
+                                                    <span className="text-base leading-none">+</span> Add another file for this requirement
+                                                </button>
                                             </div>
-                                        ))
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center h-full border border-dashed border-[#F2D9DF] rounded-xl py-6 bg-white/50">
-                                            <p className="text-[10px] font-bold text-[#C8B0B8] uppercase tracking-widest">No documents attached</p>
-                                        </div>
-                                    )}
+                                        )
+                                    })}
                                 </div>
 
-                                <div className="flex-1 flex flex-col items-center justify-center lg:border-l border-[#F2D9DF] px-4">
-                                    <div className="text-5xl font-black text-[#3D0718] tracking-tighter">
-                                        {uploadedFiles.length}<span className="text-[#D4B0BA] text-3xl">/{isTransient ? 2 : 3}</span>
-                                    </div>
-                                    <p className="text-[9px] font-black text-[#C8B0B8] uppercase tracking-[0.2em] mt-1">Documents Uploaded</p>
+                                {/* Uploaded count summary */}
+                                <div className="mt-4 flex items-center gap-2">
+                                    <span className="text-3xl font-black text-[#3D0718]">
+                                        {docRequirements.filter(req => (docSlots[req.id] ?? []).some(s => s.file !== null)).length}
+                                        <span className="text-[#D4B0BA] text-xl">/{totalRequiredCount}</span>
+                                    </span>
+                                    <p className="text-[9px] font-black text-[#C8B0B8] uppercase tracking-[0.2em]">Requirements Fulfilled</p>
                                 </div>
-                            </Card>
-                        </div>
+                            </div>
+                        )}
                     </>
                 ) : (
                     /* VERIFICATION STEP */
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="space-y-8">
                         <div>
                             <h3 className="text-3xl font-black text-[#1A0008] tracking-tight">{accommodation?.accommodationName}</h3>
                             <p className="text-xs font-bold text-[#9A7080] mt-1">{accommodation?.accommodationLocation}</p>
@@ -713,24 +958,11 @@ export default function RoomApplicationModal({
                                     <input type="checkbox" checked={declaration === "accept"} onChange={() => setDeclaration(declaration === "accept" ? null : "accept")} className="w-5 h-5 rounded border-[#D4B0BA] text-[#6B0F2B] focus:ring-[#6B0F2B]" />
                                     <span className="text-[11px] font-bold text-[#1A0008]">I acknowledge this clause</span>
                                 </label>
-                                <label className="flex items-center gap-3 cursor-pointer">
+                                {/* <label className="flex items-center gap-3 cursor-pointer">
                                     <input type="checkbox" checked={declaration === "retract"} onChange={() => setDeclaration(declaration === "retract" ? null : "retract")} className="w-5 h-5 rounded border-[#D4B0BA] text-[#6B0F2B] focus:ring-[#6B0F2B]" />
                                     <span className="text-[11px] font-bold text-[#1A0008]">I don't acknowledge this clause, and I would like to retract my application</span>
-                                </label>
+                                </label> */}
                             </div>
-                        </div>
-
-                        <div className="flex justify-end gap-4 pt-6">
-                            <Button variant="secondary" onClick={() => setStep("apply")} className="px-10 rounded-full">Back</Button>
-                            <Button
-                                onClick={handleSubmit}
-                                variant="primary"
-                                size="lg"
-                                className={`px-16 rounded-full text-white transition-all ${declaration === "accept" && (!isTransient || paymentFile) ? 'bg-emerald-500' : 'bg-[#8C1533] opacity-50 grayscale'}`}
-                                disabled={declaration !== "accept" || (isTransient && !paymentFile)}
-                            >
-                                Submit
-                            </Button>
                         </div>
                     </div>
                 )}

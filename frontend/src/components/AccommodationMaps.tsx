@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl'
+import type { MapRef } from 'react-map-gl'
 import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { UPLB } from '../constants/uplb'
@@ -43,6 +44,8 @@ interface AccommodationMapProps {
   accommodations: AccommodationPin[]
   onCardClick: (accommodation: AccommodationPin) => void
   centeredAccommodation?: AccommodationPin | null
+  favorites?: Set<number>
+  onToggleFavorite?: (accommodationId: number) => void
 }
 
 const routeLayerStyle = (mode: TravelMode): LayerProps => ({
@@ -67,11 +70,14 @@ export default function AccommodationMap({
   accommodations,
   onCardClick,
   centeredAccommodation,
+  favorites = new Set(),
+  onToggleFavorite,
 }: AccommodationMapProps) {
   const [selectedPin, setSelectedPin] = useState<AccommodationPin | null>(null)
   const [travelMode, setTravelMode] = useState<TravelMode>('walking')
   const [routeGeoJSON, setRouteGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null)
   const [loadingRoute, setLoadingRoute] = useState(false)
+  const mapRef = useRef<MapRef>(null)
 
   const initialView = centeredAccommodation
     ? { longitude: centeredAccommodation.longitude, latitude: centeredAccommodation.latitude, zoom: 16, pitch: 45, bearing: 0 }
@@ -126,9 +132,20 @@ export default function AccommodationMap({
     return `${selectedPin.bikingDistance} min`
   }
 
+  const recenterToUPLB = () => {
+    mapRef.current?.flyTo({
+      center: [UPLB.longitude, UPLB.latitude],
+      zoom: 15,
+      pitch: 60,
+      bearing: 0,
+      duration: 1200,
+    })
+  }
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Map
+        ref={mapRef}
         initialViewState={initialView}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/standard"
@@ -181,8 +198,22 @@ export default function AccommodationMap({
 
               {/* Content */}
               <div className="p-4 pt-3 relative">
-                <button className="absolute top-3 right-4 text-gray-400 hover:text-red-500 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <button
+                  className="absolute top-3 right-4 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onToggleFavorite?.(selectedPin.accommodationId)
+                  }}
+                  title={favorites.has(selectedPin.accommodationId) ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke={favorites.has(selectedPin.accommodationId) ? '#710A2B' : 'currentColor'}
+                    fill={favorites.has(selectedPin.accommodationId) ? '#710A2B' : 'none'}
+                    className={`w-5 h-5 transition-all duration-200 ${favorites.has(selectedPin.accommodationId) ? 'scale-110' : 'text-gray-400 hover:text-red-500'}`}
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
                   </svg>
                 </button>
@@ -341,6 +372,48 @@ export default function AccommodationMap({
           ))}
         </div>
       )}
+
+      {/* ─── Recenter to UPLB Button ─────────────────────────────────── */}
+      <button
+        onClick={recenterToUPLB}
+        title="Recenter to UPLB"
+        style={{
+          position: 'absolute',
+          bottom: '32px',
+          right: '16px',
+          width: '48px',
+          height: '48px',
+          borderRadius: '50%',
+          border: 'none',
+          cursor: 'pointer',
+          background: 'linear-gradient(135deg, #710A2B, #3D0718)',
+          boxShadow: '0 4px 16px rgba(113,10,43,0.35)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'
+            ; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(113,10,43,0.5)'
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'
+            ; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(113,10,43,0.35)'
+        }}
+        onMouseDown={e => (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'}
+        onMouseUp={e => (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'}
+      >
+        <svg width="38" height="38" viewBox="-2 -2 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.8" />
+          <circle cx="12" cy="12" r="3" stroke="white" strokeWidth="1.8" />
+          <line x1="12" y1="0" x2="12" y2="3" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="12" y1="21" x2="12" y2="24" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="0" y1="12" x2="3" y2="12" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="21" y1="12" x2="24" y2="12" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      </button>
     </div>
   )
 }

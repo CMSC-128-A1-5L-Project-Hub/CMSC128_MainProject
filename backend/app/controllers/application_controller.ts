@@ -11,6 +11,10 @@ import Room from '#models/room'
 import db from '@adonisjs/lucid/services/db'
 import { withPrimaryImageUrl } from '#services/image_service'
 import { signImageUrl } from '#services/image_service'
+import Accommodation from '#models/accommodation'
+import FileMetadata from '#models/file_metadatum'
+import ApplicationDocument from '#models/application_document'
+import DocumentRequirement from '#models/document_requirement'
 
 @inject()
 export default class ApplicationsController {
@@ -56,6 +60,19 @@ export default class ApplicationsController {
         await application.useTransaction(trx).save()
 
         await trx.commit()
+
+        try {
+          await LogService.record(
+            user.id,
+            'assignment',
+            assignment.id,
+            'STUDENT_ACCEPTED_ASSIGNMENT',
+            `Student ${student.studentNumber} accepted assignment ${assignment.id} for room ${room.roomNumber} (building ${room.roomBuilding})`
+          )
+        } catch (e) {
+          console.error('Failed to log STUDENT_ACCEPTED_ASSIGNMENT:', e)
+        }
+
         return response.ok({ message: 'Assignment confirmed successfully' })
 
       } else if (action === 'reject') {
@@ -75,6 +92,18 @@ export default class ApplicationsController {
         await application.useTransaction(trx).save()
 
         await trx.commit()
+
+        try {
+          await LogService.record(
+            user.id,
+            'assignment',
+            assignment.id,
+            'STUDENT_REJECTED_ASSIGNMENT',
+            `Student ${student.studentNumber} rejected assignment ${assignment.id} for room ${room.roomNumber} (building ${room.roomBuilding}); slot released`
+          )
+        } catch (e) {
+          console.error('Failed to log STUDENT_REJECTED_ASSIGNMENT:', e)
+        }
 
         // 3. Automatically promote the next waitlisted student
         await this.waitlistService.processMoveOut(room.accommodationId, room)
@@ -149,9 +178,110 @@ export default class ApplicationsController {
       applicationStatus: initialStatus,
       preferredTags: preferredTags ?? null,
     })
+    
+    // Handle optional supporting documents (multipart). Each file may have a
+    // requirement_id metadata field (sent as JSON in request body) tying it to
+    // a specific DocumentRequirement; otherwise stored as a generic supporting doc.
+    const uploadedFiles = request.files('documents', {
+      extnames: ['pdf', 'jpg', 'jpeg', 'png'],
+      size: '16mb',
+    })
 
-    await LogService.record(user.id, 'application', newApp.id, 'STUDENT_SUBMITTED')
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      // requirement_ids may arrive as a JSON string of an array, or repeated form fields
+      let requirementIds: (number | null)[] = []
+      let requirementNames: string[] = []
+      try {
+        const rawIds = request.input('requirement_ids')
+        const rawNames = request.input('requirement_names')
+        if (typeof rawIds === 'string' && rawIds.trim().startsWith('[')) {
+          requirementIds = JSON.parse(rawIds)
+        } else if (Array.isArray(rawIds)) {
+          requirementIds = rawIds.map((v) => (v === '' || v == null ? null : Number(v)))
+        }
+        if (typeof rawNames === 'string' && rawNames.trim().startsWith('[')) {
+          requirementNames = JSON.parse(rawNames)
+        } else if (Array.isArray(rawNames)) {
+          requirementNames = rawNames
+        }
+      } catch (e) {
+        // fall through, treat as untagged uploads
+      }
+
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        const file = uploadedFiles[i]
+        if (!file.isValid || !file.tmpPath) continue
+
+        const reqId = requirementIds[i] ?? null
+        let reqName = requirementNames[i] ?? ''
+
+        // If we have a requirement_id but no name, look it up to keep a denormalized copy.
+        if (reqId && !reqName) {
+          const req = await DocumentRequirement.find(reqId)
+          if (req) reqName = req.requirementName
+        }
+        if (!reqName) reqName = file.clientName
+
+        const fileName = `${student.studentNumber}_app${newApp.id}_${i}_${Date.now()}.${file.extname}`
+        await file.moveToDisk(fileName, 's3')
+        const fileUrl = await drive.use('s3').getUrl(fileName)
+
+        const meta = await FileMetadata.create({
+          fileName,
+          filePath: fileUrl,
+          fileType: 'document',
+        })
+
+        await ApplicationDocument.create({
+          applicationId: newApp.id,
+          documentRequirementId: reqId,
+          fileId: meta.id,
+          requirementName: reqName,
+        })
+      }
+    }
+
+    const accommodation = await Accommodation.find(accommodationId)
+
+    const detail = `${user.fname} ${user.lname} submitted an application to ${accommodation?.accommodationName}`
+
+    await LogService.record(user.id, 'application', newApp.id, 'STUDENT_SUBMITTED', detail)
     return response.ok(newApp)
+  }
+
+  // ─── MANAGER/LANDLORD: VIEW DOCUMENTS UPLOADED FOR AN APPLICATION ───
+  async viewDocuments({ auth, params, response }: HttpContext) {
+    const user = auth.user!
+
+    const application = await Application.query()
+      .where('id', params.id)
+      .preload('accommodation')
+      .preload('documents', (q) => q.preload('file'))
+      .first()
+
+    if (!application) {
+      return response.notFound({ message: 'Application not found.' })
+    }
+
+    const acc = application.accommodation
+    const isLandlord = acc.landlordId === user.id
+    const isManager = acc.managerId === user.id
+    if (!isLandlord && !isManager) {
+      return response.forbidden({ message: 'You do not have access to this application.' })
+    }
+
+    const docs = await Promise.all(
+      application.documents.map(async (d) => ({
+        id: d.id,
+        documentRequirementId: d.documentRequirementId,
+        requirementName: d.requirementName,
+        fileName: d.file?.fileName,
+        url: d.file ? await signImageUrl(d.file.filePath) : null,
+        createdAt: d.createdAt,
+      }))
+    )
+
+    return response.ok(docs)
   }
 
   // ─── STUDENT: VIEW MY APPLICATIONS (with estimated rent + images) ─
@@ -323,7 +453,7 @@ export default class ApplicationsController {
       // approve then use waitlist service, set reviewer info
       applicationObject.reviewedBy = user.id
       applicationObject.reviewedAt = DateTime.now()
-
+      await applicationObject.save()
       const updatedApp = await this.waitlistService.processApproval(applicationObject.id)
 
       if (updatedApp.applicationStatus === 'approved') {

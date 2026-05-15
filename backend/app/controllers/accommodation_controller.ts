@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Accommodation from '#models/accommodation'
 import AccommodationTag from '#models/accommodation_tag'
 import Student from '#models/student'
+import BookMark from '#models/bookmark'
 import AccommodationImage from '#models/accommodation_image'
 import FileMetadata from '#models/file_metadatum'
 import DistanceService from '#services/distance'
@@ -14,6 +15,7 @@ import ZipExportService from '#services/zip_export_service'
 import type { ZipEntry } from '#services/zip_export_service'
 import Room from '#models/room'
 import DocumentRequirement from '#models/document_requirement'
+import LogService from '#services/log_service'
 
 export default class AccommodationController {
   private accommodationService = new AccommodationService()
@@ -47,6 +49,7 @@ export default class AccommodationController {
           studentQuery.preload('user')
         })
       })
+      .preload('bookmarks')
       .first()
 
     if (!accommodation) {
@@ -59,23 +62,23 @@ export default class AccommodationController {
 
     // Attach pricing summary for the detail view
     const serialized = accommodation.serialize() as any
-    
+
     // Group rooms by type and calculate price ranges
     const roomsByType: Record<string, Room[]> = {}
     const roomTypePricing: Record<string, any> = {}
     const allInclusions = new Set<string>()
-    
+
     for (const room of accommodation.rooms) {
       // Group rooms by type
       if (!roomsByType[room.roomType]) {
         roomsByType[room.roomType] = []
       }
       roomsByType[room.roomType].push(room)
-      
+
       // Collect all inclusions across all rooms
       room.tags?.forEach(tag => allInclusions.add(tag.tagDetail))
     }
-    
+
     // Calculate price ranges per room type
     for (const [type, rooms] of Object.entries(roomsByType)) {
       const prices = rooms.map(r => r.roomRent)
@@ -83,7 +86,7 @@ export default class AccommodationController {
       rooms.forEach(room => {
         room.tags?.forEach(tag => inclusions.add(tag.tagDetail))
       })
-      
+
       roomTypePricing[type] = {
         roomCount: rooms.length,
         minPrice: Math.min(...prices),
@@ -91,18 +94,18 @@ export default class AccommodationController {
         inclusions: Array.from(inclusions)
       }
     }
-    
+
     // Calculate overall starting price
     const allPrices = accommodation.rooms.map(r => r.roomRent)
     const overallStartingPrice = allPrices.length > 0 ? Math.min(...allPrices) : null
-    
+
     // Attach pricing metadata
     serialized.pricing = {
       overallStartingPrice,
       roomTypes: roomTypePricing,
       allInclusions: Array.from(allInclusions)
     }
-    
+
     // Attach signed image URLs
     if (accommodation.images?.length > 0) {
       const primary = accommodation.images[accommodation.primaryImageIndex]
@@ -136,7 +139,7 @@ export default class AccommodationController {
     }
 
     const { roomType, inclusions } = request.qs()
-    
+
     // Parse inclusions from query string
     let parsedInclusions: string[] = []
     if (inclusions) {
@@ -194,211 +197,276 @@ export default class AccommodationController {
     })
   }
 
+
+  // ─── PUT /accommodations/bookmark ────────────────────────────────────
+  // update bookmark of accommodations
+  async updateBookmark({ params, request, response }: HttpContext) {
+
+    const accommodation = await Accommodation.query()
+      .where('id', params.id)
+      .first()
+
+    if (!accommodation) {
+      return response.notFound({
+        status: 404,
+        error: 'Not Found',
+        message: 'Accommodation not found or does not belong to you.',
+      })
+    }
+
+    const {
+      studentNumber,
+      favorite
+    } = request.body()
+
+    if (favorite) {
+      await BookMark.create({
+        studentNumber: studentNumber,
+        accommodationId: accommodation.id,
+      })
+
+      await accommodation.load('bookmarks')
+    }
+    else {
+      const bookmark = await BookMark.query()
+        .where('accommodationId', params.id)
+        .where('studentNumber', studentNumber)
+        .first()
+
+      if (bookmark) {
+        await bookmark.delete()
+      }
+    }
+    return response.ok(accommodation.serialize())
+
+  }
   // ─── POST /landlord/accommodations ───────────────────────────────────────
   // Landlord: create a new accommodation
-async store({ request, auth, response }: HttpContext) {
-  const startTime = Date.now()
-  console.log('=== STORE START ===')
-  const landlordId = auth.user!.id
+  async store({ request, auth, response }: HttpContext) {
+    const startTime = Date.now()
+    console.log('=== STORE START ===')
+    const landlordId = auth.user!.id
 
-  const landlord = await Landlord.query()
-    .where('user_id', landlordId)
-    .first()
+    const landlord = await Landlord.query()
+      .where('user_id', landlordId)
+      .first()
 
-  if (!landlord) {
-    return response.forbidden({
-      status: 403,
-      error: 'Forbidden',
-      message: 'You are not registered as a landlord.',
-    })
-  }
-
-  const {
-    accommodation_name,
-    accommodation_location,
-    accommodation_type,
-    accommodation_capacity,
-    accommodation_size,
-    tenant_restriction,
-    latitude,
-    longitude,
-    primary_image_index,
-    tags, //extract tags array from body
-  } = request.body()
-
-  // Basic field validation (unchanged)
-  if (
-    !accommodation_name ||
-    !accommodation_location ||
-    !accommodation_type ||
-    !accommodation_capacity ||
-    !tenant_restriction ||
-    latitude === undefined ||
-    longitude === undefined
-  ) {
-    return response.badRequest({
-      status: 400,
-      error: 'Validation Error',
-      message: 'All fields are required',
-    })
-  }
-
-  const capacity = Number(accommodation_capacity)
-  if (isNaN(capacity) || capacity < 1 || capacity > 10000) {
-    return response.badRequest({
-      status: 400,
-      error: 'Validation Error',
-      message: 'Accommodation capacity must be between 1 and 10,000',
-    })
-  }
-
-  // Optional validation for tags: ensure it's an array of strings
-  const tagList = Array.isArray(tags) ? tags.filter(t => typeof t === 'string' && t.trim().length > 0) : []
-
-  const businessPermitFile = request.file('business_permit', {
-    extnames: ['pdf', 'jpg', 'jpeg', 'png'],
-    size: '5mb',
-  })
-
-  if (!businessPermitFile) {
-    return response.badRequest({
-      status: 400,
-      error: 'Validation Error',
-      message: 'Business permit is required',
-    })
-  }
-
-  const images = request.files('images', {
-    extnames: ['jpg', 'jpeg', 'png', 'webp'],
-    size: '16mb',
-  })
-
-  const MAX_IMAGES = 10
-  if (!images || images.length === 0) {
-    return response.badRequest({
-      status: 400,
-      error: 'Validation Error',
-      message: 'At least one image is required',
-    })
-  }
-
-  if (images.length > MAX_IMAGES) {
-    return response.badRequest({
-      status: 400,
-      error: 'Validation Error',
-      message: `You can only upload a maximum of ${MAX_IMAGES} images.`,
-    })
-  }
-
-  const validImages = images.filter((img) => img.isValid && img.tmpPath)
-  if (validImages.length === 0) {
-    return response.badRequest({
-      status: 400,
-      error: 'Validation Error',
-      message: 'No valid images provided',
-    })
-  }
-
-  const primaryIndex = Number(primary_image_index ?? 0)
-  if (isNaN(primaryIndex) || primaryIndex < 0 || primaryIndex >= validImages.length) {
-    return response.badRequest({
-      status: 400,
-      error: 'Validation Error',
-      message: `primary_image_index must be between 0 and ${validImages.length - 1}`,
-    })
-  }
-
-  const { walkingMinutes, drivingMinutes, cyclingMinutes } =
-    await DistanceService.calculate(Number(latitude), Number(longitude))
-
-  const trx = await db.transaction()
-
-  try {
-    // Upload business permit
-    const permitUrl = await uploadImage(businessPermitFile, 'business_permits')
-    const permitMeta = await FileMetadata.create(
-      {
-        fileName: businessPermitFile.clientName ?? 'permit.pdf',
-        filePath: permitUrl,
-        fileType: 'document',
-      },
-      { client: trx }
-    )
-
-    // Create accommodation
-    const accommodation = await Accommodation.create(
-      {
-        landlordId,
-        managerId: null,
-        businessPermitId: permitMeta.id,
-        primaryImageIndex: primaryIndex,
-        accommodationName: accommodation_name,
-        accommodationLocation: accommodation_location,
-        accommodationType: accommodation_type,
-        accommodationCapacity: accommodation_capacity,
-        tenantRestriction: tenant_restriction,
-        accommodationSize: accommodation_size,
-        applicationStartDate: null,
-        applicationEndDate: null,
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        walkingDistance: walkingMinutes,
-        drivingDistance: drivingMinutes,
-        bikingDistance: cyclingMinutes,
-      },
-      { client: trx }
-    )
-
-    // ─── NEW: Save accommodation tags ────────────────────────────
-    if (tagList.length > 0) {
-      await AccommodationTag.createMany(
-        tagList.map(tagDetail => ({
-          accommodationId: accommodation.id,
-          tagDetail,
-        })),
-        { client: trx }
-      )
+    if (!landlord) {
+      return response.forbidden({
+        status: 403,
+        error: 'Forbidden',
+        message: 'You are not registered as a landlord.',
+      })
     }
 
-    // Upload images and create file records (unchanged)
-    const fileUrls = await Promise.all(
-      validImages.map((img) => uploadImage(img, `accommodations/${accommodation.id}`))
-    )
+    const {
+      accommodation_name,
+      accommodation_location,
+      accommodation_type,
+      accommodation_capacity,
+      accommodation_size,
+      tenant_restriction,
+      latitude,
+      longitude,
+      primary_image_index,
+      tags, //extract tags array from body
+    } = request.body()
 
-    for (let i = 0; i < validImages.length; i++) {
-      const fileMeta = await FileMetadata.create(
+    // Basic field validation (unchanged)
+    if (
+      !accommodation_name ||
+      !accommodation_location ||
+      !accommodation_type ||
+      !accommodation_capacity ||
+      !tenant_restriction ||
+      latitude === undefined ||
+      longitude === undefined
+    ) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: 'All fields are required',
+      })
+    }
+
+    const capacity = Number(accommodation_capacity)
+    if (isNaN(capacity) || capacity < 1 || capacity > 10000) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: 'Accommodation capacity must be between 1 and 10,000',
+      })
+    }
+
+    // Optional validation for tags: ensure it's an array of strings
+    const tagList = Array.isArray(tags) ? tags.filter(t => typeof t === 'string' && t.trim().length > 0) : []
+
+    const businessPermitFile = request.file('business_permit', {
+      extnames: ['pdf', 'jpg', 'jpeg', 'png'],
+      size: '5mb',
+    })
+
+    if (!businessPermitFile) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: 'Business permit is required',
+      })
+    }
+
+    const images = request.files('images', {
+      extnames: ['jpg', 'jpeg', 'png', 'webp'],
+      size: '16mb',
+    })
+
+    const MAX_IMAGES = 10
+    if (!images || images.length === 0) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: 'At least one image is required',
+      })
+    }
+
+    if (images.length > MAX_IMAGES) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: `You can only upload a maximum of ${MAX_IMAGES} images.`,
+      })
+    }
+
+    const validImages = images.filter((img) => img.isValid && img.tmpPath)
+    if (validImages.length === 0) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: 'No valid images provided',
+      })
+    }
+
+    const primaryIndex = Number(primary_image_index ?? 0)
+    if (isNaN(primaryIndex) || primaryIndex < 0 || primaryIndex >= validImages.length) {
+      return response.badRequest({
+        status: 400,
+        error: 'Validation Error',
+        message: `primary_image_index must be between 0 and ${validImages.length - 1}`,
+      })
+    }
+
+    const { walkingMinutes, drivingMinutes, cyclingMinutes } =
+      await DistanceService.calculate(Number(latitude), Number(longitude))
+
+    const trx = await db.transaction()
+
+    try {
+      // Upload business permit
+      const permitUrl = await uploadImage(businessPermitFile, 'business_permits')
+      const permitMeta = await FileMetadata.create(
         {
-          fileName: validImages[i].clientName ?? 'image.jpg',
-          filePath: fileUrls[i],
-          fileType: 'image',
+          fileName: businessPermitFile.clientName ?? 'permit.pdf',
+          filePath: permitUrl,
+          fileType: 'document',
         },
         { client: trx }
       )
 
-      await AccommodationImage.create(
+      // Create accommodation
+      const accommodation = await Accommodation.create(
         {
-          accommodationId: accommodation.id,
-          imageFileId: fileMeta.id,
+          landlordId,
+          managerId: null,
+          businessPermitId: permitMeta.id,
+          primaryImageIndex: primaryIndex,
+          accommodationName: accommodation_name,
+          accommodationLocation: accommodation_location,
+          accommodationType: accommodation_type,
+          accommodationCapacity: accommodation_capacity,
+          tenantRestriction: tenant_restriction,
+          accommodationSize: accommodation_size,
+          applicationStartDate: null,
+          applicationEndDate: null,
+          latitude: Number(latitude),
+          longitude: Number(longitude),
+          walkingDistance: walkingMinutes,
+          drivingDistance: drivingMinutes,
+          bikingDistance: cyclingMinutes,
         },
         { client: trx }
       )
+
+      // ─── NEW: Save accommodation tags ────────────────────────────
+      if (tagList.length > 0) {
+        await AccommodationTag.createMany(
+          tagList.map(tagDetail => ({
+            accommodationId: accommodation.id,
+            tagDetail,
+          })),
+          { client: trx }
+        )
+      }
+
+      // Upload images and create file records (unchanged)
+      const fileUrls = await Promise.all(
+        validImages.map((img) => uploadImage(img, `accommodations/${accommodation.id}`))
+      )
+
+      for (let i = 0; i < validImages.length; i++) {
+        const fileMeta = await FileMetadata.create(
+          {
+            fileName: validImages[i].clientName ?? 'image.jpg',
+            filePath: fileUrls[i],
+            fileType: 'image',
+          },
+          { client: trx }
+        )
+
+        await AccommodationImage.create(
+          {
+            accommodationId: accommodation.id,
+            imageFileId: fileMeta.id,
+          },
+          { client: trx }
+        )
+      }
+
+      // Default facility-specific document requirements. Landlord can edit/remove later.
+      await DocumentRequirement.create(
+        {
+          accommodationId: accommodation.id,
+          requirementName: 'Valid ID',
+          acceptedFormat: 'any',
+        },
+        { client: trx }
+      )
+
+      await trx.commit()
+      console.log(`[${Date.now() - startTime}ms] === TOTAL TIME: ${Date.now() - startTime}ms ===`)
+
+      try {
+        await LogService.record(
+          landlordId,
+          'accommodation',
+          accommodation.id,
+          'ACCOMMODATION_CREATED',
+          `Landlord ${landlordId} created accommodation "${accommodation.accommodationName}"`
+        )
+      } catch (e) {
+        console.error('Failed to log ACCOMMODATION_CREATED:', e)
+      }
+
+      return response.ok(accommodation.serialize())
+    } catch (error) {
+      await trx.rollback()
+      const err = error as Error
+      console.error('=== ERROR ===', err.message, err.stack)
+      return response.internalServerError({
+        status: 500,
+        error: 'Internal Server Error',
+        message: err.message,
+      })
     }
-
-    await trx.commit()
-    console.log(`[${Date.now() - startTime}ms] === TOTAL TIME: ${Date.now() - startTime}ms ===`)
-
-    return response.ok(accommodation.serialize())
-  } catch (error) {
-    await trx.rollback()
-    const err = error as Error
-    console.error('=== ERROR ===', err.message, err.stack)
-    return response.internalServerError({
-      status: 500,
-      error: 'Internal Server Error',
-      message: err.message,
-    })
   }
-}
 
   // ─── PUT /landlord/accommodations/:id ────────────────────────────────────
   // Landlord: update accommodation details
@@ -445,6 +513,17 @@ async store({ request, auth, response }: HttpContext) {
       }
     }
 
+    const changedFields: string[] = []
+    if (accommodation_name) changedFields.push('name')
+    if (accommodation_location) changedFields.push('location')
+    if (accommodation_type) changedFields.push('type')
+    if (accommodation_capacity) changedFields.push('capacity')
+    if (tenant_restriction) changedFields.push('tenant_restriction')
+    if (accommodation_size) changedFields.push('size')
+    if (application_start_date) changedFields.push('application_start_date')
+    if (application_end_date) changedFields.push('application_end_date')
+    if (latitude && longitude) changedFields.push('location_coords')
+
     accommodation.merge({
       ...(accommodation_name && { accommodationName: accommodation_name }),
       ...(accommodation_location && { accommodationLocation: accommodation_location }),
@@ -458,6 +537,18 @@ async store({ request, auth, response }: HttpContext) {
     })
 
     await accommodation.save()
+
+    try {
+      await LogService.record(
+        landlordId,
+        'accommodation',
+        accommodation.id,
+        'ACCOMMODATION_UPDATED',
+        `Landlord ${landlordId} updated accommodation "${accommodation.accommodationName}" (fields: ${changedFields.join(', ') || 'none'})`
+      )
+    } catch (e) {
+      console.error('Failed to log ACCOMMODATION_UPDATED:', e)
+    }
 
     return response.ok(accommodation.serialize())
   }
@@ -524,6 +615,18 @@ async store({ request, auth, response }: HttpContext) {
 
       await trx.commit()
 
+      try {
+        await LogService.record(
+          landlordId,
+          'accommodation',
+          accommodation.id,
+          'ACCOMMODATION_IMAGES_UPLOADED',
+          `Landlord ${landlordId} uploaded ${uploaded.length} image(s) to accommodation "${accommodation.accommodationName}"`
+        )
+      } catch (e) {
+        console.error('Failed to log ACCOMMODATION_IMAGES_UPLOADED:', e)
+      }
+
       return response.ok(uploaded)
 
     } catch (error) {
@@ -565,6 +668,18 @@ async store({ request, auth, response }: HttpContext) {
 
       await trx.commit()
 
+      try {
+        await LogService.record(
+          landlordId,
+          'accommodation',
+          image.accommodation.id,
+          'ACCOMMODATION_IMAGE_DELETED',
+          `Landlord ${landlordId} deleted an image from accommodation "${image.accommodation.accommodationName}"`
+        )
+      } catch (e) {
+        console.error('Failed to log ACCOMMODATION_IMAGE_DELETED:', e)
+      }
+
       return response.ok({ message: 'Image deleted successfully' })
     } catch (error) {
       await trx.rollback()
@@ -576,21 +691,21 @@ async store({ request, auth, response }: HttpContext) {
       })
     }
   }
-async landlordIndex({ auth, response }: HttpContext) {
-  const landlordId = auth.user!.id
-  const accommodations = await Accommodation.query()
-    .where('landlord_id', landlordId)
-    .preload('images', (q) => q.preload('file'))
-    .preload('tags')
-    .preload('manager', (q) => q.preload('user', (q2) => q2.preload('phoneNumbers')))
+  async landlordIndex({ auth, response }: HttpContext) {
+    const landlordId = auth.user!.id
+    const accommodations = await Accommodation.query()
+      .where('landlord_id', landlordId)
+      .preload('images', (q) => q.preload('file'))
+      .preload('tags')
+      .preload('manager', (q) => q.preload('user', (q2) => q2.preload('phoneNumbers')))
 
-  const data = await Promise.all(accommodations.map(withPrimaryImageUrl))
-  
-  // Temporary debug
-  console.log('primaryImageUrls:', data.map(d => d.primaryImageUrl))
-  
-  return response.ok(data)
-}
+    const data = await Promise.all(accommodations.map(withPrimaryImageUrl))
+
+    // Temporary debug
+    console.log('primaryImageUrls:', data.map(d => d.primaryImageUrl))
+
+    return response.ok(data)
+  }
 
   // ─── GET /api/v1/accommodations/:id/export-documents ─────────────────────
   // Role: Manager | Landlord
@@ -666,8 +781,8 @@ async landlordIndex({ auth, response }: HttpContext) {
       gender === 'female'
         ? ['female-only', 'coed']
         : gender === 'male'
-        ? ['male-only', 'coed']
-        : ['coed']
+          ? ['male-only', 'coed']
+          : ['coed']
 
     const accommodations = await db
       .from('accommodations')
@@ -748,6 +863,18 @@ async landlordIndex({ auth, response }: HttpContext) {
       acceptedFormat: format,
     })
 
+    try {
+      await LogService.record(
+        landlordId,
+        'document',
+        requirement.id,
+        'DOCUMENT_REQUIREMENT_ADDED',
+        `Landlord ${landlordId} added document requirement "${requirement.requirementName}" to accommodation "${accommodation.accommodationName}"`
+      )
+    } catch (e) {
+      console.error('Failed to log DOCUMENT_REQUIREMENT_ADDED:', e)
+    }
+
     return response.created(requirement)
   }
 
@@ -782,7 +909,21 @@ async landlordIndex({ auth, response }: HttpContext) {
       })
     }
 
+    const removedName = requirement.requirementName
+    const removedId = requirement.id
     await requirement.delete()
+
+    try {
+      await LogService.record(
+        landlordId,
+        'document',
+        removedId,
+        'DOCUMENT_REQUIREMENT_REMOVED',
+        `Landlord ${landlordId} removed document requirement "${removedName}" from accommodation "${accommodation.accommodationName}"`
+      )
+    } catch (e) {
+      console.error('Failed to log DOCUMENT_REQUIREMENT_REMOVED:', e)
+    }
 
     return response.ok({ message: 'Document requirement removed.' })
   }

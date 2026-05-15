@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from "@tanstack/react-query";
+import { motion } from 'framer-motion';
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import Pagination from '../../components/ApplicationStatus/Pagination';
 import Sidebar from '../../components/Sidebar';
@@ -67,6 +68,7 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
     const { data: applications = [], isLoading, isError } = useQuery({
         queryKey: ["student-applications"],
         queryFn: fetchApplications,
+        refetchOnMount: "always",
     });
 
     const sortedApplications = useMemo(() => {
@@ -139,7 +141,6 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
 
     return (
         <div className="bg-[#F5EEF0] h-screen overflow-hidden flex flex-row">
-            <Sidebar role='student' />
             <div className = "flex flex-col overflow-hidden w-full">
                 <CustomHeader
                     title="Applications"></CustomHeader>
@@ -155,118 +156,116 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                     </div>
                     
 
-                    <StatsBanner stats={stats} total={trueTotal} cols={6}/>
+                <StatsBanner stats={stats} total={trueTotal} cols={6}/>
 
-                    <div className="bg-white rounded-2xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
-                        <div className='flex justify-between pb-2 lg:pb-4'>
-                            <div className='my-auto'>
-                                <h1 className='font-bold -mt-1'>Application History</h1>
-                                <p className='italic text-[11px] lg:text-[12px]'>{totalApps} total applications</p>
-                            </div>
+                <div className="bg-white rounded-2xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
+                    <div className='flex justify-between pb-2 lg:pb-4'>
+                        <div className='my-auto'>
+                            <h1 className='font-bold -mt-1'>Application History</h1>
+                            <p className='italic text-[11px] lg:text-[12px]'>{totalApps} total applications</p>
+                        </div>
 
-                            <div className='flex flex-row gap-2'>
-                                <div className='hidden lg:block'>
-                                    <Dropdown
-                                        title="No. of Items"
-                                        items={[
-                                            { label: "5", href: "" },
-                                            { label: "10", href: "" },
-                                            { label: "15", href: "" },
-                                            { label: "20", href: "" },
-                                        ]}
-                                        direction='down'
-                                        widthClass="w-29 lg:w-32"
-                                        titleClass="text-[10px] lg:text-[11px]"
-                                        selectedClass="text-[12px] lg:text-[13px]"
-                                        onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                                    />
-                                </div>
+                        <div className='flex flex-row gap-2'>
+                            <div className='hidden lg:block'>
                                 <Dropdown
-                                    title="Sort by"
+                                    title="No. of Items"
                                     items={[
-                                        { label: "Date applied (Asc.)", href: "" },
-                                        { label: "Date applied (Desc.)", href: "" },
-                                        { label: "Status", href: "" },
+                                        { label: "5", href: "" },
+                                        { label: "10", href: "" },
+                                        { label: "15", href: "" },
+                                        { label: "20", href: "" },
                                     ]}
-                                    direction="down"
-                                    widthClass="w-32 lg:w-44"
+                                    direction='down'
+                                    widthClass="w-29 lg:w-32"
                                     titleClass="text-[10px] lg:text-[11px]"
                                     selectedClass="text-[12px] lg:text-[13px]"
-                                    onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
+                                    onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
                                 />
-                                
-                                <SearchBar
-                                    value={searchQuery}
-                                    onChange={setSearchQuery}
-                                    onPageReset={() => setCurrentPage(1)}
-                                />
-                                
                             </div>
+                            <Dropdown
+                                title="Sort by"
+                                items={[
+                                    { label: "Date applied (Asc.)", href: "" },
+                                    { label: "Date applied (Desc.)", href: "" },
+                                    { label: "Status", href: "" },
+                                ]}
+                                direction="down"
+                                widthClass="w-32 lg:w-44"
+                                titleClass="text-[10px] lg:text-[11px]"
+                                selectedClass="text-[12px] lg:text-[13px]"
+                                onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
+                            />
+                            
+                            <SearchBar
+                                value={searchQuery}
+                                onChange={setSearchQuery}
+                                onPageReset={() => setCurrentPage(1)}
+                            />
+                            
                         </div>
-
-                        <div className="overflow-auto flex-1 min-h-0 mt-1 rounded-t-lg">
-                            {isLoading ? (
-                                <div className="py-12 flex flex-col items-center justify-center text-center">
-                                    <div
-                                        className="animate-spin rounded-full h-8 w-8 border-b-2"
-                                        style={{ borderColor: "#9E2040" }}
-                                        />
-                                    <p className="text-sm text-[#9A7080] mt-2">
-                                    Fetching your applications...
-                                    </p>
-                                </div>
-                            ) : isError ? (
-                                <div className="flex justify-center items-center h-full">
-                                    <p className="text-red-500 font-medium text-center">
-                                        Failed to load applications. Please check your connection.
-                                    </p>
-                                </div>
-                            ) : applications.length === 0 ? (
-                                <div className="flex flex-col justify-center items-center h-full text-center">
-                                    <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
-                                    <p className="text-[#9A7080]/60 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
-                                </div>
-                            ) : (
-                                <ApplicationTable
-                                    applications={tableApplications}
-                                    onView={(app) => { 
-                                        // Find the original app so the modal displays the full text
-                                        const originalApp = applications.find(a => a.id === app.id) || app;
-                                        setSelectedApp(originalApp); 
-                                        setViewOpen(true); 
-                                    }}
-                                />
-                            )}
-                        </div>
-
-                        <div className={`${applications.length === 0 ? "hidden" : "flex flex-col"}`}>
-                            <hr className="border-[#6B0F2B]/10 border-t" />
-                            <div className="flex items-center justify-between mt-3">
-                                <p className="text-xs text-[#9A7080]">
-                                    {totalApps === 0
-                                        ? "No results"
-                                        : `Showing ${(currentPage - 1) * ROWS_PER_PAGE + 1}–${Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of ${totalApps}`}
-                                </p>
-                                <Pagination
-                                    totalPages={totalPages}
-                                    currentPage={currentPage}
-                                    onPageChange={setCurrentPage}
-                                    />
-                            </div>
-                        </div>
-                        
                     </div>
 
-                    {/* Modal */}
-                    <ApplicationStatusModal
-                        open={viewOpen}
-                        onClose={() => { setViewOpen(false); setSelectedApp(null); }}
-                        application={selectedApp}
-                    />
+                    <div className="overflow-auto flex-1 min-h-0 mt-1 rounded-t-lg">
+                        {isLoading ? (
+                            <div className="py-12 flex flex-col items-center justify-center text-center">
+                                <div
+                                    className="animate-spin rounded-full h-8 w-8 border-b-2"
+                                    style={{ borderColor: "#9E2040" }}
+                                    />
+                                <p className="text-sm text-[#9A7080] mt-2">
+                                Fetching your applications...
+                                </p>
+                            </div>
+                        ) : isError ? (
+                            <div className="flex justify-center items-center h-full">
+                                <p className="text-red-500 font-medium text-center">
+                                    Failed to load applications. Please check your connection.
+                                </p>
+                            </div>
+                        ) : applications.length === 0 ? (
+                            <div className="flex flex-col justify-center items-center h-full text-center">
+                                <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+                                <p className="text-[#9A7080]/60 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
+                            </div>
+                        ) : (
+                            <ApplicationTable
+                                applications={tableApplications}
+                                onView={(app) => { 
+                                    // Find the original app so the modal displays the full text
+                                    const originalApp = applications.find(a => a.id === app.id) || app;
+                                    setSelectedApp(originalApp); 
+                                    setViewOpen(true); 
+                                }}
+                            />
+                        )}
+                    </div>
+
+                    <div className={`${applications.length === 0 ? "hidden" : "flex flex-col"}`}>
+                        <hr className="border-[#6B0F2B]/10 border-t" />
+                        <div className="flex items-center justify-between mt-3">
+                            <p className="text-xs text-[#9A7080]">
+                                {totalApps === 0
+                                    ? "No results"
+                                    : `Showing ${(currentPage - 1) * ROWS_PER_PAGE + 1}–${Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of ${totalApps}`}
+                            </p>
+                            <Pagination
+                                totalPages={totalPages}
+                                currentPage={currentPage}
+                                onPageChange={setCurrentPage}
+                                />
+                        </div>
+                    </div>
+                    
                 </div>
-            
+
+                {/* Modal */}
+                <ApplicationStatusModal
+                    open={viewOpen}
+                    onClose={() => { setViewOpen(false); setSelectedApp(null); }}
+                    application={selectedApp}
+                />
             </div>
-            
+        
         </div>
     )
 }

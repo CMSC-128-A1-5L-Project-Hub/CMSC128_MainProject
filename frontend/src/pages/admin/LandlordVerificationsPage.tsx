@@ -151,14 +151,6 @@ export default function LandlordVerificationsPage() {
 
   return (
     <div className="flex min-h-screen bg-[#F9F4F5]">
-      <Sidebar
-        role={user?.role}
-        profile={{
-          fullName: `${user?.fname ?? ""} ${user?.lname ?? ""}`.trim(),
-          shortName: user?.fname ?? "",
-          email: user?.email ?? "",
-        }}
-      />
 
       <main className="mt-12 flex-1 overflow-x-hidden p-5 lg:mt-0 lg:p-8">
         <div className="space-y-6">
@@ -263,8 +255,8 @@ export default function LandlordVerificationsPage() {
               <p className="text-sm text-red-500">Error loading requests.</p>
             ) : filteredLandlords.length === 0 ? (
               <div className="flex h-[390px] items-center justify-center border-t border-[#F2D9DF]">
-                <p className="text-5xl font-light tracking-wide text-gray-200">
-                  NO PENDING LANDLORDS
+                <p className="text-lg font-medium text-[#9A7080] text-center">
+                  No pending housing administrators
                 </p>
               </div>
             ) : (

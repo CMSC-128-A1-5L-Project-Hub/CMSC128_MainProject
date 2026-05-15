@@ -18,8 +18,8 @@ type PriceRangeSliderProps = {
     valueStyle?: React.CSSProperties;
     width?: string;
     currencyText?: string;
-    key: number;
-  };
+    mobileScreen?: boolean
+};
 
 const PriceRangeSlider = ({
     min,
@@ -30,7 +30,7 @@ const PriceRangeSlider = ({
     valueStyle = valueCSS,
     width = "300px",
     currencyText = "$",
-    key,
+    mobileScreen = false
 }: PriceRangeSliderProps) => {
 
     const [minVal, setMinVal] = useState(min);
@@ -38,6 +38,7 @@ const PriceRangeSlider = ({
     const minValRef = useRef(min);
     const maxValRef = useRef(max);
     const range = useRef<HTMLDivElement | null>(null);
+    const sliderWidth = mobileScreen ? "150px" : width || "300px"
 
     const getPercent = useCallback(
         (value: number) => Math.round(((value - min) / (max - min)) * 100),
@@ -72,26 +73,40 @@ const PriceRangeSlider = ({
     }, [minVal, maxVal, onChange]);
 
     return (
-        <div className='w-full flex items-center justify-center flex-col space-y-14'>
+        <div className='w-full flex items-center justify-center flex-col space-y-3'>
 
             {/* Display Price Value */}
-            <div className="w-[300px] px-4 flex items-center justify-between gap-x-5">
+            {!mobileScreen ? <div className="w-[300px] px-4 flex items-center justify-between gap-x-5">
 
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
-                ₱ {minVal}
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
+                    ₱ {minVal}
                 </span>
 
                 <div className="flex-1 border-dashed border border-neutral-500 mt-1"></div>
 
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#6B0F2B]/10 text-[#6B0F2B]">
-                ₱ {maxVal}
+                    ₱ {maxVal}
                 </span>
 
-            </div>
+            </div> :
 
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 10,}}>
+                <span style={{ background: "#f5f0f2", borderRadius: 99, padding: "3px 10px", fontSize: 12, fontWeight: 700, color: "#6B0F2B", fontFamily: "'Plus Jakarta Sans', sans-serif",}}>
+                    ₱{minVal}
+                </span>
+
+                <span style={{ fontSize: 11, color: "#bbb", fontFamily: "'Plus Jakarta Sans', sans-serif", margin: "0 4px",}}>
+                    to
+                </span>
+
+                <span style={{ background: "#f5f0f2", borderRadius: 99, padding: "3px 10px", fontSize: 12, fontWeight: 700, color: "#6B0F2B", fontFamily: "'Plus Jakarta Sans', sans-serif",}}>
+                    ₱{maxVal}
+                </span>
+            </div>
+            }
 
             {/* Style the price range slider */}
-            <div className="multi-slide-input-container" style={{ width }}>
+            <div className="multi-slide-input-container" style={{ width: sliderWidth }}>
 
                 <input
                     type="range"
@@ -104,7 +119,7 @@ const PriceRangeSlider = ({
                     }}
                     className="thumb thumb-left"
                     style={{
-                        width,
+                        width: sliderWidth,
                         zIndex: minVal > max - 100 || minVal === maxVal ? 5 : undefined,
                     }}
                 />
@@ -120,7 +135,7 @@ const PriceRangeSlider = ({
                     }}
                     className="thumb thumb-right"
                     style={{
-                        width,
+                        width: sliderWidth,
                         zIndex: minVal > max - 100 || minVal === maxVal ? 4 : undefined,
                     }}
                 />

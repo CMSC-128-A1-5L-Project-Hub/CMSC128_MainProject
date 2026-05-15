@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/axios";
 
 import Sidebar from "../../components/Sidebar";
+import Toast from "@/components/Toast";
 import UbleLoader from "../shared/LoadingPage";
 import Bell from "../../assets/icons/bell_icon.svg?react";
 import Camera from "../../assets/icons/camera.svg";
@@ -78,10 +79,19 @@ export default function Profile() {
       });
 
       setEditing(false);
+      setToast({ show: true, type: "success", title: "Profile Updated!", message: "Your changes have been saved." });
     } catch (error) {
       console.error("Failed to update profile:", error);
+      setToast({ show: true, type: "error", title: "Save Failed", message: "Could not save your profile. Please try again." });
     }
   };
+
+  const [toast, setToast] = useState<{
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+  }>({ show: false, type: "success", title: "" });
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -107,6 +117,7 @@ export default function Profile() {
         });
       } catch (error) {
         console.error("Failed to fetch profile:", error);
+        setToast({ show: true, type: "error", title: "Failed to load profile", message: "Could not retrieve your profile data." });
       } finally {
         setProfileLoading(false);
       }
@@ -158,8 +169,6 @@ if (profileLoading) {
 
   return (
     <div className="min-h-screen bg-[#FAF6F2] text-[#2A1F1A] lg:flex">
-      <Sidebar role="manager" />
-
       <div className="flex-1">
         <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -420,6 +429,13 @@ if (profileLoading) {
           </section>
         </main>
       </div>
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }

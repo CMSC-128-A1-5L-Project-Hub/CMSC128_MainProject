@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
+import { motion } from "framer-motion"
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import { Star, SlidersHorizontal, MapPin, X, BookmarkCheck, ChevronRight } from "lucide-react"
 import Sidebar from "../../components/Sidebar"
@@ -47,10 +48,10 @@ export default function BrowsePage() {
     const [searchTerm, setSearchTerm] = useState("")
     const [activeFilter, setActiveFilter] = useState("All")
     const [onlyBookmarked, setOnlyBookmarked] = useState(false)
-    const [minPrice, setMinPrice] = useState(500)
-    const [maxPrice, setMaxPrice] = useState(7000)
-    const [origMin, setOrigMin] = useState(800)
-    const [origMax, setOrigMax] = useState(7000)
+    const [minPrice, setMinPrice] = useState(-Infinity)
+    const [maxPrice, setMaxPrice] = useState(Infinity)
+    const [origMin, setOrigMin] = useState(-Infinity)
+    const [origMax, setOrigMax] = useState(Infinity)
     const [dormType, setDormType] = useState("All")
     const [roomType, setRoomType] = useState("All")
     const [starRating, setStarRating] = useState(3)
@@ -89,12 +90,14 @@ export default function BrowsePage() {
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
+            console.log("success", res.data)
             setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
         staleTime: 60_000,
         gcTime: 5 * 60_000,
         placeholderData: (prev: any) => prev,
+        refetchOnMount: "always",
     })
 
     const { data: user, isError } = useQuery({
@@ -107,6 +110,20 @@ export default function BrowsePage() {
 
     const name = user ? `${user.fname}` : ""
     const studentNo = user?.student?.studentNumber ?? ""
+
+    const updateAccommodation = async () => {
+        try {
+          const response = await api.put("/accommodations/1", {
+            accommodation_name: "Dorm A",
+            accommodation_location: "UPLB",
+            accommodation_capacity: 4,
+          })
+      
+          console.log(response.data)
+        } catch (error) {
+          console.error(error)
+        }
+      }
 
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
     useEffect(() => { if (user && user.role !== "student") navigate("/auth/signin") }, [user, navigate])
@@ -122,7 +139,7 @@ export default function BrowsePage() {
     useEffect(() => {
         if (!isSuccess || accommodations.length === 0) return
 
-        
+
         let min = Infinity
         let max = -Infinity
         const tagSet = new Set<string>();
@@ -144,7 +161,8 @@ export default function BrowsePage() {
         const tagObject = Object.fromEntries(
             tags.map(tag => [tag, false])
         );
-        console.log("success", accommodations, min, max)
+
+
         // setFilters(tagObject)
         // setMinPrice(min)
         // setMaxPrice(max)
@@ -153,10 +171,8 @@ export default function BrowsePage() {
         ...prev,
         }));
 
-        if (!landingFilters) {
         setMinPrice(min);
         setMaxPrice(max);
-        }
         setOrigMin(min)
         setOrigMax(max)
         setSliderResetKey(prev => prev + 1)
@@ -241,23 +257,29 @@ export default function BrowsePage() {
             /* search match */
             const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
             if (!nameMatch) {
+                console.log("name", accommodationName)
                 continue
             }
 
             /* filters */
             if (!bookmarked && onlyBookmarked) {
+                console.log("name", accommodationName)
                 continue
             }
             if (Number(rating) < starRating) {
+                console.log("rating", accommodationName)
                 continue
             }
             if (minimum < minPrice || maximum > maxPrice) {
+                console.log("price", accommodationName, minPrice, maxPrice, origMax, origMin)
                 continue
             }
             if (dormType !== "All" && accommodationType !== dormType.toLowerCase()) {
+                console.log("dorm", accommodationName)
                 continue
             }
             if (roomType !== "All" && !roomTypes.has(roomType.toLowerCase())) {
+                console.log("room", accommodationName)
                 continue
             }
             if (trueTags.length !== 0) {
@@ -314,18 +336,13 @@ export default function BrowsePage() {
     }
 
     return (
-        <filterContext.Provider value={{
+            <filterContext.Provider value={{
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
             searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched,
             setSliderResetKey, sliderResetKey
-        }}>
+            }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
-
-                {/* Sidebar */}
-                <div className="relative z-[9999]">
-                    <Sidebar role="student" />
-                </div>
 
                 {/* Main */}
                 <div className="flex flex-col w-full min-w-0 h-screen overflow-hidden">
@@ -420,7 +437,7 @@ export default function BrowsePage() {
 
                                     {/* Fixed pagination */}
                                     {totalPages > 1 && (
-                                        <div className="pt-6 pb-2 flex justify-center shrink-0 bg-[#F6F2F4]">
+                                        <div className="pt-6 pb-2 flex justify-end shrink-0 bg-[#F6F2F4]">
                                             <Pagination
                                                 currentPage={currentPage}
                                                 totalPages={totalPages}
@@ -478,7 +495,6 @@ export default function BrowsePage() {
                         }} />
                     </div>
                 </div>
-
             </div>
         </filterContext.Provider>
     )

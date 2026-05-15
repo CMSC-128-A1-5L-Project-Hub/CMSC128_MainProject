@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { api } from "../../api/axios";
 import { useNavigate } from "react-router-dom";
+import MiniAuthModal from "../../components/MiniAuthModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Residence {
@@ -86,11 +87,13 @@ function ResidenceCard({
   isActive,
   onClick,
   position,
+  onLearnMore,
 }: {
   residence: Residence;
   isActive: boolean;
   onClick: () => void;
   position: "left" | "center" | "right";
+  onLearnMore: (residence: Residence) => void;
 }) {
   // Determine classes based on position and active state
   const getPositionClasses = () => {
@@ -228,12 +231,7 @@ function ResidenceCard({
       <button
         onClick={(e) => {
           e.stopPropagation();
-
-          const residenceWithId = residence as any;
-
-          if (residenceWithId.id) {
-            window.location.href = `/student/roomview/${residenceWithId.id}`;
-          }
+          onLearnMore(residence);
         }}
         className={`
           inline-flex items-center gap-2 text-[0.8rem] font-semibold py-2 px-4 rounded-full
@@ -296,14 +294,14 @@ function NavBtn({
 export default function ResidenceCarousel() {
   const [current, setCurrent] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [pendingResidenceId, setPendingResidenceId] = useState<number | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
-  // const total = RESIDENCES.length;
   const autoRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchX = useRef(0);
 
   const [residences, setResidences] = useState<Residence[]>([]);
   const navigate = useNavigate();
-  // const total = residences.length;
   const displayResidences = residences.length > 0 ? residences : RESIDENCES;
 
   const total = displayResidences.length;
@@ -390,162 +388,188 @@ export default function ResidenceCarousel() {
 
     fetchTopRated();
   }, []);
+
+  const handleLearnMore = async (residence: Residence) => {
+    const residenceId = residence.id;
+    if (!residenceId) return;
+
+    // Store the intended destination
+    sessionStorage.setItem("redirectAfterAuth", `/student/roomview/${residenceId}`);
+    setPendingResidenceId(residenceId);
+    // Show the auth modal
+    setAuthModalOpen(true);
+  };
   
   const prevIdx = (current - 1 + total) % total;
   const nextIdx = (current + 1) % total;
 
   return (
-    <section 
-      id="recommended" 
-      ref={sectionRef}
-      className="min-h-screen flex items-center justify-center py-16 sm:py-20 px-4 sm:px-8 bg-white"
-    >
-      <div className="w-full max-w-6xl mx-auto">
-        {/* Header with scroll animation */}
-        <div className="text-center mb-12 sm:mb-16">
-          <div 
-            className="flex items-center justify-center gap-4 mb-4 transition-all duration-700 ease-out"
-            style={{
-              opacity: isVisible ? 1 : 0,
-              transform: isVisible ? "translateY(0)" : "translateY(30px)",
-              transitionDelay: "0ms"
-            }}
-          >
-            <span className="flex-1 max-w-[60px] h-[1.5px] bg-[#C4973A]" />
-            <p className="text-[0.7rem] sm:text-xs font-semibold tracking-[0.3em] text-[#C4973A] uppercase">
-              Recommended
+    <>
+      <section 
+        id="recommended" 
+        ref={sectionRef}
+        className="min-h-screen flex items-center justify-center py-16 sm:py-20 px-4 sm:px-8 bg-white"
+      >
+        <div className="w-full max-w-6xl mx-auto">
+          {/* Header with scroll animation */}
+          <div className="text-center mb-12 sm:mb-16">
+            <div 
+              className="flex items-center justify-center gap-4 mb-4 transition-all duration-700 ease-out"
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? "translateY(0)" : "translateY(30px)",
+                transitionDelay: "0ms"
+              }}
+            >
+              <span className="flex-1 max-w-[60px] h-[1.5px] bg-[#C4973A]" />
+              <p className="text-[0.7rem] sm:text-xs font-semibold tracking-[0.3em] text-[#C4973A] uppercase">
+                Recommended
+              </p>
+              <span className="flex-1 max-w-[60px] h-[1.5px] bg-[#C4973A]" />
+            </div>
+
+            <h2 
+              className="font-serif text-3xl sm:text-5xl md:text-6xl font-semibold text-[#1a1a1a] leading-tight transition-all duration-700 ease-out"
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? "translateY(0)" : "translateY(30px)",
+                transitionDelay: "100ms"
+              }}
+            >
+              Experience Only the{" "}
+              <em className="text-[#8B1A2E] italic">Best</em>
+            </h2>
+
+            <p 
+              className="text-sm sm:text-base text-[#8a7a72] max-width-md mx-auto mt-4 leading-relaxed transition-all duration-700 ease-out"
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? "translateY(0)" : "translateY(30px)",
+                transitionDelay: "200ms"
+              }}
+            >
+              Handpicked residences for every student's comfort and budget.
             </p>
-            <span className="flex-1 max-w-[60px] h-[1.5px] bg-[#C4973A]" />
           </div>
 
-          <h2 
-            className="font-serif text-3xl sm:text-5xl md:text-6xl font-semibold text-[#1a1a1a] leading-tight transition-all duration-700 ease-out"
+          {/* Carousel with scroll animation */}
+          <div 
+            className="transition-all duration-700 ease-out"
             style={{
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? "translateY(0)" : "translateY(30px)",
-              transitionDelay: "100ms"
+              transitionDelay: "300ms"
             }}
           >
-            Experience Only the{" "}
-            <em className="text-[#8B1A2E] italic">Best</em>
-          </h2>
-
-          <p 
-            className="text-sm sm:text-base text-[#8a7a72] max-w-md mx-auto mt-4 leading-relaxed transition-all duration-700 ease-out"
-            style={{
-              opacity: isVisible ? 1 : 0,
-              transform: isVisible ? "translateY(0)" : "translateY(30px)",
-              transitionDelay: "200ms"
-            }}
-          >
-            Handpicked residences for every student's comfort and budget.
-          </p>
-        </div>
-
-        {/* Carousel with scroll animation */}
-        <div 
-          className="transition-all duration-700 ease-out"
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? "translateY(0)" : "translateY(30px)",
-            transitionDelay: "300ms"
-          }}
-        >
-          <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-6">
-            {/* Previous button - desktop */}
-            <div className="hidden sm:block">
-              <NavBtn 
-                variant="prev" 
-                label="Previous" 
-                onClick={() => { goTo(current - 1); resetAuto(); }}
-                icon={<MdChevronLeft size={32} />}
-              />
-            </div>
-
-            {/* Cards */}
-            <div className="flex-1 overflow-visible flex justify-center">
-              {/* Mobile: Single card */}
-              <div className="block sm:hidden">
-                <ResidenceCard
-                  residence={displayResidences[current]}
-                  isActive={true}
-                  onClick={() => {}}
-                  position="center"
+            <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-6">
+              {/* Previous button - desktop */}
+              <div className="hidden sm:block">
+                <NavBtn 
+                  variant="prev" 
+                  label="Previous" 
+                  onClick={() => { goTo(current - 1); resetAuto(); }}
+                  icon={<MdChevronLeft size={32} />}
                 />
               </div>
 
-              {/* Desktop: Three cards */}
-              <div className="hidden sm:flex items-center justify-center gap-4 md:gap-2">
-                <ResidenceCard
-                  residence={displayResidences[prevIdx]}
-                  isActive={false}
-                  onClick={() => { goTo(prevIdx); resetAuto(); }}
-                  position="left"
-                />
-                <ResidenceCard
-                  residence={displayResidences[current]}
-                  isActive={true}
-                  onClick={() => {}}
-                  position="center"
-                />
-                <ResidenceCard
-                  residence={displayResidences[nextIdx]}
-                  isActive={false}
-                  onClick={() => { goTo(nextIdx); resetAuto(); }}
-                  position="right"
+              {/* Cards */}
+              <div className="flex-1 overflow-visible flex justify-center">
+                {/* Mobile: Single card */}
+                <div className="block sm:hidden">
+                  <ResidenceCard
+                    residence={displayResidences[current]}
+                    isActive={true}
+                    onClick={() => {}}
+                    position="center"
+                    onLearnMore={handleLearnMore}
+                  />
+                </div>
+
+                {/* Desktop: Three cards */}
+                <div className="hidden sm:flex items-center justify-center gap-4 md:gap-2">
+                  <ResidenceCard
+                    residence={displayResidences[prevIdx]}
+                    isActive={false}
+                    onClick={() => { goTo(prevIdx); resetAuto(); }}
+                    position="left"
+                    onLearnMore={handleLearnMore}
+                  />
+                  <ResidenceCard
+                    residence={displayResidences[current]}
+                    isActive={true}
+                    onClick={() => {}}
+                    position="center"
+                    onLearnMore={handleLearnMore}
+                  />
+                  <ResidenceCard
+                    residence={displayResidences[nextIdx]}
+                    isActive={false}
+                    onClick={() => { goTo(nextIdx); resetAuto(); }}
+                    position="right"
+                    onLearnMore={handleLearnMore}
+                  />
+                </div>
+              </div>
+
+              {/* Next button - desktop */}
+              <div className="hidden sm:block">
+                <NavBtn 
+                  variant="next" 
+                  label="Next" 
+                  onClick={() => { goTo(current + 1); resetAuto(); }}
+                  icon={<MdChevronRight size={32} />}
                 />
               </div>
             </div>
 
-            {/* Next button - desktop */}
-            <div className="hidden sm:block">
-              <NavBtn 
-                variant="next" 
-                label="Next" 
-                onClick={() => { goTo(current + 1); resetAuto(); }}
-                icon={<MdChevronRight size={32} />}
-              />
-            </div>
-          </div>
-
-          {/* Mobile navigation buttons */}
-          <div className="flex items-center justify-center gap-6 mt-6 sm:hidden">
-            <button
-              onClick={() => { goTo(current - 1); resetAuto(); }}
-              className="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center text-[#1a1a1a] active:scale-95 transition-all duration-200 ease-out border border-gray-100"
-            >
-              <MdChevronLeft size={32} />
-            </button>
-            <button
-              onClick={() => { goTo(current + 1); resetAuto(); }}
-              className="w-14 h-14 rounded-full bg-[#8B1A2E] shadow-md flex items-center justify-center text-white active:scale-95 transition-all duration-200 ease-out"
-            >
-              <MdChevronRight size={32} />
-            </button>
-          </div>
-
-          {/* Line indicator */}
-          <div className="flex justify-center items-center gap-2 mt-8 sm:mt-10">
-            {displayResidences.map((_, i) => (
+            {/* Mobile navigation buttons */}
+            <div className="flex items-center justify-center gap-6 mt-6 sm:hidden">
               <button
-                key={i}
-                onClick={() => { goTo(i); resetAuto(); }}
-                aria-label={`Go to slide ${i + 1}`}
-                className={`transition-all duration-300 ease-out cursor-pointer border-0 p-0 ${
-                  i === current ? "bg-[#8B1A2E]" : "bg-[#D4C9C1]"
-                }`}
-                style={{ 
-                  height: "3px", 
-                  width: i === current ? "32px" : "16px", 
-                  minHeight: "unset", 
-                  display: "block",
-                  borderRadius: "9999px"
-                }}
-              />
-            ))}
+                onClick={() => { goTo(current - 1); resetAuto(); }}
+                className="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center text-[#1a1a1a] active:scale-95 transition-all duration-200 ease-out border border-gray-100"
+              >
+                <MdChevronLeft size={32} />
+              </button>
+              <button
+                onClick={() => { goTo(current + 1); resetAuto(); }}
+                className="w-14 h-14 rounded-full bg-[#8B1A2E] shadow-md flex items-center justify-center text-white active:scale-95 transition-all duration-200 ease-out"
+              >
+                <MdChevronRight size={32} />
+              </button>
+            </div>
+
+            {/* Line indicator */}
+            <div className="flex justify-center items-center gap-2 mt-8 sm:mt-10">
+              {displayResidences.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => { goTo(i); resetAuto(); }}
+                  aria-label={`Go to slide ${i + 1}`}
+                  className={`transition-all duration-300 ease-out cursor-pointer border-0 p-0 ${
+                    i === current ? "bg-[#8B1A2E]" : "bg-[#D4C9C1]"
+                  }`}
+                  style={{ 
+                    height: "3px", 
+                    width: i === current ? "32px" : "16px", 
+                    minHeight: "unset", 
+                    display: "block",
+                    borderRadius: "9999px"
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Mini Auth Modal */}
+      <MiniAuthModal
+        open={authModalOpen}
+        onClose={() => {
+          setAuthModalOpen(false);
+          setPendingResidenceId(null);
+        }}
+      />
+    </>
   );
 }

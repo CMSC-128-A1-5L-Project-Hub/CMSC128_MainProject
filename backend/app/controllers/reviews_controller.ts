@@ -72,7 +72,7 @@ export default class ReviewsController {
         const avg_result = await db
             .from('reviews')
             .where('accommodation_id', accommodationId)
-            .avg('rating as avg_rating')
+            .avg('rating as avg_rating')    
             .first()
 
         const averageRating = Number(avg_result?.avg_rating || 0)
@@ -84,4 +84,15 @@ export default class ReviewsController {
             }
         }
     } 
+
+    async averageRating({ response }: HttpContext) {
+        const avgResult = await db
+            .from('reviews')
+            .avg('rating as avg_rating')
+            .first()
+
+        return response.ok({
+            average: Number(avgResult?.avg_rating ?? 0).toFixed(1),
+        })
+    }
 }

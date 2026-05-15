@@ -44,13 +44,17 @@ export default class WaitlistWorkflowService {
       const preferredTags = application.preferredTags ?? []
       const matchedTags = preferredTags.filter(t => roomTags.includes(t))
       const unmatchedTags = preferredTags.filter(t => !roomTags.includes(t))
-
-      await this.notificationService.sendApprovalWithTags(
-        application.student.user,
-        application.accommodation.accommodationName,
-        matchedTags,
-        unmatchedTags
-      )
+      
+      try {
+        await this.notificationService.sendApprovalWithTags(
+          application.student.user,
+          application.accommodation.accommodationName,
+          matchedTags,
+          unmatchedTags
+        )
+      } catch (error) {
+        console.error("Non-fatal: Failed to send approval email", error)
+      }
     } else {
       if (application.applicationStayType === 'transient') {
         application.applicationStatus = 'rejected'
@@ -60,11 +64,16 @@ export default class WaitlistWorkflowService {
         const waitlistPosition = await this.getNextWaitlistPosition(application.accommodationId)
         application.applicationStatus = 'waitlisted'
         await application.save()
-        await this.notificationService.sendWaitlistEmail(
-          application.student.user,
-          application.accommodation.accommodationName,
-          waitlistPosition
-        )
+        
+        try {
+          await this.notificationService.sendWaitlistEmail(
+            application.student.user,
+            application.accommodation.accommodationName,
+            waitlistPosition
+          )
+        } catch (error) {
+           console.error("Non-fatal: Failed to send waitlist email", error)
+        }
       }
     }
 
@@ -81,10 +90,14 @@ export default class WaitlistWorkflowService {
 
     application.applicationStatus = 'cancelled'
     await application.save()
-    await this.notificationService.sendSlotExpiredEmail(
-      application.student.user,
-      application.accommodation.accommodationName
-    )
+    try {
+      await this.notificationService.sendSlotExpiredEmail(
+        application.student.user,
+        application.accommodation.accommodationName
+      )
+    } catch (error) {
+      console.error("Non-fatal: Failed to send slot expiry email", error)
+    }
     await this.promoteNextWaitlisted(application.accommodationId)
   }
 
@@ -106,10 +119,14 @@ export default class WaitlistWorkflowService {
     }
     application.applicationStatus = 'cancelled'
     await application.save()
-    await this.notificationService.sendCancellationEmail(
-      application.student.user,
-      application.accommodation.accommodationName
-    )
+    try {
+      await this.notificationService.sendCancellationEmail(
+        application.student.user,
+        application.accommodation.accommodationName
+      )
+    } catch (error) {
+       console.error("Non-fatal: Failed to send cancellation email", error)
+    }
   }
 
   // ─── Promote next waitlisted applicant ───
@@ -158,17 +175,25 @@ export default class WaitlistWorkflowService {
       best.applicationStatus = 'approved'
       best.approvedAt = DateTime.now()
       await best.save()
-      await this.notificationService.sendApplicationStatusEmail(
-        best.student.user, 'approved', best.accommodation.accommodationName
-      )
+      try {
+        await this.notificationService.sendApplicationStatusEmail(
+          best.student.user, 'approved', best.accommodation.accommodationName
+        )
+      } catch(error) {
+        console.error("Non-fatal: Failed to send waitlist promotion email", error)
+      }
     } else {
       const next = candidates[0]
       next.applicationStatus = 'approved'
       next.approvedAt = DateTime.now()
       await next.save()
-      await this.notificationService.sendApplicationStatusEmail(
-        next.student.user, 'approved', next.accommodation.accommodationName
-      )
+      try {
+        await this.notificationService.sendApplicationStatusEmail(
+          next.student.user, 'approved', next.accommodation.accommodationName
+        )
+      } catch(error) {
+        console.error("Non-fatal: Failed to send waitlist promotion email", error)
+      }
     }
   }
 
