@@ -31,17 +31,17 @@ const MIN_ZOOM = 6
 // Below this zoom level, marker shows rating only (no name)
 const NAME_ZOOM_THRESHOLD = 15
 
+// Global pin size multiplier. 1 = default ladder below. Bump up/down to resize ALL pins.
+const PIN_SIZE_MULTIPLIER = 1.1
+
 // Pin scale by zoom — shrinks when zoomed out so far-away pins don't clutter
 function scaleForZoom(z: number): number {
-  if (z >= 15) return 1
-  if (z >= 14) return 0.85
-  if (z >= 13) return 0.7
-  if (z >= 12) return 0.6
-  if (z >= 11) return 0.5
-  if (z >= 10) return 0.4
-  if (z >= 9) return 0.3
-  if (z >= 8) return 0.2
-  return 0.01
+  let base: number
+  if (z >= 15) base = 1
+  else if (z >= 14) base = 0.9
+  else if (z >= 13) base = 0.7
+  else base = 0.5
+  return base * PIN_SIZE_MULTIPLIER
 }
 
 export interface AccommodationReview {
@@ -123,7 +123,7 @@ const AccommodationPinMarker = memo(function AccommodationPinMarker({
       longitude={acc.longitude}
       latitude={acc.latitude}
       anchor="bottom"
-      style={{ zIndex: isSelected ? 498 : 1 }}
+      style={{ zIndex: isSelected ? 497 : 1 }}
       onClick={(e) => {
         e.originalEvent.stopPropagation()
         onSelect(acc, isSelected)
@@ -298,6 +298,27 @@ export default function AccommodationMap({
       >
         <NavigationControl position="top-right" />
 
+        {/* Dev-only zoom badge */}
+        {import.meta.env.DEV && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 12,
+              left: 12,
+              zIndex: 500,
+              background: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              padding: '4px 10px',
+              borderRadius: 6,
+              fontSize: 11,
+              fontFamily: 'monospace',
+              pointerEvents: 'none',
+            }}
+          >
+            zoom: {currentZoom} · scale: {pinScale.toFixed(2)}
+          </div>
+        )}
+
         {/* UPLB Pin */}
         <UPLBMarker
           selected={uplbSelected}
@@ -325,7 +346,7 @@ export default function AccommodationMap({
             closeOnClick={false}
             maxWidth="300px"
             offset={[85, 5] as [number, number]}
-            style={{ zIndex: 497 }}
+            style={{ zIndex: 499 }}
           >
             <div
               className="font-sans overflow-hidden rounded-2xl bg-white shadow-2xl cursor-pointer"
