@@ -509,7 +509,7 @@ export default function LandlordApplicationsPage() {
   if (isLoadingUser) return null;
 
   return (
-    <div className="flex h-screen bg-[#F5EEF0]">
+    <div className="flex h-screen bg-[#F6F2F4]">
       <div className="flex flex-col w-full h-full">
         <CustomHeader title="Applications" />
         <div className="flex-1 flex flex-col overflow-hidden gap-4 lg:gap-6 p-4 lg:p-6">

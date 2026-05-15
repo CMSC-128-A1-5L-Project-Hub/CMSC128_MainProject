@@ -438,7 +438,7 @@ export default function RoomsPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FBF9FA] font-sans">
+    <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
       <div className="flex flex-col w-full">
         <CustomHeader title={"Manage Rooms"} />
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
