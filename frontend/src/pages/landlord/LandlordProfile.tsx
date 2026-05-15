@@ -306,7 +306,7 @@ export default function LandlordProfile() {
         <div className="min-h-screen bg-[#F5EEF0] text-[#2A1F1A] lg:flex overflow-y-auto">
             <div className="flex-1">
                 <CustomHeader
-                    title="Properties"
+                    title="Profile"
                     right={
                     <div className="relative" ref={notifWrapperRef}>
                         <button
