@@ -31,9 +31,14 @@ export default class DormSeeder extends BaseSeeder {
 
       /*
         Modify this if instead of skipping, data is altered/updated
+
+        Now resets occupancy to 0, comment out to change
       */
       if (existing) {
         console.log(`[skipped] "${dorm.accommodation_name}" already exists`)
+        await db.from('rooms')
+          .where('accommodation_id', existing.id)
+          .update({ room_current_occupancy: 0 })
         continue
       }
 
