@@ -205,7 +205,7 @@ export default function StudentVerificationModal({
             label="Contact Number"
             value={student.phoneNumber}
           /> */}
-          <InfoRow label="Gender" value={student?.gender} />
+          <InfoRow label="Gender" value={student?.gender[0].toUpperCase()+student?.gender.slice(1)} />
 
           <div className="col-span-2">
             <InfoRow label="College" value={student.college?.toUpperCase()} />
