@@ -559,10 +559,6 @@ export default function LandlordApplicationsPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: CLR.mid }} />
                   <p className="text-sm text-[#9A7080] mt-2">Fetching applications...</p>
                 </div>
-              ) : filtered.length === 0 ? (
-                <div className="flex flex-col justify-center items-center h-full text-center">
-                  <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
-                </div>
               ) : (
                 <table className="min-w-[900px] w-full text-sm table-fixed border-separate border-spacing-0">
                   <thead className="sticky z-20 top-0 bg-white border-[#6B0F2B]/10">
@@ -582,47 +578,58 @@ export default function LandlordApplicationsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginated.map((app) => (
-                      <tr
-                        key={app.id}
-                        style={{
-                          backgroundColor: (rowStyles[app.applicationStatus]?.bg ?? '#888') + '0D',
-                          color: rowStyles[app.applicationStatus]?.text ?? '#888',
-                        }}
-                      >
-                        <td className="p-2">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                              {app?.student?.user?.fname?.charAt(0)?.toUpperCase() || 'U'}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-medium truncate">
-                                {[app?.student?.user?.fname, app?.student?.user?.lname].filter(Boolean).join(" ") || "Unknown"}
-                              </p>
-                              <p className="text-xs text-gray-400 truncate">{app.student.studentNumber}</p>
-                            </div>
+                    {filtered.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="text-center py-12">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+                            <p className="text-[#C8B0B8] text-sm">No applications match your current filters</p>
                           </div>
                         </td>
-                        <td className="p-2 text-gray-600 whitespace-nowrap">
-                          {app?.applicationDate ? (
-                            <>
-                              <span className="block text-[12px] lg:text-[14px]">{formatDate(app.applicationDate)}</span>
-                              <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">
-                                {getDaysAgo(app.applicationDate) === 0 ? 'today' : getDaysAgo(app.applicationDate) === 1 ? 'yesterday' : `${getDaysAgo(app.applicationDate)} days ago`}
-                              </span>
-                            </>
-                          ) : <p>Loading date...</p>}
-                        </td>
-                        <td className="p-2 whitespace-nowrap capitalize">{app.applicationRoomType}</td>
-                        <td className="p-2 whitespace-nowrap capitalize">{app.applicationStayType?.replace('_', ' ')}</td>
-                        <td className="p-2"><StylizedStatus status={app.applicationStatus} /></td>
-                        <td className="p-2 text-center">
-                          <Button variant="reddishPink" size="sm" fullWidth={false} isLoading={false} onClick={() => setSelectedApp(app)}>
-                            View
-                          </Button>
-                        </td>
                       </tr>
-                    ))}
+                    ) : (
+                      paginated.map((app) => (
+                        <tr
+                          key={app.id}
+                          style={{
+                            backgroundColor: (rowStyles[app.applicationStatus]?.bg ?? '#888') + '0D',
+                            color: rowStyles[app.applicationStatus]?.text ?? '#888',
+                          }}
+                        >
+                          <td className="p-2">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                                {app?.student?.user?.fname?.charAt(0)?.toUpperCase() || 'U'}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium truncate">
+                                  {[app?.student?.user?.fname, app?.student?.user?.lname].filter(Boolean).join(" ") || "Unknown"}
+                                </p>
+                                <p className="text-xs text-gray-400 truncate">{app.student.studentNumber}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-2 text-gray-600 whitespace-nowrap">
+                            {app?.applicationDate ? (
+                              <>
+                                <span className="block text-[12px] lg:text-[14px]">{formatDate(app.applicationDate)}</span>
+                                <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">
+                                  {getDaysAgo(app.applicationDate) === 0 ? 'today' : getDaysAgo(app.applicationDate) === 1 ? 'yesterday' : `${getDaysAgo(app.applicationDate)} days ago`}
+                                </span>
+                              </>
+                            ) : <p>Loading date...</p>}
+                          </td>
+                          <td className="p-2 whitespace-nowrap capitalize">{app.applicationRoomType}</td>
+                          <td className="p-2 whitespace-nowrap capitalize">{app.applicationStayType?.replace('_', ' ')}</td>
+                          <td className="p-2"><StylizedStatus status={app.applicationStatus} /></td>
+                          <td className="p-2 text-center">
+                            <Button variant="reddishPink" size="sm" fullWidth={false} isLoading={false} onClick={() => setSelectedApp(app)}>
+                              View
+                            </Button>
+                           </td>
+                         </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               )}
