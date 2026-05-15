@@ -673,19 +673,6 @@ export default function ProfilePage() {
   const defaultPfp = profile?.student?.gender?.toLowerCase() === "female" ? femalePfp : malePfp;
   const verifyDate = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
-  const sidebarProfile = profile
-    ? {
-        fullName: fullName(profile),
-        shortName: initials(profile),
-        email: profile.email,
-        studentNo: profile.student?.studentNumber,
-        college: profile.student?.college,
-        course: profile.student?.degreeProgram,
-        yearLevel: profile.student?.yearLevel || "—",
-        status: profile.accountStatus,
-      }
-    : undefined;
-
   // ── Loading / error states ─────────────────────────────────────────────────
 
   if (profileLoading) {
@@ -746,15 +733,11 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  <div className="mt-6 grid grid-cols-2 gap-4">
+                  {/* Documents Button */}
+                  <div className="mt-6 grid grid-cols-1 gap-4">
                     <div 
-                      onClick={() => !pfpUploading && fileInputRef.current?.click()} 
-                      className={`flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center transition-colors ${pfpUploading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-white'}`}
+                      className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-not-allowed"
                     >
-                      <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">PHOTO</p>
-                      <p className="text-[9px] text-gray-400">JPG/PNG</p>
-                    </div>
-                    <div className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-not-allowed">
                       <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">DOCUMENTS</p>
                       <p className="text-[9px] text-gray-400">ID / Form 5</p>
                     </div>
@@ -961,7 +944,7 @@ export default function ProfilePage() {
         </div>
       </Modal>
 
-      {/* Accommodation History Modal - Now using the Modal component */}
+      {/* Accommodation History Modal */}
       {showHistory && (
         <AccomHistoryModal
           history={history}
