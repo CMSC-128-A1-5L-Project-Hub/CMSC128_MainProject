@@ -513,26 +513,31 @@ export default function MapPage() {
               {/* ─── Map ─────────────────────────────────────────────────────── */}
               <div style={{ width: '100%', height: '100%', zIndex: 1 }}>
                 {isError && (
-                  <div style={{
-                    position: 'absolute', top: '50%', left: '50%',
-                    transform: 'translate(-50%, -50%)', zIndex: 10,
-                    backgroundColor: 'white', padding: '20px 32px',
-                    borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', textAlign: 'center',
-                  }}>
-                    <p style={{ fontWeight: '600', color: '#EF4444', margin: '0 0 4px 0' }}>Failed to load accommodations</p>
-                    <p style={{ fontSize: '13px', color: '#9CA3AF', margin: 0 }}>Please check your connection.</p>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[499] bg-white rounded-2xl shadow-2xl overflow-hidden w-[320px] max-w-[90vw]">
+                    <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, #5a0822 0%, #710A2B 100%)' }}>
+                      <p className="text-white font-bold text-base leading-tight">Failed to load accommodations</p>
+                    </div>
+                    <div className="px-6 py-5 text-center">
+                      <p className="text-sm text-gray-500">Please check your connection and try again.</p>
+                    </div>
                   </div>
                 )}
                 {!isError && !isLoading && filtered.length === 0 && (
-                  <div style={{
-                    position: 'absolute', top: '50%', left: '50%',
-                    transform: 'translate(-50%, -50%)', zIndex: 10,
-                    backgroundColor: 'white', padding: '24px 40px',
-                    borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', textAlign: 'center',
-                  }}>
-                    <p style={{ fontSize: '32px', marginBottom: '8px' }}>🔍</p>
-                    <p style={{ fontWeight: 'bold', color: '#1F2937', margin: '0 0 4px 0' }}>No matches found</p>
-                    <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>Try broadening your filters</p>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[499] bg-white rounded-2xl shadow-2xl overflow-hidden w-[320px] max-w-[90vw]">
+                    <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, #5a0822 0%, #710A2B 100%)' }}>
+                      <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest mb-1">No Results</p>
+                      <p className="text-white text-lg font-bold leading-tight">No matches found</p>
+                    </div>
+                    <div className="px-6 py-5 text-center">
+                      <p className="text-4xl mb-2">🔍</p>
+                      <p className="text-sm text-gray-600 mb-4">Try broadening your filters to see more accommodations.</p>
+                      <button
+                        onClick={resetFilters}
+                        className="w-full py-3 bg-[#710A2B] text-sm text-white font-bold rounded-xl shadow-lg hover:bg-[#5a0822] transition-all active:scale-95"
+                      >
+                        Reset filters
+                      </button>
+                    </div>
                   </div>
                 )}
                 <AccommodationMap

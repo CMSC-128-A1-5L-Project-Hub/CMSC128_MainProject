@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Card from "../../../../ui/Card";
+import Toast from "@/components/Toast";
 import { downloadReport } from "../../../../../api/downloadReport";
 
 type ReportConfig = {
@@ -43,16 +44,35 @@ const reports: ReportConfig[] = [
 
 export default function ReportsPanel() {
   const [loading, setLoading] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+  }>({ show: false, type: "success", title: "" });
 
   const handleClick = async (r: ReportConfig) => {
     if (!r.path || !r.filenamePrefix) return;
     setLoading(r.label);
+    setToast({ show: true, type: "loading", title: "Generating Report...", message: "Please wait." });
     try {
       const date = new Date().toISOString().slice(0, 10);
       const ext = r.path.endsWith("/xlsx") ? "xlsx" : "pdf";
       await downloadReport(r.path, `${r.filenamePrefix}-${date}.${ext}`);
-    } catch (err) {
+      setToast({
+        show: true,
+        type: "success",
+        title: "Report Generated!",
+        message: `${r.label} has been downloaded.`,
+      });
+    } catch (err: any) {
       console.error("Failed to download report:", err);
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Generate Report",
+        message: err?.response?.data?.message || "Could not generate the report.",
+      });
     } finally {
       setLoading(null);
     }
@@ -99,6 +119,14 @@ export default function ReportsPanel() {
           );
         })}
       </div>
+
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </Card>
   );
 }
