@@ -427,7 +427,7 @@ export default function RoomAssignment() {
       </Modal>
 
       {/* Layout */}
-      <div className="flex h-screen bg-[#F5EEF0] font-sans">
+      <div className="flex h-screen bg-[#F6F2F4] font-sans">
         <div className="flex flex-col w-full flex-1 min-w-0">
           <CustomHeader
             title="Room Assignment"></CustomHeader>
