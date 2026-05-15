@@ -23,6 +23,7 @@ export default function ActivityLogs({
     if (!action) return "Activity"
 
     return action
+      .toLowerCase()
       .replace(/_/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase())
   }

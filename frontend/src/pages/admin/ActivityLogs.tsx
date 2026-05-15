@@ -79,6 +79,7 @@ export default function ActivityLogsPage() {
   const formatAction = (action: string) => {
     if (!action) return "Activity"
     return action
+      .toLowerCase()
       .replace(/_/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase())
   }
