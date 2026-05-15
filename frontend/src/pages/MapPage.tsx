@@ -117,20 +117,6 @@ export default function MapPage() {
     return [...new Set(accommodations.flatMap((acc) => acc.amenities ?? []))]
   }, [accommodations])
 
-  // Staged: filters only apply to map when "Apply Filters" is clicked
-  const [appliedFilters, setAppliedFilters] = useState({
-    type: 'all',
-    restriction: 'all',
-    minRent: DEFAULT_MIN_RENT,
-    maxRent: DEFAULT_MAX_RENT,
-    maxWalk: 60,
-    minCapacity: 0,
-    stayType: 'all',
-    rating: 0,
-    tags: [] as string[],
-    showFavoritesOnly: false,
-  })
-
   const centerId = searchParams.get('center')
   const centeredAccommodation = useMemo(
     () => (centerId ? accommodations.find((a) => a.accommodationId === Number(centerId)) ?? null : null),
@@ -155,35 +141,30 @@ export default function MapPage() {
     setMinRating(0)
     setSelectedTags([])
     setShowFavoritesOnly(false)
-    setAppliedFilters({ type: 'all', restriction: 'all', minRent: DEFAULT_MIN_RENT, maxRent: DEFAULT_MAX_RENT, maxWalk: 60, minCapacity: 0, stayType: 'all', rating: 0, tags: [], showFavoritesOnly: false })
-  }
-
-  const handleApplyFilters = () => {
-    setAppliedFilters({ type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType, rating: minRating, tags: selectedTags, showFavoritesOnly })
   }
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
   }
 
-  // ─── Filtering (search is immediate; all others staged via Apply) ──────────
+  // ─── Filtering (all filters are reactive) ────────────────────────────────
   const filtered = useMemo(() => {
     return accommodations.filter((acc) => {
       const matchSearch =
         acc.accommodationName.toLowerCase().includes(search.toLowerCase()) ||
         acc.accommodationLocation.toLowerCase().includes(search.toLowerCase())
-      const matchType = appliedFilters.type === 'all' || acc.accommodationType === appliedFilters.type
-      const matchRestriction = appliedFilters.restriction === 'all' || acc.tenantRestriction === appliedFilters.restriction
-      const matchRent = acc.minRent >= appliedFilters.minRent && acc.maxRent <= appliedFilters.maxRent
-      const matchWalk = acc.walkingDistance <= appliedFilters.maxWalk
-      const matchCapacity = acc.accommodationCapacity >= appliedFilters.minCapacity
-      const matchStayType = appliedFilters.stayType === 'all' || acc.stayType === appliedFilters.stayType || acc.stayType === 'both'
-      const matchRating = !acc.rating || acc.rating >= appliedFilters.rating
-      const matchTags = appliedFilters.tags.length === 0 || appliedFilters.tags.every(tag => acc.amenities?.includes(tag))
-      const matchFavorites = !appliedFilters.showFavoritesOnly || favorites.has(acc.accommodationId)
+      const matchType = type === 'all' || acc.accommodationType === type
+      const matchRestriction = restriction === 'all' || acc.tenantRestriction === restriction
+      const matchRent = acc.minRent >= minRent && acc.maxRent <= maxRent
+      const matchWalk = acc.walkingDistance <= maxWalk
+      const matchCapacity = acc.accommodationCapacity >= minCapacity
+      const matchStayType = stayType === 'all' || acc.stayType === stayType || acc.stayType === 'both'
+      const matchRating = !acc.rating || acc.rating >= minRating
+      const matchTags = selectedTags.length === 0 || selectedTags.every(tag => acc.amenities?.includes(tag))
+      const matchFavorites = !showFavoritesOnly || favorites.has(acc.accommodationId)
       return matchSearch && matchType && matchRestriction && matchRent && matchWalk && matchCapacity && matchStayType && matchRating && matchTags && matchFavorites
     })
-  }, [accommodations, search, appliedFilters, favorites])
+  }, [accommodations, search, type, restriction, minRent, maxRent, maxWalk, minCapacity, stayType, minRating, selectedTags, showFavoritesOnly, favorites])
 
   return (
     <motion.div
@@ -474,15 +455,6 @@ export default function MapPage() {
                   </div>
                 </div>
 
-                {/* Apply Button */}
-                <div className="p-6 pt-4 border-t border-gray-50">
-                  <button
-                    onClick={handleApplyFilters}
-                    className="w-full py-4 bg-[#710A2B] text-sm text-white font-bold rounded-2xl shadow-lg hover:bg-[#5a0822] transition-all active:scale-95"
-                  >
-                    Apply Filters
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -555,6 +527,6 @@ export default function MapPage() {
         </div>
     </div>
     </motion.div>
-    
+
   )
 }

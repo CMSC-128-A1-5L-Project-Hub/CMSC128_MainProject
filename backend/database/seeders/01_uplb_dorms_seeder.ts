@@ -5,6 +5,7 @@ import { BaseSeeder } from "@adonisjs/lucid/seeders";
 import { UPLB_DORMS, makeBusinessPermit } from "#database/seed_data/uplb_dorms_data";
 import { PRIVATE_DORMS } from "#database/seed_data/private_dorms_data";
 import { uploadImageFromLocalPath } from "#services/b2_services";
+import DistanceService from "#services/distance";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { Landlords } from "#database/seed_data/users";
@@ -43,6 +44,27 @@ export default class DormSeeder extends BaseSeeder {
         { ...permitData }
       )
 
+      // compute walk/bike/drive minutes from coords when not pre-supplied
+      let walking = dorm.walking_distance ?? null
+      let biking = dorm.biking_distance ?? null
+      let driving = dorm.driving_distance ?? null
+
+      if (
+        dorm.latitude != null &&
+        dorm.longitude != null &&
+        (walking == null || biking == null || driving == null)
+      ) {
+        try {
+          const { walkingMinutes, drivingMinutes, cyclingMinutes } =
+            await DistanceService.calculate(Number(dorm.latitude), Number(dorm.longitude))
+          walking = walking ?? walkingMinutes
+          biking = biking ?? cyclingMinutes
+          driving = driving ?? drivingMinutes
+        } catch (err) {
+          console.warn(`[distance] failed for "${dorm.accommodation_name}":`, err)
+        }
+      }
+
       // insert accommodation to db
       const [accomId] = await db.table('accommodations').insert({
         landlord_id: landlord.id,
@@ -55,9 +77,9 @@ export default class DormSeeder extends BaseSeeder {
         tenant_restriction: dorm.tenant_restriction,
         latitude: dorm.latitude,
         longitude: dorm.longitude,
-        walking_distance: dorm.walking_distance ?? null,
-        biking_distance: dorm.biking_distance ?? null,
-        driving_distance: dorm.driving_distance ?? null,
+        walking_distance: walking,
+        biking_distance: biking,
+        driving_distance: driving,
         application_start_date: dorm.application_start_date ?? null,
         application_end_date: dorm.application_end_date ?? null,
         status: 'verified',
