@@ -13,6 +13,7 @@ import StatBar from "../../components/ui/StatBar"
 import DonutStatCard from "../../components/dashboard/DonutStatCard"
 import Button from "../../components/Button"
 import Modal from "../../components/Modal"
+import Toast from "@/components/Toast";
 
 import { IoCalendarSharp } from "react-icons/io5"
 import { FaHouse } from "react-icons/fa6"
@@ -67,11 +68,13 @@ const AssignModalContent = ({
   rooms,
   onClose,
   onAssigned,
+  setToast
 }: {
   assignment: AssignmentItem
   rooms: RawRoom[]
   onClose: () => void
   onAssigned: () => void
+  setToast: (t: { show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string }) => void
 }) => {
   const queryClient = useQueryClient()
   const studentPrefs = assignment.student.preferredTags ?? []
@@ -196,12 +199,13 @@ const AssignModalContent = ({
                         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
                         onClose()
                         onAssigned()
+                        setToast({ show: true, type: "success", title: "Room Assigned!", message: "The student has been successfully assigned to the room." })
                       } else {
-                        alert(res.data?.message || 'Assignment failed')
+                        setToast({ show: true, type: "error", title: "Assignment Failed", message: res.data?.message || "Could not assign the room." })
                       }
                     } catch (e: any) {
                       console.error(e)
-                      alert(e.response?.data?.message || 'Network error')
+                      setToast({ show: true, type: "error", title: "Network Error", message: e.response?.data?.message || "Something went wrong." })
                     }
                   }}
                   className="w-full sm:w-auto"
@@ -392,6 +396,13 @@ export default function RoomAssignment() {
 
   const fullName = profile ? `${profile.fname} ${profile.lname}` : ''
 
+  const [toast, setToast] = useState<{
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+  }>({ show: false, type: "success", title: "" });
+
   return (
     <>
       {/* Modal for assign / view */}
@@ -408,6 +419,7 @@ export default function RoomAssignment() {
             rooms={rooms}
             onClose={() => setSelectedAssignment(null)}
             onAssigned={refreshDashboard}
+            setToast={setToast}
           />
         ) : selectedAssignment ? (
           <ViewModalContent assignment={selectedAssignment} />
@@ -707,8 +719,13 @@ export default function RoomAssignment() {
             </main>
           </div>
         </div>
-        
-        
+        <Toast
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          show={toast.show}
+          onClose={() => setToast(prev => ({ ...prev, show: false }))}
+        />
       </div>
     </>
   )
