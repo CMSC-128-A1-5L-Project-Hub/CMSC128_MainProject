@@ -2,13 +2,14 @@ import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { motion } from "framer-motion"
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
-import { Star, SlidersHorizontal, MapPin, X, BookmarkCheck, ChevronRight } from "lucide-react"
+import { Star, SlidersHorizontal, MapPin, X, BookmarkCheck, ChevronRight, Heart } from "lucide-react"
 import Sidebar from "../../components/Sidebar"
 import CustomHeader from '../../components/CustomHeader'
 import PriceRangeSlider from "../../components/PriceRangeSlider"
 import HeroBanner from "@/components/dashboard/HeroBanner"
 import Pagination from "@/components/ApplicationStatus/Pagination"
-import { useQuery } from "@tanstack/react-query"
+import Toast from "@/components/Toast"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { api } from "../../api/axios"
 import UbleLoader from "../shared/LoadingPage"
 import defaultAccommodation from "../../assets/defaults/accommodation.png";
@@ -69,6 +70,7 @@ export default function BrowsePage() {
     const [searched, setSearched] = useState(false);
     const [sliderResetKey, setSliderResetKey] = useState(0);
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
 
     const location = useLocation();
     const landingFilters = location.state as {
@@ -111,22 +113,23 @@ export default function BrowsePage() {
     const name = user ? `${user.fname}` : ""
     const studentNo = user?.student?.studentNumber ?? ""
 
-    const updateAccommodation = async () => {
-        try {
-            const response = await api.put("/accommodations/1", {
-                accommodation_name: "Dorm A",
-                accommodation_location: "UPLB",
-                accommodation_capacity: 4,
-            })
-
-            console.log(response.data)
-        } catch (error) {
-            console.error(error)
-        }
-    }
+    const [toast, setToast] = useState<{
+        show: boolean;
+        type: "success" | "error" | "info" | "warning" | "loading";
+        title: string;
+        message?: string;
+    }>({ show: false, type: "success", title: "" });
 
     useEffect(() => { if (isError) navigate("/auth/signin") }, [isError, navigate])
     useEffect(() => { if (user && user.role !== "student") navigate("/auth/signin") }, [user, navigate])
+    useEffect(() => {
+        if (accommodationsError)
+            setToast({
+                show: true, type: "error",
+                title: "Failed to load accommodations",
+                message: "Please check your connection and try again."
+            })
+    }, [accommodationsError])
 
     const [flatDorms, setFlatDorms] = useState<Dorm[]>([])
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([])
@@ -139,7 +142,6 @@ export default function BrowsePage() {
     useEffect(() => {
         if (!isSuccess || accommodations.length === 0) return
 
-
         let min = Infinity
         let max = -Infinity
         const tagSet = new Set<string>();
@@ -147,7 +149,6 @@ export default function BrowsePage() {
         accommodations.forEach(({ rooms, tags }) => {
             rooms.forEach((el: { roomRent: number }) => {
                 const rent = Number(el.roomRent)
-
                 if (rent < min) min = rent
                 if (rent > max) max = rent
             })
@@ -162,10 +163,6 @@ export default function BrowsePage() {
             tags.map(tag => [tag, false])
         );
 
-
-        // setFilters(tagObject)
-        // setMinPrice(min)
-        // setMaxPrice(max)
         setFilters(prev => ({
             ...tagObject,
             ...prev,
@@ -221,7 +218,6 @@ export default function BrowsePage() {
                 rooms, reviews, bookmarks, tags, primaryImageUrl
             } = accommodations[i]
 
-
             let minimum = -1, maximum = -1
             const roomTypes = new Set<string>()
             let rating = "6"
@@ -235,12 +231,8 @@ export default function BrowsePage() {
             rooms.forEach((el: { roomRent: number; roomType: string }) => {
                 roomTypes.add(el.roomType)
                 const rent = Number(el.roomRent)
-                if (minimum === -1) {
-                    minimum = rent
-                }
-                if (maximum === -1) {
-                    maximum = rent
-                }
+                if (minimum === -1) minimum = rent
+                if (maximum === -1) maximum = rent
                 if (rent < minimum) minimum = rent
                 if (rent > maximum) maximum = rent
             })
@@ -256,37 +248,17 @@ export default function BrowsePage() {
 
             /* search match */
             const nameMatch = searching === "" || accommodationName.toLowerCase().includes(searching)
-            if (!nameMatch) {
-                console.log("name", accommodationName)
-                continue
-            }
+            if (!nameMatch) continue
 
             /* filters */
-            if (!bookmarked && onlyBookmarked) {
-                console.log("name", accommodationName)
-                continue
-            }
-            if (Number(rating) < starRating) {
-                console.log("rating", accommodationName)
-                continue
-            }
-            if (minimum < minPrice || maximum > maxPrice) {
-                console.log("price", accommodationName, minPrice, maxPrice, origMax, origMin)
-                continue
-            }
-            if (dormType !== "All" && accommodationType !== dormType.toLowerCase()) {
-                console.log("dorm", accommodationName)
-                continue
-            }
-            if (roomType !== "All" && !roomTypes.has(roomType.toLowerCase())) {
-                console.log("room", accommodationName)
-                continue
-            }
+            if (!bookmarked && onlyBookmarked) continue
+            if (Number(rating) < starRating) continue
+            if (minimum < minPrice || maximum > maxPrice) continue
+            if (dormType !== "All" && accommodationType !== dormType.toLowerCase()) continue
+            if (roomType !== "All" && !roomTypes.has(roomType.toLowerCase())) continue
             if (trueTags.length !== 0) {
                 const hasTag = trueTags.every(t => tempTags.includes(t))
-                if (!hasTag) {
-                    continue
-                }
+                if (!hasTag) continue
             }
 
             tempDorms.push({
@@ -314,8 +286,7 @@ export default function BrowsePage() {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const paginatedDorms = flatDorms.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-    /* map URL params — untouched */
-    // const [searchParams] = useSearchParams()
+    /* map URL params */
     const centerId = searchParams.get("center")
     const centeredAccommodation = centerId
         ? mapAccommodations.find(a => a.accommodationId === Number(centerId)) ?? null
@@ -328,9 +299,24 @@ export default function BrowsePage() {
     if (onlyBookmarked) activeChips.push("Saved only")
     Object.keys(filters).forEach(k => { if (filters[k]) activeChips.push(k) })
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       RENDER
-    ══════════════════════════════════════════════════════════════════════════ */
+    const handleBookmarkToggle = async (accommodationId: number, currentState: boolean) => {
+  
+        try {
+            const data = await api.put(`/accommodations/${accommodationId}/bookmark`, {
+              studentNumber: studentNo,
+              favorite: currentState
+            })
+            
+            queryClient.invalidateQueries({
+                queryKey: ["accommodations"],
+              })
+   
+          } catch (error) {
+            console.log("error")
+          }
+    }
+
+    /* RENDER */
     if (accLoading && accommodations.length === 0) {
         return <UbleLoader />
     }
@@ -349,8 +335,6 @@ export default function BrowsePage() {
 
                     {/* Scrollable content */}
                     <div className="flex-1 overflow-y-auto">
-
-
                         {/* Hero */}
                         <div className="w-full px-6 pt-6 pb-2">
                             <HeroBanner
@@ -406,9 +390,8 @@ export default function BrowsePage() {
                                 </div>
 
                                 <div className="flex flex-col min-h-0 flex-1">
-
                                     {/* Scrollable cards */}
-                                    <div className="flex flex-col gap-3 overflow-y-auto pr-2 min-h-0 flex-1">
+                                    <div className="flex flex-col gap-3 overflow-y-auto overflow-x-visible pr-2 pl-1 pb-1 min-h-0 flex-1">
                                         {paginatedDorms.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center h-72 gap-3 text-[#9A7080]">
                                                 <MapPin size={40} strokeWidth={1.3} />
@@ -429,6 +412,7 @@ export default function BrowsePage() {
                                                     onClick={() =>
                                                         navigate(`/student/roomview/${dorm.accommodationId}`)
                                                     }
+                                                    onBookmarkToggle={handleBookmarkToggle}
                                                 />
                                             ))
                                         )}
@@ -487,6 +471,7 @@ export default function BrowsePage() {
                                 onClick={() => setFilterPanelOpen(false)}
                                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#F5ECF0] text-[#6B0F2B] hover:bg-[#E8D4DF] transition-colors"
                             >
+                                {/* <X size={18} /> */}
                                 X
                             </button>
                         </div>
@@ -496,45 +481,98 @@ export default function BrowsePage() {
                         }} />
                     </div>
                 </div>
+                <Toast
+                    type={toast.type}
+                    title={toast.title}
+                    message={toast.message}
+                    show={toast.show}
+                    onClose={() => setToast(prev => ({ ...prev, show: false }))}
+                />
             </div>
         </filterContext.Provider>
     )
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════
+   DORM TILE 
+══════════════════════════════════════════════════════════════════════════════ */
 function DormTile({
-    dorm, hovered, onHover, onClick,
+    dorm, hovered, onHover, onClick, onBookmarkToggle,
 }: {
     dorm: Dorm
     hovered: boolean
     onHover: (id: number | null) => void
     onClick: () => void
+    onBookmarkToggle?: (id: number, currentState: boolean) => Promise<void>
 }) {
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
+    const [isBookmarked, setIsBookmarked] = useState(dorm.bookmarked || false)
+    const [isToggling, setIsToggling] = useState(false)
 
+    const handleHeartClick = async (e: React.MouseEvent) => {
+        e.stopPropagation()
+        e.preventDefault()
+        
+        if (isToggling) return
+        
+        console.log("yow", dorm)
+        const newState = !isBookmarked
+        setIsToggling(true)
+        setIsBookmarked(newState) // Optimistic update
+        
+        try {
+            if (onBookmarkToggle) {
+                await onBookmarkToggle(dorm.accommodationId, newState)
+            }
+        } catch (error) {
+            // Revert on error
+            setIsBookmarked(!newState)
+            console.error("Failed to update bookmark:", error)
+        } finally {
+            setIsToggling(false)
+        }
+    }
 
     return (
         <div
             onMouseEnter={() => onHover(dorm.accommodationId)}
             onMouseLeave={() => onHover(null)}
             onClick={onClick}
-            className={`group flex flex-col sm:flex-row gap-0 bg-white rounded-2xl border cursor-pointer transition-all duration-200 overflow-hidden min-h-[150px]                
+            className={`group flex flex-col sm:flex-row gap-0 bg-white rounded-2xl border cursor-pointer transition-all duration-200 min-h-[150px] my-0.5                   
                 ${hovered
                     ? "border-[#6B0F2B] shadow-lg shadow-[#6B0F2B]/10 -translate-y-0.5"
                     : "border-[#E8D4DF] shadow-sm hover:border-[#6B0F2B]/40 hover:shadow-md hover:-translate-y-0.5"
                 }`}
         >
             {/* Thumbnail */}
-            <div className="relative w-full h-36 sm:w-40 sm:h-auto shrink-0 overflow-hidden">
+            <div className="relative w-full h-36 sm:w-40 sm:h-auto shrink-0 overflow-hidden rounded-l-2xl sm:rounded-l-2xl sm:rounded-r-none">
                 <img
                     src={dorm.primaryImageUrl}
                     alt={dorm.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={(e) => {
                         e.currentTarget.src = defaultAccommodation;
                     }}
                 />
+                {/* Heart button overlay on image */}
+                <button
+                    type="button"
+                    onClick={handleHeartClick}
+                    disabled={isToggling}
+                    className={`absolute top-2 right-2 z-30 p-1.5 rounded-full transition-all duration-300 backdrop-blur-sm
+                        ${isBookmarked 
+                            ? "bg-rose-500/90 text-white" 
+                            : "bg-white/80 text-gray-500 hover:bg-rose-500/90 hover:text-white"
+                        }`}
+                >
+                    <Heart 
+                        size={16} 
+                        fill={isBookmarked ? "currentColor" : "none"} 
+                        strokeWidth={2}
+                    />
+                </button>
             </div>
 
             {/* Content */}
@@ -545,9 +583,6 @@ function DormTile({
                         <h3 className="text-[#1C0A11] font-bold text-sm leading-snug line-clamp-1">
                             {dorm.name}
                         </h3>
-                        {dorm.bookmarked && (
-                            <BookmarkCheck size={14} className="text-[#6B0F2B] shrink-0 mt-0.5" />
-                        )}
                     </div>
 
                     {/* Location */}
@@ -632,7 +667,6 @@ function SearchBar() {
                     setSearched(true)
                 }}
             />
-
         </div>
     )
 }
@@ -649,7 +683,6 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
         onlyBookmarked, setOnlyBookmarked, filters, setFilters, setFilterPanelOpen, origMin, origMax, setSliderResetKey, sliderResetKey,
         setFilterInEffect, setOrigMin, setOrigMax
     } = context
-
 
     const [openDormCabinet, setDormCabinet] = useState(false)
     const [openRoomCabinet, setRoomCabinet] = useState(false)
@@ -669,8 +702,6 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
     }
 
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
-    const [minimumOrig, setMinimumOrig] = useState(origMin);
-    const [maximumOrig, setMaximumOrig] = useState(origMax);
     const [range, setRange] = useState({ min: 0, max: 100 });
     const handleRangeChange = (value: { min: number; max: number }) => {
         setRange(value);
@@ -680,12 +711,11 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
 
     return (
         <div className="pb-4">
-
             {/* Saved only */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Show saved only</p>
             <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-[#F0E4E9] bg-[#F6F2F4]">
                 <div>
-                    <p className="text-[#1C0A11] font-semibold text-sm mb-0.5">Saved Rooms</p>
+                    <p className="text-[#1C0A11] font-semibold text-sm mb-0.5">Saved Accommodations</p>
                     <p className="text-[#9A7080] text-xs">Show only bookmarked dorms</p>
                 </div>
                 <button
@@ -765,7 +795,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
             {/* Price range */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
             <div className="px-2">
-                <PriceRangeSlider key={sliderResetKey} min={origMin} max={origMax} onChange={handleRangeChange}></PriceRangeSlider>
+                <PriceRangeSlider key={sliderResetKey} min={origMin} max={origMax} onChange={handleRangeChange} />
             </div>
 
             <Divider />
@@ -805,7 +835,6 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
                     Apply filters
                 </button>
             </div>
-
         </div>
     )
 }
@@ -827,16 +856,6 @@ interface DropdownProps {
 }
 
 function Dropdown({ showTitle = true, title, items, onSelect, direction = "down", widthClass = "w-32", titleClass = "text-[10px]", selectedClass = "text-[12px]", setOpen, setClose, open, setSelected, selected }: DropdownProps) {
-
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        const check = () => setIsMobile(window.innerWidth < 1024);
-        check();
-        window.addEventListener('resize', check);
-        return () => window.removeEventListener('resize', check);
-    }, []);
-
     return (
         <div className="relative h-12">
             <button

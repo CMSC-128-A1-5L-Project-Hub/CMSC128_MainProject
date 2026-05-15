@@ -331,7 +331,7 @@ export default function LandlordProfile() {
     const hasMore = profile.accommodations.length > 3;
 
     return (
-        <div className="min-h-screen bg-[#F5EEF0] text-[#2A1F1A] lg:flex overflow-y-auto">
+        <div className="min-h-screen bg-[#F6F2F4] text-[#2A1F1A] lg:flex overflow-y-auto">
             <div className="flex-1">
                 <CustomHeader
                     title="Profile"
@@ -375,43 +375,24 @@ export default function LandlordProfile() {
                             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
                                 {/* LEFT COLUMN */}
                                 <div className="w-full lg:w-[280px] lg:shrink-0">
-                                    <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-4 md:grid-cols-[170px_minmax(0,1fr)] lg:block">
-                                        <div className="relative flex items-center justify-center h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px] w-full">
-                                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-                                            <button aria-label="Change photo" onClick={() => fileInputRef.current?.click()}
-                                                className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 p-2 bg-white/50 hover:bg-white/80 rounded-full transition-all">
-                                                <img src={Camera} alt="" className="h-6 w-6 sm:h-7 sm:w-7" />
-                                            </button>
-                                            {tempImage || user?.profilePictureUrl ? (
-                                                <img src={tempImage || user?.profilePictureUrl} alt="Profile" className="h-full w-full object-cover" />
-                                            ) : (
-                                                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#5A0B21] flex items-center justify-center shadow-md">
-                                                    <span className="text-white text-2xl sm:text-3xl font-bold tracking-tighter">{getInitials(profile.fullName)}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="min-w-0 lg:hidden">
-                                            <p className="mb-1 text-[10px] font-semibold tracking-wider text-[#A88993] md:text-xs">FULL NAME</p>
-                                            <p className="text-2xl font-bold text-[#2A1F1A] truncate">{profile.fullName}</p>
-                                            <div className="mt-3">
-                                                <button onClick={editing ? handleSaveClick : () => { setEditing(true); setPendingPhone(profile.phone); }}
-                                                    className="inline-flex items-center gap-2 rounded-xl border border-[#D9BBC4] px-4 py-2 text-sm font-semibold text-[#A04E66]">
-                                                    <img src={editing ? Save : Pencil} alt="" className="h-4 w-4" />
-                                                    {editing ? "SAVE" : "EDIT PROFILE"}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="mt-4">
-                                        <button onClick={() => fileInputRef.current?.click()}
-                                            className="flex min-h-[76px] w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E6CAD3] px-3 py-3 text-left hover:bg-[#FBF5F7] transition-colors">
-                                            <img src={Camera} alt="" className="h-5 w-5 shrink-0" />
-                                            <div className="leading-tight">
-                                                <p className="text-[11px] font-bold tracking-wider text-[#A04E66]">PHOTO</p>
-                                                <p className="text-[10px] text-[#C3AAB3]">JPG/PNG • 5MB</p>
-                                            </div>
+                                    <div className="relative flex items-center justify-center h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px] w-full">
+                                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+                                        <button 
+                                            aria-label="Change photo" 
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 p-2 bg-white/50 hover:bg-white/80 rounded-full transition-all backdrop-blur-sm"
+                                        >
+                                            <img src={Camera} alt="" className="h-5 w-5 sm:h-6 sm:w-6" />
                                         </button>
+                                        {tempImage || user?.profilePictureUrl ? (
+                                            <img src={tempImage || user?.profilePictureUrl} alt="Profile" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#5A0B21] flex items-center justify-center shadow-md">
+                                                <span className="text-white text-2xl sm:text-3xl font-bold tracking-tighter">{getInitials(profile.fullName)}</span>
+                                            </div>
+                                        )}
                                     </div>
+                                    {/* Removed the redundant photo button that was here */}
                                 </div>
 
                                 {/* RIGHT COLUMN */}

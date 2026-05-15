@@ -36,7 +36,7 @@ interface ApplyModalProps {
     setSelectedStayType: React.Dispatch<React.SetStateAction<"transient" | "non_transient">>;
     selectedArrangement: "single" | "double" | "shared";
     setSelectedArrangement: React.Dispatch<React.SetStateAction<"single" | "double" | "shared">>;
-
+    setToast: (t: { show: boolean; type: "success" | "error"; title: string; message?: string }) => void;
     // onToggleAmenity: (amenity: string) => void;
 }
 
@@ -57,6 +57,7 @@ export default function RoomApplicationModal({
     setSelectedStayType,
     selectedArrangement,
     setSelectedArrangement,
+    setToast
 }: ApplyModalProps) {
 
     const [step, setStep] = useState<"apply" | "verify">("apply");
@@ -256,9 +257,12 @@ export default function RoomApplicationModal({
             });
 
             handleClose();
+            setToast({ show: true, type: "success", title: "Application Submitted!" })
         } catch (err: any) {
             console.error("Submit failed status:", err.response?.status);
             console.error("Submit failed data:", err.response?.data);
+            setToast({ show: true, type: "error", title: "Failed to submit application", message: err.response?.data?.message ?? err.response?.data?.error ?? "Something went wrong."})
+            handleClose();
         } finally {
             setIsSubmitting(false);
         }

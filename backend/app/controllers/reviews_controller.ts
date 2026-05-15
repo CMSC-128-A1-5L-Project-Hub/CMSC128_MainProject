@@ -85,6 +85,43 @@ export default class ReviewsController {
         }
     } 
 
+    // ─── PUBLIC: GET A POOL OF HIGH-RATED REVIEWS FOR THE LANDING PAGE
+    async featured({ request, response }: HttpContext) {
+        const minRating = Math.max(1, Math.min(5, Number(request.input('minRating', 4))))
+        const limit = Math.max(1, Math.min(50, Number(request.input('limit', 20))))
+
+        const reviews = await Review.query()
+            .where('rating', '>=', minRating)
+            .whereNotNull('content')
+            .whereRaw("TRIM(content) <> ''")
+            .preload('student', (sq) => {
+                sq.preload('user')
+            })
+            .preload('accommodation')
+            .orderBy('id', 'desc')
+            .limit(limit)
+
+        const data = reviews.map((r) => ({
+            id: r.id,
+            rating: r.rating,
+            content: r.content,
+            createdAt: r.createdAt,
+            student: r.student
+                ? {
+                    fname: r.student.user?.fname ?? null,
+                    lname: r.student.user?.lname ?? null,
+                    college: r.student.college ?? null,
+                    degreeProgram: r.student.degreeProgram ?? null,
+                }
+                : null,
+            accommodation: r.accommodation
+                ? { id: r.accommodation.id, name: r.accommodation.accommodationName ?? null }
+                : null,
+        }))
+
+        return response.ok({ data })
+    }
+
     async averageRating({ response }: HttpContext) {
         const avgResult = await db
             .from('reviews')

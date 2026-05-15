@@ -161,13 +161,14 @@
             }
 
             // Pass 2: Assign remaining students evenly across dorms (round-robin)
-            // Remove 100 assignments cap if more fake students are to be assigned
+            // Bump or remove this cap if more fake students are to be assigned
+            const ASSIGNMENT_CAP = 200;
             let hasAssigned = true;
-            while (hasAssigned && unassigned.length > 0 && assignments.length < 100) {
+            while (hasAssigned && unassigned.length > 0 && assignments.length < ASSIGNMENT_CAP) {
                 hasAssigned = false;
 
                 for (const dorm of dormWithRooms) {
-                    if (unassigned.length === 0 || assignments.length >= 100) break;
+                    if (unassigned.length === 0 || assignments.length >= ASSIGNMENT_CAP) break;
 
                     const candidate = unassigned.find((s) => {
                         if (dorm.tenantRestriction === "male-only" && s.gender !== "male") return false;

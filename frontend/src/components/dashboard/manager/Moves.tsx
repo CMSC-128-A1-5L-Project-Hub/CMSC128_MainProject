@@ -143,7 +143,7 @@ export default function Moves({ data, className = "" }: { data: Move[], classNam
                         <p className="text-[#1A0008] font-bold">
                             Upcoming Move-ins & Move-outs
                         </p>
-                        <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/moves")}>
+                        <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/movein-moveout")}>
                             View all →
                         </p>
                     </div>

@@ -16,7 +16,7 @@ export default function UPLBMarker({ selected, onOpen, onClose, compact = false 
                 longitude={UPLB.longitude}
                 latitude={UPLB.latitude}
                 anchor="bottom"
-                style={{ zIndex: 499 }}
+                style={{ zIndex: 498 }}
                 onClick={(e) => {
                     e.originalEvent.stopPropagation()
                     onOpen()

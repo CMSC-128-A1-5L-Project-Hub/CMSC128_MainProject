@@ -1,7 +1,7 @@
 // src/pages/Landingpage.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import SeeMoreModal from "../../components/SeeMoreModal";
 import uplbLogo from "../../assets/logos/uplb.png";
 import casLogo from "../../assets/logos/cas.png";
@@ -238,15 +238,29 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
   }, [isSuccess, accommodations])
 
   const handleSearch = () => {
-    navigate("/map", {
-      state: {
-        dormType,
-        minPrice,
-        maxPrice,
-        rating,
-        tags: [...activeTags, ...extraTags],
-      },
-    });
+    const params = new URLSearchParams()
+
+    // Dorm type → MapPage `type` param (matches AccommodationPin.accommodationType)
+    const typeMap: Record<string, string> = {
+      'On-campus': 'on-campus',
+      'Off-campus': 'off-campus',
+      'Partner-housing': 'partner_housing',
+    }
+    if (typeMap[dormType]) params.set('type', typeMap[dormType])
+
+    // Price range → MapPage `min_rent` / `max_rent`
+    if (minPrice > origMin) params.set('min_rent', String(minPrice))
+    if (maxPrice < origMax) params.set('max_rent', String(maxPrice))
+
+    // Min rating
+    if (rating > 0) params.set('rating', String(rating))
+
+    // Tags (active + extra) → comma-separated
+    const allTags = [...activeTags, ...extraTags]
+    if (allTags.length > 0) params.set('tags', allTags.join(','))
+
+    const qs = params.toString()
+    navigate(qs ? `/map?${qs}` : '/map')
   };
   const [range, setRange] = useState({ min: 0, max: 100 });
   const handleRangeChange = (value: { min: number; max: number }) => {
@@ -254,6 +268,20 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
     setMinPrice(value.min)
     setMaxPrice(value.max)
   };
+
+  const snapPoints = useMemo(() => {
+    if (origMin === Infinity || origMax === -Infinity) return [];
+    
+    const STEP = 500; // interval between snap points
+    const start = Math.floor(origMin / STEP) * STEP;
+    const end = Math.ceil(origMax / STEP) * STEP;
+    
+    const points: number[] = [];
+    for (let v = start; v <= end; v += STEP) {
+        points.push(v);
+    }
+    return points;
+  }, [origMin, origMax]);
 
   return (
     <>
@@ -300,6 +328,7 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
                 min={origMin}
                 max={origMax}
                 mobileScreen={true}
+                snapPoints={snapPoints}
                 onChange={handleRangeChange}
                 trackColor="linear-gradient(90deg, #E8A0AA, #B5344F, #6B0F2B)"
                 rangeColor="#8C1535"

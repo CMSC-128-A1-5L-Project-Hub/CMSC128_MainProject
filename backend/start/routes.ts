@@ -46,6 +46,7 @@ router.group(() => {
 
   router.post('/support/contact', [controllers.Supports, 'contact'])
   router.get('/reviews/average-rating', [controllers.Reviews, 'averageRating'])
+  router.get('/reviews/featured', [controllers.Reviews, 'featured'])
   
 })
 

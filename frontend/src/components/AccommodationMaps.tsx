@@ -5,6 +5,8 @@ import type { LayerProps } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { UPLB } from '../constants/uplb'
 import UPLBMarker from './UPLBMarker'
+import { Minimize2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -31,17 +33,43 @@ const MIN_ZOOM = 6
 // Below this zoom level, marker shows rating only (no name)
 const NAME_ZOOM_THRESHOLD = 15
 
-// Pin scale by zoom — shrinks when zoomed out so far-away pins don't clutter
+// Global pin size multiplier. Bumps the whole curve up/down without changing its shape.
+const PIN_SIZE_MULTIPLIER = 1
+
+// Pin scaling — exponential in zoom (matches Mapbox's log-scale zoom).
+//   scale = SCALE_PER_STEP ^ (REF_ZOOM - z), clamped to [MIN_SCALE, MAX_SCALE]
+// At z = REF_ZOOM, raw scale is 1. SCALE_PER_STEP < 1 shrinks as you zoom out;
+// the smaller it is (e.g. 0.6), the more aggressive the shrink per zoom level.
+const PIN_REF_ZOOM = 15
+const PIN_SCALE_PER_STEP = 0.9
+const PIN_MIN_SCALE = 0.35
+const PIN_MAX_SCALE = 1.6
+
 function scaleForZoom(z: number): number {
-  if (z >= 15) return 1
-  if (z >= 14) return 0.85
-  if (z >= 13) return 0.7
-  if (z >= 12) return 0.6
-  if (z >= 11) return 0.5
-  if (z >= 10) return 0.4
-  if (z >= 9) return 0.3
-  if (z >= 8) return 0.2
-  return 0.01
+  const raw = Math.pow(PIN_SCALE_PER_STEP, PIN_REF_ZOOM - z)
+  const clamped = Math.max(PIN_MIN_SCALE, Math.min(PIN_MAX_SCALE, raw))
+  return clamped * PIN_SIZE_MULTIPLIER
+}
+
+// Depth-sort z-index for non-selected pins. With pitch tilting the camera north,
+// southern (lower-lat) pins should overlap northern ones. Eastward bias is for
+// when bearing rotates the view; keep it small (or 0) for bearing=0.
+const DEPTH_Z_BASE = 100   // lowest z assigned to a pin
+const DEPTH_Z_RANGE = 300  // spread; stays below selected (497) / UPLB (498) / popup (499)
+const DEPTH_LAT_WEIGHT = 0.85
+const DEPTH_LNG_WEIGHT = 0.15
+
+function depthZForPin(lat: number, lng: number): number {
+  // Normalize to [0, 1] within our bounded area (1 = south or east)
+  const [[westLng, southLat], [eastLng, northLat]] = LOS_BANOS_BOUNDS as [[number, number], [number, number]]
+  const tLat = clamp01((northLat - lat) / (northLat - southLat))
+  const tLng = clamp01((lng - westLng) / (eastLng - westLng))
+  const blend = DEPTH_LAT_WEIGHT * tLat + DEPTH_LNG_WEIGHT * tLng
+  return Math.floor(DEPTH_Z_BASE + DEPTH_Z_RANGE * blend)
+}
+
+function clamp01(x: number): number {
+  return Math.max(0, Math.min(1, x))
 }
 
 export interface AccommodationReview {
@@ -123,7 +151,7 @@ const AccommodationPinMarker = memo(function AccommodationPinMarker({
       longitude={acc.longitude}
       latitude={acc.latitude}
       anchor="bottom"
-      style={{ zIndex: isSelected ? 498 : 1 }}
+      style={{ zIndex: isSelected ? 497 : depthZForPin(acc.latitude, acc.longitude) }}
       onClick={(e) => {
         e.originalEvent.stopPropagation()
         onSelect(acc, isSelected)
@@ -170,6 +198,7 @@ export default function AccommodationMap({
   favorites = new Set(),
   onToggleFavorite,
 }: AccommodationMapProps) {
+  const navigate = useNavigate()
   const [selectedPin, setSelectedPin] = useState<AccommodationPin | null>(null)
   const [uplbSelected, setUplbSelected] = useState(false)
   const [travelMode, setTravelMode] = useState<TravelMode>('walking')
@@ -264,8 +293,8 @@ export default function AccommodationMap({
     if (!selectedPin) return null
     const stored =
       travelMode === 'walking' ? selectedPin.walkingDistance
-      : travelMode === 'driving' ? selectedPin.drivingDistance
-      : selectedPin.bikingDistance
+        : travelMode === 'driving' ? selectedPin.drivingDistance
+          : selectedPin.bikingDistance
     if (stored && stored > 0) return `${stored} min`
     if (liveDurationMin != null) return `${liveDurationMin} min`
     return loadingRoute ? '…' : null
@@ -298,6 +327,27 @@ export default function AccommodationMap({
       >
         <NavigationControl position="top-right" />
 
+        {/* Dev-only zoom badge */}
+        {import.meta.env.DEV && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 12,
+              left: 12,
+              zIndex: 500,
+              background: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              padding: '4px 10px',
+              borderRadius: 6,
+              fontSize: 11,
+              fontFamily: 'monospace',
+              pointerEvents: 'none',
+            }}
+          >
+            zoom: {currentZoom} · scale: {pinScale.toFixed(2)}
+          </div>
+        )}
+
         {/* UPLB Pin */}
         <UPLBMarker
           selected={uplbSelected}
@@ -325,7 +375,7 @@ export default function AccommodationMap({
             closeOnClick={false}
             maxWidth="300px"
             offset={[85, 5] as [number, number]}
-            style={{ zIndex: 497 }}
+            style={{ zIndex: 499 }}
           >
             <div
               className="font-sans overflow-hidden rounded-2xl bg-white shadow-2xl cursor-pointer"
@@ -532,6 +582,20 @@ export default function AccommodationMap({
           <line x1="21" y1="12" x2="24" y2="12" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       </button>
+      {onToggleFavorite !== undefined && (
+        <button
+          type="button"
+          onClick={() => navigate("/student/browse")}
+          title="Expand map"
+          style={{
+            background: 'linear-gradient(135deg, #710A2B, #3D0718)',
+            boxShadow: '0 4px 16px rgba(113,10,43,0.35)',
+          }}
+          className="absolute bottom-[32px] right-[80px] z-10 w-[48px] h-[48px] rounded-full border-none cursor-pointer flex items-center justify-center bg-white shadow-md border border-[#e5cfd4] hover:border-[#7a001f] transition-all"
+        >
+          <Minimize2 size={12} color="#fff" />
+        </button>
+      )}
     </div>
   )
 }

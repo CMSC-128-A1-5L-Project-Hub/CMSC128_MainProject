@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/axios";
 
+import CustomHeader from '../../components/CustomHeader';
+import NotificationPanel, { type Notification } from "../../components/NotificationPanel";
+import notif_icon from "../../assets/icons/notif_icon.svg";
 import Sidebar from "../../components/Sidebar";
 import Toast from "@/components/Toast";
 import UbleLoader from "../shared/LoadingPage";
@@ -126,6 +129,33 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
+  const notifWrapperRef = useRef<HTMLDivElement>(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  // Add this useEffect to fetch notifications:
+  useEffect(() => {
+      api.get('/notifications').then(({ data }) => {
+          setNotifications(data.map((n: any) => ({
+              id: n.id, type: n.notificationType,
+              message: n.notificationContent,
+              time: new Date(n.notificationTimestamp).toLocaleString(),
+              read: n.readStatus === 'read',
+          })))
+      }).catch(console.error)
+  }, []);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const markAllRead = () => {
+      notifications.filter((n) => !n.read).forEach((n) =>
+          api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error))
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  };
+  const markOneRead = (id: number) => {
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+      api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
+  };
+
   useEffect(() => {
     if (isError) {
       navigate("/auth/signin");
@@ -168,25 +198,43 @@ if (profileLoading) {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF6F2] text-[#2A1F1A] lg:flex">
+    <div className="min-h-screen bg-[#F6F2F4] text-[#2A1F1A] lg:flex">
       <div className="flex-1">
-        <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 pl-12 lg:pl-0">
-              <span className="h-6 w-1 rounded-full bg-[#3D0718]" />
-              <h1 className="font-serif text-3xl italic text-[#3D0718] md:text-4xl font-bold">
-                Profile
-              </h1>
+        <CustomHeader
+          title="Profile"
+          right={
+            <div className="relative" ref={notifWrapperRef}>
+              <button
+                aria-label="Notifications"
+                onClick={() => setNotifOpen((prev) => !prev)}
+                className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative overflow-hidden
+                    transition-all duration-150
+                    bg-[#8C1535] hover:bg-[#8C1535]/80 active:bg-[#3D0718]
+                    hover:-translate-y-1 active:translate-y-0 active:scale-95"
+              >
+                <img
+                    src={notif_icon}
+                    alt="Notifications"
+                    className="w-full h-full object-contain scale-[2.5]"
+                />
+                {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
+                        {unreadCount}
+                    </span>
+                )}
+              </button>
+              <NotificationPanel
+                  open={notifOpen}
+                  notifications={notifications}
+                  unreadCount={unreadCount}
+                  onMarkAllRead={markAllRead}
+                  onMarkOneRead={markOneRead}
+                  onClose={() => setNotifOpen(false)}
+                  wrapperRef={notifWrapperRef}
+              />
             </div>
-
-            <button
-              aria-label="Notifications"
-            //   className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3D0718]"
-            >
-              <Bell className="h-10 w-10 text-[#3D0718]" />
-            </button>
-          </div>
-        </header>
+          }
+        />
 
         <main className="px-3 py-4 md:px-6 lg:px-8 lg:py-6">
           <section className="overflow-hidden rounded-[28px] border border-[#EADFD3] bg-white shadow-sm">

@@ -436,7 +436,7 @@ const ManageAccommodationDashboard: React.FC = () => {
   if (isError) return null;
 
   return (
-    <div className="flex flex-col h-screen bg-[#F5EEF0] overflow-y-auto">
+    <div className="flex flex-col h-screen bg-[#F6F2F4] overflow-y-auto">
       {/* Header */}
       <CustomHeader
         title="Properties"
