@@ -68,7 +68,7 @@ export default function MiniAuthModal({ open, onClose }: MiniAuthModalProps) {
         {/* Sign Up Link */}
         <div className="text-center mt-6">
           <p className="text-sm text-[#9A7080]">
-            Don't have an account?{" "}
+            Don't have an account?{""}
             <button
               onClick={() => {
                 onClose();

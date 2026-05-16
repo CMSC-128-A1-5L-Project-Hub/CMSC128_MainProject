@@ -1,4 +1,4 @@
-import type { Application } from '../../components/ApplicationStatusModal';
+import type { Application } from "./ApplicationStatusModal";
 
 interface ApprovalProgressProps {
     app: Application;
