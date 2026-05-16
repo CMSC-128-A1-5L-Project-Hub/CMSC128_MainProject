@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Modal from "../Modal";
 import type { ApplicationStatus } from "../../pages/student/ApplicationStatus";
-import StylizedStatus from "../BillingDashboard/StylizedStatus";
 import ApprovalProgress from "./ApprovalProgress";
 import defaultAccommodation from "@/assets/defaults/accommodation.png";
 import PhotoCarousel from "./PhotoCarousel";
@@ -40,6 +39,30 @@ interface ApplicationStatusModalProps {
   application: Application | null;
 }
 
+// CORRECTED Status badge styling matching the stats banner and table
+const STATUS_STYLES: Record<ApplicationStatus, { bg: string; text: string; dot: string; label: string }> = {
+  pending: { bg: "#FEF8EE", text: "#C9973A", dot: "#C9973A", label: "Pending" },
+  under_review: { bg: "#F4F0FA", text: "#6B3AB7", dot: "#6B3AB7", label: "Under Review" },
+  approved: { bg: "#F0F7F3", text: "#1A7A4A", dot: "#1A7A4A", label: "Approved" },
+  confirmed: { bg: "#F0F7F3", text: "#1A7A4A", dot: "#1A7A4A", label: "Confirmed" },
+  rejected: { bg: "#FDF0F3", text: "#9E2040", dot: "#9E2040", label: "Rejected" },
+  waitlisted: { bg: "#F0F7F3", text: "#3A6AB7", dot: "#3A6AB7", label: "Waitlisted" },
+  cancelled: { bg: "#FAF0F7", text: "#AE2F67", dot: "#AE2F67", label: "Cancelled" },
+};
+
+function StatusBadge({ status }: { status: ApplicationStatus }) {
+  const style = STATUS_STYLES[status] || STATUS_STYLES.pending;
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.7rem] font-semibold whitespace-nowrap"
+      style={{ background: style.bg, color: style.text }}
+    >
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: style.dot }} />
+      {style.label}
+    </span>
+  );
+}
+
 export default function ApplicationStatusModal({ open, onClose, application }: ApplicationStatusModalProps) {
   const queryClient = useQueryClient();
   const [cancelConfirmation, setCancelConfirmation] = useState("");
@@ -49,7 +72,6 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const { data: accomData, isLoading } = useQuery({
     queryKey: ["accommodation", application?.accommodationId],
     queryFn: async () => {
-      // Use api.get instead of native fetch
       const res = await api.get(`/accommodations/${application?.accommodationId}`);
       return res.data.data ?? res.data;
     },
@@ -78,12 +100,16 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
           action: "decline"
         });
       } 
-      // If pending or under review, we just do a standard cancellation
-      else {
+      // If pending only - standard cancellation
+      else if (application.applicationStatus === "pending") {
         console.log(`[Cancel Flow] Status is ${application.applicationStatus}. Routing to PATCH /cancel`);
         res = await api.patch(`/applications/${application.id}`, {
           status: "cancelled"
         });
+      }
+      // under_review, confirmed, rejected, cancelled CANNOT cancel
+      else {
+        throw new Error(`Cannot cancel application with status: ${application.applicationStatus}`);
       }
 
       console.log("[Cancel Flow] Success!", res.data);
@@ -125,10 +151,6 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
 
   if (!application) return null;
 
-  const appliedRoom = accomData?.rooms?.find(
-    (r: any) => r.roomType.toLowerCase() === application.applicationRoomType.toLowerCase()
-  );
-
   const formattedRate =
     application.estimatedMonthlyRent !== null && application.estimatedMonthlyRent !== undefined
       ? new Intl.NumberFormat("en-PH", {
@@ -137,64 +159,88 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
         }).format(Number(application.estimatedMonthlyRent))
       : "—";
 
-  const imageUrl = application.accommodation?.primaryImageUrl;
-
-  // Modal footer with confirmation input and buttons
+  // CORRECTED: Status checks for buttons
   const isApproved = application.applicationStatus === "approved";
+  const isConfirmed = application.applicationStatus === "confirmed";
+  const isRejected = application.applicationStatus === "rejected";
+  const isCancelled = application.applicationStatus === "cancelled";
+  const isUnderReview = application.applicationStatus === "under_review";
+  
   const hasDeadlinePassed = application.slotConfirmDeadline 
     ? new Date() > new Date(application.slotConfirmDeadline)
     : false;
 
-  // We disable Accept if: not approved, deadline passed, or user is typing CANCEL
-  const canAccept = isApproved && !hasDeadlinePassed && cancelConfirmation !== "CANCEL";
-  const canCancel = !["rejected", "cancelled"].includes(application.applicationStatus);
+  // Accept button: ONLY when status is "approved" AND deadline not passed
+  const canAccept = isApproved && !hasDeadlinePassed;
+  
+  // Cancel button: ONLY for "pending", "approved", "waitlisted"
+  // NOT for "under_review", "confirmed", "rejected", "cancelled"
+  const canCancel = application.applicationStatus === "pending" || 
+                    application.applicationStatus === "approved" || 
+                    application.applicationStatus === "waitlisted";
+  
+  const isCancelInputDisabled = !canCancel || cancelMutation.isPending;
 
-  // Modal footer with confirmation input and buttons
   const modalFooter = (
     <div className="flex flex-col gap-3 w-full">
-      <div className="flex flex-col gap-1">
-        <label className="text-[12px] text-gray-400 font-semibold">
-          Type <span className="font-mono font-bold">"CANCEL"</span> to confirm cancellation
-        </label>
-        <input
-          type="text"
-          value={cancelConfirmation}
-          onChange={(e) => setCancelConfirmation(e.target.value)}
-          placeholder="CANCEL"
-          disabled={!canCancel}
-          className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#8C1535]"
-        />
-      </div>
+      {canCancel && (
+        <div className="flex flex-col gap-1">
+          <label className="text-[12px] text-gray-400 font-semibold">
+            Type <span className="font-mono font-bold">"CANCEL"</span> to confirm cancellation
+          </label>
+          <input
+            type="text"
+            value={cancelConfirmation}
+            onChange={(e) => setCancelConfirmation(e.target.value)}
+            placeholder="CANCEL"
+            disabled={isCancelInputDisabled}
+            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#8C1535]"
+          />
+        </div>
+      )}
+      
       <div className="flex justify-between items-center">
         <span className="text-[10px] text-gray-400 max-w-[200px] leading-tight">
-          By typing "CANCEL", you are sure to cancel your application to this accommodation
+          {canCancel 
+            ? 'By typing "CANCEL", you are sure to cancel your application to this accommodation'
+            : isUnderReview
+              ? 'Your application is under review. You cannot cancel at this stage.'
+              : isConfirmed 
+                ? 'Your slot has been confirmed. No further actions available.'
+                : isRejected || isCancelled
+                  ? 'This application is no longer active.'
+                  : 'No actions available.'}
         </span>
         <div className="flex gap-2">
-          {/* ACCEPT BUTTON */}
-          <button
-            className={`px-6 py-2 rounded-full font-bold text-sm transition-colors ${
-              canAccept && !acceptMutation.isPending
-                ? "bg-[#8C1535] text-white hover:bg-[#6B0F2B] cursor-pointer shadow-sm"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
-            }`}
-            onClick={() => canAccept && acceptMutation.mutate()}
-            disabled={!canAccept || acceptMutation.isPending}
-          >
-            {acceptMutation.isPending ? "Accepting..." : "Accept"}
-          </button>
+          {/* ACCEPT BUTTON - Only show when status is "approved" */}
+          {isApproved && (
+            <button
+              className={`px-6 py-2 rounded-full font-bold text-sm transition-colors ${
+                canAccept && !acceptMutation.isPending
+                  ? "bg-[#8C1535] text-white hover:bg-[#6B0F2B] cursor-pointer shadow-sm"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
+              onClick={() => canAccept && acceptMutation.mutate()}
+              disabled={!canAccept || acceptMutation.isPending}
+            >
+              {acceptMutation.isPending ? "Accepting..." : "Accept"}
+            </button>
+          )}
 
-          {/* CANCEL BUTTON */}
-          <button
-            className={`px-6 py-2 rounded-full font-bold text-sm  ${
-              cancelConfirmation === "CANCEL" && !cancelMutation.isPending && canCancel
-                ? " bg-gradient-to-br from-[#F3C9D9] to-[#3D2E2E] border-0 hover:-translate-y-px hover:scale-105 active:scale-95 text-white cursor-pointer transition-all"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
-            onClick={() => cancelConfirmation === "CANCEL" && cancelMutation.mutate()}
-            disabled={cancelConfirmation !== "CANCEL" || cancelMutation.isPending || !canCancel}
-          >
-            {cancelMutation.isPending ? "Cancelling..." : "Cancel"}
-          </button>
+          {/* CANCEL BUTTON - Only show for pending, approved, waitlisted */}
+          {canCancel && (
+            <button
+              className={`px-6 py-2 rounded-full font-bold text-sm ${
+                cancelConfirmation === "CANCEL" && !cancelMutation.isPending && canCancel
+                  ? "bg-gradient-to-br from-[#F3C9D9] to-[#3D2E2E] border-0 hover:-translate-y-px hover:scale-105 active:scale-95 text-white cursor-pointer transition-all"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+              onClick={() => cancelConfirmation === "CANCEL" && cancelMutation.mutate()}
+              disabled={cancelConfirmation !== "CANCEL" || cancelMutation.isPending || !canCancel}
+            >
+              {cancelMutation.isPending ? "Cancelling..." : "Cancel"}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -246,9 +292,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
 
         {/* Timeline Status */}
         <div className="my-2 mt-4">
-          <ApprovalProgress
-            app= {application}
-            />
+          <ApprovalProgress app={application} />
         </div>
 
         {/* Application Information Grid */}
@@ -265,8 +309,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
             </div>
             <div>
               <p className="uppercase font-bold text-[11px] text-[#6B4050]">Current Status</p>
-              <StylizedStatus
-                  status = {application.applicationStatus.replace("_", " ") as ApplicationStatus} />
+              <StatusBadge status={application.applicationStatus} />
             </div>
             <div>
               <p className="uppercase font-bold text-[11px] text-[#6B4050]">Date Applied</p>
@@ -291,7 +334,6 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
               </p>
             </div>
 
-            {/* render the deadline only if it exists */}
             {application.slotConfirmDeadline && (
               <div>
                 <p className="text-[11px] text-[#8C1535] uppercase font-bold mb-1">Confirm By</p>
@@ -309,7 +351,6 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
 
             <div className="col-span-3 mt-6">
               <p className="uppercase font-bold text-[11px] text-[#6B4050]">Assigned Room</p>
-              {/* Assignment info is handled in the Assignment model natively, so typically "Pending" while an app is being processed */}
               <p className="font-bold text-[13px] -mt-1">
                 {application.applicationStatus === "confirmed" ? "Check My Stays Tab" : "Pending Assignment"}
               </p>
