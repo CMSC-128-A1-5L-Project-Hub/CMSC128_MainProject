@@ -28,6 +28,7 @@ type FilterContextType = {
     origMin: number; origMax: number; setOrigMin: (v: number) => void; setOrigMax: (v: number) => void;
     setFilterInEffect: (v: boolean) => void; setSearched: (v: boolean) => void;
     setSliderResetKey: (v: number) => void; sliderResetKey: number;
+    setBookmarkedMap: React.Dispatch<React.SetStateAction<Record<number, boolean>>>
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
@@ -133,6 +134,7 @@ export default function BrowsePage() {
 
     const [flatDorms, setFlatDorms] = useState<Dorm[]>([])
     const [mapAccommodations, setMapAccommodations] = useState<AccommodationPin[]>([])
+    const [bookmarkedMap, setBookmarkedMap] = useState<Record<number, boolean>>({})
 
     // Reset to first page when filters change
     useEffect(() => {
@@ -145,8 +147,9 @@ export default function BrowsePage() {
         let min = Infinity
         let max = -Infinity
         const tagSet = new Set<string>();
+        let bookmarkMapTemp: Record<number, boolean> = {}
 
-        accommodations.forEach(({ rooms, tags }) => {
+        accommodations.forEach(({ rooms, tags, bookmarks, id }) => {
             rooms.forEach((el: { roomRent: number }) => {
                 const rent = Number(el.roomRent)
                 if (rent < min) min = rent
@@ -156,6 +159,20 @@ export default function BrowsePage() {
             tags.forEach((el: { tagDetail: string }) => {
                 tagSet.add(el.tagDetail);
             });
+
+            let isBookmarked = false;
+            bookmarks.forEach((el: { studentNumber: string }) => {
+                if (el.studentNumber === studentNo) {
+                    isBookmarked = true;
+                }
+            })
+
+            if (isBookmarked) {
+                bookmarkMapTemp[id] = true;
+            }
+            else {
+                bookmarkMapTemp[id] = false;
+            }
         })
 
         const tags = Array.from(tagSet)
@@ -168,6 +185,7 @@ export default function BrowsePage() {
             ...prev,
         }));
 
+        setBookmarkedMap(bookmarkMapTemp)
         setMinPrice(min);
         setMaxPrice(max);
         setOrigMin(min)
@@ -203,9 +221,10 @@ export default function BrowsePage() {
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
-        if (!filterInEffect && !searched) {
-            return
-        }
+        // commented this out para mag take effect agad filters. no need to apply
+        // if (!filterInEffect && !searched) {
+        //     return
+        // }
 
         setFilterInEffect(false);
         setSearched(false)
@@ -326,7 +345,7 @@ export default function BrowsePage() {
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
             searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched,
-            setSliderResetKey, sliderResetKey
+            setSliderResetKey, sliderResetKey, setBookmarkedMap
         }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
                 {/* Main */}
@@ -406,6 +425,8 @@ export default function BrowsePage() {
                                             paginatedDorms.map(dorm => (
                                                 <DormTile
                                                     key={dorm.accommodationId}
+                                                    bookmarkMap={bookmarkedMap}
+                                                    id={dorm.accommodationId}
                                                     dorm={dorm}
                                                     hovered={hoveredId === dorm.accommodationId}
                                                     onHover={setHoveredId}
@@ -497,19 +518,25 @@ export default function BrowsePage() {
    DORM TILE 
 ══════════════════════════════════════════════════════════════════════════════ */
 function DormTile({
-    dorm, hovered, onHover, onClick, onBookmarkToggle,
+    id, bookmarkMap, dorm, hovered, onHover, onClick, onBookmarkToggle,
 }: {
+    id: number,
+    bookmarkMap: Record<number, boolean>,
     dorm: Dorm
     hovered: boolean
     onHover: (id: number | null) => void
     onClick: () => void
     onBookmarkToggle?: (id: number, currentState: boolean) => Promise<void>
 }) {
+    const context = useContext(filterContext)
+    if (!context) throw new Error("FilterContext must be used within a Provider")
+    const { setBookmarkedMap } = context
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
-    const [isBookmarked, setIsBookmarked] = useState(dorm.bookmarked || false)
+    // const [isBookmarked, setIsBookmarked] = useState(dorm.bookmarked || false)
     const [isToggling, setIsToggling] = useState(false)
+    const isBookmarked = bookmarkMap[id] ?? false
 
     const handleHeartClick = async (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -517,10 +544,13 @@ function DormTile({
         
         if (isToggling) return
         
-        console.log("yow", dorm)
+        console.log("foobar")
         const newState = !isBookmarked
         setIsToggling(true)
-        setIsBookmarked(newState) // Optimistic update
+        setBookmarkedMap((prev: Record<number, boolean>) => ({
+            ...prev,
+            [id]: !prev[id]
+        }))
         
         try {
             if (onBookmarkToggle) {
@@ -528,7 +558,11 @@ function DormTile({
             }
         } catch (error) {
             // Revert on error
-            setIsBookmarked(!newState)
+            // setIsBookmarked(!newState)
+            setBookmarkedMap((prev: Record<number, boolean>) => ({
+                ...prev,
+                [id]: !newState
+            }))
             console.error("Failed to update bookmark:", error)
         } finally {
             setIsToggling(false)
@@ -551,7 +585,7 @@ function DormTile({
                 <img
                     src={dorm.primaryImageUrl}
                     alt={dorm.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 will-change-transform transform-gpu backface-hidden"
                     onError={(e) => {
                         e.currentTarget.src = defaultAccommodation;
                     }}
@@ -615,7 +649,7 @@ function DormTile({
                         <p className="text-[#6B0F2B] font-bold text-sm leading-none truncate">
                             ₱{dorm.minPrice > 0 ? dorm.minPrice.toLocaleString() : "—"}
                             {dorm.maxPrice > dorm.minPrice && (
-                                <span className="text-xs"> – {dorm.maxPrice.toLocaleString()}</span>
+                                <span> – {dorm.maxPrice.toLocaleString()}</span>
                             )}
                         </p>
                         <p className="text-[#9A7080] text-[10px] mt-0.5">{dorm.priceUnit}</p>
@@ -828,12 +862,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
                 >
                     Reset
                 </button>
-                <button
-                    onClick={onClose}
-                    className="flex-[2] py-2.5 rounded-xl bg-[#6B0F2B] hover:bg-[#8A1C3D] text-white text-sm font-semibold transition-colors"
-                >
-                    Apply filters
-                </button>
+
             </div>
         </div>
     )

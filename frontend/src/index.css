@@ -129,6 +129,11 @@ button {
   cursor: pointer;
 }
 
+/* added */
+.slider {
+  position: relative;
+}
+
 .track-slider,
 .range-slider,
 .slider-left-val,
@@ -159,6 +164,14 @@ button {
 
 .track-slider,
 .range-slider {
+  border-radius: 4px;
+  height: 6px;
+  background-color: #9A7080;
+}
+
+/* binago nila */
+/* .track-slider,
+.range-slider {
     position: absolute;
     border-radius: 3px;
     height: 5px;
@@ -166,8 +179,8 @@ button {
     right: 8px;  
     top: 50%;
     transform: translateY(-50%);
-    background-color: #9A7080; /* active line color */
-}
+    background-color: #9A7080; 
+} */
 
 .thumb-left {
   z-index: 3;
@@ -175,6 +188,12 @@ button {
 
 .thumb-right {
   z-index: 4;
+}
+
+.thumb,
+.thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .thumb::-webkit-slider-thumb {
