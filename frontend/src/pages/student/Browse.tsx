@@ -585,7 +585,7 @@ function DormTile({
                 <img
                     src={dorm.primaryImageUrl}
                     alt={dorm.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 will-change-transform transform-gpu backface-hidden"
                     onError={(e) => {
                         e.currentTarget.src = defaultAccommodation;
                     }}
