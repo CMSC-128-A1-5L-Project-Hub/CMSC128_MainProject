@@ -131,12 +131,32 @@ function mapRoom(r: any): Room {
     type: capitalizeFirst(r.roomType),
     capacity: r.roomCapacity,
     price: Number(r.roomRent),
-    occupants: ((r.assignments ?? []).map(mapOccupant).filter(Boolean)) as Tenant[],
     currentOccupancy: r.roomCurrentOccupancy,
     availability: r.roomAvailability,
-    tags: (r.tags ?? []).map((t: any) => ({ name: t.tagDetail, type: "inclusion" as const })),
     stay_type: r.roomStayType,
     tenant_restriction: r.tenantRestriction,
+    tags: (r.tags ?? []).map((t: any) => ({ name: t.tagDetail, type: "inclusion" as const })),
+    occupants: (r.assignments ?? [])
+      .filter((a: any) => a.confirmationStatus === 'active' && !a.actualMoveOut)
+      .map((a: any) => {
+        const student = a.student;
+        const user = student?.user;
+        if (!user) return null;
+        const fullName = [user.fname, user.mname, user.lname, user.suffix]
+          .filter((p: any) => p && String(p).trim() !== "")
+          .join(" ");
+        const phones = user.phoneNumbers ?? [];
+        const primaryPhone = phones.find((p: any) => p.isPrimary) ?? phones[0];
+        return {
+          id: user.id,
+          assignmentId: a.id,
+          name: fullName || student.studentNumber,
+          email: user.email,
+          phone: primaryPhone?.contactNumber,
+          degree: student.degreeProgram,
+        };
+      })
+      .filter(Boolean) as Tenant[],
   };
 }
 
