@@ -190,6 +190,25 @@ export default function RoomsPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(8);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // ─── FETCH ROOMS FUNCTION (REUSABLE) ───
+  const fetchRooms = async () => {
+    if (!selectedAccomId) return;
+    setLoading(true);
+    try {
+      const res = await api.get(`/accommodations/${selectedAccomId}/rooms`);
+      setRooms((res.data ?? []).map(mapRoom));
+    } catch (error) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Load Rooms",
+        message: "Could not load rooms for this accommodation."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ─── FETCH AND SET ACCOMMODATION ID ON MOUNT ───
   useEffect(() => {
     const storedId = sessionStorage.getItem("landlord-acc-id");
@@ -236,19 +255,7 @@ export default function RoomsPage() {
   // ─── FETCH ROOMS WHEN ACCOMMODATION CHANGES ───
   useEffect(() => {
     if (!selectedAccomId) return;
-    setLoading(true);
-    api
-      .get(`/accommodations/${selectedAccomId}/rooms`)
-      .then((res) => setRooms((res.data ?? []).map(mapRoom)))
-      .catch(() => {
-        setToast({
-          show: true,
-          type: "error",
-          title: "Failed to Load Rooms",
-          message: "Could not load rooms for this accommodation."
-        });
-      })
-      .finally(() => setLoading(false));
+    fetchRooms();
   }, [selectedAccomId]);
 
   // Filter rooms
@@ -370,7 +377,7 @@ export default function RoomsPage() {
     
     try {
       await api.delete(`/rooms/${selectedRoom.id}`);
-      setRooms(prev => prev.filter(r => r.id !== selectedRoom.id));
+      await fetchRooms(); // Refresh after deletion
       closeModal();
       setToast({
         show: true,
@@ -397,8 +404,7 @@ export default function RoomsPage() {
     
     try {
       await api.patch(`/assignments/${tenant.assignmentId}/transfer`, { targetRoomId: toRoom.id });
-      const res = await api.get(`/accommodations/${selectedAccomId}/rooms`);
-      setRooms((res.data ?? []).map(mapRoom));
+      await fetchRooms(); // Refresh room data after transfer
       closeModal();
       setToast({
         show: true,
@@ -692,7 +698,14 @@ export default function RoomsPage() {
 
       <AddRoomModal open={modalType === "add"} onClose={closeModal} onAdd={addRoom} />
       <DeleteRoomModal open={modalType === "delete"} room={selectedRoom} onClose={closeModal} onConfirm={deleteRoom} />
-      <ManageRoomModal open={modalType === "manage"} room={selectedRoom} rooms={rooms} onClose={closeModal} onReassign={reassignTenant} />
+      <ManageRoomModal 
+        open={modalType === "manage"} 
+        room={selectedRoom} 
+        rooms={rooms} 
+        onClose={closeModal} 
+        onReassign={reassignTenant}
+        refetchRooms={fetchRooms}
+      />
       <BillingModal open={modalType === "billing"} room={selectedRoom} onClose={closeModal} onGenerate={generateBilling} />
 
       {/* Toast Notifications */}
