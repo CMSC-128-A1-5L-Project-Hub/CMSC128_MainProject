@@ -139,69 +139,71 @@ async processApproval(applicationId: number) {
   // When a room is supplied, candidates are filtered by matching stay/room type
   // and ranked by tag overlap with the freed room's tags (highest match wins;
   // application date breaks ties — older first). Without a room, falls back to FIFO.
-  private async promoteNextWaitlisted(accommodationId: number, room?: Room) {
-    let query = Application.query()
-      .where('accommodation_id', accommodationId)
-      .where('application_status', 'waitlisted')
-      .orderBy('application_date', 'asc')
-      .preload('student', (q) => q.preload('user'))
-      .preload('accommodation')
+private async promoteNextWaitlisted(accommodationId: number, room?: Room) {
+  let query = Application.query()
+    .where('accommodation_id', accommodationId)
+    .where('application_status', 'waitlisted')
+    .orderBy('application_date', 'asc')
+    .preload('student', (q) => q.preload('user'))
+    .preload('accommodation')
 
-    if (room) {
-      query = query
-        .where('application_stay_type', room.roomStayType)
-        .where('application_room_type', room.roomType)
-    }
+  if (room) {
+    query = query
+      .where('application_stay_type', room.roomStayType)
+      .where('application_room_type', room.roomType)
+  }
 
-    const candidates = await query
-    if (candidates.length === 0) return
+  const candidates = await query
+  if (candidates.length === 0) return
 
-    if (room && candidates.length > 1) {
-      const roomTags = room.tags?.map(t => t.tagDetail) ?? []
-      const scored = candidates.map(candidate => {
-        let preferredTags: string[] = []
-        if (Array.isArray(candidate.preferredTags)) {
-          preferredTags = candidate.preferredTags
-        } else if (typeof candidate.preferredTags === 'string') {
-          try {
-            const parsed = JSON.parse(candidate.preferredTags)
-            preferredTags = Array.isArray(parsed) ? parsed : []
-          } catch {
-            preferredTags = []
-          }
+  if (room && candidates.length > 1) {
+    const roomTags = room.tags?.map(t => t.tagDetail) ?? []
+    const scored = candidates.map(candidate => {
+      let preferredTags: string[] = []
+      if (Array.isArray(candidate.preferredTags)) {
+        preferredTags = candidate.preferredTags
+      } else if (typeof candidate.preferredTags === 'string') {
+        try {
+          const parsed = JSON.parse(candidate.preferredTags)
+          preferredTags = Array.isArray(parsed) ? parsed : []
+        } catch {
+          preferredTags = []
         }
-        const matchCount = preferredTags.filter(tag => roomTags.includes(tag)).length
-        return { candidate, matchCount }
-      })
-      scored.sort((a, b) => {
-        if (a.matchCount !== b.matchCount) return b.matchCount - a.matchCount
-        return a.candidate.applicationDate.valueOf() - b.candidate.applicationDate.valueOf()
-      })
-      const best = scored[0].candidate
-      best.applicationStatus = 'approved'
-      best.approvedAt = DateTime.now()
-      await best.save()
-      try {
-        await this.notificationService.sendApplicationStatusEmail(
-          best.student.user, 'approved', best.accommodation.accommodationName
-        )
-      } catch(error) {
-        console.error("Non-fatal: Failed to send waitlist promotion email", error)
       }
-    } else {
-      const next = candidates[0]
-      next.applicationStatus = 'approved'
-      next.approvedAt = DateTime.now()
-      await next.save()
-      try {
-        await this.notificationService.sendApplicationStatusEmail(
-          next.student.user, 'approved', next.accommodation.accommodationName
-        )
-      } catch(error) {
-        console.error("Non-fatal: Failed to send waitlist promotion email", error)
-      }
+      const matchCount = preferredTags.filter(tag => roomTags.includes(tag)).length
+      return { candidate, matchCount }
+    })
+    scored.sort((a, b) => {
+      if (a.matchCount !== b.matchCount) return b.matchCount - a.matchCount
+      return a.candidate.applicationDate.valueOf() - b.candidate.applicationDate.valueOf()
+    })
+    const best = scored[0].candidate
+    best.applicationStatus = 'approved'
+    best.approvedAt = DateTime.now()
+    // DO NOT auto-assign room - manager will assign
+    await best.save()
+    try {
+      await this.notificationService.sendApplicationStatusEmail(
+        best.student.user, 'approved', best.accommodation.accommodationName
+      )
+    } catch(error) {
+      console.error("Non-fatal: Failed to send waitlist promotion email", error)
+    }
+  } else {
+    const next = candidates[0]
+    next.applicationStatus = 'approved'
+    next.approvedAt = DateTime.now()
+    // DO NOT auto-assign room - manager will assign
+    await next.save()
+    try {
+      await this.notificationService.sendApplicationStatusEmail(
+        next.student.user, 'approved', next.accommodation.accommodationName
+      )
+    } catch(error) {
+      console.error("Non-fatal: Failed to send waitlist promotion email", error)
     }
   }
+}
 
   private async getNextWaitlistPosition(accommodationId: number) {
     const waitlistCount = await Application.query()
