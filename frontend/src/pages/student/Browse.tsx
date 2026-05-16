@@ -649,7 +649,7 @@ function DormTile({
                         <p className="text-[#6B0F2B] font-bold text-sm leading-none truncate">
                             ₱{dorm.minPrice > 0 ? dorm.minPrice.toLocaleString() : "—"}
                             {dorm.maxPrice > dorm.minPrice && (
-                                <span className="text-xs"> – {dorm.maxPrice.toLocaleString()}</span>
+                                <span> – {dorm.maxPrice.toLocaleString()}</span>
                             )}
                         </p>
                         <p className="text-[#9A7080] text-[10px] mt-0.5">{dorm.priceUnit}</p>
