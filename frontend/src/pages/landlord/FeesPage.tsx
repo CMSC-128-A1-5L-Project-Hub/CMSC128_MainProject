@@ -11,6 +11,7 @@ import Toast from "@/components/Toast"
 import Modal from "@/components/Modal"
 import Button from "@/components/Button"
 import Card from "@/components/ui/Card"
+import SummaryCards from '../../components/BillingDashboard/SummaryCards';
 import { IoPersonSharp, IoCalendarSharp, IoBedSharp, IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp } from "react-icons/io5"
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -489,42 +490,66 @@ export default function FeesPage() {
   const totalOverdue = overdueFees.reduce((sum, f) => sum + (Number(f.fee_balance) || 0), 0)
   const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (p.paymentAmount || 0), 0)
 
+  const summaryCards = [
+    {
+      label: "total overdue",
+      value: totalOverdue,
+      color: "#9E2040",
+      sub: `${overdueFees.length} overdue account${overdueFees.length !== 1 ? "s" : ""}`,
+      includePeso: true
+    },
+    {
+      label: "pending verifications",
+      value: totalPendingPayments,
+      color: "#D97706",
+      sub: `${pendingPayments.length} payment${pendingPayments.length !== 1 ? "s" : ""} to review`,
+      includePeso: false
+    },
+    {
+      label: "total collections",
+      value: "—",
+      color: "#1A7A4A",
+      sub: "This month",
+      includePeso: false
+    },
+    {
+      label: "collection rate",
+      value: "—",
+      color: "#000000",
+      sub: "Target: 95%",
+      includePeso: false
+    },
+  ];
+
   return (
-    <div className="flex h-screen bg-[#F6F2F4]">
+    <div className="flex h-screen bg-[#F6F2F4] w-full">
       <div className="flex flex-col w-full h-full">
         <CustomHeader title="Fees" />
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-6 overflow-y-auto w-full">
           <HeroBanner
             greeting={greeting()}
             name={fullName}
             title="Check the billing status of your tenants"
-            subtitle="We make it easy for you to track the accommodation applications you manage."
+            subtitle="We make it easy for you to track the bills you manage."
             type="mini"
           />
-
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Total Overdue</p>
-              <p className="text-2xl font-bold text-red-600">₱{totalOverdue.toLocaleString()}</p>
-              <p className="text-xs text-gray-400 mt-1">{overdueFees.length} overdue accounts</p>
-            </div>
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Pending Verifications</p>
-              <p className="text-2xl font-bold text-amber-600">₱{totalPendingPayments.toLocaleString()}</p>
-              <p className="text-xs text-gray-400 mt-1">{pendingPayments.length} payments to review</p>
-            </div>
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Total Collections</p>
-              <p className="text-2xl font-bold text-green-600">—</p>
-              <p className="text-xs text-gray-400 mt-1">This month</p>
-            </div>
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Collection Rate</p>
-              <p className="text-2xl font-bold text-[#6B0F2B]">—</p>
-              <p className="text-xs text-gray-400 mt-1">Target: 95%</p>
-            </div>
+          
+          <div className='grid grid-cols-2 lg:grid-cols-4 w-full gap-6 mt-6'>
+              {/* Summary Cards */}
+              {summaryCards.map(card => (
+                  <SummaryCards
+                    key={card.label}
+                    label={card.label}
+                    value={card.value}
+                    color={card.color}
+                    sub={card.sub}
+                    includePeso={card.includePeso}
+                  />
+                ))}
           </div>
+          
+          
+          
 
           <div className="mt-5 space-y-4">
             <div className="flex justify-between items-center flex-wrap gap-3">
@@ -533,7 +558,7 @@ export default function FeesPage() {
 
             {/* Payment Verification Panel */}
             {activeTab === 'Payment Verification' && (
-              <div className="bg-white rounded-2xl shadow-sm p-5">
+              <div className="bg-white rounded-2xl shadow-sm p-6">
                 <div className="flex flex-row items-center mb-3">
                   <div>
                     <h2 className="text-[16px] font-bold text-black">Payment Verification</h2>
