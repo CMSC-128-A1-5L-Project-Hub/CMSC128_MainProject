@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../api/axios";
 
 import Sidebar from "../../components/Sidebar";
+import CustomHeader from "../../components/CustomHeader";
+import NotificationPanel, { type Notification } from "../../components/NotificationPanel";
 import Toast from "@/components/Toast";
 import UbleLoader from "../shared/LoadingPage";
 import Bell from "../../assets/icons/bell_icon.svg?react";
@@ -13,6 +15,7 @@ import BadgeCheck from "../../assets/icons/verify.svg";
 import FileUp from "../../assets/icons/upload.svg";
 import Save from "../../assets/icons/save.svg";
 import defaultPfp from "../../assets/defaults/male-pfp.png";
+import notif_icon from "../../assets/icons/notif_icon.svg";
 
 interface ProfilePicture {
   id: number
@@ -47,9 +50,17 @@ const formatAccommodationType = (value: string) => {
 export default function Profile() {
   const navigate = useNavigate();
 
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [tempImage, setTempImage] = useState<string | null>(null);
+
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const notifWrapperRef = useRef<HTMLDivElement>(null);
 
   const {
     data: user,
@@ -65,6 +76,42 @@ export default function Profile() {
 
   const update = (k: keyof ProfileData, v: string) =>
     setProfile((prev) => (prev ? { ...prev, [k]: v } : prev));
+
+  const uploadPfpMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("profilePicture", file);
+      const res = await api.post("/me/profile-picture", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+      setTempImage(null);
+      setToast({ show: true, type: "success", title: "Photo Updated!", message: "Your profile picture has been updated." });
+    },
+    onError: () => {
+      setToast({ show: true, type: "error", title: "Upload Failed", message: "Failed to upload photo." });
+    },
+  });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        setToast({ show: true, type: "error", title: "Invalid File", message: "Please upload an image file (JPG, PNG, or WEBP)." });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setToast({ show: true, type: "error", title: "File Too Large", message: "Image must be under 5MB." });
+        return;
+      }
+      const imageUrl = URL.createObjectURL(file);
+      setTempImage(imageUrl);
+      uploadPfpMutation.mutate(file);
+    }
+  };
 
   const saveProfile = async () => {
     if (!profile) return;
@@ -127,6 +174,29 @@ export default function Profile() {
   }, []);
 
   useEffect(() => {
+    api.get('/notifications').then(({ data }) => {
+      setNotifications(data.map((n: any) => ({
+        id: n.id,
+        type: n.notificationType,
+        message: n.notificationContent,
+        time: new Date(n.notificationTimestamp).toLocaleString(),
+        read: n.readStatus === 'read',
+      })));
+    }).catch(console.error);
+  }, []);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const markAllRead = () => {
+    notifications.filter((n) => !n.read).forEach((n) =>
+      api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+  const markOneRead = (id: number) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error);
+  };
+
+  useEffect(() => {
     if (isError) {
       navigate("/auth/signin");
     }
@@ -170,23 +240,37 @@ if (profileLoading) {
   return (
     <div className="min-h-screen bg-[#F6F2F4] text-[#2A1F1A] lg:flex">
       <div className="flex-1">
-        <header className="border-b border-[#EADFD3] px-4 py-4 md:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 pl-12 lg:pl-0">
-              <span className="h-6 w-1 rounded-full bg-[#3D0718]" />
-              <h1 className="font-serif text-3xl italic text-[#3D0718] md:text-4xl font-bold">
-                Profile
-              </h1>
+        <CustomHeader
+          title="Profile"
+          right={
+            <div className="relative" ref={notifWrapperRef}>
+              <button
+                aria-label="Notifications"
+                onClick={() => setNotifOpen((prev) => !prev)}
+                className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative overflow-hidden
+                  transition-all duration-150
+                  bg-[#8C1535] hover:bg-[#8C1535]/80 active:bg-[#3D0718]
+                  hover:-translate-y-1 active:translate-y-0 active:scale-95"
+              >
+                <img src={notif_icon} alt="Notifications" className="w-full h-full object-contain scale-[2.5]" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              <NotificationPanel
+                open={notifOpen}
+                notifications={notifications}
+                unreadCount={unreadCount}
+                onMarkAllRead={markAllRead}
+                onMarkOneRead={markOneRead}
+                onClose={() => setNotifOpen(false)}
+                wrapperRef={notifWrapperRef}
+              />
             </div>
-
-            <button
-              aria-label="Notifications"
-            //   className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3D0718]"
-            >
-              <Bell className="h-10 w-10 text-[#3D0718]" />
-            </button>
-          </div>
-        </header>
+          }
+        />
 
         <main className="px-3 py-4 md:px-6 lg:px-8 lg:py-6">
           <section className="overflow-hidden rounded-[28px] border border-[#EADFD3] bg-white shadow-sm">
@@ -196,23 +280,36 @@ if (profileLoading) {
                 <div className="w-full lg:w-[280px] lg:shrink-0">
                   {/* Mobile top arrangement */}
                   <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-4 md:grid-cols-[170px_minmax(0,1fr)] lg:block">
-                    <div className="relative h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px]">
+                    <div className="relative flex items-center justify-center h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px] w-full">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                      />
                       <button
                         aria-label="Change photo"
-                        className="absolute left-2 top-2"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 p-2 bg-white/50 hover:bg-white/80 rounded-xl transition-all"
                       >
-                        <img src={Camera} alt="" className="h-6 w-6" />
+                        <img src={Camera} alt="" className="h-6 w-6 sm:h-7 sm:w-7" />
                       </button>
-
-                      <div className="flex h-full items-center justify-center">
+                      {tempImage || user?.profilePictureUrl ? (
+                        <img
+                          src={tempImage || user?.profilePictureUrl}
+                          alt="Profile Picture"
+                          className="h-full w-full object-cover"
+                          onError={(e) => { e.currentTarget.src = defaultPfp; }}
+                        />
+                      ) : (
                         <img
                           src={profile.profilePicture?.filePath ?? defaultPfp}
                           alt="Profile Picture"
-                          onError={(e) => {
-                            e.currentTarget.src = defaultPfp;
-                          }}
+                          className="h-full w-full object-cover"
+                          onError={(e) => { e.currentTarget.src = defaultPfp; }}
                         />
-                      </div>
+                      )}
                     </div>
 
                     {/* Mobile-only right of photo */}
