@@ -113,11 +113,10 @@ export default function AcademicDetails({ data, setData, nextStep, prevStep }: a
                 defaultSelect="Select standing"
                 onChange={handleChange}
                 options={[
-                    {label: "1st Year", value: "1st Year"},
-                    {label: "2nd Year", value: "2nd Year"},
-                    {label: "3rd Year", value: "3rd Year"},
-                    {label: "4th Year", value: "4th Year"},
-                    {label: "5th Year", value: "5th Year"},
+                    {label: 'Freshman', value: 'freshman'},
+                    {label: 'Sophomore', value: 'sophomore'},
+                    {label: 'Junior', value: 'junior'},
+                    {label: 'Senior', value: 'senior'},
                 ]}
                 className="col-span-6"
                 error={errors.standing}

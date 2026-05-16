@@ -131,12 +131,32 @@ function mapRoom(r: any): Room {
     type: capitalizeFirst(r.roomType),
     capacity: r.roomCapacity,
     price: Number(r.roomRent),
-    occupants: ((r.assignments ?? []).map(mapOccupant).filter(Boolean)) as Tenant[],
     currentOccupancy: r.roomCurrentOccupancy,
     availability: r.roomAvailability,
-    tags: (r.tags ?? []).map((t: any) => ({ name: t.tagDetail, type: "inclusion" as const })),
     stay_type: r.roomStayType,
     tenant_restriction: r.tenantRestriction,
+    tags: (r.tags ?? []).map((t: any) => ({ name: t.tagDetail, type: "inclusion" as const })),
+    occupants: (r.assignments ?? [])
+      .filter((a: any) => a.confirmationStatus === 'active' && !a.actualMoveOut)
+      .map((a: any) => {
+        const student = a.student;
+        const user = student?.user;
+        if (!user) return null;
+        const fullName = [user.fname, user.mname, user.lname, user.suffix]
+          .filter((p: any) => p && String(p).trim() !== "")
+          .join(" ");
+        const phones = user.phoneNumbers ?? [];
+        const primaryPhone = phones.find((p: any) => p.isPrimary) ?? phones[0];
+        return {
+          id: user.id,
+          assignmentId: a.id,
+          name: fullName || student.studentNumber,
+          email: user.email,
+          phone: primaryPhone?.contactNumber,
+          degree: student.degreeProgram,
+        };
+      })
+      .filter(Boolean) as Tenant[],
   };
 }
 
@@ -169,6 +189,25 @@ export default function RoomsPage() {
   // Pagination
   const [itemsPerPage, setItemsPerPage] = useState<number>(8);
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // ─── FETCH ROOMS FUNCTION (REUSABLE) ───
+  const fetchRooms = async () => {
+    if (!selectedAccomId) return;
+    setLoading(true);
+    try {
+      const res = await api.get(`/accommodations/${selectedAccomId}/rooms`);
+      setRooms((res.data ?? []).map(mapRoom));
+    } catch (error) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Load Rooms",
+        message: "Could not load rooms for this accommodation."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ─── FETCH AND SET ACCOMMODATION ID ON MOUNT ───
   useEffect(() => {
@@ -216,19 +255,7 @@ export default function RoomsPage() {
   // ─── FETCH ROOMS WHEN ACCOMMODATION CHANGES ───
   useEffect(() => {
     if (!selectedAccomId) return;
-    setLoading(true);
-    api
-      .get(`/accommodations/${selectedAccomId}/rooms`)
-      .then((res) => setRooms((res.data ?? []).map(mapRoom)))
-      .catch(() => {
-        setToast({
-          show: true,
-          type: "error",
-          title: "Failed to Load Rooms",
-          message: "Could not load rooms for this accommodation."
-        });
-      })
-      .finally(() => setLoading(false));
+    fetchRooms();
   }, [selectedAccomId]);
 
   // Filter rooms
@@ -350,7 +377,7 @@ export default function RoomsPage() {
     
     try {
       await api.delete(`/rooms/${selectedRoom.id}`);
-      setRooms(prev => prev.filter(r => r.id !== selectedRoom.id));
+      await fetchRooms(); // Refresh after deletion
       closeModal();
       setToast({
         show: true,
@@ -377,8 +404,7 @@ export default function RoomsPage() {
     
     try {
       await api.patch(`/assignments/${tenant.assignmentId}/transfer`, { targetRoomId: toRoom.id });
-      const res = await api.get(`/accommodations/${selectedAccomId}/rooms`);
-      setRooms((res.data ?? []).map(mapRoom));
+      await fetchRooms(); // Refresh room data after transfer
       closeModal();
       setToast({
         show: true,
@@ -672,7 +698,14 @@ export default function RoomsPage() {
 
       <AddRoomModal open={modalType === "add"} onClose={closeModal} onAdd={addRoom} />
       <DeleteRoomModal open={modalType === "delete"} room={selectedRoom} onClose={closeModal} onConfirm={deleteRoom} />
-      <ManageRoomModal open={modalType === "manage"} room={selectedRoom} rooms={rooms} onClose={closeModal} onReassign={reassignTenant} />
+      <ManageRoomModal 
+        open={modalType === "manage"} 
+        room={selectedRoom} 
+        rooms={rooms} 
+        onClose={closeModal} 
+        onReassign={reassignTenant}
+        refetchRooms={fetchRooms}
+      />
       <BillingModal open={modalType === "billing"} room={selectedRoom} onClose={closeModal} onGenerate={generateBilling} />
 
       {/* Toast Notifications */}

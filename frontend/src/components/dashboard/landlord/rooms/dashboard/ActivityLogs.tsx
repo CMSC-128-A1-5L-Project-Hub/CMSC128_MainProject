@@ -131,14 +131,6 @@ export default function ActivityLogs({ data = [] }: Props) {
         )}
       </div>
 
-      {/* Footer - View All Link */}
-      {recentLogs.length > 0 && (
-        <div className="px-4 py-2 border-t border-[#F5ECF0] bg-white">
-          <button className="w-full text-center text-[10px] font-bold text-[#6B0F2B] hover:text-[#8C1535] transition-colors py-1">
-            View All Activity →
-          </button>
-        </div>
-      )}
     </div>
   )
 }

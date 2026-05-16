@@ -119,9 +119,23 @@ export default class RoomsController {
     return response.ok({ total: Number(availableRooms[0].$extras.total) })
   }
 
+  // ─── MANAGER/LANDLORD: GET ROOMS WITH OCCUPANTS (FIXED FOR BOTH) ───
   async managerRooms({ auth, response }: HttpContext) {
     const user = auth.user!
-    const accommodations = await Accommodation.query().where('managerId', user.id)
+    const userRole = user.role
+    
+    // Build query based on user role
+    let accommodationsQuery = Accommodation.query()
+    
+    if (userRole === 'manager') {
+      accommodationsQuery = accommodationsQuery.where('managerId', user.id)
+    } else if (userRole === 'landlord') {
+      accommodationsQuery = accommodationsQuery.where('landlordId', user.id)
+    } else {
+      return response.forbidden({ message: 'Access denied' })
+    }
+    
+    const accommodations = await accommodationsQuery
     const accIds = accommodations.map(a => a.id)
     if (accIds.length === 0) return response.ok([])
 
@@ -129,8 +143,46 @@ export default class RoomsController {
       .whereIn('accommodationId', accIds)
       .preload('accommodation')
       .preload('tags')
+      .preload('assignments', (assignmentQuery) => {
+        assignmentQuery
+          .whereNull('actualMoveOut')
+          .where('confirmationStatus', 'active')
+          .preload('student', (studentQuery) => {
+            studentQuery.preload('user')
+          })
+      })
 
-    return response.ok(rooms)
+    // Transform the rooms to include occupants data for the frontend
+    const transformedRooms = rooms.map(room => {
+      const occupants = room.assignments
+        .filter(assignment => assignment.confirmationStatus === 'active')
+        .map(assignment => ({
+          id: assignment.id,
+          name: `${assignment.student.user.fname} ${assignment.student.user.lname}`,
+          email: assignment.student.user.email,
+          studentNumber: assignment.studentNumber,
+          moveIn: assignment.moveIn,
+          expectedMoveOut: assignment.expectedMoveOut,
+        }))
+
+      return {
+        id: room.id,
+        roomNumber: room.roomNumber,
+        roomBuilding: room.roomBuilding,
+        roomType: room.roomType,
+        roomCapacity: room.roomCapacity,
+        roomCurrentOccupancy: room.roomCurrentOccupancy,
+        roomRent: room.roomRent,
+        roomAvailability: room.roomAvailability,
+        roomStayType: room.roomStayType,
+        tenantRestriction: room.tenantRestriction,
+        occupants: occupants,
+        tags: room.tags,
+        accommodation: room.accommodation,
+      }
+    })
+
+    return response.ok(transformedRooms)
   }
 
   async reportIssue({ auth, params, request, response }: HttpContext) {
