@@ -54,7 +54,6 @@ async store({ auth, request, response }: HttpContext) {
     })
   }
 
-  // Load application with accommodation and student
   const application = await Application.query()
     .where('id', applicationId)
     .preload('accommodation')
@@ -63,7 +62,6 @@ async store({ auth, request, response }: HttpContext) {
 
   const accommodation = application.accommodation
 
-  // Authorize: manager must manage this accommodation
   if (user.role === 'manager' && accommodation.managerId !== user.id) {
     return response.forbidden({ message: 'You do not manage this accommodation' })
   }
@@ -78,25 +76,22 @@ async store({ auth, request, response }: HttpContext) {
 
   // Prevent double assignment for this student (active/pending)
   const existingAssignment = await Assignment.query()
-      .where('studentNumber', application.studentNumber)
-      .whereNull('actualMoveOut')
-      .whereNotIn('confirmationStatus', ['rejected', 'cancelled'])
-      .first()
+    .where('studentNumber', application.studentNumber)
+    .whereNull('actualMoveOut')
+    .whereNotIn('confirmationStatus', ['rejected', 'cancelled'])
+    .first()
 
-    // start transaction 
-    const trx = await db.transaction()
+  const trx = await db.transaction()
 
-    try {
-      // handle ovveride logic
-      if (existingAssignment) {
-        if (user.role === 'landlord') {
-          // release the old room
-          const oldRoom = await Room.findOrFail(existingAssignment.roomId)
-          oldRoom.roomCurrentOccupancy = Math.max(0, oldRoom.roomCurrentOccupancy - 1)
-          if (oldRoom.roomAvailability === 'occupied') {
-            oldRoom.roomAvailability = 'available'
-          }
-          await oldRoom.useTransaction(trx).save()
+  try {
+    if (existingAssignment) {
+      if (user.role === 'landlord') {
+        const oldRoom = await Room.findOrFail(existingAssignment.roomId)
+        oldRoom.roomCurrentOccupancy = Math.max(0, oldRoom.roomCurrentOccupancy - 1)
+        if (oldRoom.roomAvailability === 'occupied') {
+          oldRoom.roomAvailability = 'available'
+        }
+        await oldRoom.useTransaction(trx).save()
 
           // cancel the old assignment
           existingAssignment.confirmationStatus = 'cancelled'
@@ -184,11 +179,11 @@ async store({ auth, request, response }: HttpContext) {
       }
       return response.ok(assignment)
 
-    } catch (error) {
-      await trx.rollback()
-      throw error
-    }
+  } catch (error) {
+    await trx.rollback()
+    throw error
   }
+}
 
   // ─── 2. MANAGER/LANDLORD: RECORD MOVE-OUT (triggers waitlist promotion) ───
   // PATCH /assignments/:id/move-out

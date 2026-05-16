@@ -8,81 +8,83 @@ import { DateTime } from 'luxon'
 export default class WaitlistWorkflowService {
   constructor(protected notificationService: NotificationService) {}
 
-  // ─── Called when landlord approves an application ───
-  async processApproval(applicationId: number) {
-    const application = await Application.query()
-      .where('id', applicationId)
-      .preload('student', (q) => q.preload('user'))
-      .preload('accommodation')
-      .firstOrFail()
+// ─── Called when landlord approves an application ───
+async processApproval(applicationId: number) {
+  const application = await Application.query()
+    .where('id', applicationId)
+    .preload('student', (q) => q.preload('user'))
+    .preload('accommodation')
+    .firstOrFail()
 
-    const matchingRooms = await Room.query()
-      .where('accommodation_id', application.accommodationId)
-      .where('room_type', application.applicationRoomType)
-      .where('room_stay_type', application.applicationStayType)
-      .where('room_availability', 'available')
-      .preload('tags')
-      .select('*')
+  const matchingRooms = await Room.query()
+    .where('accommodation_id', application.accommodationId)
+    .where('room_type', application.applicationRoomType)
+    .where('room_stay_type', application.applicationStayType)
+    .where('room_availability', 'available')
+    .preload('tags')
+    .select('*')
 
-    // Apply tenant restriction (gender)
-    const eligibleRooms = matchingRooms.filter(room => {
-      const restriction = room.tenantRestriction // 'coed' or 'non-coed'
-      if (restriction === 'coed') return true
+  // Apply tenant restriction (gender)
+  const eligibleRooms = matchingRooms.filter(room => {
+    const restriction = room.tenantRestriction
+    if (restriction === 'coed') return true
 
-      // non-coed room — check accommodation's gender restriction against student gender
-      const accRestriction = application.accommodation.tenantRestriction
-      const studentGender = application.student.gender.toLowerCase() // 'male' or 'female'
+    const accRestriction = application.accommodation.tenantRestriction
+    const studentGender = application.student.gender.toLowerCase()
 
-      if (accRestriction === 'male-only' && studentGender !== 'male') return false
-      if (accRestriction === 'female-only' && studentGender !== 'female') return false
+    if (accRestriction === 'male-only' && studentGender !== 'male') return false
+    if (accRestriction === 'female-only' && studentGender !== 'female') return false
 
-      return true
-    })
+    return true
+  })
 
-    if (eligibleRooms.length > 0) {
-      application.applicationStatus = 'approved'
-      application.approvedAt = DateTime.now()
+  if (eligibleRooms.length > 0) {
+    // Only mark as approved, DO NOT assign a room automatically
+    application.applicationStatus = 'approved'
+    application.approvedAt = DateTime.now()
+    // application.roomId = eligibleRooms[0].id
+    // application.slotConfirmDeadline = ...
+    await application.save()
+
+    const roomTags = eligibleRooms[0].tags.map(t => t.tagDetail)
+    const preferredTags = application.preferredTags ?? []
+    const matchedTags = preferredTags.filter(t => roomTags.includes(t))
+    const unmatchedTags = preferredTags.filter(t => !roomTags.includes(t))
+
+    try {
+      await this.notificationService.sendApprovalWithTags(
+        application.student.user,
+        application.accommodation.accommodationName,
+        matchedTags,
+        unmatchedTags
+      )
+    } catch (error) {
+      console.error("Non-fatal: Failed to send approval email", error)
+    }
+  } else {
+    if (application.applicationStayType === 'transient') {
+      application.applicationStatus = 'rejected'
+      application.rejectionReason = 'No available rooms for your preferred stay type/dates.'
+      await application.save()
+    } else {
+      const waitlistPosition = await this.getNextWaitlistPosition(application.accommodationId)
+      application.applicationStatus = 'waitlisted'
       await application.save()
 
-      const roomTags = eligibleRooms[0].tags.map(t => t.tagDetail)
-      const preferredTags = application.preferredTags ?? []
-      const matchedTags = preferredTags.filter(t => roomTags.includes(t))
-      const unmatchedTags = preferredTags.filter(t => !roomTags.includes(t))
-      
       try {
-        await this.notificationService.sendApprovalWithTags(
+        await this.notificationService.sendWaitlistEmail(
           application.student.user,
           application.accommodation.accommodationName,
-          matchedTags,
-          unmatchedTags
+          waitlistPosition
         )
       } catch (error) {
-        console.error("Non-fatal: Failed to send approval email", error)
-      }
-    } else {
-      if (application.applicationStayType === 'transient') {
-        application.applicationStatus = 'rejected'
-        application.rejectionReason = 'No available rooms for your preferred stay type/dates.'
-        await application.save()
-      } else {
-        const waitlistPosition = await this.getNextWaitlistPosition(application.accommodationId)
-        application.applicationStatus = 'waitlisted'
-        await application.save()
-        
-        try {
-          await this.notificationService.sendWaitlistEmail(
-            application.student.user,
-            application.accommodation.accommodationName,
-            waitlistPosition
-          )
-        } catch (error) {
-           console.error("Non-fatal: Failed to send waitlist email", error)
-        }
+        console.error("Non-fatal: Failed to send waitlist email", error)
       }
     }
-
-    return application
   }
+
+  return application
+}
 
   // ─── Called when a slot confirmation deadline expires ───
   async processSlotExpiry(applicationId: number) {
