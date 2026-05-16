@@ -71,9 +71,9 @@ async store({ auth, request, response }: HttpContext) {
     return response.forbidden({ message: 'You do not own this accommodation' })
   }
 
-  // State gate: application must be approved (not yet confirmed by student)
-  if (application.applicationStatus !== 'approved') {
-    return response.badRequest({ message: 'Application is not approved' })
+  // State gate: application must be approved or already slot-confirmed
+  if (application.applicationStatus !== 'approved' && application.applicationStatus !== 'confirmed') {
+    return response.badRequest({ message: 'Application is not approved or slot-confirmed' })
   }
 
   // Prevent double assignment for this student (active/pending)
@@ -133,7 +133,8 @@ async store({ auth, request, response }: HttpContext) {
       assignment.moveIn = DateTime.fromISO(moveIn)
       assignment.expectedMoveOut = DateTime.fromISO(expectedMoveOut)
       assignment.gracePeriodDays = gracePeriodDays ?? 5
-      assignment.confirmationStatus = 'pending_confirmation'
+      assignment.confirmationStatus =
+        application.applicationStatus === 'confirmed' ? 'active' : 'pending_confirmation'
       
       await assignment.useTransaction(trx).save()
 
@@ -157,13 +158,15 @@ async store({ auth, request, response }: HttpContext) {
       )
 
       try {
+        const autoConfirmedSuffix =
+          assignment.confirmationStatus === 'active' ? ' (auto-confirmed: slot already confirmed)' : ''
         if (existingAssignment && user.role === 'landlord') {
           await LogService.record(
             user.id,
             'assignment',
             assignment.id,
             'LANDLORD_ASSIGNED_ROOM_OVERRIDE',
-            `Landlord ${user.id} overrode existing assignment ${existingAssignment.id} and assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding})`
+            `Landlord ${user.id} overrode existing assignment ${existingAssignment.id} and assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding})${autoConfirmedSuffix}`
           )
         } else {
           const activityType =
@@ -173,7 +176,7 @@ async store({ auth, request, response }: HttpContext) {
             'assignment',
             assignment.id,
             activityType,
-            `${user.role === 'manager' ? 'Manager' : 'Landlord'} ${user.id} assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding}) at "${accommodation.accommodationName}"`
+            `${user.role === 'manager' ? 'Manager' : 'Landlord'} ${user.id} assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding}) at "${accommodation.accommodationName}"${autoConfirmedSuffix}`
           )
         }
       } catch (e) {
