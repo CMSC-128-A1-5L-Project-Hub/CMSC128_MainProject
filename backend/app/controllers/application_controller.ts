@@ -552,32 +552,66 @@ export default class ApplicationsController {
   // After landlord approval, the student has until slotConfirmDeadline to claim
   // the slot. Confirmation stamps slotConfirmedAt; un-claimed slots are later
   // auto-cancelled by the scheduler so the next waitlisted applicant can be promoted.
-  async confirmSlot({ auth, params, response }: HttpContext) {
-    const user = auth.user!
-    const student = await Student.findByOrFail('userId', user.id)
+async confirmSlot({ auth, params, response }: HttpContext) {
+  const user = auth.user!
+  const student = await Student.findByOrFail('userId', user.id)
 
-    const app = await Application.query()
-      .where('id', params.id)
-      .where('studentNumber', student.studentNumber)
-      .firstOrFail()
+  const app = await Application.query()
+    .where('id', params.id)
+    .where('studentNumber', student.studentNumber)
+    .firstOrFail()
 
-    if (app.applicationStatus !== 'approved') {
-      return response.badRequest({ message: 'Only approved applications can be confirmed' })
-    }
-    if (app.slotConfirmedAt) {
-      return response.badRequest({ message: 'Slot already confirmed' })
-    }
-    if (app.slotConfirmDeadline && DateTime.now() > app.slotConfirmDeadline) {
-      return response.badRequest({ message: 'Slot confirmation deadline has passed' })
-    }
+  if (app.applicationStatus !== 'approved') {
+    return response.badRequest({ message: 'Only approved applications can be confirmed' })
+  }
+  if (app.slotConfirmedAt) {
+    return response.badRequest({ message: 'Slot already confirmed' })
+  }
+  if (app.slotConfirmDeadline && DateTime.now() > app.slotConfirmDeadline) {
+    return response.badRequest({ message: 'Slot confirmation deadline has passed' })
+  }
 
+  // Find an available room matching the application
+  const room = await Room.query()
+    .where('accommodationId', app.accommodationId)
+    .where('roomType', app.applicationRoomType)
+    .where('roomStayType', app.applicationStayType)
+    .where('roomAvailability', 'available')
+    .firstOrFail()
+
+  const trx = await db.transaction()
+
+  try {
     app.slotConfirmedAt = DateTime.now()
     app.applicationStatus = 'confirmed'
-    await app.save()
+    await app.useTransaction(trx).save()
 
-    await LogService.record(user.id, 'application', app.id, 'STUDENT_CONFIRMED_SLOT')
-    return response.ok(app)
+    // Create the assignment
+    await Assignment.create({
+      studentNumber: student.studentNumber,
+      roomId: room.id,
+      confirmationStatus: 'active',
+      moveIn: app.moveInDate ?? DateTime.now(),
+      expectedMoveOut: app.moveOutDate ?? undefined,
+      actualMoveOut: null,
+    })
+
+    // Update room occupancy
+    room.roomCurrentOccupancy += 1
+    if (room.roomCurrentOccupancy >= room.roomCapacity) {
+      room.roomAvailability = 'occupied'
+    }
+    await room.useTransaction(trx).save()
+
+    await trx.commit()
+  } catch (error) {
+    await trx.rollback()
+    throw error
   }
+
+  await LogService.record(user.id, 'application', app.id, 'STUDENT_CONFIRMED_SLOT')
+  return response.ok(app)
+}
 
   // ─── VIEW ENROLLMENT PROOF ───────────────────────────────────
   async viewEnrollmentProof({ params, response }: HttpContext) {

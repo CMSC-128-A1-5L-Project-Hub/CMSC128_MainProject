@@ -34,8 +34,9 @@ export const setupProfileValidator = vine.compile(
       .optional()
       .requiredWhen('role', '=', 'student'),
 
+    // CHANGED: Updated year_level enum to use Freshman, Sophomore, Junior, Senior
     year_level: vine
-      .enum(['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'])
+      .enum(['Freshman', 'Sophomore', 'Junior', 'Senior'])
       .optional(),
 
     form5: vine
