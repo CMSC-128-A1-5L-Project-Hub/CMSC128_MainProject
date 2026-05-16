@@ -166,8 +166,7 @@ export default class NotificationService {
         <p>Your room assignment for <strong>${accommodationName}</strong> has been confirmed!</p>
         <p><strong>Room Number:</strong> ${roomNumber}</p>
         <p><strong>Building:</strong> ${roomBuilding}</p>
-        <p><strong>Move-in Date:</strong> ${moveInDate}</p>
-        <p>Please present this email upon move-in.</p>
+        <p> Do not forget to confirm or reject your application </p>
         <br/>
         <p>UBLE Housing</p>
       `
