@@ -72,6 +72,96 @@ export default function Dashboard() {
     message?: string;
   }>({ show: false, type: "success", title: "" });
 
+  // added notif stuff from student dashboard
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
+  const notifWrapperRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    api.get('/notifications')
+      .then(({ data }) => {
+        setNotifications(
+          data.map((n: any) => ({
+            id: n.id,
+            type: n.notificationType,
+            message: n.notificationContent,
+            time: new Date(n.notificationTimestamp).toLocaleString(),
+            read: n.readStatus === 'read',
+          }))
+        )
+      })
+      .catch(console.error)
+  }, [])
+
+  const unreadCount = notifications.filter((n) => !n.read).length
+
+  const markAllRead = () => {
+    notifications
+      .filter((n) => !n.read)
+      .forEach((n) =>
+        api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
+      )
+
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
+
+  const markOneRead = (id: number) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    )
+
+    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
+  }
+
+  // Notification details fetch---------------------------------
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+      const res = await api.get("/notifications");
+      // console.log("notifications:", res.data);
+
+
+      const data = res.data;
+
+
+      // unread count (optional)
+      const unreadCount = data.filter(
+          (n: any) => n.readStatus?.toLowerCase() === "unread"
+      ).length;
+
+
+      setUnreadNotificationsCount(unreadCount);
+
+
+      // today's notifications
+      const today = new Date().toISOString().split("T")[0];
+
+
+      const todayCount = data.filter((n: any) => {
+          const notifDate = new Date(n.notificationTimestamp)
+          .toISOString()
+          .split("T")[0];
+
+
+          return notifDate === today;
+      }).length;
+
+
+      setNotificationsTodayCount(todayCount);
+
+
+      } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      setToast({ show: true, type: "error", title: "Failed to load notifications", message: "Please refresh the page." })
+      }
+  };
+
+
+  fetchNotifications();
+  }, []);
+
   useEffect(() => {
     async function fetchRequirements() {
       const accommodationId = incomingApps[0]?.accommodationId
@@ -201,96 +291,6 @@ export default function Dashboard() {
     })
     refreshDashboard()
   }
-
-  // added notif stuff from student dashboard
-  const [notifOpen, setNotifOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
-  const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
-  const notifWrapperRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    api.get('/notifications')
-      .then(({ data }) => {
-        setNotifications(
-          data.map((n: any) => ({
-            id: n.id,
-            type: n.notificationType,
-            message: n.notificationContent,
-            time: new Date(n.notificationTimestamp).toLocaleString(),
-            read: n.readStatus === 'read',
-          }))
-        )
-      })
-      .catch(console.error)
-  }, [])
-
-  const unreadCount = notifications.filter((n) => !n.read).length
-
-  const markAllRead = () => {
-    notifications
-      .filter((n) => !n.read)
-      .forEach((n) =>
-        api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
-      )
-
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  }
-
-  const markOneRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
-
-    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-  }
-
-  // Notification details fetch---------------------------------
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-      const res = await api.get("/notifications");
-      // console.log("notifications:", res.data);
-
-
-      const data = res.data;
-
-
-      // unread count (optional)
-      const unreadCount = data.filter(
-          (n: any) => n.readStatus?.toLowerCase() === "unread"
-      ).length;
-
-
-      setUnreadNotificationsCount(unreadCount);
-
-
-      // today's notifications
-      const today = new Date().toISOString().split("T")[0];
-
-
-      const todayCount = data.filter((n: any) => {
-          const notifDate = new Date(n.notificationTimestamp)
-          .toISOString()
-          .split("T")[0];
-
-
-          return notifDate === today;
-      }).length;
-
-
-      setNotificationsTodayCount(todayCount);
-
-
-      } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-      setToast({ show: true, type: "error", title: "Failed to load notifications", message: "Please refresh the page." })
-      }
-  };
-
-
-  fetchNotifications();
-  }, []);
 
   return (
     <>
