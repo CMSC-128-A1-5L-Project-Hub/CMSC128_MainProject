@@ -179,6 +179,7 @@ router
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
         router.get('/applications/:id/enrollment-proof', [controllers.Application, 'viewEnrollmentProof'])
         router.get('/applications/:id/documents', [controllers.Application, 'viewDocuments'])
+        router.get('/applications/:id/documents/:documentName', [controllers.Application, 'viewDocument'])
         router.get('/manager/applications/approved', [controllers.Application, 'approvedForAssignment'])
 
         // Manager dashboard
