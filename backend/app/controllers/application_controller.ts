@@ -633,6 +633,35 @@ async confirmSlot({ auth, params, response }: HttpContext) {
     return { url: signedUrl }
   }
 
+  // ─── VIEW A DOCUMENT ───────────────────────────────────
+  async viewDocument({ params, response }: HttpContext) {
+    const application = await Application.query()
+      .where('id', params.id)
+      .preload('documents', (query) => {
+        query.where('requirementName', params.documentName).preload('file')
+      })
+      .firstOrFail()
+
+    const document = application.documents[0]
+    if (!document || !document.file) {
+      return response.notFound({ message: 'Requested document not found' })
+    }
+
+    const filePath = document.file.filePath
+
+    let key: string
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      const url = new URL(filePath)
+      key = decodeURIComponent(url.pathname.substring(1))
+    } else {
+      key = filePath.replace(/^\//, '')
+    }
+
+    const signedUrl = await drive.use('s3').getSignedUrl(key, { expiresIn: '5 minutes' })
+
+    return { url: signedUrl }
+  }
+
   // ─── MANAGER: VIEW APPLICATIONS (TESTER) ─────────────────────
   async viewApplications({ response }: HttpContext) {
     const applications = await Application.query()
@@ -652,6 +681,7 @@ async confirmSlot({ auth, params, response }: HttpContext) {
         .whereHas('accommodation', (q) => q.where('managerId', user.id))
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
+        .preload('documents')
         .orderBy('applicationDate', 'asc')
 
       return response.ok(applications)

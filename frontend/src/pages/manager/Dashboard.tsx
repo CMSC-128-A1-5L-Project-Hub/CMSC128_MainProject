@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
 import DonutStatCard from '../../components/dashboard/DonutStatCard'
@@ -24,6 +24,7 @@ import {
   mergeAppWithAssignment,
   useRefreshDashboard,
 } from '../../../hooks/useDashboardQueries'
+import { api } from '@/api/axios'
 
 // ─── Filter Tabs ──────────────────────────────────────────────────────
 function FilterTabs({ active, setActive }: { active: string; setActive: (tab: string) => void }) {
@@ -59,6 +60,8 @@ export default function Dashboard() {
   const { data: logs = [] } = useLogs()
   const refreshDashboard = useRefreshDashboard()
 
+  const [documentRequirements, setDocumentRequirements] = useState<string[]>([])
+
   const [reportOpen, setReportOpen] = useState(false)
   const [toast, setToast] = useState<{
     show: boolean;
@@ -66,6 +69,31 @@ export default function Dashboard() {
     title: string;
     message?: string;
   }>({ show: false, type: "success", title: "" });
+
+  useEffect(() => {
+    async function fetchRequirements() {
+      const accommodationId = incomingApps[0]?.accommodationId
+      
+      if (accommodationId) {
+        try {
+          const { data: reqDocs } = await api.get(`/accommodations/${accommodationId}/document-requirements`)
+          
+          const dbRequirementNames = reqDocs.map((doc: any) => doc.requirementName)
+          const standardRequirements = ["FORM 5", "VALID ID"]
+          const combinedRequirements = Array.from(
+            new Set([...standardRequirements, ...dbRequirementNames])
+          )
+          setDocumentRequirements(combinedRequirements)
+          
+          console.log("Cleaned requirements list:", combinedRequirements)
+        } catch (error) {
+          console.error("Failed to fetch document requirements:", error)
+        }
+      }
+    }
+
+    fetchRequirements()
+  }, [incomingApps])
 
   if (profileLoading) {
     return null
@@ -157,6 +185,10 @@ export default function Dashboard() {
   const heroTitle = 'Efficiently manage applicants & housing accommodation'
   const heroSubtitle = `You have ${pendingApps.length} pending applications and ${readyForAssignment.filter((i) => i.status === 'pending_confirmation').length} waiting for confirmation.`
   const totalTenants = assignments.filter((a) => !a.actualMoveOut).length
+  const maxTenants = availableRooms.reduce(
+    (total, room) => total + room.roomCapacity,
+    0
+  )
 
   const handleActionSuccess = (message: string) => {
     setToast({
@@ -192,7 +224,7 @@ export default function Dashboard() {
                 <DonutStatCard
                   title="Pending Approvals"
                   value={pendingApps.length}
-                  total={30}
+                  total={incomingApps.length + approvedApps.length}
                 />
                 <DonutStatCard
                   title="Pending Confirmations"
@@ -202,7 +234,7 @@ export default function Dashboard() {
                 <DonutStatCard
                   title="Total Tenants"
                   value={totalTenants}
-                  total={100}
+                  total={maxTenants}
                 />
               </div>
 
@@ -230,6 +262,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch w-full">
                   <Applications
                     data={pendingApps}
+                    docs={documentRequirements}
                     className="col-span-1 lg:col-span-1 xl:col-span-2"
                     onAction={refreshDashboard}
                     setToast={setToast}

@@ -14,6 +14,7 @@ import type { TransformedApp } from "../../../stores/useDashboardStore"
 
 type Props = {
   data: TransformedApp[]
+  docs: string[]
   className?: string
   onAction: () => void
   setToast: (t: { show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string }) => void
@@ -67,7 +68,7 @@ function RejectionModal({ open, target, loading, onCancel, onConfirm }: Rejectio
   )
 }
 
-export default function Applications({ data, className = "", onAction, setToast }: Props) {
+export default function Applications({ data, docs, className = "", onAction, setToast }: Props) {
   const navigate = useNavigate()
   const [selectedApplication, setSelectedApplication] = useState<TransformedApp | null>(null)
   const [modalApplication, setModalApplication] = useState<TransformedApp | null>(null)
@@ -219,37 +220,88 @@ export default function Applications({ data, className = "", onAction, setToast 
                     <IoDocumentSharp size={18} color="#6B0F2B" /> Uploaded Documents
                   </p>
                   <div className="flex flex-col gap-2">
-                    {[
-                      { label: "FORM 5", icon: <IoDocumentTextSharp size={16} color="white" /> },
-                      { label: "VALID ID", icon: <IoIdCardSharp size={16} color="white" /> },
-                    ].map((doc) => (
-                      <div key={doc.label} className="flex flex-row items-center justify-between">
-                        <div className="flex flex-row items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                               style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                            {doc.icon}
+                    {docs.map((requirementName) => {
+                      // Determine which icon configuration to use based on the requirement name
+                      const isValidId = requirementName.toUpperCase() === "VALID ID";
+                      const docIcon = isValidId ? (
+                        <IoIdCardSharp size={16} color="white" />
+                      ) : (
+                        <IoDocumentTextSharp size={16} color="white" />
+                      );
+
+                      return (
+                        <div key={requirementName} className="flex flex-row items-center justify-between">
+                          <div className="flex flex-row items-center gap-2">
+                            <div 
+                              className="w-8 h-8 rounded-lg flex items-center justify-center"
+                              style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                            >
+                              {docIcon}
+                            </div>
+                            <p className="text-[#1A0008] text-xs font-semibold">{requirementName}</p>
                           </div>
-                          <p className="text-[#1A0008] text-xs font-semibold">{doc.label}</p>
-                        </div>
-                        <Button variant="reddishPink" size="sm" onClick={async () => {
-                          if (doc.label === "FORM 5") {
-                            try {
-                              const res = await api.get(`/applications/${modalApplication.id}/enrollment-proof`)
-                              if (res.status === 200) {
-                                window.open(res.data.url, '_blank')
+                          
+                          <Button 
+                            variant="reddishPink" 
+                            size="sm" 
+                            onClick={async () => {
+                              // If explicitly "FORM 5", hit the legacy explicit enrollment-proof endpoint
+                              if (requirementName.toUpperCase() === "FORM 5") {
+                                try {
+                                  const res = await api.get(`/applications/${modalApplication.id}/enrollment-proof`)
+                                  if (res.status === 200) {
+                                    window.open(res.data.url, '_blank')
+                                  } else {
+                                    setToast({ 
+                                      show: true, 
+                                      type: "error", 
+                                      title: "Unavailable", 
+                                      message: "Enrollment proof not available." 
+                                    })
+                                  }
+                                } catch (err) {
+                                  console.error(err)
+                                  setToast({ 
+                                    show: true, 
+                                    type: "error", 
+                                    title: "Error", 
+                                    message: "Could not fetch document." 
+                                  })
+                                }
                               } else {
-                                setToast({ show: true, type: "error", title: "Unavailable", message: "Enrollment proof not available." })
+                                // EVERYTHING ELSE (VALID ID and all dynamic custom text names) goes here
+                                try {
+                                  // Safely encodes names with spaces (e.g., "VALID ID" -> "VALID%20ID")
+                                  const secureParam = encodeURIComponent(requirementName)
+                                  const res = await api.get(`/applications/${modalApplication.id}/documents/${secureParam}`)
+                                  
+                                  if (res.status === 200) {
+                                    window.open(res.data.url, '_blank')
+                                  } else {
+                                    setToast({ 
+                                      show: true, 
+                                      type: "error", 
+                                      title: "Unavailable", 
+                                      message: `${requirementName} not available.` 
+                                    })
+                                  }
+                                } catch (err) {
+                                  console.error(err)
+                                  setToast({ 
+                                    show: true, 
+                                    type: "error", 
+                                    title: "Error", 
+                                    message: "Could not fetch document." 
+                                  })
+                                }
                               }
-                            } catch (err) {
-                              console.error(err)
-                              setToast({ show: true, type: "error", title: "Error", message: "Could not fetch document." })
-                            }
-                          } else {
-                            setToast({ show: true, type: "error", title: "Unavailable", message: "Valid ID not yet uploaded." })
-                          }
-                        }}>View</Button>
-                      </div>
-                    ))}
+                            }}
+                          >
+                            View
+                          </Button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

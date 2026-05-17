@@ -19,8 +19,6 @@ import StylizedStatus from "@/components/BillingDashboard/StylizedStatus";
 import { DateTime } from 'luxon';
 import Button from "@/components/Button";
 
-import type { Accommodation } from "@/interfaces/accommodation";
-import type { Student } from '@/interfaces/student';
 import type { Application } from "@/interfaces/application";
 
 const rowStyles: Record<string, { bg: string; text: string }> = {
@@ -162,13 +160,10 @@ export default function ApplicationsPage() {
     queryKey: ["me"],
     queryFn: async () => {
       const res = await api.get("/me");
-      console.log(res.data)
+      // console.log(res.data)
       return res.data;
     },
   });
-
-  //used mock data for buttons -- paki change na lang 
-  const USE_MOCK = false;
 
   const {
     data: apiData = [],
@@ -196,8 +191,6 @@ export default function ApplicationsPage() {
       }, {}),
     [applications]
   );
-
-  
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -285,64 +278,21 @@ export default function ApplicationsPage() {
       }
   };
 
+  
+
   const stats = [
-    {
-      label: "Approved",
-      color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)",
-      text: "#1A7A4A",
-      light_bg: "#F0F7F3",
-      value: counts.approved || 0,
-    },
-    {
-      label: "Pending",
-      color: "linear-gradient(135deg, #C9973A, #E8C37A)",
-      text: "#C9973A",
-      light_bg: "#FEF8EE",
-      value: counts.pending || 0,
-    },
-    {
-      label: "Waitlisted",
-      color: "linear-gradient(135deg, #6B3AB7, #9B6AE7)",
-      text: "#6B3AB7",
-      light_bg: "#F4F0FA",
-      value: counts.waitlisted || 0,
-    },
-    {
-      label: "Under Review",
-      color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)",
-      text: "#1A7A4A",
-      light_bg: "#F0F7F3",
-      value: counts.under_review || 0,
-    },
-    {
-      label: "Cancelled",
-      color: "linear-gradient(135deg, #AA2661, #FDCAE0)",
-      text: "#AE2F67",
-      light_bg: "#FAF0F7",
-      value: counts.cancelled || 0,
-    },
-    {
-      label: "Rejected",
-      color: "linear-gradient(135deg, #9E2040, #C84060)",
-      text: "#9E2040",
-      light_bg: "#FDF0F3",
-      value: counts.rejected || 0,
-    },
+      { label: 'approved', count: counts.approved || 0, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
+
+      { label: 'pending', count: counts.pending || 0, from: '#C9973A', to: '#E8C37A', bg: '#FEF8EE', text: '#C9973A' },
+
+      { label: 'waitlisted', count: counts.waitlisted || 0, from: '#3A6AB7', to: '#7cd3f2', bg: '#EEF4FF', text: '#3A6AB7' },
+
+      { label: 'under review', count: counts.under_review || 0, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
+
+      { label: 'cancelled', count: counts.cancelled || 0, from: '#AA2661', to: '#FDCAE0', bg: '#FAF0F7', text: '#AE2F67' },
+
+      { label: 'rejected', count: counts.rejected || 0, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
   ];
-
-    const stats2 = [
-        { label: 'approved', count: counts.approved || 0, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
-
-        { label: 'pending', count: counts.pending || 0, from: '#C9973A', to: '#E8C37A', bg: '#FEF8EE', text: '#C9973A' },
-
-        { label: 'waitlisted', count: counts.waitlisted || 0, from: '#3A6AB7', to: '#7cd3f2', bg: '#EEF4FF', text: '#3A6AB7' },
-
-        { label: 'under review', count: counts.under_review || 0, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
-
-        { label: 'cancelled', count: counts.cancelled || 0, from: '#AA2661', to: '#FDCAE0', bg: '#FAF0F7', text: '#AE2F67' },
-
-        { label: 'rejected', count: counts.rejected || 0, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
-    ];
 
   
   // for pages 
@@ -395,7 +345,7 @@ export default function ApplicationsPage() {
             />
           </div>
 
-          <StatsBanner stats={stats2} total={total} cols={6} />
+          <StatsBanner stats={stats} total={total} cols={6} />
 
           {/* TABLE CARD */}
           <div className="bg-white rounded-2xl p-6 flex flex-col min-h-0 flex-1">
@@ -416,10 +366,11 @@ export default function ApplicationsPage() {
                       { label: "20", href: "" },
                     ]}
                     direction="down"
-                    widthClass="w-29 lg:w-32"
+                    widthClass="w-29 lg:w-35"
                     titleClass="text-[10px] lg:text-[11px]"
                     selectedClass="text-[12px] lg:text-[13px]"
                     onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
+                    flexDirection="row"
                   />
                 </div>
                 <Dropdown

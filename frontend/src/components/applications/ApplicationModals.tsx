@@ -11,6 +11,7 @@ import {
   IoIdCardSharp,
 } from "react-icons/io5";
 import type { Application } from "@/interfaces/application";
+import { api } from "@/api/axios";
 
 // STATUS 
 const StatusBadge = ({
@@ -59,8 +60,9 @@ const handleView = async (
   requirementName: string
 ) => {
   try {
-    const res = await fetch(`/applications/${applicationId}/documents`)
-    const docs = await res.json()
+    const res = await api.get(`/applications/${applicationId}/documents`)
+    console.log(res);
+    const docs: any[] = [];
 
     const doc = docs.find(
       (d: any) => d.requirementName === requirementName
@@ -96,6 +98,16 @@ const ApplicationModalContent = ({
   statusConfig: Record<string, { color: string; bg: string; dot: string }>;
 }) => {
   const fullName = `${app.student?.user?.fname} ${app.student?.user?.lname}`;
+  // 1. Extract the names from the application data safely
+  const fetchedNames = (app.documents || []).map((doc) => doc.requirementName);
+
+  // 2. Pre-seed with defaults and combine them using the spread operator,
+  // wrapped in a Set to automatically clean out any duplicates
+  const documentRequirements: string[] = Array.from(
+    new Set(["FORM 5", "VALID ID", ...fetchedNames])
+  );
+
+  console.log(documentRequirements);
 
   return (
     <Card
@@ -228,29 +240,92 @@ const ApplicationModalContent = ({
               </p>
 
               <div className="flex flex-col gap-3">
-                {[
-                  { label: "FORM 5", icon: <IoDocumentTextSharp size={16} color="white" /> },
-                  { label: "VALID ID", icon: <IoIdCardSharp size={16} color="white" /> },
-                ].map((doc) => (
-                  <div key={doc.label} className="grid grid-cols-[auto_1fr_60px] items-center gap-3">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                    >
-                      {doc.icon}
-                    </div>
+                {documentRequirements.map((requirementName) => {
+                      // Determine which icon configuration to use based on the requirement name
+                      const isValidId = requirementName.toUpperCase() === "VALID ID";
+                      const docIcon = isValidId ? (
+                        <IoIdCardSharp size={16} color="white" />
+                      ) : (
+                        <IoDocumentTextSharp size={16} color="white" />
+                      );
 
-                    <p className="text-[#1A0008] text-xs font-semibold">{doc.label}</p>
-
-                    <Button
-                      variant="reddishPink"
-                      size="sm"
-                      onClick={() => handleView(app.id, doc.label)}
-                    >
-                      View
-                    </Button>
-                  </div>
-                ))}
+                      return (
+                        <div key={requirementName} className="flex flex-row items-center justify-between">
+                          <div className="flex flex-row items-center gap-2">
+                            <div 
+                              className="w-8 h-8 rounded-lg flex items-center justify-center"
+                              style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                            >
+                              {docIcon}
+                            </div>
+                            <p className="text-[#1A0008] text-xs font-semibold">{requirementName}</p>
+                          </div>
+                          
+                          <Button 
+                            variant="reddishPink" 
+                            size="sm" 
+                            onClick={async () => {
+                              // If explicitly "FORM 5", hit the legacy explicit enrollment-proof endpoint
+                              if (requirementName.toUpperCase() === "FORM 5") {
+                                try {
+                                  const res = await api.get(`/applications/${app.id}/enrollment-proof`)
+                                  if (res.status === 200) {
+                                    window.open(res.data.url, '_blank')
+                                  } else {
+                                    alert("Enrollment proof not available.")
+                                    // setToast({ 
+                                    //   show: true, 
+                                    //   type: "error", 
+                                    //   title: "Unavailable", 
+                                    //   message: "Enrollment proof not available." 
+                                    // })
+                                  }
+                                } catch (err) {
+                                  console.error(err)
+                                  alert("Could not fetch document.")
+                                  // setToast({ 
+                                  //   show: true, 
+                                  //   type: "error", 
+                                  //   title: "Error", 
+                                  //   message: "Could not fetch document." 
+                                  // })
+                                }
+                              } else {
+                                // EVERYTHING ELSE (VALID ID and all dynamic custom text names) goes here
+                                try {
+                                  // Safely encodes names with spaces (e.g., "VALID ID" -> "VALID%20ID")
+                                  const secureParam = encodeURIComponent(requirementName)
+                                  const res = await api.get(`/applications/${app.id}/documents/${secureParam}`)
+                                  
+                                  if (res.status === 200) {
+                                    window.open(res.data.url, '_blank')
+                                  } else {
+                                    alert(`${requirementName} not available.`)
+                                    // setToast({ 
+                                    //   show: true, 
+                                    //   type: "error", 
+                                    //   title: "Unavailable", 
+                                    //   message: `${requirementName} not available.` 
+                                    // })
+                                  }
+                                } catch (err) {
+                                  console.error(err)
+                                  alert("Could not fetch document.")
+                                  // setToast({ 
+                                  //   show: true, 
+                                  //   type: "error", 
+                                  //   title: "Error", 
+                                  //   message: "Could not fetch document." 
+                                  // })
+                                }
+                              }
+                            }}
+                          >
+                            View
+                          </Button>
+                        </div>
+                      );
+                    })}
               </div>
             </div>
           </div>

@@ -502,13 +502,14 @@ export default function Waitlist() {
                             { label: "20", href: "" },
                         ]}
                         direction='down'
-                        widthClass="w-29 lg:w-32"
+                        widthClass="w-29 lg:w-33"
                         titleClass="text-[10px] lg:text-[11px]"
                         selectedClass="text-[12px] lg:text-[13px]"
                         onSelect={(label) => {
                             setItemsPerPage(Number(label))
                             setCurrentPage(1)
                         }}
+                        flexDirection="row"
                     />
                 </div>
                 
@@ -622,17 +623,18 @@ export default function Waitlist() {
 
                     {/* Empty state outside the table */}
                     {!isLoadingList && !isErrorList && paginated.length === 0 && (
-                        <div className="py-12 flex items-center justify-center text-center">
-                        <p className="text-base italic text-gray-400">Nothing to see here</p>
+                        <div className={`${records.length === 0 && !isLoadingList ? "flex flex-col" : "hidden" }  justify-center items-center text-center`}>
+                            <p className="text-[#9A7080] font-medium text-lg">No waitlisted application found</p>
+                            <p className="text-[#9A7080]/60 text-sm mt-1">When waitlisted applications are present, they will appear here</p>
                         </div>
                     )}
                 </div>
             </div>
 
-            <div className="flex items-center justify-between px-4 py-3 mt-auto border-[#6B0F2B]/10 border-t">
+            <div className={`flex items-center justify-between px-4 py-3 mt-auto border-[#6B0F2B]/10 ${filtered.length === 0 ? '' : 'border-t'}`}>
                 <p className="text-xs text-[#9A7080]">
                 {filtered.length === 0
-                    ? "No results"
+                    ? ""
                     : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, filtered.length)} of ${filtered.length}`}
                 </p>
                 <div className="flex items-center justify-center gap-1">

@@ -9,9 +9,10 @@ interface DropdownProps {
   titleClass?: string;
   selectedClass?: string;
   showTitle?: boolean;
+  flexDirection?: "row" | "col"; // Added optional property
 }
 
-export default function Dropdown({ showTitle = true, title, items, onSelect, direction = "down", widthClass = "w-32", titleClass = "text-[10px]", selectedClass = "text-[12px]" }: DropdownProps) {
+export default function Dropdown({ showTitle = true, title, items, onSelect, direction = "down", widthClass = "w-32", titleClass = "text-[10px]", selectedClass = "text-[12px]", flexDirection = "col" }: DropdownProps) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(items[0].label);
   const [isMobile, setIsMobile] = useState(false);
@@ -30,7 +31,7 @@ export default function Dropdown({ showTitle = true, title, items, onSelect, dir
         type="button"
         className={`h-full px-2 py-1 border-2 border-[#6B0F2B] border-opacity-10 bg-white rounded-[8.8px] flex items-center justify-between gap-4 ${widthClass}`}
       >
-        <div className="flex flex-col items-start overflow-hidden w-full">
+        <div className={`flex flex-${flexDirection} items-${flexDirection == "col" ? "start" : "center"} overflow-hidden w-full`}>
           <span className={showTitle ? `${titleClass} text-[#9A7080] uppercase` : 'hidden'}>{title}</span>
           <span className={`${selectedClass} font-medium text-gray-800 truncate w-full`}>{selected}</span>
         </div>
