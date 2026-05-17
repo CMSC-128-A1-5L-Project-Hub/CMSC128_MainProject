@@ -59,7 +59,7 @@ export default function FormField({
                 maxLength={maxLength}
                 disabled={disabled}
                 readOnly={readOnly}
-                className={`w-full border border-[#6B0F2B3E] rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-[#C8B0B8] focus:outline-none focus:ring-2 focus:ring-[#C9973A]/40 focus:border-[#C9973A] transition 
+                className={`w-full border border-[#6B0F2B3E] rounded-xl px-4 py-3 text-sm text-[#6B0F2B] placeholder:text-[#C8B0B8] focus:outline-none focus:ring-2 focus:ring-[#C9973A]/40 focus:border-[#C9973A] transition text-ellipsis overflow-hidden whitespace-nowrap 
                     ${disabled || readOnly 
                         ? "bg-[#6B0F2B1F] border-[#6B0F2B1A] text-[#6B0F2B] cursor-not-allowed" 
                         : error
