@@ -58,8 +58,9 @@ const fetchAccommodations = async (): Promise<AccommodationPin[]> => {
   })
 }
 
-const DEFAULT_MIN_RENT = 500 // convert this to search for the lowest and highest rent from the DB next time.
+const DEFAULT_MIN_RENT = 500 // fallback bounds; real bounds are derived from the catalog at runtime.
 const DEFAULT_MAX_RENT = 15000
+const RENT_STEP = 100
 
 export default function MapPage() {
   const navigate = useNavigate()
@@ -72,12 +73,32 @@ export default function MapPage() {
     queryFn: fetchAccommodations,
   })
 
+  // ─── Dynamic rent bounds derived from catalog ────────────────────────────
+  const { origMin, origMax } = useMemo(() => {
+    if (accommodations.length === 0) {
+      return { origMin: DEFAULT_MIN_RENT, origMax: DEFAULT_MAX_RENT }
+    }
+    let min = Infinity
+    let max = -Infinity
+    for (const acc of accommodations) {
+      if (acc.minRent && acc.minRent < min) min = acc.minRent
+      if (acc.maxRent && acc.maxRent > max) max = acc.maxRent
+    }
+    if (!isFinite(min) || !isFinite(max)) {
+      return { origMin: DEFAULT_MIN_RENT, origMax: DEFAULT_MAX_RENT }
+    }
+    return {
+      origMin: Math.floor(min / RENT_STEP) * RENT_STEP,
+      origMax: Math.ceil(max / RENT_STEP) * RENT_STEP,
+    }
+  }, [accommodations])
+
   // ─── URL-driven draft filter values ──────────────────────────────────────
   const search = searchParams.get('search') ?? ''
   const type = searchParams.get('type') ?? 'all'
   const restriction = searchParams.get('restriction') ?? 'all'
-  const minRent = Number(searchParams.get('min_rent') ?? DEFAULT_MIN_RENT)
-  const maxRent = Number(searchParams.get('max_rent') ?? DEFAULT_MAX_RENT)
+  const minRent = Number(searchParams.get('min_rent') ?? origMin)
+  const maxRent = Number(searchParams.get('max_rent') ?? origMax)
   const maxWalk = Number(searchParams.get('max_walk') ?? 60)
   const minCapacity = Number(searchParams.get('min_capacity') ?? 0)
   const stayType = searchParams.get('stay_type') ?? 'all'
@@ -385,32 +406,32 @@ export default function MapPage() {
                         <div
                           className="absolute h-1.5 rounded-full"
                           style={{
-                            left: `${((minRent - DEFAULT_MIN_RENT) / (DEFAULT_MAX_RENT - DEFAULT_MIN_RENT)) * 100}%`,
-                            right: `${100 - ((maxRent - DEFAULT_MIN_RENT) / (DEFAULT_MAX_RENT - DEFAULT_MIN_RENT)) * 100}%`,
+                            left: `${origMax > origMin ? ((minRent - origMin) / (origMax - origMin)) * 100 : 0}%`,
+                            right: `${origMax > origMin ? 100 - ((maxRent - origMin) / (origMax - origMin)) * 100 : 0}%`,
                             background: 'linear-gradient(135deg, #C9973A, #a07825)',
                           }}
                         />
                         <input
                           type="range"
-                          min={DEFAULT_MIN_RENT}
-                          max={DEFAULT_MAX_RENT}
-                          step="100"
+                          min={origMin}
+                          max={origMax}
+                          step={RENT_STEP}
                           value={minRent}
-                          onChange={(e) => updateFilter('min_rent', Math.min(Number(e.target.value), maxRent - 500))}
+                          onChange={(e) => updateFilter('min_rent', Math.min(Number(e.target.value), maxRent - RENT_STEP))}
                           className="range-input"
                         />
                         <input
                           type="range"
-                          min={DEFAULT_MIN_RENT}
-                          max={DEFAULT_MAX_RENT}
-                          step="100"
+                          min={origMin}
+                          max={origMax}
+                          step={RENT_STEP}
                           value={maxRent}
-                          onChange={(e) => updateFilter('max_rent', Math.max(Number(e.target.value), minRent + 500))}
+                          onChange={(e) => updateFilter('max_rent', Math.max(Number(e.target.value), minRent + RENT_STEP))}
                           className="range-input"
                         />
                       </div>
                       <div className="flex justify-between text-[10px] font-bold text-[#C8B0B8] uppercase">
-                        <span>₱1,000</span>
+                        <span>₱500</span>
                         <span>₱15,000</span>
                       </div>
                     </div>
