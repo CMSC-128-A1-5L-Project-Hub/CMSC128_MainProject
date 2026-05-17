@@ -153,6 +153,9 @@ router
         router.post('/landlord/accommodations/:id/document-requirements', [controllers.Accommodation, 'addDocumentRequirement'])
         router.delete('/landlord/accommodations/:id/document-requirements/:reqId', [controllers.Accommodation, 'removeDocumentRequirement'])
 
+        // Fees Reminder
+        router.post('/fees/:id/reminder', [controllers.Fees, 'sendReminder'])
+
         // Transient booking verification (landlord)
         router.patch('/transient-bookings/:id/verify', [controllers.TransientBooking, 'verify'])
 

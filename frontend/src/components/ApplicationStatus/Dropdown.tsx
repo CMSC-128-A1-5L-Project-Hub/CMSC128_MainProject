@@ -35,32 +35,34 @@ export default function Dropdown({ showTitle = true, title, items, onSelect, dir
           <span className={showTitle ? `${titleClass} text-[#9A7080] uppercase` : 'hidden'}>{title}</span>
           <span className={`${selectedClass} font-medium text-gray-800 truncate w-full`}>{selected}</span>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
+        <svg 
+          className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
           <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 9-7 7-7-7"/>
         </svg>
       </button>
 
-      {open && (
-        <div className={`absolute mt-1 bg-white w-full border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-30 ${
-          direction === "up" ? "bottom-full mb-1" : "top-full mt-1" }`}>
-          <ul className="p-2 text-sm">
-            {items.map((item) => (
-              <li key={item.label}>
-                <a
-                  onClick={() => { 
-                    setSelected(item.label); 
-                    setOpen(false); 
-                    onSelect?.(item.label);
-                  }}
-                  className="text-[12px] block p-2 justify-start hover:bg-[#6B0F2B] hover:text-white transition-all rounded w-50"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div className={`absolute bg-white w-full border-2 border-[#6B0F2B] border-opacity-10 rounded-[8.8px] shadow-lg z-30 overflow-hidden transition-all duration-200 ease-out
+        ${direction === "up" ? "bottom-full mb-1" : "top-full mt-1"}
+        ${open ? "max-h-60 opacity-100" : "max-h-0 opacity-0 pointer-events-none"}`}>
+        <ul className="p-2 text-sm">
+          {items.map((item) => (
+            <li key={item.label}>
+              <a
+                onClick={() => {
+                  setSelected(item.label);
+                  setOpen(false);
+                  onSelect?.(item.label);
+                }}
+                className="text-[12px] block p-2 justify-start hover:bg-[#6B0F2B] hover:text-white transition-all rounded w-50"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      
     </div>
   );
 }

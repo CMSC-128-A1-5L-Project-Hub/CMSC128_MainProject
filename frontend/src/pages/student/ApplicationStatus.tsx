@@ -10,6 +10,7 @@ import CustomHeader from '../../components/CustomHeader';
 import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
 import SearchBar from '../../components/SearchBar';
 import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
+import Toast from "../../components/Toast";
 import { api } from "../../api/axios";
 
 // define the status type locally
@@ -26,12 +27,11 @@ interface ApplicationStatusPageProps {
     userName?: string;
 }
 
-
 // Fetch from the API
 const fetchApplications = async (): Promise<Application[]> => {
     try {
         const res = await api.get("/applications/my-applications");
-        return res.data; // return res.data directly, just like Dashboard.tsx does!
+        return res.data;
     } catch (error: any) {
         console.error("Fetch applications error:", error);
         if (error.response?.status === 404) {
@@ -48,6 +48,14 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
     const [searchQuery, setSearchQuery] = useState("");
     const [viewOpen, setViewOpen] = useState(false);
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+    
+    // Toast state
+    const [toast, setToast] = useState<{
+        show: boolean;
+        type: "success" | "error" | "info" | "warning" | "loading";
+        title: string;
+        message?: string;
+    }>({ show: false, type: "success", title: "" });
 
     const { data: currentUser } = useQuery({
         queryKey: ["current-user"],
@@ -65,10 +73,29 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
     };
 
     // Data fetching - using the real API
-    const { data: applications = [], isLoading, isError } = useQuery({
+    const { data: applications = [], isLoading, isError, error } = useQuery({
         queryKey: ["student-applications"],
         queryFn: fetchApplications,
         refetchOnMount: "always",
+    });
+
+    // Show toast on error
+    if (isError) {
+        console.error("Error loading applications:", error);
+        // Don't show toast here directly as it would cause re-renders
+        // Instead, show it in a useEffect
+    }
+
+    // Show error toast when isError becomes true
+    useState(() => {
+        if (isError) {
+            setToast({
+                show: true,
+                type: "error",
+                title: "Failed to Load Applications",
+                message: "Please check your connection and try again."
+            });
+        }
     });
 
     const sortedApplications = useMemo(() => {
@@ -100,25 +127,12 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
         cancelled: applications.filter(a => a.applicationStatus === 'cancelled').length,
     };
 
-    // const stats = [
-    //     { label: 'approved', count: counts.approved, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
-    //     { label: 'pending', count: counts.pending, from: '#C9973A', to: '#E8C37A', bg: '#FDF6EC', text: '#C9973A' },
-    //     { label: 'under review', count: counts.under_review, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
-    //     { label: 'rejected', count: counts.rejected, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
-    //     { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#e4f0f5', text: '#3A6AB7' },
-    // ];
-
     const stats = [
         { label: 'approved', count: counts.approved, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
-
         { label: 'pending', count: counts.pending, from: '#C9973A', to: '#E8C37A', bg: '#FEF8EE', text: '#C9973A' },
-
         { label: 'waitlisted', count: counts.waitlisted, from: '#3A6AB7', to: '#7cd3f2', bg: '#F4F0FA', text: '#3A6AB7' },
-
         { label: 'under review', count: counts.under_review, from: '#6B3AB7', to: '#9B6AE7', bg: '#F0F7F3', text: '#6B3AB7' },
-
         { label: 'cancelled', count: counts.cancelled, from: '#AA2661', to: '#FDCAE0', bg: '#FAF0F7', text: '#AE2F67' },
-
         { label: 'rejected', count: counts.rejected, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
     ];
 
@@ -141,121 +155,129 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
 
     return (
         <div className="bg-[#F5EEF0] h-screen overflow-hidden flex flex-row">
-        <div className="flex flex-col overflow-hidden w-full">
-            <CustomHeader title="Applications" />
-            <div className="flex-1 flex flex-col overflow-hidden gap-6 p-6">
+            <div className="flex flex-col overflow-hidden w-full">
+                <CustomHeader title="Applications" />
+                <div className="flex-1 flex flex-col overflow-hidden gap-6 p-6">
 
-            <div>
-                <HeroBanner
-                greeting={heroContent.greeting}
-                name={heroContent.name}
-                title={heroContent.title}
-                subtitle={heroContent.subtitle}
-                type="mini"
-                />
+                    <div>
+                        <HeroBanner
+                            greeting={heroContent.greeting}
+                            name={heroContent.name}
+                            title={heroContent.title}
+                            subtitle={heroContent.subtitle}
+                            type="mini"
+                        />
+                    </div>
+
+                    <StatsBanner stats={stats} total={trueTotal} cols={6} />
+
+                    <div className="bg-white rounded-2xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
+                        <div className='flex justify-between pb-2 lg:pb-4'>
+                            <div className='my-auto'>
+                                <h1 className='font-bold -mt-1'>Application History</h1>
+                                <p className='italic text-[11px] lg:text-[12px]'>{totalApps} total applications</p>
+                            </div>
+                            <div className='flex flex-row gap-2'>
+                                <div className='hidden lg:block'>
+                                    <Dropdown
+                                        title="No. of Items"
+                                        items={[
+                                            { label: "5", href: "" },
+                                            { label: "10", href: "" },
+                                            { label: "15", href: "" },
+                                            { label: "20", href: "" },
+                                        ]}
+                                        direction='down'
+                                        widthClass="w-29 lg:w-32"
+                                        titleClass="text-[10px] lg:text-[11px]"
+                                        selectedClass="text-[12px] lg:text-[13px]"
+                                        onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
+                                    />
+                                </div>
+                                <Dropdown
+                                    title="Sort by"
+                                    items={[
+                                        { label: "Date applied (Asc.)", href: "" },
+                                        { label: "Date applied (Desc.)", href: "" },
+                                        { label: "Status", href: "" },
+                                    ]}
+                                    direction="down"
+                                    widthClass="w-32 lg:w-44"
+                                    titleClass="text-[10px] lg:text-[11px]"
+                                    selectedClass="text-[12px] lg:text-[13px]"
+                                    onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
+                                />
+                                <SearchBar
+                                    value={searchQuery}
+                                    onChange={setSearchQuery}
+                                    onPageReset={() => setCurrentPage(1)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="overflow-auto flex-1 min-h-0 mt-1 rounded-t-lg">
+                            {isLoading ? (
+                                <div className="py-12 flex flex-col items-center justify-center text-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "#9E2040" }} />
+                                    <p className="text-sm text-[#9A7080] mt-2">Fetching your applications...</p>
+                                </div>
+                            ) : isError ? (
+                                <div className="flex justify-center items-center h-full">
+                                    <p className="text-red-500 font-medium text-center">
+                                        Failed to load applications. Please check your connection.
+                                    </p>
+                                </div>
+                            ) : applications.length === 0 ? (
+                                <div className="flex flex-col justify-center items-center h-full text-center">
+                                    <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+                                    <p className="text-[#9A7080]/60 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
+                                </div>
+                            ) : (
+                                <ApplicationTable
+                                    applications={tableApplications}
+                                    onView={(app) => {
+                                        const originalApp = applications.find(a => a.id === app.id) || app;
+                                        setSelectedApp(originalApp);
+                                        setViewOpen(true);
+                                    }}
+                                />
+                            )}
+                        </div>
+
+                        <div className={`${applications.length === 0 ? "hidden" : "flex flex-col"}`}>
+                            <hr className="border-[#6B0F2B]/10 border-t" />
+                            <div className="flex items-center justify-between mt-3">
+                                <p className="text-xs text-[#9A7080]">
+                                    {totalApps === 0
+                                        ? "No results"
+                                        : `Showing ${(currentPage - 1) * ROWS_PER_PAGE + 1}–${Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of ${totalApps}`}
+                                </p>
+                                <Pagination
+                                    totalPages={totalPages}
+                                    currentPage={currentPage}
+                                    onPageChange={setCurrentPage}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <StatsBanner stats={stats} total={trueTotal} cols={6} />
-
-            <div className="bg-white rounded-2xl p-6 flex flex-col min-h-0" style={{ height: 'calc(100vh - 2rem)' }}>
-                <div className='flex justify-between pb-2 lg:pb-4'>
-                <div className='my-auto'>
-                    <h1 className='font-bold -mt-1'>Application History</h1>
-                    <p className='italic text-[11px] lg:text-[12px]'>{totalApps} total applications</p>
-                </div>
-                <div className='flex flex-row gap-2'>
-                    <div className='hidden lg:block'>
-                    <Dropdown
-                        title="No. of Items"
-                        items={[
-                        { label: "5", href: "" },
-                        { label: "10", href: "" },
-                        { label: "15", href: "" },
-                        { label: "20", href: "" },
-                        ]}
-                        direction='down'
-                        widthClass="w-29 lg:w-32"
-                        titleClass="text-[10px] lg:text-[11px]"
-                        selectedClass="text-[12px] lg:text-[13px]"
-                        onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                    />
-                    </div>
-                    <Dropdown
-                    title="Sort by"
-                    items={[
-                        { label: "Date applied (Asc.)", href: "" },
-                        { label: "Date applied (Desc.)", href: "" },
-                        { label: "Status", href: "" },
-                    ]}
-                    direction="down"
-                    widthClass="w-32 lg:w-44"
-                    titleClass="text-[10px] lg:text-[11px]"
-                    selectedClass="text-[12px] lg:text-[13px]"
-                    onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
-                    />
-                    <SearchBar
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    onPageReset={() => setCurrentPage(1)}
-                    />
-                </div>
-                </div>
-
-                <div className="overflow-auto flex-1 min-h-0 mt-1 rounded-t-lg">
-                {isLoading ? (
-                    <div className="py-12 flex flex-col items-center justify-center text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "#9E2040" }} />
-                    <p className="text-sm text-[#9A7080] mt-2">Fetching your applications...</p>
-                    </div>
-                ) : isError ? (
-                    <div className="flex justify-center items-center h-full">
-                    <p className="text-red-500 font-medium text-center">
-                        Failed to load applications. Please check your connection.
-                    </p>
-                    </div>
-                ) : applications.length === 0 ? (
-                    <div className="flex flex-col justify-center items-center h-full text-center">
-                    <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
-                    <p className="text-[#9A7080]/60 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
-                    </div>
-                ) : (
-                    <ApplicationTable
-                    applications={tableApplications}
-                    onView={(app) => {
-                        const originalApp = applications.find(a => a.id === app.id) || app;
-                        setSelectedApp(originalApp);
-                        setViewOpen(true);
-                    }}
-                    />
-                )}
-                </div>
-
-                <div className={`${applications.length === 0 ? "hidden" : "flex flex-col"}`}>
-                <hr className="border-[#6B0F2B]/10 border-t" />
-                <div className="flex items-center justify-between mt-3">
-                    <p className="text-xs text-[#9A7080]">
-                    {totalApps === 0
-                        ? "No results"
-                        : `Showing ${(currentPage - 1) * ROWS_PER_PAGE + 1}–${Math.min(currentPage * ROWS_PER_PAGE, totalApps)} of ${totalApps}`}
-                    </p>
-                    <Pagination
-                    totalPages={totalPages}
-                    currentPage={currentPage}
-                    onPageChange={setCurrentPage}
-                    />
-                </div>
-                </div>
-            </div>{/* end bg-white card */}
-
-            </div>{/* end flex-1 gap-6 p-6 */}
-        </div>{/* end flex-col w-full */}
-
-        {/* Modal */}
-        <ApplicationStatusModal
-            open={viewOpen}
-            onClose={() => { setViewOpen(false); setSelectedApp(null); }}
-            application={selectedApp}
-        />
+            {/* Modal */}
+            <ApplicationStatusModal
+                open={viewOpen}
+                onClose={() => { setViewOpen(false); setSelectedApp(null); }}
+                application={selectedApp}
+            />
+            
+            {/* Toast Notifications */}
+            <Toast
+                type={toast.type}
+                title={toast.title}
+                message={toast.message}
+                show={toast.show}
+                onClose={() => setToast(prev => ({ ...prev, show: false }))}
+            />
         </div>
     )
 }

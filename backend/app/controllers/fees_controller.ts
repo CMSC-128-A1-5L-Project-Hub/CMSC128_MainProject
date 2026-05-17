@@ -10,8 +10,12 @@ import Room from '#models/room'
 import Accommodation from '#models/accommodation'
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
+import { inject } from '@adonisjs/core'
+import NotificationService from '#services/notification_service'
 
+@inject()
 export default class FeesController {
+  constructor(protected notificationService: NotificationService) {}
 
   // ─── STUDENT: VIEW MY BILLS ───
   // GET /my-fees
@@ -252,5 +256,69 @@ export default class FeesController {
       )
 
     return response.ok(overdueFees)
+  }
+
+  
+
+  async sendReminder({ auth, params, request, response }: HttpContext) {
+    const user = auth.user!
+    const { id } = params
+    const { studentNumber, feeCategory, amount, dueDate } = request.body()
+
+    try {
+      // 1. Find the fee
+      const fee = await Fee.find(id)
+      if (!fee) {
+        return response.notFound({ message: 'Fee not found' })
+      }
+
+      // 2. Find the student
+      const student = await Student.query()
+        .where('studentNumber', studentNumber)
+        .preload('user')
+        .first()
+
+      if (!student || !student.user) {
+        return response.notFound({ message: 'Student not found' })
+      }
+
+      // 3. Get accommodation info 
+      const assignment = await Assignment.query()
+        .where('studentNumber', studentNumber)
+        .whereNull('actualMoveOut')
+        .preload('room', (q) => q.preload('accommodation'))
+        .first()
+
+      const accommodationName = assignment?.room?.accommodation?.accommodationName || 'your accommodation'
+
+      // 4. Send email notification
+      await this.notificationService.sendOverdueFeeReminderEmail(
+        student.user,
+        studentNumber,
+        feeCategory,
+        amount,
+        dueDate,
+        accommodationName
+      )
+
+      // 5. Log the action
+      await LogService.record(
+        user.id,
+        'fee',
+        fee.id,
+        'OVERDUE_REMINDER_SENT',
+        `Overdue fee reminder sent to student ${studentNumber} for fee category: ${feeCategory}, amount: ₱${amount}`
+      )
+
+      return response.ok({ 
+        message: `Reminder sent successfully to ${student.user.fname} ${student.user.lname}` 
+      })
+
+    } catch (error) {
+      console.error('Failed to send reminder:', error)
+      return response.internalServerError({ 
+        message: 'Failed to send reminder. Please try again.' 
+      })
+    }
   }
 }

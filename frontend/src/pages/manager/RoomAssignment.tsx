@@ -496,7 +496,11 @@ export default function RoomAssignment() {
               {/* Table */}
                 <div className="bg-white h-full w-full rounded-2xl p-6 flex flex-col">
                   <div className="flex items-center justify-between mb-2 gap-3 flex-wrap pb-2">
-                    <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">Room Assignment</h2>
+                    <div className="flex flex-col">
+                      <h2 className="text-[#1A0008] font-bold text-base lg:text-lg">Room Assignment</h2>
+                      <p className="italic text-[11px] lg:text-[12px]">{allAssignments.length} total pending assignments</p>
+                    </div>
+                    
                     <div className="flex items-center gap-2 ml-auto">
                       <div className='hidden lg:block'>
                           <Dropdown
@@ -584,12 +588,12 @@ export default function RoomAssignment() {
                   </div>
                   
                   <div className="flex-1 min-h-0 flex flex-col items-center justify-center">
-                      <div className={`${assignments.length === 0 ? "flex" : "hidden"} flex-col justify-center w-full items-center text-center`}>
+                      <div className={`${allAssignments.length === 0 ? "flex" : "hidden"} flex-col justify-center w-full items-center text-center`}>
                         <p className="text-[#9A7080] font-medium text-lg">No assignments found</p>
                         <p className="text-[#9A7080]/60 text-sm mt-1">When somebody gets approved, they will appear here</p>
                       </div>
 
-                      <div className={`${assignments.length === 0 ? "hidden" : "flex "} flex-col overflow-x-auto`}>
+                      <div className={`${allAssignments.length === 0 ? "hidden" : "flex "} flex-col overflow-x-auto`}>
                         <table className={` min-w-[900px] w-full border-collapse`}>
                           <thead>
                             <tr className="border-[#6B0F2B]/5 border-y-2">

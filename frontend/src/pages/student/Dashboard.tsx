@@ -49,13 +49,13 @@ const formatRating = (value: number | string | null | undefined) =>
   Number(value ?? 0).toFixed(1);
 
 const emptyBilling: BillingOverview = {
-  residenceHall: "-",
-  dueDay: "-",
-  dueMonth: "-",
-  summaryTitle: "No Billing Yet",
-  paidOn: "-",
+  residenceHall: "No Active Residence",
+  dueDay: "",
+  dueMonth: "",
+  summaryTitle: "No Active Billing",
+  paidOn: "",
   amountPaid: 0,
-  nextDue: "-",
+  nextDue: "",
   monthlyRent: 0,
   remainingAmount: 0,
   totalPaid: 0,

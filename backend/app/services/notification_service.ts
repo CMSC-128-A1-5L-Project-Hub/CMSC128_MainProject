@@ -395,4 +395,67 @@ export default class NotificationService {
 
     await Promise.all(admins.map((admin) => this.send(admin.email, subject, html)))
   }
+
+    async sendOverdueFeeReminderEmail(
+    user: User,
+    studentNumber: string,
+    feeCategory: string,
+    amount: number,
+    dueDate: string,
+    accommodationName: string
+  ) {
+    const formattedAmount = new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP'
+    }).format(amount)
+
+    const formattedDueDate = new Date(dueDate).toLocaleDateString('en-PH', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    })
+
+    await this.send(
+      user.email,
+      'Overdue Fee Reminder',
+      `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #8C1535;">Overdue Fee Reminder</h2>
+          <p>Dear <strong>${user.fname}</strong>,</p>
+          
+          <p>This is a reminder that you have an overdue payment for your accommodation at <strong>${accommodationName}</strong>.</p>
+          
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background-color: #F5ECF0;">
+              <td style="padding: 10px; border: 1px solid #E8D4DF;"><strong>Student Number:</strong></td>
+              <td style="padding: 10px; border: 1px solid #E8D4DF;">${studentNumber}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #E8D4DF;"><strong>Fee Category:</strong></td>
+              <td style="padding: 10px; border: 1px solid #E8D4DF;">${feeCategory}</td>
+            </tr>
+            <tr style="background-color: #F5ECF0;">
+              <td style="padding: 10px; border: 1px solid #E8D4DF;"><strong>Amount Due:</strong></td>
+              <td style="padding: 10px; border: 1px solid #E8D4DF; color: #DC2626; font-weight: bold;">${formattedAmount}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #E8D4DF;"><strong>Due Date:</strong></td>
+              <td style="padding: 10px; border: 1px solid #E8D4DF;">${formattedDueDate}</td>
+            </tr>
+          </table>
+          
+          <div style="background-color: #FFF5F7; border-left: 4px solid #DC2626; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #DC2626; font-weight: bold;"> Payment Overdue</p>
+            <p style="margin: 10px 0 0 0;">Please settle your outstanding balance as soon as possible to avoid further penalties.</p>
+          </div>
+          
+          <p>If you have already made the payment, please disregard this reminder.</p>
+          
+          <br/>
+          <p>Best regards,</p>
+          <p><strong>UBLE Housing Team</strong></p>
+        </div>
+      `
+    )
+  }
 }

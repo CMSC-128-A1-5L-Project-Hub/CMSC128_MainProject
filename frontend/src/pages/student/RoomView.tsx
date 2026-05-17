@@ -1756,16 +1756,68 @@ export default function RoomView() {
   //       )
   //     : null;
 
+  const snapToValidRoomFilters = ({
+    tenant = selectedTenantRestriction,
+    stay = selectedStayType,
+    type = selectedArrangement,
+  }: {
+    tenant?: string;
+    stay?: string;
+    type?: string;
+  }) => {
+    let room = normalizedRooms.find(
+      (r) => r.tenant === tenant && r.stay === stay && r.type === type
+    );
+
+    if (!room) {
+      room = normalizedRooms.find(
+        (r) => r.stay === stay && r.type === type
+      );
+    }
+
+    if (!room) {
+      room = normalizedRooms.find(
+        (r) => r.stay === stay
+      );
+    }
+
+    if (!room) return;
+
+    setselectedTenantRestriction(room.tenant);
+    setSelectedStayType(room.stay);
+    setSelectedArrangement(room.type);
+    setSelectedPreferences([]);
+    setHasSelectedRoomFilters(true);
+  };
+
   const accommodationTags =
     accommodation.tags
       ?.map((tag: any) => tag.tagDetail ?? tag.tag_detail)
       .filter(Boolean) ?? [];
 
-  const hasAlreadyApplied = myApplications.some(
-    (app: any) =>
-      app.accommodationId === currentAccommodationId &&
-      ["pending", "under_review", "approved", "waitlisted"].includes(app.applicationStatus)
-  );
+ const activeStatuses = [
+    "pending",
+    "under_review",
+    "approved",
+    "waitlisted",
+  ];
+
+  const hasAlreadyApplied = myApplications.some((app: any) => {
+    const appAccommodationId =
+      app.accommodationId ?? app.accommodation_id;
+
+    const appStayType =
+      app.applicationStayType ?? app.application_stay_type;
+
+    const appStatus =
+      app.applicationStatus ?? app.application_status;
+
+    return (
+      Number(appAccommodationId) === Number(currentAccommodationId) &&
+      appStayType === selectedStayType &&
+      activeStatuses.includes(appStatus)
+    );
+  });
   
 
   const studentGender = String(user?.student?.gender ?? user?.gender ?? "").toLowerCase();
@@ -1795,10 +1847,19 @@ export default function RoomView() {
   //   tenantPreference: (accommodation as any)?.tenantPreference,
   // });
 
+  const stayTypeLabel =
+    selectedStayType === "non_transient"
+      ? "non-transient"
+      : "transient";
+
   const cannotApplyReason = hasAlreadyApplied
-    ? "You already have an active application for this dorm."
+    ? `You already have an active ${stayTypeLabel} application for this dorm.`
     : genderBlocked
-      ? `This dorm is for ${accommodationRestriction === "female-only" ? "female" : "male"} students only.`
+      ? `This dorm is for ${
+          accommodationRestriction === "female-only"
+            ? "female"
+            : "male"
+        } students only.`
       : !selectedRoom
         ? "No matching room is currently available."
         : "";
@@ -2022,19 +2083,28 @@ export default function RoomView() {
                 selectedPreferences={selectedPreferences}
                 setSelectedPreferences={setSelectedPreferences}
                 selectedTenantRestriction={selectedTenantRestriction}
+                // setselectedTenantRestriction={(v) => {
+                //   setselectedTenantRestriction(v);
+                //   setHasSelectedRoomFilters(true);
+                // }}
                 setselectedTenantRestriction={(v) => {
-                  setselectedTenantRestriction(v);
-                  setHasSelectedRoomFilters(true);
+                  snapToValidRoomFilters({ tenant: v });
                 }}
                 selectedStayType={selectedStayType}
+                // setSelectedStayType={(v) => {
+                //   setSelectedStayType(v);
+                //   setHasSelectedRoomFilters(true);
+                // }}
                 setSelectedStayType={(v) => {
-                  setSelectedStayType(v);
-                  setHasSelectedRoomFilters(true);
+                  snapToValidRoomFilters({ stay: v });
                 }}
                 selectedArrangement={selectedArrangement}
+                // setSelectedArrangement={(v) => {
+                //   setSelectedArrangement(v);
+                //   setHasSelectedRoomFilters(true);
+                // }}
                 setSelectedArrangement={(v) => {
-                  setSelectedArrangement(v);
-                  setHasSelectedRoomFilters(true);
+                  snapToValidRoomFilters({ type: v });
                 }}
               />
             )}
