@@ -2,9 +2,32 @@
 import { inject } from '@adonisjs/core'
 import env from '#start/env'
 import User from '#models/user'
+import Notification from '#models/notification'
 
 @inject()
 export default class NotificationService {
+  // For sending notifications via the system's notification service
+  async notify(
+    userId: number,
+    type: 'fee_due' | 'application_status' | 'system' | 'other',
+    content: string
+  ) {
+    // Uncomment na lang pag di na need
+    try {
+      console.log('Creating notification...')
+
+      const notification = await Notification.create({
+        userId,
+        notificationType: type,
+        notificationContent: content,
+        readStatus: 'unread'
+      })
+
+      console.log('Created:', notification)
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   // ─── Helper: send email via Brevo HTTP API ────────────────────────────────
   private async send(to: string, subject: string, html: string) {
