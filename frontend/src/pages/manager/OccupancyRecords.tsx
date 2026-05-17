@@ -110,6 +110,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
             onClose={closeModal}
             title="View Room Details"
             maxWidth={652}
+            maxHeight="fit-content"
             children={
                 modalRoom && (
                     <Card 
