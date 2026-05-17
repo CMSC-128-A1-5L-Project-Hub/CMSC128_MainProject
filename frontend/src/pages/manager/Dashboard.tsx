@@ -52,6 +52,101 @@ function FilterTabs({ active, setActive }: { active: string; setActive: (tab: st
   )
 }
 
+// will probably update this to a component idk yet
+function MobileSidebarCarousel({ availableRoomsProps, occupiedRoomsProps, recentLogs }: any) {
+  const [activeCard, setActiveCard] = useState(0)
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const autoScrollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const cards = ['available', 'occupied', 'logs']
+
+  const scrollToCard = (index: number) => {
+    const el = carouselRef.current
+    if (!el) return
+    const card = el.children[index] as HTMLElement
+    card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    setActiveCard(index)
+  }
+
+  const stopAutoScroll = () => {
+    if (autoScrollRef.current) { clearInterval(autoScrollRef.current); autoScrollRef.current = null }
+  }
+
+  const startAutoScroll = () => {
+    autoScrollRef.current = setInterval(() => {
+      setActiveCard((prev) => {
+        const next = (prev + 1) % cards.length
+        const el = carouselRef.current
+        if (el) {
+          const card = el.children[next] as HTMLElement
+          card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+        }
+        return next
+      })
+    }, 3000)
+  }
+
+  useEffect(() => {
+    startAutoScroll()
+    return () => stopAutoScroll()
+  }, [])
+
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Array.from(el.children).indexOf(entry.target as HTMLElement)
+            if (index !== -1) setActiveCard(index)
+          }
+        })
+      },
+      { root: el, threshold: 0.6 }
+    )
+    Array.from(el.children).forEach((child) => observer.observe(child))
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div>
+      <div
+        ref={carouselRef}
+        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-4 pb-1"
+        onMouseEnter={stopAutoScroll}
+        onMouseLeave={startAutoScroll}
+        onTouchStart={stopAutoScroll}
+        onTouchEnd={startAutoScroll}
+      >
+        <div className="min-w-full snap-start flex-shrink-0">
+          <AvailableRooms {...availableRoomsProps} />
+        </div>
+        <div className="min-w-full snap-start flex-shrink-0">
+          <OccupiedRooms {...occupiedRoomsProps} />
+        </div>
+        <div className="min-w-full snap-start flex-shrink-0">
+          <ActivityLogs data={recentLogs} />
+        </div>
+      </div>
+
+      <div className="flex justify-center gap-1 mt-1">
+        {cards.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => { stopAutoScroll(); scrollToCard(i); startAutoScroll() }}
+            className="rounded-full p-0 border-0 transition-all duration-300"
+            style={{
+              width: i === activeCard ? '10px' : '4px',
+              height: '4px',
+              background: i === activeCard ? '#6B0F2B' : '#C4A8B0',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("Students")
   const { data: profile, isLoading: profileLoading } = useProfile()
@@ -281,6 +376,69 @@ export default function Dashboard() {
     (total, room) => total + room.roomCapacity,
     0
   )
+  const statCards = [
+    { title: "Pending Approvals", value: pendingApps.length, total: incomingApps.length + approvedApps.length },
+    { title: "Pending Confirmations", value: readyForAssignment.filter(item => item.status === 'pending_confirmation').length, total: approvedApps.length },
+    { title: "Total Tenants", value: totalTenants, total: maxTenants },
+  ]
+
+  const [activeCard, setActiveCard] = useState(0)
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const autoScrollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const scrollToCard = (index: number) => {
+    const el = carouselRef.current
+    if (!el) return
+    const card = el.children[index] as HTMLElement
+    card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    setActiveCard(index)
+  }
+
+  const startAutoScroll = () => {
+    autoScrollRef.current = setInterval(() => {
+      setActiveCard((prev) => {
+        const next = (prev + 1) % statCards.length
+        const el = carouselRef.current
+        if (el) {
+          const card = el.children[next] as HTMLElement
+          card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+        }
+        return next
+      })
+    }, 3000)
+  }
+
+  const stopAutoScroll = () => {
+    if (autoScrollRef.current) {
+      clearInterval(autoScrollRef.current)
+      autoScrollRef.current = null
+    }
+  }
+
+  useEffect(() => {
+    startAutoScroll()
+    return () => stopAutoScroll()
+  }, [])
+
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Array.from(el.children).indexOf(entry.target as HTMLElement)
+            if (index !== -1) setActiveCard(index)
+          }
+        })
+      },
+      { root: el, threshold: 0.6 }
+    )
+
+    Array.from(el.children).forEach((child) => observer.observe(child))
+    return () => observer.disconnect()
+  }, [])
 
   const handleActionSuccess = (message: string) => {
     setToast({
@@ -356,43 +514,14 @@ export default function Dashboard() {
 
                 <FilterTabs active={activeTab} setActive={setActiveTab} />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <DonutStatCard
-                    title="Pending Approvals"
-                    value={pendingApps.length}
-                    total={incomingApps.length + approvedApps.length}
-                  />
-                  <DonutStatCard
-                    title="Pending Confirmations"
-                    value={readyForAssignment.filter(item => item.status === 'pending_confirmation').length}
-                    total={approvedApps.length}
-                  />
-                  <DonutStatCard
-                    title="Total Tenants"
-                    value={totalTenants}
-                    total={maxTenants}
-                  />
+                {/* Desktop grid */}
+                <div className="hidden lg:grid grid-cols-3 gap-6">
+                  {statCards.map((card) => (
+                    <DonutStatCard key={card.title} title={card.title} value={card.value} total={card.total} />
+                  ))}
                 </div>
 
-                {/* Mobile-only sidebar content */}
-                <div className="flex flex-col gap-6 lg:hidden">
-                  <AvailableRooms
-                    totalRooms={rooms.length}
-                    soloRooms={soloAvailable}
-                    doubleRooms={doubleAvailable}
-                    sharedRooms={sharedAvailable}
-                  />
-                  <OccupiedRooms
-                    occupiedSolo={soloOccupied}
-                    totalSolo={totalSolo}
-                    occupiedDouble={doubleOccupied}
-                    totalDouble={totalDouble}
-                    occupiedShared={sharedOccupied}
-                    totalShared={totalShared}
-                  />
-                  <ActivityLogs data={recentLogs} />
-                </div>
-
+                {/* moved tables up (since ito ung mas important) */}
                 {activeTab === "Students" && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch w-full">
                     <Applications
@@ -418,6 +547,49 @@ export default function Dashboard() {
                     <Moves data={moves} className="col-span-1 lg:col-span-2 xl:col-span-3" />
                   </div>
                 )}
+
+                {/* Mobile carousel */}
+                <div className="lg:hidden">
+                  <div
+                    ref={carouselRef}
+                    className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 no-scrollbar px-[7.5vw]"
+                    onMouseEnter={stopAutoScroll}
+                    onMouseLeave={startAutoScroll}
+                    onTouchStart={stopAutoScroll}
+                    onTouchEnd={startAutoScroll}
+                  >
+                    {statCards.map((card, i) => (
+                      <div key={card.title} className="flex min-w-[85vw] snap-center flex-shrink-0">
+                        <DonutStatCard title={card.title} value={card.value} total={card.total} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Dot indicators */}
+                  <div className="flex justify-center gap-1 mt-1">
+                    {statCards.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { stopAutoScroll(); scrollToCard(i); startAutoScroll() }}
+                        className="rounded-full p-0 border-0 transition-all duration-300"
+                        style={{
+                          width: i === activeCard ? '10px' : '4px',
+                          height: '4px',
+                          background: i === activeCard ? '#6B0F2B' : '#C4A8B0',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mobile-only sidebar content */}
+                <div className="lg:hidden">
+                  <MobileSidebarCarousel
+                    availableRoomsProps={{ totalRooms: rooms.length, soloRooms: soloAvailable, doubleRooms: doubleAvailable, sharedRooms: sharedAvailable }}
+                    occupiedRoomsProps={{ occupiedSolo: soloOccupied, totalSolo, occupiedDouble: doubleOccupied, totalDouble, occupiedShared: sharedOccupied, totalShared }}
+                    recentLogs={recentLogs}
+                  />
+                </div>
               </main>
             </div>
           </div>
