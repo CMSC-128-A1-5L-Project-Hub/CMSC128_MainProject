@@ -83,14 +83,20 @@ export default class ReportService {
   }
 
   // Calculates potential revenue based on active assignments
-  static async getRevenueProjections(user: User) {
+  static async getRevenueProjections(user: User, accommodationId?: number) {
     // Logic: Sum of room prices for all active assignments in landlord's dorms.
-    const rows = await db
+    const query = db
       .from('assignments')
       .innerJoin('rooms', 'rooms.id', 'assignments.room_id')
       .innerJoin('accommodations', 'accommodations.id', 'rooms.accommodation_id')
       .where('accommodations.landlord_id', user.id)
       .whereNull('assignments.actual_move_out')
+
+    if (accommodationId) {
+      query.where('accommodations.id', accommodationId)
+    }
+
+    const rows = await query
       .select(
         'accommodations.id as accommodation_id',
         'accommodations.accommodation_name as accommodation_name',
@@ -134,15 +140,25 @@ export default class ReportService {
   }
 
   // Finds students with overdue fees
-  static async getDelinquentStudents(user: User) {
+  static async getDelinquentStudents(user: User, accommodationId?: number) {
     // Logic: Query fees where status is 'unpaid' or 'partial' AND due_date < NOW() - 5 days.
-    const rows = await db
+    const query = db
       .from('fees')
       .innerJoin('students', 'students.student_number', 'fees.student_number')
       .innerJoin('users', 'users.id', 'students.user_id')
       .where('fees.landlord_id', user.id)
       .whereIn('fees.fee_status', ['unpaid', 'partial', 'overdue'])
       .whereRaw('fees.due_date < DATE_SUB(CURDATE(), INTERVAL 5 DAY)')
+
+    if (accommodationId) {
+      query
+        .innerJoin('assignments', 'assignments.student_number', 'fees.student_number')
+        .innerJoin('rooms', 'rooms.id', 'assignments.room_id')
+        .where('rooms.accommodation_id', accommodationId)
+        .whereNull('assignments.actual_move_out')
+    }
+
+    const rows = await query
       .select(
         'fees.id',
         'fees.student_number',

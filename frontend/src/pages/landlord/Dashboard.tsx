@@ -385,8 +385,9 @@ export default function Dashboard() {
   }, [accLoaded, accommodation, navigate]);
 
   const { data: revenue } = useQuery<RevenueData>({
-    queryKey: ["landlord-revenue"],
-    queryFn: () => api.get("/reports/revenue").then((r) => r.data),
+    queryKey: ["landlord-revenue", accommodationId],
+    queryFn: () => api.get("/reports/revenue", { params: { accommodationId } }).then((r) => r.data),
+    enabled: !!accommodationId,
   });
 
   const { data: applications = [], isLoading: appsLoading, refetch: refetchApps } = useQuery<Application[]>({
@@ -410,8 +411,9 @@ export default function Dashboard() {
   });
 
   const { data: delinquent = [], isLoading: feesLoading } = useQuery({
-    queryKey: ["landlord-delinquency"],
-    queryFn: () => api.get("/reports/delinquency").then((r) => r.data),
+    queryKey: ["landlord-delinquency", accommodationId],
+    queryFn: () => api.get("/reports/delinquency", { params: { accommodationId } }).then((r) => r.data),
+    enabled: !!accommodationId,
   });
 
   const { data: facilityDocs = [] } = useQuery<{ id: number; requirementName: string; acceptedFormat: string }[]>({

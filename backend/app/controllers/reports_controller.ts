@@ -21,15 +21,23 @@ export default class ReportsController {
 
   // ─── LANDLORD: VIEW REVENUE PROJECTIONS ───
   // GET /reports/revenue
-  async revenue({ auth, response }: HttpContext) {
-    const data = await ReportService.getRevenueProjections(auth.user!)
+  async revenue({ auth, request, response }: HttpContext) {
+    const accommodationId = request.input('accommodationId')
+    const data = await ReportService.getRevenueProjections(
+      auth.user!,
+      accommodationId ? Number(accommodationId) : undefined
+    )
     return response.ok(data)
   }
 
   // ─── LANDLORD: VIEW UNPAID STUDENTS ───
   // GET /reports/delinquency
-  async delinquency({ auth, response }: HttpContext) {
-    const data = await ReportService.getDelinquentStudents(auth.user!)
+  async delinquency({ auth, request, response }: HttpContext) {
+    const accommodationId = request.input('accommodationId')
+    const data = await ReportService.getDelinquentStudents(
+      auth.user!,
+      accommodationId ? Number(accommodationId) : undefined
+    )
     return response.ok(data)
   }
 
