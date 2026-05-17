@@ -15,11 +15,15 @@ import Accommodation from '#models/accommodation'
 import FileMetadata from '#models/file_metadatum'
 import ApplicationDocument from '#models/application_document'
 import DocumentRequirement from '#models/document_requirement'
+import NotificationService from '#services/notification_service'
 
 @inject()
 export default class ApplicationsController {
-  constructor(protected waitlistService: WaitlistWorkflowService) {}
-
+  constructor(
+    protected waitlistService: WaitlistWorkflowService,
+    protected notificationService: NotificationService
+  ) {}
+  
   // ─── STUDENT: CONFIRM ASSIGNMENT (accept or reject room assignment) ───
   async confirmAssignment({ auth, params, request, response }: HttpContext) {
     const user = auth.user!
@@ -241,7 +245,19 @@ export default class ApplicationsController {
       }
     }
 
-    const accommodation = await Accommodation.find(accommodationId)
+    const accommodation = await Accommodation.query()
+      .where('id', accommodationId)
+      .preload('manager', (q) => q.preload('user'))
+      .first()
+
+    // send a notification to the dorm manager about a new application
+    if (accommodation?.manager?.user) {
+      await this.notificationService.notify(
+        accommodation.manager.user.id,
+        'application_status',
+        `${user.fname} ${user.lname} submitted an application for ${accommodation.accommodationName}.`
+      )
+    }
 
     const detail = `${user.fname} ${user.lname} submitted an application to ${accommodation?.accommodationName}`
 
@@ -395,6 +411,8 @@ async updateStatus({ auth, request, params, response }: HttpContext) {
     })
   }
 
+  const studentUser = applicationObject.student.user
+
   // Manager approval
   if (user.role === 'manager') {
     if (applicationObject.accommodation.managerId !== user.id) {
@@ -412,6 +430,20 @@ async updateStatus({ auth, request, params, response }: HttpContext) {
       applicationObject.rejectionReason = rejection_reason
     }
     await applicationObject.save()
+
+    if (action === "approve") {
+      await this.notificationService.notify(
+        studentUser.id,
+        'application_status',
+        `Your application to ${applicationObject.accommodation.accommodationName} has been approved by the manager, pending landlord approval.`
+      )
+    } else {
+      await this.notificationService.notify(
+        studentUser.id,
+        'application_status',
+        `Your application to ${applicationObject.accommodation.accommodationName} has been rejected by the manager.`
+      )
+    }
 
     const detail = action === 'approve'
       ? `Manager approved application #${applicationObject.id} for ${applicationObject.student.user.fname} ${applicationObject.student.user.lname}`
@@ -438,6 +470,11 @@ async updateStatus({ auth, request, params, response }: HttpContext) {
       applicationObject.rejectionReason = rejection_reason
       await applicationObject.save()
       await LogService.record(user.id, 'application', applicationObject.id, 'LANDLORD_REJECTED')
+      await this.notificationService.notify(
+        studentUser.id,
+        'application_status',
+        `Your application to ${applicationObject.accommodation.accommodationName} has been rejected by the landlord.`
+      )
       return response.ok(applicationObject)
     }
 
@@ -465,6 +502,21 @@ async updateStatus({ auth, request, params, response }: HttpContext) {
       updatedApp.applicationStatus === 'rejected' ? 'LANDLORD_REJECTED' :
       'LANDLORD_APPROVED',
       detail)
+
+    // notify student based on action on application
+    if (updatedApp.applicationStatus === "waitlisted") {
+      await this.notificationService.notify(
+        studentUser.id,
+        'application_status',
+        `You have been waitlisted to ${updatedApp.accommodation.accommodationName}, waiting for rooms to become available.`
+      )
+    } else {
+      await this.notificationService.notify(
+        studentUser.id,
+        'application_status',
+        `Your application to ${applicationObject.accommodation.accommodationName} has been accepted by the landlord. Wait for your room assignment.`
+      )
+    }
 
     return response.ok(updatedApp)
   }
@@ -607,6 +659,13 @@ async confirmSlot({ auth, params, response }: HttpContext) {
   }
 
   await LogService.record(user.id, 'application', app.id, 'STUDENT_CONFIRMED_SLOT')
+
+  await this.notificationService.notify(
+    user.id,
+    'application_status',
+    `Your slot at ${room.roomBuilding} Room ${room.roomNumber} has been confirmed.`
+  )
+
   return response.ok(app)
 }
   // ─── VIEW ENROLLMENT PROOF ───────────────────────────────────
@@ -633,6 +692,35 @@ async confirmSlot({ auth, params, response }: HttpContext) {
     return { url: signedUrl }
   }
 
+  // ─── VIEW A DOCUMENT ───────────────────────────────────
+  async viewDocument({ params, response }: HttpContext) {
+    const application = await Application.query()
+      .where('id', params.id)
+      .preload('documents', (query) => {
+        query.where('requirementName', params.documentName).preload('file')
+      })
+      .firstOrFail()
+
+    const document = application.documents[0]
+    if (!document || !document.file) {
+      return response.notFound({ message: 'Requested document not found' })
+    }
+
+    const filePath = document.file.filePath
+
+    let key: string
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      const url = new URL(filePath)
+      key = decodeURIComponent(url.pathname.substring(1))
+    } else {
+      key = filePath.replace(/^\//, '')
+    }
+
+    const signedUrl = await drive.use('s3').getSignedUrl(key, { expiresIn: '5 minutes' })
+
+    return { url: signedUrl }
+  }
+
   // ─── MANAGER: VIEW APPLICATIONS (TESTER) ─────────────────────
   async viewApplications({ response }: HttpContext) {
     const applications = await Application.query()
@@ -652,6 +740,7 @@ async confirmSlot({ auth, params, response }: HttpContext) {
         .whereHas('accommodation', (q) => q.where('managerId', user.id))
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
+        .preload('documents')
         .orderBy('applicationDate', 'asc')
 
       return response.ok(applications)

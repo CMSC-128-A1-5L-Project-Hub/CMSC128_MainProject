@@ -67,8 +67,29 @@ const verifyPayment = async ({ id, action }: { id: number; action: 'approve' | '
   return res.data
 }
 
+const sendReminder = async ({ feeId, studentNumber, feeCategory, amount, dueDate }: { 
+  feeId: number; 
+  studentNumber: string; 
+  feeCategory: string; 
+  amount: number; 
+  dueDate: string 
+}) => {
+  const res = await api.post(`/fees/${feeId}/reminder`, {
+    studentNumber,
+    feeCategory,
+    amount,
+    dueDate
+  })
+  return res.data
+}
+
 // ─── Overdue Fee Modal Content ─────────────────────────────────────────────
-function OverdueFeeModalContent({ fee, onClose }: { fee: OverdueFee; onClose: () => void }) {
+function OverdueFeeModalContent({ fee, onClose, onSendReminder, isSending }: { 
+  fee: OverdueFee; 
+  onClose: () => void; 
+  onSendReminder: () => void;
+  isSending: boolean;
+}) {
   return (
     <Card className="!p-0">
       <div className="flex flex-col gap-6 p-6">
@@ -178,8 +199,12 @@ function OverdueFeeModalContent({ fee, onClose }: { fee: OverdueFee; onClose: ()
           <Button variant="secondary" onClick={onClose}>
             Close
           </Button>
-          <Button variant="primary" onClick={() => {}}>
-            Send Reminder
+          <Button 
+            variant="primary" 
+            onClick={onSendReminder} 
+            disabled={isSending}
+          >
+            {isSending ? "Sending..." : "Send Reminder"}
           </Button>
         </div>
       </div>
@@ -391,9 +416,10 @@ export default function FeesPage() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
 
-  // ── FIX: separate open flag from selected fee ──
+  // Overdue fee modal state
   const [selectedFee, setSelectedFee] = useState<OverdueFee | null>(null)
   const [feeModalOpen, setFeeModalOpen] = useState(false)
+  const [isSendingReminder, setIsSendingReminder] = useState(false)
 
   const handleViewFee = (fee: OverdueFee) => {
     setSelectedFee(fee)
@@ -401,10 +427,46 @@ export default function FeesPage() {
   }
 
   const handleCloseFeeModal = () => {
-    setFeeModalOpen(false)                      // triggers exit animation
-    setTimeout(() => setSelectedFee(null), 350) // clears content after animation completes
+    setFeeModalOpen(false)
+    setTimeout(() => setSelectedFee(null), 350)
   }
-  // ───────────────────────────────────────────────
+
+  // Send reminder mutation
+  const sendReminderMutation = useMutation({
+    mutationFn: sendReminder,
+    onSuccess: () => {
+      setToast({
+        show: true,
+        type: "success",
+        title: "Reminder Sent",
+        message: `A payment reminder has been sent to ${selectedFee?.fname} ${selectedFee?.lname}.`
+      })
+      handleCloseFeeModal()
+    },
+    onError: (error: any) => {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Failed to Send Reminder",
+        message: error.response?.data?.message || "Could not send the payment reminder."
+      })
+    },
+    onSettled: () => {
+      setIsSendingReminder(false)
+    }
+  })
+
+  const handleSendReminder = () => {
+    if (!selectedFee) return
+    setIsSendingReminder(true)
+    sendReminderMutation.mutate({
+      feeId: selectedFee.id,
+      studentNumber: selectedFee.student_number,
+      feeCategory: selectedFee.fee_category,
+      amount: selectedFee.fee_balance,
+      dueDate: selectedFee.due_date
+    })
+  }
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('Payment Verification')
   const [itemsPerPage, setItemsPerPage] = useState(6)
@@ -598,12 +660,16 @@ export default function FeesPage() {
                   </thead>
                   <tbody>
                     {loadingPayments ? (
-                      <tr><td colSpan={4} className="text-center py-16 text-gray-400">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
-                        Loading...
-                      </td></tr>
+                      <tr>
+                        <td colSpan={4} className="text-center py-16 text-gray-400">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
+                          Loading...
+                        </td>
+                      </tr>
                     ) : filteredPayments.length === 0 ? (
-                      <tr><td colSpan={4} className="text-center py-16 text-gray-400">No pending payments.</td></tr>
+                      <tr>
+                        <td colSpan={4} className="text-center py-16 text-gray-400">No pending payments.</td>
+                      </tr>
                     ) : (
                       filteredPayments.map((payment) => (
                         <PaymentRow
@@ -667,15 +733,18 @@ export default function FeesPage() {
                   </thead>
                   <tbody>
                     {loadingFees ? (
-                      <tr><td colSpan={4} className="text-center py-16 text-gray-400">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
-                        Loading...
-                      </td></tr>
+                      <tr>
+                        <td colSpan={4} className="text-center py-16 text-gray-400">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
+                          Loading...
+                        </td>
+                      </tr>
                     ) : paginatedFees.length === 0 ? (
-                      <tr><td colSpan={4} className="text-center py-16 text-gray-400">No overdue fees.</td></tr>
+                      <tr>
+                        <td colSpan={4} className="text-center py-16 text-gray-400">No overdue fees.</td>
+                      </tr>
                     ) : (
                       paginatedFees.map((fee) => (
-                        // ── FIX: use handleViewFee instead of setSelectedFee directly ──
                         <OverdueRow key={fee.id} fee={fee} onView={handleViewFee} />
                       ))
                     )}
@@ -696,7 +765,7 @@ export default function FeesPage() {
         </main>
       </div>
 
-      {/* Overdue Fee Modal — FIX: open driven by feeModalOpen, content stays alive during exit animation */}
+      {/* Overdue Fee Modal */}
       <Modal
         open={feeModalOpen}
         onClose={handleCloseFeeModal}
@@ -706,7 +775,12 @@ export default function FeesPage() {
         maxHeight={650}
       >
         {selectedFee && (
-          <OverdueFeeModalContent fee={selectedFee} onClose={handleCloseFeeModal} />
+          <OverdueFeeModalContent 
+            fee={selectedFee} 
+            onClose={handleCloseFeeModal}
+            onSendReminder={handleSendReminder}
+            isSending={isSendingReminder}
+          />
         )}
       </Modal>
 

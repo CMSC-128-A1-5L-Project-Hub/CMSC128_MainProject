@@ -502,13 +502,14 @@ export default function Waitlist() {
                             { label: "20", href: "" },
                         ]}
                         direction='down'
-                        widthClass="w-29 lg:w-32"
+                        widthClass="w-29 lg:w-33"
                         titleClass="text-[10px] lg:text-[11px]"
                         selectedClass="text-[12px] lg:text-[13px]"
                         onSelect={(label) => {
                             setItemsPerPage(Number(label))
                             setCurrentPage(1)
                         }}
+                        flexDirection="row"
                     />
                 </div>
                 
@@ -633,7 +634,7 @@ export default function Waitlist() {
             <div className={`${filtered.length === 0 ? "hidden" : "flex"} items-center justify-between px-4 py-3 mt-auto border-[#6B0F2B]/10 border-t`}>
                 <p className="text-xs text-[#9A7080]">
                 {filtered.length === 0
-                    ? "No results"
+                    ? ""
                     : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, filtered.length)} of ${filtered.length}`}
                 </p>
                 <div className="flex items-center justify-center gap-1">

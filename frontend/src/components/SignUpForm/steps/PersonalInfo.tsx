@@ -2,18 +2,41 @@ import FormField from "../shared/FormField";
 import FormSelect from "../shared/FormSelect";
 import PhoneNumber from "../shared/PhoneNumber";
 import Button from "../../Button";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function PersonalInfo({ role, data, setData, nextStep }: any) {
     const [errors, setErrors] = useState<Record<string,string>>({})
     
-    // Track if last name was NOT pre-filled by Google
-    const [missingGoogleLastName] = useState(!data.lastName || data.lastName === "");
+    // Store initial values from Google when component first mounts
+    // This persists even when navigating back
+    const initialValues = useRef({
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
+        email: data.email || ""
+    })
+    
+    // Determine which fields were pre-filled by Google
+    // These should remain disabled forever
+    const isGooglePrefilled = {
+        firstName: !!initialValues.current.firstName,
+        lastName: !!initialValues.current.lastName, // true if Google provided a last name (even if empty string?)
+        email: !!initialValues.current.email
+    }
+    
+    // Special case: if Google provided empty string for last name, it means user has no surname
+    // The field should be disabled but NOT have the "Last Name" label (maybe use "Surname (if any)"?)
+    const hasNoSurname = initialValues.current.lastName === "" && isGooglePrefilled.lastName === false
     
     const handleChange = (e:any) => {
+        const fieldName = e.target.name
+        // Prevent editing of Google pre-filled fields
+        if (fieldName === "firstName" && isGooglePrefilled.firstName) return
+        if (fieldName === "lastName" && isGooglePrefilled.lastName) return
+        if (fieldName === "email" && isGooglePrefilled.email) return
+        
         setData({
             ...data,
-            [e.target.name]: e.target.value
+            [fieldName]: e.target.value
         })
     }
 
@@ -66,17 +89,17 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 onChange={handleChange}
                 placeholder="First Name"
                 className="col-span-5"
-                disabled={!!data.firstName}
+                disabled={isGooglePrefilled.firstName}
             />
 
             <FormField
-                label="Last Name"
+                label={hasNoSurname ? "Last Name (if any)" : "Last Name"}
                 name="lastName"
                 value={data.lastName}
                 onChange={handleChange}
-                placeholder={missingGoogleLastName ? "" : "Last Name"}
+                placeholder={hasNoSurname ? "No surname provided" : "Last Name"}
                 className="col-span-5"
-                disabled={missingGoogleLastName} 
+                disabled={isGooglePrefilled.lastName || hasNoSurname}
             />
 
             <FormField 
@@ -96,7 +119,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 onChange={handleChange}
                 placeholder="username@up.edu.ph"
                 className={role === "manager" ? "col-span-6" : "col-span-7"}
-                disabled={true}
+                disabled={isGooglePrefilled.email}
             />
 
             {role === "landlord" && (

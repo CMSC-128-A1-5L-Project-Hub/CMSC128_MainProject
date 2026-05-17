@@ -153,6 +153,9 @@ router
         router.post('/landlord/accommodations/:id/document-requirements', [controllers.Accommodation, 'addDocumentRequirement'])
         router.delete('/landlord/accommodations/:id/document-requirements/:reqId', [controllers.Accommodation, 'removeDocumentRequirement'])
 
+        // Fees Reminder
+        router.post('/fees/:id/reminder', [controllers.Fees, 'sendReminder'])
+
         // Transient booking verification (landlord)
         router.patch('/transient-bookings/:id/verify', [controllers.TransientBooking, 'verify'])
 
@@ -176,6 +179,7 @@ router
         router.patch('/applications/:id/review', [controllers.Application, 'updateStatus'])
         router.get('/applications/:id/enrollment-proof', [controllers.Application, 'viewEnrollmentProof'])
         router.get('/applications/:id/documents', [controllers.Application, 'viewDocuments'])
+        router.get('/applications/:id/documents/:documentName', [controllers.Application, 'viewDocument'])
         router.get('/manager/applications/approved', [controllers.Application, 'approvedForAssignment'])
 
         // Manager dashboard

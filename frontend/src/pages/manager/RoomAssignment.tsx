@@ -512,13 +512,14 @@ export default function RoomAssignment() {
                                   { label: "20", href: "" },
                               ]}
                               direction='down'
-                              widthClass="w-29 lg:w-32"
+                              widthClass="w-29 lg:w-33"
                               titleClass="text-[10px] lg:text-[11px]"
                               selectedClass="text-[12px] lg:text-[13px]"
                               onSelect={(label) => {
                                   setItemsPerPage(Number(label))
                                   setCurrentPage(1)
                               }}
+                              flexDirection="row"
                           />
                       </div>
                       
@@ -586,7 +587,7 @@ export default function RoomAssignment() {
                     </div>
                   </div>
                   
-                  <div className="flex-1 min-h-0 flex flex-col items-center justify-center">
+                  <div className="flex-1 min-h-0 flex flex-col">
                       <div className={`${allAssignments.length === 0 ? "flex" : "hidden"} flex-col justify-center w-full items-center text-center`}>
                         <p className="text-[#9A7080] font-medium text-lg">No assignments found</p>
                         <p className="text-[#9A7080]/60 text-sm mt-1">When somebody gets approved, they will appear here</p>

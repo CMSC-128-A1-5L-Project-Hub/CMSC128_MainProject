@@ -13,9 +13,13 @@ import Dropdown from "@/components/ApplicationStatus/Dropdown";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/ApplicationStatus/Pagination";
 
+
+
 import StylizedStatus from "@/components/BillingDashboard/StylizedStatus";
 import { DateTime } from 'luxon';
 import Button from "@/components/Button";
+
+import type { Application } from "@/interfaces/application";
 
 const rowStyles: Record<string, { bg: string; text: string }> = {
   approved:     { bg: '#1A7A4A', text: '#000000' },
@@ -61,134 +65,7 @@ const CLR = {
   ],
 } as const;
 
-type Status = "approved" | "pending" | "waitlisted" | "cancelled" | "rejected" | "under_review";
-
-interface User {
-  id: number;
-  accountStatus: string | null;
-  email: string;
-  facebookAccount: string | null;
-  fname: string;
-  mname: string | null;
-  lname: string;
-  suffix: string | null;
-  role: string;
-  otpCode: string | null;
-  otpExpiresAt: string | null;
-  pfpFileId: number | null;
-}
-
-interface Student {
-  studentNumber: string;
-  userId: number;
-  phone: number;
-  college: string;
-  degreeProgram: string;
-  gender: string;
-  yearLevel: string | null;
-  emergencyContactName: string | null;
-  emergencyContactNumber: string | null;
-  enrollmentProofFileId: number;
-  form5Renewal: boolean | null;
-  user: User;
-}
-
-interface Accommodation {
-  id: number;
-  landlordId: number;
-  managerId: number | null;
-  accommodationName: string;
-  accommodationType: string;
-  accommodationLocation: string;
-  latitude: string | null;
-  longitude: string | null;
-  accommodationCapacity: number;
-  status: string | null;
-  tenantRestriction: string;
-  businessPermitId: number;
-  primaryImageIndex: number | null;
-  applicationStartDate: string | null;
-  applicationEndDate: string | null;
-  walkingDistance: number | null;
-  bikingDistance: number | null;
-  drivingDistance: number | null;
-  invitedManagerEmail: string | null;
-}
-
-interface ApplicationResponse {
-  id: number;
-  accommodationId: number;
-  studentNumber: string;
-  applicationDate: string;
-  applicationRoomType: string;
-  applicationStayType: string;
-  applicationStatus: Status;
-  durationOfStayDays: number;
-  accommodation: Accommodation;
-  student: Student;
-}
-
-const mockApplications: ApplicationResponse[] = [
-  {
-    id: 1,
-    accommodationId: 1,
-    studentNumber: "2021-12345",
-    applicationDate: "2026-03-12T13:00:00Z",
-    applicationRoomType: "Shared Room",
-    applicationStayType: "Transient",
-    applicationStatus: "approved",
-    durationOfStayDays: 120,
-    accommodation: {
-      id: 1,
-      landlordId: 1,
-      managerId: null,
-      accommodationName: "Building 5",
-      accommodationType: "Dorm",
-      accommodationLocation: "Campus",
-      latitude: null,
-      longitude: null,
-      accommodationCapacity: 100,
-      status: "active",
-      tenantRestriction: "none",
-      businessPermitId: 1,
-      primaryImageIndex: null,
-      applicationStartDate: null,
-      applicationEndDate: null,
-      walkingDistance: null,
-      bikingDistance: null,
-      drivingDistance: null,
-      invitedManagerEmail: null,
-    },
-    student: {
-      studentNumber: "2021-12345",
-      userId: 1,
-      phone: 9171234567,
-      college: "CAS",
-      degreeProgram: "BSCS",
-      gender: "Female",
-      yearLevel: "3rd Year",
-      emergencyContactName: null,
-      emergencyContactNumber: null,
-      enrollmentProofFileId: 1,
-      form5Renewal: false,
-      user: {
-        id: 1,
-        accountStatus: "active",
-        email: "ana@test.com",
-        facebookAccount: null,
-        fname: "Ana",
-        mname: null,
-        lname: "Reyes",
-        suffix: null,
-        role: "student",
-        otpCode: null,
-        otpExpiresAt: null,
-        pfpFileId: null,
-      },
-    },
-  },
-  
-];
+type Status = Application['applicationStatus']
 
 const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> = {
   approved: { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" },
@@ -270,8 +147,8 @@ export default function ApplicationsPage() {
   const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [selectedApp, setSelectedApp] = useState<ApplicationResponse | null>(null);
-  const [rejectingApp, setRejectingApp] = useState<ApplicationResponse | null>(null);
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [rejectingApp, setRejectingApp] = useState<Application | null>(null);
   const [appStatuses, setAppStatuses] = useState<Record<number, Status>>({});
   const [rejectionRemarks, setRejectionRemarks] = useState<Record<number, string>>({});
 
@@ -283,13 +160,10 @@ export default function ApplicationsPage() {
     queryKey: ["me"],
     queryFn: async () => {
       const res = await api.get("/me");
-      console.log(res.data)
+      // console.log(res.data)
       return res.data;
     },
   });
-
-  //used mock data for buttons -- paki change na lang 
-  const USE_MOCK = false;
 
   const {
     data: apiData = [],
@@ -302,16 +176,15 @@ export default function ApplicationsPage() {
       const res = await api.get("/applications/view-applicants");
       return res.data;
     },
-    enabled: !USE_MOCK,
   });
 
-  const applications: ApplicationResponse[] = USE_MOCK ? mockApplications : apiData;
+  const applications: Application[] = apiData;
 
   const total = useMemo(() => applications.length, [applications]);
 
   const counts = useMemo(
     () =>
-      applications.reduce((acc: Record<string, number>, a: ApplicationResponse) => {
+      applications.reduce((acc: Record<string, number>, a: Application) => {
         const s = a.applicationStatus || "unknown";
         acc[s] = (acc[s] || 0) + 1;
         return acc;
@@ -319,21 +192,19 @@ export default function ApplicationsPage() {
     [applications]
   );
 
-  
-
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    const res = applications.filter((a: ApplicationResponse) => {
-      const fullName = `${a.student.user.fname} ${a.student.user.lname}`.toLowerCase();
+    const res = applications.filter((a: Application) => {
+      const fullName = `${a.student?.user?.fname} ${a.student?.user?.lname}`.toLowerCase();
       return (
         fullName.includes(q) ||
-        a.student.user.lname.toLowerCase().includes(q) ||
-        a.accommodation.accommodationType.toLowerCase().includes(q) ||
-        a.accommodation.accommodationName.toLowerCase().includes(q)
+        a.student?.user?.lname.toLowerCase().includes(q) ||
+        a.accommodation?.accommodationType.toLowerCase().includes(q) ||
+        a.accommodation?.accommodationName.toLowerCase().includes(q)
       );
     });
 
-    return res.sort((a: ApplicationResponse, b: ApplicationResponse) => {
+    return res.sort((a: Application, b: Application) => {
         const diff = new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime();
         if (sortBy === "earliest") return diff;
         if (sortBy === "latest") return -diff;
@@ -341,7 +212,7 @@ export default function ApplicationsPage() {
     });
   }, [search, sortBy, applications]);
   
-  const getAppStatus = (app: ApplicationResponse): Status => {
+  const getAppStatus = (app: Application): Status => {
     return appStatuses[app.id] ?? app.applicationStatus;
   };
 
@@ -363,7 +234,7 @@ export default function ApplicationsPage() {
       }
   };
 
-  const handleStartReject = (app: ApplicationResponse) => {
+  const handleStartReject = (app: Application) => {
     setRejectingApp(app);
     setSelectedApp(null);
   };
@@ -407,64 +278,21 @@ export default function ApplicationsPage() {
       }
   };
 
+  
+
   const stats = [
-    {
-      label: "Approved",
-      color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)",
-      text: "#1A7A4A",
-      light_bg: "#F0F7F3",
-      value: counts.approved || 0,
-    },
-    {
-      label: "Pending",
-      color: "linear-gradient(135deg, #C9973A, #E8C37A)",
-      text: "#C9973A",
-      light_bg: "#FEF8EE",
-      value: counts.pending || 0,
-    },
-    {
-      label: "Waitlisted",
-      color: "linear-gradient(135deg, #6B3AB7, #9B6AE7)",
-      text: "#6B3AB7",
-      light_bg: "#F4F0FA",
-      value: counts.waitlisted || 0,
-    },
-    {
-      label: "Under Review",
-      color: "linear-gradient(135deg, #1A7A4A, #2D9A5F)",
-      text: "#1A7A4A",
-      light_bg: "#F0F7F3",
-      value: counts.under_review || 0,
-    },
-    {
-      label: "Cancelled",
-      color: "linear-gradient(135deg, #AA2661, #FDCAE0)",
-      text: "#AE2F67",
-      light_bg: "#FAF0F7",
-      value: counts.cancelled || 0,
-    },
-    {
-      label: "Rejected",
-      color: "linear-gradient(135deg, #9E2040, #C84060)",
-      text: "#9E2040",
-      light_bg: "#FDF0F3",
-      value: counts.rejected || 0,
-    },
+      { label: 'approved', count: counts.approved || 0, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
+
+      { label: 'pending', count: counts.pending || 0, from: '#C9973A', to: '#E8C37A', bg: '#FEF8EE', text: '#C9973A' },
+
+      { label: 'waitlisted', count: counts.waitlisted || 0, from: '#3A6AB7', to: '#7cd3f2', bg: '#EEF4FF', text: '#3A6AB7' },
+
+      { label: 'under review', count: counts.under_review || 0, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
+
+      { label: 'cancelled', count: counts.cancelled || 0, from: '#AA2661', to: '#FDCAE0', bg: '#FAF0F7', text: '#AE2F67' },
+
+      { label: 'rejected', count: counts.rejected || 0, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
   ];
-
-    const stats2 = [
-        { label: 'approved', count: counts.approved || 0, from: '#1A7A4A', to: '#2D9A5F', bg: '#F0F7F3', text: '#1A7A4A' },
-
-        { label: 'pending', count: counts.pending || 0, from: '#C9973A', to: '#E8C37A', bg: '#FEF8EE', text: '#C9973A' },
-
-        { label: 'waitlisted', count: counts.waitlisted || 0, from: '#3A6AB7', to: '#7cd3f2', bg: '#EEF4FF', text: '#3A6AB7' },
-
-        { label: 'under review', count: counts.under_review || 0, from: '#6B3AB7', to: '#9B6AE7', bg: '#F4F0FA', text: '#6B3AB7' },
-
-        { label: 'cancelled', count: counts.cancelled || 0, from: '#AA2661', to: '#FDCAE0', bg: '#FAF0F7', text: '#AE2F67' },
-
-        { label: 'rejected', count: counts.rejected || 0, from: '#9E2040', to: '#C84060', bg: '#FDF0F3', text: '#9E2040' },
-    ];
 
   
   // for pages 
@@ -517,7 +345,7 @@ export default function ApplicationsPage() {
             />
           </div>
 
-          <StatsBanner stats={stats2} total={total} cols={6} />
+          <StatsBanner stats={stats} total={total} cols={6} />
 
           {/* TABLE CARD */}
           <div className="bg-white rounded-2xl p-6 flex flex-col min-h-0 flex-1">
@@ -538,10 +366,11 @@ export default function ApplicationsPage() {
                       { label: "20", href: "" },
                     ]}
                     direction="down"
-                    widthClass="w-29 lg:w-32"
+                    widthClass="w-29 lg:w-35"
                     titleClass="text-[10px] lg:text-[11px]"
                     selectedClass="text-[12px] lg:text-[13px]"
                     onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
+                    flexDirection="row"
                   />
                 </div>
                 <Dropdown
@@ -648,8 +477,8 @@ export default function ApplicationsPage() {
                         <td className="p-2 whitespace-nowrap">
                           {app?.accommodation ? (
                             <>
-                              <p className="font-medium">{app.accommodation.accommodationName}</p>
-                              <p className="text-xs text-gray-400">{app.applicationRoomType}</p>
+                              <p className="font-medium truncate">{app.accommodation.accommodationName}</p>
+                              <p className="text-xs text-gray-400 truncate">{app.applicationRoomType}</p>
                             </>
                           ) : <p className="text-gray-400">Loading...</p>}
                         </td>

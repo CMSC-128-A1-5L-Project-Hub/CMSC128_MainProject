@@ -166,28 +166,31 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
       </Modal>
 
       {/* Table */}
-      <div className={className}>
-        <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-6 shadow-sm w-full h-full flex flex-col">
-          <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
-            <p className="text-[#1A0008] font-bold">Room Assignment</p>
+      <Card className={className}>
+        <div className="w-full h-full flex flex-col">
+          <div className="flex flex-row justify-between w-full pb-2">
+            <p className="text-[#1A0008] font-bold flex flex-col">Room Assignment
+              <span className="italic font-normal text-[11px] lg:text-[12px]">{data.length} total assignments</span>
+            </p>
             <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/room-assignment")}>
               View all →
             </p>
           </div>
-          <div className="overflow-y-auto -mx-0">
-            <table className="w-full min-w-[680px] table-fixed">
-              <thead className="tracking-widest">
-                <tr className="border-b border-[#F5ECF0] uppercase">
-                  <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-56">Student</th>
-                  <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-48">Room</th>
-                  <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-28">Move-in</th>
-                  <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-48">Status</th>
-                  <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-44">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.length > 0 ? (
-                  data.map((assignment, i) => (
+
+          {data.length > 0 ? (
+            <div className="overflow-x-auto border-t border-[#F5ECF0]">
+              <table className="w-full min-w-[680px] table-fixed">
+                <thead className="tracking-widest">
+                  <tr className="border-b border-[#F5ECF0] uppercase">
+                    <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-56">Student</th>
+                    <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-48">Room</th>
+                    <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-28">Move-in</th>
+                    <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-48">Status</th>
+                    <th className="text-[#9A7080] text-xs font-bold p-1 truncate text-left w-44">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((assignment, i) => (
                     <tr key={i} className="border-b border-[#F5ECF0]/50 last:border-0">
                       <td className="p-1 py-2">
                         <div className="flex flex-row items-center">
@@ -242,17 +245,17 @@ export default function ConfirmedStudents({ data, allRooms, onAssigned, classNam
                         )}
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="text-center py-4 italic text-gray-500">Nothing to see here</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
+          ) : (
+            <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+              <p className="text-[#9A7080] font-medium text-sm">No assignments found</p>
+            </div>
+          )}
         </div>
+      </Card>
     </>
   )
 }

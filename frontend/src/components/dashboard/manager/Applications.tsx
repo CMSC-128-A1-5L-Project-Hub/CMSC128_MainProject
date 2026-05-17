@@ -14,6 +14,7 @@ import type { TransformedApp } from "../../../stores/useDashboardStore"
 
 type Props = {
   data: TransformedApp[]
+  docs: string[]
   className?: string
   onAction: () => void
   setToast: (t: { show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string }) => void
@@ -67,7 +68,7 @@ function RejectionModal({ open, target, loading, onCancel, onConfirm }: Rejectio
   )
 }
 
-export default function Applications({ data, className = "", onAction, setToast }: Props) {
+export default function Applications({ data, docs, className = "", onAction, setToast }: Props) {
   const navigate = useNavigate()
   const [selectedApplication, setSelectedApplication] = useState<TransformedApp | null>(null)
   const [modalApplication, setModalApplication] = useState<TransformedApp | null>(null)
@@ -219,37 +220,88 @@ export default function Applications({ data, className = "", onAction, setToast 
                     <IoDocumentSharp size={18} color="#6B0F2B" /> Uploaded Documents
                   </p>
                   <div className="flex flex-col gap-2">
-                    {[
-                      { label: "FORM 5", icon: <IoDocumentTextSharp size={16} color="white" /> },
-                      { label: "VALID ID", icon: <IoIdCardSharp size={16} color="white" /> },
-                    ].map((doc) => (
-                      <div key={doc.label} className="flex flex-row items-center justify-between">
-                        <div className="flex flex-row items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                               style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                            {doc.icon}
+                    {docs.map((requirementName) => {
+                      // Determine which icon configuration to use based on the requirement name
+                      const isValidId = requirementName.toUpperCase() === "VALID ID";
+                      const docIcon = isValidId ? (
+                        <IoIdCardSharp size={16} color="white" />
+                      ) : (
+                        <IoDocumentTextSharp size={16} color="white" />
+                      );
+
+                      return (
+                        <div key={requirementName} className="flex flex-row items-center justify-between">
+                          <div className="flex flex-row items-center gap-2">
+                            <div 
+                              className="w-8 h-8 rounded-lg flex items-center justify-center"
+                              style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                            >
+                              {docIcon}
+                            </div>
+                            <p className="text-[#1A0008] text-xs font-semibold">{requirementName}</p>
                           </div>
-                          <p className="text-[#1A0008] text-xs font-semibold">{doc.label}</p>
-                        </div>
-                        <Button variant="reddishPink" size="sm" onClick={async () => {
-                          if (doc.label === "FORM 5") {
-                            try {
-                              const res = await api.get(`/applications/${modalApplication.id}/enrollment-proof`)
-                              if (res.status === 200) {
-                                window.open(res.data.url, '_blank')
+                          
+                          <Button 
+                            variant="reddishPink" 
+                            size="sm" 
+                            onClick={async () => {
+                              // If explicitly "FORM 5", hit the legacy explicit enrollment-proof endpoint
+                              if (requirementName.toUpperCase() === "FORM 5") {
+                                try {
+                                  const res = await api.get(`/applications/${modalApplication.id}/enrollment-proof`)
+                                  if (res.status === 200) {
+                                    window.open(res.data.url, '_blank')
+                                  } else {
+                                    setToast({ 
+                                      show: true, 
+                                      type: "error", 
+                                      title: "Unavailable", 
+                                      message: "Enrollment proof not available." 
+                                    })
+                                  }
+                                } catch (err) {
+                                  console.error(err)
+                                  setToast({ 
+                                    show: true, 
+                                    type: "error", 
+                                    title: "Error", 
+                                    message: "Could not fetch document." 
+                                  })
+                                }
                               } else {
-                                setToast({ show: true, type: "error", title: "Unavailable", message: "Enrollment proof not available." })
+                                // EVERYTHING ELSE (VALID ID and all dynamic custom text names) goes here
+                                try {
+                                  // Safely encodes names with spaces (e.g., "VALID ID" -> "VALID%20ID")
+                                  const secureParam = encodeURIComponent(requirementName)
+                                  const res = await api.get(`/applications/${modalApplication.id}/documents/${secureParam}`)
+                                  
+                                  if (res.status === 200) {
+                                    window.open(res.data.url, '_blank')
+                                  } else {
+                                    setToast({ 
+                                      show: true, 
+                                      type: "error", 
+                                      title: "Unavailable", 
+                                      message: `${requirementName} not available.` 
+                                    })
+                                  }
+                                } catch (err) {
+                                  console.error(err)
+                                  setToast({ 
+                                    show: true, 
+                                    type: "error", 
+                                    title: "Error", 
+                                    message: "Could not fetch document." 
+                                  })
+                                }
                               }
-                            } catch (err) {
-                              console.error(err)
-                              setToast({ show: true, type: "error", title: "Error", message: "Could not fetch document." })
-                            }
-                          } else {
-                            setToast({ show: true, type: "error", title: "Unavailable", message: "Valid ID not yet uploaded." })
-                          }
-                        }}>View</Button>
-                      </div>
-                    ))}
+                            }}
+                          >
+                            View
+                          </Button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -282,14 +334,18 @@ export default function Applications({ data, className = "", onAction, setToast 
 
       {/* Table View */}
       <Card className={className}>
-        <div className="w-full h-full flex flex-col min-w-0">
-          <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
-            <p className="text-[#1A0008] font-bold">Applications</p>
-            <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/applications")}>
-              View all →
-            </p>
-          </div>
-          <div className="overflow-x-auto -mx-0">
+      <div className="w-full h-full flex flex-col min-w-0">
+        <div className="flex flex-row justify-between w-full pb-2">
+          <p className="text-[#1A0008] font-bold flex flex-col">Applications
+            <span className="italic font-normal text-[11px] lg:text-[12px]">{data.length} total applications</span>
+          </p>
+          <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/applications")}>
+            View all →
+          </p>
+        </div>
+
+        {data.length > 0 ? (
+          <div className="overflow-x-auto border-t border-[#F5ECF0]">
             <div className="min-w-[600px] pb-3 xl:pb-0">
               <table className="w-full">
                 <thead>
@@ -301,43 +357,42 @@ export default function Applications({ data, className = "", onAction, setToast 
                   </tr>
                 </thead>
                 <tbody>
-                  {data.length > 0 ? (
-                    data.map((application, idx) => (
-                      <tr key={idx} className="mt-3">
-                        <td className="p-1 py-2">
-                          <div className="flex flex-row items-center">
-                            <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                                style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                              {getInitials(application.student.fullName)}
-                            </div>
-                            <p className="text-black text-sm pl-2 truncate">{application.student.fullName}</p>
+                  {data.map((application, idx) => (
+                    <tr key={idx} className="mt-3">
+                      <td className="p-1 py-2">
+                        <div className="flex flex-row items-center">
+                          <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                              style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                            {getInitials(application.student.fullName)}
                           </div>
-                        </td>
-                        <td className="p-1 py-2">
-                          <p className="text-[#1A0008] text-sm">{application.accommodation.building}</p>
-                          <p className="text-[#9A7080] text-xs capitalize">{application.stayType}</p>
-                        </td>
-                        <td className="p-1 py-2">
-                          <p className="text-[#9A7080] text-sm">{application.applicationDate}</p>
-                        </td>
-                        <td className="p-1 py-2 text-center">
-                          <Button variant="reddishPink" size="sm" onClick={() => openModal(application)}>
-                            Review
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="text-center py-4 italic text-gray-500">Nothing to see here</td>
+                          <p className="text-black text-sm pl-2 truncate">{application.student.fullName}</p>
+                        </div>
+                      </td>
+                      <td className="p-1 py-2">
+                        <p className="text-[#1A0008] text-sm">{application.accommodation.building}</p>
+                        <p className="text-[#9A7080] text-xs capitalize">{application.stayType}</p>
+                      </td>
+                      <td className="p-1 py-2">
+                        <p className="text-[#9A7080] text-sm">{application.applicationDate}</p>
+                      </td>
+                      <td className="p-1 py-2 text-center">
+                        <Button variant="reddishPink" size="sm" onClick={() => openModal(application)}>
+                          Review
+                        </Button>
+                      </td>
                     </tr>
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
-      </Card>
+        ) : (
+          <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+            <p className="text-[#9A7080] font-medium text-sm">No applications found</p>
+          </div>
+        )}
+      </div>
+    </Card>
     </>
   )
 }

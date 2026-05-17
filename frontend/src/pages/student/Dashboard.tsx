@@ -7,9 +7,12 @@ import { api } from "../../api/axios"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import defaultAccommodation from "@/assets/defaults/accommodation.png"
 import CustomHeader from '../../components/CustomHeader';
+import Card from "@/components/ui/Card";
 import Toast from "@/components/Toast";
 import UbleLoader from "../shared/LoadingPage";
 import HeroBanner from "@/components/dashboard/HeroBanner";
+import Button from "@/components/Button";
+import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
 
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
@@ -49,13 +52,13 @@ const formatRating = (value: number | string | null | undefined) =>
   Number(value ?? 0).toFixed(1);
 
 const emptyBilling: BillingOverview = {
-  residenceHall: "-",
-  dueDay: "-",
-  dueMonth: "-",
-  summaryTitle: "No Billing Yet",
-  paidOn: "-",
+  residenceHall: "No Active Residence",
+  dueDay: "",
+  dueMonth: "",
+  summaryTitle: "No Active Billing",
+  paidOn: "",
   amountPaid: 0,
-  nextDue: "-",
+  nextDue: "",
   monthlyRent: 0,
   remainingAmount: 0,
   totalPaid: 0,
@@ -83,15 +86,6 @@ const CLR = {
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type ApplicationStatus = "Approved" | "Pending" | "In Review" | "Rejected" | "Cancelled" | "Waitlisted" | "Confirmed";
-
-interface Application {
-  id: number;
-  dorm: string;
-  type: string;
-  applied: string;
-  location: string;
-  status: ApplicationStatus;
-}
 
 interface BillingStatement {
   id: number;
@@ -807,6 +801,9 @@ export default function Dashboard() {
   fetchProfile();
 }, []);
 
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+
 useEffect(() => {
     // redirect if they are NOT logged in, if query finished, but user is null
     if (!isUserLoading && !user) {
@@ -1077,6 +1074,12 @@ if (!profile || !user || user.role !== "student") {
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
   return (
+    <>
+      <ApplicationStatusModal
+        open={viewOpen}
+        onClose={() => { setViewOpen(false); setSelectedApp(null); }}
+        application={selectedApp}
+      />
       <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
 
         {/* Main content */}
@@ -1093,104 +1096,95 @@ if (!profile || !user || user.role !== "student") {
               type="full"
             />
 
-            <div className="bg-white rounded-[22px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
-                <h3 className="font-semibold text-gray-900 text-base">My Applications</h3>
-              <button
-                type="button"
-                onClick={() => navigate('/student/applications')}
-                className="text-sm font-bold hover:underline my-auto flex items-center gap-1"
-                style={{ color: CLR.mid }}
-              >
-                View all <IconChevronRight className="w-4 h-4" />
-              </button>
-              </div>
+            <Card>
+              <div className="w-full h-full flex flex-col">
+                <div className="flex items-center justify-between pb-2">
+                  <p className="font-bold text-[#1A0008] flex flex-col">My Applications
+                    <span className="italic font-normal text-[11px] lg:text-[12px]">{applications.length} application/s found</span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/student/applications')}
+                    className="text-sm font-bold hover:underline my-auto flex items-center gap-1"
+                    style={{ color: CLR.mid }}
+                  >
+                    View all <IconChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
 
-              <div className="overflow-x-auto p-4">
-                <table className="w-full text-sm min-w-[540px] border-b -mt-1 border-[#6B0F2B]/10">
-                  <thead>
-                    <tr className="border-y border-[#6B0F2B]/10">
-                      {["DORM", "TYPE", "APPLIED", "LOCATION", "STATUS", "ACTION"].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 text-left text-[#9A7080] text-[12px] tracking-widest font-bold uppercase whitespace-nowrap"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {applications.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="px-6 py-10 text-center text-gray-500"
-                        >
-                          <div className="flex flex-col items-center gap-2">
-                            <p className="text-[#9A7080] font-medium">
-                              No current applications
-                            </p>
-                            <p className="text-[#9A7080]/60 text-sm mt-1">
-                              Browse accommodations and apply to get started.
-                            </p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      applications.map((app: any) => (
-                        <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 sm:px-6 py-3 sm:py-4">
-                            <div className="flex items-center gap-2.5">
-                              <div
-                                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0"
-                                style={{ background: CLR.mid }}
-                              />
-                              <span className="font-medium text-[#2A0410] whitespace-nowrap">
-                                {app.accommodation?.accommodationName}
-                              </span>
-                            </div>
-                          </td>
-
-                          <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
-                            {formatStayType(app.applicationStayType)}
-                          </td>
-
-                          <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
-                            {formatDate(app.applicationDate)}
-                          </td>
-
-                          <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
-                            {capitalize(app.accommodation?.accommodationType)}
-                          </td>
-
-                          <td className="px-4 sm:px-6 py-3 sm:py-4">
-                            <StatusBadge
-                                status={
-                                    app.applicationStatus === "approved" ? "Approved"
-                                    : app.applicationStatus === "pending" ? "Pending"
-                                    : app.applicationStatus === "under_review" ? "In Review"
-                                    : app.applicationStatus === "rejected" ? "Rejected"
-                                    : app.applicationStatus === "cancelled" ? "Cancelled"
-                                    : app.applicationStatus === "waitlisted" ? "Waitlisted"
-                                    : app.applicationStatus === "confirmed" ? "Confirmed"
-                                    : "Pending" // fallback
-                                }
-                            />
-                          </td>
-
-                          <td className="px-4 sm:px-6 py-3 sm:py-4">
-                            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                              <IconMoreHorizontal />
-                            </button>
-                          </td>
+                {applications.length > 0 ? (
+                  <div className="overflow-x-auto border-t border-[#6B0F2B]/10">
+                    <table className="w-full text-sm min-w-[540px]">
+                      <thead>
+                        <tr className="border-y border-[#6B0F2B]/10">
+                          {["DORM", "TYPE", "APPLIED", "LOCATION", "STATUS", "ACTION"].map((h) => (
+                            <th
+                              key={h}
+                              className="px-4 py-2 text-left text-[#9A7080] text-[12px] tracking-widest font-bold uppercase whitespace-nowrap"
+                            >
+                              {h}
+                            </th>
+                          ))}
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {applications.map((app: any) => (
+                          <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="px-4 py-3 sm:py-4">
+                              <div className="flex items-center gap-2.5">
+                                <div
+                                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0"
+                                  style={{ background: CLR.mid }}
+                                />
+                                <span className="font-medium text-[#2A0410] whitespace-nowrap">
+                                  {app.accommodation?.accommodationName}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                              {formatStayType(app.applicationStayType)}
+                            </td>
+                            <td className="px-4 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                              {formatDate(app.applicationDate)}
+                            </td>
+                            <td className="px-4 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                              {capitalize(app.accommodation?.accommodationType)}
+                            </td>
+                            <td className="px-4 py-3 sm:py-4">
+                              <StatusBadge
+                                status={
+                                  app.applicationStatus === "approved" ? "Approved"
+                                  : app.applicationStatus === "pending" ? "Pending"
+                                  : app.applicationStatus === "under_review" ? "In Review"
+                                  : app.applicationStatus === "rejected" ? "Rejected"
+                                  : app.applicationStatus === "cancelled" ? "Cancelled"
+                                  : app.applicationStatus === "waitlisted" ? "Waitlisted"
+                                  : app.applicationStatus === "confirmed" ? "Confirmed"
+                                  : "Pending"
+                                }
+                              />
+                            </td>
+                            <td className="px-4 py-3 sm:py-4">
+                              <Button size="sm" variant="reddishPink" onClick={() => {
+                                setSelectedApp(app);
+                                setViewOpen(true);
+                              }}>
+                                View
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col justify-center items-center text-center py-10">
+                    <p className="text-[#9A7080] font-medium">No current applications</p>
+                    <p className="text-[#9A7080]/60 text-sm mt-1">Browse accommodations and apply to get started.</p>
+                  </div>
+                )}
               </div>
-            </div>
+            </Card>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="sm:col-span-1 lg:col-span-3 bg-white rounded-[28px] shadow-[0_10px_24px_rgba(61,7,24,0.12)] border border-[#EFE5E8] p-6">
@@ -1458,5 +1452,6 @@ if (!profile || !user || user.role !== "student") {
           notifWrapperRef={notifWrapperRef}
         />
       </div>
+    </>
   );
 }

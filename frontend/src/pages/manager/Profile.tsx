@@ -100,7 +100,7 @@ export default function Profile() {
     const fetchProfile = async () => {
       try {
         const res = await api.get("/manager/profile");
-        console.log("MANAGER PROFILE:", res.data);
+        // console.log("MANAGER PROFILE:", res.data);
         const data = res.data;
 
         setProfile({
@@ -245,13 +245,6 @@ if (profileLoading) {
                   {/* Mobile top arrangement */}
                   <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-4 md:grid-cols-[170px_minmax(0,1fr)] lg:block">
                     <div className="relative h-[170px] overflow-hidden rounded-2xl bg-[#F6EDEF] md:h-[220px] lg:h-[280px]">
-                      <button
-                        aria-label="Change photo"
-                        className="absolute left-2 top-2"
-                      >
-                        <img src={Camera} alt="" className="h-6 w-6" />
-                      </button>
-
                       <div className="flex h-full items-center justify-center">
                         <img
                           src={profile.profilePicture?.filePath ?? defaultPfp}

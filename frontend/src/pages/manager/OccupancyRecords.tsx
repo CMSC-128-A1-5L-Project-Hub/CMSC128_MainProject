@@ -110,6 +110,7 @@ const RoomOccupancyDetails = ({ rooms, className }: {rooms:Room[], className?:st
             onClose={closeModal}
             title="View Room Details"
             maxWidth={652}
+            maxHeight="fit-content"
             children={
                 modalRoom && (
                     <Card 
@@ -459,13 +460,14 @@ const OccupancyHistory = ({ records = [], className }: { records?: HistoryRecord
                                 { label: "20", href: "" },
                             ]}
                             direction='down'
-                            widthClass="w-29 lg:w-32"
+                            widthClass="w-29 lg:w-35"
                             titleClass="text-[10px] lg:text-[11px]"
                             selectedClass="text-[12px] lg:text-[13px]"
                             onSelect={(label) => {
                                 setItemsPerPage(Number(label))
                                 setCurrentPage(1)
                             }}
+                            flexDirection="row"
                         />
                     </div>
                     
