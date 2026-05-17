@@ -331,8 +331,8 @@ export default function MoveinMoveout() {
                             <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight whitespace-nowrap">
                               {tableTitle}
                             </h2>
-                            <p className="text-xs text-gray-400">
-                            {filtered.length} total move {filter === "all" ? "outs" : filter === "move-out" ? "outs" : "ins"}
+                            <p className="italic font-normal text-[11px] lg:text-[12px]">
+                            {filtered.length} total {filter === "all" ? "move-ins and move-outs" : filter === "move-out" ? "move-outs" : "move-ins"}
                             </p>
                         </div>
 
