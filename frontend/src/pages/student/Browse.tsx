@@ -93,7 +93,6 @@ export default function BrowsePage() {
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
-            console.log("success", res.data)
             setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
@@ -544,7 +543,6 @@ function DormTile({
         
         if (isToggling) return
         
-        console.log("foobar")
         const newState = !isBookmarked
         setIsToggling(true)
         setBookmarkedMap((prev: Record<number, boolean>) => ({
