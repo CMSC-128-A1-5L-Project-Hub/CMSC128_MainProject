@@ -65,7 +65,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 value={data.firstName}
                 onChange={handleChange}
                 placeholder="First Name"
-                className="col-span-5"
+                className="col-span-12 lg:col-span-5"
                 disabled={!!data.firstName}
             />
 
@@ -75,7 +75,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 value={data.lastName}
                 onChange={handleChange}
                 placeholder={missingGoogleLastName ? "" : "Last Name"}
-                className="col-span-5"
+                className="col-span-9 lg:col-span-5"
                 disabled={missingGoogleLastName} 
             />
 
@@ -85,7 +85,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 value={data.suffix}
                 onChange={handleChange}
                 placeholder="--"
-                className="col-span-2"
+                className="col-span-3 lg:col-span-2"
             />
 
             <FormField 
@@ -95,7 +95,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 value={data.email}
                 onChange={handleChange}
                 placeholder="username@up.edu.ph"
-                className={role === "manager" ? "col-span-6" : "col-span-7"}
+                className={role === "manager" ? "col-span-12 lg:col-span-6" : role === "student" ? "col-span-7" : "col-span-12 lg:col-span-7"}
                 disabled={true}
             />
 
@@ -107,7 +107,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                     value={data.tin}
                     onChange={handleTinChange}
                     placeholder="XXX-XXX-XXX-XXX"
-                    className="col-span-5"
+                    className="col-span-12 lg:col-span-5"
                     error={errors.tin}
                     maxLength={17}
                 />
@@ -136,7 +136,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                     value={data.emergencyName}
                     onChange={handleChange}
                     placeholder="Full Name"
-                    className="col-span-6"
+                    className="col-span-12 lg:col-span-6"
                     error={errors.emergencyName}
                 />
             )}
@@ -147,7 +147,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                     name="emergencyNumber"
                     value={data.emergencyNumber}
                     onChange={handleChange}
-                    className="col-span-6 min-w-0"
+                    className="col-span-12 lg:col-span-6 min-w-0"
                     error={errors.emergencyNumber}
                 />
             )}
@@ -158,7 +158,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 value={data.facebook}
                 onChange={handleChange}
                 placeholder="facebook.com"
-                className={role === "manager" ? "col-span-6" : "col-span-12"}
+                className={role === "manager" ? "col-span-12 lg:col-span-6" : "col-span-12"}
             />
             
         </div>
