@@ -19,22 +19,22 @@ export default function StepIndicator({ steps, currentStep = 1 }: StepIndicatorP
             <div className="relative w-full lg:hidden">
             {/* Per-segment connector lines */}
                 {steps.slice(0, -1).map((step, index) => {
-                    const segmentWidth = 100 / totalSteps;  
-                    const fromCenterPct = segmentWidth / 2 + index * segmentWidth;       //center of left circle
-                    const toCenterPct   = fromCenterPct + segmentWidth;        //center of right circle
-                    const isCompleted   = step.stepNumber < currentStep;
+                    const segmentWidth = 100 / totalSteps;
+                    const fromCenterPct = segmentWidth / 2 + index * segmentWidth;
+                    const toCenterPct = fromCenterPct + segmentWidth;
+                    const isCompleted = step.stepNumber < currentStep;
 
                     return (
                         <div
-                        key={step.stepNumber}
-                        className={`absolute top-[28px] h-[2px] transition-all duration-300 ${
-                            isCompleted ? "bg-[#C9973A]" : "bg-white/20"
-                        }`}
-                        style={{
-                            left:  `calc(${fromCenterPct}% + 28px)`,  //start just after left circle
-                            right: `calc(${100 - toCenterPct}% + 28px)`, //end just before right circle
-                            width: "auto",
-                        }}
+                            key={step.stepNumber}
+                            className={`absolute top-[28px] h-[2px] transition-all duration-300 ${
+                                isCompleted ? "bg-[#C9973A]" : "bg-white/20"
+                            }`}
+                            style={{
+                                left: `calc(${fromCenterPct}% + 28px)`,
+                                right: `calc(${100 - toCenterPct}% + 28px)`,
+                                width: 'auto',
+                            }}
                         />
                     );
                 })}
