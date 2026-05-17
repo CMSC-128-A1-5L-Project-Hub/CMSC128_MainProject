@@ -53,7 +53,7 @@ const PriceRangeSlider = ({
             return DEFAULT_SNAP_POINTS
         }
     
-        const STEP = 1000
+        const STEP = 500
         const START = Math.max(1000, Math.floor(min / STEP) * STEP)
     
         const snaps = Array.from(
