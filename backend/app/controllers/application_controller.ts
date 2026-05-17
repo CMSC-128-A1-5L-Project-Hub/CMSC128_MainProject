@@ -15,11 +15,15 @@ import Accommodation from '#models/accommodation'
 import FileMetadata from '#models/file_metadatum'
 import ApplicationDocument from '#models/application_document'
 import DocumentRequirement from '#models/document_requirement'
+import NotificationService from '#services/notification_service'
 
 @inject()
 export default class ApplicationsController {
-  constructor(protected waitlistService: WaitlistWorkflowService) {}
-
+  constructor(
+    protected waitlistService: WaitlistWorkflowService,
+    protected notificationService: NotificationService
+  ) {}
+  
   // ─── STUDENT: CONFIRM ASSIGNMENT (accept or reject room assignment) ───
   async confirmAssignment({ auth, params, request, response }: HttpContext) {
     const user = auth.user!
@@ -241,7 +245,19 @@ export default class ApplicationsController {
       }
     }
 
-    const accommodation = await Accommodation.find(accommodationId)
+    const accommodation = await Accommodation.query()
+      .where('id', accommodationId)
+      .preload('manager', (q) => q.preload('user'))
+      .first()
+
+    // send a notification to the dorm manager about a new application
+    if (accommodation?.manager?.user) {
+      await this.notificationService.notify(
+        accommodation.manager.user.id,
+        'application_status',
+        `${user.fname} ${user.lname} submitted an application for ${accommodation.accommodationName}.`
+      )
+    }
 
     const detail = `${user.fname} ${user.lname} submitted an application to ${accommodation?.accommodationName}`
 
@@ -370,123 +386,143 @@ export default class ApplicationsController {
   }
 
   // ─── MANAGER/LANDLORD: APPROVE OR REJECT ─────────────────────
-  async updateStatus({ auth, request, params, response }: HttpContext) {
-    const user = auth.user!
-    const { action, rejection_reason } = request.body()
+async updateStatus({ auth, request, params, response }: HttpContext) {
+  const user = auth.user!
+  const { action, rejection_reason } = request.body()
 
-    if (!action || !['approve', 'reject'].includes(action)) {
-      return response.badRequest({ message: 'action must be approve or reject' })
+  if (!action || !['approve', 'reject'].includes(action)) {
+    return response.badRequest({ message: 'action must be approve or reject' })
+  }
+  if (action === 'reject' && !rejection_reason) {
+    return response.badRequest({ message: 'rejection_reason is required when rejecting' })
+  }
+
+  const applicationObject = await Application.query()
+    .where('id', params.id)
+    .preload('accommodation')
+    .preload('student', (q) => q.preload('user'))
+    .firstOrFail()
+
+  if (applicationObject.accommodation.isFrozen) {
+    return response.badRequest({
+      status: 400,
+      error: 'Bad Request',
+      message: 'This accommodation is currently frozen. Applications cannot be processed.',
+    })
+  }
+
+  const studentUser = applicationObject.student.user
+
+  // Manager approval
+  if (user.role === 'manager') {
+    if (applicationObject.accommodation.managerId !== user.id) {
+      return response.forbidden({ message: 'You do not manage this accommodation.' })
     }
-    if (action === 'reject' && !rejection_reason) {
-      return response.badRequest({ message: 'rejection_reason is required when rejecting' })
+    if (applicationObject.applicationStatus !== 'pending') {
+      return response.badRequest({ message: 'Application is not pending.' })
     }
 
-    const applicationObject = await Application.query()
-      .where('id', params.id)
-      .preload('accommodation')
-      .preload('student', (q) => q.preload('user'))
-      .firstOrFail()
+    if (action === 'approve') {
+      applicationObject.applicationStatus = 'under_review'
+      applicationObject.rejectionReason = null
+    } else {
+      applicationObject.applicationStatus = 'rejected'
+      applicationObject.rejectionReason = rejection_reason
+    }
+    await applicationObject.save()
 
-    if (applicationObject.accommodation.isFrozen) {
-      return response.badRequest({
-        status: 400,
-        error: 'Bad Request',
-        message: 'This accommodation is currently frozen. Applications cannot be processed.',
-      })
+    if (action === "approve") {
+      await this.notificationService.notify(
+        studentUser.id,
+        'application_status',
+        `Your application to ${applicationObject.accommodation.accommodationName} has been approved by the manager, pending landlord approval.`
+      )
+    } else {
+      await this.notificationService.notify(
+        studentUser.id,
+        'application_status',
+        `Your application to ${applicationObject.accommodation.accommodationName} has been rejected by the manager.`
+      )
     }
 
-    // Manager approval
-    if (user.role === 'manager') {
-      if (applicationObject.accommodation.managerId !== user.id) {
-        return response.forbidden({ message: 'You do not manage this accommodation.' })
-      }
-      if (applicationObject.applicationStatus !== 'pending') {
-        return response.badRequest({ message: 'Application is not pending.' })
-      }
+    const detail = action === 'approve'
+      ? `Manager approved application #${applicationObject.id} for ${applicationObject.student.user.fname} ${applicationObject.student.user.lname}`
+      : `Manager rejected application #${applicationObject.id} – ${rejection_reason}`
 
-      if (action === 'approve') {
-        applicationObject.applicationStatus = 'under_review'
-        applicationObject.rejectionReason = null
-      } else {
-        applicationObject.applicationStatus = 'rejected'
-        applicationObject.rejectionReason = rejection_reason
-      }
+    await LogService.record(user.id, 'application', applicationObject.id,
+      action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED',
+      detail)
+
+    return response.ok(applicationObject)
+  }
+
+  // Landlord approval
+  if (user.role === 'landlord') {
+    if (applicationObject.accommodation.landlordId !== user.id) {
+      return response.forbidden({ message: 'You do not manage this accommodation.' })
+    }
+    if (applicationObject.applicationStatus !== 'under_review') {
+      return response.badRequest({ message: 'Application is not under review.' })
+    }
+
+    if (action === 'reject') {
+      applicationObject.applicationStatus = 'rejected'
+      applicationObject.rejectionReason = rejection_reason
       await applicationObject.save()
-
-      const detail = action === 'approve'
-        ? `Manager approved application #${applicationObject.id} for ${applicationObject.student.user.fname} ${applicationObject.student.user.lname}`
-        : `Manager rejected application #${applicationObject.id} – ${rejection_reason}`
-
-      await LogService.record(user.id, 'application', applicationObject.id,
-        action === 'approve' ? 'MANAGER_APPROVED' : 'MANAGER_REJECTED',
-        detail)
-
+      await LogService.record(user.id, 'application', applicationObject.id, 'LANDLORD_REJECTED')
+      await this.notificationService.notify(
+        studentUser.id,
+        'application_status',
+        `Your application to ${applicationObject.accommodation.accommodationName} has been rejected by the landlord.`
+      )
       return response.ok(applicationObject)
     }
 
-    // Landlord approval
-    if (user.role === 'landlord') {
-      if (applicationObject.accommodation.landlordId !== user.id) {
-        return response.forbidden({ message: 'You do not manage this accommodation.' })
-      }
-      if (applicationObject.applicationStatus !== 'under_review') {
-        return response.badRequest({ message: 'Application is not under review.' })
-      }
-
-      if (action === 'reject') {
-        applicationObject.applicationStatus = 'rejected'
-        applicationObject.rejectionReason = rejection_reason
-        await applicationObject.save()
-        await LogService.record(user.id, 'application', applicationObject.id, 'LANDLORD_REJECTED')
-        return response.ok(applicationObject)
-      }
-
-      // Conflict prevention: a student may have only one active stay
-      const activeAssignment = await Assignment.query()
-        .where('studentNumber', applicationObject.studentNumber)
-        .whereNull('actualMoveOut')
-        .first()
-      if (activeAssignment) {
-        return response.conflict({ message: 'student already has an active stay, cannot approve' })
-      }
-
-      // approve then use waitlist service, set reviewer info
-      applicationObject.reviewedBy = user.id
-      applicationObject.reviewedAt = DateTime.now()
-      await applicationObject.save()
-      const updatedApp = await this.waitlistService.processApproval(applicationObject.id)
-
-      if (updatedApp.applicationStatus === 'approved') {
-        const now = DateTime.now()
-        
-        // set the exact time it was approved
-        updatedApp.approvedAt = now
-        
-        // dynamically set deadline based on stay type
-        if (updatedApp.applicationStayType === 'transient') {
-          updatedApp.slotConfirmDeadline = now.plus({ hours: 3 })
-        } else {
-          updatedApp.slotConfirmDeadline = now.plus({ days: 7 })
-        }
-        
-        await updatedApp.save()
-      }
-
-      const detail = action === 'approve'
-        ? `Landlord approved application #${applicationObject.id} for ${applicationObject.student.user.fname} ${applicationObject.student.user.lname}`
-        : `Landlord rejected application #${applicationObject.id} – ${rejection_reason}`
-
-      await LogService.record(user.id, 'application', applicationObject.id,
-        updatedApp.applicationStatus === 'waitlisted' ? 'LANDLORD_WAITLISTED' :
-        updatedApp.applicationStatus === 'rejected' ? 'LANDLORD_REJECTED' :
-        'LANDLORD_APPROVED',
-        detail)
-
-      return response.ok(updatedApp)
+    // Conflict prevention: a student may have only one active stay
+    const activeAssignment = await Assignment.query()
+      .where('studentNumber', applicationObject.studentNumber)
+      .whereNull('actualMoveOut')
+      .first()
+    if (activeAssignment) {
+      return response.conflict({ message: 'student already has an active stay, cannot approve' })
     }
 
-    return response.forbidden()
+    // Set reviewer info then delegate to waitlist service
+    // slotConfirmDeadline and roomId are set inside processApproval only when a room is available
+    applicationObject.reviewedBy = user.id
+    applicationObject.reviewedAt = DateTime.now()
+    await applicationObject.save()
+
+    const updatedApp = await this.waitlistService.processApproval(applicationObject.id)
+
+    const detail = `Landlord approved application #${applicationObject.id} for ${applicationObject.student.user.fname} ${applicationObject.student.user.lname}`
+
+    await LogService.record(user.id, 'application', applicationObject.id,
+      updatedApp.applicationStatus === 'waitlisted' ? 'LANDLORD_WAITLISTED' :
+      updatedApp.applicationStatus === 'rejected' ? 'LANDLORD_REJECTED' :
+      'LANDLORD_APPROVED',
+      detail)
+
+    // notify student based on action on application
+    if (updatedApp.applicationStatus === "waitlisted") {
+      await this.notificationService.notify(
+        studentUser.id,
+        'application_status',
+        `You have been waitlisted to ${updatedApp.accommodation.accommodationName}, waiting for rooms to become available.`
+      )
+    } else {
+      await this.notificationService.notify(
+        studentUser.id,
+        'application_status',
+        `Your application to ${applicationObject.accommodation.accommodationName} has been accepted by the landlord. Wait for your room assignment.`
+      )
+    }
+
+    return response.ok(updatedApp)
   }
+
+  return response.forbidden()
+}
 
   // ─── STUDENT: CANCEL APPLICATION ──────────────────────────────
   async cancel({ auth, params, response }: HttpContext) {
@@ -552,6 +588,8 @@ export default class ApplicationsController {
   // After landlord approval, the student has until slotConfirmDeadline to claim
   // the slot. Confirmation stamps slotConfirmedAt; un-claimed slots are later
   // auto-cancelled by the scheduler so the next waitlisted applicant can be promoted.
+// ─── STUDENT: CONFIRM SLOT ───────────────────────────────────
+// After landlord approval AND manager room assignment, the student can confirm
 async confirmSlot({ auth, params, response }: HttpContext) {
   const user = auth.user!
   const student = await Student.findByOrFail('userId', user.id)
@@ -564,20 +602,38 @@ async confirmSlot({ auth, params, response }: HttpContext) {
   if (app.applicationStatus !== 'approved') {
     return response.badRequest({ message: 'Only approved applications can be confirmed' })
   }
+  
+  // FIXED: Check if there's an active pending assignment for this application
+  // First, find the room to get accommodationId
+  if (!app.roomId) {
+    return response.badRequest({ message: 'No room has been assigned yet. Please wait for the manager to assign a room.' })
+  }
+  
+  const room = await Room.find(app.roomId)
+  if (!room) {
+    return response.badRequest({ message: 'Assigned room no longer exists. Please contact the manager.' })
+  }
+  
+  // CRITICAL FIX: Check if an assignment exists and is pending confirmation
+  const existingAssignment = await Assignment.query()
+    .where('studentNumber', student.studentNumber)
+    .where('roomId', app.roomId)
+    .where('confirmationStatus', 'pending_confirmation')
+    .first()
+  
+  if (!existingAssignment) {
+    return response.badRequest({ 
+      message: 'No pending room assignment found. The manager needs to assign a room to you first.' 
+    })
+  }
+  
   if (app.slotConfirmedAt) {
     return response.badRequest({ message: 'Slot already confirmed' })
   }
+  
   if (app.slotConfirmDeadline && DateTime.now() > app.slotConfirmDeadline) {
     return response.badRequest({ message: 'Slot confirmation deadline has passed' })
   }
-
-  // Find an available room matching the application
-  const room = await Room.query()
-    .where('accommodationId', app.accommodationId)
-    .where('roomType', app.applicationRoomType)
-    .where('roomStayType', app.applicationStayType)
-    .where('roomAvailability', 'available')
-    .firstOrFail()
 
   const trx = await db.transaction()
 
@@ -586,18 +642,11 @@ async confirmSlot({ auth, params, response }: HttpContext) {
     app.applicationStatus = 'confirmed'
     await app.useTransaction(trx).save()
 
-    // Create the assignment
-    await Assignment.create({
-      studentNumber: student.studentNumber,
-      roomId: room.id,
-      confirmationStatus: 'active',
-      moveIn: app.moveInDate ?? DateTime.now(),
-      expectedMoveOut: app.moveOutDate ?? undefined,
-      actualMoveOut: null,
-    })
+    // Update the existing assignment instead of creating a new one
+    existingAssignment.confirmationStatus = 'active'
+    await existingAssignment.useTransaction(trx).save()
 
-    // Update room occupancy
-    room.roomCurrentOccupancy += 1
+    // Update room occupancy (already updated when assignment was created, but double-check)
     if (room.roomCurrentOccupancy >= room.roomCapacity) {
       room.roomAvailability = 'occupied'
     }
@@ -610,9 +659,15 @@ async confirmSlot({ auth, params, response }: HttpContext) {
   }
 
   await LogService.record(user.id, 'application', app.id, 'STUDENT_CONFIRMED_SLOT')
+
+  await this.notificationService.notify(
+    user.id,
+    'application_status',
+    `Your slot at ${room.roomBuilding} Room ${room.roomNumber} has been confirmed.`
+  )
+
   return response.ok(app)
 }
-
   // ─── VIEW ENROLLMENT PROOF ───────────────────────────────────
   async viewEnrollmentProof({ params, response }: HttpContext) {
     const application = await Application.query()
@@ -637,6 +692,35 @@ async confirmSlot({ auth, params, response }: HttpContext) {
     return { url: signedUrl }
   }
 
+  // ─── VIEW A DOCUMENT ───────────────────────────────────
+  async viewDocument({ params, response }: HttpContext) {
+    const application = await Application.query()
+      .where('id', params.id)
+      .preload('documents', (query) => {
+        query.where('requirementName', params.documentName).preload('file')
+      })
+      .firstOrFail()
+
+    const document = application.documents[0]
+    if (!document || !document.file) {
+      return response.notFound({ message: 'Requested document not found' })
+    }
+
+    const filePath = document.file.filePath
+
+    let key: string
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      const url = new URL(filePath)
+      key = decodeURIComponent(url.pathname.substring(1))
+    } else {
+      key = filePath.replace(/^\//, '')
+    }
+
+    const signedUrl = await drive.use('s3').getSignedUrl(key, { expiresIn: '5 minutes' })
+
+    return { url: signedUrl }
+  }
+
   // ─── MANAGER: VIEW APPLICATIONS (TESTER) ─────────────────────
   async viewApplications({ response }: HttpContext) {
     const applications = await Application.query()
@@ -656,6 +740,7 @@ async confirmSlot({ auth, params, response }: HttpContext) {
         .whereHas('accommodation', (q) => q.where('managerId', user.id))
         .preload('accommodation')
         .preload('student', (q) => q.preload('user'))
+        .preload('documents')
         .orderBy('applicationDate', 'asc')
 
       return response.ok(applications)

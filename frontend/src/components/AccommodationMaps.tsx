@@ -551,6 +551,7 @@ export default function AccommodationMap({
           right: '16px',
           width: '48px',
           height: '48px',
+          padding: '10px',
           borderRadius: '50%',
           border: 'none',
           cursor: 'pointer',
@@ -573,7 +574,7 @@ export default function AccommodationMap({
         onMouseDown={e => (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'}
         onMouseUp={e => (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'}
       >
-        <svg width="38" height="38" viewBox="-2 -2 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="70%" height="70%" viewBox="-2 -2 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.8" />
           <circle cx="12" cy="12" r="3" stroke="white" strokeWidth="1.8" />
           <line x1="12" y1="0" x2="12" y2="3" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
@@ -586,14 +587,26 @@ export default function AccommodationMap({
         <button
           type="button"
           onClick={() => navigate("/student/browse")}
-          title="Expand map"
+          title="Back to browse"
           style={{
+            position: 'absolute',
+            bottom: '32px',
+            right: '80px',
+            width: '48px',
+            height: '48px',
+            padding: '10px',
+            borderRadius: '50%',
+            border: 'none',
+            cursor: 'pointer',
             background: 'linear-gradient(135deg, #710A2B, #3D0718)',
             boxShadow: '0 4px 16px rgba(113,10,43,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
           }}
-          className="absolute bottom-[32px] right-[80px] z-10 w-[48px] h-[48px] rounded-full border-none cursor-pointer flex items-center justify-center bg-white shadow-md border border-[#e5cfd4] hover:border-[#7a001f] transition-all"
         >
-          <Minimize2 size={12} color="#fff" />
+          <Minimize2 size={16} strokeWidth={2} color="#fff" />
         </button>
       )}
     </div>

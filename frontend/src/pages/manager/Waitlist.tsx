@@ -502,13 +502,14 @@ export default function Waitlist() {
                             { label: "20", href: "" },
                         ]}
                         direction='down'
-                        widthClass="w-29 lg:w-32"
+                        widthClass="w-29 lg:w-33"
                         titleClass="text-[10px] lg:text-[11px]"
                         selectedClass="text-[12px] lg:text-[13px]"
                         onSelect={(label) => {
                             setItemsPerPage(Number(label))
                             setCurrentPage(1)
                         }}
+                        flexDirection="row"
                     />
                 </div>
                 
@@ -538,7 +539,7 @@ export default function Waitlist() {
             </div>
 
             {/* TABLE  */}
-            <div className="w-full overflow-x-auto mt-5">
+            <div className="w-full overflow-x-auto h-full mt-5">
                 <div className="h-full w-full overflow-y-auto overflow-x-auto">
                     {paginated.length === 0 && !isLoadingList && !isErrorList ? null : (
                         <table className="w-full text-sm table-fixed">
@@ -622,17 +623,18 @@ export default function Waitlist() {
 
                     {/* Empty state outside the table */}
                     {!isLoadingList && !isErrorList && paginated.length === 0 && (
-                        <div className="py-12 flex items-center justify-center text-center">
-                        <p className="text-base italic text-gray-400">Nothing to see here</p>
+                        <div className={`flex flex-col justify-center w-full items-center text-center h-full`}>
+                            <p className="text-[#9A7080] font-medium text-lg">No waitlisted applicants found</p>
+                            <p className="text-[#9A7080]/60 text-sm mt-1">When somebody gets waitlisted, they will appear here</p>
                         </div>
                     )}
                 </div>
             </div>
 
-            <div className="flex items-center justify-between px-4 py-3 mt-auto border-[#6B0F2B]/10 border-t">
+            <div className={`${filtered.length === 0 ? "hidden" : "flex"} items-center justify-between px-4 py-3 mt-auto border-[#6B0F2B]/10 border-t`}>
                 <p className="text-xs text-[#9A7080]">
                 {filtered.length === 0
-                    ? "No results"
+                    ? ""
                     : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, filtered.length)} of ${filtered.length}`}
                 </p>
                 <div className="flex items-center justify-center gap-1">

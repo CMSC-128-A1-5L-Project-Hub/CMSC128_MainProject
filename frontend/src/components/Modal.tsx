@@ -115,7 +115,7 @@ export function Modal({
           style={{
             width: "100%",
             maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
-            maxHeight: typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight,
+            maxHeight: maxHeight === "fit-content" ? "fit-content" : typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight,
             display: "flex",
             flexDirection: "column",
             background: "#fff",
@@ -184,8 +184,8 @@ export function Modal({
           <div
             style={{
               padding: "24px 28px",
-              maxHeight: "calc(70vh - 120px)",
-              overflowY: "auto",
+              maxHeight: maxHeight === "fit-content" ? "none" : "calc(70vh - 120px)",
+              overflowY: maxHeight === "fit-content" ? "visible" : "auto",
               position: "relative",
               flex: 1,
               minHeight: 0,

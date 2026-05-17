@@ -10,13 +10,15 @@ import {
   IoDocumentTextSharp,
   IoIdCardSharp,
 } from "react-icons/io5";
+import type { Application } from "@/interfaces/application";
+import { api } from "@/api/axios";
 
 // STATUS 
 const StatusBadge = ({
   status,
   statusConfig,
 }: {
-  status: any;
+  status: Application['applicationStatus'];
   statusConfig: Record<string, { color: string; bg: string; dot: string }>;
 }) => {
   const cfg = statusConfig[status];
@@ -52,6 +54,33 @@ function formatTime(dateString: string) {
   }).format(date);
 }
 
+// VIEW DOCUMENTS
+const handleView = async (
+  applicationId: number,
+  requirementName: string
+) => {
+  try {
+    const res = await api.get(`/applications/${applicationId}/documents`)
+    console.log(res);
+    const docs: any[] = [];
+
+    const doc = docs.find(
+      (d: any) => d.requirementName === requirementName
+    )
+
+    if (!doc || !doc.url) {
+      alert('Document not found')
+      return
+    }
+
+    // open file in new tab (view)
+    window.open(doc.url, '_blank')
+  } catch (err) {
+    console.error(err)
+    alert('Failed to load document')
+  }
+}
+
 // MAIN CONTENT INSIDE MODAL 
 const ApplicationModalContent = ({
   app,
@@ -61,14 +90,24 @@ const ApplicationModalContent = ({
   onReject,
   statusConfig,
 }: {
-  app: any;
-  status: any;
+  app: Application;
+  status: Application['applicationStatus'];
   rejectionRemark: string | null;
   onAccept: () => void;
   onReject: () => void;
   statusConfig: Record<string, { color: string; bg: string; dot: string }>;
 }) => {
-  const fullName = `${app.student.user.fname} ${app.student.user.lname}`;
+  const fullName = `${app.student?.user?.fname} ${app.student?.user?.lname}`;
+  // 1. Extract the names from the application data safely
+  const fetchedNames = (app.documents || []).map((doc) => doc.requirementName);
+
+  // 2. Pre-seed with defaults and combine them using the spread operator,
+  // wrapped in a Set to automatically clean out any duplicates
+  const documentRequirements: string[] = Array.from(
+    new Set(["FORM 5", "VALID ID", ...fetchedNames])
+  );
+
+  console.log(documentRequirements);
 
   return (
     <Card
@@ -95,32 +134,32 @@ const ApplicationModalContent = ({
               <div className="grid grid-cols-2 gap-y-3">
                 <div className="col-span-2">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Email</p>
-                  <p className="text-[#1A0008] text-sm break-all">{app.student.user.email}</p>
+                  <p className="text-[#1A0008] text-sm break-all">{app.student?.user?.email}</p>
                 </div>
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Year Level</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.yearLevel || "N/A"}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student?.yearLevel || "N/A"}</p>
                 </div>
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Phone Number</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.phone || "N/A"}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student?.user?.phoneNumbers?.[0]?.contactNumber ?? 'N/A'}</p>
                 </div>
 
                 <div className="col-span-2">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Degree Program</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.degreeProgram.toUpperCase()}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student?.degreeProgram.toUpperCase()}</p>
                 </div>
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">College</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.college}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student?.college}</p>
                 </div>
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Student Number</p>
-                  <p className="text-[#1A0008] text-sm">{app.student.studentNumber}</p>
+                  <p className="text-[#1A0008] text-sm">{app.student?.studentNumber}</p>
                 </div>
               </div>
             </div>
@@ -175,7 +214,7 @@ const ApplicationModalContent = ({
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Facility</p>
-                  <p className="text-[#1A0008] text-sm">{app.accommodation.accommodationName}</p>
+                  <p className="text-[#1A0008] text-sm">{app.accommodation?.accommodationName}</p>
                 </div>
 
                 <div className="col-span-1">
@@ -189,7 +228,7 @@ const ApplicationModalContent = ({
 
                 <div className="col-span-1">
                   <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Location</p>
-                  <p className="text-[#1A0008] text-sm">{app.accommodation.accommodationLocation}</p>
+                  <p className="text-[#1A0008] text-sm">{app.accommodation?.accommodationLocation}</p>
                 </div>
               </div>
             </div>
@@ -201,25 +240,92 @@ const ApplicationModalContent = ({
               </p>
 
               <div className="flex flex-col gap-3">
-                {[
-                  { label: "FORM 5", icon: <IoDocumentTextSharp size={16} color="white" /> },
-                  { label: "VALID ID", icon: <IoIdCardSharp size={16} color="white" /> },
-                ].map((doc) => (
-                  <div key={doc.label} className="grid grid-cols-[auto_1fr_60px] items-center gap-3">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
-                    >
-                      {doc.icon}
-                    </div>
+                {documentRequirements.map((requirementName) => {
+                      // Determine which icon configuration to use based on the requirement name
+                      const isValidId = requirementName.toUpperCase() === "VALID ID";
+                      const docIcon = isValidId ? (
+                        <IoIdCardSharp size={16} color="white" />
+                      ) : (
+                        <IoDocumentTextSharp size={16} color="white" />
+                      );
 
-                    <p className="text-[#1A0008] text-xs font-semibold">{doc.label}</p>
-
-                    <Button variant="reddishPink" size="sm">
-                      View
-                    </Button>
-                  </div>
-                ))}
+                      return (
+                        <div key={requirementName} className="flex flex-row items-center justify-between">
+                          <div className="flex flex-row items-center gap-2">
+                            <div 
+                              className="w-8 h-8 rounded-lg flex items-center justify-center"
+                              style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
+                            >
+                              {docIcon}
+                            </div>
+                            <p className="text-[#1A0008] text-xs font-semibold">{requirementName}</p>
+                          </div>
+                          
+                          <Button 
+                            variant="reddishPink" 
+                            size="sm" 
+                            onClick={async () => {
+                              // If explicitly "FORM 5", hit the legacy explicit enrollment-proof endpoint
+                              if (requirementName.toUpperCase() === "FORM 5") {
+                                try {
+                                  const res = await api.get(`/applications/${app.id}/enrollment-proof`)
+                                  if (res.status === 200) {
+                                    window.open(res.data.url, '_blank')
+                                  } else {
+                                    alert("Enrollment proof not available.")
+                                    // setToast({ 
+                                    //   show: true, 
+                                    //   type: "error", 
+                                    //   title: "Unavailable", 
+                                    //   message: "Enrollment proof not available." 
+                                    // })
+                                  }
+                                } catch (err) {
+                                  console.error(err)
+                                  alert("Could not fetch document.")
+                                  // setToast({ 
+                                  //   show: true, 
+                                  //   type: "error", 
+                                  //   title: "Error", 
+                                  //   message: "Could not fetch document." 
+                                  // })
+                                }
+                              } else {
+                                // EVERYTHING ELSE (VALID ID and all dynamic custom text names) goes here
+                                try {
+                                  // Safely encodes names with spaces (e.g., "VALID ID" -> "VALID%20ID")
+                                  const secureParam = encodeURIComponent(requirementName)
+                                  const res = await api.get(`/applications/${app.id}/documents/${secureParam}`)
+                                  
+                                  if (res.status === 200) {
+                                    window.open(res.data.url, '_blank')
+                                  } else {
+                                    alert(`${requirementName} not available.`)
+                                    // setToast({ 
+                                    //   show: true, 
+                                    //   type: "error", 
+                                    //   title: "Unavailable", 
+                                    //   message: `${requirementName} not available.` 
+                                    // })
+                                  }
+                                } catch (err) {
+                                  console.error(err)
+                                  alert("Could not fetch document.")
+                                  // setToast({ 
+                                  //   show: true, 
+                                  //   type: "error", 
+                                  //   title: "Error", 
+                                  //   message: "Could not fetch document." 
+                                  // })
+                                }
+                              }
+                            }}
+                          >
+                            View
+                          </Button>
+                        </div>
+                      );
+                    })}
               </div>
             </div>
           </div>

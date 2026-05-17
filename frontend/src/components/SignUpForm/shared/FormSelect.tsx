@@ -32,10 +32,12 @@ export default function FormSelect({
                     name={name}
                     value={value}
                     onChange={onChange}
+                    title={options.find(o => o.value === value)?.label ?? defaultSelect}
                     className={`
                         w-full appearance-none border border-[#6B0F2B3E] rounded-xl px-4 py-3 
                         text-sm ${value ? "text-[#6B0F2B]" : "text-[#C8B0B8]"} 
                         bg-white focus:outline-none focus:ring-2 focus:ring-[#C9973A]/40 focus:border-[#C9973A] transition
+                        text-ellipsis overflow-hidden whitespace-nowrap
                         ${error
                             ? "border-red-400 focus:ring-red-200 focus:border-red-400"
                             : "border-[#6B0F2B3E] focus:ring-[#C9973A]/40 focus:border-[#C9973A]"

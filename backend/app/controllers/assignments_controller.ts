@@ -54,7 +54,6 @@ async store({ auth, request, response }: HttpContext) {
     })
   }
 
-  // Load application with accommodation and student
   const application = await Application.query()
     .where('id', applicationId)
     .preload('accommodation')
@@ -63,7 +62,6 @@ async store({ auth, request, response }: HttpContext) {
 
   const accommodation = application.accommodation
 
-  // Authorize: manager must manage this accommodation
   if (user.role === 'manager' && accommodation.managerId !== user.id) {
     return response.forbidden({ message: 'You do not manage this accommodation' })
   }
@@ -78,25 +76,22 @@ async store({ auth, request, response }: HttpContext) {
 
   // Prevent double assignment for this student (active/pending)
   const existingAssignment = await Assignment.query()
-      .where('studentNumber', application.studentNumber)
-      .whereNull('actualMoveOut')
-      .whereNotIn('confirmationStatus', ['rejected', 'cancelled'])
-      .first()
+    .where('studentNumber', application.studentNumber)
+    .whereNull('actualMoveOut')
+    .whereNotIn('confirmationStatus', ['rejected', 'cancelled'])
+    .first()
 
-    // start transaction 
-    const trx = await db.transaction()
+  const trx = await db.transaction()
 
-    try {
-      // handle ovveride logic
-      if (existingAssignment) {
-        if (user.role === 'landlord') {
-          // release the old room
-          const oldRoom = await Room.findOrFail(existingAssignment.roomId)
-          oldRoom.roomCurrentOccupancy = Math.max(0, oldRoom.roomCurrentOccupancy - 1)
-          if (oldRoom.roomAvailability === 'occupied') {
-            oldRoom.roomAvailability = 'available'
-          }
-          await oldRoom.useTransaction(trx).save()
+  try {
+    if (existingAssignment) {
+      if (user.role === 'landlord') {
+        const oldRoom = await Room.findOrFail(existingAssignment.roomId)
+        oldRoom.roomCurrentOccupancy = Math.max(0, oldRoom.roomCurrentOccupancy - 1)
+        if (oldRoom.roomAvailability === 'occupied') {
+          oldRoom.roomAvailability = 'available'
+        }
+        await oldRoom.useTransaction(trx).save()
 
           // cancel the old assignment
           existingAssignment.confirmationStatus = 'cancelled'
@@ -184,11 +179,11 @@ async store({ auth, request, response }: HttpContext) {
       }
       return response.ok(assignment)
 
-    } catch (error) {
-      await trx.rollback()
-      throw error
-    }
+  } catch (error) {
+    await trx.rollback()
+    throw error
   }
+}
 
   // ─── 2. MANAGER/LANDLORD: RECORD MOVE-OUT (triggers waitlist promotion) ───
   // PATCH /assignments/:id/move-out
@@ -233,92 +228,98 @@ async store({ auth, request, response }: HttpContext) {
     return response.ok(assignment)
   }
 
-  // ─── MANAGER/LANDLORD: TRANSFER active assignment to a different room ───
-  // PATCH /assignments/:id/transfer  body: { targetRoomId }
-  async transfer({ auth, params, request, response }: HttpContext) {
-    const user = auth.user!
-    const { targetRoomId } = request.body()
+// ─── MANAGER/LANDLORD: TRANSFER active assignment to a different room ───
+// PATCH /assignments/:id/transfer  body: { targetRoomId }
+async transfer({ auth, params, request, response }: HttpContext) {
+  const user = auth.user!
+  const { targetRoomId } = request.body()
 
-    if (!targetRoomId) {
-      return response.badRequest({ message: 'targetRoomId is required' })
-    }
-
-    const assignment = await Assignment.query()
-      .where('id', params.id)
-      .preload('room', (q) => q.preload('accommodation'))
-      .firstOrFail()
-
-    if (assignment.confirmationStatus !== 'active') {
-      return response.badRequest({ message: 'Only active assignments can be transferred' })
-    }
-
-    const sourceRoom = assignment.room
-    const sourceAccommodation = sourceRoom.accommodation
-
-    if (user.role === 'manager' && sourceAccommodation.managerId !== user.id) {
-      return response.forbidden({ message: 'You do not manage this accommodation' })
-    }
-    if (user.role === 'landlord' && sourceAccommodation.landlordId !== user.id) {
-      return response.forbidden({ message: 'You do not own this accommodation' })
-    }
-
-    const targetRoom = await Room.query()
-      .where('id', targetRoomId)
-      .preload('accommodation')
-      .firstOrFail()
-
-    if (user.role === 'manager' && targetRoom.accommodation.managerId !== user.id) {
-      return response.forbidden({ message: 'You do not manage the target accommodation' })
-    }
-    if (user.role === 'landlord' && targetRoom.accommodation.landlordId !== user.id) {
-      return response.forbidden({ message: 'You do not own the target accommodation' })
-    }
-
-    if (targetRoom.id === sourceRoom.id) {
-      return response.badRequest({ message: 'Target room must differ from current room' })
-    }
-    if (targetRoom.roomType !== sourceRoom.roomType) {
-      return response.badRequest({ message: 'Target room type must match current room type' })
-    }
-    if (targetRoom.roomCurrentOccupancy >= targetRoom.roomCapacity) {
-      return response.conflict({ message: 'Target room is full' })
-    }
-
-    const trx = await db.transaction()
-    try {
-      sourceRoom.roomCurrentOccupancy = Math.max(0, sourceRoom.roomCurrentOccupancy - 1)
-      if (sourceRoom.roomAvailability === 'occupied' && sourceRoom.roomCurrentOccupancy < sourceRoom.roomCapacity) {
-        sourceRoom.roomAvailability = 'available'
-      }
-      await sourceRoom.useTransaction(trx).save()
-
-      targetRoom.roomCurrentOccupancy += 1
-      if (targetRoom.roomCurrentOccupancy >= targetRoom.roomCapacity) {
-        targetRoom.roomAvailability = 'occupied'
-      }
-      await targetRoom.useTransaction(trx).save()
-
-      assignment.roomId = targetRoom.id
-      await assignment.useTransaction(trx).save()
-
-      await trx.commit()
-    } catch (error) {
-      await trx.rollback()
-      throw error
-    }
-
-    await LogService.record(
-      user.id,
-      'assignment',
-      assignment.id,
-      'ASSIGNMENT_TRANSFERRED',
-      `Transferred assignment ${assignment.id} from room ${sourceRoom.id} to room ${targetRoom.id}`
-    )
-
-    await assignment.load('room', (q) => q.preload('accommodation'))
-    await assignment.load('student', (q) => q.preload('user'))
-    return response.ok(assignment)
+  if (!targetRoomId) {
+    return response.badRequest({ message: 'targetRoomId is required' })
   }
+
+  const assignment = await Assignment.query()
+    .where('id', params.id)
+    .preload('room', (q) => q.preload('accommodation'))
+    .firstOrFail()
+
+  if (assignment.confirmationStatus !== 'active') {
+    return response.badRequest({ message: 'Only active assignments can be transferred' })
+  }
+
+  const sourceRoom = assignment.room
+  const sourceAccommodation = sourceRoom.accommodation
+
+  if (user.role === 'manager' && sourceAccommodation.managerId !== user.id) {
+    return response.forbidden({ message: 'You do not manage this accommodation' })
+  }
+  if (user.role === 'landlord' && sourceAccommodation.landlordId !== user.id) {
+    return response.forbidden({ message: 'You do not own this accommodation' })
+  }
+
+  const targetRoom = await Room.query()
+    .where('id', targetRoomId)
+    .preload('accommodation')
+    .firstOrFail()
+
+  if (user.role === 'manager' && targetRoom.accommodation.managerId !== user.id) {
+    return response.forbidden({ message: 'You do not manage the target accommodation' })
+  }
+  if (user.role === 'landlord' && targetRoom.accommodation.landlordId !== user.id) {
+    return response.forbidden({ message: 'You do not own the target accommodation' })
+  }
+
+  if (targetRoom.id === sourceRoom.id) {
+    return response.badRequest({ message: 'Target room must differ from current room' })
+  }
+  if (targetRoom.roomType !== sourceRoom.roomType) {
+    return response.badRequest({ message: 'Target room type must match current room type' })
+  }
+  if (targetRoom.roomCurrentOccupancy >= targetRoom.roomCapacity) {
+    return response.conflict({ message: 'Target room is full' })
+  }
+
+  const trx = await db.transaction()
+  try {
+    // Release the source room
+    sourceRoom.roomCurrentOccupancy = Math.max(0, sourceRoom.roomCurrentOccupancy - 1)
+    if (sourceRoom.roomAvailability === 'occupied' && sourceRoom.roomCurrentOccupancy < sourceRoom.roomCapacity) {
+      sourceRoom.roomAvailability = 'available'
+    }
+    await sourceRoom.useTransaction(trx).save()
+
+    // Occupy the target room
+    targetRoom.roomCurrentOccupancy += 1
+    if (targetRoom.roomCurrentOccupancy >= targetRoom.roomCapacity) {
+      targetRoom.roomAvailability = 'occupied'
+    }
+    await targetRoom.useTransaction(trx).save()
+
+    // Update the assignment
+    assignment.roomId = targetRoom.id
+    await assignment.useTransaction(trx).save()
+
+    await trx.commit()
+  } catch (error) {
+    await trx.rollback()
+    throw error
+  }
+
+  // Promote next waitlisted student for the source room's accommodation
+  await this.waitlistService.processMoveOut(sourceAccommodation.id, sourceRoom)
+
+  await LogService.record(
+    user.id,
+    'assignment',
+    assignment.id,
+    'ASSIGNMENT_TRANSFERRED',
+    `Transferred assignment ${assignment.id} from room ${sourceRoom.id} to room ${targetRoom.id}`
+  )
+
+  await assignment.load('room', (q) => q.preload('accommodation'))
+  await assignment.load('student', (q) => q.preload('user'))
+  return response.ok(assignment)
+}
 
   // ─── 3. STUDENT: VIEW CURRENT STAY ───
   // GET /my-stay/current

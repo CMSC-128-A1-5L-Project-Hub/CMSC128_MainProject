@@ -25,7 +25,7 @@ const StatBar = ({
         <div className={className}>
             {/* Label */}
             <span
-                className="block uppercase font-bold text-[11px] lg:text-[12px]"
+                className="block uppercase font-bold text-[11px] lg:text-[11px] tracking-widest"
                 style={{ color: textColor }}
             >
                 {label}
@@ -41,10 +41,15 @@ const StatBar = ({
                         className="h-5 lg:h-7 rounded-xl flex items-center pl-2"
                         style={{
                             width: `${total === 0 ? 0 : pct}%`,
-                            background: `linear-gradient(to right, ${from}, ${to})`
+                            background: 
+                                total === 0 
+                                    ? 'transparent'
+                                    : `linear-gradient(to right, ${from}, ${to})`
                         }}
                     >
-                        <span className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)] text-white text-[11px] lg:text-[12px] font-bold">
+                        <span 
+                            style={{ color: total === 0 ? textColor : '#ffffff' }}
+                            className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)] text-white text-[11px] lg:text-[12px] font-bold">
                             {value}/{total}
                         </span>
                     </div>
@@ -52,7 +57,7 @@ const StatBar = ({
 
                 {/* Percentage */}
                 <span
-                    className="text-[12px] lg:text-[13px] font-bold flex-shrink-0"
+                    className="text-[12px] lg:text-[13px] font-semibold flex-shrink-0"
                     style={{ color: textColor }}
                 >
                     {total === 0 ? 0 : pct}%
