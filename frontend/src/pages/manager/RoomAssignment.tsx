@@ -587,7 +587,7 @@ export default function RoomAssignment() {
                     </div>
                   </div>
                   
-                  <div className="flex-1 min-h-0 flex flex-col items-center justify-center">
+                  <div className="flex-1 min-h-0 flex flex-col">
                       <div className={`${allAssignments.length === 0 ? "flex" : "hidden"} flex-col justify-center w-full items-center text-center`}>
                         <p className="text-[#9A7080] font-medium text-lg">No assignments found</p>
                         <p className="text-[#9A7080]/60 text-sm mt-1">When somebody gets approved, they will appear here</p>
