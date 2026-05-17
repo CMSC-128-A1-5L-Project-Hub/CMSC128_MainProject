@@ -829,7 +829,8 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
             {/* Price range */}
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
             <div className="px-2">
-                <PriceRangeSlider key={sliderResetKey} min={origMin} max={origMax} onChange={handleRangeChange} />
+                <PriceRangeSlider key={sliderResetKey} min={origMin} max={origMax} onChange={handleRangeChange} trackColor="linear-gradient(90deg, #E8A0AA, #B5344F, #6B0F2B)"
+                rangeColor="#8C1535"/>
             </div>
 
             <Divider />
