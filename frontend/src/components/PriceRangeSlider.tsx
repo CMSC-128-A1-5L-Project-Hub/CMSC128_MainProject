@@ -24,7 +24,7 @@ type PriceRangeSliderProps = {
     thumbSize?: number; // in px, default 16
 };
 
-const DEFAULT_SNAP_POINTS = [1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000];
+let DEFAULT_SNAP_POINTS = [1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000];
 
 const snapToNearest = (value: number, points: number[], threshold: number) => {
     const closest = points.reduce((a, b) =>
@@ -48,12 +48,30 @@ const PriceRangeSlider = ({
     thumbSize = 10,
 }: PriceRangeSliderProps) => {
 
+    const makeSnapPoints = (min: number, max: number): number[] => {
+        if (!Number.isFinite(max)) {
+            return DEFAULT_SNAP_POINTS
+        }
+    
+        const STEP = 500
+        const START = Math.max(1000, Math.floor(min / STEP) * STEP)
+    
+        return Array.from(
+            { length: Math.floor((max - START) / STEP) + 1 },
+            (_, i) => START + i * STEP
+        )
+    }
+
+    const [origMin, origMinVal] = useState(min);
+    const [origMax, origMaxVal] = useState(max);
     const [minVal, setMinVal] = useState(min);
     const [maxVal, setMaxVal] = useState(max);
     const minValRef = useRef(min);
     const maxValRef = useRef(max);
     const range = useRef<HTMLDivElement | null>(null);
     const sliderWidth = mobileScreen ? "150px" : width || "300px";
+
+    DEFAULT_SNAP_POINTS = makeSnapPoints(origMin, origMax)
 
     // Unique ID so the scoped <style> doesn't bleed to other sliders on the page
     const uid = useRef(`prs-${Math.random().toString(36).slice(2, 7)}`).current;
