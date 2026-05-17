@@ -13,6 +13,8 @@ import PendingAccommodations from "@/components/dashboard/admin/PendingAccommoda
 import SystemSettings from "@/components/dashboard/admin/SystemSettings"
 import ActivityLogs from "@/components/dashboard/admin/ActivityLogs"
 import UbleLoader from "../shared/LoadingPage"
+import CustomHeader from '../../components/CustomHeader';
+import SummaryCards from '../../components/BillingDashboard/SummaryCards';
 
 const AdminDashboard = () => {
   const queryClient = useQueryClient()
@@ -271,177 +273,166 @@ const AdminDashboard = () => {
     return null
   }
 
-  const StatCard = ({
-    label,
-    value,
-    helper,
-  }: {
-    label: string
-    value: string | number
-    helper?: string
-  }) => (
-    <Card className="shadow-sm">
-      <p className="text-xs font-semibold tracking-widest text-gray-500">
-        {label}
-      </p>
-      <p className="mt-3 text-3xl font-bold text-[#2A0410]">{value}</p>
-      {helper && <p className="mt-1 text-xs text-gray-500">{helper}</p>}
-    </Card>
-  )
+  const summaryCards = [
+    {
+      label: "total users",
+      value: isTotalUsersLoading
+        ? "..."
+        : isTotalUsersError
+        ? "Error"
+        : totalUsersData?.total ?? 0,
+      color: "#000000",
+      sub: "Registered accounts",
+      includePeso: false,
+    },
+    {
+      label: "pending users",
+      value: isPendingLoading
+        ? "..."
+        : isPendingError
+        ? "Error"
+        : pendingUsers.length,
+      color: "#D97706",
+      sub: "Needs verification",
+      includePeso: false,
+    },
+    {
+      label: "academic term",
+      value: isSettingsLoading
+        ? "..."
+        : isSettingsError
+        ? "Error"
+        : settings
+        ? settings.currentSemester ?? "N/A"
+        : "N/A",
+      color: "#000000",
+      sub: settings?.currentSy
+        ? `A.Y. ${settings.currentSy}`
+        : "Current setting",
+      includePeso: false,
+    },
+    {
+      label: "housing facilities",
+      value: isFacilitiesLoading
+        ? "..."
+        : isFacilitiesError
+        ? "Error"
+        : facilitiesData?.total ?? 0,
+      color: "#1A7A4A",
+      sub: "Registered facilities",
+      includePeso: false,
+    },
+  ];
 
   return (
-    <div className="flex min-h-screen bg-[#F9F4F5]">
+    <div className="flex min-h-screen w-full bg-[#F6F2F4]">
+      <div className="flex flex-col">
+        <CustomHeader
+          title="Dashboard">
 
-      <main className="flex-1 p-5 lg:p-8 mt-12 lg:mt-0 overflow-x-hidden">
-        <div className="space-y-6">
-          <div className="relative pl-10 lg:pl-0 flex flex-row items-center justify-between border-b border-[#6B0F2B]/7 mb-2 pb-1">
-            <div className="flex flex-row items-center">
-              <div
-                className="hidden lg:inline w-2 h-8 rounded-xl mt-1 mr-2"
-                style={{
-                  background:
-                    'linear-gradient(to bottom right, #6B0F2B 0%, #9E2040 100%)',
+        </CustomHeader>
+        <main className="flex-1 p-6 mt-12 lg:mt-0 overflow-x-hidden">
+          <div className="space-y-6">
+            <HeroBanner
+              greeting="Welcome back"
+              name={user?.fname ?? "Admin"}
+              title="Overview of UBLE's System"
+              subtitle="Manage users, accommodations, activity logs, and system settings."
+              type="full"
+            />
+            <div className='grid grid-cols-2 lg:grid-cols-4 w-full gap-6'>
+              {/* Summary Cards */}
+              {summaryCards.map(card => (
+                  <SummaryCards
+                    key={card.label}
+                    label={card.label}
+                    value={card.value}
+                    color={card.color}
+                    sub={card.sub}
+                    includePeso={card.includePeso}
+                  />
+                ))}
+            </div>
+            {/* RECENT ACTIVITY LOGS */}
+            {/* <RecentActivityLogs
+              logs={recentLogsList}
+              isLoading={isRecentLogsLoading}
+              isError={isRecentLogsError}
+            /> */}
+            <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* STUDENT VERIFICATIONS */}
+              <StudentVerifications
+                students={studentPending}
+                isLoading={isPendingLoading}
+                processingUserId={processingUserId}
+                processingAction={processingAction}
+                onApprove={async (userId) => {
+                  await verifyUserMutation.mutateAsync({
+                    userId,
+                    roleToAssign: "student",
+                  })
+                }}
+                onReject={async (userId) => {
+                  await rejectUserMutation.mutateAsync(userId)
                 }}
               />
-              <h1 className="text-4xl font-serif italic font-bold text-[#6B0F2B]">
-                Dashboard
-              </h1>
-            </div>
+              {/* HOUSING ADMIN VERIFICATIONS */}
+              <HousingAdminVerifications
+                admins={housingAdminPending}
+                isLoading={isPendingLoading}
+                processingUserId={processingUserId}
+                processingAction={processingAction}
+                onApprove={async (userId) => {
+                  await verifyUserMutation.mutateAsync({
+                    userId,
+                    roleToAssign: "landlord",
+                  })
+                }}
+                onReject={async (userId) => {
+                  await rejectUserMutation.mutateAsync(userId)
+                }}
+              />
+            </section>
+            {/* PENDING ACCOMMODATION APPROVAL */}
+            <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <PendingAccommodations
+                accommodations={pendingAccommodations}
+                isLoading={isPendingAccommodationsLoading}
+                verifyingAccommodationId={verifyingAccommodationId}
+                onVerify={(id, status) =>
+                  verifyAccommodationMutation.mutate({
+                    id,
+                    status,
+                  })
+                }
+              />
+              {/* SYSTEM SETTINGS */}
+              <SystemSettings
+                academicYear={academicYear}
+                semester={semester}
+                autoVerifyUsers={autoVerifyUsers}
+                isLoading={isSettingsLoading}
+                isError={isSettingsError}
+                isUpdating={updateSettingsMutation.isPending}
+                onAcademicYearChange={setAcademicYear}
+                onSemesterChange={setSemester}
+                onAutoVerifyChange={setAutoVerifyUsers}
+                onUpdate={() => updateSettingsMutation.mutate()}
+              />
+            </section>
+            {/* ACTIVITY LOGS */}
+            <ActivityLogs
+              logs={logsList}
+              isLoading={isLogsLoading}
+              isError={isLogsError}
+              filterDate={filterDate}
+              filterAction={filterAction}
+              onFilterDateChange={setFilterDate}
+              onFilterActionChange={setFilterAction}
+            />
           </div>
-          <HeroBanner
-            greeting="Welcome back"
-            name={user?.fname ?? "Admin"}
-            title="Overview of UBLE's System"
-            subtitle="Manage users, accommodations, activity logs, and system settings."
-            type="full"
-          />
-          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            <StatCard
-              label="Total Users"
-              value={
-                isTotalUsersLoading
-                  ? "..."
-                  : isTotalUsersError
-                  ? "Error"
-                  : totalUsersData?.total ?? 0
-              }
-              helper="Registered accounts"
-            />
-            <StatCard
-              label="Pending Users"
-              value={
-                isPendingLoading
-                  ? "..."
-                  : isPendingError
-                  ? "Error"
-                  : pendingUsers.length
-              }
-              helper="Needs verification"
-            />
-            <StatCard
-              label="Academic Term"
-              value={
-                isSettingsLoading
-                  ? "..."
-                  : isSettingsError
-                  ? "Error"
-                  : settings
-                  ? settings.currentSemester ?? "N/A"
-                  : "N/A"
-              }
-              helper={settings?.currentSy ? `A.Y. ${settings.currentSy}` : "Current setting"}
-            />
-            <StatCard
-              label="Housing Facilities"
-              value={
-                isFacilitiesLoading
-                  ? "..."
-                  : isFacilitiesError
-                  ? "Error"
-                  : facilitiesData?.total ?? 0
-              }
-              helper="Registered facilities"
-            />
-          </section>
-          {/* RECENT ACTIVITY LOGS */}
-          {/* <RecentActivityLogs
-            logs={recentLogsList}
-            isLoading={isRecentLogsLoading}
-            isError={isRecentLogsError}
-          /> */}
-          <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* STUDENT VERIFICATIONS */}
-            <StudentVerifications
-              students={studentPending}
-              isLoading={isPendingLoading}
-              processingUserId={processingUserId}
-              processingAction={processingAction}
-              onApprove={async (userId) => {
-                await verifyUserMutation.mutateAsync({
-                  userId,
-                  roleToAssign: "student",
-                })
-              }}
-              onReject={async (userId) => {
-                await rejectUserMutation.mutateAsync(userId)
-              }}
-            />
-            {/* HOUSING ADMIN VERIFICATIONS */}
-            <HousingAdminVerifications
-              admins={housingAdminPending}
-              isLoading={isPendingLoading}
-              processingUserId={processingUserId}
-              processingAction={processingAction}
-              onApprove={async (userId) => {
-                await verifyUserMutation.mutateAsync({
-                  userId,
-                  roleToAssign: "landlord",
-                })
-              }}
-              onReject={async (userId) => {
-                await rejectUserMutation.mutateAsync(userId)
-              }}
-            />
-          </section>
-          {/* PENDING ACCOMMODATION APPROVAL */}
-          <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <PendingAccommodations
-              accommodations={pendingAccommodations}
-              isLoading={isPendingAccommodationsLoading}
-              verifyingAccommodationId={verifyingAccommodationId}
-              onVerify={(id, status) =>
-                verifyAccommodationMutation.mutate({
-                  id,
-                  status,
-                })
-              }
-            />
-            {/* SYSTEM SETTINGS */}
-            <SystemSettings
-              academicYear={academicYear}
-              semester={semester}
-              autoVerifyUsers={autoVerifyUsers}
-              isLoading={isSettingsLoading}
-              isError={isSettingsError}
-              isUpdating={updateSettingsMutation.isPending}
-              onAcademicYearChange={setAcademicYear}
-              onSemesterChange={setSemester}
-              onAutoVerifyChange={setAutoVerifyUsers}
-              onUpdate={() => updateSettingsMutation.mutate()}
-            />
-          </section>
-          {/* ACTIVITY LOGS */}
-          <ActivityLogs
-            logs={logsList}
-            isLoading={isLogsLoading}
-            isError={isLogsError}
-            filterDate={filterDate}
-            filterAction={filterAction}
-            onFilterDateChange={setFilterDate}
-            onFilterActionChange={setFilterAction}
-          />
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   )
 }
