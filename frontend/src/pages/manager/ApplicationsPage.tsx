@@ -477,8 +477,8 @@ export default function ApplicationsPage() {
                         <td className="p-2 whitespace-nowrap">
                           {app?.accommodation ? (
                             <>
-                              <p className="font-medium">{app.accommodation.accommodationName}</p>
-                              <p className="text-xs text-gray-400">{app.applicationRoomType}</p>
+                              <p className="font-medium truncate">{app.accommodation.accommodationName}</p>
+                              <p className="text-xs text-gray-400 truncate">{app.applicationRoomType}</p>
                             </>
                           ) : <p className="text-gray-400">Loading...</p>}
                         </td>
