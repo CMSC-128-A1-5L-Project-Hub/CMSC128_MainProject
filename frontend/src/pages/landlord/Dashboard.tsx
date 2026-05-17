@@ -1034,7 +1034,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right sidebar */}
-        <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#FAF8F9] overflow-y-auto">
+        <aside className="relative z-10 hidden lg:flex w-[400px] flex-shrink-0 flex-col gap-4 pr-4 pl-1 pb-4 bg-[#F6F2F4] overflow-y-auto">
           <RightPanel />
         </aside>
 
