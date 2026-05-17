@@ -56,10 +56,14 @@ const PriceRangeSlider = ({
         const STEP = 500
         const START = Math.max(1000, Math.floor(min / STEP) * STEP)
     
-        return Array.from(
+        const snaps = Array.from(
             { length: Math.floor((max - START) / STEP) + 1 },
             (_, i) => START + i * STEP
         )
+    
+        const result = Array.from(new Set([min, ...snaps]))
+    
+        return result.sort((a, b) => a - b)
     }
 
     const [origMin, origMinVal] = useState(min);
