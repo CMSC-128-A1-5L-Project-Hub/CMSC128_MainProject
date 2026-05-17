@@ -337,7 +337,7 @@ export default function Applications({ data, docs, className = "", onAction, set
       <div className="w-full h-full flex flex-col min-w-0">
         <div className="flex flex-row justify-between w-full pb-2">
           <p className="text-[#1A0008] font-bold flex flex-col">Applications
-            <span className="italic font-normal text-[11px] lg:text-[12px]">{data.length} applications found</span>
+            <span className="italic font-normal text-[11px] lg:text-[12px]">{data.length} total applications</span>
           </p>
           <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/applications")}>
             View all →

@@ -92,31 +92,50 @@ export default function Waitlist({ waitlists, className = "" }: Props) {
       </Modal>
 
       <Card className={className}>
-        <div className="w-full h-full flex flex-col p-1 min-w-0">
-          <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
-            <p className="text-[#1A0008] font-bold">Waitlist</p>
+        <div className="w-full h-full flex flex-col min-w-0">
+          <div className="flex flex-row justify-between w-full pb-2">
+            <p className="text-[#1A0008] font-bold flex flex-col">Waitlist
+              <span className="italic font-normal text-[11px] lg:text-[12px]">
+                {waitlists.length} total waitlists
+              </span>
+            </p>
             <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/waitlist")}>View all →</p>
           </div>
-          <div className="grid grid-cols-3 border-b border-[#F5ECF0] uppercase">
-            <p className="col-span-2 text-[#9A7080] tracking-widest text-xs font-bold p-1">Student</p>
-            <p className="col-span-1 text-center tracking-widest text-[#9A7080] text-xs font-bold p-1">Action</p>
-          </div>
+
           {waitlists.length > 0 ? (
-            <div className="grid grid-cols-3">
-              {waitlists.map((waitlist, i) => (
-                <div key={i} className="col-span-3 grid grid-cols-3 justify-between items-center py-2 px-1">
-                  <div className="col-span-2 flex flex-row items-center">
-                    <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                      {getInitials(waitlist.student.fullName)}
-                    </div>
-                    <p className="text-sm text-[#1A0008] pl-2 truncate min-w-0">{waitlist.student.fullName}</p>
-                  </div>
-                  <div className="col-span-1 flex items-center justify-center">
-                    <Button variant="reddishPink" size="sm" onClick={() => openModal(waitlist)}>Review</Button>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto border-t border-[#F5ECF0]">
+              <div className="min-w-[400px] pb-3 xl:pb-0">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-[#F5ECF0] uppercase">
+                      <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[60%]">Student</th>
+                      <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[25%]">Date Applied</th>
+                      <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-center w-[15%]">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {waitlists.map((waitlist, i) => (
+                      <tr key={i}>
+                        <td className="p-1 py-2">
+                          <div className="flex flex-row items-center">
+                            <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                                style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                              {getInitials(waitlist.student.fullName)}
+                            </div>
+                            <p className="text-black text-sm pl-2 truncate">{waitlist.student.fullName}</p>
+                          </div>
+                        </td>
+                        <td className="p-1 py-2">
+                          <p className="text-[#9A7080] text-sm">{waitlist.applicationDate}</p>
+                        </td>
+                        <td className="p-1 py-2 text-center">
+                          <Button variant="reddishPink" size="sm" onClick={() => openModal(waitlist)}>Review</Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
             <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
