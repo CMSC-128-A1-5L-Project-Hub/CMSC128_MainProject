@@ -10,6 +10,8 @@ import CustomHeader from '../../components/CustomHeader';
 import Toast from "@/components/Toast";
 import UbleLoader from "../shared/LoadingPage";
 import HeroBanner from "@/components/dashboard/HeroBanner";
+import Button from "@/components/Button";
+import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
 
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
@@ -83,15 +85,6 @@ const CLR = {
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type ApplicationStatus = "Approved" | "Pending" | "In Review" | "Rejected" | "Cancelled" | "Waitlisted" | "Confirmed";
-
-interface Application {
-  id: number;
-  dorm: string;
-  type: string;
-  applied: string;
-  location: string;
-  status: ApplicationStatus;
-}
 
 interface BillingStatement {
   id: number;
@@ -807,6 +800,9 @@ export default function Dashboard() {
   fetchProfile();
 }, []);
 
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+
 useEffect(() => {
     // redirect if they are NOT logged in, if query finished, but user is null
     if (!isUserLoading && !user) {
@@ -1077,6 +1073,12 @@ if (!profile || !user || user.role !== "student") {
   const mapFilters = ["All", "On-Campus", "Off-Campus", "UPLB Partner"];
 
   return (
+    <>
+      <ApplicationStatusModal
+        open={viewOpen}
+        onClose={() => { setViewOpen(false); setSelectedApp(null); }}
+        application={selectedApp}
+      />
       <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
 
         {/* Main content */}
@@ -1140,7 +1142,7 @@ if (!profile || !user || user.role !== "student") {
                     ) : (
                       applications.map((app: any) => (
                         <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 sm:px-6 py-3 sm:py-4">
+                          <td className="px-4 py-3 sm:py-4">
                             <div className="flex items-center gap-2.5">
                               <div
                                 className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0"
@@ -1152,19 +1154,19 @@ if (!profile || !user || user.role !== "student") {
                             </div>
                           </td>
 
-                          <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                          <td className="px-4 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
                             {formatStayType(app.applicationStayType)}
                           </td>
 
-                          <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                          <td className="px-4 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
                             {formatDate(app.applicationDate)}
                           </td>
 
-                          <td className="px-4 sm:px-6 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
+                          <td className="px-4 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
                             {capitalize(app.accommodation?.accommodationType)}
                           </td>
 
-                          <td className="px-4 sm:px-6 py-3 sm:py-4">
+                          <td className="px-4 py-3 sm:py-4">
                             <StatusBadge
                                 status={
                                     app.applicationStatus === "approved" ? "Approved"
@@ -1179,10 +1181,13 @@ if (!profile || !user || user.role !== "student") {
                             />
                           </td>
 
-                          <td className="px-4 sm:px-6 py-3 sm:py-4">
-                            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                              <IconMoreHorizontal />
-                            </button>
+                          <td className="px-4 py-3 sm:py-4">
+                            <Button size="sm" variant="reddishPink" onClick={() => {
+                              setSelectedApp(app);
+                              setViewOpen(true);
+                            }}>
+                                View
+                            </Button>
                           </td>
                         </tr>
                       ))
@@ -1458,5 +1463,6 @@ if (!profile || !user || user.role !== "student") {
           notifWrapperRef={notifWrapperRef}
         />
       </div>
+    </>
   );
 }

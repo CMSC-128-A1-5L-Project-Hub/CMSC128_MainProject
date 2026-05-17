@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Application } from '../../components/ApplicationStatusModal';
+import type { Application } from '../ApplicationStatus/ApplicationStatusModal'
 import StylizedStatus from "../BillingDashboard/StylizedStatus";
 import Modal from "../Modal";
 import ApprovalProgress from "./ApprovalProgress";

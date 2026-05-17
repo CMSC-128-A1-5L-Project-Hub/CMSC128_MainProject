@@ -227,7 +227,8 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       )}
       
       <div className="flex justify-between items-center">
-        <span className="text-[10px] text-gray-400 max-w-[200px] leading-tight">
+        <span className={`text-[10px] text-gray-400 max-w-[200px] leading-tight 
+            ${canCancel || canAccept ? 'text-wrap' : 'text-nowrap'}`}>
           {canCancel 
             ? 'By typing "CANCEL", you are sure to cancel your application to this accommodation'
             : isUnderReview

@@ -181,7 +181,7 @@ export default function AccommodationMap({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            zIndex: 9999,
+                            zIndex: 500,
                             transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                         }}
                         onMouseEnter={e => {
