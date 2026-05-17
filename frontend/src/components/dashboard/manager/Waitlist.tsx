@@ -107,7 +107,7 @@ export default function Waitlist({ waitlists, className = "" }: Props) {
                 <div key={i} className="col-span-3 grid grid-cols-3 justify-between items-center py-2 px-1">
                   <div className="col-span-2 flex flex-row items-center">
                     <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                         style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
                       {getInitials(waitlist.student.fullName)}
                     </div>
                     <p className="text-sm text-[#1A0008] pl-2 truncate min-w-0">{waitlist.student.fullName}</p>
@@ -119,7 +119,9 @@ export default function Waitlist({ waitlists, className = "" }: Props) {
               ))}
             </div>
           ) : (
-            <div className="flex-1 flex justify-center items-center py-4 italic text-gray-500">Nothing to see here</div>
+            <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+              <p className="text-[#9A7080] font-medium text-sm">No waitlisted applicants found</p>
+            </div>
           )}
         </div>
       </Card>

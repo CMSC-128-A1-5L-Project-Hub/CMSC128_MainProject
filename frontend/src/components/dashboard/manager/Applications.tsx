@@ -334,14 +334,18 @@ export default function Applications({ data, docs, className = "", onAction, set
 
       {/* Table View */}
       <Card className={className}>
-        <div className="w-full h-full flex flex-col min-w-0">
-          <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
-            <p className="text-[#1A0008] font-bold">Applications</p>
-            <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/applications")}>
-              View all →
-            </p>
-          </div>
-          <div className="overflow-x-auto -mx-0">
+      <div className="w-full h-full flex flex-col min-w-0">
+        <div className="flex flex-row justify-between w-full pb-2">
+          <p className="text-[#1A0008] font-bold flex flex-col">Applications
+            <span className="italic font-normal text-[11px] lg:text-[12px]">{data.length} applications found</span>
+          </p>
+          <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/applications")}>
+            View all →
+          </p>
+        </div>
+
+        {data.length > 0 ? (
+          <div className="overflow-x-auto border-t border-[#F5ECF0]">
             <div className="min-w-[600px] pb-3 xl:pb-0">
               <table className="w-full">
                 <thead>
@@ -353,43 +357,42 @@ export default function Applications({ data, docs, className = "", onAction, set
                   </tr>
                 </thead>
                 <tbody>
-                  {data.length > 0 ? (
-                    data.map((application, idx) => (
-                      <tr key={idx} className="mt-3">
-                        <td className="p-1 py-2">
-                          <div className="flex flex-row items-center">
-                            <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                                style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                              {getInitials(application.student.fullName)}
-                            </div>
-                            <p className="text-black text-sm pl-2 truncate">{application.student.fullName}</p>
+                  {data.map((application, idx) => (
+                    <tr key={idx} className="mt-3">
+                      <td className="p-1 py-2">
+                        <div className="flex flex-row items-center">
+                          <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                              style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                            {getInitials(application.student.fullName)}
                           </div>
-                        </td>
-                        <td className="p-1 py-2">
-                          <p className="text-[#1A0008] text-sm">{application.accommodation.building}</p>
-                          <p className="text-[#9A7080] text-xs capitalize">{application.stayType}</p>
-                        </td>
-                        <td className="p-1 py-2">
-                          <p className="text-[#9A7080] text-sm">{application.applicationDate}</p>
-                        </td>
-                        <td className="p-1 py-2 text-center">
-                          <Button variant="reddishPink" size="sm" onClick={() => openModal(application)}>
-                            Review
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="text-center py-4 italic text-gray-500">Nothing to see here</td>
+                          <p className="text-black text-sm pl-2 truncate">{application.student.fullName}</p>
+                        </div>
+                      </td>
+                      <td className="p-1 py-2">
+                        <p className="text-[#1A0008] text-sm">{application.accommodation.building}</p>
+                        <p className="text-[#9A7080] text-xs capitalize">{application.stayType}</p>
+                      </td>
+                      <td className="p-1 py-2">
+                        <p className="text-[#9A7080] text-sm">{application.applicationDate}</p>
+                      </td>
+                      <td className="p-1 py-2 text-center">
+                        <Button variant="reddishPink" size="sm" onClick={() => openModal(application)}>
+                          Review
+                        </Button>
+                      </td>
                     </tr>
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
-      </Card>
+        ) : (
+          <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+            <p className="text-[#9A7080] font-medium text-sm">No applications found</p>
+          </div>
+        )}
+      </div>
+    </Card>
     </>
   )
 }
