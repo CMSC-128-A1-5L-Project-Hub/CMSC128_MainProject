@@ -137,77 +137,78 @@ export default function Moves({ data, className = "" }: { data: Move[], classNam
                     )
                 }
             />
-            <div className={className}>
-                <div className="bg-white border border-[#E8D0D8] rounded-xl p-3 lg:p-6 shadow-sm w-full h-full flex flex-col">
-                    <div className="flex flex-row justify-between w-full pb-2 border-b border-[#F5ECF0]">
-                        <p className="text-[#1A0008] font-bold">
-                            Upcoming Move-ins & Move-outs
-                        </p>
-                        <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/movein-moveout")}>
-                            View all →
-                        </p>
-                    </div>
-                    <div className="overflow-y-auto -mx-0">
-                        <table className="w-full min-w-[780px] table-fixed">
-                            <thead>
-                                <tr className="border-b border-[#F5ECF0] uppercase">
-                                    <th className="text-[#9A7080] text-xs font-bold py-1 text-left w-[22%]">Student</th>
-                                    <th className="text-[#9A7080] text-xs font-bold py-1 text-left w-[15%]">Room</th>
-                                    <th className="text-[#9A7080] text-xs font-bold py-1 text-left w-[16%]">Room Type</th>
-                                    <th className="text-[#9A7080] text-xs font-bold py-1 text-left w-[16%]">Date</th>
-                                    <th className="text-[#9A7080] text-xs font-bold py-1 text-center w-[16%]">Type</th>
-                                    <th className="text-[#9A7080] text-xs font-bold py-1 text-center w-[15%]">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.length > 0 ? (
-                                    data.map((move: Move, i: number) => (
-                                        <tr key={i} className="border-b border-[#F5ECF0]/50 last:border-0">
-                                            <td className="py-2 px-1">
-                                                <div className="flex flex-row items-center">
-                                                    <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                                                        style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                                        {getInitials(move.studentName)}
-                                                    </div>
-                                                    <p className="text-black text-sm pl-2 truncate">{move.studentName}</p>
-                                                </div>
-                                            </td>
-                                            <td className="py-2">
-                                                <p className="text-[#1A0008] text-sm">{move.room}</p>
-                                                <p className="text-[#9A7080] text-xs">{move.building}</p>
-                                            </td>
-                                            <td className="py-2">
-                                                <p className="text-[#1A0008] text-sm">{move.stayType}</p>
-                                                <p className="text-[#9A7080] text-xs">{move.roomType}</p>
-                                            </td>
-                                            <td className="py-2">
-                                                <p className="text-[#1A0008] text-sm">{move.date}</p>
-                                            </td>
-                                            <td className="py-2 text-center">
-                                                <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-full font-bold capitalize ${
-                                                    move.type === "move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"
-                                                }`}>
-                                                    <span className={`w-2 h-2 rounded-full ${move.type === "move-out" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}`} />
-                                                    {move.type}
-                                                </span>
-                                            </td>
-                                            <td className="py-2 text-center">
-                                                <Button variant="reddishPink" size="sm" className="px-6" onClick={() => openModal(move)}>
-                                                    View
-                                                </Button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={6} className="text-center py-4 italic text-gray-500">Nothing to see here</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+            <Card className={className}>
+            <div className="w-full h-full flex flex-col">
+                <div className="flex flex-row justify-between w-full pb-2">
+                <p className="text-[#1A0008] font-bold flex flex-col">Upcoming Move-ins & Move-outs
+                    <span className="italic font-normal text-[11px] lg:text-[12px]">{data.length} total moves</span>
+                </p>
+                <p className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer" onClick={() => navigate("/manager/movein-moveout")}>
+                    View all →
+                </p>
                 </div>
+
+                {data.length > 0 ? (
+                <div className="overflow-x-auto border-t border-[#F5ECF0]">
+                    <table className="w-full min-w-[780px] table-fixed">
+                    <thead>
+                        <tr className="border-b border-[#F5ECF0] uppercase">
+                        <th className="text-[#9A7080] text-xs font-bold py-1 text-left w-[22%]">Student</th>
+                        <th className="text-[#9A7080] text-xs font-bold py-1 text-left w-[15%]">Room</th>
+                        <th className="text-[#9A7080] text-xs font-bold py-1 text-left w-[16%]">Room Type</th>
+                        <th className="text-[#9A7080] text-xs font-bold py-1 text-left w-[16%]">Date</th>
+                        <th className="text-[#9A7080] text-xs font-bold py-1 text-center w-[16%]">Type</th>
+                        <th className="text-[#9A7080] text-xs font-bold py-1 text-center w-[15%]">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.map((move: Move, i: number) => (
+                        <tr key={i} className="border-b border-[#F5ECF0]/50 last:border-0">
+                            <td className="py-2 px-1">
+                            <div className="flex flex-row items-center">
+                                <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                                    style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
+                                {getInitials(move.studentName)}
+                                </div>
+                                <p className="text-black text-sm pl-2 truncate">{move.studentName}</p>
+                            </div>
+                            </td>
+                            <td className="py-2">
+                            <p className="text-[#1A0008] text-sm">{move.room}</p>
+                            <p className="text-[#9A7080] text-xs">{move.building}</p>
+                            </td>
+                            <td className="py-2">
+                            <p className="text-[#1A0008] text-sm">{move.stayType}</p>
+                            <p className="text-[#9A7080] text-xs">{move.roomType}</p>
+                            </td>
+                            <td className="py-2">
+                            <p className="text-[#1A0008] text-sm">{move.date}</p>
+                            </td>
+                            <td className="py-2 text-center">
+                            <span className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1.5 rounded-full font-bold capitalize ${
+                                move.type === "move-out" ? "bg-[#9E2040]/10 text-[#9E2040]" : "bg-[#1A7A4A]/10 text-[#1A7A4A]"
+                            }`}>
+                                <span className={`w-2 h-2 rounded-full ${move.type === "move-out" ? "bg-[#9E2040]" : "bg-[#1A7A4A]"}`} />
+                                {move.type}
+                            </span>
+                            </td>
+                            <td className="py-2 text-center">
+                            <Button variant="reddishPink" size="sm" className="px-6" onClick={() => openModal(move)}>
+                                View
+                            </Button>
+                            </td>
+                        </tr>
+                        ))}
+                    </tbody>
+                    </table>
+                </div>
+                ) : (
+                <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+                    <p className="text-[#9A7080] font-medium text-sm">No upcoming moves found</p>
+                </div>
+                )}
             </div>
+            </Card>
         </>
     )
 }
