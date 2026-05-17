@@ -2,18 +2,41 @@ import FormField from "../shared/FormField";
 import FormSelect from "../shared/FormSelect";
 import PhoneNumber from "../shared/PhoneNumber";
 import Button from "../../Button";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function PersonalInfo({ role, data, setData, nextStep }: any) {
     const [errors, setErrors] = useState<Record<string,string>>({})
     
-    // Track if last name was NOT pre-filled by Google
-    const [missingGoogleLastName] = useState(!data.lastName || data.lastName === "");
+    // Store initial values from Google when component first mounts
+    // This persists even when navigating back
+    const initialValues = useRef({
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
+        email: data.email || ""
+    })
+    
+    // Determine which fields were pre-filled by Google
+    // These should remain disabled forever
+    const isGooglePrefilled = {
+        firstName: !!initialValues.current.firstName,
+        lastName: !!initialValues.current.lastName, // true if Google provided a last name (even if empty string?)
+        email: !!initialValues.current.email
+    }
+    
+    // Special case: if Google provided empty string for last name, it means user has no surname
+    // The field should be disabled but NOT have the "Last Name" label (maybe use "Surname (if any)"?)
+    const hasNoSurname = initialValues.current.lastName === "" && isGooglePrefilled.lastName === false
     
     const handleChange = (e:any) => {
+        const fieldName = e.target.name
+        // Prevent editing of Google pre-filled fields
+        if (fieldName === "firstName" && isGooglePrefilled.firstName) return
+        if (fieldName === "lastName" && isGooglePrefilled.lastName) return
+        if (fieldName === "email" && isGooglePrefilled.email) return
+        
         setData({
             ...data,
-            [e.target.name]: e.target.value
+            [fieldName]: e.target.value
         })
     }
 
@@ -65,18 +88,18 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 value={data.firstName}
                 onChange={handleChange}
                 placeholder="First Name"
-                className="col-span-12 lg:col-span-5"
-                disabled={!!data.firstName}
+                className="col-span-5"
+                disabled={isGooglePrefilled.firstName}
             />
 
             <FormField
-                label="Last Name"
+                label={hasNoSurname ? "Last Name (if any)" : "Last Name"}
                 name="lastName"
                 value={data.lastName}
                 onChange={handleChange}
-                placeholder={missingGoogleLastName ? "" : "Last Name"}
-                className="col-span-9 lg:col-span-5"
-                disabled={missingGoogleLastName} 
+                placeholder={hasNoSurname ? "No surname provided" : "Last Name"}
+                className="col-span-5"
+                disabled={isGooglePrefilled.lastName || hasNoSurname}
             />
 
             <FormField 
@@ -85,7 +108,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 value={data.suffix}
                 onChange={handleChange}
                 placeholder="--"
-                className="col-span-3 lg:col-span-2"
+                className="col-span-2"
             />
 
             <FormField 
@@ -95,8 +118,8 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 value={data.email}
                 onChange={handleChange}
                 placeholder="username@up.edu.ph"
-                className={role === "manager" ? "col-span-12 lg:col-span-6" : role === "student" ? "col-span-7" : "col-span-12 lg:col-span-7"}
-                disabled={true}
+                className={role === "manager" ? "col-span-6" : "col-span-7"}
+                disabled={isGooglePrefilled.email}
             />
 
             {role === "landlord" && (
@@ -107,7 +130,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                     value={data.tin}
                     onChange={handleTinChange}
                     placeholder="XXX-XXX-XXX-XXX"
-                    className="col-span-12 lg:col-span-5"
+                    className="col-span-5"
                     error={errors.tin}
                     maxLength={17}
                 />
@@ -136,7 +159,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                     value={data.emergencyName}
                     onChange={handleChange}
                     placeholder="Full Name"
-                    className="col-span-12 lg:col-span-6"
+                    className="col-span-6"
                     error={errors.emergencyName}
                 />
             )}
@@ -147,7 +170,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                     name="emergencyNumber"
                     value={data.emergencyNumber}
                     onChange={handleChange}
-                    className="col-span-12 lg:col-span-6 min-w-0"
+                    className="col-span-6 min-w-0"
                     error={errors.emergencyNumber}
                 />
             )}
@@ -158,7 +181,7 @@ export default function PersonalInfo({ role, data, setData, nextStep }: any) {
                 value={data.facebook}
                 onChange={handleChange}
                 placeholder="facebook.com"
-                className={role === "manager" ? "col-span-12 lg:col-span-6" : "col-span-12"}
+                className={role === "manager" ? "col-span-6" : "col-span-12"}
             />
             
         </div>
