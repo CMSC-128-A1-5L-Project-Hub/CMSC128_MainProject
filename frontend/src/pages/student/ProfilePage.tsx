@@ -1,5 +1,5 @@
 /*
-  ProfilePage.tsx - Student profile view and edit with early move-out request
+  ProfilePage.tsx - Student profile view and edit with early move-out request and reviews
 */
 
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { create } from "zustand";
 import { useRef, useState, useEffect } from "react";
 import { api } from "../../api/axios";
-import Sidebar from "../../components/Sidebar";
 import Modal from "../../components/Modal";
 import Button from "../../components/Button";
 import Toast from "../../components/Toast";
@@ -21,7 +20,7 @@ import Camera from "../../assets/icons/camera.svg";
 import Pencil from "../../assets/icons/edit.svg";
 import BadgeCheck from "../../assets/icons/verify.svg";
 import Save from "../../assets/icons/save.svg";
-import { Calendar, AlertCircle, Send } from "lucide-react";
+import { Calendar, AlertCircle, Send, Star, X, ChevronLeft } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,11 +59,12 @@ interface AccommodationHistoryItem {
     monthlyRate: number;
     roomType: string;
     accommodation: {
+      id: number;
       accommodationName: string;
       accommodationType: string;
     };
   };
-  review?: { rating: number } | null;
+  review?: { rating: number; content: string; createdAt: string } | null;
 }
 
 interface ProfileEditFields {
@@ -200,6 +200,370 @@ function formatCurrency(n: number) {
   return `₱${n.toLocaleString("en-PH")}`;
 }
 
+// ─── Review Modal Component ───────────────────────────────────────────────────
+
+interface ReviewModalProps {
+  open: boolean;
+  onClose: () => void;
+  onBack?: () => void;
+  accommodationName: string;
+  accommodationId: number;
+  roomNumber: string;
+  moveInDate: string;
+  actualMoveOutDate: string | null;
+  expectedMoveOutDate: string;
+  onSubmit: (rating: number, content: string) => void;
+  isSubmitting?: boolean;
+  existingReview?: { rating: number; content: string; createdAt: string } | null;
+}
+
+function ReviewModal({
+  open,
+  onClose,
+  // onBack,  // Remove this
+  accommodationName,
+  roomNumber,
+  moveInDate,
+  actualMoveOutDate,
+  expectedMoveOutDate,
+  onSubmit,
+  isSubmitting = false,
+  existingReview = null,
+}: ReviewModalProps) {
+  const [rating, setRating] = useState<number>(existingReview?.rating || 0);
+  const [hoveredRating, setHoveredRating] = useState<number>(0);
+  const [content, setContent] = useState<string>(existingReview?.content || "");
+  const [error, setError] = useState<string>("");
+
+  const hasMovedIn = new Date(moveInDate) <= new Date();
+  const hasMovedOut = actualMoveOutDate !== null;
+  const canReviewNow = !existingReview && (hasMovedIn || hasMovedOut);
+  const isAlreadyReviewed = !!existingReview;
+
+  const handleSubmit = () => {
+    if (rating === 0) {
+      setError("Please select a rating");
+      return;
+    }
+    if (!content.trim()) {
+      setError("Please write a review");
+      return;
+    }
+    setError("");
+    onSubmit(rating, content);
+  };
+
+  const getStatusMessage = () => {
+    if (isAlreadyReviewed) {
+      return "You have already reviewed this accommodation.";
+    }
+    if (!hasMovedIn && !hasMovedOut) {
+      return "You can review this accommodation after you have moved in or moved out.";
+    }
+    return null;
+  };
+
+  const statusMessage = getStatusMessage();
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isAlreadyReviewed ? "YOUR REVIEW" : "WRITE A REVIEW"}
+      eyebrow={accommodationName}
+      maxWidth={550}
+      footer={
+        !isAlreadyReviewed && canReviewNow && (
+          <div className="flex justify-end gap-3 w-full">
+            <Button
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={isSubmitting || rating === 0 || !content.trim()}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Review"}
+            </Button>
+          </div>
+        )
+      }
+    >
+      <div className="space-y-5">
+        <div className="bg-gray-50 rounded-xl p-4">
+          <p className="text-sm font-semibold text-gray-700">{accommodationName}</p>
+          <p className="text-xs text-gray-500">Room {roomNumber}</p>
+          <div className="flex flex-col gap-1 mt-2">
+            <p className="text-xs text-gray-500">
+              Move-in date: {new Date(moveInDate).toLocaleDateString()}
+            </p>
+            {actualMoveOutDate ? (
+              <p className="text-xs text-green-600">
+                Moved out on: {new Date(actualMoveOutDate).toLocaleDateString()}
+              </p>
+            ) : (
+              <p className="text-xs text-amber-600">
+                Expected move-out: {new Date(expectedMoveOutDate).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {isAlreadyReviewed ? (
+          <>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Your Rating
+              </p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-6 h-6 ${
+                      star <= existingReview.rating
+                        ? "fill-amber-400 text-amber-400"
+                        : "fill-gray-200 text-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Your Review
+              </p>
+              <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                {existingReview.content}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Reviewed On
+              </p>
+              <p className="text-sm text-gray-500">
+                {new Date(existingReview.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2">
+              <AlertCircle size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-700">
+                You have already reviewed this accommodation. Thank you for your feedback!
+              </p>
+            </div>
+          </>
+        ) : canReviewNow ? (
+          <>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Your Rating <span className="text-red-500">*</span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoveredRating(star)}
+                    onMouseLeave={() => setHoveredRating(0)}
+                    className="focus:outline-none transition-transform hover:scale-110"
+                  >
+                    <Star
+                      className={`w-8 h-8 sm:w-10 sm:h-10 ${
+                        star <= (hoveredRating || rating)
+                          ? "fill-amber-400 text-amber-400"
+                          : "fill-gray-200 text-gray-200"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <p className="text-xs text-gray-500 mt-2">
+                  {rating === 5 && "Excellent! 🌟"}
+                  {rating === 4 && "Very Good! 👍"}
+                  {rating === 3 && "Good 👌"}
+                  {rating === 2 && "Fair 🤔"}
+                  {rating === 1 && "Poor 😞"}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Your Review <span className="text-red-500">*</span>
+              </p>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Share your experience about this accommodation... (e.g., cleanliness, amenities, location, staff, etc.)"
+                rows={5}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6B0F2B]/30 resize-none text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                {content.length}/500 characters
+              </p>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex gap-2">
+                <AlertCircle size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-red-600">{error}</p>
+              </div>
+            )}
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2">
+              <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-700">
+                Your review will be visible to other students and the accommodation manager.
+                Please be honest and respectful.
+              </p>
+            </div>
+          </>
+        ) : (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex gap-3">
+            <AlertCircle size={20} className="text-gray-500 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-gray-700">Review Not Available Yet</p>
+              <p className="text-xs text-gray-600 mt-1">
+                {statusMessage || "You can review this accommodation after you have moved in or completed your stay."}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                {!hasMovedIn && !hasMovedOut && (
+                  <>Your move-in date is {new Date(moveInDate).toLocaleDateString()}</>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+// ─── Accommodation History Modal Component ───────────────────────────────────
+
+function AccomHistoryModal({
+  history,
+  onClose,
+  studentName,
+  onWriteReview,
+}: {
+  history: AccommodationHistoryItem[];
+  onClose: () => void;
+  studentName: string;
+  onWriteReview: (item: AccommodationHistoryItem) => void;
+}) {
+  return (
+    <Modal
+      open={true}
+      onClose={onClose}
+      title="ACCOMMODATION HISTORY"
+      eyebrow={`${studentName.toUpperCase()}'S HISTORY`}
+      maxWidth={700}
+      maxHeight={"85vh"}
+    >
+      <div className="flex flex-col gap-3 overflow-y-auto max-h-[70vh] px-1">
+        {history.length === 0 ? (
+          <p className="text-center text-gray-500 py-8">No accommodation history yet.</p>
+        ) : (
+          history.map((item) => {
+            const isActive = !item.actualMoveOut;
+            const hasReviewed = !!item.review;
+            const canReview = !isActive && !hasReviewed;
+
+            return (
+              <div
+                key={item.id}
+                className={`flex flex-col gap-3 rounded-xl p-4 border ${
+                  isActive ? "border-[#C9973A] bg-[#FDF8F0]" : "border-[#E8D0D8] bg-[#F9F5F6]"
+                }`}
+              >
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="w-full sm:w-20 h-16 rounded-lg bg-gradient-to-br from-[#6B0F2B] to-[#3D0718] flex items-center justify-center text-[#E8C37A] text-xs font-bold text-center shrink-0">
+                    AY {new Date(item.moveIn).getFullYear()}–
+                    {String(new Date(item.moveIn).getFullYear() + 1).slice(2)}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-[#2A1F1A] text-sm sm:text-base">{item.room.accommodation.accommodationName}</p>
+                    <p className="text-xs text-gray-500 mb-2">
+                      {item.room.roomType} · {item.room.accommodation.accommodationType} · Room {item.room.roomName}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      <div>
+                        <span className="text-gray-400">Semester:</span>
+                        <span className="ml-2 text-gray-700">{formatSemester(item.moveIn)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Monthly Rate:</span>
+                        <span className="ml-2 text-gray-700 font-semibold">{formatCurrency(item.room.monthlyRate)}</span>
+                      </div>
+                      <div className="col-span-1 sm:col-span-2">
+                        <span className="text-gray-400">{isActive ? "Move-in:" : "Duration:"}</span>
+                        <span className="ml-2 text-gray-700">
+                          {isActive
+                            ? new Date(item.moveIn).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })
+                            : `${new Date(item.moveIn).toLocaleDateString("en-PH", { month: "short", year: "numeric" })} – ${new Date(item.actualMoveOut!).toLocaleDateString("en-PH", { month: "short", year: "numeric" })}`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-2">
+                    <span
+                      className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${
+                        isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {isActive ? "Active" : "Completed"}
+                    </span>
+                    
+                    {!isActive && !hasReviewed && (
+                      <button
+                        onClick={() => onWriteReview(item)}
+                        className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 transition flex items-center gap-1 whitespace-nowrap"
+                      >
+                        <Star size={12} /> Write Review
+                      </button>
+                    )}
+                    
+                    {hasReviewed && (
+                      <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 flex items-center gap-1 whitespace-nowrap">
+                        <Star size={12} className="fill-green-600" /> Reviewed
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {item.review && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <div className="flex items-center gap-1 mb-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-3 h-3 ${
+                            star <= item.review!.rating
+                              ? "fill-amber-400 text-amber-400"
+                              : "fill-gray-200 text-gray-200"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 italic">"{item.review.content}"</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Reviewed on {new Date(item.review.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </Modal>
+  );
+}
+
 // ─── Early Move-Out Request Modal ───────────────────────────────────────────
 
 function EarlyMoveOutModal({
@@ -328,7 +692,7 @@ function EarlyMoveOutModal({
             onChange={(e) => setRequestedDate(e.target.value)}
             min={today}
             max={maxDateStr}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6B0F2B]/30"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6B0F2B]/30 text-sm"
           />
           <p className="text-xs text-gray-400 mt-1">
             Current expected move-out: {new Date(currentMoveOutDate).toLocaleDateString()}
@@ -344,7 +708,7 @@ function EarlyMoveOutModal({
             onChange={(e) => setReason(e.target.value)}
             placeholder="e.g., Academic schedule conflict, financial reasons, relocation, etc."
             rows={4}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6B0F2B]/30 resize-none"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6B0F2B]/30 resize-none text-sm"
           />
         </div>
 
@@ -428,111 +792,6 @@ function EditableField({
   );
 }
 
-// ─── Accommodation History Modal Component ───────────────────────────────────
-
-function AccomHistoryModal({
-  history,
-  onClose,
-  studentName,
-}: {
-  history: AccommodationHistoryItem[];
-  onClose: () => void;
-  studentName: string;
-}) {
-  const totalSpent = history.reduce((sum, h) => {
-    const months = Math.max(
-      1,
-      Math.round(
-        (new Date(h.actualMoveOut ?? h.expectedMoveOut).getTime() -
-          new Date(h.moveIn).getTime()) /
-          (1000 * 60 * 60 * 24 * 30)
-      )
-    );
-    return sum + h.room.monthlyRate * months;
-  }, 0);
-
-  const ratedItems = history.filter((h) => h.review?.rating);
-  const avgRating =
-    ratedItems.length > 0
-      ? ratedItems.reduce((s, h) => s + (h.review?.rating ?? 0), 0) / ratedItems.length
-      : 0;
-
-  return (
-    <Modal
-      open={true}
-      onClose={onClose}
-      title="ACCOMMODATION HISTORY"
-      eyebrow={`${studentName.toUpperCase()}'S HISTORY`}
-      maxWidth={560}
-      maxHeight={"80vh"}
-    >
-      <div className="flex flex-col gap-3">
-        {history.length === 0 ? (
-          <p className="text-center text-gray-500 py-8">No accommodation history yet.</p>
-        ) : (
-          history.map((item) => {
-            const isActive = !item.actualMoveOut;
-            return (
-              <div
-                key={item.id}
-                className={`flex gap-4 rounded-xl p-3 border ${
-                  isActive ? "border-[#C9973A] bg-[#FDF8F0]" : "border-[#E8D0D8] bg-[#F9F5F6]"
-                }`}
-              >
-                <div className="w-20 h-16 rounded-lg bg-gradient-to-br from-[#6B0F2B] to-[#3D0718] flex items-center justify-center text-[#E8C37A] text-xs font-bold text-center shrink-0">
-                  AY {new Date(item.moveIn).getFullYear()}–
-                  {String(new Date(item.moveIn).getFullYear() + 1).slice(2)}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-[#2A1F1A] text-sm">{item.room.accommodation.accommodationName}</p>
-                  <p className="text-xs text-gray-500 mb-2">
-                    {item.room.roomType} · {item.room.accommodation.accommodationType} · Room {item.room.roomName}
-                  </p>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <div>
-                      <span className="text-gray-400">Semester:</span>
-                      <span className="ml-2 text-gray-700">{formatSemester(item.moveIn)}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Monthly Rate:</span>
-                      <span className="ml-2 text-gray-700 font-semibold">{formatCurrency(item.room.monthlyRate)}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">{isActive ? "Move-in:" : "Duration:"}</span>
-                      <span className="ml-2 text-gray-700">
-                        {isActive
-                          ? new Date(item.moveIn).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })
-                          : `${new Date(item.moveIn).toLocaleDateString("en-PH", { month: "short", year: "numeric" })} – ${new Date(item.actualMoveOut!).toLocaleDateString("en-PH", { month: "short", year: "numeric" })}`}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Rating Given:</span>
-                      <span className="ml-2 text-[#C9973A]">
-                        {item.review?.rating ? "★".repeat(Math.floor(item.review.rating)) + "☆".repeat(5 - Math.floor(item.review.rating)) : "—"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <span
-                    className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${
-                      isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {isActive ? "Active" : "Inactive"}
-                  </span>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </Modal>
-  );
-}
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
@@ -550,6 +809,17 @@ export default function ProfilePage() {
   // Early move-out modal state
   const [earlyMoveOutModalOpen, setEarlyMoveOutModalOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<AccommodationHistoryItem | null>(null);
+
+  const handleSubmitReview = (rating: number, content: string) => {
+    setSubmittingReview(true);
+    submitReview.mutate({ rating, content });
+  };
+
+  // Review modal state - track which modal is open
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedForReview, setSelectedForReview] = useState<AccommodationHistoryItem | null>(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [returnToHistory, setReturnToHistory] = useState(false);
 
   // OTP Modal states
   const [otpModalOpen, setOtpModalOpen] = useState(false);
@@ -635,6 +905,46 @@ export default function ProfilePage() {
         title: "Upload Failed",
         message: err?.response?.data?.message ?? 'Failed to upload photo.'
       });
+    },
+  });
+
+  const submitReview = useMutation({
+    mutationFn: async ({ rating, content }: { rating: number; content: string }) => {
+      if (!selectedForReview) return;
+      // TODO: Connect to backend when ready
+      // const res = await api.post(`/accommodations/${selectedForReview.room.accommodation.id}/reviews`, {
+      //   rating,
+      //   content
+      // });
+      // return res.data;
+      
+      // Mock for now
+      console.log("Submitting review for accommodation:", selectedForReview.room.accommodation.id, { rating, content });
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return { success: true };
+    },
+    onSuccess: () => {
+      setToast({
+        show: true,
+        type: "success",
+        title: "Review Submitted!",
+        message: "Thank you for sharing your feedback."
+      });
+      // Close review modal and show history modal again
+      setReviewModalOpen(false);
+      setSelectedForReview(null);
+      refetchHistory();
+    },
+    onError: () => {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Submission Failed",
+        message: "Could not submit your review. Please try again."
+      });
+    },
+    onSettled: () => {
+      setSubmittingReview(false);
     },
   });
 
@@ -846,6 +1156,30 @@ export default function ProfilePage() {
     setSelectedAssignment(assignment);
     setEarlyMoveOutModalOpen(true);
   };
+
+  const handleOpenReviewModal = (item: AccommodationHistoryItem) => {
+    setSelectedForReview(item);
+    setReturnToHistory(true);
+    setShowHistory(false);  
+    setReviewModalOpen(true);
+  };
+
+  const handleCloseReviewModal = () => {
+    setReviewModalOpen(false);
+    setSelectedForReview(null);
+    if (returnToHistory) {
+      setShowHistory(true);
+      setReturnToHistory(false);
+    }
+  };
+
+  const handleBackToHistory = () => {
+    setReviewModalOpen(false);
+    setSelectedForReview(null);
+    setShowHistory(true);
+    setReturnToHistory(false);
+  };
+
 
   // ── Derived values ─────────────────────────────────────────────────────────
 
@@ -1220,6 +1554,25 @@ export default function ProfilePage() {
           setToast={setToast}
         />
       )}
+      
+
+      {/* Review Modal - opens on top of history modal */}
+      {selectedForReview && (
+        <ReviewModal
+          open={reviewModalOpen}
+          onClose={handleCloseReviewModal}
+          onBack={returnToHistory ? handleBackToHistory : undefined}
+          accommodationName={selectedForReview.room.accommodation.accommodationName}
+          accommodationId={selectedForReview.room.accommodation.id}
+          roomNumber={selectedForReview.room.roomName}
+          moveInDate={selectedForReview.moveIn}
+          actualMoveOutDate={selectedForReview.actualMoveOut}
+          expectedMoveOutDate={selectedForReview.expectedMoveOut}
+          onSubmit={handleSubmitReview}
+          isSubmitting={submittingReview}
+          existingReview={selectedForReview.review}
+        />
+      )}
 
       {/* Accommodation History Modal */}
       {showHistory && (
@@ -1227,6 +1580,7 @@ export default function ProfilePage() {
           history={history}
           studentName={profile.fname}
           onClose={() => setShowHistory(false)}
+          onWriteReview={handleOpenReviewModal}
         />
       )}
 

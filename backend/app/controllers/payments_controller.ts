@@ -9,6 +9,7 @@ import LogService from '#services/log_service'
 import Accommodation from '#models/accommodation'
 import Assignment from '#models/assignment'
 import NotificationService from '#services/notification_service'
+import { signImageUrl } from '#services/image_service'
 import { inject } from '@adonisjs/core'
 import { DateTime } from 'luxon'
 
@@ -29,12 +30,19 @@ export default class PaymentsController {
       return response.badRequest({ message: 'Payment amount must be greater than zero' })
     }
 
-    if (paymentAmount > fee.feeBalance) {
+    // DB column is DECIMAL(10, 2) → max 99,999,999.99
+    if (paymentAmount > 99_999_999.99) {
+      return response.badRequest({ message: 'Payment amount cannot exceed ₱99,999,999.99' })
+    }
+
+    const feeBalance = Number(fee.feeBalance)
+
+    if (paymentAmount > feeBalance + 0.001) {
       return response.badRequest({ message: 'Payment amount exceeds the remaining balance' })
     }
 
     // If installments are NOT allowed, student must pay full balance
-    if (!fee.allowInstallments && paymentAmount !== fee.feeBalance) {
+    if (!fee.allowInstallments && Math.abs(paymentAmount - feeBalance) > 0.001) {
       return response.badRequest({
         message: 'Full payment is required for this fee. Please pay the exact remaining balance.',
       })
@@ -284,5 +292,26 @@ async pending({ auth, request, response }: HttpContext) {
       .orderBy('paymentTimestamp', 'desc')
 
     return payments // auto-serialized
+  }
+
+  // ─── MANAGER/LANDLORD: VIEW PAYMENT PROOF ───
+  // GET /payments/:id/proof
+  async viewProof({ params, response }: HttpContext) {
+    const payment = await Payment.query()
+      .where('id', params.id)
+      .preload('proofFile')
+      .firstOrFail()
+
+    const filePath = payment.proofFile?.filePath
+    if (!filePath) {
+      return response.notFound({ message: 'Payment proof not available' })
+    }
+
+    const url = await signImageUrl(filePath)
+    if (!url) {
+      return response.notFound({ message: 'Payment proof not available' })
+    }
+
+    return response.ok({ url })
   }
 }

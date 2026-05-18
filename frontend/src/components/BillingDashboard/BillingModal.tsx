@@ -44,9 +44,15 @@ export default function BillingModal({ bill, onClose, onSubmit }: BillingModalPr
     const fileInputRef = useRef<HTMLInputElement>(null);
     const uploadMutation = useUploadPayment();
 
+    const MAX_AMOUNT = 99_999_999.99
+
     const handleSubmit = async () => {
         if (!cashAmount || cashAmount <= 0) {
             alert("Please enter a valid amount.");
+            return;
+        }
+        if (cashAmount > MAX_AMOUNT) {
+            alert(`Amount cannot exceed ₱${MAX_AMOUNT.toLocaleString()}.`);
             return;
         }
         try {
@@ -116,11 +122,25 @@ export default function BillingModal({ bill, onClose, onSubmit }: BillingModalPr
                             <img src={onlineIcon} alt="online" className="w-6 h-6 mr-2" /> Online
                         </button>
                     </div>
-                    <p className='uppercase font-bold text-[#6B4050] text-[13px] mt-2'>amount paid</p>
+                    <div className="flex flex-row justify-between items-end mt-2">
+                        <p className='uppercase font-bold text-[#6B4050] text-[13px]'>amount paid</p>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${bill.allowInstallments ? 'text-emerald-800 bg-emerald-100' : 'text-[#9E2040] bg-[#FBE6EC]'}`}>
+                            {bill.allowInstallments ? 'Installments allowed' : 'Full payment only'}
+                        </span>
+                    </div>
+                    <p className='text-[11px] text-[#9A7080] mt-1'>
+                        {bill.allowInstallments
+                            ? `You may pay any amount up to ₱${bill.balance.toLocaleString()}.`
+                            : `You must pay the exact remaining balance of ₱${bill.balance.toLocaleString()}.`}
+                    </p>
                     <input value={cashAmount ?? ''} onChange={(e) => setCashAmount(e.target.value === '' ? undefined : Number(e.target.value))}
                         disabled={isPaid}
+                        max={MAX_AMOUNT}
                         className='text-[14px] mt-2 p-4 placeholder-[#C8B0B8] text-[#6B4050] w-full h-12 border-2 border-[#C8B0B8] rounded-xl disabled:opacity-40 disabled:cursor-not-allowed'
                         type="number" inputMode="numeric" placeholder='Input amount' />
+                    {cashAmount !== undefined && cashAmount > MAX_AMOUNT && (
+                        <p className='text-[10px] text-red-600 mt-1'>Amount cannot exceed ₱{MAX_AMOUNT.toLocaleString()}.</p>
+                    )}
                     <div className={`${paymentMethod === "online" ? "" : "hidden"} flex flex-col`}>
                         <p className="uppercase font-bold text-[#6B4050] text-[13px] mt-2">upload receipts here</p>
                         <button type="button" onClick={() => fileInputRef.current?.click()}

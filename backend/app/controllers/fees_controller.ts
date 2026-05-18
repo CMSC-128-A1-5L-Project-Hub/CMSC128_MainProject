@@ -14,6 +14,9 @@ import { inject } from '@adonisjs/core'
 import NotificationService from '#services/notification_service'
 import ReportExportService from '#services/report_export_service'
 
+// DB columns are DECIMAL(10, 2) → max value 99,999,999.99
+const MAX_FEE_AMOUNT = 99_999_999.99
+
 @inject()
 export default class FeesController {
   constructor(protected notificationService: NotificationService) {}
@@ -153,6 +156,71 @@ export default class FeesController {
     return response.send(buf)
   }
 
+  // ─── MANAGER/LANDLORD: FEE COLLECTION STATS ───
+  // GET /fees/stats?accommodationId=
+  async stats({ auth, request, response }: HttpContext) {
+    const user = auth.user!
+    const accommodationId = request.input('accommodationId')
+
+    if (!accommodationId) {
+      return response.badRequest({ message: 'accommodationId is required' })
+    }
+
+    // Authorize: must own/manage the accommodation
+    const accom = await Accommodation.find(accommodationId)
+    if (!accom) {
+      return response.notFound({ message: 'Accommodation not found' })
+    }
+    if (user.role === 'landlord' && accom.landlordId !== user.id) {
+      return response.forbidden({ message: 'Access denied' })
+    }
+    if (user.role === 'manager' && accom.managerId !== user.id) {
+      return response.forbidden({ message: 'Access denied' })
+    }
+
+    const now = DateTime.now()
+    const monthStart = now.startOf('month').toSQL()
+    const monthEnd = now.endOf('month').toSQL()
+
+    // Total verified collections this month, for fees tied to active tenants of this accommodation
+    const collectionsRow = await db
+      .from('payments')
+      .leftJoin('fees', 'payments.fee_id', 'fees.id')
+      .leftJoin('assignments', 'fees.student_number', 'assignments.student_number')
+      .leftJoin('rooms', 'assignments.room_id', 'rooms.id')
+      .where('rooms.accommodation_id', accommodationId)
+      .where('payments.payment_status', 'verified')
+      .whereBetween('payments.payment_timestamp', [monthStart, monthEnd])
+      .sum('payments.payment_amount as total')
+      .first()
+
+    const totalCollectionsMonth = Number(collectionsRow?.total ?? 0)
+
+    // Collection rate: lifetime (sum(amount)-sum(balance)) / sum(amount) for fees on this accommodation
+    const feesRow = await db
+      .from('fees')
+      .leftJoin('assignments', 'fees.student_number', 'assignments.student_number')
+      .leftJoin('rooms', 'assignments.room_id', 'rooms.id')
+      .where('rooms.accommodation_id', accommodationId)
+      .select(
+        db.raw('COALESCE(SUM(fees.fee_amount), 0) as billed'),
+        db.raw('COALESCE(SUM(fees.fee_balance), 0) as outstanding')
+      )
+      .first()
+
+    const billed = Number(feesRow?.billed ?? 0)
+    const outstanding = Number(feesRow?.outstanding ?? 0)
+    const collected = billed - outstanding
+    const collectionRate = billed > 0 ? (collected / billed) * 100 : 0
+
+    return response.ok({
+      totalCollectionsMonth,
+      collectionRate,
+      billed,
+      collected,
+    })
+  }
+
   // ─── MANAGER/LANDLORD: CREATE A FEE ───
   // POST /fees
   async store({ auth, request, response }: HttpContext) {
@@ -168,6 +236,10 @@ export default class FeesController {
 
     if (!feeAmount || feeAmount <= 0) {
       return response.badRequest({ message: 'Invalid fee amount' })
+    }
+
+    if (feeAmount > MAX_FEE_AMOUNT) {
+      return response.badRequest({ message: `Fee amount cannot exceed ₱${MAX_FEE_AMOUNT.toLocaleString()}` })
     }
 
     if (!['rent', 'utilities', 'miscellaneous'].includes(feeCategory)) {
@@ -246,6 +318,10 @@ export default class FeesController {
     }
     if (!amount || amount <= 0) {
       return response.badRequest({ message: 'Invalid amount' })
+    }
+
+    if (amount > MAX_FEE_AMOUNT) {
+      return response.badRequest({ message: `Amount cannot exceed ₱${MAX_FEE_AMOUNT.toLocaleString()}` })
     }
 
     const room = await Room.findOrFail(roomId)
