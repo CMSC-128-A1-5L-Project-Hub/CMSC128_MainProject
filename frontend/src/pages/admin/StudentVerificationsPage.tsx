@@ -169,8 +169,8 @@ export default function StudentVerificationsPage() {
           title={"Student Verifications"}>
 
         </CustomHeader>
-        <main className="flex-1 w-full overflow-x-hidden p-6">
-          <div className="space-y-6 w-full">
+        <main className="flex flex-col flex-1 w-full overflow-x-hidden p-6 gap-6">
+          <div className="flex flex-col flex-1 w-full gap-6">
             {/* HERO */}
             <HeroBanner
               greeting="Good day"
@@ -180,9 +180,9 @@ export default function StudentVerificationsPage() {
               type="mini"
             />
             {/* CARD */}
-            <Card className="flex w-full flex-col rounded-2xl bg-white p-6 space-y-6 shadow-sm">
+            <Card className="flex flex-1 w-full h-full flex-col rounded-2xl bg-white p-6 shadow-sm">
               {/* HEADER */}
-              <div className="flex flex-row justify-between">
+              <div className="flex flex-row justify-between mb-4">
                 <div className="flex flex-col">
                   <h4 className="text-[16px] font-bold">
                     Student Verifications
@@ -238,31 +238,30 @@ export default function StudentVerificationsPage() {
               ) : isPendingError ? (
                 <p className="text-sm text-red-500">Error loading requests.</p>
               ) : filteredStudents.length === 0 ? (
-                <div className="flex h-[390px] items-center justify-center border-t border-[#F2D9DF]">
-                  <p className="text-lg font-medium text-[#9A7080] text-center">
-                    No pending student applications
-                  </p>
+                <div className="flex flex-col justify-center items-center h-full text-center">
+                    <p className="text-[#9A7080] font-medium text-lg">No pending verifications found</p>
+                    <p className="text-[#9A7080]/60 text-sm mt-1">When a student applies, they will appear here</p>
                 </div>
               ) : (
                 <>
                   {/* TABLE */}
-                  <div>
+                  <div className="flex-1">
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="border-y border-[#F2D9DF]">
-                          <th className="px-4 py-2 text-left text-[12px] font-bold uppercase tracking-widest text-[#A06B7C]">
+                          <th className="p-2 text-left text-[12px] font-bold uppercase tracking-widest text-[#A06B7C]">
                             Student
                           </th>
-                          <th className="px-4 py-2 text-left text-[12px] font-bold uppercase tracking-widest text-[#A06B7C]">
+                          <th className="p-2 text-left text-[12px] font-bold uppercase tracking-widest text-[#A06B7C]">
                             Applied
                           </th>
-                          <th className="px-4 py-2 text-left text-[12px] font-bold uppercase tracking-widest text-[#A06B7C]">
+                          <th className="p-2 text-left text-[12px] font-bold uppercase tracking-widest text-[#A06B7C]">
                             Email
                           </th>
-                          <th className="px-4 py-2 text-left text-[12px] font-bold uppercase tracking-widest text-[#A06B7C]">
+                          <th className="p-2 text-left text-[12px] font-bold uppercase tracking-widest text-[#A06B7C]">
                             Status
                           </th>
-                          <th className="px-4 py-2 text-center text-[12px] font-bold uppercase tracking-widest text-[#A06B7C]">
+                          <th className="p-2 text-center text-[12px] font-bold uppercase tracking-widest text-[#A06B7C]">
                             Action
                           </th>
                         </tr>
@@ -273,9 +272,9 @@ export default function StudentVerificationsPage() {
                             key={item.user.id}
                             className="hover:bg-[#FFF7F9]"
                           >
-                            <td className="px-4 py-2">
+                            <td className="p-2">
                               <div className="flex items-center gap-2">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042] font-bold text-white">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042] font-bold text-white">
                                   {item.user.fname?.[0]?.toUpperCase() ?? "S"}
                                 </div>
                                 <div>
@@ -288,19 +287,19 @@ export default function StudentVerificationsPage() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 py-2 text-sm text-[#A06B7C]">
+                            <td className="p-2 text-sm text-[#A06B7C]">
                               {formatAppliedDate(item.user.submittedAt)}
                             </td>
-                            <td className="px-4 py-2 text-sm">
+                            <td className="p-2 text-sm">
                               {item.user.email}
                             </td>
-                            <td className="px-4 py-2">
+                            <td className="p-2">
                               <StylizedStatus
                                 status={"pending"}>
 
                               </StylizedStatus>
                             </td>
-                            <td className="px-4 py-2 text-center">
+                            <td className="p-2 text-center">
                               <button
                                 onClick={() => handleOpenModal(item)}
                                 className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-4 py-2 text-[12px] font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF]"
@@ -315,9 +314,9 @@ export default function StudentVerificationsPage() {
                   </div>
                   {/* PAGINATION */}
                   <div className={`${filteredStudents.length === 0 ? "hidden" : "flex flex-col"}`}>
-                    <hr className="border-[#6B0F2B]/10 border-t" />
-                    <div className="flex items-center justify-between mt-3">
-                      <p className="text-xs text-[#9A7080]">
+                    <hr className="border-[#F2D9DF] border-t" />
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-[#9A7080] mt-3">
                         {filteredStudents.length === 0
                           ? "No results"
                           : `Showing ${(currentPage - 1) * rows + 1}–${Math.min(currentPage * rows, filteredStudents.length)} of ${filteredStudents.length}`}

@@ -29,7 +29,7 @@ export default function Dropdown({ showTitle = true, title, items, onSelect, dir
       <button
         onClick={() => setOpen(!open)}
         type="button"
-        className={`h-full px-2 py-1 border-2 border-[#6B0F2B] border-opacity-10 bg-white rounded-[8.8px] flex items-center justify-between gap-4 ${widthClass}`}
+        className={`h-full px-2 py-1 border border-[#6B0F2B] border-opacity-10 bg-white rounded-[8.8px] flex items-center justify-between gap-4 ${widthClass}`}
       >
         <div className={`flex flex-${flexDirection} items-${flexDirection == "col" ? "start" : "center"} overflow-hidden w-full`}>
           <span className={showTitle ? `${titleClass} text-[#9A7080] uppercase` : 'hidden'}>{title}</span>

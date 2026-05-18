@@ -451,8 +451,8 @@ export default function Dashboard() {
             <div className="hidden lg:block w-full">
               <CustomHeader title="Dashboard" />
             </div>
-            <div className="p-6">
-              <main className="flex flex-col gap-6">
+            <div className="p-6 flex flex-col flex-1">
+              <main className="flex flex-col gap-6 flex-1">
                 <HeroBanner
                   greeting="Good Day"
                   name={fullName}
@@ -472,7 +472,7 @@ export default function Dashboard() {
 
                 {/* moved tables up (since ito ung mas important) */}
                 {activeTab === "Students" && (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch w-full">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch w-full flex-1">
                     <Applications
                       data={pendingApps}
                       docs={documentRequirements}
