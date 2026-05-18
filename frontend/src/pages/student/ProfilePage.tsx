@@ -469,7 +469,7 @@ function AccomHistoryModal({
           history.map((item) => {
             const isActive = !item.actualMoveOut;
             const hasReviewed = !!item.review;
-            const canReview = !isActive && !hasReviewed;
+            const canReview = !hasReviewed;
 
             return (
               <div
@@ -518,7 +518,7 @@ function AccomHistoryModal({
                       {isActive ? "Active" : "Completed"}
                     </span>
                     
-                    {!isActive && !hasReviewed && (
+                    {canReview && (
                       <button
                         onClick={() => onWriteReview(item)}
                         className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 transition flex items-center gap-1 whitespace-nowrap"
@@ -916,17 +916,11 @@ export default function ProfilePage() {
   const submitReview = useMutation({
     mutationFn: async ({ rating, content }: { rating: number; content: string }) => {
       if (!selectedForReview) return;
-      // TODO: Connect to backend when ready
-      // const res = await api.post(`/accommodations/${selectedForReview.room.accommodation.id}/reviews`, {
-      //   rating,
-      //   content
-      // });
-      // return res.data;
-      
-      // Mock for now
-      console.log("Submitting review for accommodation:", selectedForReview.room.accommodation.id, { rating, content });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return { success: true };
+      const res = await api.post(
+        `/accommodations/${selectedForReview.room.accommodation.id}/reviews`,
+        { rating, content }
+      );
+      return res.data;
     },
     onSuccess: () => {
       setToast({
@@ -940,12 +934,12 @@ export default function ProfilePage() {
       setSelectedForReview(null);
       refetchHistory();
     },
-    onError: () => {
+    onError: (err: any) => {
       setToast({
         show: true,
         type: "error",
         title: "Submission Failed",
-        message: "Could not submit your review. Please try again."
+        message: err?.response?.data?.message ?? "Could not submit your review. Please try again."
       });
     },
     onSettled: () => {
