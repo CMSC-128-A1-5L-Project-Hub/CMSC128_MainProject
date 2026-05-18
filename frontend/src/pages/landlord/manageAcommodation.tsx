@@ -15,6 +15,8 @@ import NotificationPanel, { type Notification } from "../../components/Notificat
 import notif_icon from "../../assets/icons/notif_icon.svg";
 import UbleLoader from "../shared/LoadingPage";
 import CustomHeader from "../../components/CustomHeader"
+import FormField from "@/components/SignUpForm/shared/FormField";
+import FormSelect from "@/components/SignUpForm/shared/FormSelect";
 
 const COMMON_AMENITIES = [
   "WiFi", "Air Conditioning", "Kitchen", "Laundry", "Study Area",
@@ -128,7 +130,6 @@ const AddCard: React.FC<{ onClick: () => void }> = ({ onClick }) => (
 );
 
 // ─── STEP 1 ──────────────────────────────────────────────────────────────────
-// ─── STEP 1 ──────────────────────────────────────────────────────────────────
 const StepOne = ({ onNext, amenities, setAmenities }: {
   onNext: () => void; amenities: string[]; setAmenities: (a: string[]) => void;
 }) => {
@@ -175,8 +176,6 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
     if (!accommodationType) newErrors.accommodationType = "Required";
     if (!tenantRestriction) newErrors.tenantRestriction = "Required";
     if (!accommodationCapacity || parseInt(accommodationCapacity) < 1) newErrors.accommodationCapacity = "Must be at least 1";
-    
-    // Validate contract months
     if (!contractMonths || contractMonths === "") {
       newErrors.contractMonths = "Contract duration is required";
     } else {
@@ -185,7 +184,6 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
         newErrors.contractMonths = "Must be between 1 and 60 months";
       }
     }
-    
     if (!businessPermit) newErrors.businessPermit = "Business permit is required";
     if (latitude === null || longitude === null) newErrors.location = "Please set a location on the map";
     return newErrors;
@@ -198,9 +196,7 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
       setTimeout(() => {
         if (modalRef.current) {
           const firstError = modalRef.current.querySelector('.border-red-500, .text-red-500');
-          if (firstError) {
-            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
+          if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }, 100);
       return;
@@ -211,97 +207,88 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
   return (
     <div ref={modalRef} className="space-y-3 sm:space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">ACCOMMODATION NAME</label>
-          <input 
-            value={accommodationName} 
-            onChange={(e) => setField("accommodationName", e.target.value)}
-            className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.accommodationName ? "border-red-500" : "border-[#e5cfd4]"}`}
-            placeholder="e.g., Kamia Residence" />
-          {errors.accommodationName && <p className="text-red-500 text-[10px] sm:text-xs">{errors.accommodationName}</p>}
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">ACCOMMODATION TYPE</label>
-          <select 
-            value={accommodationType} 
-            onChange={(e) => setField("accommodationType", e.target.value as any)}
-            className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.accommodationType ? "border-red-500" : "border-[#e5cfd4]"}`}>
-            <option value="">Select type</option>
-            <option value="on-campus">On Campus</option>
-            <option value="off-campus">Off Campus</option>
-            <option value="partner_housing">Partnered Housing (UPLB)</option>
-          </select>
-          {errors.accommodationType && <p className="text-red-500 text-[10px] sm:text-xs">{errors.accommodationType}</p>}
-        </div>
+        <FormField
+          label="Accommodation Name"
+          name="accommodationName"
+          value={accommodationName}
+          onChange={(e) => setField("accommodationName", e.target.value)}
+          placeholder="e.g., Kamia Residence"
+          error={errors.accommodationName}
+        />
+        <FormSelect
+          label="Accommodation Type"
+          name="accommodationType"
+          value={accommodationType}
+          defaultSelect="Select type"
+          onChange={(e) => setField("accommodationType", e.target.value as any)}
+          options={[
+            { label: "On Campus", value: "on-campus" },
+            { label: "Off Campus", value: "off-campus" },
+            { label: "Partnered Housing (UPLB)", value: "partner_housing" },
+          ]}
+          error={errors.accommodationType}
+        />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">ACCOMMODATION ADDRESS</label>
+        <label className="block text-[11px] font-semibold tracking-widest uppercase mb-1.5 text-[#6B4050]">
+          Accommodation Address
+        </label>
         <LocationPickerMap />
-        {errors.location && <p className="text-red-500 text-[10px] sm:text-xs">{errors.location}</p>}
+        {errors.location && <p className="text-red-500 text-[10px] mt-1">{errors.location}</p>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">TENANT RESTRICTION</label>
-          <select 
-            value={tenantRestriction} 
-            onChange={(e) => setField("tenantRestriction", e.target.value as any)}
-            className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.tenantRestriction ? "border-red-500" : "border-[#e5cfd4]"}`}>
-            <option value="">Select restriction</option>
-            <option value="coed">Co-ed</option>
-            <option value="female-only">Female only</option>
-            <option value="male-only">Male only</option>
-          </select>
-          {errors.tenantRestriction && <p className="text-red-500 text-[10px] sm:text-xs">{errors.tenantRestriction}</p>}
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">CAPACITY</label>
-          <input
-            type="number"
-            value={accommodationCapacity}
-            onChange={(e) => {
-              const val = parseInt(e.target.value)
-              if (e.target.value === "" || (!isNaN(val) && val >= 0)) {
-                setField("accommodationCapacity", e.target.value)
-              }
-            }}
-            min="0"
-            className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.accommodationCapacity ? "border-red-500" : "border-[#e5cfd4]"}`}
-            placeholder="e.g., 20" />
-          {errors.accommodationCapacity && <p className="text-red-500 text-[10px] sm:text-xs">{errors.accommodationCapacity}</p>}
-        </div>
+        <FormSelect
+          label="Tenant Restriction"
+          name="tenantRestriction"
+          value={tenantRestriction}
+          defaultSelect="Select restriction"
+          onChange={(e) => setField("tenantRestriction", e.target.value as any)}
+          options={[
+            { label: "Co-ed", value: "coed" },
+            { label: "Female only", value: "female-only" },
+            { label: "Male only", value: "male-only" },
+          ]}
+          error={errors.tenantRestriction}
+        />
+        <FormField
+          label="Capacity"
+          name="accommodationCapacity"
+          value={accommodationCapacity}
+          type="number"
+          onChange={(e) => {
+            const val = parseInt(e.target.value)
+            if (e.target.value === "" || (!isNaN(val) && val >= 0)) {
+              setField("accommodationCapacity", e.target.value)
+            }
+          }}
+          placeholder="e.g., 20"
+          error={errors.accommodationCapacity}
+        />
       </div>
 
-      {/* NEW: Contract Duration Field - Typable Number Input */}
       <div className="flex flex-col gap-1">
-        <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">CONTRACT DURATION (months)</label>
-        <input
-          type="number"
+        <FormField
+          label="Contract Duration (months)"
+          name="contractMonths"
           value={contractMonths}
+          type="number"
           onChange={(e) => {
             const value = e.target.value
-            // Allow empty or positive numbers only, max 60
             if (value === '' || (Number(value) >= 1 && Number(value) <= 60)) {
               setField("contractMonths", value)
             }
           }}
-          onBlur={() => {
-            // If empty or invalid, clear the error will be shown on validation
-            if (contractMonths !== "" && (Number(contractMonths) < 1 || Number(contractMonths) > 60)) {
-              // Optionally show a temporary error
-            }
-          }}
-          min="1"
-          max="60"
-          step="1"
           placeholder="e.g., 6"
-          className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.contractMonths ? "border-red-500" : "border-[#e5cfd4]"}`}
+          error={errors.contractMonths}
         />
-        {errors.contractMonths && <p className="text-red-500 text-[10px] sm:text-xs">{errors.contractMonths}</p>}
-        <p className="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">How many months will tenants typically stay? (1-60 months)</p>
+        <p className="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">
+          How many months will tenants typically stay? (1–60 months)
+        </p>
       </div>
 
+      {/* Amenities — unchanged, no FormField equivalent */}
       <div className="border border-[#e5cfd4] rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Check size={14} className="sm:w-4 sm:h-4 text-emerald-600 flex-shrink-0" />
@@ -338,8 +325,11 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
         </div>
       </div>
 
+      {/* Business permit — unchanged, custom upload UI */}
       <div className="flex flex-col gap-1">
-        <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">BUSINESS PERMIT</label>
+        <label className="block text-[11px] font-semibold tracking-widest uppercase mb-1.5 text-[#6B4050]">
+          Business Permit
+        </label>
         <div className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl p-4 sm:p-6 cursor-pointer transition ${dragOver ? "border-[#C9973A] bg-[#C9973A]/5" : errors.businessPermit ? "border-red-500 bg-red-50" : "border-[#6B0F2B]/20 bg-white"}`}
           onClick={() => fileInputRef.current?.click()} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFileUpload(e.dataTransfer.files[0]); }}>
           <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={(e) => handleFileUpload(e.target.files?.[0] ?? null)} />
@@ -354,10 +344,12 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
             <span className="text-[10px] sm:text-xs font-bold text-[#6B0F2B] px-3 sm:px-4 py-1.5 rounded-full border border-[#6B0F2B]/10 bg-[#6B0F2B]/10 flex items-center gap-1">📄 Required</span>
           )}
         </div>
-        {errors.businessPermit && <p className="text-red-500 text-[10px] sm:text-xs">{errors.businessPermit}</p>}
+        {errors.businessPermit && <p className="text-red-500 text-[10px] mt-1">{errors.businessPermit}</p>}
       </div>
 
-      <div className="flex justify-end"><Button onClick={handleNext} size="sm" className="sm:size-md">Next →</Button></div>
+      <div className="flex justify-end">
+        <Button onClick={handleNext} size="sm" className="sm:size-md">Next →</Button>
+      </div>
     </div>
   );
 };
