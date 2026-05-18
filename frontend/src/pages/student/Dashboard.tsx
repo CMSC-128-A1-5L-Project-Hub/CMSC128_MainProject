@@ -1134,14 +1134,20 @@ if (!profile || !user || user.role !== "student") {
                         {applications.map((app: any) => (
                           <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
                             <td className="px-4 py-3 sm:py-4">
-                              <div className="flex items-center gap-2.5">
-                                <div
-                                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0"
-                                  style={{ background: CLR.mid }}
-                                />
-                                <span className="font-medium text-[#2A0410] whitespace-nowrap">
-                                  {app.accommodation?.accommodationName}
-                                </span>
+                              <div className="flex items-center gap-3">
+                                
+                                {/* Avatar */}
+                                <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] flex-shrink-0">
+                                  <p className="text-white font-bold text-sm">
+                                    {app.accommodation.accommodationName?.[0]}
+                                  </p>
+                                </div>
+
+                                {/* Accommodation Name */}
+                                <p className="text-[13px] lg:text-[15px] font-semibold truncate max-w-[180px] text-[#1A0008]">
+                                  {app.accommodation.accommodationName}
+                                </p>
+
                               </div>
                             </td>
                             <td className="px-4 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
