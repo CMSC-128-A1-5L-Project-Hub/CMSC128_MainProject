@@ -437,6 +437,20 @@ async updateStatus({ auth, request, params, response }: HttpContext) {
         'application_status',
         `Your application to ${applicationObject.accommodation.accommodationName} has been approved by the manager, pending landlord approval.`
       )
+
+      try {
+        await applicationObject.accommodation.load('landlord', (l) => l.preload('user'))
+        const landlordUser = applicationObject.accommodation.landlord?.user
+        if (landlordUser) {
+          await this.notificationService.notify(
+            landlordUser.id,
+            'application_status',
+            `Application from ${studentUser.fname} ${studentUser.lname} for ${applicationObject.accommodation.accommodationName} has been escalated for your review.`
+          )
+        }
+      } catch (e) {
+        console.error('Failed to send in-app landlord escalation notification:', e)
+      }
     } else {
       await this.notificationService.notify(
         studentUser.id,

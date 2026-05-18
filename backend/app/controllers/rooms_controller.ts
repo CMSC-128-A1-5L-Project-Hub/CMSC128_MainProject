@@ -225,6 +225,16 @@ export default class RoomsController {
         user.lname,
         issueDetails
       )
+
+      try {
+        await this.notificationService.notify(
+          landlord.user.id,
+          'other',
+          `New issue reported for Room ${room.roomNumber} at ${room.accommodation?.accommodationName ?? ''}.`
+        )
+      } catch (e) {
+        console.error('Failed to send in-app room issue notification:', e)
+      }
     }
 
     return response.ok({ message: 'Issue reported successfully' })

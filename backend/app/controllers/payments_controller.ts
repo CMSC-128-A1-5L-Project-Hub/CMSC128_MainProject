@@ -7,9 +7,14 @@ import FileMetadata from '#models/file_metadatum'
 import Manager from '#models/manager'
 import LogService from '#services/log_service'
 import Accommodation from '#models/accommodation'
+import Assignment from '#models/assignment'
+import NotificationService from '#services/notification_service'
+import { inject } from '@adonisjs/core'
 import { DateTime } from 'luxon'
 
+@inject()
 export default class PaymentsController {
+  constructor(protected notificationService: NotificationService) {}
 
   // ─── STUDENT: UPLOAD PAYMENT PROOF ───
   // POST /payments/:feeId/pay
@@ -76,6 +81,28 @@ export default class PaymentsController {
       )
     } catch (e) {
       console.error('Failed to log PAYMENT_PROOF_UPLOADED:', e)
+    }
+
+    try {
+      await fee.load('student', (s) => s.preload('user'))
+      const assignment = await Assignment.query()
+        .where('studentNumber', fee.studentNumber)
+        .whereNull('actualMoveOut')
+        .preload('room', (q) => q.preload('accommodation', (a) => a.preload('landlord', (l) => l.preload('user'))))
+        .first()
+      const landlordUser = assignment?.room?.accommodation?.landlord?.user
+      const studentUser = fee.student?.user
+      const accommodationName = assignment?.room?.accommodation?.accommodationName ?? 'your accommodation'
+      const studentLabel = studentUser ? `${studentUser.fname} ${studentUser.lname}` : `Student ${fee.studentNumber}`
+      if (landlordUser) {
+        await this.notificationService.notify(
+          landlordUser.id,
+          'other',
+          `New payment proof from ${studentLabel} for ${accommodationName} pending verification.`
+        )
+      }
+    } catch (e) {
+      console.error('Failed to send in-app landlord payment notification:', e)
     }
 
     return response.ok({
@@ -154,7 +181,7 @@ async pending({ auth, request, response }: HttpContext) {
     const payment = await Payment
       .query()
       .where('id', params.id)
-      .preload('fee')
+      .preload('fee', (q) => q.preload('student', (s) => s.preload('user')))
       .firstOrFail()
 
     const fee = payment.fee
@@ -191,6 +218,27 @@ async pending({ auth, request, response }: HttpContext) {
       'payment_action',
       `Payment actioned with ${action}`
     )
+
+    try {
+      const studentUser = fee.student?.user
+      if (studentUser) {
+        if (action === 'approve') {
+          await this.notificationService.notify(
+            studentUser.id,
+            'fee_due',
+            `Your payment of ₱${payment.paymentAmount} for ${fee.feeCategory} has been verified.`
+          )
+        } else {
+          await this.notificationService.notify(
+            studentUser.id,
+            'fee_due',
+            `Your payment proof for ${fee.feeCategory} was rejected. Please re-upload.`
+          )
+        }
+      }
+    } catch (e) {
+      console.error('Failed to send in-app payment verification notification:', e)
+    }
 
     return response.ok({
       message: `Payment actioned with ${action} successful`,

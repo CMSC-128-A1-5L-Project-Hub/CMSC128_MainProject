@@ -108,6 +108,19 @@ export default class FeesController {
       `Manual fee created for student ${student.studentNumber} – ${feeCategory}`
     )
 
+    try {
+      await student.load('user')
+      if (student.user) {
+        await this.notificationService.notify(
+          student.user.id,
+          'fee_due',
+          `New ${feeCategory} fee of ₱${feeAmount} due ${fee.dueDate.toISODate() ?? ''}.`
+        )
+      }
+    } catch (e) {
+      console.error('Failed to send in-app new fee notification:', e)
+    }
+
     return response.created({ message: 'Fee created successfully', fee })
   }
 
@@ -191,6 +204,20 @@ export default class FeesController {
       'BULK_BILLING_GENERATED',
       `Bulk billing for room ${room.roomNumber}: ${created.length} tenant(s) at ₱${amount}`
     )
+
+    for (const assignment of assignments) {
+      try {
+        if (assignment.student?.user) {
+          await this.notificationService.notify(
+            assignment.student.user.id,
+            'fee_due',
+            `New rent bill of ₱${amount} for Room ${room.roomNumber} due ${dueDate.toISODate() ?? ''}.`
+          )
+        }
+      } catch (e) {
+        console.error('Failed to send in-app bulk billing notification:', e)
+      }
+    }
 
     return response.created({ created })
   }
