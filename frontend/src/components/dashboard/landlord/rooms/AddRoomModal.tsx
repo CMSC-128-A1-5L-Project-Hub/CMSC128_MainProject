@@ -150,7 +150,9 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!newRoom.name.trim()) errs.name = "Room name is required";
+    else if (newRoom.name.trim().length > 5) errs.name = "Room name must be 5 characters or fewer";
     if (!newRoom.building.trim()) errs.building = "Building is required";
+    else if (newRoom.building.trim().length > 20) errs.building = "Building must be 20 characters or fewer";
     if (!newRoom.type) errs.type = "Room type is required";
     const priceNum = parseFloat(newRoom.price);
     if (isNaN(priceNum) || priceNum <= 0) errs.price = "Price must be greater than 0";
@@ -217,25 +219,27 @@ export default function AddRoomModal({ open, onClose, onAdd }: AddRoomModalProps
       <div className="space-y-4 sm:space-y-5">
         {/* Room Name */}
         <div className="flex flex-col gap-1">
-          <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">ROOM NAME</label>
+          <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">ROOM NAME <span className="text-[#7a001f]/60 font-normal">(max 5 chars)</span></label>
           <input
             type="text"
             value={newRoom.name}
+            maxLength={5}
             onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
             className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 transition ${
               errors.name ? "border-red-500" : "border-[#e5cfd4]"
             }`}
-            placeholder="e.g., Executive Suite"
+            placeholder="e.g., 2D5"
           />
           {errors.name && <p className="text-red-500 text-[10px] sm:text-xs">{errors.name}</p>}
         </div>
 
         {/* Building */}
         <div className="flex flex-col gap-1">
-          <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">BUILDING</label>
+          <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">BUILDING <span className="text-[#7a001f]/60 font-normal">(max 20 chars)</span></label>
           <input
             type="text"
             value={newRoom.building}
+            maxLength={20}
             onChange={(e) => setNewRoom({ ...newRoom, building: e.target.value })}
             className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 transition ${
               errors.building ? "border-red-500" : "border-[#e5cfd4]"
