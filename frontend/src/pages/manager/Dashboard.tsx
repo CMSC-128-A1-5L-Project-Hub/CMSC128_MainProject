@@ -413,7 +413,7 @@ export default function Dashboard() {
                 <button
                   aria-label="Notifications"
                   onClick={() => setNotifOpen((prev) => !prev)}
-                  className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative overflow-hidden
+                  className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative
                     transition-all duration-150
                     bg-[#8C1535] hover:bg-[#8C1535]/80 active:bg-[#3D0718]
                     active:translate-y-0 active:scale-95"
@@ -424,7 +424,7 @@ export default function Dashboard() {
                     className="w-full h-full object-contain scale-[2.5]"
                   />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#C9973A] text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
                       {unreadCount}
                     </span>
                   )}
