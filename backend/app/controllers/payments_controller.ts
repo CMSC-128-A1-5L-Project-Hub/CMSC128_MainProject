@@ -30,6 +30,11 @@ export default class PaymentsController {
       return response.badRequest({ message: 'Payment amount must be greater than zero' })
     }
 
+    // DB column is DECIMAL(10, 2) → max 99,999,999.99
+    if (paymentAmount > 99_999_999.99) {
+      return response.badRequest({ message: 'Payment amount cannot exceed ₱99,999,999.99' })
+    }
+
     const feeBalance = Number(fee.feeBalance)
 
     if (paymentAmount > feeBalance + 0.001) {

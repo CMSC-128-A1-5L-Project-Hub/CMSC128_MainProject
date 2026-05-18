@@ -14,6 +14,9 @@ import { inject } from '@adonisjs/core'
 import NotificationService from '#services/notification_service'
 import ReportExportService from '#services/report_export_service'
 
+// DB columns are DECIMAL(10, 2) → max value 99,999,999.99
+const MAX_FEE_AMOUNT = 99_999_999.99
+
 @inject()
 export default class FeesController {
   constructor(protected notificationService: NotificationService) {}
@@ -170,6 +173,10 @@ export default class FeesController {
       return response.badRequest({ message: 'Invalid fee amount' })
     }
 
+    if (feeAmount > MAX_FEE_AMOUNT) {
+      return response.badRequest({ message: `Fee amount cannot exceed ₱${MAX_FEE_AMOUNT.toLocaleString()}` })
+    }
+
     if (!['rent', 'utilities', 'miscellaneous'].includes(feeCategory)) {
       return response.badRequest({ message: 'Invalid fee category' })
     }
@@ -246,6 +253,10 @@ export default class FeesController {
     }
     if (!amount || amount <= 0) {
       return response.badRequest({ message: 'Invalid amount' })
+    }
+
+    if (amount > MAX_FEE_AMOUNT) {
+      return response.badRequest({ message: `Amount cannot exceed ₱${MAX_FEE_AMOUNT.toLocaleString()}` })
     }
 
     const room = await Room.findOrFail(roomId)

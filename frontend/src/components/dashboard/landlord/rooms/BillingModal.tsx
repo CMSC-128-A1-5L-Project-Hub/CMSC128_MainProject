@@ -41,13 +41,26 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
     }
   }, [open, room]);
 
+  const MAX_AMOUNT = 99_999_999.99
+
+  const parsedAmount = parseFloat(billingAmount)
+  const amountTooLarge = !isNaN(parsedAmount) && parsedAmount > MAX_AMOUNT
+
   // No early return — let Modal handle its own visibility and animation
   const handleGenerate = async () => {
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      alert("Please enter a valid amount.")
+      return
+    }
+    if (parsedAmount > MAX_AMOUNT) {
+      alert(`Amount cannot exceed ₱${MAX_AMOUNT.toLocaleString()}.`)
+      return
+    }
     await onGenerate({
       tenantId: billingTenantId,
       month: billingMonth,
       year: billingYear,
-      amount: parseFloat(billingAmount),
+      amount: parsedAmount,
       allowInstallments,
     });
     setBillingSuccess(true);
@@ -125,10 +138,15 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
               type="number"
               value={billingAmount}
               onChange={(e) => setBillingAmount(e.target.value)}
-              className="border border-[#e5cfd4] rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30"
+              max={MAX_AMOUNT}
+              className={`border ${amountTooLarge ? 'border-red-500' : 'border-[#e5cfd4]'} rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30`}
               placeholder="0.00"
             />
-            <p className="text-[8px] sm:text-[10px] text-gray-400 mt-1">Base rent per month. Adjust if needed.</p>
+            {amountTooLarge ? (
+              <p className="text-[8px] sm:text-[10px] text-red-600 mt-1">Amount cannot exceed ₱{MAX_AMOUNT.toLocaleString()}.</p>
+            ) : (
+              <p className="text-[8px] sm:text-[10px] text-gray-400 mt-1">Base rent per month. Adjust if needed. Max ₱{MAX_AMOUNT.toLocaleString()}.</p>
+            )}
           </div>
 
           <button
@@ -160,7 +178,7 @@ export default function BillingModal({ open, room, onClose, onGenerate }: Billin
             </div>
           </button>
 
-          <Button className="w-full py-2 sm:py-2.5 mt-2 text-xs sm:text-sm" onClick={handleGenerate}>
+          <Button className="w-full py-2 sm:py-2.5 mt-2 text-xs sm:text-sm" onClick={handleGenerate} disabled={amountTooLarge || !billingAmount}>
             Generate Statement
           </Button>
         </div>
