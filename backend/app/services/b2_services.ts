@@ -2,7 +2,7 @@ import drive from '@adonisjs/drive/services/main'
 import { randomUUID } from 'node:crypto' // Ensure none would overwrite each other
 import { readFileSync, existsSync } from 'node:fs' // Reads a file from disk into memory
 import { extname } from 'node:path'
-import { MultipartFile } from '@adonisjs/core/bodyparser' // File object created when user apload a file
+import { MultipartFile } from '@adonisjs/core/bodyparser' // File object created when user upload a file
 
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
@@ -11,9 +11,26 @@ const ALLOWED_MIME_TYPES = [
   'application/pdf',
 ]
 
+// Helper function to sanitize filename
+function sanitizeFilename(filename: string): string {
+  const lastDotIndex = filename.lastIndexOf('.')
+  const extension = lastDotIndex !== -1 ? filename.slice(lastDotIndex) : ''
+  const nameWithoutExt = lastDotIndex !== -1 ? filename.slice(0, lastDotIndex) : filename
+  
+  const sanitizedName = nameWithoutExt
+    .replace(/[^a-zA-Z0-9\-_]/g, '_')  // Replace special chars with underscore
+    .replace(/_+/g, '_')               // Replace multiple underscores with single
+    .replace(/^_+|_+$/g, '')          // Remove leading/trailing underscores
+  
+  const finalName = sanitizedName || `image_${Date.now()}`
+  
+  return `${finalName}${extension}`
+}
+
 export async function uploadImage(
   file: MultipartFile,
-  folder: string
+  folder: string,
+  customFileName?: string  // NEW: optional custom filename
 ): Promise<string> {
   const mimeType = file.headers['content-type'] ?? ''
 
@@ -21,7 +38,21 @@ export async function uploadImage(
     throw new Error(`Invalid file type: ${mimeType}`)
   }
 
-  const fileName = `${folder}/${randomUUID()}-${file.clientName}`
+  // Generate filename
+  let fileName: string
+  const uuid = randomUUID()
+  
+  if (customFileName) {
+    // Sanitize the custom filename
+    const sanitized = sanitizeFilename(customFileName)
+    fileName = `${folder}/${uuid}-${sanitized}`
+  } else {
+    // Fallback to original filename (sanitized)
+    const originalName = file.clientName ?? 'image.jpg'
+    const sanitized = sanitizeFilename(originalName)
+    fileName = `${folder}/${uuid}-${sanitized}`
+  }
+  
   const buffer = readFileSync(file.tmpPath!)
 
   try {
@@ -37,6 +68,7 @@ export async function uploadImage(
 
   return await drive.use('s3').getUrl(fileName)
 }
+
 const EXT_TO_MIME: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
@@ -92,7 +124,7 @@ export async function uploadImageFromLocalPath(
 }
 
 export async function deleteImage(filePath: string): Promise<void> {
-  // Evoke niyo na lang pag kailangan
+  // Extract key from URL
   const key = filePath.split('.com/')[1] // We extract key here
   await drive.use('s3').delete(key) // S3 deletes by key not by URL
 }

@@ -240,6 +240,7 @@ export default class AccommodationController {
     return response.ok(accommodation.serialize())
 
   }
+  
 // ─── POST /landlord/accommodations ───────────────────────────────────────
 // Landlord: create a new accommodation
 async store({ request, auth, response }: HttpContext) {
@@ -266,7 +267,7 @@ async store({ request, auth, response }: HttpContext) {
     accommodation_capacity,
     accommodation_size,
     tenant_restriction,
-    contract_months,  // NEW: add this
+    contract_months,
     latitude,
     longitude,
     primary_image_index,
@@ -280,7 +281,7 @@ async store({ request, auth, response }: HttpContext) {
     !accommodation_type ||
     !accommodation_capacity ||
     !tenant_restriction ||
-    !contract_months ||  // NEW: validate contract_months
+    !contract_months ||
     latitude === undefined ||
     longitude === undefined
   ) {
@@ -300,7 +301,7 @@ async store({ request, auth, response }: HttpContext) {
     })
   }
 
-  // NEW: Validate contract months
+  // Validate contract months
   const contractMonthsNum = Number(contract_months)
   if (isNaN(contractMonthsNum) || contractMonthsNum < 1 || contractMonthsNum > 60) {
     return response.badRequest({
@@ -371,6 +372,22 @@ async store({ request, auth, response }: HttpContext) {
 
   const trx = await db.transaction()
 
+  // Helper function to sanitize filename
+  const sanitizeFilename = (filename: string): string => {
+    const lastDotIndex = filename.lastIndexOf('.')
+    const extension = lastDotIndex !== -1 ? filename.slice(lastDotIndex) : ''
+    const nameWithoutExt = lastDotIndex !== -1 ? filename.slice(0, lastDotIndex) : filename
+    
+    const sanitizedName = nameWithoutExt
+      .replace(/[^a-zA-Z0-9\-_]/g, '_')  // Replace special chars with underscore
+      .replace(/_+/g, '_')               // Replace multiple underscores with single
+      .replace(/^_+|_+$/g, '')          // Remove leading/trailing underscores
+    
+    const finalName = sanitizedName || `image_${Date.now()}`
+    
+    return `${finalName}${extension}`
+  }
+
   try {
     // Upload business permit
     const permitUrl = await uploadImage(businessPermitFile, 'business_permits')
@@ -396,7 +413,7 @@ async store({ request, auth, response }: HttpContext) {
         accommodationCapacity: accommodation_capacity,
         tenantRestriction: tenant_restriction,
         accommodationSize: accommodation_size,
-        contractMonths: contractMonthsNum,  // NEW: add contract months
+        contractMonths: contractMonthsNum,
         applicationStartDate: null,
         applicationEndDate: null,
         latitude: Number(latitude),
@@ -419,15 +436,23 @@ async store({ request, auth, response }: HttpContext) {
       )
     }
 
-    // Upload images
+    // Upload images with sanitized filenames
     const fileUrls = await Promise.all(
-      validImages.map((img) => uploadImage(img, `accommodations/${accommodation.id}`))
+      validImages.map((img, index) => {
+        const originalName = img.clientName ?? `image_${index}.jpg`
+        const sanitizedFileName = sanitizeFilename(originalName)
+        return uploadImage(img, `accommodations/${accommodation.id}`, sanitizedFileName)
+      })
     )
 
     for (let i = 0; i < validImages.length; i++) {
+      const image = validImages[i]
+      const originalName = image.clientName ?? `image_${i}.jpg`
+      const sanitizedFileName = sanitizeFilename(originalName)
+      
       const fileMeta = await FileMetadata.create(
         {
-          fileName: validImages[i].clientName ?? 'image.jpg',
+          fileName: sanitizedFileName,
           filePath: fileUrls[i],
           fileType: 'image',
         },
