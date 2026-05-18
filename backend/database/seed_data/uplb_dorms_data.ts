@@ -111,7 +111,7 @@ const makiling_residence_hall: DormSeedData = {
     'Makiling_Hall_main.jpg',
     'Makiling_Hall_side.jpg',
   ],
-  tags: ['On-campus housing', '24/7 Security', 'Canteen on-site'],
+  tags: ['24/7 Security', 'Canteen on-site'],
   rooms: [
     {
       room_number: '101',
@@ -277,7 +277,7 @@ const mens_residence_hall: DormSeedData = {
     'MRH_entrance.jpg',
     'MRH_kitchen.jpg',
   ],
-  tags: ['On-campus housing', 'UP-owned', '24/7 Security', 'Laundry facilities', 'Canteen on-site', 'Subsidized rates'],
+  tags: ['24/7 Security', 'Laundry facilities', 'Canteen on-site', 'Subsidized rates'],
   rooms: [
     {
       room_number: '101',
@@ -468,7 +468,7 @@ const womens_residence_hall: DormSeedData = {
     'WRH_hallway.jpg',
     'WRH_room.jpg'
   ],
-  tags: ['On-campus housing', 'UP-owned', 'Female-exclusive', 'Canteen on-site', 'Subsidized rates', '24/7 Security'],
+  tags: ['Canteen on-site', 'Subsidized rates', '24/7 Security'],
   rooms: [
     {
       room_number: '101',
@@ -654,7 +654,7 @@ const foreha: DormSeedData = {
     'FOREHA_room.jpg',
     'FOREHA_cr.jpg'
   ],
-  tags: ['On-campus housing', 'UP-owned', 'Female-exclusive', 'Near College building', 'Subsidized rates', '24/7 Security'],
+  tags: ['Subsidized rates', '24/7 Security'],
   rooms: [
     {
       room_number: '101',
@@ -844,7 +844,7 @@ const nfrh: DormSeedData = {
     'NFRH_room.jpg',
     'NFRH_cr.jpg',
   ],
-  tags: ['On-campus housing', 'UP-owned', 'Male-exclusive', 'Near College building', 'Subsidized rates', '24/7 Security'],
+  tags: ['Subsidized rates', '24/7 Security'],
   rooms: [
     {
       room_number: '101',
@@ -1034,7 +1034,7 @@ const vetmed_residence_hall: DormSeedData = {
     'VMRH_room.jpg',
     'VMRH_common.jpg'
   ],
-  tags: ['On-campus housing', 'UP-owned', 'Female-exclusive', 'Near College building', 'Subsidized rates', '24/7 Security'],
+  tags: ['Subsidized rates', '24/7 Security'],
   rooms: [
     {
       room_number: '101',
@@ -1220,7 +1220,7 @@ const ati_ntc: DormSeedData = {
     'ATI_room.jpg',
     'ATI_parking.jpg',
   ],
-  tags: ['On-campus housing', 'UP-owned', 'Male-exclusive', 'Subsidized rates', '24/7 Security'],
+  tags: ['Subsidized rates', '24/7 Security'],
   rooms: [
     {
       room_number: '401',
@@ -1410,7 +1410,7 @@ const new_dorm_residence_hall: DormSeedData = {
     'NDRH_study.jpg',
     'NDRH_room.jpg',
   ],
-  tags: ['On-campus housing', 'UP-owned', 'Female-exclusive', 'Subsidized rates', '24/7 Security', 'Newer facility'],
+  tags: ['Subsidized rates', '24/7 Security', 'Newer facility'],
   rooms: [
     {
       room_number: '101',
@@ -1600,7 +1600,7 @@ const international_house: DormSeedData = {
     'IH_kitchen.jpg',
     'IH_room.jpg',
   ],
-  tags: ['On-campus housing', 'UP-owned', 'For international students', 'For Lingap Scholars', 'Subsidized rates', '24/7 Security'],
+  tags: ['For international students', 'For Lingap Scholars', 'Subsidized rates', '24/7 Security'],
   rooms: [
     {
       room_number: '101',
