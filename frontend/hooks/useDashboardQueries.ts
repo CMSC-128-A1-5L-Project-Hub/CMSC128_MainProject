@@ -165,7 +165,7 @@ export function transformApp(app: RawApplication): TransformedApp {
       email: u.email,
       course: s.degreeProgram,
       college: s.college,
-      yearLevel: s.yearLevel,
+      yearLevel: s.yearLevel || '',
       phone:
         u.phoneNumbers?.find((p) => p.isPrimary)?.contactNumber ??
         u.phoneNumbers?.[0]?.contactNumber ??
@@ -183,6 +183,8 @@ export function transformApp(app: RawApplication): TransformedApp {
     roomType: app.applicationRoomType,
     applicationDate: formatDate(app.applicationDate),
     preferredTags: parsePreferredTags(app.preferredTags),
+    moveInDate: app.moveInDate || null,     // ADD THIS
+    moveOutDate: app.moveOutDate || null,   // ADD THIS
   }
 }
 
