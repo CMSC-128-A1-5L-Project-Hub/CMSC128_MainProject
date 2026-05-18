@@ -829,4 +829,82 @@ async confirmSlot({ auth, params, response }: HttpContext) {
 
     return results
   }
+
+// ─── STUDENT: UPDATE APPLICATION (only for pending status) ───
+// PATCH /applications/:id/update
+async update({ auth, params, request, response }: HttpContext) {
+  const user = auth.user!
+  const student = await Student.findByOrFail('userId', user.id)
+  
+  const application = await Application.query()
+    .where('id', params.id)
+    .where('studentNumber', student.studentNumber)
+    .firstOrFail()
+
+  // Only allow editing if status is 'pending'
+  if (application.applicationStatus !== 'pending') {
+    return response.badRequest({ 
+      message: 'You can only edit pending applications. Current status: ' + application.applicationStatus 
+    })
+  }
+
+  const {
+    applicationRoomType,
+    applicationStayType,
+    durationOfStayDays,
+    preferredTags,
+    moveInDate,
+    moveOutDate,
+  } = request.body()
+
+  // Validate stay type consistency
+  if (applicationStayType === 'transient') {
+    // For transient, require moveInDate and moveOutDate
+    if (!moveInDate || !moveOutDate) {
+      return response.badRequest({ 
+        message: 'Move-in and move-out dates are required for transient applications' 
+      })
+    }
+    if (new Date(moveOutDate) <= new Date(moveInDate)) {
+      return response.badRequest({ 
+        message: 'Move-out date must be after move-in date' 
+      })
+    }
+    
+    application.moveInDate =  moveInDate ? DateTime.fromISO(moveInDate) : null
+    application.moveOutDate = moveOutDate ? DateTime.fromISO(moveOutDate) : null
+    application.durationOfStayDays = null
+  } else {
+    // For non-transient, set dates to null
+    application.moveInDate = null
+    application.moveOutDate = null
+    application.durationOfStayDays = null
+  }
+
+  // Update fields
+  application.applicationRoomType = applicationRoomType
+  application.applicationStayType = applicationStayType
+  
+  // FIX: Handle preferredTags properly - ensure it's an array or null, not undefined
+  if (preferredTags !== undefined && preferredTags !== null) {
+    application.preferredTags = Array.isArray(preferredTags) ? preferredTags : []
+  } else {
+    application.preferredTags = null
+  }
+
+  await application.save()
+
+  await LogService.record(
+    user.id, 
+    'application', 
+    application.id, 
+    'STUDENT_UPDATED_APPLICATION',
+    `Student updated application #${application.id} for accommodation ${application.accommodationId}`
+  )
+
+  return response.ok({
+    message: 'Application updated successfully',
+    application
+  })
+}
 }

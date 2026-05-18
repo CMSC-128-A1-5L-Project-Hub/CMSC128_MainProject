@@ -87,7 +87,8 @@ router
         // Application & Stay
         router.post('/applications', [controllers.Application, 'store'])
         router.get('/applications/my-applications', [controllers.Application, 'index'])
-        router.patch('/applications/:id', [controllers.Application, 'cancel'])
+        router.patch('/applications/:id/update', [controllers.Application, 'update'])  // Edit pending application
+        router.patch('/applications/:id/cancel', [controllers.Application, 'cancel'])   // Cancel application
         router.post('/applications/:id/confirm', [controllers.Application, 'confirm'])
         router.post('/applications/:id/confirm-slot', [controllers.Application, 'confirmSlot'])
         router.post('/assignments/:id/confirm', [controllers.Application, 'confirmAssignment'])
