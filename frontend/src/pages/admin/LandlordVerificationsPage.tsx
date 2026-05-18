@@ -10,6 +10,7 @@ import HousingAdminVerificationModal from "@/components/dashboard/admin/HousingA
 import Dropdown from "@/components/ApplicationStatus/Dropdown"
 import SearchBar from "@/components/SearchBar"
 import Pagination from "@/components/ApplicationStatus/Pagination"
+import Toast from "@/components/Toast"
 
 export default function LandlordVerificationsPage() {
   const navigate = useNavigate()
@@ -23,6 +24,11 @@ export default function LandlordVerificationsPage() {
   const [sortBy, setSortBy] = useState("Date issued (Desc.)")
   const [rows, setRows] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
+  
+  // Toast state
+  const [toast, setToast] = useState<{
+    show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string
+  }>({ show: false, type: "success", title: "" })
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
@@ -65,6 +71,10 @@ export default function LandlordVerificationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
       queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
+      setToast({ show: true, type: "success", title: "Landlord Approved", message: "The housing administrator account has been verified." })
+    },
+    onError: (error: any) => {
+      setToast({ show: true, type: "error", title: "Approval Failed", message: error?.response?.data?.message || "Could not verify landlord." })
     },
     onSettled: () => {
       setProcessingUserId(null)
@@ -82,6 +92,10 @@ export default function LandlordVerificationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
       queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
+      setToast({ show: true, type: "warning", title: "Landlord Rejected", message: "The housing administrator account has been rejected." })
+    },
+    onError: (error: any) => {
+      setToast({ show: true, type: "error", title: "Rejection Failed", message: error?.response?.data?.message || "Could not reject landlord." })
     },
     onSettled: () => {
       setProcessingUserId(null)
@@ -94,14 +108,29 @@ export default function LandlordVerificationsPage() {
   }, [searchQuery, sortBy, rows])
 
   useEffect(() => {
-    if (isError) navigate("/auth/signin")
+    if (isError) {
+      setToast({ show: true, type: "error", title: "Authentication Error", message: "Please login again." })
+      setTimeout(() => navigate("/auth/signin"), 1500)
+    }
   }, [isError, navigate])
 
   useEffect(() => {
     if (user && user.role !== "manager" && user.role !== "super_admin") {
-      navigate("/auth/signin")
+      setToast({ show: true, type: "error", title: "Access Denied", message: "You don't have permission to view this page." })
+      setTimeout(() => navigate("/auth/signin"), 1500)
     }
   }, [user, navigate])
+
+  // Refresh data handler
+  const handleRefresh = async () => {
+    setToast({ show: true, type: "loading", title: "Refreshing...", message: "Fetching latest data." })
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
+      setToast({ show: true, type: "success", title: "Refreshed!", message: "Landlord requests have been updated." })
+    } catch (error) {
+      setToast({ show: true, type: "error", title: "Refresh Failed", message: "Could not refresh data." })
+    }
+  }
 
   if (isUserLoading) {
     return (
@@ -158,7 +187,17 @@ export default function LandlordVerificationsPage() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F6F2F4]">
-      <CustomHeader title="Housing Administrator Verifications" />
+      <CustomHeader 
+        title="Housing Administrator Verifications"
+        right={
+          <button
+            onClick={handleRefresh}
+            className="px-3 py-1.5 text-xs font-semibold text-[#6B0F2B] border border-[#6B0F2B]/20 rounded-lg hover:bg-[#6B0F2B]/5 transition"
+          >
+            Refresh
+          </button>
+        }
+      />
       <main className="flex flex-col flex-1 min-h-0 overflow-x-hidden p-6 gap-6">
         <div>
           <HeroBanner
@@ -195,7 +234,11 @@ export default function LandlordVerificationsPage() {
                   widthClass="w-29 lg:w-32"
                   titleClass="text-[10px] lg:text-[11px]"
                   selectedClass="text-[12px] lg:text-[13px]"
-                  onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1) }}
+                  onSelect={(label) => { 
+                    setRows(parseInt(label, 10)); 
+                    setCurrentPage(1);
+                    setToast({ show: true, type: "info", title: "Updated", message: `Showing ${label} items per page.` })
+                  }}
                 />
               </div>
               <Dropdown
@@ -208,11 +251,18 @@ export default function LandlordVerificationsPage() {
                 widthClass="w-32 lg:w-44"
                 titleClass="text-[10px] lg:text-[11px]"
                 selectedClass="text-[12px] lg:text-[13px]"
-                onSelect={(label) => { setSortBy(label); setCurrentPage(1) }}
+                onSelect={(label) => { 
+                  setSortBy(label); 
+                  setCurrentPage(1);
+                  setToast({ show: true, type: "info", title: "Sorted", message: `Requests sorted by ${label}.` })
+                }}
               />
               <SearchBar
                 value={searchQuery}
-                onChange={setSearchQuery}
+                onChange={(query) => {
+                  setSearchQuery(query)
+                  setCurrentPage(1)
+                }}
                 onPageReset={() => setCurrentPage(1)}
               />
             </div>
@@ -220,13 +270,18 @@ export default function LandlordVerificationsPage() {
 
           {/* CONTENT */}
           {isLoading ? (
-            <p className="text-sm text-gray-500">Loading...</p>
+            <div className="flex h-[390px] items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B]"></div>
+              <p className="text-sm text-gray-500 ml-2">Loading requests...</p>
+            </div>
           ) : isPendingError ? (
-            <p className="text-sm text-red-500">Error loading requests.</p>
+            <div className="flex h-[390px] items-center justify-center">
+              <p className="text-sm text-red-500">Error loading requests. Please try again.</p>
+            </div>
           ) : filteredLandlords.length === 0 ? (
-            <div className="flex flex-col justify-center items-center h-full text-center">
-                <p className="text-[#9A7080] font-medium text-lg">No pending verifications found</p>
-                <p className="text-[#9A7080]/60 text-sm mt-1">When a landlord applies, they will appear here</p>
+            <div className="flex flex-col justify-center items-center h-full text-center py-12">
+              <p className="text-[#9A7080] font-medium text-lg">No pending verifications found</p>
+              <p className="text-[#9A7080]/60 text-sm mt-1">When a landlord applies, they will appear here</p>
             </div>
           ) : (
             <div className="flex flex-col flex-1 min-h-0">
@@ -284,7 +339,7 @@ export default function LandlordVerificationsPage() {
                         <td className="px-8 py-5 text-center">
                           <button
                             onClick={() => handleOpenModal(item)}
-                            className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-6 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF]"
+                            className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-6 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF] transition"
                           >
                             Review
                           </button>
@@ -296,7 +351,7 @@ export default function LandlordVerificationsPage() {
               </div>
 
               {/* FOOTER */}
-              <div className="flex flex-col">
+              <div className="flex flex-col mt-4">
                 <hr className="border-[#6B0F2B]/10" />
                 <div className="relative flex items-center justify-end py-2">
                   <span className="absolute left-1/2 -translate-x-1/2 text-[13px] text-[#A06B7C]">
@@ -306,7 +361,10 @@ export default function LandlordVerificationsPage() {
                   <Pagination
                     totalPages={totalPages}
                     currentPage={safePage}
-                    onPageChange={setCurrentPage}
+                    onPageChange={(page) => {
+                      setCurrentPage(page)
+                      setToast({ show: true, type: "info", title: "Page Changed", message: `Viewing page ${page} of ${totalPages}.` })
+                    }}
                   />
                 </div>
               </div>
@@ -329,6 +387,15 @@ export default function LandlordVerificationsPage() {
           await rejectUserMutation.mutateAsync(userId)
           handleCloseModal()
         }}
+      />
+
+      {/* Toast Notifications */}
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
       />
     </div>
   )
