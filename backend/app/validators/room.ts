@@ -2,11 +2,11 @@ import vine from '@vinejs/vine'
 
 export const createRoomValidator = vine.compile(
   vine.object({
-    room_number: vine.string(),
+    room_number: vine.string().trim().maxLength(5),
     room_type: vine.enum(['single', 'double', 'shared']),
     room_stay_type: vine.enum(['transient', 'non_transient']),
     room_capacity: vine.number().min(1),
-    room_building: vine.string(),
+    room_building: vine.string().trim().maxLength(20),
     room_rent: vine.number().min(0),
     tenant_restriction: vine.enum(['coed', 'non-coed']),
     tags: vine.array(vine.string().minLength(1)).optional(),

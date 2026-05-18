@@ -1,7 +1,7 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import Card from "@/components/ui/Card"
 import AccommodationVerificationModal from "./PendingAccommodationsModal"
-import { useNavigate } from "react-router-dom"
 
 type PendingAccommodationsProps = {
   accommodations: any[]
