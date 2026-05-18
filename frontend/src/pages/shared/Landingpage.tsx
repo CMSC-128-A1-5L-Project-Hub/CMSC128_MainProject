@@ -10,6 +10,7 @@ import PriceRangeSlider from "../../components/PriceRangeSlider"
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios"
 import { useQuery } from "@tanstack/react-query"
+import LandingDropdown from "@/components/LandingDropdown";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const NAV_LINKS = ["HOME", "ABOUT", "FEATURES", "RECOMMENDED", "SUPPORT"] as const;
@@ -287,33 +288,44 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
     <>
       <SeeMoreModal open={modalOpen} onClose={() => setModalOpen(false)} extraTags={extraTags} setExtraTags={setExtraTags} />
 
-      <div style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)", borderRadius: 20, overflow: "hidden", boxShadow: "0 24px 64px rgba(26,10,15,0.18), 0 4px 16px rgba(26,10,15,0.1)", border: "1px solid rgba(255,255,255,0.8)" }}>
+      <div style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)", borderRadius: 20, boxShadow: "0 24px 64px rgba(26,10,15,0.18), 0 4px 16px rgba(26,10,15,0.1)", border: "1px solid rgba(255,255,255,0.8)" }}>
 
         {/* Filter grid */}
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr 1.2fr auto", borderBottom: "1px solid #f0eaea" }}>
-
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr 1.2fr auto", borderBottom: "1px solid #f0eaea"}}>
           {/* Dorm Type */}
-          <div style={{ padding: "14px 16px", borderRight: "1px solid #f0eaea", borderBottom: isMobile ? "1px solid #f0eaea" : "none" }}>
-            <p style={labelStyle}>Dorm Type</p>
-            <select value={dormType} onChange={e => setDormType(e.target.value)} style={selectStyle}>
-              <option>All Types</option>
-              <option value="On-campus">On-Campus</option>
-              <option value="Off-campus">Off-Campus</option>
-              <option value="Partner-housing">Partner Housing</option>
-            </select>
-          </div>
+          <LandingDropdown
+            label="dorm type"
+            value={dormType}
+            onChange={setDormType}
+            options={[
+              { label: "All Types" },
+              { label: "On-Campus", value: "On-campus" },
+              { label: "Off-Campus", value: "Off-campus" },
+              { label: "Partner Housing", value: "Partner-housing" },
+            ]}
+            hoverBg="#fdf4f7"
+            hoverText="#6B0F2B"
+            activeBg="#6B0F2B"
+            activeText="#ffffff"
+          />
 
           {/* Location */}
-          <div style={{ padding: "14px 16px", borderRight: isMobile ? "none" : "1px solid #f0eaea", borderBottom: isMobile ? "1px solid #f0eaea" : "none" }}>
-            <p style={labelStyle}>Location</p>
-            <select value={location} onChange={e => setLocation(e.target.value)} style={selectStyle}>
-              <option>Anywhere</option>
-              <option>Near Gate 1</option>
-              <option>Near Gate 2</option>
-              <option>Umali</option>
-              <option>Pili Drive</option>
-            </select>
-          </div>
+          <LandingDropdown
+            label="Location"
+            value={location}
+            onChange={setLocation}
+            options={[
+              { label: "Anywhere" },
+              { label: "Near Gate 1", value: "Near Gate 1" },
+              { label: "Near Gate 2", value: "Near Gate 2" },
+              { label: "Umali", value: "Umali" },
+              { label: "Pili Drive", value: "Pili Drive" },
+            ]}
+            hoverBg="#fdf4f7"
+            hoverText="#6B0F2B"
+            activeBg="#6B0F2B"
+            activeText="#ffffff"
+          />
 
           {/* Price Range — dual slider - moved up */}
           <div style={{ padding: "14px 16px", borderRight: "1px solid #f0eaea", marginTop: "-4px" }}>
