@@ -417,6 +417,7 @@ export default function LandlordApplicationsPage() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"latest" | "earliest">("latest");
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(6)
   const [selectedApp, setSelectedApp] = useState<ApplicationResponse | null>(null);
   const [rejectingApp, setRejectingApp] = useState<ApplicationResponse | null>(null);
   const [rejectionRemarks, setRejectionRemarks] = useState<Record<number, string>>({});
@@ -568,6 +569,22 @@ export default function LandlordApplicationsPage() {
                 <p className="italic text-[11px] lg:text-[12px]">{filtered.length} total applications</p>
               </div>
               <div className="flex flex-row gap-2">
+                <div className='hidden lg:block'>
+                  <Dropdown
+                    title="No. of Items"
+                    items={[
+                      { label: "5", href: "" },
+                      { label: "10", href: "" },
+                      { label: "15", href: "" },
+                      { label: "20", href: "" },
+                    ]}
+                    direction="down"
+                    widthClass="w-29 lg:w-32"
+                    titleClass="text-[10px] lg:text-[11px]"
+                    selectedClass="text-[12px] lg:text-[13px]"
+                    onSelect={(label) => setItemsPerPage(Number(label))}
+                  />
+                </div>
                 <Dropdown
                   title="Sort by"
                   items={[
