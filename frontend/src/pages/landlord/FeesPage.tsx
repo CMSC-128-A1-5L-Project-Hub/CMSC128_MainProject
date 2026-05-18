@@ -13,6 +13,7 @@ import Button from "@/components/Button"
 import Card from "@/components/ui/Card"
 import SummaryCards from '../../components/BillingDashboard/SummaryCards';
 import { IoPersonSharp, IoCalendarSharp, IoBedSharp, IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp } from "react-icons/io5"
+import DocumentPreviewModal from "@/components/applications/DocumentPreviewModal"
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -256,17 +257,33 @@ function FilterTabs({ active, setActive }: { active: ActiveTab; setActive: (tab:
 
 // ─── Payment Verification Row ──────────────────────────────────────────────
 
-function PaymentRow({ payment, onVerify, isPending }: { 
-  payment: PendingPayment; 
+function PaymentRow({ payment, onVerify, isPending }: {
+  payment: PendingPayment;
   onVerify: (id: number, action: 'approve' | 'reject') => void;
   isPending: boolean;
 }) {
   const [showActions, setShowActions] = useState(false)
+  const [preview, setPreview] = useState<{ url: string; name: string } | null>(null)
   const studentName = payment.fee?.student?.user
     ? `${payment.fee.student.user.fname} ${payment.fee.student.user.lname}`
     : payment.fee?.studentNumber || 'Unknown'
 
+  const handleViewProof = async () => {
+    try {
+      const res = await api.get(`/payments/${payment.id}/proof`)
+      if (res.status === 200 && res.data?.url) {
+        setPreview({ url: res.data.url, name: `${studentName} — Payment Proof` })
+      } else {
+        alert("Payment proof not available.")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Could not fetch payment proof.")
+    }
+  }
+
   return (
+    <>
     <tr className="hover:bg-gray-50 transition-all border-b last:border-0">
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
@@ -290,14 +307,13 @@ function PaymentRow({ payment, onVerify, isPending }: {
       <td className="px-4 py-3 text-right relative">
         <div className="flex gap-2 justify-end items-center">
           {payment.proofFile?.filePath && (
-            <a
-              href={payment.proofFile.filePath}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={handleViewProof}
               className="px-3 py-1 rounded-lg border border-[#6B0F2B] text-[#6B0F2B] text-xs font-semibold hover:bg-[#6B0F2B]/5"
             >
               View Proof
-            </a>
+            </button>
           )}
           {showActions ? (
             <>
@@ -333,6 +349,13 @@ function PaymentRow({ payment, onVerify, isPending }: {
         </div>
       </td>
     </tr>
+    <DocumentPreviewModal
+      open={!!preview}
+      onClose={() => setPreview(null)}
+      url={preview?.url ?? null}
+      name={preview?.name ?? ""}
+    />
+    </>
   )
 }
 

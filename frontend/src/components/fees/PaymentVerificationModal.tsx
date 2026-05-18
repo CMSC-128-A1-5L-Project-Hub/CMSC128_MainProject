@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { Tenant } from "../../pages/landlord/FeesPage";
 import Modal from "../Modal";
 import Button from "../Button";
+import { api } from "../../api/axios";
+import DocumentPreviewModal from "../applications/DocumentPreviewModal";
 
 interface PaymentVerificationModalProps {
     tenant: Tenant;
@@ -12,7 +14,7 @@ interface PaymentVerificationModalProps {
 
 export default function PaymentVerificationModal({ tenant, onClose, onReject, onConfirmPayment }: PaymentVerificationModalProps) {
     const [isConfirming, setIsConfirming] = useState(false);
-    const [showDocumentModal, setShowDocumentModal] = useState(false);
+    const [preview, setPreview] = useState<{ url: string; name: string } | null>(null);
 
     const handleConfirm = async (approved: boolean) => {
         setIsConfirming(true);
@@ -23,8 +25,19 @@ export default function PaymentVerificationModal({ tenant, onClose, onReject, on
         onClose();
     };
 
-    // Mock document image URL
-    const documentImageUrl = "/document-placeholder.png";
+    const handleViewProof = async () => {
+        try {
+            const res = await api.get(`/payments/${tenant.id}/proof`)
+            if (res.status === 200 && res.data?.url) {
+                setPreview({ url: res.data.url, name: `${tenant.name} — Payment Proof` })
+            } else {
+                alert("Payment proof not available.")
+            }
+        } catch (err) {
+            console.error(err)
+            alert("Could not fetch payment proof.")
+        }
+    };
 
     return (
         <>
@@ -66,7 +79,7 @@ export default function PaymentVerificationModal({ tenant, onClose, onReject, on
                                     variant="reddishPink"
                                     size="sm"
                                     fullWidth={false}
-                                    onClick={() => setShowDocumentModal(true)}
+                                    onClick={handleViewProof}
                                 >
                                     View Document
                                 </Button>
@@ -97,34 +110,12 @@ export default function PaymentVerificationModal({ tenant, onClose, onReject, on
                 </div>
             </Modal>
 
-            {/* Document Image Modal */}
-            {showDocumentModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-[10000] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-auto">
-                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                            <h3 className="text-lg font-semibold text-[#6B0F2B]">Document</h3>
-                            <button
-                                onClick={() => setShowDocumentModal(false)}
-                                className="text-gray-500 hover:text-gray-700 text-2xl"
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div className="p-6">
-                            <div className="flex justify-center items-center min-h-[300px] bg-gray-100 rounded-lg overflow-hidden">
-                                <img
-                                    src={documentImageUrl}
-                                    alt="Document"
-                                    className="max-w-full h-auto object-contain"
-                                    onError={(e) => {
-                                        e.currentTarget.src = "https://placehold.co/600x400/6B0F2B/white?text=Document+Placeholder";
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DocumentPreviewModal
+                open={!!preview}
+                onClose={() => setPreview(null)}
+                url={preview?.url ?? null}
+                name={preview?.name ?? ""}
+            />
         </>
     );
 }

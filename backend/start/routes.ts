@@ -213,6 +213,7 @@ router
 
         // Payment Verification
         router.get('/payments/pending', [controllers.Payments, 'pending'])
+        router.get('/payments/:id/proof', [controllers.Payments, 'viewProof'])
         router.patch('/payments/:id/verify', [controllers.Payments, 'verify'])
         router.get('/fees/overdue', [controllers.Fees, 'overdueForManager'])
 

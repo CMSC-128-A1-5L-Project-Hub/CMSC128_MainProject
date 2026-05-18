@@ -9,6 +9,7 @@ import LogService from '#services/log_service'
 import Accommodation from '#models/accommodation'
 import Assignment from '#models/assignment'
 import NotificationService from '#services/notification_service'
+import { signImageUrl } from '#services/image_service'
 import { inject } from '@adonisjs/core'
 import { DateTime } from 'luxon'
 
@@ -284,5 +285,26 @@ async pending({ auth, request, response }: HttpContext) {
       .orderBy('paymentTimestamp', 'desc')
 
     return payments // auto-serialized
+  }
+
+  // ─── MANAGER/LANDLORD: VIEW PAYMENT PROOF ───
+  // GET /payments/:id/proof
+  async viewProof({ params, response }: HttpContext) {
+    const payment = await Payment.query()
+      .where('id', params.id)
+      .preload('proofFile')
+      .firstOrFail()
+
+    const filePath = payment.proofFile?.filePath
+    if (!filePath) {
+      return response.notFound({ message: 'Payment proof not available' })
+    }
+
+    const url = await signImageUrl(filePath)
+    if (!url) {
+      return response.notFound({ message: 'Payment proof not available' })
+    }
+
+    return response.ok({ url })
   }
 }
