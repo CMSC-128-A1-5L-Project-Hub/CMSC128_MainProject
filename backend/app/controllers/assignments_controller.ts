@@ -14,6 +14,7 @@ import WaitlistWorkflowService from '#services/waitlisted_workflow_service'
 import { withPrimaryImageUrl } from '#services/image_service'
 import Accommodation from '#models/accommodation'
 import EarlyMoveOutRequest from '#models/early_move_out_request'
+import Review from '#models/review'
 
 @inject()
 export default class AssignmentsController {
@@ -434,6 +435,11 @@ export default class AssignmentsController {
     const accommodation = room.accommodation
     const accommodationWithImage = await withPrimaryImageUrl(accommodation)
 
+    const review = await Review.query()
+      .where('studentNumber', assignment.studentNumber)
+      .where('accommodationId', accommodation.id)
+      .first()
+
     return {
       id: assignment.id,
       roomId: assignment.roomId,
@@ -445,12 +451,19 @@ export default class AssignmentsController {
         monthlyRate: room.roomRent,
         roomType: room.roomType,
         accommodation: {
+          id: accommodation.id,
           accommodationName: accommodation.accommodationName,
           accommodationType: accommodation.accommodationType,
           primaryImageUrl: accommodationWithImage.primaryImageUrl,
         },
       },
-      review: null,
+      review: review
+        ? {
+            rating: review.rating,
+            content: review.content,
+            createdAt: review.createdAt?.toISO() ?? null,
+          }
+        : null,
     }
   }
 
