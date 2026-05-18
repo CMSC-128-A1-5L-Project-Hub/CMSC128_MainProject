@@ -528,7 +528,9 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
               </div>
               <div className='flex flex-col'>
                 <p className="uppercase font-bold text-[11px] text-[#6B4050]">Stay Duration</p>
-                <p className="font-bold text-[13px] -mt-1">{application.durationOfStayDays} Days</p>
+                <p className="font-bold text-[13px] -mt-1">
+                  {application.durationOfStayDays ? `${application.durationOfStayDays} Days` : "N/A"}
+                </p>
               </div>
               <div>
                 <p className="uppercase font-bold text-[11px] text-[#6B4050]">Current Status</p>
