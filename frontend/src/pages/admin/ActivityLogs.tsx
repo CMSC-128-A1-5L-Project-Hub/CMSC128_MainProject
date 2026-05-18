@@ -10,6 +10,7 @@ import CustomHeader from '../../components/CustomHeader';
 import Dropdown from "@/components/ApplicationStatus/Dropdown"
 import SearchBar from "@/components/SearchBar"
 import Pagination from "@/components/ApplicationStatus/Pagination"
+import Toast from "@/components/Toast"
 
 export default function ActivityLogsPage() {
   const navigate = useNavigate()
@@ -20,8 +21,13 @@ export default function ActivityLogsPage() {
   const [filterAction, setFilterAction] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [logsPerPage, setLogsPerPage] = useState(20)
+  
+  // Toast state
+  const [toast, setToast] = useState<{
+    show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string
+  }>({ show: false, type: "success", title: "" })
 
-  const { data: user, isLoading: isUserLoading, isError } = useQuery({
+  const { data: user, isLoading: isUserLoading, isError, refetch: refetchUser } = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
       const res = await api.get("/me")
@@ -34,6 +40,7 @@ export default function ActivityLogsPage() {
     data: logsRaw,
     isLoading: isLogsLoading,
     isError: isLogsError,
+    refetch: refetchLogs,
   } = useQuery({
     queryKey: ["admin-logs", filterDate, filterAction],
     queryFn: async () => {
@@ -51,12 +58,16 @@ export default function ActivityLogsPage() {
   }, [filterDate, filterAction, searchQuery, sortBy, logsPerPage])
 
   useEffect(() => {
-    if (isError) navigate("/auth/signin")
+    if (isError) {
+      setToast({ show: true, type: "error", title: "Authentication Error", message: "Please login again." })
+      setTimeout(() => navigate("/auth/signin"), 1500)
+    }
   }, [isError, navigate])
 
   useEffect(() => {
     if (user && user.role !== "manager" && user.role !== "super_admin") {
-      navigate("/auth/signin")
+      setToast({ show: true, type: "error", title: "Access Denied", message: "You don't have permission to view this page." })
+      setTimeout(() => navigate("/auth/signin"), 1500)
     }
   }, [user, navigate])
 
@@ -139,6 +150,23 @@ export default function ActivityLogsPage() {
   const handlePrev = () => setCurrentPage((p) => Math.max(1, p - 1))
   const handleNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1))
 
+  // Refresh logs handler with toast
+  const handleRefreshLogs = async () => {
+    setToast({ show: true, type: "loading", title: "Refreshing...", message: "Fetching latest logs." })
+    try {
+      await refetchLogs()
+      setToast({ show: true, type: "success", title: "Refreshed!", message: "Logs have been updated." })
+    } catch (error) {
+      setToast({ show: true, type: "error", title: "Refresh Failed", message: "Could not refresh logs." })
+    }
+  }
+
+  // Copy log details to clipboard
+  const handleCopyLogDetails = (details: string) => {
+    navigator.clipboard.writeText(details)
+    setToast({ show: true, type: "success", title: "Copied!", message: "Log details copied to clipboard." })
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F2F4]">
       <CustomHeader title="Activity Logs" />
@@ -165,6 +193,12 @@ export default function ActivityLogsPage() {
               </p>
             </div>
             <div className="flex flex-row gap-2 items-center">
+              <button
+                onClick={handleRefreshLogs}
+                className="px-3 py-1.5 text-xs font-semibold text-[#6B0F2B] border border-[#6B0F2B]/20 rounded-lg hover:bg-[#6B0F2B]/5 transition"
+              >
+                Refresh
+              </button>
               <div className="hidden lg:block">
                 <Dropdown
                   title="No. of Items"
@@ -181,6 +215,7 @@ export default function ActivityLogsPage() {
                   onSelect={(label) => {
                     setLogsPerPage(parseInt(label, 10))
                     setCurrentPage(1)
+                    setToast({ show: true, type: "info", title: "Updated", message: `Showing ${label} items per page.` })
                   }}
                 />
               </div>
@@ -197,11 +232,15 @@ export default function ActivityLogsPage() {
                 onSelect={(label) => {
                   setSortBy(label)
                   setCurrentPage(1)
+                  setToast({ show: true, type: "info", title: "Sorted", message: `Logs sorted by ${label}.` })
                 }}
               />
               <SearchBar
                 value={searchQuery}
-                onChange={setSearchQuery}
+                onChange={(query) => {
+                  setSearchQuery(query)
+                  setCurrentPage(1)
+                }}
                 onPageReset={() => setCurrentPage(1)}
               />
             </div>
@@ -209,9 +248,14 @@ export default function ActivityLogsPage() {
 
           {/* CONTENT */}
           {isLogsLoading ? (
-            <p className="text-sm text-gray-500">Loading...</p>
+            <div className="flex h-[390px] items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B]"></div>
+              <p className="text-sm text-gray-500 ml-2">Loading logs...</p>
+            </div>
           ) : isLogsError ? (
-            <p className="text-sm text-red-500">Error loading logs.</p>
+            <div className="flex h-[390px] items-center justify-center">
+              <p className="text-sm text-red-500">Error loading logs. Please try again.</p>
+            </div>
           ) : filteredLogs.length === 0 ? (
             <div className="flex h-[390px] items-center justify-center border-t border-[#F2D9DF]">
               <p className="text-lg font-medium text-[#9A7080] text-center">
@@ -244,16 +288,29 @@ export default function ActivityLogsPage() {
                   </thead>
                   <tbody>
                     {pagedLogs.map((log: any) => (
-                      <tr key={log.id} className="hover:bg-[#FFF7F9]">
+                      <tr key={log.id} className="hover:bg-[#FFF7F9] group">
                         <td className="p-2">
                           <span className="text-xs font-semibold text-[#6B0F2B]">
                             {formatAction(log.activityType)}
                           </span>
                         </td>
                         <td className="p-2 max-w-xs text-sm text-gray-600">
-                          <p className="truncate" title={log.activityDetails}>
-                            {log.activityDetails ?? "—"}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="truncate" title={log.activityDetails}>
+                              {log.activityDetails ?? "—"}
+                            </p>
+                            {log.activityDetails && (
+                              <button
+                                onClick={() => handleCopyLogDetails(log.activityDetails)}
+                                className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-gray-100"
+                                title="Copy details"
+                              >
+                                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
                         </td>
                         <td className="p-2">
                           {log.user ? (
@@ -287,10 +344,10 @@ export default function ActivityLogsPage() {
               </div>
 
               {/* FOOTER */}
-              <div className="flex flex-col">
+              <div className="flex flex-col mt-4">
                 <hr className="border-[#6B0F2B]/10" />
-                <div className="flex flex-row justify-between items-center">
-                  <div className="flex justify-center mt-2 items-center gap-2">
+                <div className="flex flex-row justify-between items-center mt-3">
+                  <div className="flex justify-center items-center gap-2">
                     <span className="text-[13px] text-[#A06B7C] justify-center items-center">
                       Showing {startIndex + 1}–{Math.min(startIndex + logsPerPage, filteredLogs.length)} of{" "}
                       {filteredLogs.length} log{filteredLogs.length !== 1 ? "s" : ""}
@@ -300,7 +357,10 @@ export default function ActivityLogsPage() {
                     <Pagination
                       totalPages={totalPages}
                       currentPage={currentPage}
-                      onPageChange={setCurrentPage}
+                      onPageChange={(page) => {
+                        setCurrentPage(page)
+                        setToast({ show: true, type: "info", title: "Page Changed", message: `Viewing page ${page} of ${totalPages}.` })
+                      }}
                     />
                   </div>
                 </div>
@@ -309,6 +369,15 @@ export default function ActivityLogsPage() {
           )}
         </Card>
       </main>
+
+      {/* Toast Notifications */}
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </div>
   )
 }

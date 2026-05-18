@@ -15,6 +15,7 @@ import ActivityLogs from "@/components/dashboard/admin/ActivityLogs"
 import UbleLoader from "../shared/LoadingPage"
 import CustomHeader from '../../components/CustomHeader';
 import SummaryCards from '../../components/BillingDashboard/SummaryCards';
+import Toast from "@/components/Toast"
 
 const AdminDashboard = () => {
   const queryClient = useQueryClient()
@@ -25,10 +26,14 @@ const AdminDashboard = () => {
   const [autoVerifyUsers, setAutoVerifyUsers] = useState(false)
   const [filterDate, setFilterDate] = useState("")
   const [filterAction, setFilterAction] = useState("")
-  // const [verifyingUserId, setVerifyingUserId] = useState<number | null>(null)
   const [processingUserId, setProcessingUserId] = useState<number | null>(null)
   const [processingAction, setProcessingAction] = useState<"approve" | "reject" | null>(null)
   const [verifyingAccommodationId, setVerifyingAccommodationId] = useState<number | null>(null)
+  
+  // Toast state
+  const [toast, setToast] = useState<{
+    show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string
+  }>({ show: false, type: "success", title: "" })
 
   const {
     data: user,
@@ -149,6 +154,10 @@ const AdminDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-settings"] })
+      setToast({ show: true, type: "success", title: "Settings Updated", message: "System settings have been saved successfully." })
+    },
+    onError: (error: any) => {
+      setToast({ show: true, type: "error", title: "Update Failed", message: error?.response?.data?.message || "Could not update settings." })
     },
   })
 
@@ -169,9 +178,14 @@ const AdminDashboard = () => {
 
       return res.data
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
       queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
+      const roleLabel = variables.roleToAssign === "student" ? "Student" : "Housing Administrator"
+      setToast({ show: true, type: "success", title: "User Verified", message: `${roleLabel} account has been approved.` })
+    },
+    onError: (error: any) => {
+      setToast({ show: true, type: "error", title: "Verification Failed", message: error?.response?.data?.message || "Could not verify user." })
     },
     onSettled: () => {
       setProcessingUserId(null)
@@ -190,6 +204,10 @@ const AdminDashboard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] })
       queryClient.invalidateQueries({ queryKey: ["admin-total-users"] })
+      setToast({ show: true, type: "warning", title: "User Rejected", message: "The user account has been rejected." })
+    },
+    onError: (error: any) => {
+      setToast({ show: true, type: "error", title: "Rejection Failed", message: error?.response?.data?.message || "Could not reject user." })
     },
     onSettled: () => {
       setProcessingUserId(null)
@@ -207,10 +225,15 @@ const AdminDashboard = () => {
 
       return res.data
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["admin-pending-accommodations"],
       })
+      const statusText = variables.status === "verified" ? "verified" : "rejected"
+      setToast({ show: true, type: "success", title: `Accommodation ${statusText}`, message: `The accommodation has been ${statusText}.` })
+    },
+    onError: (error: any) => {
+      setToast({ show: true, type: "error", title: "Action Failed", message: error?.response?.data?.message || "Could not process accommodation." })
     },
     onSettled: () => {
       setVerifyingAccommodationId(null)
@@ -248,12 +271,16 @@ const AdminDashboard = () => {
   )
 
   useEffect(() => {
-    if (isError) navigate("/auth/signin")
+    if (isError) {
+      setToast({ show: true, type: "error", title: "Authentication Error", message: "Please login again." })
+      setTimeout(() => navigate("/auth/signin"), 1500)
+    }
   }, [isError, navigate])
 
   useEffect(() => {
     if (user && user.role !== "manager" && user.role !== "super_admin") {
-      navigate("/auth/signin")
+      setToast({ show: true, type: "error", title: "Access Denied", message: "You don't have permission to view this page." })
+      setTimeout(() => navigate("/auth/signin"), 1500)
     }
   }, [user, navigate])
 
@@ -324,13 +351,37 @@ const AdminDashboard = () => {
     },
   ];
 
+  // Refresh all data handler
+  const handleRefreshAll = async () => {
+    setToast({ show: true, type: "loading", title: "Refreshing...", message: "Fetching latest data." })
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin-pending-users"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-total-users"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-facilities-count"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-pending-accommodations"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-logs"] }),
+      ])
+      setToast({ show: true, type: "success", title: "Refreshed!", message: "All dashboard data has been updated." })
+    } catch (error) {
+      setToast({ show: true, type: "error", title: "Refresh Failed", message: "Could not refresh data." })
+    }
+  }
+
   return (
     <div className="flex min-h-screen w-full bg-[#F6F2F4]">
       <div className="flex flex-col flex-1 min-w-0">
         <CustomHeader
-          title="Dashboard">
-
-        </CustomHeader>
+          title="Dashboard"
+          right={
+            <button
+              onClick={handleRefreshAll}
+              className="px-3 py-1.5 text-xs font-semibold text-[#6B0F2B] border border-[#6B0F2B]/20 rounded-lg hover:bg-[#6B0F2B]/5 transition"
+            >
+              Refresh All
+            </button>
+          }
+        />
         <main className="flex-1 p-6 mt-12 lg:mt-0 overflow-x-hidden">
           <div className="space-y-6">
             <HeroBanner
@@ -427,12 +478,27 @@ const AdminDashboard = () => {
               isError={isLogsError}
               filterDate={filterDate}
               filterAction={filterAction}
-              onFilterDateChange={setFilterDate}
-              onFilterActionChange={setFilterAction}
+              onFilterDateChange={(date) => {
+                setFilterDate(date)
+                setToast({ show: true, type: "info", title: "Filter Applied", message: date ? `Showing logs from ${date}` : "Filter cleared" })
+              }}
+              onFilterActionChange={(action) => {
+                setFilterAction(action)
+                setToast({ show: true, type: "info", title: "Filter Applied", message: action ? `Showing ${action} logs` : "Filter cleared" })
+              }}
             />
           </div>
         </main>
       </div>
+
+      {/* Toast Notifications */}
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </div>
   )
 }
