@@ -11,6 +11,7 @@ import HeroBanner from "../../components/dashboard/HeroBanner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DateTime } from 'luxon'
 import { AlertCircle, CheckCircle, XCircle, FileText, Eye } from "lucide-react";
+import Pagination from "@/components/ApplicationStatus/Pagination";
 
 const CLR = {
   dark: "#3D0718",
@@ -353,17 +354,19 @@ export default function MoveinMoveout() {
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-sans">
-            <div className="flex flex-col flex-1 min-w-0 w-full">
+            <div className="flex flex-col flex-1 min-w-0 min-h-0 w-full overflow-hidden">
                 <CustomHeader title="Move In & Move Out" />    
-                <div className="flex-1 flex flex-col p-6 overflow-y-auto">
-                    <main className="flex-1 flex flex-col gap-6">
-                        <HeroBanner
-                            greeting="Good Day"
-                            name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
-                            title="Manage tenant move-ins and move-outs"
-                            subtitle="Track upcoming move-ins, move-outs, and review early move-out requests."
-                            type="mini"
-                        />
+                <div className="flex-1 flex flex-col overflow-hidden gap-6 p-6">
+                    <main className="flex flex-col gap-6 flex-1 overflow-y-auto">
+                        <div>
+                            <HeroBanner
+                                greeting="Good Day"
+                                name={isLoadingUser ? "Loading..." : isErrorUser ? "Error Loading Name" : user?.fname}
+                                title="Manage tenant move-ins and move-outs"
+                                subtitle="Track upcoming move-ins, move-outs, and review early move-out requests."
+                                type="mini"
+                            />
+                        </div>
                         
                         {/* Filter Tabs */}
                         <div className="bg-white p-1 rounded-xl inline-flex gap-1 w-fit">
@@ -381,7 +384,7 @@ export default function MoveinMoveout() {
 
                         {/* Move Out Requests Table */}
                         {filter === "requests" && (
-                            <div className="bg-white rounded-2xl shadow-sm p-6 border overflow-hidden h-full">
+                            <div className="bg-white rounded-2xl shadow-sm p-6 border overflow-hidden">
                                 <div className="flex items-start justify-between">
                                     <div className="flex flex-col gap-1">
                                         <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight whitespace-nowrap">
@@ -449,9 +452,9 @@ export default function MoveinMoveout() {
                                 ) : (
                                     <>
                                         <div className="w-full overflow-x-auto">
-                                            <table className="min-w-[800px] w-full border-b-2 mt-4 border-[#F5ECF0]">
+                                            <table className="min-w-[800px] w-full mt-4 border-[#F5ECF0]">
                                                 <thead>
-                                                    <tr className="border-y-2 border-[#6B0F2B]/5">
+                                                    <tr className="border-y sticky bg-white border-[#6B0F2B]/5">
                                                         <th className="text-[#9A7080] text-xs font-bold tracking-widest uppercase pl-3 py-2 text-left">Student</th>
                                                         <th className="text-[#9A7080] text-xs font-bold tracking-widest uppercase px-4 py-2 text-left">Unit/Room</th>
                                                         <th className="text-[#9A7080] text-xs font-bold tracking-widest uppercase px-4 py-2 text-left">Requested Date</th>
@@ -547,13 +550,13 @@ export default function MoveinMoveout() {
 
                         {/* Regular Move In/Out Table */}
                         {filter !== "requests" && (
-                            <div className="bg-white rounded-2xl shadow-sm p-6 border overflow-hidden h-full">
+                            <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col min-h-0 flex-1">
                                 <div className="flex items-start justify-between">
                                     <div className="flex flex-col gap-1">
-                                        <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight whitespace-nowrap">
+                                        <h2 className="text-[#1A0008] font-bold text-sm lg:text-[16px] leading-tight whitespace-nowrap">
                                             {filter === "move-in" ? "Move in History" : filter === "move-out" ? "Move out History" : "Move in & Move out History"}
                                         </h2>
-                                        <p className="italic font-normal text-[11px] lg:text-[12px]">
+                                        <p className="italic font-normal text-[11px] lg:text-[13px]">
                                             {filteredRecords.length} total {filter === "all" ? "move-ins and move-outs" : filter === "move-out" ? "move-outs" : "move-ins"}
                                         </p>
                                     </div>
@@ -602,21 +605,21 @@ export default function MoveinMoveout() {
                                 </div>
 
                                 {isLoadingList ? (
-                                    <div className="py-12 flex flex-col items-center justify-center text-center">
+                                    <div className="py-12 flex flex-col flex-1 items-center justify-center text-center">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: CLR.mid }} />
                                         <p className="text-sm text-[#9A7080] mt-2">Fetching records...</p>
                                     </div>
                                 ) : paginatedRecords.length === 0 ? (
-                                    <div className="py-12 flex flex-col items-center justify-center text-center">
+                                    <div className="flex flex-1 flex-col items-center justify-center text-center">
                                         <p className="text-[#9A7080] font-medium text-lg">No records found</p>
                                         <p className="text-[#9A7080]/60 text-sm mt-1">No {filter === "move-in" ? "upcoming move-ins" : filter === "move-out" ? "upcoming move-outs" : "move records"} at this time</p>
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="w-full overflow-x-auto">
-                                            <table className="min-w-[900px] w-full border-b-2 mt-4 border-[#F5ECF0]">
+                                        <div className="w-full overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                                            <table className="min-w-[900px] w-full mt-4 border-[#F5ECF0]">
                                                 <thead>
-                                                    <tr className="border-y-2 border-[#6B0F2B]/5">
+                                                    <tr className="border-y border-[#6B0F2B]/5">
                                                         {["Students", "Room", "Room Type", "Date", "Type"].map((h) => (
                                                             <th key={h} className="text-[#9A7080] text-xs font-bold tracking-widest uppercase pl-3 py-2 text-left">
                                                                 {h}
@@ -772,36 +775,17 @@ export default function MoveinMoveout() {
                                                 </tbody>
                                              </table>
                                         </div>
-                                        <div className="flex items-center justify-between mt-4">
-                                            <p className="text-xs text-[#9A7080]">
-                                                {sortedRecords.length === 0 ? "" : `Showing ${recordsStartIndex + 1}–${Math.min(recordsStartIndex + tableItemsPerPage, sortedRecords.length)} of ${sortedRecords.length}`}
-                                            </p>
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => setTableCurrentPage((p: number) => Math.max(1, p - 1))}
-                                                    disabled={tableCurrentPage === 1}
-                                                    className="w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] disabled:opacity-40 disabled:cursor-not-allowed"
-                                                >
-                                                    {"<"}
-                                                </button>
-                                                {Array.from({ length: totalRecordsPages }, (_, i: number) => i + 1).map((page: number) => (
-                                                    <button
-                                                        key={page}
-                                                        onClick={() => setTableCurrentPage(page)}
-                                                        className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
-                                                            ${tableCurrentPage === page ? "text-white" : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"}`}
-                                                        style={tableCurrentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
-                                                    >
-                                                        {page}
-                                                    </button>
-                                                ))}
-                                                <button
-                                                    onClick={() => setTableCurrentPage((p: number) => Math.min(totalRecordsPages, p + 1))}
-                                                    disabled={tableCurrentPage === totalRecordsPages}
-                                                    className="w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] disabled:opacity-40 disabled:cursor-not-allowed"
-                                                >
-                                                    {">"}
-                                                </button>
+                                        <div className="flex flex-col">
+                                            <hr className="border-[#6B0F2B]/10 border-t mb-2" />
+                                            <div className="flex flex-row justify-between">
+                                                <p className="text-xs text-[#9A7080] mt-3">
+                                                    {sortedRecords.length === 0 ? "" : `Showing ${recordsStartIndex + 1}–${Math.min(recordsStartIndex + tableItemsPerPage, sortedRecords.length)} of ${sortedRecords.length}`}
+                                                </p>
+                                                <Pagination
+                                                    totalPages={totalPages}
+                                                    currentPage={currentPage}
+                                                    onPageChange={setCurrentPage}
+                                                />
                                             </div>
                                         </div>
                                     </>
