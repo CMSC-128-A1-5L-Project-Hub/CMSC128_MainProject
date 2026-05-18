@@ -10,13 +10,13 @@
   },
   "scripts": {
     "start": "node bin/server.js",
-    "build": "node ace build --ignore-ts-errors",
+    "build": "node ace build --ignore-ts-errors && puppeteer browsers install chrome",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "postinstall": "rimraf node_modules/.cache/puppeteer && puppeteer browsers install chrome"
+    "postinstall": "puppeteer browsers install chrome"
   },
   "engines": {
     "node": ">=24.0.0"
