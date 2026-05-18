@@ -81,6 +81,16 @@ export default class TransientBookingsController {
         booking.checkInDate,
         booking.checkOutDate
       )
+
+      try {
+        await this.notificationService.notify(
+          landlord.user.id,
+          'other',
+          `Transient booking for Room ${booking.room.roomNumber} (${booking.checkInDate}–${booking.checkOutDate}) has payment proof pending verification.`
+        )
+      } catch (e) {
+        console.error('Failed to send in-app transient payment notification:', e)
+      }
     }
 
     return response.ok(booking)
@@ -105,6 +115,30 @@ export default class TransientBookingsController {
 
     booking.status = action === 'approve' ? 'confirmed' : 'rejected'
     await booking.save()
+
+    try {
+      const student = await Student.query()
+        .where('studentNumber', booking.studentNumber)
+        .preload('user')
+        .first()
+      if (student?.user) {
+        if (action === 'approve') {
+          await this.notificationService.notify(
+            student.user.id,
+            'application_status',
+            `Your transient booking for Room ${booking.room.roomNumber} (${booking.checkInDate}–${booking.checkOutDate}) has been confirmed.`
+          )
+        } else {
+          await this.notificationService.notify(
+            student.user.id,
+            'application_status',
+            `Your transient booking for Room ${booking.room.roomNumber} was rejected.`
+          )
+        }
+      }
+    } catch (e) {
+      console.error('Failed to send in-app transient booking notification:', e)
+    }
 
     return response.ok(booking)
   }

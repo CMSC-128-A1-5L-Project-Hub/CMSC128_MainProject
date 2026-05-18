@@ -153,6 +153,16 @@ async store({ auth, request, response }: HttpContext) {
       )
 
       try {
+        await this.notificationService.notify(
+          application.student.user.id,
+          'application_status',
+          `You have been assigned to Room ${room.roomNumber} at ${accommodation.accommodationName}. Move-in: ${assignment.moveIn.toISODate() ?? ''}.`
+        )
+      } catch (e) {
+        console.error('Failed to send in-app assignment notification:', e)
+      }
+
+      try {
         const autoConfirmedSuffix =
           assignment.confirmationStatus === 'active' ? ' (auto-confirmed: slot already confirmed)' : ''
         if (existingAssignment && user.role === 'landlord') {
@@ -225,6 +235,23 @@ async store({ auth, request, response }: HttpContext) {
     await this.waitlistService.processMoveOut(accommodation.id, room)
 
     await LogService.record(user.id, 'assignment', assignment.id, 'MOVED_OUT')
+
+    try {
+      const student = await Student.query()
+        .where('studentNumber', assignment.studentNumber)
+        .preload('user')
+        .first()
+      if (student?.user) {
+        await this.notificationService.notify(
+          student.user.id,
+          'system',
+          `Your stay at ${accommodation.accommodationName} has been marked moved out as of ${assignment.actualMoveOut?.toISODate() ?? ''}.`
+        )
+      }
+    } catch (e) {
+      console.error('Failed to send in-app move-out notification:', e)
+    }
+
     return response.ok(assignment)
   }
 

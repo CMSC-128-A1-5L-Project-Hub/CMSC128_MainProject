@@ -326,7 +326,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex min-h-screen w-full bg-[#F6F2F4]">
-      <div className="flex flex-col">
+      <div className="flex flex-col flex-1 min-w-0">
         <CustomHeader
           title="Dashboard">
 
