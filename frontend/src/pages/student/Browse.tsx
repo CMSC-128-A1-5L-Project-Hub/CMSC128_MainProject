@@ -14,6 +14,14 @@ import { api } from "../../api/axios"
 import UbleLoader from "../shared/LoadingPage"
 import defaultAccommodation from "../../assets/defaults/accommodation.png";
 
+
+type ToastState = {
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+}
+
 /* ─── Context ──────────────────────────────────────────────────────────────── */
 type FilterContextType = {
     dormType: string; setDormType: (v: string) => void
@@ -28,7 +36,8 @@ type FilterContextType = {
     origMin: number; origMax: number; setOrigMin: (v: number) => void; setOrigMax: (v: number) => void;
     setFilterInEffect: (v: boolean) => void; setSearched: (v: boolean) => void;
     setSliderResetKey: (v: number) => void; sliderResetKey: number;
-    setBookmarkedMap: React.Dispatch<React.SetStateAction<Record<number, boolean>>>
+    setBookmarkedMap: React.Dispatch<React.SetStateAction<Record<number, boolean>>>;
+    setToast: React.Dispatch<React.SetStateAction<ToastState>>;
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
@@ -93,7 +102,7 @@ export default function BrowsePage() {
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
-            console.log("success", res.data)
+            // console.log("success", res.data)
             setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
@@ -345,7 +354,7 @@ export default function BrowsePage() {
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
             searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched,
-            setSliderResetKey, sliderResetKey, setBookmarkedMap
+            setSliderResetKey, sliderResetKey, setBookmarkedMap, setToast
         }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
                 {/* Main */}
@@ -530,7 +539,7 @@ function DormTile({
 }) {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
-    const { setBookmarkedMap } = context
+    const { setBookmarkedMap, setToast } = context
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
@@ -544,7 +553,6 @@ function DormTile({
         
         if (isToggling) return
         
-        console.log("foobar")
         const newState = !isBookmarked
         setIsToggling(true)
         setBookmarkedMap((prev: Record<number, boolean>) => ({
@@ -555,10 +563,17 @@ function DormTile({
         try {
             if (onBookmarkToggle) {
                 await onBookmarkToggle(dorm.accommodationId, newState)
+                setToast({
+                    show: true,
+                    type: "success",
+                    title: !newState ? "Removed from favorites" : "Added to favorites!",
+                    message: !newState ? undefined : `${dorm.name} has been saved.`
+                  })
             }
         } catch (error) {
             // Revert on error
             // setIsBookmarked(!newState)
+            setToast({ show: true, type: "error", title: "Something went wrong", message: "Please try again." })
             setBookmarkedMap((prev: Record<number, boolean>) => ({
                 ...prev,
                 [id]: !newState
