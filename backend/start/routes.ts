@@ -76,6 +76,9 @@ router
     router.get('/notifications', [controllers.Notifications, 'index'])
     router.patch('/notifications/:id', [controllers.Notifications, 'update'])
 
+    // Individual billing statement PDF (student / manager / landlord — authorization done in controller)
+    router.get('/fees/:id/statement.pdf', [controllers.Fees, 'statementPdf'])
+
     // ====================================================================
     // ─── STUDENT ROUTES ───
     // ====================================================================

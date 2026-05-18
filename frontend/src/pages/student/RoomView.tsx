@@ -2206,7 +2206,7 @@ export default function RoomView() {
                       <IconPhone /> (+63){(() => {
                         const nums = managerUser?.phoneNumbers ?? [];
                         const primary = nums.find((p: any) => p.isPrimary) ?? nums[0];
-                        const digits = primary?.contactNumber?.replace(/^(\+?63)/, "") ?? "";
+                        const digits = primary?.contactNumber?.replace(/^(\+?63|0)/, " ") ?? "";
                         return digits || "XXX XXX XXXX";
                       })()}
                     </p>

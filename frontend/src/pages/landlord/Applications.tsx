@@ -598,30 +598,19 @@ export default function LandlordApplicationsPage() {
                   <p className="text-sm text-[#9A7080] mt-2">Fetching applications...</p>
                 </div>
               ) : (
-                <table className="min-w-[900px] w-full text-sm table-fixed border-separate border-spacing-0">
-                  <thead className="sticky z-20 top-0 bg-white border-[#6B0F2B]/10">
-                    <tr className="text-[#9A7080] text-[12px] tracking-widest font-bold">
-                      {[
-                        { label: "Student", className: "w-[30%]" },
-                        { label: "Date Applied", className: "w-[15%]" },
-                        { label: "Room Type", className: "w-[15%]" },
-                        { label: "Stay Type", className: "w-[15%]" },
-                        { label: "Status", className: "w-[15%]" },
-                        { label: "Action", className: "w-[10%] text-center" },
-                      ].map(col => (
-                        <th key={col.label} className={`uppercase p-1.5 text-left whitespace-nowrap border-y border-[#6B0F2B]/10 ${col.className}`}>
-                          {col.label}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
+                <table className="min-w-[950px] w-full text-sm border-separate border-spacing-y-2">
                   <tbody>
                     {filtered.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="text-center py-12">
-                          <div className="flex flex-col items-center justify-center gap-2">
-                            <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
-                            <p className="text-[#C8B0B8] text-sm">No applications match your current filters</p>
+                        <td colSpan={6} className="py-14">
+                          <div className="flex flex-col items-center justify-center text-center">
+                            <p className="text-[#9A7080] font-medium text-lg">
+                              No applications found
+                            </p>
+
+                            <p className="text-[#9A7080] text-sm mt-1">
+                              No applications match your current filters
+                            </p>
                           </div>
                         </td>
                       </tr>
@@ -629,43 +618,100 @@ export default function LandlordApplicationsPage() {
                       paginated.map((app) => (
                         <tr
                           key={app.id}
+                          className="bg-white shadow-sm hover:shadow-md transition-all duration-200"
                           style={{
-                            backgroundColor: (rowStyles[app.applicationStatus]?.bg ?? '#888') + '0D',
-                            color: rowStyles[app.applicationStatus]?.text ?? '#888',
+                            borderRadius: "18px",
                           }}
                         >
-                          <td className="p-2">
+                          {/* STUDENT */}
+                          <td className="px-4 py-4 rounded-l-2xl">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                {app?.student?.user?.fname?.charAt(0)?.toUpperCase() || 'U'}
+                              <div
+                                className="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-bold text-sm shrink-0"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg, #8C1535, #5A0D22)",
+                                  boxShadow: "0 4px 10px rgba(140,21,53,0.25)",
+                                }}
+                              >
+                                {app?.student?.user?.fname?.charAt(0)?.toUpperCase() || "U"}
                               </div>
+
                               <div className="min-w-0">
-                                <p className="font-medium truncate">
-                                  {[app?.student?.user?.fname, app?.student?.user?.lname].filter(Boolean).join(" ") || "Unknown"}
+                                <p className="font-semibold text-[#1A0008] truncate">
+                                  {[app?.student?.user?.fname, app?.student?.user?.lname]
+                                    .filter(Boolean)
+                                    .join(" ") || "Unknown"}
                                 </p>
-                                <p className="text-xs text-gray-400 truncate">{app.student.studentNumber}</p>
+
+                                <p className="text-xs text-[#9A7080] truncate mt-0.5">
+                                  {app.student.studentNumber}
+                                </p>
                               </div>
                             </div>
                           </td>
-                          <td className="p-2 text-gray-600 whitespace-nowrap">
-                            {app?.applicationDate ? (
-                              <>
-                                <span className="block text-[12px] lg:text-[14px]">{formatDate(app.applicationDate)}</span>
-                                <span className="block text-[10px] lg:text-[12px] text-[#9A7080]">
-                                  {getDaysAgo(app.applicationDate) === 0 ? 'today' : getDaysAgo(app.applicationDate) === 1 ? 'yesterday' : `${getDaysAgo(app.applicationDate)} days ago`}
-                                </span>
-                              </>
-                            ) : <p>Loading date...</p>}
+
+                          {/* DATE */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-[#1A0008]">
+                                {formatDate(app.applicationDate)}
+                              </span>
+
+                              <span className="text-[11px] text-[#9A7080] mt-0.5">
+                                {getDaysAgo(app.applicationDate) === 0
+                                  ? "today"
+                                  : getDaysAgo(app.applicationDate) === 1
+                                  ? "yesterday"
+                                  : `${getDaysAgo(app.applicationDate)} days ago`}
+                              </span>
+                            </div>
                           </td>
-                          <td className="p-2 whitespace-nowrap capitalize">{app.applicationRoomType}</td>
-                          <td className="p-2 whitespace-nowrap capitalize">{app.applicationStayType?.replace('_', ' ')}</td>
-                          <td className="p-2"><StylizedStatus status={app.applicationStatus} /></td>
-                          <td className="p-2 text-center">
-                            <Button variant="reddishPink" size="sm" fullWidth={false} isLoading={false} onClick={() => setSelectedApp(app)}>
-                              View
+
+                          {/* ROOM TYPE */}
+                          <td className="px-4 py-4">
+                            <span
+                              className="px-3 py-1.5 rounded-full text-xs font-semibold capitalize"
+                              style={{
+                                background: "rgba(140,21,53,0.08)",
+                                color: "#6B0F2B",
+                              }}
+                            >
+                              {app.applicationRoomType}
+                            </span>
+                          </td>
+
+                          {/* STAY TYPE */}
+                          <td className="px-4 py-4">
+                            <span
+                              className="px-3 py-1.5 rounded-full text-xs font-semibold capitalize"
+                              style={{
+                                background: "rgba(201,151,58,0.10)",
+                                color: "#A56B00",
+                              }}
+                            >
+                              {app.applicationStayType?.replace("_", " ")}
+                            </span>
+                          </td>
+
+                          {/* STATUS */}
+                          <td className="px-4 py-4">
+                            <StylizedStatus status={app.applicationStatus} />
+                          </td>
+
+                          {/* ACTION */}
+                          <td className="px-4 py-4 text-center rounded-r-2xl">
+                            <Button
+                              variant="reddishPink"
+                              size="sm"
+                              fullWidth={false}
+                              onClick={() => setSelectedApp(app)}
+                              className="!rounded-xl !px-4 hover:scale-105 transition-transform"
+                            >
+                              Review
                             </Button>
-                           </td>
-                         </tr>
+                          </td>
+                        </tr>
                       ))
                     )}
                   </tbody>

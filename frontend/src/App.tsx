@@ -43,6 +43,7 @@ import UbleLoader from "./pages/shared/LoadingPage"
 import OccupancyReportPrint from "./pages/landlord/reports/OccupancyReportPrint"
 import RevenueReportPrint from "./pages/landlord/reports/RevenueReportPrint"
 import AccommodationHistoryReportPrint from "./pages/landlord/reports/AccommodationHistoryReportPrint"
+import BillingStatementPrint from "./pages/student/reports/BillingStatementPrint"
 import ActivityLogsPage from "./pages/admin/ActivityLogs"
 
 import StudentLayout from "./layouts/StudentLayout"
@@ -81,6 +82,7 @@ function AnimatedRoutes() {
         <Route path="/reports/occupancy/print" element={<OccupancyReportPrint />} />
         <Route path="/reports/revenue/print" element={<RevenueReportPrint />} />
         <Route path="/reports/accommodation-history/print" element={<AccommodationHistoryReportPrint />} />
+        <Route path="/reports/billing-statement/print" element={<BillingStatementPrint />} />
 
         {/* ── Post-OAuth onboarding (logged-in, any role) ── */}
         <Route path="/auth/role" element={<ProtectedRoute><RoleSelection/></ProtectedRoute>}/>
