@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import Card from "@/components/ui/Card"
 import AccommodationVerificationModal from "./PendingAccommodationsModal"
 
@@ -17,6 +18,7 @@ export default function PendingAccommodations({
 }: PendingAccommodationsProps) {
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const navigate = useNavigate()
 
   const handleReview = (item: any) => {
     setSelectedItem(item)
@@ -34,14 +36,23 @@ export default function PendingAccommodations({
   return (
     <>
       <Card className="shadow-sm rounded-2xl border-[#F2D9DF] bg-white p-6">
-        <div className="mb-6">
-          <h2 className="text-[16px] font-bold text-[#2A0410]">
-            Pending Accommodation Approvals
-          </h2>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h4 className="text-[16px] font-bold text-[#2A0410]">
+              Pending Accommodation Approvals
+            </h4>
+            <p className="text-[13px] italic">
+              {accommodations.length} pending approval{accommodations.length === 1 ? "":"s"}
+            </p>
+          </div>
+          
 
-          <p className="text-[13px] italic">
-            {accommodations.length} pending approval{accommodations.length === 1 ? "":"s"}
-          </p>
+          <button
+            onClick={() => navigate("/admin/pending-accommodations")}
+            className="text-sm font-semibold text-[#6B0F2B] hover:underline"
+          >
+            View all →
+          </button>
         </div>
 
         {isLoading ? (
