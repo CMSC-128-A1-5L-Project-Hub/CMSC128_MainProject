@@ -63,6 +63,7 @@ interface Manager {
     email: string;
     phone?: string;
     pfpUrl?: string;
+    phoneNumbers?: { contactNumber: string; isPrimary: boolean }[];
   };
 }
 
