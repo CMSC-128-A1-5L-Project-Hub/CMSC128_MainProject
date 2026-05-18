@@ -7,6 +7,7 @@ interface AccommodationFormState {
   accommodationLocation: string
   tenantRestriction: 'male-only' | 'female-only' | 'coed' | ''
   accommodationCapacity: string
+  contractMonths: string  // Changed from number to string for typable input
   businessPermit: File | null
 
   // ─── Location (hidden from UI, sent to backend) ─────────────────
@@ -34,6 +35,7 @@ const initialState = {
   accommodationLocation: '',
   tenantRestriction: '' as const,
   accommodationCapacity: '',
+  contractMonths: '',  // Empty string, user will type
   businessPermit: null,
   latitude: null,
   longitude: null,
