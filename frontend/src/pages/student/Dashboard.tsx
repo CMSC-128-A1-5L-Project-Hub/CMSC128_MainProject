@@ -1084,8 +1084,45 @@ if (!profile || !user || user.role !== "student") {
 
         {/* Main content */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <div className="inline-block lg:hidden w-full">
+            <CustomHeader
+              title="Dashboard"
+              right={
+                <div className="relative" ref={notifWrapperRef}>
+                  <button
+                    aria-label="Notifications"
+                    onClick={() => setNotifOpen((prev) => !prev)}
+                    className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative overflow-hidden
+                      transition-all duration-150
+                      bg-[#8C1535] hover:bg-[#8C1535]/80 active:bg-[#3D0718]
+                      active:translate-y-0 active:scale-95"
+                  >
+                    <img
+                      src={notif_icon}
+                      alt="Notifications"
+                      className="w-full h-full object-contain scale-[2.5]"
+                    />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  <NotificationPanel
+                    open={notifOpen}
+                    notifications={notifications}
+                    unreadCount={unreadCount}
+                    onMarkAllRead={markAllRead}
+                    onMarkOneRead={markOneRead}
+                    onClose={() => setNotifOpen(false)}
+                    wrapperRef={notifWrapperRef}
+                  />
+                </div>
+              }
+            />
+          </div>
           <div className="flex-1 overflow-y-auto px-4 lg:px-6 pt-0 pb-4 lg:pb-5 space-y-4 lg:space-y-5">
-            <div className="-mx-4 lg:-mx-6">
+            <div className="hidden lg:inline-block w-full -mx-4 lg:-mx-6">
               <CustomHeader title="Dashboard" />
             </div>
             <HeroBanner

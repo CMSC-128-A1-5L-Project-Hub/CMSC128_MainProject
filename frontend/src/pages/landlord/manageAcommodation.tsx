@@ -128,10 +128,23 @@ const AddCard: React.FC<{ onClick: () => void }> = ({ onClick }) => (
 );
 
 // ─── STEP 1 ──────────────────────────────────────────────────────────────────
+// ─── STEP 1 ──────────────────────────────────────────────────────────────────
 const StepOne = ({ onNext, amenities, setAmenities }: {
   onNext: () => void; amenities: string[]; setAmenities: (a: string[]) => void;
 }) => {
-  const { accommodationName, accommodationType, tenantRestriction, accommodationCapacity, businessPermit, latitude, longitude, setField, setBusinessPermit } = useAccommodationFormStore();
+  const { 
+    accommodationName, 
+    accommodationType, 
+    tenantRestriction, 
+    accommodationCapacity, 
+    contractMonths,
+    businessPermit, 
+    latitude, 
+    longitude, 
+    setField, 
+    setBusinessPermit 
+  } = useAccommodationFormStore();
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -140,13 +153,20 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
 
   const handleFileUpload = (file: File | null) => {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setErrors((e) => ({ ...e, businessPermit: "File must be under 5MB." })); return; }
-    setErrors((e) => ({ ...e, businessPermit: "" })); setBusinessPermit(file);
+    if (file.size > 5 * 1024 * 1024) { 
+      setErrors((e) => ({ ...e, businessPermit: "File must be under 5MB." })); 
+      return; 
+    }
+    setErrors((e) => ({ ...e, businessPermit: "" })); 
+    setBusinessPermit(file);
   };
 
   const addCustomAmenity = () => {
     const trimmed = customAmenityInput.trim();
-    if (trimmed && !amenities.includes(trimmed)) { setAmenities([...amenities, trimmed]); setCustomAmenityInput(""); }
+    if (trimmed && !amenities.includes(trimmed)) { 
+      setAmenities([...amenities, trimmed]); 
+      setCustomAmenityInput(""); 
+    }
   };
 
   const validate = () => {
@@ -155,6 +175,17 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
     if (!accommodationType) newErrors.accommodationType = "Required";
     if (!tenantRestriction) newErrors.tenantRestriction = "Required";
     if (!accommodationCapacity || parseInt(accommodationCapacity) < 1) newErrors.accommodationCapacity = "Must be at least 1";
+    
+    // Validate contract months
+    if (!contractMonths || contractMonths === "") {
+      newErrors.contractMonths = "Contract duration is required";
+    } else {
+      const months = parseInt(contractMonths);
+      if (isNaN(months) || months < 1 || months > 60) {
+        newErrors.contractMonths = "Must be between 1 and 60 months";
+      }
+    }
+    
     if (!businessPermit) newErrors.businessPermit = "Business permit is required";
     if (latitude === null || longitude === null) newErrors.location = "Please set a location on the map";
     return newErrors;
@@ -182,14 +213,18 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="flex flex-col gap-1">
           <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">ACCOMMODATION NAME</label>
-          <input value={accommodationName} onChange={(e) => setField("accommodationName", e.target.value)}
+          <input 
+            value={accommodationName} 
+            onChange={(e) => setField("accommodationName", e.target.value)}
             className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.accommodationName ? "border-red-500" : "border-[#e5cfd4]"}`}
             placeholder="e.g., Kamia Residence" />
           {errors.accommodationName && <p className="text-red-500 text-[10px] sm:text-xs">{errors.accommodationName}</p>}
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">ACCOMMODATION TYPE</label>
-          <select value={accommodationType} onChange={(e) => setField("accommodationType", e.target.value as any)}
+          <select 
+            value={accommodationType} 
+            onChange={(e) => setField("accommodationType", e.target.value as any)}
             className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.accommodationType ? "border-red-500" : "border-[#e5cfd4]"}`}>
             <option value="">Select type</option>
             <option value="on-campus">On Campus</option>
@@ -199,15 +234,19 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
           {errors.accommodationType && <p className="text-red-500 text-[10px] sm:text-xs">{errors.accommodationType}</p>}
         </div>
       </div>
+
       <div className="flex flex-col gap-1">
         <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">ACCOMMODATION ADDRESS</label>
         <LocationPickerMap />
         {errors.location && <p className="text-red-500 text-[10px] sm:text-xs">{errors.location}</p>}
       </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="flex flex-col gap-1">
           <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">TENANT RESTRICTION</label>
-          <select value={tenantRestriction} onChange={(e) => setField("tenantRestriction", e.target.value as any)}
+          <select 
+            value={tenantRestriction} 
+            onChange={(e) => setField("tenantRestriction", e.target.value as any)}
             className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.tenantRestriction ? "border-red-500" : "border-[#e5cfd4]"}`}>
             <option value="">Select restriction</option>
             <option value="coed">Co-ed</option>
@@ -233,6 +272,36 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
           {errors.accommodationCapacity && <p className="text-red-500 text-[10px] sm:text-xs">{errors.accommodationCapacity}</p>}
         </div>
       </div>
+
+      {/* NEW: Contract Duration Field - Typable Number Input */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">CONTRACT DURATION (months)</label>
+        <input
+          type="number"
+          value={contractMonths}
+          onChange={(e) => {
+            const value = e.target.value
+            // Allow empty or positive numbers only, max 60
+            if (value === '' || (Number(value) >= 1 && Number(value) <= 60)) {
+              setField("contractMonths", value)
+            }
+          }}
+          onBlur={() => {
+            // If empty or invalid, clear the error will be shown on validation
+            if (contractMonths !== "" && (Number(contractMonths) < 1 || Number(contractMonths) > 60)) {
+              // Optionally show a temporary error
+            }
+          }}
+          min="1"
+          max="60"
+          step="1"
+          placeholder="e.g., 6"
+          className={`border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#7a001f]/30 ${errors.contractMonths ? "border-red-500" : "border-[#e5cfd4]"}`}
+        />
+        {errors.contractMonths && <p className="text-red-500 text-[10px] sm:text-xs">{errors.contractMonths}</p>}
+        <p className="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">How many months will tenants typically stay? (1-60 months)</p>
+      </div>
+
       <div className="border border-[#e5cfd4] rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Check size={14} className="sm:w-4 sm:h-4 text-emerald-600 flex-shrink-0" />
@@ -268,6 +337,7 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
           <Button variant="secondary" size="sm" onClick={addCustomAmenity} type="button" className="text-[10px] sm:text-xs !py-1.5">Add</Button>
         </div>
       </div>
+
       <div className="flex flex-col gap-1">
         <label className="text-[9px] sm:text-[10px] font-semibold tracking-wide text-[#7a001f]">BUSINESS PERMIT</label>
         <div className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl p-4 sm:p-6 cursor-pointer transition ${dragOver ? "border-[#C9973A] bg-[#C9973A]/5" : errors.businessPermit ? "border-red-500 bg-red-50" : "border-[#6B0F2B]/20 bg-white"}`}
@@ -286,6 +356,7 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
         </div>
         {errors.businessPermit && <p className="text-red-500 text-[10px] sm:text-xs">{errors.businessPermit}</p>}
       </div>
+
       <div className="flex justify-end"><Button onClick={handleNext} size="sm" className="sm:size-md">Next →</Button></div>
     </div>
   );
@@ -295,8 +366,25 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
 const StepTwo = ({ onBack, onClose, amenities, onSuccess }: {
   onBack: () => void; onClose: () => void; amenities: string[]; onSuccess: () => void;
 }) => {
-  const { images, imagePreviews, primaryImageIndex, accommodationName, accommodationType, accommodationLocation,
-    accommodationCapacity, tenantRestriction, businessPermit, latitude, longitude, addImages, removeImage, setPrimaryImage, reset } = useAccommodationFormStore();
+  const { 
+    images, 
+    imagePreviews, 
+    primaryImageIndex, 
+    accommodationName, 
+    accommodationType, 
+    accommodationLocation,
+    accommodationCapacity, 
+    tenantRestriction, 
+    contractMonths,
+    businessPermit, 
+    latitude, 
+    longitude, 
+    addImages, 
+    removeImage, 
+    setPrimaryImage, 
+    reset 
+  } = useAccommodationFormStore();
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -312,6 +400,7 @@ const StepTwo = ({ onBack, onClose, amenities, onSuccess }: {
       formData.append("accommodation_location", accommodationLocation);
       formData.append("accommodation_capacity", String(accommodationCapacity));
       formData.append("tenant_restriction", tenantRestriction);
+      formData.append("contract_months", String(contractMonths));
       formData.append("latitude", String(latitude));
       formData.append("longitude", String(longitude));
       formData.append("primary_image_index", String(primaryImageIndex));
@@ -363,7 +452,6 @@ const StepTwo = ({ onBack, onClose, amenities, onSuccess }: {
   );
 };
 
-// ─── Main Dashboard ──────────────────────────────────────────────────────────
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 const ManageAccommodationDashboard: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -474,7 +562,7 @@ const ManageAccommodationDashboard: React.FC = () => {
         }
       />
 
-      {/* Main content - scrolls naturally */}
+      {/* Main content */}
       <main className="flex-1 p-4 sm:p-6 lg:p-10">
         <div className="text-center mb-6 sm:mb-10">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#C9973A]/10 text-[#C9973A] text-[9px] sm:text-[10px] font-bold tracking-widest uppercase mb-3 sm:mb-4">
