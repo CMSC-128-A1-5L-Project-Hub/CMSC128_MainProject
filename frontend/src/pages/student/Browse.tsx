@@ -227,6 +227,8 @@ export default function BrowsePage() {
         setSearched(true);
     }, []);
 
+
+
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
@@ -235,8 +237,8 @@ export default function BrowsePage() {
         //     return
         // }
 
-        setFilterInEffect(false);
-        setSearched(false)
+        // setFilterInEffect(false);
+        // setSearched(false)
 
         for (let i = 0; i < accommodations.length; i++) {
             const {
@@ -307,7 +309,7 @@ export default function BrowsePage() {
 
         setFlatDorms(tempDorms)
         setMapAccommodations(tempPins)
-    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters, studentNo, filterPanelOpen])
+    }, [dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters, studentNo, filterPanelOpen])
 
     // Pagination logic
     const totalPages = Math.ceil(flatDorms.length / ITEMS_PER_PAGE);
@@ -328,20 +330,20 @@ export default function BrowsePage() {
     Object.keys(filters).forEach(k => { if (filters[k]) activeChips.push(k) })
 
     const handleBookmarkToggle = async (accommodationId: number, currentState: boolean) => {
-  
+
         try {
             const data = await api.put(`/accommodations/${accommodationId}/bookmark`, {
-              studentNumber: studentNo,
-              favorite: currentState
+                studentNumber: studentNo,
+                favorite: currentState
             })
-            
+
             queryClient.invalidateQueries({
                 queryKey: ["accommodations"],
-              })
-   
-          } catch (error) {
+            })
+
+        } catch (error) {
             console.log("error")
-          }
+        }
     }
 
     /* RENDER */
@@ -550,16 +552,16 @@ function DormTile({
     const handleHeartClick = async (e: React.MouseEvent) => {
         e.stopPropagation()
         e.preventDefault()
-        
+
         if (isToggling) return
-        
+
         const newState = !isBookmarked
         setIsToggling(true)
         setBookmarkedMap((prev: Record<number, boolean>) => ({
             ...prev,
             [id]: !prev[id]
         }))
-        
+
         try {
             if (onBookmarkToggle) {
                 await onBookmarkToggle(dorm.accommodationId, newState)
@@ -568,7 +570,7 @@ function DormTile({
                     type: "success",
                     title: !newState ? "Removed from favorites" : "Added to favorites!",
                     message: !newState ? undefined : `${dorm.name} has been saved.`
-                  })
+                })
             }
         } catch (error) {
             // Revert on error
@@ -611,14 +613,14 @@ function DormTile({
                     onClick={handleHeartClick}
                     disabled={isToggling}
                     className={`absolute top-2 right-2 z-30 p-1.5 rounded-full transition-all duration-300 backdrop-blur-sm
-                        ${isBookmarked 
-                            ? "bg-rose-500/90 text-white" 
+                        ${isBookmarked
+                            ? "bg-rose-500/90 text-white"
                             : "bg-white/80 text-gray-500 hover:bg-rose-500/90 hover:text-white"
                         }`}
                 >
-                    <Heart 
-                        size={16} 
-                        fill={isBookmarked ? "currentColor" : "none"} 
+                    <Heart
+                        size={16}
+                        fill={isBookmarked ? "currentColor" : "none"}
                         strokeWidth={2}
                     />
                 </button>
@@ -845,7 +847,7 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
             <div className="px-2">
                 <PriceRangeSlider key={sliderResetKey} min={origMin} max={origMax} onChange={handleRangeChange} trackColor="linear-gradient(90deg, #E8A0AA, #B5344F, #6B0F2B)"
-                rangeColor="#8C1535"/>
+                    rangeColor="#8C1535" />
             </div>
 
             <Divider />
