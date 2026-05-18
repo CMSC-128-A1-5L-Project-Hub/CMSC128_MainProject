@@ -253,7 +253,7 @@ export default class AssignmentsController {
         )
       }
     } catch (e) {
-      console.error('Failed to send in-app move-out notification:', e)
+      console.error('[notify] in-app move-out controller-wrap failed:', e)
     }
 
     return response.ok(assignment)

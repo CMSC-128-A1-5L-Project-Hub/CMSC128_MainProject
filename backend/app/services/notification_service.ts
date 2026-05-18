@@ -12,19 +12,19 @@ async notify(
   type: 'fee_due' | 'application_status' | 'system' | 'other' | 'move_out_request' | 'move_out_request_response',
   content: string
 ) {
+  if (!userId || typeof userId !== 'number') {
+    console.error('[notify] refusing to insert: invalid userId=', userId, 'type=', type, 'content=', content)
+    return
+  }
   try {
-    console.log('Creating notification...')
-
-    const notification = await Notification.create({
+    await Notification.create({
       userId,
       notificationType: type,
       notificationContent: content,
-      readStatus: 'unread'
+      readStatus: 'unread',
     })
-
-    console.log('Created:', notification)
   } catch (error) {
-    console.error(error)
+    console.error('[notify] insert failed for userId=', userId, 'type=', type, error)
   }
 }
 
