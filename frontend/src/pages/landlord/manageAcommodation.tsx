@@ -12,6 +12,7 @@ import Sidebar from "../../components/Sidebar";
 import { setLandlordSidebarContext } from "../../components/Sidebar";
 import Toast from "../../components/Toast";
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel";
+import { useNotifications } from "../../hooks/useNotifications";
 import notif_icon from "../../assets/icons/notif_icon.svg";
 import UbleLoader from "../shared/LoadingPage";
 import CustomHeader from "../../components/CustomHeader"
@@ -456,8 +457,8 @@ const ManageAccommodationDashboard: React.FC = () => {
   });
 
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const notifWrapperRef = useRef<HTMLDivElement>(null);
+  const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications({ refetchOn: notifOpen });
 
   useEffect(() => { setLandlordSidebarContext("minimal"); }, []);
 
@@ -475,34 +476,6 @@ const ManageAccommodationDashboard: React.FC = () => {
   const verifiedAccommodations = (accommodations ?? []).filter((a: any) => a.status !== 'rejected');
 
   useEffect(() => { if (isError) navigate('/auth/signin'); }, [isError, navigate]);
-
-  useEffect(() => {
-    api.get('/notifications').then(({ data }) => {
-      setNotifications(
-        data.map((n: any) => ({
-          id: n.id,
-          type: n.notificationType,
-          message: n.notificationContent,
-          time: new Date(n.notificationTimestamp).toLocaleString(),
-          read: n.readStatus === 'read',
-        }))
-      )
-    }).catch(console.error)
-  }, []);
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const markAllRead = () => {
-    notifications.filter((n) => !n.read).forEach((n) =>
-      api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
-    )
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  };
-
-  const markOneRead = (id: number) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
-    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-  };
 
   const handleClose = () => { setOpen(false); setStep(1); setAmenities([]); };
 

@@ -8,7 +8,6 @@ import {
   IoBedSharp,
   IoDocumentSharp,
   IoDocumentTextSharp,
-  IoIdCardSharp,
 } from "react-icons/io5";
 import type { Application } from "@/interfaces/application";
 import { api } from "@/api/axios";
@@ -104,7 +103,7 @@ const ApplicationModalContent = ({
   // 2. Pre-seed with defaults and combine them using the spread operator,
   // wrapped in a Set to automatically clean out any duplicates
   const documentRequirements: string[] = Array.from(
-    new Set(["FORM 5", "VALID ID", ...fetchedNames])
+    new Set(["Enrollment Proof", ...fetchedNames])
   );
 
   console.log(documentRequirements);
@@ -241,13 +240,7 @@ const ApplicationModalContent = ({
 
               <div className="flex flex-col gap-3">
                 {documentRequirements.map((requirementName) => {
-                      // Determine which icon configuration to use based on the requirement name
-                      const isValidId = requirementName.toUpperCase() === "VALID ID";
-                      const docIcon = isValidId ? (
-                        <IoIdCardSharp size={16} color="white" />
-                      ) : (
-                        <IoDocumentTextSharp size={16} color="white" />
-                      );
+                      const docIcon = <IoDocumentTextSharp size={16} color="white" />;
 
                       return (
                         <div key={requirementName} className="flex flex-row items-center justify-between">
@@ -265,8 +258,8 @@ const ApplicationModalContent = ({
                             variant="reddishPink" 
                             size="sm" 
                             onClick={async () => {
-                              // If explicitly "FORM 5", hit the legacy explicit enrollment-proof endpoint
-                              if (requirementName.toUpperCase() === "FORM 5") {
+                              // "Enrollment Proof" hits the dedicated endpoint that reads from student.enrollmentProof
+                              if (requirementName.toUpperCase() === "ENROLLMENT PROOF") {
                                 try {
                                   const res = await api.get(`/applications/${app.id}/enrollment-proof`)
                                   if (res.status === 200) {
@@ -291,9 +284,9 @@ const ApplicationModalContent = ({
                                   // })
                                 }
                               } else {
-                                // EVERYTHING ELSE (VALID ID and all dynamic custom text names) goes here
+                                // All dynamic custom requirements go here
                                 try {
-                                  // Safely encodes names with spaces (e.g., "VALID ID" -> "VALID%20ID")
+                                  // Safely encodes names with spaces (e.g., "BARANGAY CLEARANCE" -> "BARANGAY%20CLEARANCE")
                                   const secureParam = encodeURIComponent(requirementName)
                                   const res = await api.get(`/applications/${app.id}/documents/${secureParam}`)
                                   
