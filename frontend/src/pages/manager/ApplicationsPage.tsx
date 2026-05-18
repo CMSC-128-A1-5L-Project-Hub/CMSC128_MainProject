@@ -451,7 +451,7 @@ export default function ApplicationsPage() {
                             </div>
                             <div className="min-w-0">
                               {/* Fixed to handle cases where user's google account may not have a last name */}
-                              <p className="font-medium truncate">
+                              <p className="font-bold truncate">
                                 {[app?.student?.user?.fname, app?.student?.user?.lname]
                                   .filter(Boolean)
                                   .join(" ") || "Unknown"}
