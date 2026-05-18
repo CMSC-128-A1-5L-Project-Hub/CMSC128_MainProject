@@ -9,6 +9,8 @@ import CustomHeader from '../../components/CustomHeader';
 import AccommodationVerificationModal from "@/components/dashboard/admin/PendingAccommodationsModal"
 import Dropdown from "@/components/ApplicationStatus/Dropdown"
 import SearchBar from "@/components/SearchBar"
+import StylizedStatus from "@/components/BillingDashboard/StylizedStatus"
+import Pagination from "@/components/ApplicationStatus/Pagination"
 
 export default function PendingAccommodationsPage() {
   const navigate = useNavigate()
@@ -139,193 +141,151 @@ export default function PendingAccommodationsPage() {
   )
 
   return (
-    <div className="flex min-h-screen bg-[#F6F2F4]">
-
-      <div className="flex flex-col flex-1 min-h-0 min-w-0">
-        <CustomHeader
-          title="Pending Acommodations">
-        </CustomHeader>
-        <main className="flex flex-1 overflow-x-hidden p-6 h-full w-full">
-          <div className="space-y-6 w-full">
-            <HeroBanner
-              greeting="Good day"
-              name={user?.fname ?? "Admin"}
-              title="Review pending accommodation submissions"
-              subtitle="Approve or reject accommodations submitted by housing administrators."
-              type="mini"
-            />
-            <Card className="flex h-full flex-col rounded-2xl bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <h4 className="text-[16px] font-bold">
-                    Pending Accommodations
-                  </h4>
-                  <p className="text-[13px]">
-                    {filteredAccommodations.length} pending accommodation submissions
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className='hidden lg:block'>
-                    <Dropdown
-                      title="No. of Items"
-                      items={[
-                        { label: "5", href: "" },
-                        { label: "10", href: "" },
-                        { label: "15", href: "" },
-                        { label: "20", href: "" },
-                      ]}
-                      direction='down'
-                      widthClass="w-29 lg:w-32"
-                      titleClass="text-[10px] lg:text-[11px]"
-                      selectedClass="text-[12px] lg:text-[13px]"
-                      onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                    />
-                  </div>
-                  <Dropdown
-                    title="Sort by"
-                    items={[
-                      { label: "Status", href: "" },
-                      { label: "Date issued (Asc.)", href: "" },
-                      { label: "Date issued (Desc.)", href: "" },
-                      { label: "Amount (Asc.)", href: "" },
-                      { label: "Amount (Desc.)", href: "" },
-                    ]}
-                    direction="down"
-                    widthClass="w-32 lg:w-44"
-                    titleClass="text-[10px] lg:text-[11px]"
-                    selectedClass="text-[12px] lg:text-[13px]"
-                    onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
-                  />
-                  <SearchBar
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    onPageReset={() => setCurrentPage(1)}
-                  />
-                </div>
+    <div className="flex flex-col h-screen bg-[#F6F2F4]">
+      <CustomHeader
+        title="Pending Accommodations">
+      </CustomHeader>
+      <div className="flex flex-col flex-1 min-h-0 p-6 gap-6">
+        <div>
+          <HeroBanner
+            greeting="Good day"
+            name={user?.fname ?? "Admin"}
+            title="Review pending accommodation submissions"
+            subtitle="Approve or reject accommodations submitted by housing administrators."
+            type="mini"
+          />
+        </div>
+        <div className="flex flex-col flex-1 min-h-0 bg-white rounded-2xl p-6">
+          <div className="flex justify-between">  
+            <div className="flex flex-col justify-center self-center mb-4">
+              <h4 className="text-[16px] font-bold">
+                Pending Accommodations
+              </h4>
+              <p className="text-[13px]">
+                {filteredAccommodations.length} pending accommodation submissions
+              </p>
+            </div>
+            <div className="flex flex-row gap-2 items-center">
+              <div className='hidden lg:block'>
+                <Dropdown
+                  title="No. of Items"
+                  items={[
+                    { label: "5", href: "" },
+                    { label: "10", href: "" },
+                    { label: "15", href: "" },
+                    { label: "20", href: "" },
+                  ]}
+                  direction='down'
+                  widthClass="w-29 lg:w-32"
+                  titleClass="text-[10px] lg:text-[11px]"
+                  selectedClass="text-[12px] lg:text-[13px]"
+                  onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
+                />
               </div>
-              {isLoading ? (
+              <Dropdown
+                title="Sort by"
+                items={[
+                  { label: "Status", href: "" },
+                  { label: "Date issued (Asc.)", href: "" },
+                  { label: "Date issued (Desc.)", href: "" },
+                  { label: "Amount (Asc.)", href: "" },
+                  { label: "Amount (Desc.)", href: "" },
+                ]}
+                direction="down"
+                widthClass="w-32 lg:w-44"
+                titleClass="text-[10px] lg:text-[11px]"
+                selectedClass="text-[12px] lg:text-[13px]"
+                onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
+              />
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onPageReset={() => setCurrentPage(1)}
+              />
+            </div>
+          </div>
+          {isLoading ? (
                 <p className="text-sm text-gray-500">Loading...</p>
               ) : isPendingError ? (
                 <p className="text-sm text-red-500">Error loading requests.</p>
               ) : filteredAccommodations.length === 0 ? (
-                <div className="flex h-[390px] items-center justify-center border-t border-[#F2D9DF]">
-                  <p className="text-lg font-medium text-[#9A7080] text-center">
-                    No pending accommodations
-                  </p>
-                </div>
+                <div className="flex flex-col justify-center items-center h-full text-center">
+                  <p className="text-[#9A7080] font-medium text-lg">No accommodations found</p>
+                  <p className="text-[#9A7080]/60 text-sm mt-1">When accommodations apply for UBLE, they will appear here</p>
+              </div>
               ) : (
-                <>
-                  <div className="">
-                    <table className="min-w-full border-collapse">
-                      <thead className="">
-                        <tr className="border-y border-[#F2D9DF]">
-                          <th className="p-2 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                            Accommodation
-                          </th>
-                          <th className="p-2 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                            Submitted On
-                          </th>
-                          <th className="p-2 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                            Landlord
-                          </th>
-                          <th className="p-2 text-center text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                            Status
-                          </th>
-                          <th className="p-2 text-center text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                            Action
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paginatedAccommodations.map((item: any) => (
-                          <tr
-                            key={item.id}
-                            className="border-b border-[#F2D9DF] hover:bg-[#FFF7F9]"
-                          >
-                            <td className="p-2">
-                              <div className="flex items-center gap-4">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042] font-bold text-white">
-                                  {item.accommodationName?.[0]?.toUpperCase() ?? "A"}
-                                </div>
-                                <div>
-                                  <p className="text-base font-semibold text-[#2A0410]">
-                                    {item.accommodationName}
-                                  </p>
-                                  <p className="text-xs text-[#A06B7C]">
-                                    {item.accommodationLocation ?? "—"}
-                                  </p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-2 text-sm text-[#A06B7C]">
-                              {formatAppliedDate(item.createdAt)}
-                            </td>
-                            <td className="p-2 text-sm text-gray-600">
-                              {item.landlord?.user
-                                ? `${item.landlord.user.fname} ${item.landlord.user.lname}`
-                                : "—"}
-                            </td>
-                            <td className="p-2 text-center">
-                              <span className="rounded-full bg-[#FFF7F9] px-3 py-1 text-xs font-semibold text-[#A06B7C]">
-                                Pending
-                              </span>
-                            </td>
-                            <td className="p-2 text-center">
-                              <button
-                                onClick={() => handleOpenModal(item)}
-                                className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-6 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF]"
-                              >
-                                Review
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="mt-auto flex items-center justify-between pt-5">
-                    <p className="text-sm text-[#A06B7C]">
-                      Showing {Math.min((currentPage - 1) * rows + 1, filteredAccommodations.length)}–
-                      {Math.min(currentPage * rows, filteredAccommodations.length)} of{" "}
-                      {filteredAccommodations.length} accommodations
-                    </p>
-                    <div className="flex items-center gap-2">
-                      {Array.from({ length: totalPages }, (_, i) => (
-                        <button
-                          key={i + 1}
-                          onClick={() => setCurrentPage(i + 1)}
-                          className={`h-9 w-9 rounded-lg text-sm font-semibold ${
-                            currentPage === i + 1
-                              ? "bg-[#6B0F2B] text-white"
-                              : "border border-[#F2D9DF] text-[#6B0F2B] hover:bg-[#FFF7F9]"
-                          }`}
+                <div className="overflow-y-auto min-h-0 flex-1">
+                  <table className="min-w-full">
+                    <thead className="">
+                      <tr className="border-y border-[#F2D9DF]">
+                        <th className="p-2 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
+                          Accommodation
+                        </th>
+                        <th className="p-2 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
+                          Submitted On
+                        </th>
+                        <th className="p-2 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
+                          Landlord
+                        </th>
+                        <th className="p-2 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
+                          Status
+                        </th>
+                        <th className="p-2 text-center text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedAccommodations.map((item: any) => (
+                        <tr
+                          key={item.id}
+                          className="hover:bg-[#FFF7F9]"
                         >
-                          {i + 1}
-                        </button>
+                          <td className="p-2">
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-xl text-[14px] bg-gradient-to-br from-[#6B0F2B] to-[#B32042] font-bold text-white">
+                                {item.accommodationName?.[0]?.toUpperCase() ?? "A"}
+                              </div>
+                              <div>
+                                <p className="text-[14px] font-semibold text-[#2A0410]">
+                                  {item.accommodationName}
+                                </p>
+                                <p className="text-[12px] text-[#A06B7C]">
+                                  {item.accommodationLocation ?? "—"}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-2 text-sm text-[#A06B7C]">
+                            {formatAppliedDate(item.createdAt)}
+                          </td>
+                          <td className="p-2 text-sm">
+                            {item.landlord?.user
+                              ? `${item.landlord.user.fname} ${item.landlord.user.lname}`
+                              : "—"}
+                          </td>
+                          <td className="p-2">
+                            <StylizedStatus
+                              status={"pending"}> 
+                            </StylizedStatus>
+                          </td>
+                          <td className="p-2 text-center">
+                            <button
+                              onClick={() => handleOpenModal(item)}
+                              className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-4 py-2 text-[13px] font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF]"
+                            >
+                              Review
+                            </button>
+                          </td>
+                        </tr>
                       ))}
-                    </div>
-                  </div>
-                </>
-              )}
-            </Card>
-          </div>
-        </main>
+                    </tbody>
+                  </table>
+                </div>
+        )}
+        </div>
       </div>
-
-      <AccommodationVerificationModal
-        open={isModalOpen}
-        onClose={handleCloseModal}
-        selectedItem={selectedItem}
-        verifyingAccommodationId={verifyingAccommodationId}
-        onApprove={async (id) => {
-          await verifyAccommodationMutation.mutateAsync({ id, status: "verified" })
-          handleCloseModal()
-        }}
-        onReject={async (id) => {
-          await verifyAccommodationMutation.mutateAsync({ id, status: "rejected" })
-          handleCloseModal()
-        }}
-      />
+      
     </div>
   )
 }
