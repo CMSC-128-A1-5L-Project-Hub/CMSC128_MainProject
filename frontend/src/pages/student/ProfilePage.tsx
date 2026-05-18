@@ -792,6 +792,11 @@ function EditableField({
   );
 }
 
+function capitalizeFirstLetter(str: string) {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
@@ -1237,13 +1242,12 @@ export default function ProfilePage() {
                         onChange={handleImageUpload}
                       />
 
-                      <button
-                        aria-label="Change photo"
-                        onClick={() => !pfpUploading && fileInputRef.current?.click()}
-                        disabled={pfpUploading}
-                        className="absolute top-4 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-all"
+                      <button 
+                          aria-label="Change photo" 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 p-2 bg-white/50 hover:bg-white/80 rounded-full transition-all backdrop-blur-sm"
                       >
-                        <img src={Camera} alt="" className="h-5 w-5" />
+                          <img src={Camera} alt="" className="h-5 w-5 sm:h-6 sm:w-6" />
                       </button>
 
                       <img
@@ -1260,23 +1264,24 @@ export default function ProfilePage() {
                       )}
                     </div>
 
-                    <div className="p-4">
-                      <div className="flex items-center gap-3 rounded-2xl border border-[#D9E8DD] bg-[#EEF8F1] px-4 py-3">
-                        <img src={BadgeCheck} alt="" className="h-5 w-5" />
-                        <div className="min-w-0">
-                          <p className="text-[11px] font-extrabold uppercase tracking-wide text-[#1F7A3A]">
-                            Verified UPLB Student
-                          </p>
-                          <p className="text-[10px] text-[#1F7A3A]/70">
-                            Verified {verifyDate}
-                          </p>
-                        </div>
+                    
+                  </div>
+                  <div className="mt-4">
+                    <div className="flex items-center gap-3 rounded-2xl border border-[#D9E8DD] bg-[#EEF8F1] px-4 py-3">
+                      <img src={BadgeCheck} alt="" className="h-5 w-5" />
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-extrabold uppercase tracking-wide text-[#1F7A3A]">
+                          Verified UPLB Student
+                        </p>
+                        <p className="text-[10px] text-[#1F7A3A]/70">
+                          Verified {verifyDate}
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   {/* CURRENT DORM */}
-                  <div className="mt-5 rounded-[28px] border border-[#EADFD3] bg-[#F8EFF2] p-5">
+                  <div className="mt-5 rounded-[28px] border border-[#EADFD3] bg-white p-5">
                     <div className="flex items-center gap-3">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8C1535] text-sm font-bold text-white shrink-0">
                         {currentDorm?.room.accommodation.accommodationName?.[0] || "D"}
@@ -1363,9 +1368,13 @@ export default function ProfilePage() {
                               }
                         }
                         disabled={saveMutation.isPending || pfpUploading}
-                        className="inline-flex items-center gap-2 rounded-xl border border-[#A04E66] px-5 py-2.5 sm:py-3 text-sm font-semibold text-[#A04E66] hover:bg-[#A04E66] hover:text-white transition-all w-full sm:w-auto justify-center"
+                        className="group inline-flex items-center gap-2 rounded-xl border border-[#A04E66] px-5 py-2.5 sm:py-3 text-sm font-semibold text-[#A04E66] hover:bg-[#8C1535]/90 hover:text-white transition-all w-full sm:w-auto justify-center"
                       >
-                        <img src={isEditing ? Save : Pencil} alt="" className="h-4 w-4" />
+                        <img
+                          src={Pencil}
+                          alt=""
+                          className="h-4 w-4 transition-all filter group-hover:brightness-0 group-hover:invert"
+                        />
                         {saveMutation.isPending
                           ? "Saving..."
                           : isEditing
@@ -1380,7 +1389,7 @@ export default function ProfilePage() {
 
                     <Field label="UP Mail" value={profile.email} />
 
-                    <Field label="College" value={profile.student?.college || ""} />
+                    <Field label="College" value={profile.student?.college.toUpperCase() || ""} />
 
                     <Field label="Middle Name" value={profile.mname || ""} />
 
@@ -1414,7 +1423,10 @@ export default function ProfilePage() {
                       placeholder="09123456789"
                     />
 
-                    <Field label="Gender" value={profile.student?.gender || ""} isCaps />
+                    <Field
+                      label="Gender"
+                      value={capitalizeFirstLetter(profile.student?.gender || "")}
+                    />
 
                     <EditableField
                       label="Facebook Link"
