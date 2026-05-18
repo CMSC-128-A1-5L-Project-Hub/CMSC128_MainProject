@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import Sidebar from '../../components/Sidebar'
 import HeroBanner from '../../components/dashboard/HeroBanner'
 import DonutStatCard from '../../components/dashboard/DonutStatCard'
@@ -53,11 +53,11 @@ function FilterTabs({ active, setActive }: { active: string; setActive: (tab: st
 }
 
 // will probably update this to a component idk yet
-function MobileSidebarCarousel({ availableRoomsProps, occupiedRoomsProps, recentLogs }: any) {
+function MobileSidebarCarousel({ availableRoomsProps, occupiedRoomsProps }: any) {
   const [activeCard, setActiveCard] = useState(0)
   const carouselRef = useRef<HTMLDivElement>(null)
   const autoScrollRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const cards = ['available', 'occupied', 'logs']
+  const cards = ['available', 'occupied']
 
   const scrollToCard = (index: number) => {
     const el = carouselRef.current
@@ -67,11 +67,15 @@ function MobileSidebarCarousel({ availableRoomsProps, occupiedRoomsProps, recent
     setActiveCard(index)
   }
 
-  const stopAutoScroll = () => {
-    if (autoScrollRef.current) { clearInterval(autoScrollRef.current); autoScrollRef.current = null }
-  }
+  const stopAutoScroll = useCallback(() => {
+    if (autoScrollRef.current) {
+      clearInterval(autoScrollRef.current)
+      autoScrollRef.current = null
+    }
+  }, [])
 
-  const startAutoScroll = () => {
+  const startAutoScroll = useCallback(() => {
+    stopAutoScroll() 
     autoScrollRef.current = setInterval(() => {
       setActiveCard((prev) => {
         const next = (prev + 1) % cards.length
@@ -83,49 +87,28 @@ function MobileSidebarCarousel({ availableRoomsProps, occupiedRoomsProps, recent
         return next
       })
     }, 3000)
-  }
+  }, [stopAutoScroll])
 
   useEffect(() => {
     startAutoScroll()
     return () => stopAutoScroll()
-  }, [])
-
-  useEffect(() => {
-    const el = carouselRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = Array.from(el.children).indexOf(entry.target as HTMLElement)
-            if (index !== -1) setActiveCard(index)
-          }
-        })
-      },
-      { root: el, threshold: 0.6 }
-    )
-    Array.from(el.children).forEach((child) => observer.observe(child))
-    return () => observer.disconnect()
-  }, [])
+  }, [startAutoScroll, stopAutoScroll])
 
   return (
-    <div>
+    <div className='flex flex-col'>
       <div
         ref={carouselRef}
-        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-4 pb-1"
+        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-4 pb-1 items-center"
         onMouseEnter={stopAutoScroll}
         onMouseLeave={startAutoScroll}
         onTouchStart={stopAutoScroll}
         onTouchEnd={startAutoScroll}
       >
-        <div className="min-w-full snap-start flex-shrink-0">
+        <div className="min-w-full snap-start flex-shrink-0 overflow-hidden">
           <AvailableRooms {...availableRoomsProps} />
         </div>
-        <div className="min-w-full snap-start flex-shrink-0">
+        <div className="min-w-full snap-start flex-shrink-0 overflow-hidden">
           <OccupiedRooms {...occupiedRoomsProps} />
-        </div>
-        <div className="min-w-full snap-start flex-shrink-0">
-          <ActivityLogs data={recentLogs} />
         </div>
       </div>
 
@@ -583,12 +566,12 @@ export default function Dashboard() {
                 </div>
 
                 {/* Mobile-only sidebar content */}
-                <div className="lg:hidden">
+                <div className="lg:hidden flex flex-col gap-4">
                   <MobileSidebarCarousel
                     availableRoomsProps={{ totalRooms: rooms.length, soloRooms: soloAvailable, doubleRooms: doubleAvailable, sharedRooms: sharedAvailable }}
                     occupiedRoomsProps={{ occupiedSolo: soloOccupied, totalSolo, occupiedDouble: doubleOccupied, totalDouble, occupiedShared: sharedOccupied, totalShared }}
-                    recentLogs={recentLogs}
                   />
+                  <ActivityLogs data={recentLogs} />
                 </div>
               </main>
             </div>
