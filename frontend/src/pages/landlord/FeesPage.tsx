@@ -63,6 +63,16 @@ const fetchPendingPayments = async (accommodationId: number): Promise<PendingPay
   return res.data
 }
 
+const fetchFeeStats = async (accommodationId: number) => {
+  const res = await api.get('/fees/stats', { params: { accommodationId } })
+  return res.data as {
+    totalCollectionsMonth: number
+    collectionRate: number
+    billed: number
+    collected: number
+  }
+}
+
 const verifyPayment = async ({ id, action }: { id: number; action: 'approve' | 'reject' }) => {
   const res = await api.patch(`/payments/${id}/verify`, { action })
   return res.data
@@ -543,6 +553,12 @@ export default function FeesPage() {
     enabled: !!selectedAccomId,
   })
 
+  const { data: feeStats, refetch: refetchStats } = useQuery({
+    queryKey: ['fees', 'stats', selectedAccomId],
+    queryFn: () => fetchFeeStats(selectedAccomId!),
+    enabled: !!selectedAccomId,
+  })
+
   useEffect(() => {
     if (overdueError) setToast({ show: true, type: "error", title: "Failed to Load Overdue Fees", message: "Could not fetch overdue fees data." })
   }, [overdueError])
@@ -556,6 +572,7 @@ export default function FeesPage() {
     onSuccess: (data, variables) => {
       refetchPayments()
       refetchOverdue()
+      refetchStats()
       if (variables.action === 'approve') {
         setToast({ show: true, type: "success", title: "Payment Approved!", message: "The payment has been successfully verified." })
       } else {
@@ -585,7 +602,9 @@ export default function FeesPage() {
 
   const fullName = user ? `${user.fname} ${user.lname}` : ''
   const totalOverdue = overdueFees.reduce((sum, f) => sum + (Number(f.fee_balance) || 0), 0)
-  const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (p.paymentAmount || 0), 0)
+  const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0)
+
+  const collectionRate = feeStats ? Math.round(feeStats.collectionRate) : null
 
   const summaryCards = [
     {
@@ -600,18 +619,18 @@ export default function FeesPage() {
       value: totalPendingPayments,
       color: "#D97706",
       sub: `${pendingPayments.length} payment${pendingPayments.length !== 1 ? "s" : ""} to review`,
-      includePeso: false
+      includePeso: true
     },
     {
       label: "total collections",
-      value: "—",
+      value: feeStats?.totalCollectionsMonth ?? 0,
       color: "#1A7A4A",
       sub: "This month",
-      includePeso: false
+      includePeso: true
     },
     {
       label: "collection rate",
-      value: "—",
+      value: collectionRate !== null ? `${collectionRate}%` : "—",
       color: "#000000",
       sub: "Target: 95%",
       includePeso: false
