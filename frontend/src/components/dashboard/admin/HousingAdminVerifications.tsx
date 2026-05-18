@@ -73,7 +73,7 @@ export default function HousingAdminVerifications({
 
         <button
           onClick={() => navigate("/admin/landlord-verifications")}
-          className="text-sm font-semibold text-[#6B0F2B] hover:text-[#2A0410]"
+          className="text-sm font-semibold text-[#6B0F2B] hover:underline"
         >
           View all →
         </button>
