@@ -182,91 +182,95 @@ export default function RoomApplicationModal({
         }
     }, [moveInDate, moveOutDate, isTransient]);
 
-    const handleSubmit = async () => {
-        if (isSubmitting) return;
+const handleSubmit = async () => {
+    if (isSubmitting) return;
 
-        setIsSubmitting(true);
+    setIsSubmitting(true);
 
-        try {
-            const formData = new FormData();
+    try {
+        const formData = new FormData();
 
-            formData.append("accommodationId", String(accommodation.id));
+        formData.append("accommodationId", String(accommodation.id));
+        
+        // REMOVED: roomId - students don't select specific rooms
+        // if (currentRoom?.id != null) {
+        //     formData.append("roomId", String(currentRoom.id));
+        // }
 
-            if (currentRoom?.id != null) {
-                formData.append("roomId", String(currentRoom.id));
-            }
+        formData.append("applicationRoomType", selectedArrangement);
+        formData.append("applicationStayType", selectedStayType);
+        
+        // Add contract months from accommodation
+        formData.append("contractMonths", String(accommodation.contractMonths || 6));
 
-            formData.append("applicationRoomType", selectedArrangement);
-            formData.append("applicationStayType", selectedStayType);
-
-            if (isTransient) {
-                formData.append("durationOfStayDays", String(numberOfDays));
-                formData.append("moveInDate", moveInDate);
-                formData.append("moveOutDate", moveOutDate);
-                formData.append("reservationFee", String(reservationFee));
-            } else {
-                formData.append("moveInFee", String(moveInFee));
-            }
-
-            if (selectedPreferences.length > 0) {
-                formData.append(
-                    "preferredTags",
-                    JSON.stringify(selectedPreferences)
-                );
-            }
-
-            // Attach documents
-            const reqIds: (number | null)[] = [];
-            const reqNames: string[] = [];
-
-            for (const req of docRequirements) {
-                const slots = docSlots[req.id] ?? [];
-
-                for (const slot of slots) {
-                    if (!slot.file) continue;
-
-                    formData.append("documents", slot.file);
-                    reqIds.push(req.id);
-                    reqNames.push(req.requirementName);
-                }
-            }
-
-            if (reqIds.length > 0) {
-                formData.append("requirement_ids", JSON.stringify(reqIds));
-                formData.append("requirement_names", JSON.stringify(reqNames));
-            }
-
-            const res = await api.post("/applications", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-
-            console.log("Application submitted:", res.data);
-
-            await queryClient.invalidateQueries({
-                queryKey: ["applications"],
-            });
-
-            await queryClient.invalidateQueries({
-                queryKey: ["student-applications"],
-            });
-
-            await queryClient.invalidateQueries({
-                queryKey: ["landlord-applications"],
-            });
-
-            handleClose();
-            setToast({ show: true, type: "success", title: "Application Submitted!" })
-        } catch (err: any) {
-            console.error("Submit failed status:", err.response?.status);
-            console.error("Submit failed data:", err.response?.data);
-            setToast({ show: true, type: "error", title: "Failed to submit application", message: err.response?.data?.message ?? err.response?.data?.error ?? "Something went wrong."})
-            handleClose();
-        } finally {
-            setIsSubmitting(false);
+        if (isTransient) {
+            formData.append("durationOfStayDays", String(numberOfDays));
+            formData.append("moveInDate", moveInDate);
+            formData.append("moveOutDate", moveOutDate);
+            formData.append("reservationFee", String(reservationFee));
+        } else {
+            formData.append("moveInFee", String(moveInFee));
         }
-    };
+
+        if (selectedPreferences.length > 0) {
+            formData.append(
+                "preferredTags",
+                JSON.stringify(selectedPreferences)
+            );
+        }
+
+        // Attach documents
+        const reqIds: (number | null)[] = [];
+        const reqNames: string[] = [];
+
+        for (const req of docRequirements) {
+            const slots = docSlots[req.id] ?? [];
+
+            for (const slot of slots) {
+                if (!slot.file) continue;
+
+                formData.append("documents", slot.file);
+                reqIds.push(req.id);
+                reqNames.push(req.requirementName);
+            }
+        }
+
+        if (reqIds.length > 0) {
+            formData.append("requirement_ids", JSON.stringify(reqIds));
+            formData.append("requirement_names", JSON.stringify(reqNames));
+        }
+
+        const res = await api.post("/applications", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        console.log("Application submitted:", res.data);
+
+        await queryClient.invalidateQueries({
+            queryKey: ["applications"],
+        });
+
+        await queryClient.invalidateQueries({
+            queryKey: ["student-applications"],
+        });
+
+        await queryClient.invalidateQueries({
+            queryKey: ["landlord-applications"],
+        });
+
+        handleClose();
+        setToast({ show: true, type: "success", title: "Application Submitted!" })
+    } catch (err: any) {
+        console.error("Submit failed status:", err.response?.status);
+        console.error("Submit failed data:", err.response?.data);
+        setToast({ show: true, type: "error", title: "Failed to submit application", message: err.response?.data?.message ?? err.response?.data?.error ?? "Something went wrong."})
+        handleClose();
+    } finally {
+        setIsSubmitting(false);
+    }
+};
 
     const modalFooter = (
         <div className="flex flex-row justify-end items-center w-full gap-3">

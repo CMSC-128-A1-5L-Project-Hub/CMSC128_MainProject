@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Modal from "../Modal";
 import Toast from "../Toast";
@@ -8,6 +8,7 @@ import defaultAccommodation from "@/assets/defaults/accommodation.png";
 import PhotoCarousel from "./PhotoCarousel";
 import RightArrow from "../../assets/icons/right-arrow.svg";
 import { api } from "../../api/axios";
+import { CalendarDays, ChevronLeft, ChevronRight, Check } from "lucide-react";
 
 export interface Application {
     id: number;
@@ -26,12 +27,14 @@ export interface Application {
     slotConfirmDeadline?: string | null;
     slotConfirmedAt?: string | null;
     estimatedMonthlyRent?: number | null;
+    contractMonths?: number;
     accommodation: {
         id: number;
         accommodationName: string;
         accommodationLocation: string;
         accommodationType: string;
         primaryImageUrl?: string;
+        contractMonths: number;
     };
 }
 
@@ -41,7 +44,7 @@ interface ApplicationStatusModalProps {
   application: Application | null;
 }
 
-// Status badge styling matching the stats banner and table
+// Status badge styling
 const STATUS_STYLES: Record<ApplicationStatus, { bg: string; text: string; dot: string; label: string }> = {
   pending: { bg: "#FEF8EE", text: "#C9973A", dot: "#C9973A", label: "Pending" },
   under_review: { bg: "#F4F0FA", text: "#6B3AB7", dot: "#6B3AB7", label: "Under Review" },
@@ -65,16 +68,178 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
   );
 }
 
+// Helper functions for date
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-PH", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatDateISO(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+// Calendar Component
+interface MoveInCalendarProps {
+  selectedDate: Date | null;
+  onSelect: (date: Date) => void;
+  minDate: Date;
+  maxDate: Date;
+}
+
+function MoveInCalendar({ selectedDate, onSelect, minDate, maxDate }: MoveInCalendarProps) {
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const today = new Date();
+    return { year: today.getFullYear(), month: today.getMonth() };
+  });
+
+  const getDaysInMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (year: number, month: number) => {
+    return new Date(year, month, 1).getDay();
+  };
+
+  const isDateDisabled = (date: Date) => {
+    return date < minDate || date > maxDate;
+  };
+
+  const isDateSelected = (date: Date) => {
+    return selectedDate ? date.toDateString() === selectedDate.toDateString() : false;
+  };
+
+  const handlePrevMonth = () => {
+    if (currentMonth.month === 0) {
+      setCurrentMonth({ year: currentMonth.year - 1, month: 11 });
+    } else {
+      setCurrentMonth({ ...currentMonth, month: currentMonth.month - 1 });
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth.month === 11) {
+      setCurrentMonth({ year: currentMonth.year + 1, month: 0 });
+    } else {
+      setCurrentMonth({ ...currentMonth, month: currentMonth.month + 1 });
+    }
+  };
+
+  const daysInMonth = getDaysInMonth(currentMonth.year, currentMonth.month);
+  const firstDay = getFirstDayOfMonth(currentMonth.year, currentMonth.month);
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const emptyCells = Array.from({ length: firstDay }, (_, i) => i);
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  return (
+    <div className="bg-white rounded-xl">
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={handlePrevMonth}
+          className="p-1 hover:bg-gray-100 rounded-full transition"
+        >
+          <ChevronLeft size={18} className="text-gray-600" />
+        </button>
+        <span className="text-sm font-semibold text-gray-800">
+          {monthNames[currentMonth.month]} {currentMonth.year}
+        </span>
+        <button
+          onClick={handleNextMonth}
+          className="p-1 hover:bg-gray-100 rounded-full transition"
+        >
+          <ChevronRight size={18} className="text-gray-600" />
+        </button>
+      </div>
+
+      {/* Day Headers */}
+      <div className="grid grid-cols-7 mb-2">
+        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+          <div key={day} className="text-center text-[10px] font-semibold text-gray-400 py-1">
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-y-1">
+        {emptyCells.map((_, i) => (
+          <div key={`empty-${i}`} className="h-8" />
+        ))}
+        {days.map((day) => {
+          const date = new Date(currentMonth.year, currentMonth.month, day);
+          const disabled = isDateDisabled(date);
+          const selected = isDateSelected(date);
+
+          return (
+            <button
+              key={day}
+              onClick={() => !disabled && onSelect(date)}
+              disabled={disabled}
+              className={`
+                h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium transition-all
+                ${selected ? "bg-[#6B0F2B] text-white" : ""}
+                ${!disabled && !selected ? "text-gray-700 hover:bg-gray-100" : ""}
+                ${disabled ? "text-gray-300 cursor-not-allowed" : "cursor-pointer"}
+              `}
+            >
+              {day}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function ApplicationStatusModal({ open, onClose, application }: ApplicationStatusModalProps) {
   const queryClient = useQueryClient();
   const [cancelConfirmation, setCancelConfirmation] = useState("");
   const [carouselOpen, setCarouselOpen] = useState(false);
+  const [selectedMoveInDate, setSelectedMoveInDate] = useState<Date | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [toast, setToast] = useState<{
     show: boolean;
     type: "success" | "error" | "info" | "warning" | "loading";
     title: string;
     message?: string;
   }>({ show: false, type: "success", title: "" });
+  
+  const calendarRef = useRef<HTMLDivElement>(null);
+
+  // Get contract months from accommodation
+  const contractMonths = application?.accommodation?.contractMonths || 6;
+  
+  // Calculate date range
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + contractMonths);
+
+  // Calculate expected move-out date when move-in is selected
+  const getExpectedMoveOut = (moveInDate: Date): Date => {
+    const expectedDate = new Date(moveInDate);
+    expectedDate.setMonth(expectedDate.getMonth() + contractMonths);
+    return expectedDate;
+  };
+
+  // Close calendar when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
+        setShowCalendar(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Fetch accommodation details
   const { data: accomData, isLoading } = useQuery({
@@ -126,6 +291,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       setTimeout(() => {
         onClose();
         setCancelConfirmation("");
+        setSelectedMoveInDate(null);
       }, 1500);
     },
     onError: (error: any) => {
@@ -143,8 +309,17 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
   const acceptMutation = useMutation({
     mutationFn: async () => {
       if (!application) throw new Error("No application selected");
+      if (!selectedMoveInDate) throw new Error("Please select a move-in date");
       
-      const res = await api.post(`/applications/${application.id}/confirm-slot`);
+      const moveInDateISO = formatDateISO(selectedMoveInDate);
+      const expectedMoveOutDate = getExpectedMoveOut(selectedMoveInDate);
+      const expectedMoveOutISO = formatDateISO(expectedMoveOutDate);
+      
+      const res = await api.post(`/applications/${application.id}/confirm-slot`, {
+        moveInDate: moveInDateISO,
+        expectedMoveOutDate: expectedMoveOutISO,
+        contractMonths: contractMonths
+      });
       
       return res.data;
     },
@@ -159,6 +334,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
       setTimeout(() => {
         onClose();
         setCancelConfirmation("");
+        setSelectedMoveInDate(null);
       }, 1500);
     },
     onError: (error: any) => {
@@ -207,6 +383,10 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
                     (application.applicationStatus === "approved" && hasRoomAssignment);
   
   const isCancelInputDisabled = !canCancel || cancelMutation.isPending;
+  const isAcceptDisabled = !canAccept || acceptMutation.isPending || !selectedMoveInDate;
+
+  // Preview expected move-out date
+  const expectedMoveOutPreview = selectedMoveInDate ? getExpectedMoveOut(selectedMoveInDate) : null;
 
   const modalFooter = (
     <div className="flex flex-col gap-3 w-full">
@@ -240,35 +420,37 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
                   : 'No actions available.'}
         </span>
         <div className="flex gap-2">
-          {/* ACCEPT BUTTON - Only show when status is "approved" AND room has been assigned */}
+          {/* ACCEPT BUTTON */}
           {isApproved && (
             <button
               className={`px-6 py-2 rounded-full font-bold text-sm transition-colors ${
-                canAccept && !acceptMutation.isPending
-                  ? "bg-[#8C1535] text-white hover:bg-[#6B0F2B] cursor-pointer shadow-sm"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                isAcceptDisabled && !acceptMutation.isPending
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-[#8C1535] text-white hover:bg-[#6B0F2B] cursor-pointer shadow-sm"
               }`}
-              onClick={() => canAccept && acceptMutation.mutate()}
-              disabled={!canAccept || acceptMutation.isPending}
+              onClick={() => !isAcceptDisabled && acceptMutation.mutate()}
+              disabled={isAcceptDisabled || acceptMutation.isPending}
               title={
                 !hasRoomAssignment 
                   ? "Waiting for manager to assign a room"
                   : hasDeadlinePassed 
                     ? "Deadline has passed"
-                    : "Confirm your room assignment"
+                    : !selectedMoveInDate
+                      ? "Please select a move-in date"
+                      : "Confirm your room assignment"
               }
             >
               {acceptMutation.isPending 
-                ? "Accepting..." 
+                ? "Confirming..." 
                 : !hasRoomAssignment 
                   ? "Waiting for Room Assignment" 
                   : hasDeadlinePassed 
                     ? "Deadline Passed" 
-                    : "Accept Room"}
+                    : "Confirm Slot"}
             </button>
           )}
 
-          {/* CANCEL BUTTON - Only show for pending, approved, waitlisted */}
+          {/* CANCEL BUTTON */}
           {canCancel && (
             <button
               className={`px-6 py-2 rounded-full font-bold text-sm ${
@@ -289,7 +471,7 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
 
   return (
     <>
-      <Modal open={open} onClose={onClose} title="APPLICATION STATUS" footer={modalFooter} maxWidth={600}>
+      <Modal open={open} onClose={onClose} title="APPLICATION STATUS" footer={modalFooter} maxWidth={650}>
         <div className="font-sans">
           <PhotoCarousel 
             hidden={!carouselOpen}
@@ -407,6 +589,60 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
               </div>
             </div>
           </div>
+
+          {/* Move-In Date Selection - Only show when canAccept */}
+          {canAccept && (
+            <div className="mt-4 pt-2 border-t border-gray-100">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Select Move-In Date <span className="text-red-500">*</span>
+              </label>
+              
+              <div className="relative" ref={calendarRef}>
+                <button
+                  onClick={() => setShowCalendar(!showCalendar)}
+                  className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6B0F2B]/30 transition bg-white"
+                >
+                  <div className="flex items-center gap-2">
+                    <CalendarDays size={18} className="text-[#6B0F2B]" />
+                    <span className="text-sm text-gray-700">
+                      {selectedMoveInDate ? formatDate(selectedMoveInDate) : "Select a date"}
+                    </span>
+                  </div>
+                  <ChevronRight size={16} className={`text-gray-400 transition-transform ${showCalendar ? "rotate-90" : ""}`} />
+                </button>
+                
+                {showCalendar && (
+                  <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-4">
+                    <MoveInCalendar
+                      selectedDate={selectedMoveInDate}
+                      onSelect={(date) => {
+                        setSelectedMoveInDate(date);
+                        setShowCalendar(false);
+                      }}
+                      minDate={today}
+                      maxDate={maxDate}
+                    />
+                    <div className="mt-3 pt-2 border-t border-gray-100">
+                      <p className="text-[10px] text-gray-400 text-center">
+                        Contract Duration: {contractMonths} months
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {expectedMoveOutPreview && (
+                <div className="mt-2 p-2 bg-[#F5ECF0] rounded-lg">
+                  <p className="text-[11px] text-[#6B4050] font-medium">
+                    Expected Move-Out: <span className="font-bold">{formatDate(expectedMoveOutPreview)}</span>
+                  </p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">
+                    Based on {contractMonths}-month contract
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Remarks */}
           <div>
