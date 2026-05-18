@@ -282,10 +282,6 @@ export default function Dashboard() {
     fetchRequirements()
   }, [incomingApps])
 
-  if (profileLoading) {
-    return null
-  }
-
   const transformedIncoming = incomingApps.map(transformApp)
   const transformedApproved = approvedApps.map(transformApp)
 
@@ -448,6 +444,10 @@ export default function Dashboard() {
       message
     })
     refreshDashboard()
+  }
+
+  if (profileLoading) {
+    return null
   }
 
   return (
