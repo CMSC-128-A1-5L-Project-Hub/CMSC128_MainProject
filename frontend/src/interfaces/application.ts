@@ -24,6 +24,7 @@ export interface Application {
     | 'cancelled'
     | 'waitlisted'
     | 'under_review'
+    | 'confirmed'
 
   durationOfStayDays: number | null
 

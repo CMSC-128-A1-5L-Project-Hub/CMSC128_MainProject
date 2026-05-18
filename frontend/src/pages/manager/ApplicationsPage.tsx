@@ -74,7 +74,9 @@ const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> 
   under_review: { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" },
   cancelled: { color: "#AA2661", bg: "#ffe4e6", dot: "#AA2661" },
   rejected: { color: "#9E2040", bg: "#ffe4e6", dot: "#9E2040" },
+  confirmed: {color: "#2E7D32", bg: "#E8F5E9", dot:"#2E7D32"}
 };
+
 
 const IconMenu = () => (
   <svg className="w-[22px] h-[22px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
