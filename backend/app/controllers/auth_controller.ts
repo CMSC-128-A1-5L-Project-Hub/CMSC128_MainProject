@@ -73,6 +73,7 @@ export default class AuthController {
       email: googleUser.email,
       fname: googleUser.original.given_name,
       lname: googleUser.original.family_name,
+      picture: googleUser.original.picture ?? null,
     })
 
     await auth.use('web').login(user)
@@ -110,6 +111,11 @@ export default class AuthController {
 
     const serialized = user.serialize()
     serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
+
+    const isDefaultPfp = !user.profilePicture || user.profilePicture.filePath === 'defaults/default_pfp.png'
+    if (isDefaultPfp && user.googlePictureUrl) {
+      serialized.profilePictureUrl = user.googlePictureUrl
+    }
 
     // Attach dormitory name for managers
     if (user.role === 'manager' && user.manager && user.manager.accommodations.length > 0) {
@@ -183,6 +189,12 @@ export default class AuthController {
 
     const serialized = user.serialize()
     serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
+
+    const isDefaultPfp = !user.profilePicture || user.profilePicture.filePath === 'defaults/default_pfp.png'
+    if (isDefaultPfp && user.googlePictureUrl) {
+      serialized.profilePictureUrl = user.googlePictureUrl
+    }
+
     return response.ok(serialized)
   }
 

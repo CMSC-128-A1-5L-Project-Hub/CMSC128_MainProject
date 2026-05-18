@@ -89,7 +89,7 @@ export default class TransientBookingsController {
           `Transient booking for Room ${booking.room.roomNumber} (${booking.checkInDate}–${booking.checkOutDate}) has payment proof pending verification.`
         )
       } catch (e) {
-        console.error('Failed to send in-app transient payment notification:', e)
+        console.error('[notify] in-app transient-payment controller-wrap failed:', e)
       }
     }
 
@@ -137,7 +137,7 @@ export default class TransientBookingsController {
         }
       }
     } catch (e) {
-      console.error('Failed to send in-app transient booking notification:', e)
+      console.error('[notify] in-app transient-booking-verify controller-wrap failed:', e)
     }
 
     return response.ok(booking)

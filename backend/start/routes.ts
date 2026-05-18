@@ -92,6 +92,9 @@ router
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
         router.get('/student/profile', [controllers.StudentProfiles, 'show'])
 
+        // Early move-out request (Student)
+        router.post('/assignments/:id/request-early-moveout', [controllers.Assignments, 'requestEarlyMoveOut'])
+
         // Bookmarks & Reviews
         router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
         router.get('/my-bookmarks', [controllers.Bookmark, 'index'])
@@ -201,6 +204,10 @@ router
         router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
         router.patch('/assignments/:id/transfer', [controllers.Assignments, 'transfer'])
 
+        // Early move-out request management (Manager/Landlord)
+        router.get('/assignments/early-moveout-requests', [controllers.Assignments, 'viewEarlyMoveOutRequests'])
+        router.patch('/assignments/early-moveout-requests/:id/respond', [controllers.Assignments, 'respondToEarlyMoveOutRequest'])
+
         // Payment Verification
         router.get('/payments/pending', [controllers.Payments, 'pending'])
         router.patch('/payments/:id/verify', [controllers.Payments, 'verify'])
@@ -248,17 +255,19 @@ router
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
 
-      /// ====================================================================
-      // ─── MANAGER ───
-      // ====================================================================
-
-      router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
-      router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
-      router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
-      router.get('/manager/occupancy-history', [controllers.OccupancyRecords, 'history'])
+    // ====================================================================
+    // ─── MANAGER ONLY ROUTES ───
+    // ====================================================================
+    router
+      .group(() => {
+        router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
+        router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
+        router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
+        router.get('/manager/occupancy-history', [controllers.OccupancyRecords, 'history'])
+      })
+      .use(middleware.role([ROLES.MANAGER]))
   })
   .use(middleware.auth())
-
 
 // ====================================================================
 // DEV ROUTES

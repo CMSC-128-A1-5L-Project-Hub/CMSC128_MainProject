@@ -19,7 +19,7 @@ export default class Notification extends BaseModel {
   declare readStatus: 'read' | 'unread'
 
   @column()
-  declare notificationType: 'fee_due' | 'application_status' | 'system' | 'other'
+  declare notificationType: 'fee_due' | 'application_status' | 'system' | 'other' | 'move_out_request' | 'move_out_request_response'
 
   @column.dateTime({ autoCreate: true })
   declare notificationTimestamp: DateTime

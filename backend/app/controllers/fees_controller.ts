@@ -118,7 +118,7 @@ export default class FeesController {
         )
       }
     } catch (e) {
-      console.error('Failed to send in-app new fee notification:', e)
+      console.error('[notify] in-app new-fee controller-wrap failed:', e)
     }
 
     return response.created({ message: 'Fee created successfully', fee })
@@ -215,7 +215,7 @@ export default class FeesController {
           )
         }
       } catch (e) {
-        console.error('Failed to send in-app bulk billing notification:', e)
+        console.error('[notify] in-app bulk-billing controller-wrap failed:', e)
       }
     }
 

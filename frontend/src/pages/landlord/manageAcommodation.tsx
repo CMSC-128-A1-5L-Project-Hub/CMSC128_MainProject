@@ -12,6 +12,7 @@ import Sidebar from "../../components/Sidebar";
 import { setLandlordSidebarContext } from "../../components/Sidebar";
 import Toast from "../../components/Toast";
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel";
+import { useNotifications } from "../../hooks/useNotifications";
 import notif_icon from "../../assets/icons/notif_icon.svg";
 import UbleLoader from "../shared/LoadingPage";
 import CustomHeader from "../../components/CustomHeader"
@@ -50,7 +51,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
   return (
     <div
       onClick={handleClick}
-      className={`group relative bg-white rounded-2xl overflow-hidden shadow-sm transition-all duration-300 border border-gray-100 ${
+      className={`group relative bg-white rounded-2xl overflow-hidden shadow-sm transition-all duration-300 border border-gray-100 flex flex-col ${
         isUnderReview
           ? "cursor-not-allowed opacity-80"
           : "cursor-pointer hover:shadow-xl hover:border-[#8C1535]/20"
@@ -82,7 +83,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
           </div>
         </div>
       </div>
-      <div className="p-3 sm:p-4">
+      <div className="p-3 sm:p-4 flex flex-col flex-1">
         <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4 text-[10px] sm:text-xs text-gray-500">
           <div className="flex items-center gap-1"><Users size={12} className="sm:w-[13px] sm:h-[13px]" /><span>{accommodation.accommodationCapacity} capacity</span></div>
           <div className="flex items-center gap-1"><Building2 size={12} className="sm:w-[13px] sm:h-[13px]" /><span className="capitalize">{accommodation.accommodationType?.replace('_', ' ')}</span></div>
@@ -98,7 +99,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
         <button
           onClick={(e) => { e.stopPropagation(); handleClick() }}
           disabled={isUnderReview}
-          className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 ${
+          className={`mt-auto w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 ${
             isUnderReview ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-[#6B0F2B] to-[#8C1535] text-white hover:from-[#8C1535] hover:to-[#6B0F2B] shadow-md hover:shadow-lg"
           }`}
         >
@@ -456,8 +457,8 @@ const ManageAccommodationDashboard: React.FC = () => {
   });
 
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const notifWrapperRef = useRef<HTMLDivElement>(null);
+  const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications({ refetchOn: notifOpen });
 
   useEffect(() => { setLandlordSidebarContext("minimal"); }, []);
 
@@ -475,34 +476,6 @@ const ManageAccommodationDashboard: React.FC = () => {
   const verifiedAccommodations = (accommodations ?? []).filter((a: any) => a.status !== 'rejected');
 
   useEffect(() => { if (isError) navigate('/auth/signin'); }, [isError, navigate]);
-
-  useEffect(() => {
-    api.get('/notifications').then(({ data }) => {
-      setNotifications(
-        data.map((n: any) => ({
-          id: n.id,
-          type: n.notificationType,
-          message: n.notificationContent,
-          time: new Date(n.notificationTimestamp).toLocaleString(),
-          read: n.readStatus === 'read',
-        }))
-      )
-    }).catch(console.error)
-  }, []);
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const markAllRead = () => {
-    notifications.filter((n) => !n.read).forEach((n) =>
-      api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
-    )
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  };
-
-  const markOneRead = (id: number) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
-    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-  };
 
   const handleClose = () => { setOpen(false); setStep(1); setAmenities([]); };
 

@@ -1,5 +1,5 @@
 /*
-  ProfilePage.tsx - Student profile view and edit
+  ProfilePage.tsx - Student profile view and edit with early move-out request
 */
 
 import { useNavigate } from "react-router-dom";
@@ -21,6 +21,7 @@ import Camera from "../../assets/icons/camera.svg";
 import Pencil from "../../assets/icons/edit.svg";
 import BadgeCheck from "../../assets/icons/verify.svg";
 import Save from "../../assets/icons/save.svg";
+import { Calendar, AlertCircle, Send } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -199,6 +200,164 @@ function formatCurrency(n: number) {
   return `₱${n.toLocaleString("en-PH")}`;
 }
 
+// ─── Early Move-Out Request Modal ───────────────────────────────────────────
+
+function EarlyMoveOutModal({
+  open,
+  onClose,
+  assignmentId,
+  accommodationName,
+  roomNumber,
+  currentMoveOutDate,
+  onSuccess,
+  setToast,
+}: {
+  open: boolean;
+  onClose: () => void;
+  assignmentId: number;
+  accommodationName: string;
+  roomNumber: string;
+  currentMoveOutDate: string;
+  onSuccess: () => void;
+  setToast: (t: { show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string }) => void;
+}) {
+  const [requestedDate, setRequestedDate] = useState("");
+  const [reason, setReason] = useState("");
+  const queryClient = useQueryClient();
+
+  const today = new Date().toISOString().split('T')[0];
+  const maxDate = new Date(currentMoveOutDate);
+  const maxDateStr = maxDate.toISOString().split('T')[0];
+
+  const submitRequest = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(`/assignments/${assignmentId}/request-early-moveout`, {
+        requestedMoveOutDate: requestedDate,
+        reason: reason,
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-stay-history"] });
+      setToast({
+        show: true,
+        type: "success",
+        title: "Request Submitted",
+        message: "Your early move-out request has been sent to the manager."
+      });
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+        setRequestedDate("");
+        setReason("");
+      }, 1500);
+    },
+    onError: (error: any) => {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Request Failed",
+        message: error.response?.data?.message || "Could not submit request. Please try again."
+      });
+    },
+  });
+
+  const handleSubmit = () => {
+    if (!requestedDate) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Date Required",
+        message: "Please select a requested move-out date."
+      });
+      return;
+    }
+    if (!reason.trim()) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Reason Required",
+        message: "Please provide a reason for early move-out."
+      });
+      return;
+    }
+    submitRequest.mutate();
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="REQUEST EARLY MOVE-OUT"
+      eyebrow="Submit a request to move out early"
+      maxWidth={500}
+      footer={
+        <div className="flex justify-end gap-3 w-full">
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleSubmit}
+            disabled={submitRequest.isPending || !requestedDate || !reason.trim()}
+          >
+            {submitRequest.isPending ? "Submitting..." : "Submit Request"}
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-5">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+          <AlertCircle size={20} className="text-amber-600 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Important Notice</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Early move-out requests are subject to approval by your dorm manager. 
+              You may be subject to penalties as stated in your contract.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Requested Move-Out Date <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            value={requestedDate}
+            onChange={(e) => setRequestedDate(e.target.value)}
+            min={today}
+            max={maxDateStr}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6B0F2B]/30"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Current expected move-out: {new Date(currentMoveOutDate).toLocaleDateString()}
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Reason for Early Move-Out <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="e.g., Academic schedule conflict, financial reasons, relocation, etc."
+            rows={4}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6B0F2B]/30 resize-none"
+          />
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-4">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Dorm Information</p>
+          <p className="text-sm font-medium text-gray-700">{accommodationName}</p>
+          <p className="text-xs text-gray-500">Room {roomNumber}</p>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function Field({ label, value, isCaps = false }: { label: string; value: string; isCaps?: boolean }) {
@@ -371,6 +530,10 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tempImage, setTempImage] = useState<string | null>(null);
   const [pfpUploading, setPfpUploading] = useState(false);
+
+  // Early move-out modal state
+  const [earlyMoveOutModalOpen, setEarlyMoveOutModalOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<AccommodationHistoryItem | null>(null);
 
   // OTP Modal states
   const [otpModalOpen, setOtpModalOpen] = useState(false);
@@ -572,7 +735,6 @@ export default function ProfilePage() {
       setPendingPhone(phone);
       patchForm({ primaryPhone: phone });
 
-      // Save the profile with the new phone number
       await saveMutation.mutateAsync({
         ...form,
         primaryPhone: phone,
@@ -630,7 +792,6 @@ export default function ProfilePage() {
       return;
     }
 
-    // Check if secondary phone is duplicate (only if it's changed and not empty)
     const originalSecondary = secondaryPhone(profile);
     if (secondary && secondary !== originalSecondary) {
       const isSecondaryDuplicate = await checkPhoneDuplicate(secondary);
@@ -645,7 +806,6 @@ export default function ProfilePage() {
       }
     }
 
-    // Check if primary phone changed from original
     const originalPrimary = primaryPhone(profile);
     if (primary !== originalPrimary) {
       const isPrimaryDuplicate = await checkPhoneDuplicate(primary);
@@ -663,8 +823,12 @@ export default function ProfilePage() {
       return;
     }
 
-    // No phone change, just save
     saveMutation.mutate(form);
+  };
+
+  const handleEarlyMoveOut = (assignment: AccommodationHistoryItem) => {
+    setSelectedAssignment(assignment);
+    setEarlyMoveOutModalOpen(true);
   };
 
   // ── Derived values ─────────────────────────────────────────────────────────
@@ -852,7 +1016,18 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="mt-14 border-t border-[#F2F2F2] pt-10">
-                    <p className="mb-5 text-[10px] font-extrabold tracking-widest text-[#A88993] uppercase">Current Dorm</p>
+                    <div className="flex items-center justify-between mb-5">
+                      <p className="text-[10px] font-extrabold tracking-widest text-[#A88993] uppercase">Current Dorm</p>
+                      {currentDorm && (
+                        <button
+                          onClick={() => handleEarlyMoveOut(currentDorm)}
+                          className="flex items-center gap-2 text-[11px] font-bold text-amber-600 hover:text-amber-700 transition-colors"
+                        >
+                          <Calendar size={14} />
+                          Request Early Move-Out
+                        </button>
+                      )}
+                    </div>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-6 rounded-3xl border border-[#EADFD3] bg-[#F8EFF2] p-5">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8C1535] text-lg font-bold text-white shadow-sm uppercase">
                         {currentDorm?.room.accommodation.accommodationName?.[0] || "D"}
@@ -865,6 +1040,11 @@ export default function ProfilePage() {
                           {currentDorm?.room.roomType || "Shared Residence"}
                           {currentDorm && ` • ${formatSemester(currentDorm.moveIn)}`}
                         </p>
+                        {currentDorm && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Expected Move-Out: {new Date(currentDorm.expectedMoveOut).toLocaleDateString()}
+                          </p>
+                        )}
                       </div>
                       <button 
                         onClick={() => setShowHistory(true)} 
@@ -943,6 +1123,24 @@ export default function ProfilePage() {
           {otpError && <p className="text-xs text-red-500 text-center bg-red-50 py-2 rounded-lg">{otpError}</p>}
         </div>
       </Modal>
+
+      {selectedAssignment && (
+        <EarlyMoveOutModal
+          open={earlyMoveOutModalOpen}
+          onClose={() => {
+            setEarlyMoveOutModalOpen(false);
+            setSelectedAssignment(null);
+          }}
+          assignmentId={selectedAssignment.id}
+          accommodationName={selectedAssignment.room.accommodation.accommodationName}
+          roomNumber={selectedAssignment.room.roomName}
+          currentMoveOutDate={selectedAssignment.expectedMoveOut}
+          onSuccess={() => {
+            refetchHistory();
+          }}
+          setToast={setToast}
+        />
+      )}
 
       {/* Accommodation History Modal */}
       {showHistory && (

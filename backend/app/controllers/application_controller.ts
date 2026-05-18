@@ -449,7 +449,7 @@ async updateStatus({ auth, request, params, response }: HttpContext) {
           )
         }
       } catch (e) {
-        console.error('Failed to send in-app landlord escalation notification:', e)
+        console.error('[notify] in-app landlord-escalation controller-wrap failed:', e)
       }
     } else {
       await this.notificationService.notify(
@@ -598,10 +598,8 @@ async updateStatus({ auth, request, params, response }: HttpContext) {
     return response.badRequest({ message: 'action must be "accept" or "decline"' })
   }
 
-  // ─── STUDENT: CONFIRM SLOT ───────────────────────────────────
-  // After landlord approval, the student has until slotConfirmDeadline to claim
-  // the slot. Confirmation stamps slotConfirmedAt; un-claimed slots are later
-  // auto-cancelled by the scheduler so the next waitlisted applicant can be promoted.
+// ─── STUDENT: CONFIRM SLOT ───────────────────────────────────
+// After landlord approval AND manager room assignment, the student can confirm
 // ─── STUDENT: CONFIRM SLOT ───────────────────────────────────
 // After landlord approval AND manager room assignment, the student can confirm
 async confirmSlot({ auth, params, response }: HttpContext) {
@@ -617,8 +615,6 @@ async confirmSlot({ auth, params, response }: HttpContext) {
     return response.badRequest({ message: 'Only approved applications can be confirmed' })
   }
   
-  // FIXED: Check if there's an active pending assignment for this application
-  // First, find the room to get accommodationId
   if (!app.roomId) {
     return response.badRequest({ message: 'No room has been assigned yet. Please wait for the manager to assign a room.' })
   }
@@ -628,14 +624,14 @@ async confirmSlot({ auth, params, response }: HttpContext) {
     return response.badRequest({ message: 'Assigned room no longer exists. Please contact the manager.' })
   }
   
-  // CRITICAL FIX: Check if an assignment exists and is pending confirmation
-  const existingAssignment = await Assignment.query()
+  // Find the pending assignment for this application
+  const pendingAssignment = await Assignment.query()
     .where('studentNumber', student.studentNumber)
     .where('roomId', app.roomId)
     .where('confirmationStatus', 'pending_confirmation')
     .first()
   
-  if (!existingAssignment) {
+  if (!pendingAssignment) {
     return response.badRequest({ 
       message: 'No pending room assignment found. The manager needs to assign a room to you first.' 
     })
@@ -652,15 +648,18 @@ async confirmSlot({ auth, params, response }: HttpContext) {
   const trx = await db.transaction()
 
   try {
+    // Update application status
     app.slotConfirmedAt = DateTime.now()
     app.applicationStatus = 'confirmed'
     await app.useTransaction(trx).save()
 
-    // Update the existing assignment instead of creating a new one
-    existingAssignment.confirmationStatus = 'active'
-    await existingAssignment.useTransaction(trx).save()
+    // Update assignment from pending to active
+    pendingAssignment.confirmationStatus = 'active'
+    await pendingAssignment.useTransaction(trx).save()
 
-    // Update room occupancy (already updated when assignment was created, but double-check)
+    // CRITICAL: Increment room occupancy HERE on confirmation
+    // This is when the student actually takes possession of the room
+    room.roomCurrentOccupancy += 1
     if (room.roomCurrentOccupancy >= room.roomCapacity) {
       room.roomAvailability = 'occupied'
     }
@@ -682,6 +681,7 @@ async confirmSlot({ auth, params, response }: HttpContext) {
 
   return response.ok(app)
 }
+
   // ─── VIEW ENROLLMENT PROOF ───────────────────────────────────
   async viewEnrollmentProof({ params, response }: HttpContext) {
     const application = await Application.query()

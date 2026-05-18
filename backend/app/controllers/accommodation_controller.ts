@@ -39,7 +39,7 @@ export default class AccommodationController {
       .where('status', 'verified')
       .preload('images', (q) => q.preload('file'))
       .preload('tags')
-      .preload('manager', (q) => q.preload('user', (q2) => q2.preload('profilePicture')))
+      .preload('manager', (q) => q.preload('user', (q2) => q2.preload('profilePicture').preload('phoneNumbers')))
       .preload('rooms', (q) => {
         q.preload('tags')  // Preload room inclusions
         q.orderBy('roomRent', 'asc')  // Cheapest first

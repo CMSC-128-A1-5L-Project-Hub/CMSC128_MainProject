@@ -16,6 +16,7 @@ import ApplicationStatusModal, { type Application } from "../../components/Appli
 
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
+import { useNotifications } from "../../hooks/useNotifications"
 
 
 // Helpers
@@ -695,7 +696,6 @@ export default function Dashboard() {
   const [dashboardMapAccommodations, setDashboardMapAccommodations] = useState<AccommodationPin[]>([])
   const [mapFilter, setMapFilter] = useState("All")
   const [notifOpen, setNotifOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
   const notifWrapperRef = useRef<HTMLDivElement>(null)
   const [toast, setToast] = useState<{
     show: boolean;
@@ -704,41 +704,7 @@ export default function Dashboard() {
     message?: string;
   }>({ show: false, type: "success", title: "" });
 
-  useEffect(() => {
-    api.get('/notifications')
-      .then(({ data }) => {
-        setNotifications(
-          data.map((n: any) => ({
-            id: n.id,
-            type: n.notificationType,
-            message: n.notificationContent,
-            time: new Date(n.notificationTimestamp).toLocaleString(),
-            read: n.readStatus === 'read',
-          }))
-        )
-      })
-      .catch(console.error)
-  }, [])
-
-  const unreadCount = notifications.filter((n) => !n.read).length
-
-  const markAllRead = () => {
-    notifications
-      .filter((n) => !n.read)
-      .forEach((n) =>
-        api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
-      )
-
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  }
-
-  const markOneRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
-
-    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-  }
+  const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications({ refetchOn: notifOpen })
     
   const {
     data: user,
@@ -1230,7 +1196,7 @@ if (!profile || !user || user.role !== "student") {
                   <button
                     type="button"
                     onClick={() => navigate('/student/browse')}
-                    className="text-[14px] font-bold flex items-center gap-1"
+                    className="text-[14px] font-bold flex items-center gap-1 hover:underline"
                     style={{ color: CLR.mid }}
                   >
                     View all <IconChevronRight className="w-4 h-4" />

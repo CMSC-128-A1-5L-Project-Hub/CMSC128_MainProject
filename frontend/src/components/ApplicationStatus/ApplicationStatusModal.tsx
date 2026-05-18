@@ -7,6 +7,7 @@ import ApprovalProgress from "./ApprovalProgress";
 import defaultAccommodation from "@/assets/defaults/accommodation.png";
 import PhotoCarousel from "./PhotoCarousel";
 import RightArrow from "../../assets/icons/right-arrow.svg";
+import Button from "../Button";
 import { api } from "../../api/axios";
 import { CalendarDays, ChevronLeft, ChevronRight, Check } from "lucide-react";
 
@@ -452,17 +453,15 @@ export default function ApplicationStatusModal({ open, onClose, application }: A
 
           {/* CANCEL BUTTON */}
           {canCancel && (
-            <button
-              className={`px-6 py-2 rounded-full font-bold text-sm ${
-                cancelConfirmation === "CANCEL" && !cancelMutation.isPending && canCancel
-                  ? "bg-gradient-to-br from-[#F3C9D9] to-[#3D2E2E] border-0 hover:-translate-y-px hover:scale-105 active:scale-95 text-white cursor-pointer transition-all"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+            <Button
+              variant="primary"
+              size="md"
               onClick={() => cancelConfirmation === "CANCEL" && cancelMutation.mutate()}
               disabled={cancelConfirmation !== "CANCEL" || cancelMutation.isPending || !canCancel}
+              isLoading={cancelMutation.isPending}
             >
-              {cancelMutation.isPending ? "Cancelling..." : "Cancel"}
-            </button>
+              Cancel
+            </Button>
           )}
         </div>
       </div>

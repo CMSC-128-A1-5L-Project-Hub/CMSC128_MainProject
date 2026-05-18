@@ -103,45 +103,48 @@ export default function PaymentList({ delinquent = [], pendingPayments = [], isL
       </Card>
 
       {/* PAYMENT VERIFICATIONS */}
-      <Card>
+      <Card className="flex flex-col">
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-bold text-sm">Payment Verifications</h3>
           <span className="text-xs font-bold text-[#6B0F2B] cursor-pointer hover:underline" onClick={() => navigate('/landlord/fees')}>View all →</span>
-        </div>
-        <hr className="border-gray-100 mb-2" />
-        <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-          <span className="flex-[3] text-[#9A7080] font-bold">Student</span>
-          <span className="flex-[1] text-right text-[#9A7080] font-bold">Action</span>
         </div>
 
         {isLoading ? (
           <p className="text-xs text-gray-400 py-4 text-center">Loading…</p>
         ) : pendingPayments.length === 0 ? (
-          <p className="text-xs text-gray-400 py-4 text-center italic">No pending verifications</p>
+          <div className="flex flex-1 items-center justify-center py-8">
+            <p className="text-[#9A7080] font-medium text-sm">No pending verifications</p>
+          </div>
         ) : (
-          pendingPayments.map((p, i) => {
-            const name = p.fee?.student?.user
-              ? `${p.fee.student.user.fname} ${p.fee.student.user.lname}`
-              : "Student"
-            return (
-              <div key={i} className="flex items-center py-2.5 border-b border-gray-50 last:border-0">
-                <div className="flex-[3] flex gap-3 items-center">
-                  <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">{name}</p>
-                    <p className="text-xs text-gray-500">
-                      ₱{Number(p.paymentAmount).toLocaleString("en-PH")} · {p.modeOfPayment}
-                    </p>
+          <>
+            <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 ">
+              <span className="flex-[3] text-[#9A7080] font-bold">Student</span>
+              <span className="flex-[1] text-right text-[#9A7080] font-bold">Action</span>
+            </div>
+            {pendingPayments.map((p, i) => {
+              const name = p.fee?.student?.user
+                ? `${p.fee.student.user.fname} ${p.fee.student.user.lname}`
+                : "Student"
+              return (
+                <div key={i} className="flex items-center py-2.5 border-b border-gray-50 last:border-0">
+                  <div className="flex-[3] flex gap-3 items-center">
+                    <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{name}</p>
+                      <p className="text-xs text-gray-500">
+                        ₱{Number(p.paymentAmount).toLocaleString("en-PH")} · {p.modeOfPayment}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex-[1] flex justify-end">
+                    <Button variant="reddishPink" size="sm" className="!rounded-xl">
+                      Review
+                    </Button>
                   </div>
                 </div>
-                <div className="flex-[1] flex justify-end">
-                  <Button variant="reddishPink" size="sm" className="!rounded-xl">
-                    Review
-                  </Button>
-                </div>
-              </div>
-            )
-          })
+              )
+            })}
+          </>
         )}
       </Card>
 
