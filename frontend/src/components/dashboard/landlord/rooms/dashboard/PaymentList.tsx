@@ -103,49 +103,125 @@ export default function PaymentList({ delinquent = [], pendingPayments = [], isL
       </Card>
 
       {/* PAYMENT VERIFICATIONS */}
-      <Card className="flex flex-col">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-bold text-sm">Payment Verifications</h3>
-          <span className="text-xs font-bold text-[#6B0F2B] cursor-pointer hover:underline" onClick={() => navigate('/landlord/fees')}>View all →</span>
-        </div>
+      <Card>
+        <div className="w-full h-full flex flex-col min-w-0">
+          <div className="flex flex-row justify-between w-full pb-2">
+            <p className="text-[#1A0008] font-bold flex flex-col">
+              Payment Verifications
+              <span className="italic font-normal text-[11px] lg:text-[12px]">
+                {pendingPayments.length} pending verifications
+              </span>
+            </p>
 
-        {isLoading ? (
-          <p className="text-xs text-gray-400 py-4 text-center">Loading…</p>
-        ) : pendingPayments.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center py-8">
-            <p className="text-[#9A7080] font-medium text-sm">No pending verifications</p>
+            <p
+              className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer"
+              onClick={() => navigate("/landlord/fees")}
+            >
+              View all →
+            </p>
           </div>
-        ) : (
-          <>
-            <div className="flex text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 ">
-              <span className="flex-[3] text-[#9A7080] font-bold">Student</span>
-              <span className="flex-[1] text-right text-[#9A7080] font-bold">Action</span>
+
+          {isLoading ? (
+            <p className="text-xs text-gray-400 py-4 text-center">
+              Loading…
+            </p>
+          ) : pendingPayments.length === 0 ? (
+            <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+              <p className="text-[#9A7080] font-medium text-sm">
+                No pending payment verifications
+              </p>
             </div>
-            {pendingPayments.map((p, i) => {
-              const name = p.fee?.student?.user
-                ? `${p.fee.student.user.fname} ${p.fee.student.user.lname}`
-                : "Student"
-              return (
-                <div key={i} className="flex items-center py-2.5 border-b border-gray-50 last:border-0">
-                  <div className="flex-[3] flex gap-3 items-center">
-                    <div className="w-9 h-9 bg-[#8C1535] rounded-xl shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium">{name}</p>
-                      <p className="text-xs text-gray-500">
-                        ₱{Number(p.paymentAmount).toLocaleString("en-PH")} · {p.modeOfPayment}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex-[1] flex justify-end">
-                    <Button variant="reddishPink" size="sm" className="!rounded-xl">
-                      Review
-                    </Button>
-                  </div>
-                </div>
-              )
-            })}
-          </>
-        )}
+          ) : (
+            <div className="overflow-x-auto border-t border-[#F5ECF0]">
+              <div className="min-w-[400px] pb-3 xl:pb-0">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-[#F5ECF0] uppercase">
+                      <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[45%]">
+                        Student
+                      </th>
+
+                      <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[25%]">
+                        Amount
+                      </th>
+
+                      <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[15%]">
+                        Method
+                      </th>
+
+                      <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-center w-[15%]">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {pendingPayments.map((p) => {
+                      const name = p.fee?.student?.user
+                        ? `${p.fee.student.user.fname} ${p.fee.student.user.lname}`
+                        : "Student";
+
+                      const initial =
+                        p.fee?.student?.user?.fname?.charAt(0)?.toUpperCase() ||
+                        "S";
+
+                      return (
+                        <tr key={p.id}>
+                          <td className="p-1 py-2">
+                            <div className="flex flex-row items-center">
+                              <div
+                                className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg, #6B0F2B, #9E2040)",
+                                }}
+                              >
+                                {initial}
+                              </div>
+
+                              <div className="pl-2 min-w-0">
+                                <p className="text-black text-sm truncate">
+                                  {name}
+                                </p>
+
+                                <p className="text-[#9A7080] text-xs truncate">
+                                  {p.fee?.feeCategory || "Payment"}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="p-1 py-2">
+                            <p className="text-[#9A7080] text-sm font-medium">
+                              ₱
+                              {Number(p.paymentAmount).toLocaleString("en-PH")}
+                            </p>
+                          </td>
+
+                          <td className="p-1 py-2">
+                            <p className="text-[#9A7080] text-sm capitalize">
+                              {p.modeOfPayment}
+                            </p>
+                          </td>
+
+                          <td className="p-1 py-2 text-center">
+                            <Button
+                              variant="reddishPink"
+                              size="sm"
+                              className="!rounded-xl"
+                            >
+                              Review
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
       </Card>
 
     </div>
