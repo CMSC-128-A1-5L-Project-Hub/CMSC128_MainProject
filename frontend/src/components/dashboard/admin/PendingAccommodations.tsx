@@ -33,14 +33,14 @@ export default function PendingAccommodations({
 
   return (
     <>
-      <Card className="shadow-sm rounded-2xl border border-[#F2D9DF] bg-white p-6">
+      <Card className="shadow-sm rounded-2xl border-[#F2D9DF] bg-white p-6">
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-[#2A0410]">
+          <h2 className="text-[16px] font-bold text-[#2A0410]">
             Pending Accommodation Approvals
           </h2>
 
-          <p className="text-xs text-gray-500 mt-1">
-            Approve or reject submitted accommodations.
+          <p className="text-[13px] italic">
+            {accommodations.length} pending approval{accommodations.length === 1 ? "":"s"}
           </p>
         </div>
 
@@ -50,11 +50,9 @@ export default function PendingAccommodations({
           </p>
         ) : accommodations.length === 0 ? (
           <>
-            <hr className="border-[#F2D9DF]" />
-
-            <div className="flex items-center justify-center py-10">
-              <p className="text-lg text-[#9A7080]">
-                No pending accommodations
+            <div className="flex items-center py-28 justify-center">
+              <p className="text-[15px] text-[#9A7080]">
+                No pending approvals
               </p>
             </div>
           </>
@@ -63,15 +61,15 @@ export default function PendingAccommodations({
             <table className="min-w-full border-collapse">
               <thead>
                 <tr className="border-y border-[#F2D9DF]">
-                  <th className="w-[44%] py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="w-[44%] py-3 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
                     Accommodation
                   </th>
 
-                  <th className="w-[29%] py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="w-[29%] py-3 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
                     Landlord
                   </th>
 
-                  <th className="py-3 text-center text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="py-3 text-center text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
                     Action
                   </th>
                 </tr>
