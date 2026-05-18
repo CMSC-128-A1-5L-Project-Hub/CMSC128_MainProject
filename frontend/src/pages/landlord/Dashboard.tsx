@@ -78,6 +78,21 @@ interface RevenueData {
   projectedMonthlyRevenue: number;
 }
 
+const roomStatusStyles: Record<string, { bg: string; dot: string; text: string; label: string }> = {
+  available: {
+    bg: '#1A7A4A',
+    dot: '#1A7A4A',
+    text: '#1A7A4A',
+    label: 'Available'
+  },
+  fully_occupied: {
+    bg: '#9E2040',
+    dot: '#9E2040',
+    text: '#9E2040',
+    label: 'Fully Occupied'
+  },
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function greeting() {
@@ -957,7 +972,18 @@ export default function Dashboard() {
                                 <div className="flex-1 flex items-center gap-3"><div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] flex items-center justify-center text-white font-bold text-sm shrink-0" /><p className="font-medium text-sm">Room {r.roomNumber}</p></div>
                                 <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500 capitalize">{r.roomType}</p></div>
                                 <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500">{r.roomCurrentOccupancy}/{r.roomCapacity}</p></div>
-                                <div className="flex-1 flex justify-center"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>{statusText}</span></div>
+                                <div className="flex-1 flex justify-center">
+                                  {(() => {
+                                    const key = statusText.toLowerCase().replace(' ', '_')
+                                    const s = roomStatusStyles[key]
+                                    return (
+                                      <div className="p-2 w-fit h-fit rounded-full flex flex-row items-center justify-center" style={{ backgroundColor: s?.bg + '1A' }}>
+                                        <div className="w-2 h-2 mx-1 rounded-full" style={{ backgroundColor: s?.dot }} />
+                                        <p className="text-[12px] font-bold" style={{ color: s?.text }}>{s?.label}</p>
+                                      </div>
+                                    )
+                                  })()}
+                                </div>
                               </div>
                             );
                           })
