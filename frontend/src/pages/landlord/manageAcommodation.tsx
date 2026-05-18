@@ -139,6 +139,7 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
     accommodationType, 
     tenantRestriction, 
     accommodationCapacity, 
+    accommodationSize,
     contractMonths,
     businessPermit, 
     latitude, 
@@ -177,6 +178,7 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
     if (!accommodationType) newErrors.accommodationType = "Required";
     if (!tenantRestriction) newErrors.tenantRestriction = "Required";
     if (!accommodationCapacity || parseInt(accommodationCapacity) < 1) newErrors.accommodationCapacity = "Must be at least 1";
+    if (!accommodationSize || parseInt(accommodationSize) < 1) newErrors.accommodationSize = "Must be at least 1 sqm";
     if (!contractMonths || contractMonths === "") {
       newErrors.contractMonths = "Contract duration is required";
     } else {
@@ -269,7 +271,22 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
         />
       </div>
 
-      <div className="flex flex-col gap-1">
+      {/* SIZE AND CONTRACT DURATION - SIDE BY SIDE */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <FormField
+          label="Accommodation Size (sqm)"
+          name="accommodationSize"
+          value={accommodationSize}
+          type="number"
+          onChange={(e) => {
+            const val = parseInt(e.target.value)
+            if (e.target.value === "" || (!isNaN(val) && val >= 0)) {
+              setField("accommodationSize", e.target.value)
+            }
+          }}
+          placeholder="e.g., 200"
+          error={errors.accommodationSize}
+        />
         <FormField
           label="Contract Duration (months)"
           name="contractMonths"
@@ -284,10 +301,10 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
           placeholder="e.g., 6"
           error={errors.contractMonths}
         />
-        <p className="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">
-          How many months will tenants typically stay? (1–60 months)
-        </p>
       </div>
+      <p className="text-[8px] sm:text-[10px] text-gray-400 mt-0.5 -mt-2 sm:-mt-1">
+        How many months will tenants typically stay? (1–60 months)
+      </p>
 
       {/* Amenities — unchanged, no FormField equivalent */}
       <div className="border border-[#e5cfd4] rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
@@ -366,6 +383,7 @@ const StepTwo = ({ onBack, onClose, amenities, onSuccess }: {
     accommodationType, 
     accommodationLocation,
     accommodationCapacity, 
+    accommodationSize,
     tenantRestriction, 
     contractMonths,
     businessPermit, 
@@ -391,6 +409,7 @@ const StepTwo = ({ onBack, onClose, amenities, onSuccess }: {
       formData.append("accommodation_type", accommodationType);
       formData.append("accommodation_location", accommodationLocation);
       formData.append("accommodation_capacity", String(accommodationCapacity));
+      formData.append("accommodation_size", accommodationSize);
       formData.append("tenant_restriction", tenantRestriction);
       formData.append("contract_months", String(contractMonths));
       formData.append("latitude", String(latitude));

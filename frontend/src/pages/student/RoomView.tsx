@@ -2081,7 +2081,7 @@ const getButtonText = () => {
             <h1 className="text-[30px] font-bold text-gray-900 mb-1">{accommodation.accommodationName}</h1>
             <p className="text-[15px] font-semibold text-[#6B0F2B]" >{accommodation.accommodationLocation}</p>
             <p className="text-[18px] text-[#9A7080]">
-              {selectedRoom?.size != null ? Number(selectedRoom.size).toFixed(1) : "—"}{" "} m² · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+              {accommodation.accommodationSize ? `${accommodation.accommodationSize} m²` : "—"} · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
             </p>
             {/* Tabs*/}
               <div className="flex overflow-x-auto overflow-y-hidden justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-hide">              {tabs.map((t) => (
