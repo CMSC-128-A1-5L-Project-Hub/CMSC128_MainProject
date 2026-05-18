@@ -663,7 +663,7 @@ export default function LandingPage() {
         {/* Mobile Nav - only show on mobile */}
         {isMobile && (
           <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px" }}>
-            <button className="hamburger-btn" style={{ padding: "0px" }} onClick={() => setDrawerOpen(o => !o)}>
+            <button className="hamburger-btn" style={{ padding: "0px", background: "#6B0F2B" }} onClick={() => setDrawerOpen(o => !o)}>
               <HamburgerIcon open={drawerOpen} />
             </button>
             <button

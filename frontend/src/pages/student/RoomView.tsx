@@ -63,7 +63,11 @@ interface Manager {
     email: string;
     phone?: string;
     pfpUrl?: string;
-    phoneNumbers?: { contactNumber: string; isPrimary: boolean }[];
+    phoneNumbers?: Array<{ 
+      id: number;
+      contactNumber: string;
+      isPrimary: boolean;
+    }>;
   };
 }
 
@@ -1526,7 +1530,6 @@ function RequirementsTab({ accommodationId }: { accommodationId: number }) {
 
 
 
-
 export default function RoomView() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -1536,17 +1539,12 @@ export default function RoomView() {
     queryKey: ["me"],
     queryFn: async () => {
       const res = await api.get("/me")
-      // console.log("me:", res.data);
-      // console.log("student:", res.data.student);
-      // console.log("gender:", res.data.student?.gender);
       return res.data
     },
   })
 
   const name = user ? `${user.fname}` : ""
   const studentNo = user?.student?.studentNumber ?? ""
-
-
 
   const { data: myApplications = [] } = useQuery({
     queryKey: ["student-applications"],
@@ -1634,10 +1632,61 @@ export default function RoomView() {
   }, [id]);
 
   useEffect(() => {
+    if (accommodation) {
+      console.log('Accommodation dates:', {
+        startDate: (accommodation as any).application_start_date,
+        startDateCamel: (accommodation as any).applicationStartDate,
+        endDate: (accommodation as any).application_end_date,
+        endDateCamel: (accommodation as any).applicationEndDate,
+      });
+    }
+  }, [accommodation]);
+
+  useEffect(() => {
     setSelectedPreferences((prev) =>
       prev.filter((pref) => optionalPreferences.includes(pref))
     );
   }, [selectedTenantRestriction, selectedStayType, selectedArrangement]);
+
+// Helper function to check if applications are currently open
+const getApplicationPeriodStatus = (): { isOpen: boolean; message: string } => {
+  // Use camelCase property names from the API
+  const startDateStr = (accommodation as any).applicationStartDate;
+  const endDateStr = (accommodation as any).applicationEndDate;
+  
+  if (!startDateStr || !endDateStr) {
+    return { isOpen: false, message: "Application period not set" };
+  }
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const startDate = new Date(startDateStr);
+  startDate.setHours(0, 0, 0, 0);
+  
+  const endDate = new Date(endDateStr);
+  endDate.setHours(0, 0, 0, 0);
+  
+  if (today < startDate) {
+    const formattedStartDate = startDate.toLocaleDateString('en-PH', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    return { isOpen: false, message: `Applications open on ${formattedStartDate}` };
+  }
+  
+  if (today > endDate) {
+    const formattedEndDate = endDate.toLocaleDateString('en-PH', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    return { isOpen: false, message: `Application period ended on ${formattedEndDate}` };
+  }
+  
+  return { isOpen: true, message: "" };
+};
 
   if (loading) {
     return <UbleLoader />
@@ -1646,14 +1695,6 @@ export default function RoomView() {
   if (!accommodation) {
     return <p>Accommodation not found.</p>;
   }
-
-
-  // const displayPhotos = [
-  //     "https://scontent.fmnl17-2.fna.fbcdn.net/v/t39.30808-6/470222608_983930173757933_998118782445933365_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=2a1932&_nc_ohc=ZFZK7m7SOa0Q7kNvwGOPvqH&_nc_oc=AdqDd-9KAVigCK_3EWtYSiKPI3LQcUVYJnrsKNS8FkAFYu_F7R1kEigwCaFZR-vRmV0&_nc_zt=23&_nc_ht=scontent.fmnl17-2.fna&_nc_gid=r4rDrZ-9ks0O0mnDt0AqYw&_nc_ss=7a3a8&oh=00_Af2gqklSV4YC1rlAVLymw3a5pkNBSRrBaSnbwKxtYMPVLQ&oe=69E8489C",
-  //     "https://scontent.fmnl17-1.fna.fbcdn.net/v/t1.6435-9/66008036_487367045400857_1488351947843960832_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=f798df&_nc_ohc=ElHr-WrKZYcQ7kNvwFwvO8u&_nc_oc=Adpjp6BtjtcqZipKB0kvZwUKfdfmdA8FthjEjzcTTLJr_QrG8CJ_ziH_ueBWDhIj5m0&_nc_zt=23&_nc_ht=scontent.fmnl17-1.fna&_nc_gid=ohCc0hgO7ItkIo1D4h39dg&_nc_ss=7a3a8&oh=00_Af3SRsAoAaRLisofJivkX9TI-NV5f32-PPjLFNVUdbIgQw&oe=6A09DE9E",
-  //     "https://scontent.fmnl17-2.fna.fbcdn.net/v/t1.6435-9/65525855_487366502067578_6498764386226667520_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=f798df&_nc_ohc=lwgSYY8aRXMQ7kNvwG8DE1O&_nc_oc=Adr3QJE6pJ4Ix9GhvyrIm46YivGbyqqWj91r19RGHeKAk1ek9OjWbNZ3W7X__QQmkwQ&_nc_zt=23&_nc_ht=scontent.fmnl17-2.fna&_nc_gid=Y31MEwZ9ofBlvh9xazaSVg&_nc_ss=7a3a8&oh=00_Af2hAC2OUloa4E3JKdO0biDPLF0cJGI2De9EDWbNGJ4spg&oe=6A09D9E6",
-  //     "https://scontent.fmnl17-8.fna.fbcdn.net/v/t1.6435-9/65574464_487366468734248_8178610199741857792_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=f798df&_nc_ohc=EXZOAFgaSmEQ7kNvwGNMSIY&_nc_oc=Ado7mmT6oORNQgtkYEGMBuw_N8AtiWN5U0vvytCYvNjXU_uRCnqO7vejL1BEgWXksQo&_nc_zt=23&_nc_ht=scontent.fmnl17-8.fna&_nc_gid=G05aAyHCbEbugO1lM86-kA&_nc_ss=7a3a8&oh=00_Af0T8tdQzHrWjB2zeUZjedH8I5CpGvUDfq11soKx1O_Zwg&oe=6A09D02E",
-  //   ];
 
   const displayPhotos =
     accommodation.imageUrls?.length > 0
@@ -1750,13 +1791,6 @@ export default function RoomView() {
     (pref) => !commonPreferences.includes(pref)
   );
 
-  // const cheapestMatchingRoom =
-  //   matchingRooms.length > 0
-  //     ? matchingRooms.reduce((cheapest, room) =>
-  //         Number(room.rent) < Number(cheapest.rent) ? room : cheapest
-  //       )
-  //     : null;
-
   const snapToValidRoomFilters = ({
     tenant = selectedTenantRestriction,
     stay = selectedStayType,
@@ -1823,59 +1857,40 @@ export default function RoomView() {
 
   const studentGender = String(user?.student?.gender ?? user?.gender ?? "").toLowerCase();
   const accommodationRestriction = String((accommodation as any)?.tenantRestriction ?? "").trim().toLowerCase();
-  // console.log({
-  //   user,
-  //   student: user?.student,
-  //   studentGender,
-  //   accommodation,
-  //   accommodationRestriction,
-  // });
 
   const genderBlocked =
     (accommodationRestriction === "female-only" && studentGender === "male") ||
     (accommodationRestriction === "male-only" && studentGender === "female");
-
-  //   console.log({
-  //   studentGender,
-  //   accommodationRestriction,
-  //   genderBlocked,
-  // });
-  // console.log("accommodation keys:", Object.keys(accommodation ?? {}));
-  // console.log("restriction candidates:", {
-  //   tenantRestriction: (accommodation as any)?.tenantRestriction,
-  //   tenant_restriction: (accommodation as any)?.tenant_restriction,
-  //   restriction: (accommodation as any)?.restriction,
-  //   tenantPreference: (accommodation as any)?.tenantPreference,
-  // });
 
   const stayTypeLabel =
     selectedStayType === "non_transient"
       ? "non-transient"
       : "transient";
 
-  const cannotApplyReason = hasAlreadyApplied
-    ? `You already have an active ${stayTypeLabel} application for this dorm.`
-    : genderBlocked
-      ? `This dorm is for ${
-          accommodationRestriction === "female-only"
-            ? "female"
-            : "male"
-        } students only.`
-      : !selectedRoom
-        ? "No matching room is currently available."
-        : "";
+  const applicationPeriod = getApplicationPeriodStatus();
+  const isApplicationActive = applicationPeriod.isOpen;
 
-  const cannotApply = hasAlreadyApplied || genderBlocked || !selectedRoom;
+  const cannotApplyReason = !isApplicationActive
+    ? applicationPeriod.message
+    : hasAlreadyApplied
+      ? `You already have an active ${stayTypeLabel} application for this dorm.`
+      : genderBlocked
+        ? `This dorm is for ${
+            accommodationRestriction === "female-only"
+              ? "female"
+              : "male"
+          } students only.`
+        : !selectedRoom
+          ? "No matching room is currently available."
+          : "";
+
+  const cannotApply = !isApplicationActive || hasAlreadyApplied || genderBlocked || !selectedRoom;
 
   const selectedRoomTags = selectedRoom?.tags ?? [];
 
   const roomInclusions = selectedRoomTags
     .filter((t: any) => t.type === "inclusion")
     .map((t: any) => t.tagDetail);
-
-  // const roomPreferences = selectedRoomTags
-  //   .filter((t: any) => t.type === "preference")
-  //   .map((t: any) => t.tagDetail);
 
   const avgRating =
     reviews.length > 0
@@ -1893,12 +1908,6 @@ export default function RoomView() {
   const hasFilters =
     hasSelectedRoomFilters || selectedPreferences.length > 0;
 
-  // const displayPrice = hasFilters
-  //     ? cheapestMatchingRoom?.rent
-  //     : accommodation.pricing?.overallStartingPrice ??
-  //       accommodation.cheapestRoomOverall;
-
-
   const isTransient = selectedRoom?.stay === "transient";
 
   const reservationFeeType = selectedRoom?.reservationFeeType;
@@ -1911,6 +1920,29 @@ export default function RoomView() {
       : reservationFeeType === "fixed"
         ? reservationFeeValue
         : 0;
+
+// Determine button text based on application period status
+const getButtonText = () => {
+  const startDateStr = (accommodation as any).applicationStartDate;
+  const endDateStr = (accommodation as any).applicationEndDate;
+  
+  if (!isApplicationActive) {
+    if (!startDateStr || !endDateStr) {
+      return "Application period not set";
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(startDateStr);
+    startDate.setHours(0, 0, 0, 0);
+    if (today < startDate) {
+      return "Applications Coming Soon";
+    }
+    return "Applications Closed";
+  }
+  return hasAlreadyApplied ? "Already Applied" : "Apply for Occupancy";
+};
+
+  const buttonText = getButtonText();
 
 
   return (
@@ -2049,7 +2081,7 @@ export default function RoomView() {
             <h1 className="text-[30px] font-bold text-gray-900 mb-1">{accommodation.accommodationName}</h1>
             <p className="text-[15px] font-semibold text-[#6B0F2B]" >{accommodation.accommodationLocation}</p>
             <p className="text-[18px] text-[#9A7080]">
-              {selectedRoom?.size != null ? Number(selectedRoom.size).toFixed(1) : "—"}{" "} m² · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+              {accommodation.accommodationSize ? `${accommodation.accommodationSize} m²` : "—"} · {(accommodation.accommodationType ?? "").replace(/[_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
             </p>
             {/* Tabs*/}
               <div className="flex overflow-x-auto overflow-y-hidden justify-between bg-[#F8F0F3] rounded-lg px-2 mb-5 mt-6 scrollbar-hide">              {tabs.map((t) => (
@@ -2084,26 +2116,14 @@ export default function RoomView() {
                 selectedPreferences={selectedPreferences}
                 setSelectedPreferences={setSelectedPreferences}
                 selectedTenantRestriction={selectedTenantRestriction}
-                // setselectedTenantRestriction={(v) => {
-                //   setselectedTenantRestriction(v);
-                //   setHasSelectedRoomFilters(true);
-                // }}
                 setselectedTenantRestriction={(v) => {
                   snapToValidRoomFilters({ tenant: v });
                 }}
                 selectedStayType={selectedStayType}
-                // setSelectedStayType={(v) => {
-                //   setSelectedStayType(v);
-                //   setHasSelectedRoomFilters(true);
-                // }}
                 setSelectedStayType={(v) => {
                   snapToValidRoomFilters({ stay: v });
                 }}
                 selectedArrangement={selectedArrangement}
-                // setSelectedArrangement={(v) => {
-                //   setSelectedArrangement(v);
-                //   setHasSelectedRoomFilters(true);
-                // }}
                 setSelectedArrangement={(v) => {
                   snapToValidRoomFilters({ type: v });
                 }}
@@ -2131,7 +2151,6 @@ export default function RoomView() {
                   ) : (<span className="text-[21px] font-normal text-[#9A7080]"> / day </span>)}
                 </div>
                 <div className="w-full h-[6px] bg-gray-200 mt-2"></div>
-                {/* <p className="text-[15px] font-normal text-[#000000] mt-2">2 months advance, 1 month deposit</p> */}
                 {isTransient ? (
                   <p className="text-[15px] font-normal text-[#000000] mt-2">
                     One-time reservation fee
@@ -2194,7 +2213,7 @@ export default function RoomView() {
                   <div className="border border-[#F0E8EC] rounded-2xl p-4 flex flex-col items-center gap-1.5 mb-4">
                     <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mb-1"
                       style={{ background: managerUser?.pfpUrl ? `url(${managerUser.pfpUrl}) center/cover` : CLR.mid }}>
-                      {!managerUser?.pfpUrl && `${managerUser?.fname[0]}${managerUser?.lname[0]}`}
+                      {!managerUser?.pfpUrl && `${managerUser?.fname?.[0] || ''}${managerUser?.lname?.[0] || ''}`}
                     </div>
                     <div className="w-full h-[2px] bg-[#F0E8EC] mt-2 mx-4"></div>
 
@@ -2204,9 +2223,10 @@ export default function RoomView() {
 
                     <p className="text-[11px] font-semibold text-[#848484] mb-1">Dorm Manager</p>
                     <p className="flex items-center gap-1.5 -mt-1 text-xs text-[#848484]">
-                      <IconPhone /> (+63){(() => {
-                        const nums = managerUser?.phoneNumbers ?? [];
-                        const primary = nums.find((p: any) => p.isPrimary) ?? nums[0];
+                      <IconPhone /> 
+                      {(() => {
+                        const phoneNumbers = managerUser?.phoneNumbers ?? [];
+                        const primary = phoneNumbers.find((p: any) => p.isPrimary) ?? phoneNumbers[0];
                         const digits = primary?.contactNumber?.replace(/^(\+?63|0)/, " ") ?? "";
                         return digits || "XXX XXX XXXX";
                       })()}
@@ -2239,10 +2259,15 @@ export default function RoomView() {
                   }`}
                   style={cannotApply ? {} : { background: "linear-gradient(135deg, #2D0511, #9A1F3E)" }}
                 >
-                  {hasAlreadyApplied ? "Already Applied" : "Apply for Occupancy"}
+                  {buttonText}
                 </button>
 
-                {cannotApplyReason && (
+                {cannotApplyReason && !isApplicationActive && (
+                  <p className="mt-2 text-[12px] text-[#8C1535] italic text-center">
+                    {cannotApplyReason}
+                  </p>
+                )}
+                {cannotApplyReason && isApplicationActive && (
                   <p className="mt-2 text-[12px] text-[#8C1535] italic text-center">
                     {cannotApplyReason}
                   </p>
