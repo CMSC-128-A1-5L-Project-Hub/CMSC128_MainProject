@@ -449,7 +449,7 @@ async updateStatus({ auth, request, params, response }: HttpContext) {
           )
         }
       } catch (e) {
-        console.error('Failed to send in-app landlord escalation notification:', e)
+        console.error('[notify] in-app landlord-escalation controller-wrap failed:', e)
       }
     } else {
       await this.notificationService.notify(

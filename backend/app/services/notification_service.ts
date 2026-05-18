@@ -12,20 +12,19 @@ export default class NotificationService {
     type: 'fee_due' | 'application_status' | 'system' | 'other',
     content: string
   ) {
-    // Uncomment na lang pag di na need
+    if (!userId || typeof userId !== 'number') {
+      console.error('[notify] refusing to insert: invalid userId=', userId, 'type=', type, 'content=', content)
+      return
+    }
     try {
-      console.log('Creating notification...')
-
-      const notification = await Notification.create({
+      await Notification.create({
         userId,
         notificationType: type,
         notificationContent: content,
-        readStatus: 'unread'
+        readStatus: 'unread',
       })
-
-      console.log('Created:', notification)
     } catch (error) {
-      console.error(error)
+      console.error('[notify] insert failed for userId=', userId, 'type=', type, error)
     }
   }
 
@@ -174,28 +173,43 @@ export default class NotificationService {
 
   // ─── Room Assignment Email ────────────────────────────────────────────────
   // Called when: DM assigns a room to the student
-  async sendRoomAssignmentEmail(
-    user: User,
-    accommodationName: string,
-    roomNumber: string,
-    roomBuilding: string,
-    moveInDate: string
-  ) {
-    await this.send(
-      user.email,
-      'Your room assignment is confirmed!',
-      `
-        <p>Hello ${user.fname},</p>
+async sendRoomAssignmentEmail(
+  user: User,
+  accommodationName: string,
+  roomNumber: string,
+  roomBuilding: string,
+  moveInDate: string,
+  confirmDeadline: string,
+  gracePeriodDays: number
+) {
+  await this.send(
+    user.email,
+    'Your room assignment is confirmed!',
+    `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6B0F2B;">Room Assignment Confirmed</h2>
+        <p>Hello <strong>${user.fname}</strong>,</p>
         <p>Your room assignment for <strong>${accommodationName}</strong> has been confirmed!</p>
-        <p><strong>Room Number:</strong> ${roomNumber}</p>
-        <p><strong>Building:</strong> ${roomBuilding}</p>
-        <p> Do not forget to confirm or reject your application </p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+          <tr><td style="padding: 8px 0;"><strong>Room Number:</strong></td><td>${roomNumber}</td></tr>
+          <tr><td style="padding: 8px 0;"><strong>Building:</strong></td><td>${roomBuilding}</td></tr>
+          <tr><td style="padding: 8px 0;"><strong>Move-in Date:</strong></td><td>${moveInDate}</td></tr>
+        </table>
+        
+        <div style="background-color: #FFF5F7; border-left: 4px solid #8C1535; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0; color: #8C1535; font-weight: bold;">⚠️ IMPORTANT DEADLINE</p>
+          <p style="margin: 10px 0 0 0;">Kindly confirm your room application by <strong style="color: #8C1535;">${confirmDeadline}</strong> (${gracePeriodDays} days from now).</p>
+        </div>
+        
+        <p>Please log in to your account and go to "My Applications" to confirm your room assignment.</p>
         <br/>
-        <p>UBLE Housing</p>
-      `
-    )
-  }
-
+        <p>Best regards,</p>
+        <p><strong>UBLE Housing Team</strong></p>
+      </div>
+    `
+  )
+}
   // ─── Dormitory Manager Notification ──────────────────────────────────────
   // Called when: student confirms slot → notify DM to assign room
   async sendManagerAssignmentNotification(

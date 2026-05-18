@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "../../api/axios";
 
 // ── Design tokens ─────────────────────────
 const CLR = {
@@ -23,10 +24,6 @@ interface Notification {
   notificationTimestamp: string;
 }
 
-interface FetchNotificationsResponse {
-  message: string;
-  data: Notification[];
-}
 
 // ── Inline Icons ───────────────────────────────────────────────────────────
 const IconBell = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -55,20 +52,13 @@ const getNotificationMeta = (type: NotificationType, isUnread: boolean) => {
 
 // ── API Functions ──────────────────────────────────────────────────────────
 const fetchNotifications = async (): Promise<Notification[]> => {
-  const res = await fetch("/api/notifications"); 
-  if (!res.ok) throw new Error("Failed to fetch notifications");
-  const json: FetchNotificationsResponse = await res.json();
-  return json.data;
+  const { data } = await api.get("/notifications");
+  return data;
 };
 
 const updateNotificationStatus = async ({ id, readStatus }: { id: number; readStatus: ReadStatus }) => {
-  const res = await fetch(`/api/notifications/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ readStatus }),
-  });
-  if (!res.ok) throw new Error("Failed to update status");
-  return res.json();
+  const { data } = await api.patch(`/notifications/${id}`, { readStatus });
+  return data;
 };
 
 // ── Main Page Component ────────────────────────────────────────────────────
@@ -78,6 +68,8 @@ export default function NotificationsPage() {
   const { data: notifications = [], isLoading, isError } = useQuery({
     queryKey: ["notifications"],
     queryFn: fetchNotifications,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 
   const mutation = useMutation({

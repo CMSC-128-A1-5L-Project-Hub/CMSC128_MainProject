@@ -16,7 +16,8 @@ import Modal from "@/components/Modal";
 import Card from "@/components/ui/Card";
 import Toast from "@/components/Toast";
 import { DateTime } from 'luxon';
-import { IoPersonSharp, IoCalendarSharp, IoBedSharp, IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp } from "react-icons/io5";
+import { IoPersonSharp, IoCalendarSharp, IoBedSharp, IoDocumentSharp, IoDocumentTextSharp } from "react-icons/io5";
+import DocumentPreviewModal from "@/components/applications/DocumentPreviewModal";
 
 const rowStyles: Record<string, { bg: string; text: string }> = {
   approved:     { bg: '#1A7A4A', text: '#000000' },
@@ -124,6 +125,7 @@ interface ApplicationResponse {
   durationOfStayDays: number;
   accommodation: Accommodation;
   student: Student;
+  documents?: { requirementName: string }[];
 }
 
 const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> = {
@@ -165,8 +167,10 @@ const ApplicationModalContent = ({
   onReject: () => void;
 }) => {
   const fullName = `${app.student.user.fname} ${app.student.user.lname}`;
+  const [preview, setPreview] = useState<{ url: string; name: string } | null>(null);
 
   return (
+    <>
     <Card className="!p-0">
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-row justify-between items-start">
@@ -265,19 +269,46 @@ const ApplicationModalContent = ({
               Uploaded Documents
             </p>
             <div className="flex flex-col gap-3">
-              {[
-                { label: "FORM 5", icon: <IoDocumentTextSharp size={16} color="white" /> },
-                { label: "VALID ID", icon: <IoIdCardSharp size={16} color="white" /> },
-              ].map((doc) => (
-                <div key={doc.label} className="grid grid-cols-[auto_1fr_60px] items-center gap-3">
+              {Array.from(
+                new Set(["Enrollment Proof", ...((app.documents || []).map((d) => d.requirementName))])
+              ).map((requirementName) => (
+                <div key={requirementName} className="grid grid-cols-[auto_1fr_60px] items-center gap-3">
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}
                   >
-                    {doc.icon}
+                    <IoDocumentTextSharp size={16} color="white" />
                   </div>
-                  <p className="text-[#1A0008] text-xs font-semibold">{doc.label}</p>
-                  <Button variant="reddishPink" size="sm">View</Button>
+                  <p className="text-[#1A0008] text-xs font-semibold">{requirementName}</p>
+                  <Button
+                    variant="reddishPink"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        if (requirementName.toUpperCase() === "ENROLLMENT PROOF") {
+                          const res = await api.get(`/applications/${app.id}/enrollment-proof`)
+                          if (res.status === 200 && res.data?.url) {
+                            setPreview({ url: res.data.url, name: requirementName })
+                          } else {
+                            alert("Enrollment proof not available.")
+                          }
+                        } else {
+                          const secureParam = encodeURIComponent(requirementName)
+                          const res = await api.get(`/applications/${app.id}/documents/${secureParam}`)
+                          if (res.status === 200 && res.data?.url) {
+                            setPreview({ url: res.data.url, name: requirementName })
+                          } else {
+                            alert(`${requirementName} not available.`)
+                          }
+                        }
+                      } catch (err) {
+                        console.error(err)
+                        alert("Could not fetch document.")
+                      }
+                    }}
+                  >
+                    View
+                  </Button>
                 </div>
               ))}
             </div>
@@ -305,6 +336,13 @@ const ApplicationModalContent = ({
         )}
       </div>
     </Card>
+    <DocumentPreviewModal
+      open={!!preview}
+      onClose={() => setPreview(null)}
+      url={preview?.url ?? null}
+      name={preview?.name ?? ""}
+    />
+    </>
   );
 };
 

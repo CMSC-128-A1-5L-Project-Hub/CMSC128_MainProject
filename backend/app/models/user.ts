@@ -17,6 +17,9 @@ export default class User extends BaseModel {
   declare pfpFileId: number | null
 
   @column()
+  declare googlePictureUrl: string | null
+
+  @column()
   declare fname: string
 
   @column()

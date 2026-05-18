@@ -40,10 +40,10 @@ export default class AssignmentsController {
     return response.ok(assignments)
   }
 
-  // ─── MANAGER/LANDLORD: ASSIGN ROOM (Slot Confirmed → Assigned) ───
-  // Manager: subject to the existing-assignment conflict guard.
-  // Landlord: may override an existing assignment by transactionally releasing the
-  //   prior room (decrement occupancy, cancel old assignment) before creating the new one.
+// ─── MANAGER/LANDLORD: ASSIGN ROOM (Slot Confirmed → Assigned) ───
+// Manager: subject to the existing-assignment conflict guard.
+// Landlord: may override an existing assignment by transactionally releasing the
+//   prior room (decrement occupancy, cancel old assignment) before creating the new one.
 async store({ auth, request, response }: HttpContext) {
   const user = auth.user!
   const { applicationId, roomId, moveIn, expectedMoveOut, gracePeriodDays } = request.body()
@@ -84,6 +84,7 @@ async store({ auth, request, response }: HttpContext) {
   const trx = await db.transaction()
 
   try {
+    // Handle override logic
     if (existingAssignment) {
       if (user.role === 'landlord') {
         const oldRoom = await Room.findOrFail(existingAssignment.roomId)
@@ -93,101 +94,100 @@ async store({ auth, request, response }: HttpContext) {
         }
         await oldRoom.useTransaction(trx).save()
 
-          // cancel the old assignment
-          existingAssignment.confirmationStatus = 'cancelled'
-          await existingAssignment.useTransaction(trx).save()
-        } else {
-          // managers cannot override
-          await trx.rollback()
-          return response.conflict({ message: 'Student already has a pending or active assignment' })
-        }
-      }
-
-      // load the target room
-      const room = await Room.findOrFail(roomId)
-
-      // room validations
-      if (room.accommodationId !== accommodation.id) {
+        // cancel the old assignment
+        existingAssignment.confirmationStatus = 'cancelled'
+        await existingAssignment.useTransaction(trx).save()
+      } else {
+        // managers cannot override
         await trx.rollback()
-        return response.badRequest({ message: 'Room does not belong to this accommodation' })
+        return response.conflict({ message: 'Student already has a pending or active assignment' })
       }
-      if (room.roomType !== application.applicationRoomType || room.roomStayType !== application.applicationStayType) {
-        await trx.rollback()
-        return response.badRequest({ message: 'Room type does not match application' })
-      }
-      if (room.roomCurrentOccupancy >= room.roomCapacity) {
-        await trx.rollback()
-        return response.conflict({ message: 'Room is full' })
-      }
+    }
 
-      // create the new assignment using the transaction
-      const assignment = new Assignment()
-      assignment.studentNumber = application.studentNumber
-      assignment.roomId = room.id
-      assignment.confirmedDate = DateTime.now()
-      assignment.moveIn = DateTime.fromISO(moveIn)
-      assignment.expectedMoveOut = DateTime.fromISO(expectedMoveOut)
-      assignment.gracePeriodDays = gracePeriodDays ?? 5
-      assignment.confirmationStatus =
-        application.applicationStatus === 'confirmed' ? 'active' : 'pending_confirmation'
-      
-      await assignment.useTransaction(trx).save()
+    // load the target room
+    const room = await Room.findOrFail(roomId)
 
-      // update new room occupancy
-      room.roomCurrentOccupancy += 1
-      if (room.roomCurrentOccupancy >= room.roomCapacity) {
-        room.roomAvailability = 'occupied'
-      }
-      await room.useTransaction(trx).save()
+    // room validations
+    if (room.accommodationId !== accommodation.id) {
+      await trx.rollback()
+      return response.badRequest({ message: 'Room does not belong to this accommodation' })
+    }
+    if (room.roomType !== application.applicationRoomType || room.roomStayType !== application.applicationStayType) {
+      await trx.rollback()
+      return response.badRequest({ message: 'Room type does not match application' })
+    }
+    if (room.roomCurrentOccupancy >= room.roomCapacity) {
+      await trx.rollback()
+      return response.conflict({ message: 'Room is full' })
+    }
 
-      // commit traansaction
-      await trx.commit()
+    // Calculate deadline date
+    const deadlineDays = gracePeriodDays ?? 5
+    const deadlineDate = DateTime.now().plus({ days: deadlineDays })
+    const formattedDeadline = deadlineDate.toFormat('MMMM d, yyyy h:mm a')
 
-      // notify the student
-      await this.notificationService.sendRoomAssignmentEmail(
-        application.student.user,
-        accommodation.accommodationName,
-        room.roomNumber,
-        room.roomBuilding,
-        assignment.moveIn.toISODate() ?? ''
-      )
+    // create the new assignment using the transaction
+    const assignment = new Assignment()
+    assignment.studentNumber = application.studentNumber
+    assignment.roomId = room.id
+    assignment.confirmedDate = DateTime.now()
+    assignment.moveIn = DateTime.fromISO(moveIn)
+    assignment.expectedMoveOut = DateTime.fromISO(expectedMoveOut)
+    assignment.gracePeriodDays = deadlineDays
+    assignment.confirmationStatus = application.applicationStatus === 'confirmed' ? 'active' : 'pending_confirmation'
+    
+    await assignment.useTransaction(trx).save()
 
-      try {
-        await this.notificationService.notify(
-          application.student.user.id,
-          'application_status',
-          `You have been assigned to Room ${room.roomNumber} at ${accommodation.accommodationName}. Move-in: ${assignment.moveIn.toISODate() ?? ''}.`
+    // Update application with slotConfirmDeadline and roomId
+    application.slotConfirmDeadline = deadlineDate
+    application.roomId = room.id
+    await application.useTransaction(trx).save()
+
+    // update new room occupancy
+    room.roomCurrentOccupancy += 1
+    if (room.roomCurrentOccupancy >= room.roomCapacity) {
+      room.roomAvailability = 'occupied'
+    }
+    await room.useTransaction(trx).save()
+
+    // commit transaction
+    await trx.commit()
+
+    // FIXED: notify the student with deadline
+    await this.notificationService.sendRoomAssignmentEmail(
+      application.student.user,
+      accommodation.accommodationName,
+      room.roomNumber,
+      room.roomBuilding,
+      assignment.moveIn.toISODate() ?? '',
+      formattedDeadline,
+      deadlineDays
+    )
+
+    try {
+      const autoConfirmedSuffix = assignment.confirmationStatus === 'active' ? ' (auto-confirmed: slot already confirmed)' : ''
+      if (existingAssignment && user.role === 'landlord') {
+        await LogService.record(
+          user.id,
+          'assignment',
+          assignment.id,
+          'LANDLORD_ASSIGNED_ROOM_OVERRIDE',
+          `Landlord ${user.id} overrode existing assignment ${existingAssignment.id} and assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding})${autoConfirmedSuffix}`
         )
-      } catch (e) {
-        console.error('Failed to send in-app assignment notification:', e)
+      } else {
+        const activityType = user.role === 'manager' ? 'MANAGER_ASSIGNED_ROOM' : 'LANDLORD_ASSIGNED_ROOM'
+        await LogService.record(
+          user.id,
+          'assignment',
+          assignment.id,
+          activityType,
+          `${user.role === 'manager' ? 'Manager' : 'Landlord'} ${user.id} assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding}) at "${accommodation.accommodationName}"${autoConfirmedSuffix}`
+        )
       }
-
-      try {
-        const autoConfirmedSuffix =
-          assignment.confirmationStatus === 'active' ? ' (auto-confirmed: slot already confirmed)' : ''
-        if (existingAssignment && user.role === 'landlord') {
-          await LogService.record(
-            user.id,
-            'assignment',
-            assignment.id,
-            'LANDLORD_ASSIGNED_ROOM_OVERRIDE',
-            `Landlord ${user.id} overrode existing assignment ${existingAssignment.id} and assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding})${autoConfirmedSuffix}`
-          )
-        } else {
-          const activityType =
-            user.role === 'manager' ? 'MANAGER_ASSIGNED_ROOM' : 'LANDLORD_ASSIGNED_ROOM'
-          await LogService.record(
-            user.id,
-            'assignment',
-            assignment.id,
-            activityType,
-            `${user.role === 'manager' ? 'Manager' : 'Landlord'} ${user.id} assigned student ${application.studentNumber} to room ${room.roomNumber} (building ${room.roomBuilding}) at "${accommodation.accommodationName}"${autoConfirmedSuffix}`
-          )
-        }
-      } catch (e) {
-        console.error('Failed to log assignment creation:', e)
-      }
-      return response.ok(assignment)
+    } catch (e) {
+      console.error('Failed to log assignment creation:', e)
+    }
+    return response.ok(assignment)
 
   } catch (error) {
     await trx.rollback()
@@ -249,7 +249,7 @@ async store({ auth, request, response }: HttpContext) {
         )
       }
     } catch (e) {
-      console.error('Failed to send in-app move-out notification:', e)
+      console.error('[notify] in-app move-out controller-wrap failed:', e)
     }
 
     return response.ok(assignment)

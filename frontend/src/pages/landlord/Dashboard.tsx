@@ -18,6 +18,7 @@ import CustomHeader from "../../components/CustomHeader";
 import Card from "../../components/ui/Card";
 import Toast from "../../components/Toast";
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
+import { useNotifications } from "../../hooks/useNotifications"
 import { DateTime } from 'luxon';
 import { IoPersonSharp, IoCalendarSharp, IoBedSharp, IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp } from "react-icons/io5";
 import notif_icon from "../../assets/icons/notif_icon.svg";
@@ -75,6 +76,21 @@ interface Room {
 
 interface RevenueData {
   projectedMonthlyRevenue: number;
+}
+
+const roomStatusStyles: Record<string, { bg: string; dot: string; text: string; label: string }> = {
+  available: {
+    bg: '#1A7A4A',
+    dot: '#1A7A4A',
+    text: '#1A7A4A',
+    label: 'Available'
+  },
+  fully_occupied: {
+    bg: '#9E2040',
+    dot: '#9E2040',
+    text: '#9E2040',
+    label: 'Fully Occupied'
+  },
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -619,46 +635,11 @@ export default function Dashboard() {
 
   // added notif stuff from student dashboard
   const [notifOpen, setNotifOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
   const notifWrapperRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    api.get('/notifications')
-      .then(({ data }) => {
-        setNotifications(
-          data.map((n: any) => ({
-            id: n.id,
-            type: n.notificationType,
-            message: n.notificationContent,
-            time: new Date(n.notificationTimestamp).toLocaleString(),
-            read: n.readStatus === 'read',
-          }))
-        )
-      })
-      .catch(console.error)
-  }, [])
-
-  const unreadCount = notifications.filter((n) => !n.read).length
-
-  const markAllRead = () => {
-    notifications
-      .filter((n) => !n.read)
-      .forEach((n) =>
-        api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
-      )
-
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  }
-
-  const markOneRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
-
-    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-  }
+  const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications({ refetchOn: notifOpen })
 
   // Notification details fetch---------------------------------
   useEffect(() => {
@@ -858,7 +839,7 @@ export default function Dashboard() {
                       </div>
                     </SectionCard>
 
-                    <SectionCard title="Form 5 Renewal">
+                    <SectionCard title="Enrollment Proof Renewal">
                       <div className="flex items-center gap-4">
                         <div className="shrink-0">
                           <CircleProgress value={form5Pct} />
@@ -892,7 +873,7 @@ export default function Dashboard() {
                               Form 5 / Enrollment Proof
                             </span>
                           </div>
-                          <p className="text-[10px] text-gray-400 italic mt-1">Auto-collected at student signup. Submission tracked in the Form 5 panel above.</p>
+                          <p className="text-[10px] text-gray-400 italic mt-1">Auto-collected at student signup. Submission tracked in the Enrollment Proof panel.</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-400 mb-1">FACILITY-SPECIFIC</p>
@@ -991,7 +972,18 @@ export default function Dashboard() {
                                 <div className="flex-1 flex items-center gap-3"><div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] flex items-center justify-center text-white font-bold text-sm shrink-0" /><p className="font-medium text-sm">Room {r.roomNumber}</p></div>
                                 <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500 capitalize">{r.roomType}</p></div>
                                 <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500">{r.roomCurrentOccupancy}/{r.roomCapacity}</p></div>
-                                <div className="flex-1 flex justify-center"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>{statusText}</span></div>
+                                <div className="flex-1 flex justify-center">
+                                  {(() => {
+                                    const key = statusText.toLowerCase().replace(' ', '_')
+                                    const s = roomStatusStyles[key]
+                                    return (
+                                      <div className="p-2 w-fit h-fit rounded-full flex flex-row items-center justify-center" style={{ backgroundColor: s?.bg + '1A' }}>
+                                        <div className="w-2 h-2 mx-1 rounded-full" style={{ backgroundColor: s?.dot }} />
+                                        <p className="text-[12px] font-bold" style={{ color: s?.text }}>{s?.label}</p>
+                                      </div>
+                                    )
+                                  })()}
+                                </div>
                               </div>
                             );
                           })

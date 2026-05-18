@@ -7,7 +7,7 @@ import NotificationService from '#services/notification_service'
 export default class ProvisioningService {
   private notificationService = new NotificationService()
 
-  public async provision(profile: { email: string; fname: string; lname?: string }) {
+  public async provision(profile: { email: string; fname: string; lname?: string; picture?: string | null }) {
     const defaultPfp = await FileMetadata.firstOrCreate(
       { filePath: 'defaults/default_pfp.png' },
       {
@@ -22,6 +22,9 @@ export default class ProvisioningService {
     if (user) {
       user.fname = profile.fname
       user.lname = profile.lname ?? ''
+      if (profile.picture) {
+        user.googlePictureUrl = profile.picture
+      }
       await user.save()
       await this.applyPendingManagerInvite(user)
       return user
@@ -33,6 +36,7 @@ export default class ProvisioningService {
       lname: profile.lname ?? '',
       role: 'unassigned',
       pfpFileId: defaultPfp.id,
+      googlePictureUrl: profile.picture ?? null,
     })
 
     await this.applyPendingManagerInvite(user)

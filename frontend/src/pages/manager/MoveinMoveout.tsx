@@ -161,7 +161,7 @@ export default function MoveinMoveout() {
         } = useQuery({
             queryKey: ["moveInMoveOutlist"],
             queryFn: async () => {
-            const res = await api.get("/view-all-assignments");
+            const res = await api.get("/view-assignments");
             return res.data;
             },
             placeholderData: (prev) => prev,
@@ -586,7 +586,7 @@ export default function MoveinMoveout() {
                             type="mini"
                         />
                         {/* TABLE */}
-                        <MoveInMoveOutTable records={[]} />
+                        <MoveInMoveOutTable />
                     </main>
                 </div>
             </div>

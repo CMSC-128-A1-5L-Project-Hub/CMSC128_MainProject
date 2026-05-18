@@ -8,10 +8,10 @@ import {
   IoBedSharp,
   IoDocumentSharp,
   IoDocumentTextSharp,
-  IoIdCardSharp,
 } from "react-icons/io5";
 import type { Application } from "@/interfaces/application";
 import { api } from "@/api/axios";
+import DocumentPreviewModal from "./DocumentPreviewModal";
 
 // STATUS 
 const StatusBadge = ({
@@ -98,18 +98,20 @@ const ApplicationModalContent = ({
   statusConfig: Record<string, { color: string; bg: string; dot: string }>;
 }) => {
   const fullName = `${app.student?.user?.fname} ${app.student?.user?.lname}`;
+  const [preview, setPreview] = useState<{ url: string; name: string } | null>(null);
   // 1. Extract the names from the application data safely
   const fetchedNames = (app.documents || []).map((doc) => doc.requirementName);
 
   // 2. Pre-seed with defaults and combine them using the spread operator,
   // wrapped in a Set to automatically clean out any duplicates
   const documentRequirements: string[] = Array.from(
-    new Set(["FORM 5", "VALID ID", ...fetchedNames])
+    new Set(["Enrollment Proof", ...fetchedNames])
   );
 
   console.log(documentRequirements);
 
   return (
+    <>
     <Card
       children={
         // HEADER [ NAME AND STTAUS ]
@@ -241,13 +243,7 @@ const ApplicationModalContent = ({
 
               <div className="flex flex-col gap-3">
                 {documentRequirements.map((requirementName) => {
-                      // Determine which icon configuration to use based on the requirement name
-                      const isValidId = requirementName.toUpperCase() === "VALID ID";
-                      const docIcon = isValidId ? (
-                        <IoIdCardSharp size={16} color="white" />
-                      ) : (
-                        <IoDocumentTextSharp size={16} color="white" />
-                      );
+                      const docIcon = <IoDocumentTextSharp size={16} color="white" />;
 
                       return (
                         <div key={requirementName} className="flex flex-row items-center justify-between">
@@ -265,12 +261,12 @@ const ApplicationModalContent = ({
                             variant="reddishPink" 
                             size="sm" 
                             onClick={async () => {
-                              // If explicitly "FORM 5", hit the legacy explicit enrollment-proof endpoint
-                              if (requirementName.toUpperCase() === "FORM 5") {
+                              // "Enrollment Proof" hits the dedicated endpoint that reads from student.enrollmentProof
+                              if (requirementName.toUpperCase() === "ENROLLMENT PROOF") {
                                 try {
                                   const res = await api.get(`/applications/${app.id}/enrollment-proof`)
-                                  if (res.status === 200) {
-                                    window.open(res.data.url, '_blank')
+                                  if (res.status === 200 && res.data?.url) {
+                                    setPreview({ url: res.data.url, name: requirementName })
                                   } else {
                                     alert("Enrollment proof not available.")
                                     // setToast({ 
@@ -291,14 +287,14 @@ const ApplicationModalContent = ({
                                   // })
                                 }
                               } else {
-                                // EVERYTHING ELSE (VALID ID and all dynamic custom text names) goes here
+                                // All dynamic custom requirements go here
                                 try {
-                                  // Safely encodes names with spaces (e.g., "VALID ID" -> "VALID%20ID")
+                                  // Safely encodes names with spaces (e.g., "BARANGAY CLEARANCE" -> "BARANGAY%20CLEARANCE")
                                   const secureParam = encodeURIComponent(requirementName)
                                   const res = await api.get(`/applications/${app.id}/documents/${secureParam}`)
-                                  
-                                  if (res.status === 200) {
-                                    window.open(res.data.url, '_blank')
+
+                                  if (res.status === 200 && res.data?.url) {
+                                    setPreview({ url: res.data.url, name: requirementName })
                                   } else {
                                     alert(`${requirementName} not available.`)
                                     // setToast({ 
@@ -352,6 +348,13 @@ const ApplicationModalContent = ({
         </div>
       }
     />
+    <DocumentPreviewModal
+      open={!!preview}
+      onClose={() => setPreview(null)}
+      url={preview?.url ?? null}
+      name={preview?.name ?? ""}
+    />
+    </>
   );
 };
 

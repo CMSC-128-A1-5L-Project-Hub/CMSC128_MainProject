@@ -102,7 +102,7 @@ export default class PaymentsController {
         )
       }
     } catch (e) {
-      console.error('Failed to send in-app landlord payment notification:', e)
+      console.error('[notify] in-app landlord-payment-proof controller-wrap failed:', e)
     }
 
     return response.ok({
@@ -237,7 +237,7 @@ async pending({ auth, request, response }: HttpContext) {
         }
       }
     } catch (e) {
-      console.error('Failed to send in-app payment verification notification:', e)
+      console.error('[notify] in-app payment-verify controller-wrap failed:', e)
     }
 
     return response.ok({
