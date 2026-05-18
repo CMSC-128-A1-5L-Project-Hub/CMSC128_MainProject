@@ -272,7 +272,7 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
   const snapPoints = useMemo(() => {
     if (origMin === Infinity || origMax === -Infinity) return [];
     
-    const STEP = 500; // interval between snap points
+    const STEP = 100; // interval between snap points
     const start = Math.floor(origMin / STEP) * STEP;
     const end = Math.ceil(origMax / STEP) * STEP;
     
