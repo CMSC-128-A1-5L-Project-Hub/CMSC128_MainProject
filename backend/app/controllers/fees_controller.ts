@@ -182,13 +182,11 @@ export default class FeesController {
     const monthStart = now.startOf('month').toSQL()
     const monthEnd = now.endOf('month').toSQL()
 
-    // Total verified collections this month, for fees tied to active tenants of this accommodation
+    // Total verified collections this month for this accommodation
     const collectionsRow = await db
       .from('payments')
-      .leftJoin('fees', 'payments.fee_id', 'fees.id')
-      .leftJoin('assignments', 'fees.student_number', 'assignments.student_number')
-      .leftJoin('rooms', 'assignments.room_id', 'rooms.id')
-      .where('rooms.accommodation_id', accommodationId)
+      .innerJoin('fees', 'payments.fee_id', 'fees.id')
+      .where('fees.accommodation_id', accommodationId)
       .where('payments.payment_status', 'verified')
       .whereBetween('payments.payment_timestamp', [monthStart, monthEnd])
       .sum('payments.payment_amount as total')
@@ -196,12 +194,10 @@ export default class FeesController {
 
     const totalCollectionsMonth = Number(collectionsRow?.total ?? 0)
 
-    // Collection rate: lifetime (sum(amount)-sum(balance)) / sum(amount) for fees on this accommodation
+    // Collection rate: lifetime (sum(amount)-sum(balance)) / sum(amount) for this accommodation
     const feesRow = await db
       .from('fees')
-      .leftJoin('assignments', 'fees.student_number', 'assignments.student_number')
-      .leftJoin('rooms', 'assignments.room_id', 'rooms.id')
-      .where('rooms.accommodation_id', accommodationId)
+      .where('fees.accommodation_id', accommodationId)
       .select(
         db.raw('COALESCE(SUM(fees.fee_amount), 0) as billed'),
         db.raw('COALESCE(SUM(fees.fee_balance), 0) as outstanding')
@@ -266,6 +262,7 @@ export default class FeesController {
 
     const fee = await Fee.create({
       landlordId: accom.landlordId,
+      accommodationId: accom.id,
       studentNumber: student.studentNumber,
       feeAmount: feeAmount,
       feeBalance: feeAmount,
@@ -360,6 +357,7 @@ export default class FeesController {
       for (const assignment of assignments) {
         const fee = new Fee()
         fee.landlordId = accom.landlordId
+        fee.accommodationId = accom.id
         fee.studentNumber = assignment.studentNumber
         fee.feeAmount = amount
         fee.feeBalance = amount
