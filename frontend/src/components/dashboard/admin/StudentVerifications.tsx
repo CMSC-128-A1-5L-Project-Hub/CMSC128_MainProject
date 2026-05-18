@@ -119,7 +119,7 @@ export default function StudentVerifications({
             <h4 className="text-[16px] font-bold text-[#2A0410]">
               Student Verifications
             </h4>
-            <p className="italic text-[13px]">{students.length} pending verification {students.length === 1 ? "" : "s"}</p>
+            <p className="italic text-[13px]">{students.length} pending verification{students.length === 1 ? "" : "s"}</p>
           </div>
           
           <button

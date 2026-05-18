@@ -29,7 +29,7 @@ export default function SearchBar({value, onChange, onPageReset} : SearchBarProp
     return (
         <div className="flex items-center gap-2 lg:gap-3">
             <div className="hidden lg:flex items-center gap-2">
-                <div className={`px-1 flex items-center border-2 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px] h-12 overflow-hidden transition-all duration-300 ${searchOpen ? 'w-44' : 'w-12'}`}>
+                <div className={`px-1 flex items-center border bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px] h-12 overflow-hidden transition-all duration-300 ${searchOpen ? 'w-44' : 'w-12'}`}>
                     <button onClick={() => { setSearchOpen(!searchOpen); if (!searchOpen) inputRef.current?.focus() }} className="p-1 shrink-0">
                         <SearchIcon />
                     </button>
@@ -38,7 +38,7 @@ export default function SearchBar({value, onChange, onPageReset} : SearchBarProp
                         className={`bg-[#FAF4F6] placeholder:text-[#9A7080] text-[12px] lg:text-[13px] px-1 outline-none transition-all duration-300 ${searchOpen ? 'w-full opacity-100' : 'w-0 opacity-0'}`} />
                 </div>
             </div>
-            <button className="lg:hidden border-2 px-2 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px]" onClick={() => setSearchOpen(true)}>
+            <button className="lg:hidden border px-2 bg-[#FAF4F6] border-[#6B0F2B] border-opacity-10 rounded-[8.8px]" onClick={() => setSearchOpen(true)}>
                 <SearchIcon />
             </button>
             {searchOpen && (

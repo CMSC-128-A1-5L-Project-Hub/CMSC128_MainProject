@@ -1,3 +1,4 @@
+import House from "../../assets/icons/house_icon.svg";
 type HeroProps = {
     greeting: string
     name: string
@@ -31,16 +32,19 @@ export default function HeroBanner({
                 </p>
             </div>
             {type === "full" ? (
-                <div className="hidden md:block w-28 h-28 bg-white/10 rounded-xl shrink-0" />
+                <div className="hidden md:block w-18 h-32 ">
+                    <img
+                        src={House}
+                        className="hidden lg:inline pb-200"
+                    />
+                </div>
+                
             ):
                 undefined
             }
             
             {/* Remove ko muna for now */}
-            {/* <img
-                src={House}
-                className="hidden lg:inline relative right-[1%] translate-y-[0%] w-30 pointer-events-none"
-            /> */}
+            
         </div>
     )
 }

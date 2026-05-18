@@ -4,6 +4,7 @@ import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Landlord from '#models/landlord'
 import Student from '#models/student'
 import Payment from '#models/payment'
+import Accommodation from '#models/accommodation'
 
 export default class Fee extends BaseModel {
   static table = 'fees'
@@ -13,6 +14,9 @@ export default class Fee extends BaseModel {
 
   @column()
   declare landlordId: number
+
+  @column()
+  declare accommodationId: number | null
 
   @column()
   declare studentNumber: string
@@ -30,13 +34,16 @@ export default class Fee extends BaseModel {
   declare feeBalance: number
 
   @column()
-  declare feeStatus: 'paid' | 'unpaid' | 'overdue' | 'partial'
+  declare feeStatus: 'paid' | 'unpaid' | 'overdue' | 'partial' | 'pending'
 
   @column()
   declare allowInstallments: boolean
 
   @belongsTo(() => Landlord, { foreignKey: 'landlordId' })
   declare landlord: BelongsTo<typeof Landlord>
+
+  @belongsTo(() => Accommodation, { foreignKey: 'accommodationId' })
+  declare accommodation: BelongsTo<typeof Accommodation>
 
   @belongsTo(() => Student, { foreignKey: 'studentNumber', localKey: 'studentNumber' })
   declare student: BelongsTo<typeof Student>

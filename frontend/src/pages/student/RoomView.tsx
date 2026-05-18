@@ -2203,7 +2203,12 @@ export default function RoomView() {
 
                     <p className="text-[11px] font-semibold text-[#848484] mb-1">Dorm Manager</p>
                     <p className="flex items-center gap-1.5 -mt-1 text-xs text-[#848484]">
-                      <IconPhone /> (+63){managerUser?.phone?.slice(1) ?? "XXX XXX XXXX"}
+                      <IconPhone /> (+63){(() => {
+                        const nums = managerUser?.phoneNumbers ?? [];
+                        const primary = nums.find((p: any) => p.isPrimary) ?? nums[0];
+                        const digits = primary?.contactNumber?.replace(/^(\+?63|0)/, " ") ?? "";
+                        return digits || "XXX XXX XXXX";
+                      })()}
                     </p>
                     <p className="flex items-center gap-1.5 text-xs text-gray-500">
                       <IconMail /> {managerUser?.email}

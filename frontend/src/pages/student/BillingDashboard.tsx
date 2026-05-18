@@ -14,6 +14,7 @@ import { useProfile } from '../../../hooks/useDashboardQueries';
 import CustomHeader from '../../components/CustomHeader';
 import Toast from '@/components/Toast';
 import UbleLoader from '../shared/LoadingPage';
+import { downloadReport } from '../../api/downloadReport';
 
 // ── Types ──────────────────────────────────────────────────────
 export interface Bill {
@@ -114,6 +115,40 @@ export default function BillingDashboard() {
 
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [payOpen, setPayOpen] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
+
+  const handleDownloadStatement = async (bill: Bill) => {
+    setDownloadingId(bill.id);
+    setToast({
+      show: true,
+      type: "loading",
+      title: "Generating Statement...",
+      message: "Please wait.",
+    });
+    try {
+      const date = new Date().toISOString().slice(0, 10);
+      await downloadReport(
+        `/fees/${bill.id}/statement.pdf`,
+        `billing-statement-${bill.id}-${date}.pdf`
+      );
+      setToast({
+        show: true,
+        type: "success",
+        title: "Statement Downloaded",
+        message: "Your billing statement has been saved.",
+      });
+    } catch (err: any) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Download Failed",
+        message:
+          err?.response?.data?.message || "Could not generate the statement.",
+      });
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const [toast, setToast] = useState<{
     show: boolean;
@@ -243,11 +278,13 @@ export default function BillingDashboard() {
               <BillingTable
                 bills={paginated}
                 onPay={(bill) => { setSelectedBill(bill); setPayOpen(true); }}
+                onDownload={handleDownloadStatement}
+                downloadingId={downloadingId}
               />
             </div>
 
             <div className={`${bills.length === 0 ? "hidden" : "flex"} flex-col`}>
-              <hr className="border-[#6B0F2B]/5 border-t-2" />
+              <hr className="border-[#6B0F2B]/5" />
               <div className='flex flex-nowrap justify-between'>
                 <div className='flex justify-start items-center gap-2'>
                   <span className='text-[11px] text-[#9A7080] p-0 mt-2 m-0'>

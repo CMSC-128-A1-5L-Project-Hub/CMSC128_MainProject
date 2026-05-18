@@ -38,7 +38,13 @@ export default class Application extends BaseModel {
   @column()
   declare durationOfStayDays: number | null
 
-  @column()
+  @column({
+      prepare: (value: string[] | null) => value ? JSON.stringify(value) : null,
+      consume: (value: string | null) => {
+          if (!value) return null
+          try { return JSON.parse(value) } catch { return null }
+      },
+  })
   declare preferredTags: string[] | null
 
   @column.dateTime()

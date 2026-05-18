@@ -7,26 +7,26 @@ import Notification from '#models/notification'
 @inject()
 export default class NotificationService {
   // For sending notifications via the system's notification service
-  async notify(
-    userId: number,
-    type: 'fee_due' | 'application_status' | 'system' | 'other',
-    content: string
-  ) {
-    if (!userId || typeof userId !== 'number') {
-      console.error('[notify] refusing to insert: invalid userId=', userId, 'type=', type, 'content=', content)
-      return
-    }
-    try {
-      await Notification.create({
-        userId,
-        notificationType: type,
-        notificationContent: content,
-        readStatus: 'unread',
-      })
-    } catch (error) {
-      console.error('[notify] insert failed for userId=', userId, 'type=', type, error)
-    }
+async notify(
+  userId: number,
+  type: 'fee_due' | 'application_status' | 'system' | 'other' | 'move_out_request' | 'move_out_request_response',
+  content: string
+) {
+  if (!userId || typeof userId !== 'number') {
+    console.error('[notify] refusing to insert: invalid userId=', userId, 'type=', type, 'content=', content)
+    return
   }
+  try {
+    await Notification.create({
+      userId,
+      notificationType: type,
+      notificationContent: content,
+      readStatus: 'unread',
+    })
+  } catch (error) {
+    console.error('[notify] insert failed for userId=', userId, 'type=', type, error)
+  }
+}
 
   // ─── Helper: send email via Brevo HTTP API ────────────────────────────────
   private async send(to: string, subject: string, html: string) {
@@ -194,7 +194,7 @@ async sendRoomAssignmentEmail(
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
           <tr><td style="padding: 8px 0;"><strong>Room Number:</strong></td><td>${roomNumber}</td></tr>
           <tr><td style="padding: 8px 0;"><strong>Building:</strong></td><td>${roomBuilding}</td></tr>
-          <tr><td style="padding: 8px 0;"><strong>Move-in Date:</strong></td><td>${moveInDate}</td></tr>
+          <tr><td style="padding: 8px 0;"><strong>Tentative Move-in Date:</strong></td><td>${moveInDate}</td></tr>
         </table>
         
         <div style="background-color: #FFF5F7; border-left: 4px solid #8C1535; padding: 15px; margin: 20px 0;">

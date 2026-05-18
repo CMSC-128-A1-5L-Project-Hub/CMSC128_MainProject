@@ -1,10 +1,13 @@
-import type { Application } from "./ApplicationStatusModal";
+// frontend/src/components/ApplicationStatus/ApplicationTable.tsx
+import type { Application } from "@/interfaces/application";
 import StylizedStatus from "../BillingDashboard/StylizedStatus";
 import Button from "../Button";
 
 interface ApplicationTableProps {
     applications: Application[];
     onView: (application: Application) => void;
+    onEdit?: (application: Application) => void;
+    // Remove onCancel prop
 }
 
 const rowStyles: Record<string, { bg: string; text: string }> = {
@@ -24,7 +27,10 @@ function timeAgo(date: Date) {
     return `${diff} days ago`;
 }
 
-export default function ApplicationTable({ applications, onView }: ApplicationTableProps) {
+// Helper to check if application is editable (only pending status)
+const isEditable = (status: string) => status === 'pending';
+
+export default function ApplicationTable({ applications, onView, onEdit }: ApplicationTableProps) {
     return (
         <div className="overflow-x-auto w-full">
             <table className="w-full lg:table-fixed border-separate border-spacing-0">
@@ -46,10 +52,12 @@ export default function ApplicationTable({ applications, onView }: ApplicationTa
                 <tbody>
                     {applications.map((app, index) => {
                         const applicationDate = new Date(app.applicationDate);
+                        const editable = isEditable(app.applicationStatus);
+                        
                         return (
                             <tr key={index}
-                            className="hover:bg-gray-50 transition-all"    
-                            style={{
+                                className="hover:bg-gray-50 transition-all"    
+                                style={{
                                     backgroundColor: (rowStyles[app.applicationStatus]?.bg ?? '#888') + '0D',
                                     color: rowStyles[app.applicationStatus]?.text ?? '#888',
                                 }}>
@@ -57,15 +65,15 @@ export default function ApplicationTable({ applications, onView }: ApplicationTa
                                     <div className="flex flex-row items-center">  
                                         <div className="hidden lg:flex mx-1 items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] flex-shrink-0">
                                             <p className="text-white font-bold text-sm">
-                                                {app.accommodation.accommodationName[0]}
+                                                {app.accommodation?.accommodationName?.[0] || '?'}
                                             </p>
                                         </div>
                                         <div className='flex flex-col ml-1 justify-center min-w-0'>
                                             <span className="block text-[13px] lg:text-[15px] font-semibold truncate max-w-[180px]">
-                                                {app.accommodation.accommodationName}
+                                                {app.accommodation?.accommodationName || 'Unknown'}
                                             </span>
                                             <span className="truncate capitalize block text-[10px] -mt-1 lg:text-[12px] text-[#9A7080] max-w-[180px]">
-                                                {app.applicationRoomType} • {app.accommodation.accommodationLocation}
+                                                {app.applicationRoomType} • {app.accommodation?.accommodationLocation || 'Unknown'}
                                             </span>
                                         </div>
                                     </div>
@@ -84,15 +92,27 @@ export default function ApplicationTable({ applications, onView }: ApplicationTa
                                 <td className='px-2 py-2 text-[11px] truncate'>
                                     {app.rejectionReason ?? '-'}
                                 </td>
-                                <td className='px-2 py-2 text-[12px] lg:text-[14px]'>
-                                    <Button
-                                        variant="reddishPink"
-                                        size="sm"
-                                        fullWidth={false}
-                                        isLoading={false}
-                                        onClick={() => onView(app)}>
-                                        View
-                                    </Button>
+                                <td className='px-2 py-2'>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="reddishPink"
+                                            size="sm"
+                                            fullWidth={false}
+                                            isLoading={false}
+                                            onClick={() => onView(app)}>
+                                            View
+                                        </Button>
+                                        {editable && onEdit && (
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                fullWidth={false}
+                                                isLoading={false}
+                                                onClick={() => onEdit(app)}>
+                                                Edit
+                                            </Button>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         );
@@ -100,6 +120,5 @@ export default function ApplicationTable({ applications, onView }: ApplicationTa
                 </tbody>
             </table>
         </div>
-        
-    )
+    );
 }

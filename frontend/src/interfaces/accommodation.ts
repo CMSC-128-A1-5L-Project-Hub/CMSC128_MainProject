@@ -43,6 +43,8 @@ export interface Accommodation {
   primaryImageIndex: number
 
   isFrozen: boolean
+  contractMonths: number
+  primaryImageUrl?: string
   freezeReason: string | null
   freezeStartedAt: string | null
 

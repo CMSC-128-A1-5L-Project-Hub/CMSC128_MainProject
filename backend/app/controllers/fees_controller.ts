@@ -12,6 +12,10 @@ import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
 import { inject } from '@adonisjs/core'
 import NotificationService from '#services/notification_service'
+import ReportExportService from '#services/report_export_service'
+
+// DB columns are DECIMAL(10, 2) → max value 99,999,999.99
+const MAX_FEE_AMOUNT = 99_999_999.99
 
 @inject()
 export default class FeesController {
@@ -50,6 +54,169 @@ export default class FeesController {
     return response.ok({ data: studentFees })
   }
 
+  // ─── DOWNLOAD INDIVIDUAL BILLING STATEMENT (PDF) ───
+  // GET /fees/:id/statement.pdf
+  async statementPdf({ auth, params, response }: HttpContext) {
+    const user = auth.user
+    if (!user) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
+    const fee = await Fee.query()
+      .where('id', params.id)
+      .preload('student', (s) => s.preload('user'))
+      .preload('payments')
+      .first()
+
+    if (!fee) {
+      return response.notFound({ message: 'Fee not found' })
+    }
+
+    // Resolve accommodation + room via the student's current assignment
+    const assignment = await Assignment.query()
+      .where('studentNumber', fee.studentNumber)
+      .whereNull('actualMoveOut')
+      .preload('room', (q) => q.preload('accommodation'))
+      .first()
+
+    const accommodation = assignment?.room?.accommodation ?? null
+    const roomNumber = assignment?.room?.roomNumber ?? null
+
+    // Authorize
+    if (user.role === 'student') {
+      const student = await Student.findBy('userId', user.id)
+      if (!student || student.studentNumber !== fee.studentNumber) {
+        return response.forbidden({ message: 'Access denied' })
+      }
+    } else if (user.role === 'landlord') {
+      if (fee.landlordId !== user.id) {
+        return response.forbidden({ message: 'Access denied' })
+      }
+    } else if (user.role === 'manager') {
+      if (!accommodation || accommodation.managerId !== user.id) {
+        return response.forbidden({ message: 'Access denied' })
+      }
+    } else {
+      return response.forbidden({ message: 'Access denied' })
+    }
+
+    // Landlord name for header
+    const landlord = await Landlord.query()
+      .where('userId', fee.landlordId)
+      .preload('user')
+      .first()
+    const landlordName = landlord?.user
+      ? [landlord.user.fname, landlord.user.mname, landlord.user.lname]
+          .filter(Boolean)
+          .join(' ')
+      : '—'
+
+    const studentUser = fee.student?.user
+    const studentName = studentUser
+      ? [studentUser.fname, studentUser.mname, studentUser.lname]
+          .filter(Boolean)
+          .join(' ')
+      : fee.studentNumber
+
+    const buf = await ReportExportService.generateBillingStatementPdf({
+      landlordName,
+      fee: {
+        id: fee.id,
+        category: fee.feeCategory,
+        amount: Number(fee.feeAmount),
+        balance: Number(fee.feeBalance),
+        status: fee.feeStatus,
+        dueDate: fee.dueDate ? fee.dueDate.toISO() : null,
+        allowInstallments: !!fee.allowInstallments,
+      },
+      student: {
+        studentNumber: fee.studentNumber,
+        name: studentName,
+        email: studentUser?.email ?? null,
+      },
+      accommodation: {
+        name: accommodation?.accommodationName ?? null,
+        roomNumber: roomNumber,
+      },
+      payments: fee.payments.map((p) => ({
+        id: p.id,
+        paymentTimestamp: p.paymentTimestamp.toISO() ?? '',
+        paymentAmount: Number(p.paymentAmount),
+        modeOfPayment: p.modeOfPayment,
+        paymentStatus: p.paymentStatus,
+      })),
+    })
+
+    const date = new Date().toISOString().slice(0, 10)
+    response.header('Content-Type', 'application/pdf')
+    response.header(
+      'Content-Disposition',
+      `attachment; filename="billing-statement-${fee.id}-${date}.pdf"`
+    )
+    return response.send(buf)
+  }
+
+  // ─── MANAGER/LANDLORD: FEE COLLECTION STATS ───
+  // GET /fees/stats?accommodationId=
+  async stats({ auth, request, response }: HttpContext) {
+    const user = auth.user!
+    const accommodationId = request.input('accommodationId')
+
+    if (!accommodationId) {
+      return response.badRequest({ message: 'accommodationId is required' })
+    }
+
+    // Authorize: must own/manage the accommodation
+    const accom = await Accommodation.find(accommodationId)
+    if (!accom) {
+      return response.notFound({ message: 'Accommodation not found' })
+    }
+    if (user.role === 'landlord' && accom.landlordId !== user.id) {
+      return response.forbidden({ message: 'Access denied' })
+    }
+    if (user.role === 'manager' && accom.managerId !== user.id) {
+      return response.forbidden({ message: 'Access denied' })
+    }
+
+    const now = DateTime.now()
+    const monthStart = now.startOf('month').toSQL()
+    const monthEnd = now.endOf('month').toSQL()
+
+    // Total verified collections this month for this accommodation
+    const collectionsRow = await db
+      .from('payments')
+      .innerJoin('fees', 'payments.fee_id', 'fees.id')
+      .where('fees.accommodation_id', accommodationId)
+      .where('payments.payment_status', 'verified')
+      .whereBetween('payments.payment_timestamp', [monthStart, monthEnd])
+      .sum('payments.payment_amount as total')
+      .first()
+
+    const totalCollectionsMonth = Number(collectionsRow?.total ?? 0)
+
+    // Collection rate: lifetime (sum(amount)-sum(balance)) / sum(amount) for this accommodation
+    const feesRow = await db
+      .from('fees')
+      .where('fees.accommodation_id', accommodationId)
+      .select(
+        db.raw('COALESCE(SUM(fees.fee_amount), 0) as billed'),
+        db.raw('COALESCE(SUM(fees.fee_balance), 0) as outstanding')
+      )
+      .first()
+
+    const billed = Number(feesRow?.billed ?? 0)
+    const outstanding = Number(feesRow?.outstanding ?? 0)
+    const collected = billed - outstanding
+    const collectionRate = billed > 0 ? (collected / billed) * 100 : 0
+
+    return response.ok({
+      totalCollectionsMonth,
+      collectionRate,
+      billed,
+      collected,
+    })
+  }
+
   // ─── MANAGER/LANDLORD: CREATE A FEE ───
   // POST /fees
   async store({ auth, request, response }: HttpContext) {
@@ -65,6 +232,10 @@ export default class FeesController {
 
     if (!feeAmount || feeAmount <= 0) {
       return response.badRequest({ message: 'Invalid fee amount' })
+    }
+
+    if (feeAmount > MAX_FEE_AMOUNT) {
+      return response.badRequest({ message: `Fee amount cannot exceed ₱${MAX_FEE_AMOUNT.toLocaleString()}` })
     }
 
     if (!['rent', 'utilities', 'miscellaneous'].includes(feeCategory)) {
@@ -91,6 +262,7 @@ export default class FeesController {
 
     const fee = await Fee.create({
       landlordId: accom.landlordId,
+      accommodationId: accom.id,
       studentNumber: student.studentNumber,
       feeAmount: feeAmount,
       feeBalance: feeAmount,
@@ -145,6 +317,10 @@ export default class FeesController {
       return response.badRequest({ message: 'Invalid amount' })
     }
 
+    if (amount > MAX_FEE_AMOUNT) {
+      return response.badRequest({ message: `Amount cannot exceed ₱${MAX_FEE_AMOUNT.toLocaleString()}` })
+    }
+
     const room = await Room.findOrFail(roomId)
     const accom = await Accommodation.findOrFail(room.accommodationId)
     if (accom.landlordId !== landlord.userId) {
@@ -181,6 +357,7 @@ export default class FeesController {
       for (const assignment of assignments) {
         const fee = new Fee()
         fee.landlordId = accom.landlordId
+        fee.accommodationId = accom.id
         fee.studentNumber = assignment.studentNumber
         fee.feeAmount = amount
         fee.feeBalance = amount

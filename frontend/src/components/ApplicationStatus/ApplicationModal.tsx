@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Application } from '../ApplicationStatus/ApplicationStatusModal'
+import type { Application } from "@/interfaces/application";
 import StylizedStatus from "../BillingDashboard/StylizedStatus";
 import Modal from "../Modal";
 import ApprovalProgress from "./ApprovalProgress";
@@ -37,12 +37,12 @@ export default function ApplicationModal({ application, onClose, onSubmit }: App
                 </PhotoCarousel>
                 <div className='flex flex-row p-0 px-2 justify-between'>
                     <div className='flex flex-col w-52'>
-                        <p className="text-[14px] font-bold">{application.accommodation.accommodationName}</p>
+                        <p className="text-[14px] font-bold">{application.accommodation?.accommodationName}</p>
                         <p className="text-[11px] -mt-1s text-[#9A7080] capitalize">
-                            {application.applicationRoomType} • {application.accommodation.accommodationLocation}
+                            {application.applicationRoomType} • {application.accommodation?.accommodationLocation}
                         </p>
                         <p className="text-[11px] -mt-1 text-[#9A7080]">
-                            {application.accommodation.accommodationType}
+                            {application.accommodation?.accommodationType}
                         </p>
                     </div>
                     <div className='flex flex-col center-self'>

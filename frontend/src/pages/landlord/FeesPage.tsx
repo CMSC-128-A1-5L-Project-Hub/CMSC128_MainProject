@@ -13,6 +13,7 @@ import Button from "@/components/Button"
 import Card from "@/components/ui/Card"
 import SummaryCards from '../../components/BillingDashboard/SummaryCards';
 import { IoPersonSharp, IoCalendarSharp, IoBedSharp, IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp } from "react-icons/io5"
+import DocumentPreviewModal from "@/components/applications/DocumentPreviewModal"
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,16 @@ const fetchOverdueFees = async (accommodationId: number): Promise<OverdueFee[]> 
 const fetchPendingPayments = async (accommodationId: number): Promise<PendingPayment[]> => {
   const res = await api.get('/payments/pending', { params: { accommodationId } })
   return res.data
+}
+
+const fetchFeeStats = async (accommodationId: number) => {
+  const res = await api.get('/fees/stats', { params: { accommodationId } })
+  return res.data as {
+    totalCollectionsMonth: number
+    collectionRate: number
+    billed: number
+    collected: number
+  }
 }
 
 const verifyPayment = async ({ id, action }: { id: number; action: 'approve' | 'reject' }) => {
@@ -256,18 +267,34 @@ function FilterTabs({ active, setActive }: { active: ActiveTab; setActive: (tab:
 
 // ─── Payment Verification Row ──────────────────────────────────────────────
 
-function PaymentRow({ payment, onVerify, isPending }: { 
-  payment: PendingPayment; 
+function PaymentRow({ payment, onVerify, isPending }: {
+  payment: PendingPayment;
   onVerify: (id: number, action: 'approve' | 'reject') => void;
   isPending: boolean;
 }) {
   const [showActions, setShowActions] = useState(false)
+  const [preview, setPreview] = useState<{ url: string; name: string } | null>(null)
   const studentName = payment.fee?.student?.user
     ? `${payment.fee.student.user.fname} ${payment.fee.student.user.lname}`
     : payment.fee?.studentNumber || 'Unknown'
 
+  const handleViewProof = async () => {
+    try {
+      const res = await api.get(`/payments/${payment.id}/proof`)
+      if (res.status === 200 && res.data?.url) {
+        setPreview({ url: res.data.url, name: `${studentName} — Payment Proof` })
+      } else {
+        alert("Payment proof not available.")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Could not fetch payment proof.")
+    }
+  }
+
   return (
-    <tr className="hover:bg-gray-50 transition-all border-b last:border-0">
+    <>
+    <tr className="hover:bg-gray-50 transition-all">
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] flex items-center justify-center text-white font-bold text-sm">
@@ -288,39 +315,57 @@ function PaymentRow({ payment, onVerify, isPending }: {
         <p className="text-xs text-gray-400">{timeAgo(payment.paymentTimestamp)}</p>
       </td>
       <td className="px-4 py-3 text-right relative">
-        {showActions ? (
-          <div className="flex gap-2 justify-end">
+        <div className="flex gap-2 justify-end items-center">
+          {payment.proofFile?.filePath && (
             <button
-              onClick={() => onVerify(payment.id, 'approve')}
-              disabled={isPending}
-              className="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-50"
+              type="button"
+              onClick={handleViewProof}
+              className="px-3 py-1 rounded-lg border border-[#6B0F2B] text-[#6B0F2B] text-xs font-semibold hover:bg-[#6B0F2B]/5"
             >
-              Approve
+              View Proof
             </button>
+          )}
+          {showActions ? (
+            <>
+              <button
+                onClick={() => onVerify(payment.id, 'approve')}
+                disabled={isPending}
+                className="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-50"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => onVerify(payment.id, 'reject')}
+                disabled={isPending}
+                className="px-3 py-1 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-50"
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => setShowActions(false)}
+                className="px-3 py-1 rounded-lg bg-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
             <button
-              onClick={() => onVerify(payment.id, 'reject')}
-              disabled={isPending}
-              className="px-3 py-1 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-50"
+              onClick={() => setShowActions(true)}
+              className="px-4 py-1.5 rounded-lg bg-[#6B0F2B] text-white text-sm font-semibold hover:bg-[#5a0822]"
             >
-              Reject
+              Review
             </button>
-            <button
-              onClick={() => setShowActions(false)}
-              className="px-3 py-1 rounded-lg bg-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setShowActions(true)}
-            className="px-4 py-1.5 rounded-lg bg-[#6B0F2B] text-white text-sm font-semibold hover:bg-[#5a0822]"
-          >
-            Review
-          </button>
-        )}
+          )}
+        </div>
       </td>
     </tr>
+    <DocumentPreviewModal
+      open={!!preview}
+      onClose={() => setPreview(null)}
+      url={preview?.url ?? null}
+      name={preview?.name ?? ""}
+    />
+    </>
   )
 }
 
@@ -328,27 +373,27 @@ function PaymentRow({ payment, onVerify, isPending }: {
 
 function OverdueRow({ fee, onView }: { fee: OverdueFee; onView: (fee: OverdueFee) => void }) {
   return (
-    <tr className="hover:bg-gray-50 transition-all border-b last:border-0">
-      <td className="px-4 py-3">
+    <tr className="hover:bg-gray-50 transition-all">
+      <td className="px-4 py-2">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] flex items-center justify-center text-white font-bold text-sm">
             {fee.fname?.charAt(0)?.toUpperCase() || '?'}
           </div>
-          <div>
+          <div> 
             <p className="font-medium text-sm">{fee.fname} {fee.lname}</p>
             <p className="text-xs text-gray-400">{fee.student_number}</p>
           </div>
         </div>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-2">
         <p className="font-semibold text-red-600">₱{fee.fee_balance?.toLocaleString() ?? 0}</p>
         <p className="text-xs text-gray-400 capitalize">{fee.fee_category}</p>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-2">
         <p className="text-sm">{new Date(fee.due_date).toLocaleDateString()}</p>
         <p className="text-xs text-red-400">{timeAgo(fee.due_date)}</p>
       </td>
-      <td className="px-4 py-3 text-right">
+      <td className="px-4 py-2 text-center">
         <Button
           variant="secondary"
           size="sm"
@@ -508,6 +553,12 @@ export default function FeesPage() {
     enabled: !!selectedAccomId,
   })
 
+  const { data: feeStats, refetch: refetchStats } = useQuery({
+    queryKey: ['fees', 'stats', selectedAccomId],
+    queryFn: () => fetchFeeStats(selectedAccomId!),
+    enabled: !!selectedAccomId,
+  })
+
   useEffect(() => {
     if (overdueError) setToast({ show: true, type: "error", title: "Failed to Load Overdue Fees", message: "Could not fetch overdue fees data." })
   }, [overdueError])
@@ -521,6 +572,7 @@ export default function FeesPage() {
     onSuccess: (data, variables) => {
       refetchPayments()
       refetchOverdue()
+      refetchStats()
       if (variables.action === 'approve') {
         setToast({ show: true, type: "success", title: "Payment Approved!", message: "The payment has been successfully verified." })
       } else {
@@ -542,15 +594,25 @@ export default function FeesPage() {
 
   const totalFeePages = Math.ceil(filteredFees.length / itemsPerPage)
   const paginatedFees = filteredFees.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const [sortBy, setSortBy] = useState<string>("Date applied (Asc.)")
 
-  const filteredPayments = pendingPayments.filter((p) =>
-    p.fee?.studentNumber?.toLowerCase().includes(paymentSearch.toLowerCase()) ||
-    p.fee?.student?.user?.fname?.toLowerCase().includes(paymentSearch.toLowerCase())
-  )
+  const filteredPayments = pendingPayments
+    .filter((p) =>
+      p.fee?.studentNumber?.toLowerCase().includes(paymentSearch.toLowerCase()) ||
+      p.fee?.student?.user?.fname?.toLowerCase().includes(paymentSearch.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === "Date applied (Asc.)") return new Date(a.paymentTimestamp).getTime() - new Date(b.paymentTimestamp).getTime()
+      if (sortBy === "Date applied (Desc.)") return new Date(b.paymentTimestamp).getTime() - new Date(a.paymentTimestamp).getTime()
+      if (sortBy === "Status") return a.paymentStatus.localeCompare(b.paymentStatus)
+      return 0
+    })
 
   const fullName = user ? `${user.fname} ${user.lname}` : ''
   const totalOverdue = overdueFees.reduce((sum, f) => sum + (Number(f.fee_balance) || 0), 0)
-  const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (p.paymentAmount || 0), 0)
+  const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0)
+
+  const collectionRate = feeStats ? Math.round(feeStats.collectionRate) : null
 
   const summaryCards = [
     {
@@ -565,18 +627,18 @@ export default function FeesPage() {
       value: totalPendingPayments,
       color: "#D97706",
       sub: `${pendingPayments.length} payment${pendingPayments.length !== 1 ? "s" : ""} to review`,
-      includePeso: false
+      includePeso: true
     },
     {
       label: "total collections",
-      value: "—",
+      value: feeStats?.totalCollectionsMonth ?? 0,
       color: "#1A7A4A",
       sub: "This month",
-      includePeso: false
+      includePeso: true
     },
     {
       label: "collection rate",
-      value: "—",
+      value: collectionRate !== null ? `${collectionRate}%` : "—",
       color: "#000000",
       sub: "Target: 95%",
       includePeso: false
@@ -587,14 +649,16 @@ export default function FeesPage() {
     <div className="flex h-screen bg-[#F6F2F4] w-full">
       <div className="flex flex-col w-full h-full">
         <CustomHeader title="Fees" />
-        <main className="flex-1 p-6 overflow-y-auto w-full">
-          <HeroBanner
-            greeting={greeting()}
-            name={fullName}
-            title="Check the billing status of your tenants"
-            subtitle="We make it easy for you to track the bills you manage."
-            type="mini"
-          />
+        <main className="flex-1 p-6 overflow-y-auto w-full flex flex-col">
+          <div>
+            <HeroBanner
+              greeting={greeting()}
+              name={fullName}
+              title="Check the billing status of your tenants"
+              subtitle="We make it easy for you to track the bills you manage."
+              type="mini"
+            />
+          </div>
           
           <div className='grid grid-cols-2 lg:grid-cols-4 w-full gap-6 mt-6'>
               {/* Summary Cards */}
@@ -613,33 +677,48 @@ export default function FeesPage() {
           
           
 
-          <div className="mt-5 space-y-4">
+          <div className="mt-5 flex flex-col flex-1 gap-4">
             <div className="flex justify-between items-center flex-wrap gap-3">
               <FilterTabs active={activeTab} setActive={setActiveTab} />
             </div>
 
             {/* Payment Verification Panel */}
             {activeTab === 'Payment Verification' && (
-              <div className="bg-white rounded-2xl shadow-sm p-6">
+              <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col flex-1">
                 <div className="flex flex-row items-center mb-3">
                   <div>
                     <h2 className="text-[16px] font-bold text-black">Payment Verification</h2>
-                    <p className="text-[12px] italic text-gray-500">{filteredPayments.length} pending payments</p>
+                    <p className="text-[13px] italic">{filteredPayments.length} pending payments</p>
                   </div>
-                  <div className="flex items-end gap-3 ml-auto">
+                  <div className="flex items-end gap-2 ml-auto">
+                    <div className='hidden lg:block'>
+                      <Dropdown
+                        title="No. of Items"
+                        items={[
+                          { label: "5", href: "" },
+                          { label: "10", href: "" },
+                          { label: "15", href: "" },
+                          { label: "20", href: "" },
+                        ]}
+                        direction="down"
+                        widthClass="w-29 lg:w-32"
+                        titleClass="text-[10px] lg:text-[11px]"
+                        selectedClass="text-[12px] lg:text-[13px]"
+                        onSelect={(label) => setItemsPerPage(Number(label))}
+                      />
+                    </div>
                     <Dropdown
-                      title="No. of Items"
+                      title="Sort by"
                       items={[
-                        { label: "5", href: "" },
-                        { label: "10", href: "" },
-                        { label: "15", href: "" },
-                        { label: "20", href: "" },
+                          { label: "Date applied (Asc.)", href: "" },
+                          { label: "Date applied (Desc.)", href: "" },
+                          { label: "Status", href: "" },
                       ]}
                       direction="down"
-                      widthClass="w-29 lg:w-32"
+                      widthClass="w-32 lg:w-44"
                       titleClass="text-[10px] lg:text-[11px]"
                       selectedClass="text-[12px] lg:text-[13px]"
-                      onSelect={(label) => setItemsPerPage(Number(label))}
+                      onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
                     />
                     <SearchBar
                       value={paymentSearch}
@@ -649,68 +728,83 @@ export default function FeesPage() {
                   </div>
                 </div>
 
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-[10px] text-[#9A7080] uppercase tracking-widest font-bold text-left border-y border-[#6B0F2B]/10">
-                      <th className="px-4 py-2">Student</th>
-                      <th className="px-4 py-2">Amount</th>
-                      <th className="px-4 py-2">Date</th>
-                      <th className="px-4 py-2 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loadingPayments ? (
-                      <tr>
-                        <td colSpan={4} className="text-center py-16 text-gray-400">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
-                          Loading...
-                        </td>
-                      </tr>
-                    ) : filteredPayments.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="text-center py-16 text-gray-400">No pending payments.</td>
-                      </tr>
-                    ) : (
-                      filteredPayments.map((payment) => (
-                        <PaymentRow
-                          key={payment.id}
-                          payment={payment}
-                          onVerify={handleVerify}
-                          isPending={verifyMutation.isPending}
-                        />
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                {loadingPayments ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-center">
+                      <div className="animate-spin rounded-full h-8 w-8"/>
+                      <p className="text-sm text-[#9A7080] mt-2">Fetching your applications...</p>
+                  </div>
+                ) : filteredPayments.length === 0 ? (
+                  <div className="flex flex-col justify-center items-center min-h-0 flex-1 text-center">
+                      <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+                      <p className="text-[#9A7080]/60 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
+                  </div>
+                ) : (
+                  <div>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-[12px] text-[#9A7080] uppercase tracking-widest font-bold text-left border-y border-[#6B0F2B]/10">
+                          <th className="px-4 py-2">Student</th>
+                          <th className="px-4 py-2">Amount</th>
+                          <th className="px-4 py-2">Date</th>
+                          <th className="px-4 py-2 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredPayments.map((payment) => (
+                          <PaymentRow
+                            key={payment.id}
+                            payment={payment}
+                            onVerify={handleVerify}
+                            isPending={verifyMutation.isPending}
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
-
             {/* Overdue Fees Panel */}
             {activeTab === 'Overdue Fees' && (
-              <div className="bg-white rounded-2xl shadow-sm p-5">
+              <div className="bg-white rounded-2xl shadow-sm p-6">
                 <div className="flex flex-row items-center mb-3">
                   <div>
                     <h2 className="text-[16px] font-bold text-black">Overdue Fees</h2>
-                    <p className="text-[12px] italic text-gray-500">{filteredFees.length} overdue tenants</p>
+                    <p className="text-[13px] italic">{filteredFees.length} overdue tenants</p>
                   </div>
-                  <div className="flex items-end gap-3 ml-auto">
+                  <div className="flex items-end gap-2 ml-auto">
+                    <div className='hidden lg:block'>
+                      <Dropdown
+                        title="No. of Items"
+                        items={[
+                          { label: "5", href: "" },
+                          { label: "10", href: "" },
+                          { label: "15", href: "" },
+                          { label: "20", href: "" },
+                        ]}
+                        direction="down"
+                        widthClass="w-29 lg:w-32"
+                        titleClass="text-[10px] lg:text-[11px]"
+                        selectedClass="text-[12px] lg:text-[13px]"
+                        onSelect={(label) => {
+                          setItemsPerPage(Number(label))
+                          setCurrentPage(1)
+                        }}
+                      />
+                    </div>
                     <Dropdown
-                      title="No. of Items"
+                      title="Sort by"
                       items={[
-                        { label: "5", href: "" },
-                        { label: "10", href: "" },
-                        { label: "15", href: "" },
-                        { label: "20", href: "" },
+                          { label: "Date applied (Asc.)", href: "" },
+                          { label: "Date applied (Desc.)", href: "" },
+                          { label: "Status", href: "" },
                       ]}
                       direction="down"
-                      widthClass="w-29 lg:w-32"
+                      widthClass="w-32 lg:w-44"
                       titleClass="text-[10px] lg:text-[11px]"
                       selectedClass="text-[12px] lg:text-[13px]"
-                      onSelect={(label) => {
-                        setItemsPerPage(Number(label))
-                        setCurrentPage(1)
-                      }}
-                    />
+                      onSelect={(label) => { setSortBy(label); setCurrentPage(1); }}
+                  />
                     <SearchBar
                       value={search}
                       onChange={(query) => {
@@ -722,34 +816,34 @@ export default function FeesPage() {
                   </div>
                 </div>
 
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-[10px] text-[#9A7080] uppercase tracking-widest font-bold text-left border-y border-[#6B0F2B]/10">
-                      <th className="px-4 py-2">Student</th>
-                      <th className="px-4 py-2">Amount Due</th>
-                      <th className="px-4 py-2">Date</th>
-                      <th className="px-4 py-2 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loadingFees ? (
-                      <tr>
-                        <td colSpan={4} className="text-center py-16 text-gray-400">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
-                          Loading...
-                        </td>
+                {loadingFees ? (
+                  <div className="py-16 text-center text-gray-400">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B] mx-auto mb-2" />
+                    Loading...
+                  </div>
+                ) : paginatedFees.length === 0 ? (
+                  <div className="flex flex-col justify-center items-center h-full text-center">
+                    <p className="text-[#9A7080] font-medium text-lg">No applications found</p>
+                    <p className="text-[#9A7080]/60 text-sm mt-1">When you apply for an accommodation, it will appear here</p>
+                  </div>
+                ) : (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-[12px] text-[#9A7080] uppercase tracking-widest font-bold text-left border-y border-[#6B0F2B]/10">
+                        <th className="px-4 py-2">Student</th>
+                        <th className="px-4 py-2">Amount Due</th>
+                        <th className="px-4 py-2">Date</th>
+                        <th className="px-4 py-2 text-center">Action</th>
                       </tr>
-                    ) : paginatedFees.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="text-center py-16 text-gray-400">No overdue fees.</td>
-                      </tr>
-                    ) : (
-                      paginatedFees.map((fee) => (
+                    </thead>
+
+                    <tbody>
+                      {paginatedFees.map((fee) => (
                         <OverdueRow key={fee.id} fee={fee} onView={handleViewFee} />
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
 
                 {totalFeePages > 1 && (
                   <div className="flex items-center justify-between px-2 mt-4 pt-3 border-t border-gray-100">
@@ -760,6 +854,7 @@ export default function FeesPage() {
                   </div>
                 )}
               </div>
+              
             )}
           </div>
         </main>
@@ -793,4 +888,5 @@ export default function FeesPage() {
       />
     </div>
   )
+  
 }

@@ -171,6 +171,33 @@ export default class ReportExportService {
     })
   }
 
+  static async generateBillingStatementPdf(payload: {
+    landlordName: string
+    fee: {
+      id: number
+      category: string
+      amount: number
+      balance: number
+      status: string
+      dueDate: string | null
+      allowInstallments: boolean
+    }
+    student: { studentNumber: string; name: string; email: string | null }
+    accommodation: { name: string | null; roomNumber: string | null }
+    payments: Array<{
+      id: number
+      paymentTimestamp: string
+      paymentAmount: number
+      modeOfPayment: string
+      paymentStatus: string
+    }>
+  }): Promise<Buffer> {
+    return renderPrintPageToPdf('/reports/billing-statement/print', {
+      ...payload,
+      generatedAt: todayStr(),
+    })
+  }
+
   static async generateWaitingListXlsx(user: User): Promise<Buffer> {
     const rows = await ReportService.getWaitingList(user)
 
