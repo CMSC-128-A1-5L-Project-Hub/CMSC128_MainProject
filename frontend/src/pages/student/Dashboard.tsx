@@ -1196,7 +1196,7 @@ if (!profile || !user || user.role !== "student") {
                   <button
                     type="button"
                     onClick={() => navigate('/student/browse')}
-                    className="text-[14px] font-bold flex items-center gap-1"
+                    className="text-[14px] font-bold flex items-center gap-1 hover:underline"
                     style={{ color: CLR.mid }}
                   >
                     View all <IconChevronRight className="w-4 h-4" />
