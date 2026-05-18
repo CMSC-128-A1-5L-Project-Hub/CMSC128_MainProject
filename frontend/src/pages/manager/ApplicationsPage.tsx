@@ -370,7 +370,6 @@ export default function ApplicationsPage() {
                     titleClass="text-[10px] lg:text-[11px]"
                     selectedClass="text-[12px] lg:text-[13px]"
                     onSelect={(label) => { setRows(parseInt(label, 10)); setCurrentPage(1); }}
-                    flexDirection="row"
                   />
                 </div>
                 <Dropdown
