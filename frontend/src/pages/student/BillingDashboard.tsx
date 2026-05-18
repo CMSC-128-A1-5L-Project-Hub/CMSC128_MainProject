@@ -155,7 +155,7 @@ export default function BillingDashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
             <div className="flex items-center flex-row justify-between bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] p-6 col-span-2 lg:col-span-1 rounded-2xl shrink-0">
               <div>
-                <p className="uppercase font-bold text-white text-opacity-55 text-[12px] lg:text-[13px]">pay now</p>
+                <p className="uppercase tracking-widest font-bold text-white text-opacity-55 text-[12px] lg:text-[13px]">pay now</p>
                 <h1 className="font-bold text-[20.22px] lg:text-[21.22px] text-white">
                   ₱{(nextDueBill?.amount ?? 0).toLocaleString()}
                 </h1>
@@ -176,7 +176,7 @@ export default function BillingDashboard() {
                 }}
                 className="flex shrink-0 justify-center items-center w-30 lg:w-14 h-10 flex-row text-[11px] text-white rounded-xl border-2 font-semibold border-white bg-white fill-white bg-opacity-25"
               >
-                <p className='lg:hidden'>Pay Now</p>
+                <p className='tracking-widest lg:hidden'>Pay Now</p>
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#6B0F2B] self-center ml-2 lg:m-0" viewBox="0 0 24 24" fill="none">
                   <path d="M9 18l6-6-6-6" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>

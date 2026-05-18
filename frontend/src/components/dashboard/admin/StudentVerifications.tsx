@@ -113,14 +113,18 @@ export default function StudentVerifications({
   return (
     <>
       {/* ── Table card (unchanged layout) ─────────────────────────────────── */}
-      <Card className="shadow-sm rounded-2xl border border-[#F2D9DF] bg-white p-6">
-        <div className="mb-6 flex items-center justify-between">
-          <h4 className="text-xl font-semibold text-[#2A0410]">
-            Student Verifications
-          </h4>
+      <Card className="shadow-sm rounded-2xl border-[#F2D9DF] bg-white p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex flex-col">
+            <h4 className="text-[16px] font-bold text-[#2A0410]">
+              Student Verifications
+            </h4>
+            <p className="italic text-[13px]">{students.length} pending verification {students.length === 1 ? "" : "s"}</p>
+          </div>
+          
           <button
             onClick={() => navigate("/admin/student-verifications")}
-            className="text-sm font-semibold text-[#6B0F2B] hover:text-[#2A0410]"
+            className="text-sm font-semibold text-[#6B0F2B] hover:underline"
           >
             View all →
           </button>
@@ -130,10 +134,8 @@ export default function StudentVerifications({
           <p className="text-sm text-gray-500">Loading...</p>
         ) : students.length === 0 ? (
           <>
-            <hr className="border-[#F2D9DF]" />
-
             <div className="flex items-center justify-center py-10">
-              <p className="text-lg text-[#9A7080] text-center">
+              <p className="text-[15px] text-[#9A7080] text-center">
                 No pending student applications
               </p>
             </div>
@@ -143,13 +145,13 @@ export default function StudentVerifications({
             <table className="min-w-full border-collapse">
               <thead>
                 <tr className="border-y border-[#F2D9DF]">
-                  <th className="w-[44%] py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="w-[44%] py-2 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
                     Student
                   </th>
-                  <th className="w-[29%] py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="w-[29%] py-2 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
                     Applied
                   </th>
-                  <th className="py-3 text-center text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
+                  <th className="py-2 text-center text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
                     Action
                   </th>
                 </tr>
@@ -158,23 +160,23 @@ export default function StudentVerifications({
                 {students.slice(0, 5).map((item: any) => (
                   <tr key={item.user.id} className="hover:bg-[#FFF7F9]">
                     <td className="py-4">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
                         <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042] flex items-center justify-center text-white font-semibold">
                           {item.user.fname?.[0]?.toUpperCase() ?? "S"}
                         </div>
-                        <p className="text-base font-medium text-[#2A0410]">
+                        <p className="text-[14px] font-medium text-[#2A0410]">
                           {`${item.user.fname} ${item.user.lname}`}
                         </p>
                       </div>
                     </td>
-                    <td className="py-4 text-sm text-[#A06B7C]">
+                    <td className="py-4 text-[14px] text-[#A06B7C]">
                       {formatDate(item.user.submittedAt)}
                     </td>
                     <td className="py-4 text-center">
                       <button
                         onClick={() => handleReview(item)}
                         disabled={processingUserId === item.user.id}
-                        className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-4 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF] disabled:opacity-60"
+                        className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-4 py-2 text-[12px] font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF] disabled:opacity-60"
                       >
                         {processingUserId === item.user.id ? "Processing..." : "Review"}
                       </button>

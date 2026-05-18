@@ -28,10 +28,10 @@ export default function SystemSettings({
   return (
     <Card className="shadow-sm">
       <div className="mb-4">
-        <h2 className="text-xl font-bold text-[#2A0410]">
+        <h2 className="text-[16px] font-bold text-[#2A0410]">
           System Settings
         </h2>
-        <p className="text-xs text-gray-500">
+        <p className="text-[13px] italic">
           Update the current academic year and semester.
         </p>
       </div>
