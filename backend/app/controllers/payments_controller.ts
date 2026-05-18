@@ -30,12 +30,14 @@ export default class PaymentsController {
       return response.badRequest({ message: 'Payment amount must be greater than zero' })
     }
 
-    if (paymentAmount > fee.feeBalance) {
+    const feeBalance = Number(fee.feeBalance)
+
+    if (paymentAmount > feeBalance + 0.001) {
       return response.badRequest({ message: 'Payment amount exceeds the remaining balance' })
     }
 
     // If installments are NOT allowed, student must pay full balance
-    if (!fee.allowInstallments && paymentAmount !== fee.feeBalance) {
+    if (!fee.allowInstallments && Math.abs(paymentAmount - feeBalance) > 0.001) {
       return response.badRequest({
         message: 'Full payment is required for this fee. Please pay the exact remaining balance.',
       })
