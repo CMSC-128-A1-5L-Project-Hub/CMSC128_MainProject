@@ -11,6 +11,7 @@ import {
 } from "react-icons/io5";
 import type { Application } from "@/interfaces/application";
 import { api } from "@/api/axios";
+import DocumentPreviewModal from "./DocumentPreviewModal";
 
 // STATUS 
 const StatusBadge = ({
@@ -97,6 +98,7 @@ const ApplicationModalContent = ({
   statusConfig: Record<string, { color: string; bg: string; dot: string }>;
 }) => {
   const fullName = `${app.student?.user?.fname} ${app.student?.user?.lname}`;
+  const [preview, setPreview] = useState<{ url: string; name: string } | null>(null);
   // 1. Extract the names from the application data safely
   const fetchedNames = (app.documents || []).map((doc) => doc.requirementName);
 
@@ -109,6 +111,7 @@ const ApplicationModalContent = ({
   console.log(documentRequirements);
 
   return (
+    <>
     <Card
       children={
         // HEADER [ NAME AND STTAUS ]
@@ -262,8 +265,8 @@ const ApplicationModalContent = ({
                               if (requirementName.toUpperCase() === "ENROLLMENT PROOF") {
                                 try {
                                   const res = await api.get(`/applications/${app.id}/enrollment-proof`)
-                                  if (res.status === 200) {
-                                    window.open(res.data.url, '_blank')
+                                  if (res.status === 200 && res.data?.url) {
+                                    setPreview({ url: res.data.url, name: requirementName })
                                   } else {
                                     alert("Enrollment proof not available.")
                                     // setToast({ 
@@ -289,9 +292,9 @@ const ApplicationModalContent = ({
                                   // Safely encodes names with spaces (e.g., "BARANGAY CLEARANCE" -> "BARANGAY%20CLEARANCE")
                                   const secureParam = encodeURIComponent(requirementName)
                                   const res = await api.get(`/applications/${app.id}/documents/${secureParam}`)
-                                  
-                                  if (res.status === 200) {
-                                    window.open(res.data.url, '_blank')
+
+                                  if (res.status === 200 && res.data?.url) {
+                                    setPreview({ url: res.data.url, name: requirementName })
                                   } else {
                                     alert(`${requirementName} not available.`)
                                     // setToast({ 
@@ -345,6 +348,13 @@ const ApplicationModalContent = ({
         </div>
       }
     />
+    <DocumentPreviewModal
+      open={!!preview}
+      onClose={() => setPreview(null)}
+      url={preview?.url ?? null}
+      name={preview?.name ?? ""}
+    />
+    </>
   );
 };
 

@@ -839,7 +839,7 @@ export default function Dashboard() {
                       </div>
                     </SectionCard>
 
-                    <SectionCard title="Form 5 Renewal">
+                    <SectionCard title="Enrollment Proof Renewal">
                       <div className="flex items-center gap-4">
                         <div className="shrink-0">
                           <CircleProgress value={form5Pct} />
@@ -873,7 +873,7 @@ export default function Dashboard() {
                               Form 5 / Enrollment Proof
                             </span>
                           </div>
-                          <p className="text-[10px] text-gray-400 italic mt-1">Auto-collected at student signup. Submission tracked in the Form 5 panel above.</p>
+                          <p className="text-[10px] text-gray-400 italic mt-1">Auto-collected at student signup. Submission tracked in the Enrollment Proof panel.</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-400 mb-1">FACILITY-SPECIFIC</p>

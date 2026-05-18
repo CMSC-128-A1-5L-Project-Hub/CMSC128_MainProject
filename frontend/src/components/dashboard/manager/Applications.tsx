@@ -11,6 +11,7 @@ import {
 } from "react-icons/io5"
 import { api } from "../../../api/axios"
 import type { TransformedApp } from "../../../stores/useDashboardStore"
+import DocumentPreviewModal from "../../applications/DocumentPreviewModal"
 
 type Props = {
   data: TransformedApp[]
@@ -74,6 +75,7 @@ export default function Applications({ data, docs, className = "", onAction, set
   const [modalApplication, setModalApplication] = useState<TransformedApp | null>(null)
   const [rejectionTarget, setRejectionTarget] = useState<TransformedApp | null>(null)
   const [loading, setLoading] = useState(false)
+  const [preview, setPreview] = useState<{ url: string; name: string } | null>(null)
 
   const getInitials = (name: string) => name?.trim()?.[0]?.toUpperCase() ?? "?"
 
@@ -243,8 +245,8 @@ export default function Applications({ data, docs, className = "", onAction, set
                               if (requirementName.toUpperCase() === "ENROLLMENT PROOF") {
                                 try {
                                   const res = await api.get(`/applications/${modalApplication.id}/enrollment-proof`)
-                                  if (res.status === 200) {
-                                    window.open(res.data.url, '_blank')
+                                  if (res.status === 200 && res.data?.url) {
+                                    setPreview({ url: res.data.url, name: requirementName })
                                   } else {
                                     setToast({ 
                                       show: true, 
@@ -268,9 +270,9 @@ export default function Applications({ data, docs, className = "", onAction, set
                                   // Safely encodes names with spaces (e.g., "BARANGAY CLEARANCE" -> "BARANGAY%20CLEARANCE")
                                   const secureParam = encodeURIComponent(requirementName)
                                   const res = await api.get(`/applications/${modalApplication.id}/documents/${secureParam}`)
-                                  
-                                  if (res.status === 200) {
-                                    window.open(res.data.url, '_blank')
+
+                                  if (res.status === 200 && res.data?.url) {
+                                    setPreview({ url: res.data.url, name: requirementName })
                                   } else {
                                     setToast({ 
                                       show: true, 
@@ -387,6 +389,13 @@ export default function Applications({ data, docs, className = "", onAction, set
         )}
       </div>
     </Card>
+
+    <DocumentPreviewModal
+      open={!!preview}
+      onClose={() => setPreview(null)}
+      url={preview?.url ?? null}
+      name={preview?.name ?? ""}
+    />
     </>
   )
 }
