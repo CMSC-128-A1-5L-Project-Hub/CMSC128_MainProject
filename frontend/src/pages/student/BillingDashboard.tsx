@@ -247,7 +247,7 @@ export default function BillingDashboard() {
             </div>
 
             <div className={`${bills.length === 0 ? "hidden" : "flex"} flex-col`}>
-              <hr className="border-[#6B0F2B]/5 border-t-2" />
+              <hr className="border-[#6B0F2B]/5" />
               <div className='flex flex-nowrap justify-between'>
                 <div className='flex justify-start items-center gap-2'>
                   <span className='text-[11px] text-[#9A7080] p-0 mt-2 m-0'>
