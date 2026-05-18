@@ -660,8 +660,8 @@ function EarlyMoveOutModal({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={handleSubmit}
             disabled={submitRequest.isPending || !requestedDate || !reason.trim()}
           >
@@ -676,7 +676,7 @@ function EarlyMoveOutModal({
           <div>
             <p className="text-sm font-semibold text-amber-800">Important Notice</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              Early move-out requests are subject to approval by your dorm manager. 
+              Early move-out requests are subject to approval by your dorm manager.
               You may be subject to penalties as stated in your contract.
             </p>
           </div>
@@ -724,51 +724,67 @@ function EarlyMoveOutModal({
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function Field({ label, value, isCaps = false }: { label: string; value: string; isCaps?: boolean }) {
+/**
+ * Always read-only field — label + plain text value, no box.
+ * Matches the view-mode style of LandlordProfile's Field component.
+ */
+function Field({
+  label,
+  value,
+  isCaps = false,
+}: {
+  label: string;
+  value: string;
+  isCaps?: boolean;
+}) {
   return (
-    <div className="space-y-1.5">
-      <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#A88993]">{label}</p>
-      <div className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold border-[#F2F2F2] bg-white text-[#A88993] ${isCaps ? 'uppercase' : ''}`}>
+    <div className="min-w-0">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#A88993]">{label}</p>
+      <div className={`text-sm text-[#4A3940] ${isCaps ? "uppercase" : ""}`}>
         {value || "—"}
       </div>
     </div>
   );
 }
 
-function EditableField({ 
-  label, 
-  value, 
-  isEditing, 
-  onChange, 
+/**
+ * Editable field — plain text in view mode, styled input in edit mode.
+ * Mirrors LandlordProfile's Field component pattern exactly.
+ */
+function EditableField({
+  label,
+  value,
+  isEditing,
+  onChange,
   isCaps = false,
   placeholder = "",
   type = "text",
-  maxLength
-}: { 
-  label: string; 
-  value: string; 
-  isEditing: boolean; 
-  onChange?: (val: string) => void; 
+  maxLength,
+}: {
+  label: string;
+  value: string;
+  isEditing: boolean;
+  onChange?: (val: string) => void;
   isCaps?: boolean;
   placeholder?: string;
   type?: string;
   maxLength?: number;
 }) {
   return (
-    <div className="space-y-1.5">
-      <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#A88993]">{label}</p>
+    <div className="min-w-0">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#A88993]">{label}</p>
       {isEditing ? (
-        <input 
-          value={value || ""} 
-          onChange={(e) => onChange?.(e.target.value)} 
+        <input
+          value={value || ""}
+          onChange={(e) => onChange?.(e.target.value)}
           placeholder={placeholder}
           type={type}
           maxLength={maxLength}
           inputMode={type === "tel" ? "numeric" : undefined}
-          className={`w-full rounded-xl border border-[#EADFD3] bg-[#FBF9F8] px-4 py-3 text-sm font-semibold text-[#2A1F1A] outline-none focus:border-[#8C1535] transition-colors ${isCaps ? 'uppercase' : ''}`} 
+          className={`w-full rounded-xl border border-[#E6CAD3] bg-[#FBF5F7] px-3 py-2 text-sm text-[#2A1F1A] outline-none focus:border-[#A04E66] transition-colors ${isCaps ? "uppercase" : ""}`}
         />
       ) : (
-        <div className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold border-[#F2F2F2] bg-white text-[#A88993] ${isCaps ? 'uppercase' : ''}`}>
+        <div className={`text-sm text-[#4A3940] ${isCaps ? "uppercase" : ""}`}>
           {value || "—"}
         </div>
       )}
@@ -992,7 +1008,7 @@ export default function ProfilePage() {
 
   const handleSendOtp = async () => {
     const phone = pendingPhone.replace(/\D/g, "");
-    
+
     if (!isValidPhilippinePhone(phone)) {
       setOtpError("Phone number must be 11 digits and start with 09 (e.g., 09123456789).");
       return;
@@ -1190,196 +1206,239 @@ export default function ProfilePage() {
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
-
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F6F2F4] font-['Plus_Jakarta_Sans'] text-[#2A1F1A]">
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <CustomHeader title="Profile"/>
+    <div className="min-h-screen bg-[#F6F2F4] text-[#2A1F1A] lg:flex overflow-y-auto font-['Plus_Jakarta_Sans']">
+      <div className="flex-1">
+        <CustomHeader title="Profile" />
 
-        <main className="flex-1 overflow-y-auto px-3 py-4 md:px-6 lg:px-8 lg:py-6">
-          <section className="overflow-hidden rounded-[40px] border border-[#EADFD3] bg-white shadow-sm">
-            <div className="p-4 sm:p-6 md:p-10 lg:p-14">
-              <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
-                
-                {/* Left Column - Avatar & Photo Controls */}
-                <div className="w-full lg:w-[320px] lg:shrink-0">
-                  <div className="relative aspect-square overflow-hidden rounded-[35px] bg-[#F9EBEE] border border-[#F2F2F2]">
-                    <img 
-                      src={tempImage || profile.profilePictureUrl || defaultPfp} 
-                      className="h-full w-full object-cover" 
-                      alt="Profile" 
-                      onError={(e) => { (e.target as HTMLImageElement).src = defaultPfp; }}
-                    />
-                    <button 
-                      onClick={() => !pfpUploading && fileInputRef.current?.click()} 
-                      disabled={pfpUploading}
-                      className="absolute left-4 top-4 bg-white/90 p-2 rounded-xl shadow-sm border border-[#F2F2F2] hover:bg-white transition-colors disabled:opacity-50"
-                    >
-                      <img src={Camera} className="h-5 w-5 sm:h-6 sm:w-6" alt="Upload" />
-                    </button>
-                    {pfpUploading && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-[35px]">
-                        <span className="text-white text-sm font-bold">Uploading...</span>
+        <main className="px-3 py-4 md:px-6 lg:px-8 lg:py-6">
+          <section className="overflow-hidden rounded-[28px] border border-[#EADFD3] bg-white shadow-sm">
+            <div className="p-4 md:p-6 lg:p-8">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+
+                {/* LEFT COLUMN */}
+                <div className="w-full lg:w-[290px] lg:shrink-0">
+
+                  {/* PROFILE CARD */}
+                  <div className="overflow-hidden rounded-[28px] border border-[#EFE3E6] bg-[#F8EFF2]">
+                    <div className="relative h-[220px] md:h-[260px] lg:h-[300px] bg-[#F6EDEF]">
+
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleImageUpload}
+                      />
+
+                      <button
+                        aria-label="Change photo"
+                        onClick={() => !pfpUploading && fileInputRef.current?.click()}
+                        disabled={pfpUploading}
+                        className="absolute top-4 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-all"
+                      >
+                        <img src={Camera} alt="" className="h-5 w-5" />
+                      </button>
+
+                      <img
+                        src={tempImage || profile.profilePictureUrl || defaultPfp}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = defaultPfp; }}
+                      />
+
+                      {pfpUploading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                          <span className="text-sm font-bold text-white">Uploading...</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4">
+                      <div className="flex items-center gap-3 rounded-2xl border border-[#D9E8DD] bg-[#EEF8F1] px-4 py-3">
+                        <img src={BadgeCheck} alt="" className="h-5 w-5" />
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-extrabold uppercase tracking-wide text-[#1F7A3A]">
+                            Verified UPLB Student
+                          </p>
+                          <p className="text-[10px] text-[#1F7A3A]/70">
+                            Verified {verifyDate}
+                          </p>
+                        </div>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* CURRENT DORM */}
+                  <div className="mt-5 rounded-[28px] border border-[#EADFD3] bg-[#F8EFF2] p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8C1535] text-sm font-bold text-white shrink-0">
+                        {currentDorm?.room.accommodation.accommodationName?.[0] || "D"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-[#2A1F1A]">
+                          {currentDorm?.room.accommodation.accommodationName || "No Assignment"}
+                        </p>
+                        <p className="text-xs text-[#A88993]">
+                          {currentDorm?.room.roomType || "Shared Residence"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {currentDorm && (
+                      <>
+                        <div className="mt-5 space-y-3">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-[#A88993]">Room</span>
+                            <span className="font-semibold text-[#2A1F1A]">{currentDorm.room.roomName}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-[#A88993]">Move-In</span>
+                            <span className="font-semibold text-[#2A1F1A]">
+                              {new Date(currentDorm.moveIn).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-[#A88993]">Expected Move-Out</span>
+                            <span className="font-semibold text-[#2A1F1A]">
+                              {new Date(currentDorm.expectedMoveOut).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleEarlyMoveOut(currentDorm)}
+                          className="mt-5 w-full rounded-2xl bg-[#8C1535] py-3 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#6B0F2B] transition-colors"
+                        >
+                          Request Early Move-Out
+                        </button>
+                      </>
                     )}
-                  </div>
 
-                  {/* Documents Button */}
-                  <div className="mt-6 grid grid-cols-1 gap-4">
-                    <div 
-                      className="flex min-h-[85px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#EADFD3] bg-[#FAF9F8] text-center cursor-not-allowed"
+                    <button
+                      onClick={() => setShowHistory(true)}
+                      className="mt-3 w-full rounded-2xl border border-[#E0C7CF] bg-white py-3 text-xs font-bold uppercase tracking-wide text-[#8C1535] hover:bg-[#F9F1F4] transition-colors"
                     >
-                      <p className="text-[11px] font-extrabold tracking-widest text-[#8C1535] uppercase">DOCUMENTS</p>
-                      <p className="text-[9px] text-gray-400">ID / Form 5</p>
-                    </div>
+                      View Accommodation History
+                    </button>
                   </div>
-
-                  {profile.accountStatus === "active" && (
-                    <div className="mt-6 flex items-center gap-4 rounded-2xl bg-[#E6F4EA] px-6 py-4 border border-[#D0E6D5]">
-                      <img src={BadgeCheck} className="h-5 w-5" alt="Verified" />
-                      <div className="flex-1">
-                        <p className="text-[11px] font-extrabold uppercase text-[#1F7A3A]">Verified UPLB Student</p>
-                      </div>
-                      <span className="text-[10px] text-[#1F7A3A]/60 font-bold">{verifyDate}</span>
-                    </div>
-                  )}
                 </div>
 
-                {/* Right Column - Profile Fields */}
+                {/* RIGHT COLUMN */}
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-col sm:flex-row items-start justify-between gap-6 mb-12">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="mb-2 text-[10px] font-bold tracking-[0.15em] text-[#A88993] uppercase">Full Name</p>
-                      <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-[#2A1F1A] break-words">
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-[#A88993]">
+                        Full Name
+                      </p>
+                      <h1 className="break-words text-2xl font-bold leading-none text-[#2A1F1A] sm:text-3xl">
                         {fullName(profile)}
-                      </h2>
+                      </h1>
                     </div>
-                    <div className="flex gap-3 w-full sm:w-auto">
+
+                    <div className="flex gap-3">
                       {isEditing && (
-                        <button 
+                        <button
                           onClick={handleCancelEdit}
                           disabled={saveMutation.isPending}
-                          className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 rounded-2xl border border-[#E6CAD3] px-6 py-3 text-sm font-bold text-[#2A1F1A] shadow-sm hover:bg-gray-100 transition-all disabled:opacity-50"
+                          className="inline-flex items-center justify-center rounded-xl border border-[#E2D5D9] px-5 py-2.5 sm:py-3 text-sm font-semibold text-[#2A1F1A] hover:bg-gray-100 transition-all"
                         >
-                          CANCEL
+                          Cancel
                         </button>
                       )}
-                      <button 
-                        onClick={isEditing ? handleSaveClick : () => {
-                          setIsEditing(true);
-                          setPendingPhone(primaryPhone(profile));
-                        }}
+
+                      <button
+                        onClick={
+                          isEditing
+                            ? handleSaveClick
+                            : () => {
+                                setIsEditing(true);
+                                setPendingPhone(primaryPhone(profile));
+                              }
+                        }
                         disabled={saveMutation.isPending || pfpUploading}
-                        className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 rounded-2xl border border-[#E6CAD3] px-6 py-3 text-sm font-bold text-[#2A1F1A] shadow-sm hover:bg-[#8C1535] hover:text-white transition-all group disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-xl border border-[#A04E66] px-5 py-2.5 sm:py-3 text-sm font-semibold text-[#A04E66] hover:bg-[#A04E66] hover:text-white transition-all w-full sm:w-auto justify-center"
                       >
-                        <img src={isEditing ? Save : Pencil} className="h-4 w-4 group-hover:invert" alt="" />
-                        {saveMutation.isPending ? "SAVING..." : isEditing ? "SAVE PROFILE" : "EDIT PROFILE"}
+                        <img src={isEditing ? Save : Pencil} alt="" className="h-4 w-4" />
+                        {saveMutation.isPending
+                          ? "Saving..."
+                          : isEditing
+                          ? "Save Profile"
+                          : "Edit Profile"}
                       </button>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                  {/* FIELDS GRID */}
+                  <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 sm:gap-x-10 gap-y-4 sm:gap-y-5">
+
                     <Field label="UP Mail" value={profile.email} />
+
                     <Field label="College" value={profile.student?.college || ""} />
-                    
+
                     <Field label="Middle Name" value={profile.mname || ""} />
+
                     <Field label="Degree Program" value={profile.student?.degreeProgram || ""} />
 
-                    <EditableField 
-                      label="Primary Phone" 
-                      value={isEditing ? pendingPhone : form.primaryPhone} 
+                    <EditableField
+                      label="Primary Phone"
+                      value={isEditing ? pendingPhone : form.primaryPhone}
                       isEditing={isEditing}
                       onChange={(v) => {
                         const cleaned = v.replace(/\D/g, "").slice(0, 11);
                         setPendingPhone(cleaned);
-                      }} 
+                      }}
                       type="tel"
                       maxLength={11}
                       placeholder="09123456789"
                     />
+
                     <Field label="Student Number" value={profile.student?.studentNumber || ""} />
-                    
-                    <EditableField 
-                      label="Secondary Phone" 
-                      value={form.secondaryPhone} 
+
+                    <EditableField
+                      label="Secondary Phone"
+                      value={form.secondaryPhone}
                       isEditing={isEditing}
                       onChange={(v) => {
                         const cleaned = v.replace(/\D/g, "").slice(0, 11);
                         patchForm({ secondaryPhone: cleaned });
-                      }} 
+                      }}
                       type="tel"
                       maxLength={11}
                       placeholder="09123456789"
                     />
+
                     <Field label="Gender" value={profile.student?.gender || ""} isCaps />
 
-                    <EditableField 
-                      label="Facebook Link" 
-                      value={form.facebookAccount} 
-                      isEditing={isEditing} 
-                      onChange={(v) => patchForm({ facebookAccount: v })} 
+                    <EditableField
+                      label="Facebook Link"
+                      value={form.facebookAccount}
+                      isEditing={isEditing}
+                      onChange={(v) => patchForm({ facebookAccount: v })}
                     />
-                    
+
                     <Field label="Classification" value={profile.student?.classification || ""} isCaps />
 
-                    <EditableField 
-                      label="Emergency Contact" 
-                      value={form.emergencyContactName} 
-                      isEditing={isEditing} 
-                      onChange={(v) => patchForm({ emergencyContactName: v })} 
+                    <EditableField
+                      label="Emergency Contact"
+                      value={form.emergencyContactName}
+                      isEditing={isEditing}
+                      onChange={(v) => patchForm({ emergencyContactName: v })}
                     />
-                    
+
                     <Field label="Year Level" value={profile.student?.yearLevel || ""} isCaps />
 
-                    <EditableField 
-                      label="Emergency Contact #" 
-                      value={form.emergencyContactNumber} 
-                      isEditing={isEditing} 
-                      onChange={(v) => patchForm({ emergencyContactNumber: v.replace(/\D/g, "").slice(0, 11) })} 
+                    <EditableField
+                      label="Emergency Contact #"
+                      value={form.emergencyContactNumber}
+                      isEditing={isEditing}
+                      onChange={(v) =>
+                        patchForm({ emergencyContactNumber: v.replace(/\D/g, "").slice(0, 11) })
+                      }
                       type="tel"
                       maxLength={11}
                       placeholder="09123456789"
                     />
-                  </div>
-
-                  <div className="mt-14 border-t border-[#F2F2F2] pt-10">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-                      <p className="text-[10px] font-extrabold tracking-widest text-[#A88993] uppercase">Current Dorm</p>
-                      {currentDorm && (
-                        <button
-                          onClick={() => handleEarlyMoveOut(currentDorm)}
-                          className="flex items-center justify-center gap-2 text-[11px] font-bold text-amber-600 hover:text-amber-700 transition-colors"
-                        >
-                          <Calendar size={14} />
-                          Request Early Move-Out
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-6 rounded-3xl border border-[#EADFD3] bg-[#F8EFF2] p-5">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8C1535] text-lg font-bold text-white shadow-sm uppercase">
-                        {currentDorm?.room.accommodation.accommodationName?.[0] || "D"}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-base sm:text-lg font-bold text-[#2A1F1A]">
-                          {currentDorm?.room.accommodation.accommodationName || "No Assignment"}
-                        </p>
-                        <p className="text-sm text-[#A88993]">
-                          {currentDorm?.room.roomType || "Shared Residence"}
-                          {currentDorm && ` • ${formatSemester(currentDorm.moveIn)}`}
-                        </p>
-                        {currentDorm && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Expected Move-Out: {new Date(currentDorm.expectedMoveOut).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                      <button 
-                        onClick={() => setShowHistory(true)} 
-                        className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#4A0819] px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-white shadow-lg hover:bg-[#6B0F2B] transition-colors"
-                      >
-                        📜 Accommodation History
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1391,38 +1450,53 @@ export default function ProfilePage() {
       {/* OTP Verification Modal */}
       <Modal
         open={otpModalOpen}
-        onClose={() => { 
-          setOtpModalOpen(false); 
-          setOtpSent(false); 
-          setOtpCode(""); 
-          setOtpError(null); 
+        onClose={() => {
+          setOtpModalOpen(false);
+          setOtpSent(false);
+          setOtpCode("");
+          setOtpError(null);
         }}
         title="Verify Phone Number"
         eyebrow="OTP VERIFICATION"
         maxWidth={480}
         footer={
           <div className="flex flex-row justify-end w-full">
-            <Button 
-              variant="reddishPink" 
-              onClick={otpSent ? handleVerifyOtp : handleSendOtp} 
+            <Button
+              variant="reddishPink"
+              onClick={otpSent ? handleVerifyOtp : handleSendOtp}
               disabled={isSendingOtp || isVerifyingOtp}
             >
-              {isSendingOtp ? "Sending..." : isVerifyingOtp ? "Verifying..." : otpSent ? "Verify OTP" : "Send OTP"}
+              {isSendingOtp
+                ? "Sending..."
+                : isVerifyingOtp
+                ? "Verifying..."
+                : otpSent
+                ? "Verify OTP"
+                : "Send OTP"}
             </Button>
           </div>
         }
       >
         <div className="flex flex-col gap-5 py-2">
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Phone Number</p>
-            <p className="text-base font-bold text-[#2A1F1A] break-all">{pendingPhone}</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Phone Number
+            </p>
+            <p className="text-base font-bold text-[#2A1F1A]">{pendingPhone}</p>
           </div>
+
           {otpSent && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Enter OTP Code</p>
-              <div className="flex gap-2 justify-center flex-wrap">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Enter OTP Code
+              </p>
+              <div className="flex justify-center gap-2">
                 {[0, 1, 2, 3, 4, 5].map((i) => (
-                  <input key={i} type="text" inputMode="numeric" maxLength={1}
+                  <input
+                    key={i}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
                     value={otpCode[i] || ""}
                     onChange={(e) => {
                       const newOtp = otpCode.split("");
@@ -1440,14 +1514,21 @@ export default function ProfilePage() {
                       }
                     }}
                     name={`otp-${i}`}
-                    className="w-10 h-12 sm:w-12 sm:h-14 border border-[#6B0F2B3E] rounded-xl text-center text-lg font-bold text-[#2A1F1A] outline-none transition focus:border-[#8C1535] focus:ring-2 focus:ring-[#8C1535]/30"
+                    className="h-14 w-12 rounded-xl border border-[#6B0F2B3E] text-center text-lg font-bold text-[#2A1F1A] outline-none transition focus:border-[#8C1535] focus:ring-2 focus:ring-[#8C1535]/30"
                   />
                 ))}
               </div>
-              <p className="text-[10px] text-gray-400 mt-3 text-center">Enter the 6-digit code sent to your phone</p>
+              <p className="mt-3 text-center text-[10px] text-gray-400">
+                Enter the 6-digit code sent to your phone
+              </p>
             </div>
           )}
-          {otpError && <p className="text-xs text-red-500 text-center bg-red-50 py-2 rounded-lg">{otpError}</p>}
+
+          {otpError && (
+            <p className="rounded-lg bg-red-50 py-2 text-center text-xs text-red-500">
+              {otpError}
+            </p>
+          )}
         </div>
       </Modal>
 
@@ -1463,9 +1544,7 @@ export default function ProfilePage() {
           accommodationName={selectedAssignment.room.accommodation.accommodationName}
           roomNumber={selectedAssignment.room.roomName}
           currentMoveOutDate={selectedAssignment.expectedMoveOut}
-          onSuccess={() => {
-            refetchHistory();
-          }}
+          onSuccess={() => { refetchHistory(); }}
           setToast={setToast}
         />
       )}
@@ -1498,22 +1577,14 @@ export default function ProfilePage() {
           onWriteReview={handleOpenReviewModal}
         />
       )}
-      
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        className="hidden" 
-        accept="image/jpeg,image/png,image/webp"
-        onChange={handleImageUpload}
-      />
 
-      {/* Toast Notifications */}
+      {/* Toast */}
       <Toast
         type={toast.type}
         title={toast.title}
         message={toast.message}
         show={toast.show}
-        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+        onClose={() => setToast((prev) => ({ ...prev, show: false }))}
       />
     </div>
   );
