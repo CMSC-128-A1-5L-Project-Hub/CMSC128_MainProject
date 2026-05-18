@@ -5,6 +5,7 @@ import { api } from "../../api/axios";
 
 import Sidebar from "../../components/Sidebar";
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel";
+import { useNotifications } from "../../hooks/useNotifications";
 import Modal from "../../components/Modal";
 import Button from "../../components/Button";
 import Toast from "../../components/Toast";
@@ -65,8 +66,8 @@ export default function LandlordProfile() {
     });
 
     const [notifOpen, setNotifOpen] = useState(false);
-    const [notifications, setNotifications] = useState<Notification[]>([]);
     const notifWrapperRef = useRef<HTMLDivElement>(null);
+    const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications({ refetchOn: notifOpen });
 
     const { data: user, isError } = useQuery({
         queryKey: ["me"],
@@ -298,28 +299,6 @@ export default function LandlordProfile() {
         };
         fetchProfile();
     }, []);
-
-    useEffect(() => {
-        api.get('/notifications').then(({ data }) => {
-            setNotifications(data.map((n: any) => ({
-                id: n.id, type: n.notificationType,
-                message: n.notificationContent,
-                time: new Date(n.notificationTimestamp).toLocaleString(),
-                read: n.readStatus === 'read',
-            })))
-        }).catch(console.error)
-    }, []);
-
-    const unreadCount = notifications.filter((n) => !n.read).length;
-    const markAllRead = () => {
-        notifications.filter((n) => !n.read).forEach((n) =>
-            api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error))
-        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-    };
-    const markOneRead = (id: number) => {
-        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
-        api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-    };
 
     useEffect(() => { if (isError) navigate("/auth/signin"); }, [isError, navigate]);
     useEffect(() => { if (user && user.role !== "landlord") navigate("/auth/signin"); }, [user, navigate]);

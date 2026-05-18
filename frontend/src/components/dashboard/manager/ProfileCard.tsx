@@ -8,6 +8,7 @@ import Modal from "../../Modal"
 import Button from "../../Button"
 import ReportModal from "../../ReportModal"
 import NotificationPanel, { type Notification } from "../../NotificationPanel"
+import { useNotifications } from "../../../hooks/useNotifications"
 import { api } from "../../../api/axios"
 
 type ProfileCardProps = {
@@ -80,37 +81,8 @@ export default function ProfileCard({
     }
 
     const [notifOpen, setNotifOpen]         = useState(false)
-    const [notifications, setNotifications] = useState<Notification[]>([])
     const notifWrapperRef                   = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        api.get('/notifications').then(({ data }) => {
-            setNotifications(
-                data.map((n: any) => ({
-                    id: n.id,
-                    type: n.notificationType,
-                    message: n.notificationContent,
-                    time: new Date(n.notificationTimestamp).toLocaleString(),
-                    read: n.readStatus === 'read',
-                }))
-            )
-        }).catch((e) => {
-            console.error(e)
-            setToast?.({ show: true, type: "error", title: "Failed to load notifications", message: "Could not fetch your notifications." })
-        })
-    }, [])
-
-    const unreadCount = notifications.filter((n) => !n.read).length
-    const markAllRead = () => {
-        notifications
-            .filter((n) => !n.read)
-            .forEach((n) => api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error))
-        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-    }
-    const markOneRead = (id: number) => {
-        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
-        api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-    }
+    const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications({ refetchOn: notifOpen })
 
     const isActive = status === "assigned" || status === "active" || status === "Active"
     const isNoManager = status === "none"

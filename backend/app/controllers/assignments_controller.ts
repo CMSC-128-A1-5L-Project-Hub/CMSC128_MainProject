@@ -159,7 +159,7 @@ async store({ auth, request, response }: HttpContext) {
           `You have been assigned to Room ${room.roomNumber} at ${accommodation.accommodationName}. Move-in: ${assignment.moveIn.toISODate() ?? ''}.`
         )
       } catch (e) {
-        console.error('Failed to send in-app assignment notification:', e)
+        console.error('[notify] in-app assignment-created controller-wrap failed:', e)
       }
 
       try {
@@ -249,7 +249,7 @@ async store({ auth, request, response }: HttpContext) {
         )
       }
     } catch (e) {
-      console.error('Failed to send in-app move-out notification:', e)
+      console.error('[notify] in-app move-out controller-wrap failed:', e)
     }
 
     return response.ok(assignment)
