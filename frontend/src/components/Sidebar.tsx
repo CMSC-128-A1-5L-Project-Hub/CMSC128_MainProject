@@ -11,6 +11,8 @@ import LogoutIcon from "../assets/icons/logout.svg?react";
 import RoomIcon from "../assets/icons/room.svg?react";
 import LandlordApplicationIcon from "../assets/icons/application&waitlisted.svg?react";
 import FeesIcon from "../assets/icons/fees.svg?react";
+import StudentVerification from "../assets/icons/student_verifications.svg?react";
+import AdminVerification from "../assets/icons/admin_verifications.svg?react";
 
 const OccupancyIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="white">
@@ -547,13 +549,13 @@ export default function Sidebar({ role, profile }: SidebarProps) {
           {
             id: "student-verifications",
             label: "Student Verifications",
-            icon: <ApplicationIcon />,
+            icon: <StudentVerification />,
             path: "/admin/student-verifications",
           },
           {
             id: "landlord-verifications",
             label: "Housing Administrator Verifications",
-            icon: <ProfileIcon />,
+            icon: <AdminVerification />,
             path: "/admin/landlord-verifications",
           },
           {

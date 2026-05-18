@@ -331,7 +331,7 @@ const OccupancyRooms = ({ rooms, className }: { rooms: Room[], className?: strin
             <h2 className="text-[#1A0008] font-bold text-base mb-3">
                 Occupancy Rooms
             </h2>
-            <div className="flex flex-col lg:flex-row items-center justify-center gap-8 h-full -mt-7">
+            <div className="flex flex-row items-center justify-center gap-8 lg:my-7">
                 {/* Donut SVG */}
                 <div className="relative flex-shrink-0">
                     <svg width="180" height="180" viewBox="0 0 120 120">
@@ -683,12 +683,16 @@ export default function OccupancyRecords() {
                             />
                             <OccupancyRooms 
                                 rooms={rooms}
-                                className="col-span-1"
+                                className="col-span-1 hidden lg:inline-block"
                             />
                         </div>
                         <OccupancyHistory 
                             records={historyRecords}
                         />
+                        <OccupancyRooms 
+                                rooms={rooms}
+                                className="col-span-1 sm:hidden inline-block"
+                            />
                         </>
                     )}
                     </main>
