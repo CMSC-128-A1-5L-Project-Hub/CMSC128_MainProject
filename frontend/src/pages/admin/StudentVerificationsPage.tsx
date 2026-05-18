@@ -238,10 +238,9 @@ export default function StudentVerificationsPage() {
               ) : isPendingError ? (
                 <p className="text-sm text-red-500">Error loading requests.</p>
               ) : filteredStudents.length === 0 ? (
-                <div className="flex h-[390px] items-center justify-center border-t border-[#F2D9DF]">
-                  <p className="text-lg font-medium text-[#9A7080] text-center">
-                    No pending student applications
-                  </p>
+                <div className="flex flex-col justify-center items-center h-full text-center">
+                    <p className="text-[#9A7080] font-medium text-lg">No pending verifications found</p>
+                    <p className="text-[#9A7080]/60 text-sm mt-1">When a student applies, they will appear here</p>
                 </div>
               ) : (
                 <>
