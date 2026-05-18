@@ -440,7 +440,7 @@ export default function MoveinMoveout() {
                                                 "U"
                                             }
                                             </div>
-                                            <p className="font-semibold text-sm text-[#1A0008]">
+                                            <p className="font-bold text-sm text-[#1A0008]">
                                             {record?.student?.user?.fname && record?.student?.user?.lname ?
                                                 `${record.student.user.fname} ${record.student.user.lname}` :
                                                 "Loading name..."
