@@ -18,13 +18,13 @@ export interface Application {
   rejectionReason: string | null
 
   applicationStatus:
-    | 'pending'
-    | 'approved'
-    | 'rejected'
-    | 'cancelled'
-    | 'waitlisted'
-    | 'under_review'
-    | 'confirmed'
+      | 'pending'
+      | 'approved'
+      | 'rejected'
+      | 'cancelled'
+      | 'waitlisted'
+      | 'under_review'
+      | 'confirmed'
 
   durationOfStayDays: number | null
 
@@ -44,11 +44,11 @@ export interface Application {
 
   reservationFee: number | null
   moveInFee: number | null
-
+  contractMonths: number;
   accommodation?: Accommodation
   student?: Student
   reviewer?: User
   room?: Room
-
+  estimatedMonthlyRent?: number | null
   documents?: ApplicationDocument[]
 }

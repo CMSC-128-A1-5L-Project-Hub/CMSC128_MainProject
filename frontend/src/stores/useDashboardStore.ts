@@ -115,6 +115,8 @@ export type TransformedApp = Omit<RawApplication, 'student' | 'accommodation'> &
   roomType: string
   applicationDate: string
   preferredTags: string[]
+  moveInDate: string | null   // Add this
+  moveOutDate: string | null  // Add this
   accommodation: {
     building: string
     tenantRestriction: string

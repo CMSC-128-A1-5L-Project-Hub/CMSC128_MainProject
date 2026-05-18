@@ -12,8 +12,8 @@ import Toast from "@/components/Toast";
 import UbleLoader from "../shared/LoadingPage";
 import HeroBanner from "@/components/dashboard/HeroBanner";
 import Button from "@/components/Button";
-import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
-
+import ApplicationStatusModal from "../../components/ApplicationStatus/ApplicationStatusModal";
+import type { Application } from "@/interfaces/application";
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
 import { useNotifications } from "../../hooks/useNotifications"

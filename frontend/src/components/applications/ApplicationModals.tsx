@@ -184,16 +184,29 @@ const ApplicationModalContent = ({
                 </div>
 
                 {/* Only display when stay type is transient */}
-                {app.applicationStayType === "transient" ? (
+                {app.applicationStayType === 'transient' ? (
+                    <>
+                        <div>
+                            <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Move-in Date</p>
+                            <p className="text-[#1A0008] text-sm">
+                                {app.moveInDate ? new Date(app.moveInDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Move-out Date</p>
+                            <p className="text-[#1A0008] text-sm">
+                                {app.moveOutDate ? new Date(app.moveOutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                            </p>
+                        </div>
+                    </>
+                ) : (
                   <div>
-                    <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Duration</p>
-                    <p className="text-[#1A0008] text-sm">
-                      {app.durationOfStayDays} day{app.durationOfStayDays !== 1 ? "s" : ""}
-                    </p>
+                      <p className="text-[#9A7080] text-[10px] uppercase font-semibold tracking-wide">Duration</p>
+                      <p className="text-[#1A0008] text-sm">
+                          {app.durationOfStayDays} NA {app.durationOfStayDays !== 1 ? "" : ""}
+                      </p>
                   </div>
-                  )
-                  : undefined
-                }
+                )}
               </div>
             </div>
           </div>

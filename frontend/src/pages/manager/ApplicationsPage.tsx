@@ -74,7 +74,7 @@ const STATUS_CONFIG: Record<Status, { color: string; bg: string; dot: string }> 
   under_review: { color: "#1A7A4A", bg: "#dcfce7", dot: "#1A7A4A" },
   cancelled: { color: "#AA2661", bg: "#ffe4e6", dot: "#AA2661" },
   rejected: { color: "#9E2040", bg: "#ffe4e6", dot: "#9E2040" },
-  confirmed: {color: "#2E7D32", bg: "#E8F5E9", dot:"#2E7D32"}
+  confirmed: { color: '#1A7A4A', bg: '#F0F7F3', dot: '#1A7A4A' },
 };
 
 
