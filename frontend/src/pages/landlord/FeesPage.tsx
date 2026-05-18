@@ -13,6 +13,7 @@ import Button from "@/components/Button"
 import Card from "@/components/ui/Card"
 import SummaryCards from '../../components/BillingDashboard/SummaryCards';
 import { IoPersonSharp, IoCalendarSharp, IoBedSharp, IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp } from "react-icons/io5"
+import DocumentPreviewModal from "@/components/applications/DocumentPreviewModal"
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,16 @@ const fetchOverdueFees = async (accommodationId: number): Promise<OverdueFee[]> 
 const fetchPendingPayments = async (accommodationId: number): Promise<PendingPayment[]> => {
   const res = await api.get('/payments/pending', { params: { accommodationId } })
   return res.data
+}
+
+const fetchFeeStats = async (accommodationId: number) => {
+  const res = await api.get('/fees/stats', { params: { accommodationId } })
+  return res.data as {
+    totalCollectionsMonth: number
+    collectionRate: number
+    billed: number
+    collected: number
+  }
 }
 
 const verifyPayment = async ({ id, action }: { id: number; action: 'approve' | 'reject' }) => {
@@ -256,17 +267,33 @@ function FilterTabs({ active, setActive }: { active: ActiveTab; setActive: (tab:
 
 // ─── Payment Verification Row ──────────────────────────────────────────────
 
-function PaymentRow({ payment, onVerify, isPending }: { 
-  payment: PendingPayment; 
+function PaymentRow({ payment, onVerify, isPending }: {
+  payment: PendingPayment;
   onVerify: (id: number, action: 'approve' | 'reject') => void;
   isPending: boolean;
 }) {
   const [showActions, setShowActions] = useState(false)
+  const [preview, setPreview] = useState<{ url: string; name: string } | null>(null)
   const studentName = payment.fee?.student?.user
     ? `${payment.fee.student.user.fname} ${payment.fee.student.user.lname}`
     : payment.fee?.studentNumber || 'Unknown'
 
+  const handleViewProof = async () => {
+    try {
+      const res = await api.get(`/payments/${payment.id}/proof`)
+      if (res.status === 200 && res.data?.url) {
+        setPreview({ url: res.data.url, name: `${studentName} — Payment Proof` })
+      } else {
+        alert("Payment proof not available.")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Could not fetch payment proof.")
+    }
+  }
+
   return (
+    <>
     <tr className="hover:bg-gray-50 transition-all border-b last:border-0">
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
@@ -290,14 +317,13 @@ function PaymentRow({ payment, onVerify, isPending }: {
       <td className="px-4 py-3 text-right relative">
         <div className="flex gap-2 justify-end items-center">
           {payment.proofFile?.filePath && (
-            <a
-              href={payment.proofFile.filePath}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={handleViewProof}
               className="px-3 py-1 rounded-lg border border-[#6B0F2B] text-[#6B0F2B] text-xs font-semibold hover:bg-[#6B0F2B]/5"
             >
               View Proof
-            </a>
+            </button>
           )}
           {showActions ? (
             <>
@@ -333,6 +359,13 @@ function PaymentRow({ payment, onVerify, isPending }: {
         </div>
       </td>
     </tr>
+    <DocumentPreviewModal
+      open={!!preview}
+      onClose={() => setPreview(null)}
+      url={preview?.url ?? null}
+      name={preview?.name ?? ""}
+    />
+    </>
   )
 }
 
@@ -520,6 +553,12 @@ export default function FeesPage() {
     enabled: !!selectedAccomId,
   })
 
+  const { data: feeStats, refetch: refetchStats } = useQuery({
+    queryKey: ['fees', 'stats', selectedAccomId],
+    queryFn: () => fetchFeeStats(selectedAccomId!),
+    enabled: !!selectedAccomId,
+  })
+
   useEffect(() => {
     if (overdueError) setToast({ show: true, type: "error", title: "Failed to Load Overdue Fees", message: "Could not fetch overdue fees data." })
   }, [overdueError])
@@ -533,6 +572,7 @@ export default function FeesPage() {
     onSuccess: (data, variables) => {
       refetchPayments()
       refetchOverdue()
+      refetchStats()
       if (variables.action === 'approve') {
         setToast({ show: true, type: "success", title: "Payment Approved!", message: "The payment has been successfully verified." })
       } else {
@@ -562,7 +602,9 @@ export default function FeesPage() {
 
   const fullName = user ? `${user.fname} ${user.lname}` : ''
   const totalOverdue = overdueFees.reduce((sum, f) => sum + (Number(f.fee_balance) || 0), 0)
-  const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (p.paymentAmount || 0), 0)
+  const totalPendingPayments = pendingPayments.reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0)
+
+  const collectionRate = feeStats ? Math.round(feeStats.collectionRate) : null
 
   const summaryCards = [
     {
@@ -577,18 +619,18 @@ export default function FeesPage() {
       value: totalPendingPayments,
       color: "#D97706",
       sub: `${pendingPayments.length} payment${pendingPayments.length !== 1 ? "s" : ""} to review`,
-      includePeso: false
+      includePeso: true
     },
     {
       label: "total collections",
-      value: "—",
+      value: feeStats?.totalCollectionsMonth ?? 0,
       color: "#1A7A4A",
       sub: "This month",
-      includePeso: false
+      includePeso: true
     },
     {
       label: "collection rate",
-      value: "—",
+      value: collectionRate !== null ? `${collectionRate}%` : "—",
       color: "#000000",
       sub: "Target: 95%",
       includePeso: false

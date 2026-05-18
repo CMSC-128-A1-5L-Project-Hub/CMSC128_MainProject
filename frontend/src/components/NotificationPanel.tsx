@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react"
 
-export type NotificationType = "application_status" | "other" | "system" | "fee_due"
+export type NotificationType = "application_status" | "other" | "system" | "fee_due" | "move_out_request" | "move_out_request_response"
 
 export type Notification = {
     id: number
-    type: NotificationType
-    message: string
-    time: string
-    read: boolean
+    notificationType?: string  // Changed from 'type' to match API
+    notificationContent?: string  // Changed from 'message'
+    notificationTimestamp?: string  // Changed from 'time'
+    readStatus?: string  // Changed from 'read' (boolean)
+    type?: NotificationType  // Keep for compatibility
+    message?: string
+    time?: string
+    read?: boolean
 }
 
-export const TYPE_STYLES: Record<NotificationType, { label: string; bg: string; text: string }> = {
+export const TYPE_STYLES: Record<string, { label: string; bg: string; text: string }> = {
     application_status: { label: "Application", bg: "bg-[#6B0F2B]/10", text: "text-[#6B0F2B]" },
     fee_due:            { label: "Fee due",     bg: "bg-[#B45309]/10", text: "text-[#B45309]" },
+    move_out_request:   { label: "Move Out",    bg: "bg-[#C9973A]/10", text: "text-[#C9973A]" },
+    move_out_request_response: { label: "Move Out", bg: "bg-[#C9973A]/10", text: "text-[#C9973A]" },
     other:              { label: "Other",       bg: "bg-[#2563EB]/10", text: "text-[#2563EB]" },
     system:             { label: "System",      bg: "bg-[#5F5E5A]/10", text: "text-[#5F5E5A]" },
 }
@@ -29,6 +35,44 @@ type NotificationPanelProps = {
     wrapperRef: React.RefObject<HTMLDivElement | null>
 }
 
+// Helper function to safely get notification type
+const getNotificationType = (notif: Notification): string => {
+    return notif.notificationType || notif.type || "other"
+}
+
+// Helper function to safely get notification message
+const getNotificationMessage = (notif: Notification): string => {
+    return notif.notificationContent || notif.message || "No message"
+}
+
+// Helper function to safely get notification time
+const getNotificationTime = (notif: Notification): string => {
+    const timestamp = notif.notificationTimestamp || notif.time
+    if (!timestamp) return "Just now"
+    
+    try {
+        const date = new Date(timestamp)
+        const now = new Date()
+        const diffMs = now.getTime() - date.getTime()
+        const diffMins = Math.floor(diffMs / 60000)
+        const diffHours = Math.floor(diffMs / 3600000)
+        const diffDays = Math.floor(diffMs / 86400000)
+        
+        if (diffMins < 1) return "Just now"
+        if (diffMins < 60) return `${diffMins} min ago`
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+    } catch {
+        return "Just now"
+    }
+}
+
+// Helper function to safely check if notification is read
+const isNotificationRead = (notif: Notification): boolean => {
+    if (notif.read !== undefined) return notif.read
+    return notif.readStatus === 'read'
+}
+
 export default function NotificationPanel({
     open,
     notifications,
@@ -38,7 +82,6 @@ export default function NotificationPanel({
     onClose,
     wrapperRef,
 }: NotificationPanelProps) {
-    //active tab state
     const [activeTab, setActiveTab] = useState<Tab>("unread")
 
     useEffect(() => {
@@ -52,9 +95,9 @@ export default function NotificationPanel({
         return () => document.removeEventListener("mousedown", handler)
     }, [open, onClose, wrapperRef])
 
-    //notif filtering based on selected tab
+    // Filter notifications based on selected tab
     const shown = activeTab === "unread"
-        ? notifications.filter(n => !n.read)
+        ? notifications.filter(n => !isNotificationRead(n))
         : notifications
 
     const tabClass = (tab: Tab) =>
@@ -64,7 +107,6 @@ export default function NotificationPanel({
             : "bg-transparent text-[#9A7A82] hover:text-[#6B0F2B]"
         }`
 
-    //di pwede inline so dito na lang
     const panelWidth = "w-[300px] lg:w-[340px]"
 
     return (
@@ -117,32 +159,39 @@ export default function NotificationPanel({
             <ul className="max-h-[320px] overflow-y-auto divide-y divide-[#6B0F2B]/6">
                 {shown.length === 0 ? (
                     <li className="px-4 py-7 text-center text-[12px] text-[#9A7A82]">
-                        No unread notifications
+                        {activeTab === "unread" ? "No unread notifications" : "No notifications"}
                     </li>
                 ) : (
                     shown.map((n) => {
-                        const style = TYPE_STYLES[n.type]
+                        const typeKey = getNotificationType(n)
+                        const style = TYPE_STYLES[typeKey] || TYPE_STYLES.other
+                        const isRead = isNotificationRead(n)
+                        
                         return (
                             <li
                                 key={n.id}
                                 onClick={() => onMarkOneRead(n.id)}
                                 className={`flex gap-3 px-4 py-3 cursor-pointer transition-colors
-                                    ${n.read
+                                    ${isRead
                                         ? "bg-white hover:bg-[#F5EEF0]/50"
                                         : "bg-[#FDF6F8] hover:bg-[#FAF0F3]"
                                     }`}
                             >
                                 <div className="mt-1.5 flex-shrink-0 w-2 h-2">
-                                    {!n.read && (
+                                    {!isRead && (
                                         <div className="w-2 h-2 rounded-full" style={{ background: "#C9973A" }} />
                                     )}
                                 </div>
-                                <div className="min-w-0">
+                                <div className="min-w-0 flex-1">
                                     <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md mb-1 ${style.bg} ${style.text}`}>
                                         {style.label}
                                     </span>
-                                    <p className="text-[12px] text-[#1A0008] leading-snug">{n.message}</p>
-                                    <p className="text-[11px] text-[#9A7A82] mt-0.5">{n.time}</p>
+                                    <p className="text-[12px] text-[#1A0008] leading-snug break-words">
+                                        {getNotificationMessage(n)}
+                                    </p>
+                                    <p className="text-[11px] text-[#9A7A82] mt-0.5">
+                                        {getNotificationTime(n)}
+                                    </p>
                                 </div>
                             </li>
                         )
