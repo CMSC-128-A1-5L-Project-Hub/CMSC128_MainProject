@@ -12,6 +12,7 @@ import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
 import { inject } from '@adonisjs/core'
 import NotificationService from '#services/notification_service'
+import ReportExportService from '#services/report_export_service'
 
 @inject()
 export default class FeesController {
@@ -48,6 +49,108 @@ export default class FeesController {
       )
 
     return response.ok({ data: studentFees })
+  }
+
+  // ─── DOWNLOAD INDIVIDUAL BILLING STATEMENT (PDF) ───
+  // GET /fees/:id/statement.pdf
+  async statementPdf({ auth, params, response }: HttpContext) {
+    const user = auth.user
+    if (!user) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
+    const fee = await Fee.query()
+      .where('id', params.id)
+      .preload('student', (s) => s.preload('user'))
+      .preload('payments')
+      .first()
+
+    if (!fee) {
+      return response.notFound({ message: 'Fee not found' })
+    }
+
+    // Resolve accommodation + room via the student's current assignment
+    const assignment = await Assignment.query()
+      .where('studentNumber', fee.studentNumber)
+      .whereNull('actualMoveOut')
+      .preload('room', (q) => q.preload('accommodation'))
+      .first()
+
+    const accommodation = assignment?.room?.accommodation ?? null
+    const roomNumber = assignment?.room?.roomNumber ?? null
+
+    // Authorize
+    if (user.role === 'student') {
+      const student = await Student.findBy('userId', user.id)
+      if (!student || student.studentNumber !== fee.studentNumber) {
+        return response.forbidden({ message: 'Access denied' })
+      }
+    } else if (user.role === 'landlord') {
+      if (fee.landlordId !== user.id) {
+        return response.forbidden({ message: 'Access denied' })
+      }
+    } else if (user.role === 'manager') {
+      if (!accommodation || accommodation.managerId !== user.id) {
+        return response.forbidden({ message: 'Access denied' })
+      }
+    } else {
+      return response.forbidden({ message: 'Access denied' })
+    }
+
+    // Landlord name for header
+    const landlord = await Landlord.query()
+      .where('userId', fee.landlordId)
+      .preload('user')
+      .first()
+    const landlordName = landlord?.user
+      ? [landlord.user.fname, landlord.user.mname, landlord.user.lname]
+          .filter(Boolean)
+          .join(' ')
+      : '—'
+
+    const studentUser = fee.student?.user
+    const studentName = studentUser
+      ? [studentUser.fname, studentUser.mname, studentUser.lname]
+          .filter(Boolean)
+          .join(' ')
+      : fee.studentNumber
+
+    const buf = await ReportExportService.generateBillingStatementPdf({
+      landlordName,
+      fee: {
+        id: fee.id,
+        category: fee.feeCategory,
+        amount: Number(fee.feeAmount),
+        balance: Number(fee.feeBalance),
+        status: fee.feeStatus,
+        dueDate: fee.dueDate ? fee.dueDate.toISO() : null,
+        allowInstallments: !!fee.allowInstallments,
+      },
+      student: {
+        studentNumber: fee.studentNumber,
+        name: studentName,
+        email: studentUser?.email ?? null,
+      },
+      accommodation: {
+        name: accommodation?.accommodationName ?? null,
+        roomNumber: roomNumber,
+      },
+      payments: fee.payments.map((p) => ({
+        id: p.id,
+        paymentTimestamp: p.paymentTimestamp.toISO() ?? '',
+        paymentAmount: Number(p.paymentAmount),
+        modeOfPayment: p.modeOfPayment,
+        paymentStatus: p.paymentStatus,
+      })),
+    })
+
+    const date = new Date().toISOString().slice(0, 10)
+    response.header('Content-Type', 'application/pdf')
+    response.header(
+      'Content-Disposition',
+      `attachment; filename="billing-statement-${fee.id}-${date}.pdf"`
+    )
+    return response.send(buf)
   }
 
   // ─── MANAGER/LANDLORD: CREATE A FEE ───

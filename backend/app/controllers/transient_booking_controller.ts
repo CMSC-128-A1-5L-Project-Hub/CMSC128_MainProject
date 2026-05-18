@@ -58,7 +58,6 @@ export default class TransientBookingsController {
     const file = request.file('receipt', { size: '5mb', extnames: ['jpg', 'png', 'jpeg', 'pdf'] })
     if (!file) return response.badRequest({ message: 'No receipt file' })
 
-    await file.moveToDisk('./tmp')
     const fileUrl = await uploadImage(file, 'transient_payments')
     const fileMeta = await FileMetadata.create({
       fileName: file.clientName ?? 'receipt.jpg',

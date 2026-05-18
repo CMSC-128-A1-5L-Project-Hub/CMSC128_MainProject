@@ -288,37 +288,49 @@ function PaymentRow({ payment, onVerify, isPending }: {
         <p className="text-xs text-gray-400">{timeAgo(payment.paymentTimestamp)}</p>
       </td>
       <td className="px-4 py-3 text-right relative">
-        {showActions ? (
-          <div className="flex gap-2 justify-end">
-            <button
-              onClick={() => onVerify(payment.id, 'approve')}
-              disabled={isPending}
-              className="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-50"
+        <div className="flex gap-2 justify-end items-center">
+          {payment.proofFile?.filePath && (
+            <a
+              href={payment.proofFile.filePath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1 rounded-lg border border-[#6B0F2B] text-[#6B0F2B] text-xs font-semibold hover:bg-[#6B0F2B]/5"
             >
-              Approve
-            </button>
+              View Proof
+            </a>
+          )}
+          {showActions ? (
+            <>
+              <button
+                onClick={() => onVerify(payment.id, 'approve')}
+                disabled={isPending}
+                className="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-50"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => onVerify(payment.id, 'reject')}
+                disabled={isPending}
+                className="px-3 py-1 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-50"
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => setShowActions(false)}
+                className="px-3 py-1 rounded-lg bg-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
             <button
-              onClick={() => onVerify(payment.id, 'reject')}
-              disabled={isPending}
-              className="px-3 py-1 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-50"
+              onClick={() => setShowActions(true)}
+              className="px-4 py-1.5 rounded-lg bg-[#6B0F2B] text-white text-sm font-semibold hover:bg-[#5a0822]"
             >
-              Reject
+              Review
             </button>
-            <button
-              onClick={() => setShowActions(false)}
-              className="px-3 py-1 rounded-lg bg-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setShowActions(true)}
-            className="px-4 py-1.5 rounded-lg bg-[#6B0F2B] text-white text-sm font-semibold hover:bg-[#5a0822]"
-          >
-            Review
-          </button>
-        )}
+          )}
+        </div>
       </td>
     </tr>
   )

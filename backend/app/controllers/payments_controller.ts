@@ -53,7 +53,6 @@ export default class PaymentsController {
     let fileMeta: FileMetadata | null = null
 
     if (file) {
-      await file.moveToDisk('./tmp')
       const fileUrl = await uploadImage(file, 'payments')
 
       fileMeta = await FileMetadata.create({
@@ -70,6 +69,9 @@ export default class PaymentsController {
       modeOfPayment,
       paymentStatus: 'pending',
     })
+
+    fee.feeStatus = 'pending'
+    await fee.save()
 
     try {
       await LogService.record(
@@ -193,23 +195,33 @@ async pending({ auth, request, response }: HttpContext) {
 
     if (action === 'approve') {
       payment.paymentStatus = 'verified'
-
       fee.feeBalance -= payment.paymentAmount
-
-      if (fee.feeBalance <= 0) {
-        fee.feeStatus = 'paid'
-      } else if (fee.dueDate && fee.dueDate < DateTime.now()) {
-        fee.feeStatus = 'overdue'
-      } else {
-        fee.feeStatus = 'partial'
-      }
-
-      await fee.save()
     } else {
       payment.paymentStatus = 'rejected'
     }
 
     await payment.save()
+
+    // Recompute fee status. Any other pending payments keep the fee in 'pending'.
+    const otherPending = await Payment.query()
+      .where('feeId', fee.id)
+      .where('paymentStatus', 'pending')
+      .whereNot('id', payment.id)
+      .first()
+
+    if (otherPending) {
+      fee.feeStatus = 'pending'
+    } else if (fee.feeBalance <= 0) {
+      fee.feeStatus = 'paid'
+    } else if (fee.dueDate && fee.dueDate < DateTime.now()) {
+      fee.feeStatus = 'overdue'
+    } else if (fee.feeBalance < fee.feeAmount) {
+      fee.feeStatus = 'partial'
+    } else {
+      fee.feeStatus = 'unpaid'
+    }
+
+    await fee.save()
 
     await LogService.record(
       user.id,

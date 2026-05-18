@@ -30,7 +30,7 @@ export default class Fee extends BaseModel {
   declare feeBalance: number
 
   @column()
-  declare feeStatus: 'paid' | 'unpaid' | 'overdue' | 'partial'
+  declare feeStatus: 'paid' | 'unpaid' | 'overdue' | 'partial' | 'pending'
 
   @column()
   declare allowInstallments: boolean
