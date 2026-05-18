@@ -298,9 +298,8 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
         {amenities.length > 0 && (
           <div className="flex flex-wrap gap-1 sm:gap-1.5">
             {amenities.map((name) => (
-              <span key={name} className="inline-flex items-center gap-1 sm:gap-1.5 pl-2 sm:pl-2.5 pr-1 sm:pr-1.5 py-1 sm:py-1.5 bg-emerald-600 text-white rounded-full text-[9px] sm:text-xs font-medium">
+              <span key={name} className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 bg-emerald-600 text-white rounded-full text-[9px] sm:text-xs font-medium cursor-pointer transition" onClick={() => setAmenities(amenities.filter(a => a !== name))}>
                 <Check size={10} className="sm:w-3 sm:h-3" />{name}
-                <button type="button" onClick={() => setAmenities(amenities.filter(a => a !== name))} className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex items-center justify-center hover:bg-emerald-700 rounded-full transition"><X size={10} className="sm:w-3 sm:h-3" /></button>
               </span>
             ))}
           </div>
