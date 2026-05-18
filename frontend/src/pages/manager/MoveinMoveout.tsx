@@ -306,8 +306,8 @@ export default function MoveinMoveout() {
         
         // Force boolean values with !! (double bang)
         const isMoveInRecord = !!(hasActualMoveOut === false && moveIn && moveInDiff <= 0);
-        const isMoveOutRecord = !!(hasActualMoveOut || (expectedMoveOut && expectedDiff > 0));
-        
+        const isMoveOutRecord = hasActualMoveOut || (expectedMoveOut !== null && expectedMoveOut !== undefined);   
+             
         let matchesFilter: boolean = true;
         if (currentFilter === "move-in") {
             matchesFilter = isMoveInRecord;
