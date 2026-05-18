@@ -74,6 +74,9 @@ export default class Accommodation extends BaseModel {
 
   @column()
   declare primaryImageIndex: number
+
+  @column()
+  declare contractMonths: number  // e.g., 6 months, 12 months, etc.
    
   // ─── Freeze columns (for manager handover) ────────────────────────────────
   @column()
