@@ -96,24 +96,20 @@ export default function PendingVerification() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#E8C37A",
             boxShadow: "0 0 32px rgba(201,151,58,0.25)",
+            overflow: "hidden",
+            padding: 12,
           }}
         >
-          <svg
-            width="34"
-            height="34"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <img
+            src="/images/AppLogoo.png"
+            alt="Logo"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
         </div>
 
         <div
