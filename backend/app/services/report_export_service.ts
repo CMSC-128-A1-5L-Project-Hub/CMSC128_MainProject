@@ -1,3 +1,4 @@
+import { join } from 'node:path'
 import ExcelJS from 'exceljs'
 import PDFDocument from 'pdfkit'
 import puppeteer from 'puppeteer'
@@ -30,7 +31,9 @@ async function renderPrintPageToPdf(printPath: string, payload: object): Promise
   const browser = await puppeteer.launch({
     browser: 'chrome-headless-shell',
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    executablePath:
+      process.env.PUPPETEER_EXECUTABLE_PATH ??
+      join(process.cwd(), '.chrome', 'chrome-headless-shell'),
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   })
   try {
