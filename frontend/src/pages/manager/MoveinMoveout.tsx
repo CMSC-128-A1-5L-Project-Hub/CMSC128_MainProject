@@ -3,6 +3,7 @@ import { api } from "../../api/axios";
 import CustomHeader from '../../components/CustomHeader';
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import SearchBar from '../../components/SearchBar';
+import StylizedStatus from "../../components/BillingDashboard/StylizedStatus";
 import Toast from "@/components/Toast";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
@@ -357,7 +358,7 @@ export default function MoveinMoveout() {
             <div className="flex flex-col flex-1 min-w-0 min-h-0 w-full overflow-hidden">
                 <CustomHeader title="Move In & Move Out" />    
                 <div className="flex-1 flex flex-col overflow-hidden gap-6 p-6">
-                    <main className="flex flex-col gap-6 flex-1 overflow-y-auto">
+                    <main className="flex flex-col gap-6 flex-1 min-h-0">
                         <div>
                             <HeroBanner
                                 greeting="Good Day"
@@ -384,13 +385,13 @@ export default function MoveinMoveout() {
 
                         {/* Move Out Requests Table */}
                         {filter === "requests" && (
-                            <div className="bg-white rounded-2xl shadow-sm p-6 border overflow-hidden">
+                            <div className="bg-white rounded-2xl shadow-sm p-6 overflow-hidden flex flex-col min-h-0 flex-1">
                                 <div className="flex items-start justify-between">
                                     <div className="flex flex-col gap-1">
-                                        <h2 className="text-[#1A0008] font-bold text-sm lg:text-lg leading-tight whitespace-nowrap">
+                                        <h2 className="font-bold text-[16px] leading-tight whitespace-nowrap">
                                             Early Move-Out Requests
                                         </h2>
-                                        <p className="italic font-normal text-[11px] lg:text-[12px]">
+                                        <p className="italic font-normal text-[13px] lg:text-[12px]">
                                             {filteredRequests.length} total request{filteredRequests.length !== 1 ? 's' : ''}
                                         </p>
                                     </div>
@@ -439,22 +440,22 @@ export default function MoveinMoveout() {
                                 </div>
 
                                 {isLoadingRequests ? (
-                                    <div className="py-12 flex flex-col items-center justify-center text-center">
+                                    <div className="flex flex-1 flex-col items-center justify-center text-center">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: CLR.mid }} />
                                         <p className="text-sm text-[#9A7080] mt-2">Loading requests...</p>
                                     </div>
                                 ) : paginatedRequests.length === 0 ? (
-                                    <div className="py-12 flex flex-col items-center justify-center text-center">
+                                    <div className="flex-1 flex flex-col items-center justify-center text-center">
                                         <FileText size={48} className="text-gray-300 mb-3" />
                                         <p className="text-[#9A7080] font-medium text-lg">No move-out requests</p>
                                         <p className="text-[#9A7080]/60 text-sm mt-1">When students request early move-out, they will appear here</p>
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="w-full overflow-x-auto">
+                                        <div className="w-full overflow-x-auto overfloy-auto flex-1 min-h-0">
                                             <table className="min-w-[800px] w-full mt-4 border-[#F5ECF0]">
                                                 <thead>
-                                                    <tr className="border-y sticky bg-white border-[#6B0F2B]/5">
+                                                    <tr className="border-y border-[#6B0F2B]/10">
                                                         <th className="text-[#9A7080] text-xs font-bold tracking-widest uppercase pl-3 py-2 text-left">Student</th>
                                                         <th className="text-[#9A7080] text-xs font-bold tracking-widest uppercase px-4 py-2 text-left">Unit/Room</th>
                                                         <th className="text-[#9A7080] text-xs font-bold tracking-widest uppercase px-4 py-2 text-left">Requested Date</th>
@@ -490,20 +491,17 @@ export default function MoveinMoveout() {
                                                                 </p>
                                                             </td>
                                                             <td className="px-4 py-3 text-center">
-                                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                                                    ${request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                                      request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                                      'bg-red-100 text-red-800'}`}>
-                                                                    {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                                                                </span>
+                                                                <StylizedStatus
+                                                                    status={request.status}>
+                                                                </StylizedStatus>
                                                             </td>
                                                             <td className="px-4 py-3 text-center">
                                                                 <Button 
-                                                                    variant="secondary" 
+                                                                    variant="reddishPink" 
                                                                     size="sm"
                                                                     onClick={() => handleOpenViewModal(request)}
                                                                 >
-                                                                    <Eye size={14} className="mr-1" /> View
+                                                                    View
                                                                 </Button>
                                                             </td>
                                                         </tr>
@@ -511,36 +509,17 @@ export default function MoveinMoveout() {
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <div className="flex items-center justify-between mt-4">
-                                            <p className="text-xs text-[#9A7080]">
-                                                {filteredRequests.length === 0 ? "" : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, filteredRequests.length)} of ${filteredRequests.length}`}
-                                            </p>
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => setCurrentPage((p: number) => Math.max(1, p - 1))}
-                                                    disabled={currentPage === 1}
-                                                    className="w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] disabled:opacity-40 disabled:cursor-not-allowed"
-                                                >
-                                                    {"<"}
-                                                </button>
-                                                {Array.from({ length: totalPages }, (_, i: number) => i + 1).map((page: number) => (
-                                                    <button
-                                                        key={page}
-                                                        onClick={() => setCurrentPage(page)}
-                                                        className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center
-                                                            ${currentPage === page ? "text-white" : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"}`}
-                                                        style={currentPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
-                                                    >
-                                                        {page}
-                                                    </button>
-                                                ))}
-                                                <button
-                                                    onClick={() => setCurrentPage((p: number) => Math.min(totalPages, p + 1))}
-                                                    disabled={currentPage === totalPages}
-                                                    className="w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] disabled:opacity-40 disabled:cursor-not-allowed"
-                                                >
-                                                    {">"}
-                                                </button>
+                                        <div className="flex w-full flex-col mt-4">
+                                            <hr className="border-[#6B0F2B]/10 border-t mb-2"/>
+                                            <div className="flex flex-row justify-between items-center">
+                                                <p className="text-xs text-[#9A7080]">
+                                                    {filteredRequests.length === 0 ? "" : `Showing ${startIndex + 1}–${Math.min(startIndex + itemsPerPage, filteredRequests.length)} of ${filteredRequests.length}`}
+                                                </p>
+                                                <Pagination
+                                                    totalPages={totalPages}
+                                                    currentPage={currentPage}
+                                                    onPageChange={setCurrentPage}
+                                                />
                                             </div>
                                         </div>
                                     </>
@@ -550,7 +529,7 @@ export default function MoveinMoveout() {
 
                         {/* Regular Move In/Out Table */}
                         {filter !== "requests" && (
-                            <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col min-h-0 flex-1">
+                            <div className="bg-white rounded-2xl shadow-sm p-6 overflow-hidden flex flex-col min-h-0 flex-1">
                                 <div className="flex items-start justify-between">
                                     <div className="flex flex-col gap-1">
                                         <h2 className="text-[#1A0008] font-bold text-sm lg:text-[16px] leading-tight whitespace-nowrap">
