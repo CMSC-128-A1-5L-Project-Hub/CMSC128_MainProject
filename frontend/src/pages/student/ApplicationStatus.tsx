@@ -1,20 +1,17 @@
-import { useState, useMemo } from 'react';
-import { useQuery } from "@tanstack/react-query";
-import { motion } from 'framer-motion';
+import { useState, useMemo, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Dropdown from "../../components/ApplicationStatus/Dropdown";
 import Pagination from '../../components/ApplicationStatus/Pagination';
-import Sidebar from '../../components/Sidebar';
 import ApplicationTable from '../../components/ApplicationStatus/ApplicationTable';
 import HeroBanner from '../../components/dashboard/HeroBanner';
 import CustomHeader from '../../components/CustomHeader';
 import StatsBanner from '../../components/ApplicationStatus/StatsBanner';
 import SearchBar from '../../components/SearchBar';
-import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
+import ApplicationStatusModal from "../../components/ApplicationStatus/ApplicationStatusModal";
+import EditApplicationModal from '@/components/ApplicationStatus/EditApplicationModal';
 import Toast from "../../components/Toast";
 import { api } from "../../api/axios";
-
-// define the status type locally
-export type ApplicationStatus = "pending" | "under_review" | "approved" | "rejected" | "waitlisted" | "cancelled" | "confirmed";
+import type { Application } from "@/interfaces/application";
 
 interface HeroContent {
     greeting: string;
@@ -41,13 +38,28 @@ const fetchApplications = async (): Promise<Application[]> => {
     }
 };
 
+// Update application mutation
+const updateApplication = async ({ id, data }: { id: number; data: Partial<Application> }) => {
+    const res = await api.patch(`/applications/${id}/update`, data);
+    return res.data;
+};
+
+// Cancel application mutation
+const cancelApplication = async (id: number) => {
+    const res = await api.patch(`/applications/${id}/cancel`);
+    return res.data;
+};
+
 // Main component
 export default function ApplicationStatusPage({ userName = "Student" }: ApplicationStatusPageProps) {
+    const queryClient = useQueryClient();
     
     const [sortBy, setSortBy] = useState("Date applied (Asc.)");
     const [searchQuery, setSearchQuery] = useState("");
     const [viewOpen, setViewOpen] = useState(false);
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [applicationToEdit, setApplicationToEdit] = useState<Application | null>(null);
     
     // Toast state
     const [toast, setToast] = useState<{
@@ -73,30 +85,72 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
     };
 
     // Data fetching - using the real API
-    const { data: applications = [], isLoading, isError, error } = useQuery({
+    const { data: applications = [], isLoading, isError, error, refetch } = useQuery({
         queryKey: ["student-applications"],
         queryFn: fetchApplications,
         refetchOnMount: "always",
     });
 
-    // Show toast on error
-    if (isError) {
-        console.error("Error loading applications:", error);
-        // Don't show toast here directly as it would cause re-renders
-        // Instead, show it in a useEffect
-    }
-
-    // Show error toast when isError becomes true
-    useState(() => {
-        if (isError) {
+    // Update application mutation
+    const updateMutation = useMutation({
+        mutationFn: updateApplication,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["student-applications"] });
+            setEditModalOpen(false);
+            setApplicationToEdit(null);
+            setToast({
+                show: true,
+                type: "success",
+                title: "Application Updated",
+                message: "Your application has been updated successfully."
+            });
+        },
+        onError: (error: any) => {
             setToast({
                 show: true,
                 type: "error",
-                title: "Failed to Load Applications",
-                message: "Please check your connection and try again."
+                title: "Update Failed",
+                message: error.response?.data?.message || "Could not update your application. Please try again."
             });
-        }
+        },
     });
+
+    // Cancel application mutation
+    const cancelMutation = useMutation({
+        mutationFn: cancelApplication,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["student-applications"] });
+            setToast({
+                show: true,
+                type: "success",
+                title: "Application Cancelled",
+                message: "Your application has been cancelled successfully."
+            });
+        },
+        onError: (error: any) => {
+            setToast({
+                show: true,
+                type: "error",
+                title: "Cancel Failed",
+                message: error.response?.data?.message || "Could not cancel your application. Please try again."
+            });
+        },
+    });
+
+    const handleEditApplication = (app: Application) => {
+        setApplicationToEdit(app);
+        setEditModalOpen(true);
+    };
+
+    const handleUpdateApplication = (id: number, data: Partial<Application>) => {
+        updateMutation.mutate({ id, data });
+    };
+
+    const handleCancelApplication = (id: number) => {
+        if (window.confirm("Are you sure you want to cancel this application? This action cannot be undone.")) {
+            cancelMutation.mutate(id);
+        }
+    };
 
     const sortedApplications = useMemo(() => {
         const q = searchQuery.toLowerCase();
@@ -240,6 +294,11 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                                         setSelectedApp(originalApp);
                                         setViewOpen(true);
                                     }}
+                                    onEdit={(app) => {
+                                        const originalApp = applications.find(a => a.id === app.id) || app;
+                                        handleEditApplication(originalApp);
+                                    }}
+
                                 />
                             )}
                         </div>
@@ -263,13 +322,36 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                 </div>
             </div>
 
-            {/* Modal */}
+            {/* View Modal */}
             <ApplicationStatusModal
                 open={viewOpen}
                 onClose={() => { setViewOpen(false); setSelectedApp(null); }}
                 application={selectedApp}
+                onEdit={() => {
+                    if (selectedApp && selectedApp.applicationStatus === 'pending') {
+                        setViewOpen(false);
+                        handleEditApplication(selectedApp);
+                    }
+                }}
+                onCancel={() => {
+                    if (selectedApp && (selectedApp.applicationStatus === 'pending' || selectedApp.applicationStatus === 'waitlisted')) {
+                        handleCancelApplication(selectedApp.id);
+                    }
+                }}
             />
             
+            {/* Edit Application Modal */}
+            <EditApplicationModal
+                open={editModalOpen}
+                onClose={() => {
+                    setEditModalOpen(false);
+                    setApplicationToEdit(null);
+                }}
+                application={applicationToEdit}
+                onSubmit={handleUpdateApplication}
+                isSubmitting={updateMutation.isPending}
+            />
+
             {/* Toast Notifications */}
             <Toast
                 type={toast.type}
@@ -279,5 +361,5 @@ export default function ApplicationStatusPage({ userName = "Student" }: Applicat
                 onClose={() => setToast(prev => ({ ...prev, show: false }))}
             />
         </div>
-    )
+    );
 }

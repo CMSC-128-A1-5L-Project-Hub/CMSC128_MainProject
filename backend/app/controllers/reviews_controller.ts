@@ -22,13 +22,12 @@ export default class ReviewsController {
             .join('rooms', 'assignments.room_id', 'rooms.id')
             .where('assignments.student_number', student.studentNumber)
             .where('rooms.accommodation_id', accommodationId)
-            .whereNotNull('assignments.actual_move_out')
             .first()
 
-        // Check if student has stayed in the accommodation they want to review
+        // Check if student has stayed (or is currently staying) in the accommodation they want to review
         if (!assignment) {
             return response.status(403).json({
-                message: 'You can only review accommodations you have finished staying at'
+                message: 'You can only review accommodations you have stayed at'
             })
         }
 

@@ -12,10 +12,11 @@ import Toast from "@/components/Toast";
 import UbleLoader from "../shared/LoadingPage";
 import HeroBanner from "@/components/dashboard/HeroBanner";
 import Button from "@/components/Button";
-import ApplicationStatusModal, { type Application } from "../../components/ApplicationStatus/ApplicationStatusModal";
-
+import ApplicationStatusModal from "../../components/ApplicationStatus/ApplicationStatusModal";
+import type { Application } from "@/interfaces/application";
 import AccommodationMap, { type AccommodationPin } from '../../components/AccommodationMapsBrowse'
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
+import { useNotifications } from "../../hooks/useNotifications"
 
 
 // Helpers
@@ -695,7 +696,6 @@ export default function Dashboard() {
   const [dashboardMapAccommodations, setDashboardMapAccommodations] = useState<AccommodationPin[]>([])
   const [mapFilter, setMapFilter] = useState("All")
   const [notifOpen, setNotifOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
   const notifWrapperRef = useRef<HTMLDivElement>(null)
   const [toast, setToast] = useState<{
     show: boolean;
@@ -704,41 +704,7 @@ export default function Dashboard() {
     message?: string;
   }>({ show: false, type: "success", title: "" });
 
-  useEffect(() => {
-    api.get('/notifications')
-      .then(({ data }) => {
-        setNotifications(
-          data.map((n: any) => ({
-            id: n.id,
-            type: n.notificationType,
-            message: n.notificationContent,
-            time: new Date(n.notificationTimestamp).toLocaleString(),
-            read: n.readStatus === 'read',
-          }))
-        )
-      })
-      .catch(console.error)
-  }, [])
-
-  const unreadCount = notifications.filter((n) => !n.read).length
-
-  const markAllRead = () => {
-    notifications
-      .filter((n) => !n.read)
-      .forEach((n) =>
-        api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
-      )
-
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  }
-
-  const markOneRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
-
-    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-  }
+  const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications({ refetchOn: notifOpen })
     
   const {
     data: user,
@@ -1092,7 +1058,7 @@ if (!profile || !user || user.role !== "student") {
                   <button
                     aria-label="Notifications"
                     onClick={() => setNotifOpen((prev) => !prev)}
-                    className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative overflow-hidden
+                    className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative
                       transition-all duration-150
                       bg-[#8C1535] hover:bg-[#8C1535]/80 active:bg-[#3D0718]
                       active:translate-y-0 active:scale-95"
@@ -1103,7 +1069,7 @@ if (!profile || !user || user.role !== "student") {
                       className="w-full h-full object-contain scale-[2.5]"
                     />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#C9973A] text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
                         {unreadCount}
                       </span>
                     )}
@@ -1168,14 +1134,20 @@ if (!profile || !user || user.role !== "student") {
                         {applications.map((app: any) => (
                           <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
                             <td className="px-4 py-3 sm:py-4">
-                              <div className="flex items-center gap-2.5">
-                                <div
-                                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0"
-                                  style={{ background: CLR.mid }}
-                                />
-                                <span className="font-medium text-[#2A0410] whitespace-nowrap">
-                                  {app.accommodation?.accommodationName}
-                                </span>
+                              <div className="flex items-center gap-3">
+                                
+                                {/* Avatar */}
+                                <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-[#2A0410] via-[#6B0F2B] to-[#C05070] flex-shrink-0">
+                                  <p className="text-white font-bold text-sm">
+                                    {app.accommodation.accommodationName?.[0]}
+                                  </p>
+                                </div>
+
+                                {/* Accommodation Name */}
+                                <p className="text-[13px] lg:text-[15px] font-semibold truncate max-w-[180px] text-[#1A0008]">
+                                  {app.accommodation.accommodationName}
+                                </p>
+
                               </div>
                             </td>
                             <td className="px-4 py-3 sm:py-4 text-[#A06B7C] whitespace-nowrap">
@@ -1230,7 +1202,7 @@ if (!profile || !user || user.role !== "student") {
                   <button
                     type="button"
                     onClick={() => navigate('/student/browse')}
-                    className="text-[14px] font-bold flex items-center gap-1"
+                    className="text-[14px] font-bold flex items-center gap-1 hover:underline"
                     style={{ color: CLR.mid }}
                   >
                     View all <IconChevronRight className="w-4 h-4" />

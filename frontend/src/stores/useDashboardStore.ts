@@ -12,33 +12,51 @@ export type RawProfile = {
   profilePictureUrl?: string | null
 }
 
-export type RawApplication = {
+// In your useDashboardStore.ts, update RawApplication interface:
+export interface RawApplication {
   id: number
-  studentNumber: string
   accommodationId: number
+  studentNumber: string
+  applicationDate: string
   applicationRoomType: string
   applicationStayType: string
+  rejectionReason: string | null
   applicationStatus: string
-  durationOfStayDays: number
-  applicationDate: string
-  rejectionReason?: string | null
-  preferredTags?: string[] | string | null
+  durationOfStayDays: number | null
+  preferredTags: string[] | string | null
+  reviewedAt: string | null
+  reviewedBy: number | null
+  approvedAt: string | null
+  slotConfirmDeadline: string | null
+  slotConfirmedAt: string | null
+  roomId: number | null
+  moveInDate: string | null      // ADD THIS
+  moveOutDate: string | null     // ADD THIS
+  reservationFee: number | null
+  moveInFee: number | null
+  contractMonths: number
+  accommodation: {
+    id: number
+    accommodationName: string
+    accommodationType: string
+    accommodationLocation: string
+    tenantRestriction: string
+    primaryImageIndex: number | null
+    contractMonths: number
+  }
   student: {
     studentNumber: string
-    degreeProgram: string
+    userId: number
     college: string
-    yearLevel: string
+    degreeProgram: string
     gender: string
+    yearLevel: string | null
     user: {
       fname: string
       lname: string
       email: string
-      phoneNumbers?: { contactNumber: string; isPrimary: boolean }[]
+      phoneNumbers?: Array<{ contactNumber: string; isPrimary: boolean }>
     }
-  }
-  accommodation: {
-    accommodationName: string
-    tenantRestriction: string
   }
 }
 
@@ -115,6 +133,8 @@ export type TransformedApp = Omit<RawApplication, 'student' | 'accommodation'> &
   roomType: string
   applicationDate: string
   preferredTags: string[]
+  moveInDate: string | null   // Add this
+  moveOutDate: string | null  // Add this
   accommodation: {
     building: string
     tenantRestriction: string

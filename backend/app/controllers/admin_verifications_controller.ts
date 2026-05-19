@@ -64,6 +64,14 @@ export default class AdminVerificationsController {
     user.accountStatus = 'active' // Automatically activate their account once verified
     await user.save()
 
+    if (roleToAssign === 'student') {
+      const student = await Student.findBy('userId', user.id)
+      if (student) {
+        student.form5Renewal = true
+        await student.save()
+      }
+    }
+
     await this.notificationService.sendAccountApprovedEmail(user, roleToAssign)
 
     try {

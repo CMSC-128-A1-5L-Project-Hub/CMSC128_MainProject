@@ -73,6 +73,7 @@ export default class AuthController {
       email: googleUser.email,
       fname: googleUser.original.given_name,
       lname: googleUser.original.family_name,
+      picture: googleUser.original.picture ?? null,
     })
 
     await auth.use('web').login(user)
@@ -101,7 +102,7 @@ export default class AuthController {
 
     // Role-specific preloads
     if (user.role === 'student') {
-      await user.load('student')
+      await user.load('student', (q) => q.preload('enrollmentProof'))
     } else if (user.role === 'manager') {
       await user.load('manager', (q) => q.preload('accommodations'))
     } else if (user.role === 'landlord') {
@@ -110,6 +111,16 @@ export default class AuthController {
 
     const serialized = user.serialize()
     serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
+
+    if (user.role === 'student' && user.student?.enrollmentProof) {
+      const { signImageUrl } = await import('#services/image_service')
+      serialized.student.enrollmentProofUrl = await signImageUrl(user.student.enrollmentProof.filePath)
+    }
+
+    const isDefaultPfp = !user.profilePicture || user.profilePicture.filePath === 'defaults/default_pfp.png'
+    if (isDefaultPfp && user.googlePictureUrl) {
+      serialized.profilePictureUrl = user.googlePictureUrl
+    }
 
     // Attach dormitory name for managers
     if (user.role === 'manager' && user.manager && user.manager.accommodations.length > 0) {
@@ -183,6 +194,12 @@ export default class AuthController {
 
     const serialized = user.serialize()
     serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
+
+    const isDefaultPfp = !user.profilePicture || user.profilePicture.filePath === 'defaults/default_pfp.png'
+    if (isDefaultPfp && user.googlePictureUrl) {
+      serialized.profilePictureUrl = user.googlePictureUrl
+    }
+
     return response.ok(serialized)
   }
 

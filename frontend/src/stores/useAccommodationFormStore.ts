@@ -7,6 +7,7 @@ interface AccommodationFormState {
   accommodationLocation: string
   tenantRestriction: 'male-only' | 'female-only' | 'coed' | ''
   accommodationCapacity: string
+  accommodationSize: string  // ADD THIS - size in square meters
   contractMonths: string  // Changed from number to string for typable input
   businessPermit: File | null
 
@@ -35,6 +36,7 @@ const initialState = {
   accommodationLocation: '',
   tenantRestriction: '' as const,
   accommodationCapacity: '',
+  accommodationSize: '',  // ADD THIS
   contractMonths: '',  // Empty string, user will type
   businessPermit: null,
   latitude: null,
@@ -82,4 +84,4 @@ export const useAccommodationFormStore = create<AccommodationFormState>((set) =>
   setPrimaryImage: (index) => set({ primaryImageIndex: index }),
 
   reset: () => set(initialState),
-}))
+}));

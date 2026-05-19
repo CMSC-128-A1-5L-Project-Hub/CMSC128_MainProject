@@ -399,12 +399,27 @@ export default function UBLEFooter() {
             {/* BRAND */}
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{
-                  width: 42, height: 42, borderRadius: 10,
-                  background: "linear-gradient(135deg, #d4a840, #9a7220)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "white", fontWeight: 700, fontSize: 20,
-                }}>U</div>
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 10,
+                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <img
+                    src="/images/AppLogoo.png"
+                    alt="Logo"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
                 <span style={{ color: "white", fontSize: 20, fontWeight: 600, letterSpacing: "0.04em" }}>UBLE</span>
               </div>
               <p className="brand-description" style={{ color: "rgba(255,255,255,0.42)", fontSize: 13, lineHeight: 1.7, margin: 0, maxWidth: 215 }}>

@@ -17,11 +17,9 @@ const scholars_dormitory: DormSeedData = {
         'scholars_laundry.jpg'
     ],
     tags: [
-        'Private dorm',
-        'Near UPLB gate',
         'Affordable rates',
         'Security personnel',
-        'WiFi included',
+        'WiFi',
     ],
     rooms: [
         {
@@ -229,12 +227,10 @@ const arable_premier_residences: DormSeedData = {
         'arable_room2.jpg'
     ],
     tags: [
-        'Private dorm',
         'Aircon',
         'En-suite bathroom',
         'Hot shower',
         'WiFi',
-        'Near main gate',
         'Modern facility',
     ],
     rooms: [
@@ -432,8 +428,6 @@ const one_silangan: DormSeedData = {
         'onesi_room.jpg',
     ],
     tags: [
-        'Private dorm',
-        'Near main gate',
         'Aircon & fan rooms',
         'Daily rates available',
         'Group rates available',
@@ -616,8 +610,6 @@ const estellar_residences: DormSeedData = {
         'estellar_laundry.jpg',
     ],
     tags: [
-        'Private dorm',
-        'Near main gate',
         'Aircon',
         'WiFi',
         'CCTV',
@@ -824,10 +816,6 @@ const zeta_dormitory: DormSeedData = {
         'zeta_cr.jpg'
     ],
     tags: [
-        'Private dorm',
-        'Female-exclusive',
-        'Transient accepted',
-        '5 min to UPLB gate',
         'WiFi',
         'CCTV',
     ],
@@ -1029,7 +1017,6 @@ const marhaba_dormitory: DormSeedData = {
         'marhaba_hallway.jpg'
     ],
     tags: [
-        'Private dorm',
         'Complete facilities',
         'Aircon',
         'WiFi',
@@ -1246,9 +1233,6 @@ const reese_dormitory: DormSeedData = {
         'reese_room2.jpg',
     ],
     tags: [
-        'Private dorm',
-        'Steps from campus',
-        'Est. 2014',
         'WiFi',
         'Security personnel',
         'Laundry area',
@@ -1450,7 +1434,6 @@ const mix_match_dormitory: DormSeedData = {
         'mixmatch_room3.jpg'
     ],
     tags: [
-        'Private dorm',
         'Flexible room types',
         'WiFi',
         'CCTV',
@@ -1651,12 +1634,9 @@ const riela_dormitory: DormSeedData = {
         'riela_cr2.jpg',
     ],
     tags: [
-        'Private dorm',
-        'Female-exclusive',
         'WiFi',
         'CCTV',
         'Laundry area',
-        'Near UPLB',
     ],
     rooms: [
         {
@@ -1846,8 +1826,6 @@ const koru_residences: DormSeedData = {
         'koru_cr.jpg'
     ],
     tags: [
-        'Private dorm',
-        'Female-exclusive',
         'Boutique dormitel',
         'Aircon',
         'En-suite bathroom',
@@ -2050,9 +2028,6 @@ const westbrook_residences: DormSeedData = {
         'westbrook_cr.jpg',
     ],
     tags: [
-        'Private dorm',
-        'Transient accepted',
-        'Steps from main library',
         'Aircon',
         'WiFi',
         'Parking',
@@ -2244,12 +2219,9 @@ const holland_tulips: DormSeedData = {
         'HT_room3.jpg',
     ],
     tags: [
-        'Private dorm',
-        'Near Velasco Ave.',
         'WiFi',
         'CCTV',
-        'Aircon rooms available',
-        'Near UPLB main library',
+        'Aircon',
     ],
     rooms: [
         {
@@ -2446,7 +2418,6 @@ const the_mint: DormSeedData = {
         'mint_room3.jpg',
     ],
     tags: [
-        'Private dorm',
         'Condotel',
         'Hotel services',
         'Aircon',
@@ -2643,14 +2614,12 @@ const centtro_residences: DormSeedData = {
         'centtro_pool.jpg',
     ],
     tags: [
-        'Private dorm',
         'Hotel-grade rooms',
         'Aircon',
         'En-suite bathroom',
         'WiFi',
         'CCTV',
         'Fitness center',
-        'Near Centtro Mall',
     ],
     rooms: [
         {
@@ -2848,9 +2817,7 @@ const one_sapphire: DormSeedData = {
         'sapphire_cr.jpg',
     ],
     tags: [
-        'Private dorm',
-        'Near UPLB',
-        'Aircon available',
+        'Aircon',
         'WiFi',
         'CCTV',
         'Furnished rooms',
@@ -3048,12 +3015,9 @@ const casa_del_mar: DormSeedData = {
         'cdm_room2.jpg',
     ],
     tags: [
-        'Private dorm',
-        'Near UPLB',
-        'Aircon available',
+        'Aircon',
         'WiFi',
         'CCTV',
-        'Near Sapphire St.',
     ],
     rooms: [
         {

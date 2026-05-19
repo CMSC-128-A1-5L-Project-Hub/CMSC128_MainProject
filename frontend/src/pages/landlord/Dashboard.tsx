@@ -18,6 +18,7 @@ import CustomHeader from "../../components/CustomHeader";
 import Card from "../../components/ui/Card";
 import Toast from "../../components/Toast";
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
+import { useNotifications } from "../../hooks/useNotifications"
 import { DateTime } from 'luxon';
 import { IoPersonSharp, IoCalendarSharp, IoBedSharp, IoDocumentSharp, IoDocumentTextSharp, IoIdCardSharp } from "react-icons/io5";
 import notif_icon from "../../assets/icons/notif_icon.svg";
@@ -75,6 +76,21 @@ interface Room {
 
 interface RevenueData {
   projectedMonthlyRevenue: number;
+}
+
+const roomStatusStyles: Record<string, { bg: string; dot: string; text: string; label: string }> = {
+  available: {
+    bg: '#1A7A4A',
+    dot: '#1A7A4A',
+    text: '#1A7A4A',
+    label: 'Available'
+  },
+  fully_occupied: {
+    bg: '#9E2040',
+    dot: '#9E2040',
+    text: '#9E2040',
+    label: 'Fully Occupied'
+  },
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -424,6 +440,19 @@ export default function Dashboard() {
     enabled: !!accommodationId,
   });
 
+  const { data: form5Stats } = useQuery<{
+    total: number;
+    verified: number;
+    submittedPending: number;
+    notSubmitted: number;
+    percentVerified: number;
+    roster: { studentNumber: string; name: string; form5Renewal: boolean; form5RenewalSubmittedAt: string | null }[];
+  }>({
+    queryKey: ["landlord-form5-renewals", accommodationId],
+    queryFn: () => api.get(`/landlord/accommodations/${accommodationId}/form5-renewals`).then((r) => r.data),
+    enabled: !!accommodationId,
+  });
+
   // ── Mutations ────────────────────────────────────────────────────────────────
 
   const saveAppPeriod = useMutation({
@@ -562,15 +591,12 @@ export default function Dashboard() {
   const projectedRevenue = revenue?.projectedMonthlyRevenue ?? 0;
   const underReviewApps = applications.filter((a) => a.applicationStatus === "under_review");
   
-  // Form 5 / enrollment proof stats — scoped to this accommodation
-  const accommodationApps = applications; // Since applications is already filtered by accommodationId
-  const form5Submitted = accommodationApps.filter(
-    (a) => a.student?.enrollmentProofFileId != null
-  ).length;
-  const form5Pending = accommodationApps.length - form5Submitted;
-  const form5Pct = accommodationApps.length > 0
-    ? Math.round((form5Submitted / accommodationApps.length) * 100)
-    : 0;
+  // Form 5 renewal stats — based on actual verified renewal flag (not signup proof)
+  const form5Total = form5Stats?.total ?? 0;
+  const form5Submitted = form5Stats?.verified ?? 0;
+  const form5SubmittedPending = form5Stats?.submittedPending ?? 0;
+  const form5NotSubmitted = form5Stats?.notSubmitted ?? 0;
+  const form5Pct = form5Stats?.percentVerified ?? 0;
     // Manager card props
     const manager = accommodation?.manager;
     const managerStatus = !manager ? "none" : manager.managerStatus === "active" ? "assigned" : "pending";
@@ -619,46 +645,11 @@ export default function Dashboard() {
 
   // added notif stuff from student dashboard
   const [notifOpen, setNotifOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
   const notifWrapperRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    api.get('/notifications')
-      .then(({ data }) => {
-        setNotifications(
-          data.map((n: any) => ({
-            id: n.id,
-            type: n.notificationType,
-            message: n.notificationContent,
-            time: new Date(n.notificationTimestamp).toLocaleString(),
-            read: n.readStatus === 'read',
-          }))
-        )
-      })
-      .catch(console.error)
-  }, [])
-
-  const unreadCount = notifications.filter((n) => !n.read).length
-
-  const markAllRead = () => {
-    notifications
-      .filter((n) => !n.read)
-      .forEach((n) =>
-        api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
-      )
-
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  }
-
-  const markOneRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
-
-    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-  }
+  const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications({ refetchOn: notifOpen })
 
   // Notification details fetch---------------------------------
   useEffect(() => {
@@ -858,22 +849,22 @@ export default function Dashboard() {
                       </div>
                     </SectionCard>
 
-                    <SectionCard title="Form 5 Renewal">
+                    <SectionCard title="Enrollment Proof Renewal">
                       <div className="flex items-center gap-4">
                         <div className="shrink-0">
                           <CircleProgress value={form5Pct} />
                         </div>
                         <div className="flex flex-col gap-2 flex-1">
-                          <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(140,21,53,0.06)" }}>
-                            <div><p className="text-[10px] text-[#8C1535]/60 uppercase tracking-wider">Submitted</p><p className="text-lg font-bold text-[#8C1535]">{form5Submitted}</p></div>
-                            <div className="w-2 h-2 rounded-full bg-[#8C1535]" />
+                          <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(16,185,129,0.08)" }}>
+                            <div><p className="text-[10px] text-emerald-700/70 uppercase tracking-wider">Verified</p><p className="text-lg font-bold text-emerald-700">{form5Submitted}</p></div>
+                            <div className="w-2 h-2 rounded-full bg-emerald-600" />
                           </div>
                           <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(202,138,4,0.06)" }}>
-                            <div><p className="text-[10px] text-yellow-600/70 uppercase tracking-wider">Pending</p><p className="text-lg font-bold text-yellow-600">{form5Pending}</p></div>
+                            <div><p className="text-[10px] text-yellow-600/70 uppercase tracking-wider">Pending</p><p className="text-lg font-bold text-yellow-600">{form5SubmittedPending + form5NotSubmitted}</p></div>
                             <div className="w-2 h-2 rounded-full bg-yellow-500" />
                           </div>
                           <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(0,0,0,0.03)" }}>
-                            <div><p className="text-[10px] text-gray-400 uppercase tracking-wider">Total Applicants</p><p className="text-lg font-bold text-gray-500">{accommodationApps.length}</p></div>
+                            <div><p className="text-[10px] text-gray-400 uppercase tracking-wider">Assigned Students</p><p className="text-lg font-bold text-gray-500">{form5Total}</p></div>
                             <div className="w-2 h-2 rounded-full bg-gray-300" />
                           </div>
                         </div>
@@ -892,7 +883,7 @@ export default function Dashboard() {
                               Form 5 / Enrollment Proof
                             </span>
                           </div>
-                          <p className="text-[10px] text-gray-400 italic mt-1">Auto-collected at student signup. Submission tracked in the Form 5 panel above.</p>
+                          <p className="text-[10px] text-gray-400 italic mt-1">Auto-collected at student signup. Submission tracked in the Enrollment Proof panel.</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-400 mb-1">FACILITY-SPECIFIC</p>
@@ -921,112 +912,412 @@ export default function Dashboard() {
               {activeTab === "Rooms" && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <SectionCard title="Applications Under Review" action="View all →" onAction={() => navigate(accommodationId ? `/landlord/applications?accId=${accommodationId}` : "/landlord/applications")}>
-                      <div className="overflow-x-auto">
-                        <div className="min-w-[500px] xl:min-w-0">
-                          <div className="grid grid-cols-[5fr_4fr_4fr_2fr] items-center gap-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                            <span className="text-[#9A7080] font-bold">Student</span>
-                            <span className="text-[#9A7080] font-bold">Type</span>
-                            <span className="text-[#9A7080] font-bold">Applied</span>
-                            <span className="text-center text-[#9A7080] font-bold">Action</span>
-                          </div>
-                          {appsLoading ? (
-                            <p className="text-xs text-gray-400 py-4 text-center">Loading…</p>
-                          ) : underReviewApps.length === 0 ? (
-                            <p className="text-xs text-gray-400 py-4 text-center italic">No applications under review</p>
-                          ) : (
-                            underReviewApps.map((app) => (
-                              <div key={app.id} className="grid grid-cols-[5fr_4fr_4fr_2fr] items-center gap-2 py-3 px-1 border-b border-gray-50 last:border-0">
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: "linear-gradient(135deg, #6B0F2B, #9E2040)" }}>
-                                    {app.student.user.fname?.charAt(0)?.toUpperCase() || 'U'}
-                                  </div>
-                                  <p className="font-medium text-[clamp(11px,0.9vw,15px)] truncate">{app.student.user.fname} {app.student.user.lname}</p>
-                                </div>
-                                <p className="text-sm text-gray-500 capitalize">{app.applicationStayType.replace("_", "-")}</p>
-                                <p className="text-sm text-gray-500">{fmt(app.applicationDate)}</p>
-                                <div className="flex justify-center">
-                                  <Button variant="reddishPink" size="sm" className="!rounded-xl" onClick={() => handleOpenReview(app)}>Review</Button>
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    </SectionCard>
 
-                    <SectionCard title="Waitlisted" action="View all →" onAction={() => navigate(accommodationId ? `/landlord/applications?accId=${accommodationId}` : "/landlord/applications")}>
-                      <div className="overflow-x-auto">
-                        <div className="min-w-[500px] xl:min-w-0">
-                          <div className="flex items-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-100">
-                            <span className="flex-[5] text-[#9A7080] font-bold">Student</span>
-                            <span className="flex-[3] text-[#9A7080] font-bold">Preferred Type</span>
-                            <span className="flex-[3] text-center text-[#9A7080] font-bold">Since</span>
-                          </div>
-                          <p className="text-xs text-gray-400 py-4 text-center italic">Waitlist is managed by your assigned manager</p>
-                        </div>
-                      </div>
-                    </SectionCard>
-                  </div>
+                    {/* Applications Under Review */}
+                    <Card>
+                      <div className="w-full h-full flex flex-col min-w-0">
+                        <div className="flex flex-row justify-between w-full pb-2">
+                          <p className="text-[#1A0008] font-bold flex flex-col">
+                            Applications Under Review
+                            <span className="italic font-normal text-[11px] lg:text-[12px]">
+                              {underReviewApps.length} total applications
+                            </span>
+                          </p>
 
-                  <SectionCard title="Rooms" action="Manage →" onAction={() => navigate("/landlord/rooms")}>
-                    <div className="overflow-x-auto">
-                      <div className="min-w-[500px] xl:min-w-0">
-                        <div className="flex items-center text-[10px] font-semibold uppercase tracking-wider pb-2 border-b border-gray-100">
-                          <span className="flex-1 text-[#9A7080] font-bold">Room Number</span>
-                          <span className="flex-1 text-center text-[#9A7080] font-bold">Type</span>
-                          <span className="flex-1 text-center text-[#9A7080] font-bold">Occupancy</span>
-                          <span className="flex-1 text-center text-[#9A7080] font-bold">Status</span>
+                          <p
+                            className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer"
+                            onClick={() =>
+                              navigate(
+                                accommodationId
+                                  ? `/landlord/applications?accId=${accommodationId}`
+                                  : "/landlord/applications"
+                              )
+                            }
+                          >
+                            View all →
+                          </p>
                         </div>
-                        {roomsLoading ? (
-                          <p className="text-xs text-gray-400 py-4 text-center">Loading…</p>
-                        ) : rooms.length === 0 ? (
-                          <p className="text-xs text-gray-400 py-4 text-center italic">No rooms added yet</p>
+
+                        {appsLoading ? (
+                          <p className="text-xs text-gray-400 py-4 text-center">
+                            Loading…
+                          </p>
+                        ) : underReviewApps.length === 0 ? (
+                          <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+                            <p className="text-[#9A7080] font-medium text-sm">
+                              No applications under review
+                            </p>
+                          </div>
                         ) : (
-                          paginatedRooms.map((r) => {
-                            const statusText = r.roomAvailability === "available" ? "Available" : r.roomAvailability === "occupied" ? "Fully Occupied" : r.roomAvailability;
-                            const statusColor = r.roomAvailability === "available" ? "bg-green-100 text-green-700" : r.roomAvailability === "occupied" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700";
-                            return (
-                              <div key={r.id} className="flex items-center py-3 border-b border-gray-50 last:border-0">
-                                <div className="flex-1 flex items-center gap-3"><div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] flex items-center justify-center text-white font-bold text-sm shrink-0" /><p className="font-medium text-sm">Room {r.roomNumber}</p></div>
-                                <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500 capitalize">{r.roomType}</p></div>
-                                <div className="flex-1 flex justify-center"><p className="text-sm text-gray-500">{r.roomCurrentOccupancy}/{r.roomCapacity}</p></div>
-                                <div className="flex-1 flex justify-center"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>{statusText}</span></div>
-                              </div>
-                            );
-                          })
+                          <div className="overflow-x-auto border-t border-[#F5ECF0]">
+                            <div className="min-w-[400px] pb-3 xl:pb-0">
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="border-b border-[#F5ECF0] uppercase">
+                                    <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[40%]">
+                                      Student
+                                    </th>
+                                    <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[25%]">
+                                      Type
+                                    </th>
+                                    <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[20%]">
+                                      Applied
+                                    </th>
+                                    <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-center w-[15%]">
+                                      Action
+                                    </th>
+                                  </tr>
+                                </thead>
+
+                                <tbody>
+                                  {underReviewApps.map((app) => (
+                                    <tr key={app.id}>
+                                      <td className="p-1 py-2">
+                                        <div className="flex flex-row items-center">
+                                          <div
+                                            className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                                            style={{
+                                              background:
+                                                "linear-gradient(135deg, #6B0F2B, #9E2040)",
+                                            }}
+                                          >
+                                            {app.student.user.fname
+                                              ?.charAt(0)
+                                              ?.toUpperCase() || "U"}
+                                          </div>
+
+                                          <p className="text-black text-sm pl-2 truncate">
+                                            {app.student.user.fname}{" "}
+                                            {app.student.user.lname}
+                                          </p>
+                                        </div>
+                                      </td>
+
+                                      <td className="p-1 py-2">
+                                        <p className="text-[#9A7080] text-sm capitalize">
+                                          {app.applicationStayType.replace("_", "-")}
+                                        </p>
+                                      </td>
+
+                                      <td className="p-1 py-2">
+                                        <p className="text-[#9A7080] text-sm">
+                                          {fmt(app.applicationDate)}
+                                        </p>
+                                      </td>
+
+                                      <td className="p-1 py-2 text-center">
+                                        <Button
+                                          variant="reddishPink"
+                                          size="sm"
+                                          className="!rounded-xl"
+                                          onClick={() => handleOpenReview(app)}
+                                        >
+                                          Review
+                                        </Button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
                         )}
                       </div>
-                    </div>
-                    {rooms.length > ROOMS_PER_PAGE && (
-                      <div className="flex flex-col">
-                        <hr className="border-[#6B0F2B]/10 border-t" />
-                        <div className="flex items-center justify-between mt-3">
-                          <p className="text-xs text-[#9A7080]">
-                            Showing {(roomsPage - 1) * ROOMS_PER_PAGE + 1}–{Math.min(roomsPage * ROOMS_PER_PAGE, rooms.length)} of {rooms.length} rooms
+                    </Card>
+
+                    {/* Waitlist */}
+                    <Card>
+                      <div className="w-full h-full flex flex-col min-w-0">
+                        <div className="flex flex-row justify-between w-full pb-2">
+                          <p className="text-[#1A0008] font-bold flex flex-col">
+                            Waitlist
+                            <span className="italic font-normal text-[11px] lg:text-[12px]">
+                              {
+                                applications.filter(
+                                  (a) => a.applicationStatus === "waitlisted"
+                                ).length
+                              }{" "}
+                              total waitlists
+                            </span>
                           </p>
-                          <div className="flex items-center justify-center gap-1">
-                            {roomsPage > 1 && (
-                              <button onClick={() => setRoomsPage((p) => p - 1)} className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition">{"<"}</button>
-                            )}
-                            {Array.from({ length: totalRoomPages }, (_, i) => i + 1).map((page) => (
-                              <button
-                                key={page}
-                                onClick={() => setRoomsPage(page)}
-                                className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center ${roomsPage === page ? "text-white" : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"}`}
-                                style={roomsPage === page ? { background: "linear-gradient(135deg, #6B0F2B, #9E2040)" } : {}}
-                              >
-                                {page}
-                              </button>
-                            ))}
-                            {roomsPage < totalRoomPages && (
-                              <button onClick={() => setRoomsPage((p) => p + 1)} className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition">{">"}</button>
-                            )}
+
+                          <p
+                            className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer"
+                            onClick={() =>
+                              navigate(
+                                accommodationId
+                                  ? `/landlord/applications?accId=${accommodationId}`
+                                  : "/landlord/applications"
+                              )
+                            }
+                          >
+                            View all →
+                          </p>
+                        </div>
+
+                        {applications.filter((a) => a.applicationStatus === "waitlisted")
+                          .length > 0 ? (
+                          <div className="overflow-x-auto border-t border-[#F5ECF0]">
+                            <div className="min-w-[400px] pb-3 xl:pb-0">
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="border-b border-[#F5ECF0] uppercase">
+                                    <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[60%]">
+                                      Student
+                                    </th>
+
+                                    <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[25%]">
+                                      Date Applied
+                                    </th>
+
+                                    <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-center w-[15%]">
+                                      Action
+                                    </th>
+                                  </tr>
+                                </thead>
+
+                                <tbody>
+                                  {applications
+                                    .filter(
+                                      (a) => a.applicationStatus === "waitlisted"
+                                    )
+                                    .map((waitlist) => (
+                                      <tr key={waitlist.id}>
+                                        <td className="p-1 py-2">
+                                          <div className="flex flex-row items-center">
+                                            <div
+                                              className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                                              style={{
+                                                background:
+                                                  "linear-gradient(135deg, #6B0F2B, #9E2040)",
+                                              }}
+                                            >
+                                              {waitlist.student.user.fname
+                                                ?.charAt(0)
+                                                ?.toUpperCase() || "U"}
+                                            </div>
+
+                                            <p className="text-black text-sm pl-2 truncate">
+                                              {waitlist.student.user.fname}{" "}
+                                              {waitlist.student.user.lname}
+                                            </p>
+                                          </div>
+                                        </td>
+
+                                        <td className="p-1 py-2">
+                                          <p className="text-[#9A7080] text-sm">
+                                            {fmt(waitlist.applicationDate)}
+                                          </p>
+                                        </td>
+
+                                        <td className="p-1 py-2 text-center">
+                                          <Button
+                                            variant="reddishPink"
+                                            size="sm"
+                                            className="!rounded-xl"
+                                            onClick={() => handleOpenReview(waitlist)}
+                                          >
+                                            Review
+                                          </Button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+                            <p className="text-[#9A7080] font-medium text-sm">
+                              No waitlisted applicants found
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  </div>
+
+                  {/* Rooms */}
+                  <Card>
+                    <div className="w-full h-full flex flex-col min-w-0">
+                      <div className="flex flex-row justify-between w-full pb-2">
+                        <p className="text-[#1A0008] font-bold flex flex-col">
+                          Rooms
+                          <span className="italic font-normal text-[11px] lg:text-[12px]">
+                            {rooms.length} total rooms
+                          </span>
+                        </p>
+
+                        <p
+                          className="text-[#6B0F2B] font-bold text-sm hover:underline cursor-pointer"
+                          onClick={() => navigate("/landlord/rooms")}
+                        >
+                          Manage →
+                        </p>
+                      </div>
+
+                      {roomsLoading ? (
+                        <p className="text-xs text-gray-400 py-4 text-center">
+                          Loading…
+                        </p>
+                      ) : rooms.length === 0 ? (
+                        <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+                          <p className="text-[#9A7080] font-medium text-sm">
+                            No rooms added yet
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto border-t border-[#F5ECF0]">
+                          <div className="min-w-[500px] pb-3 xl:pb-0">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="border-b border-[#F5ECF0] uppercase">
+                                  <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-left w-[25%]">
+                                    Room Number
+                                  </th>
+
+                                  <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-center w-[25%]">
+                                    Type
+                                  </th>
+
+                                  <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-center w-[25%]">
+                                    Occupancy
+                                  </th>
+
+                                  <th className="text-[#9A7080] tracking-widest text-xs font-bold p-1 text-center w-[25%]">
+                                    Status
+                                  </th>
+                                </tr>
+                              </thead>
+
+                              <tbody>
+                                {paginatedRooms.map((r) => {
+                                  const statusText =
+                                    r.roomAvailability === "available"
+                                      ? "Available"
+                                      : r.roomAvailability === "occupied"
+                                      ? "Fully Occupied"
+                                      : r.roomAvailability;
+
+                                  const key = statusText
+                                    .toLowerCase()
+                                    .replace(" ", "_");
+
+                                  const s = roomStatusStyles[key];
+
+                                  return (
+                                    <tr key={r.id}>
+                                      <td className="p-1 py-2">
+                                        <div className="flex flex-row items-center">
+                                          <div className="w-9 h-9 rounded-xl flex-shrink-0 bg-gradient-to-br from-[#6B0F2B] to-[#9E2040]" />
+
+                                          <p className="text-black text-sm pl-2">
+                                            Room {r.roomNumber}
+                                          </p>
+                                        </div>
+                                      </td>
+
+                                      <td className="p-1 py-2 text-center">
+                                        <p className="text-[#9A7080] text-sm capitalize">
+                                          {r.roomType}
+                                        </p>
+                                      </td>
+
+                                      <td className="p-1 py-2 text-center">
+                                        <p className="text-[#9A7080] text-sm">
+                                          {r.roomCurrentOccupancy}/{r.roomCapacity}
+                                        </p>
+                                      </td>
+
+                                      <td className="p-1 py-2 text-center">
+                                        <div
+                                          className="p-2 w-fit h-fit rounded-full flex flex-row items-center justify-center mx-auto"
+                                          style={{
+                                            backgroundColor: s?.bg + "1A",
+                                          }}
+                                        >
+                                          <div
+                                            className="w-2 h-2 mx-1 rounded-full"
+                                            style={{ backgroundColor: s?.dot }}
+                                          />
+
+                                          <p
+                                            className="text-[12px] font-bold"
+                                            style={{ color: s?.text }}
+                                          >
+                                            {s?.label}
+                                          </p>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </SectionCard>
+                      )}
+
+                      {rooms.length > ROOMS_PER_PAGE && (
+                        <div className="flex flex-col">
+                          <hr className="border-[#6B0F2B]/10 border-t mt-3" />
+
+                          <div className="flex items-center justify-between mt-3">
+                            <p className="text-xs text-[#9A7080]">
+                              Showing {(roomsPage - 1) * ROOMS_PER_PAGE + 1}–
+                              {Math.min(roomsPage * ROOMS_PER_PAGE, rooms.length)} of{" "}
+                              {rooms.length} rooms
+                            </p>
+
+                            <div className="flex items-center justify-center gap-1">
+                              {roomsPage > 1 && (
+                                <button
+                                  onClick={() => setRoomsPage((p) => p - 1)}
+                                  className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                                >
+                                  {"<"}
+                                </button>
+                              )}
+
+                              {Array.from(
+                                { length: totalRoomPages },
+                                (_, i) => i + 1
+                              ).map((page) => (
+                                <button
+                                  key={page}
+                                  onClick={() => setRoomsPage(page)}
+                                  className={`w-7 h-7 text-xs rounded-md font-medium transition flex items-center justify-center ${
+                                    roomsPage === page
+                                      ? "text-white"
+                                      : "text-[#9A7080] border border-[#E8D5DC] hover:bg-[#F5ECF0]"
+                                  }`}
+                                  style={
+                                    roomsPage === page
+                                      ? {
+                                          background:
+                                            "linear-gradient(135deg, #6B0F2B, #9E2040)",
+                                        }
+                                      : {}
+                                  }
+                                >
+                                  {page}
+                                </button>
+                              ))}
+
+                              {roomsPage < totalRoomPages && (
+                                <button
+                                  onClick={() => setRoomsPage((p) => p + 1)}
+                                  className="flex items-center justify-center w-7 h-7 text-xs rounded-md border border-[#E8D5DC] text-[#9A7080] hover:bg-[#F5ECF0] transition"
+                                >
+                                  {">"}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
                 </div>
               )}
             </div>

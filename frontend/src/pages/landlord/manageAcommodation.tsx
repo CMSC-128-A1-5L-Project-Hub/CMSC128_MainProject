@@ -12,6 +12,7 @@ import Sidebar from "../../components/Sidebar";
 import { setLandlordSidebarContext } from "../../components/Sidebar";
 import Toast from "../../components/Toast";
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel";
+import { useNotifications } from "../../hooks/useNotifications";
 import notif_icon from "../../assets/icons/notif_icon.svg";
 import UbleLoader from "../shared/LoadingPage";
 import CustomHeader from "../../components/CustomHeader"
@@ -50,7 +51,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
   return (
     <div
       onClick={handleClick}
-      className={`group relative bg-white rounded-2xl overflow-hidden shadow-sm transition-all duration-300 border border-gray-100 ${
+      className={`group relative bg-white rounded-2xl overflow-hidden shadow-sm transition-all duration-300 border border-gray-100 flex flex-col ${
         isUnderReview
           ? "cursor-not-allowed opacity-80"
           : "cursor-pointer hover:shadow-xl hover:border-[#8C1535]/20"
@@ -82,7 +83,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
           </div>
         </div>
       </div>
-      <div className="p-3 sm:p-4">
+      <div className="p-3 sm:p-4 flex flex-col flex-1">
         <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4 text-[10px] sm:text-xs text-gray-500">
           <div className="flex items-center gap-1"><Users size={12} className="sm:w-[13px] sm:h-[13px]" /><span>{accommodation.accommodationCapacity} capacity</span></div>
           <div className="flex items-center gap-1"><Building2 size={12} className="sm:w-[13px] sm:h-[13px]" /><span className="capitalize">{accommodation.accommodationType?.replace('_', ' ')}</span></div>
@@ -98,7 +99,7 @@ const AccommodationCard: React.FC<{ accommodation: any }> = ({ accommodation }) 
         <button
           onClick={(e) => { e.stopPropagation(); handleClick() }}
           disabled={isUnderReview}
-          className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 ${
+          className={`mt-auto w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 ${
             isUnderReview ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-[#6B0F2B] to-[#8C1535] text-white hover:from-[#8C1535] hover:to-[#6B0F2B] shadow-md hover:shadow-lg"
           }`}
         >
@@ -138,6 +139,7 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
     accommodationType, 
     tenantRestriction, 
     accommodationCapacity, 
+    accommodationSize,
     contractMonths,
     businessPermit, 
     latitude, 
@@ -176,6 +178,7 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
     if (!accommodationType) newErrors.accommodationType = "Required";
     if (!tenantRestriction) newErrors.tenantRestriction = "Required";
     if (!accommodationCapacity || parseInt(accommodationCapacity) < 1) newErrors.accommodationCapacity = "Must be at least 1";
+    if (!accommodationSize || parseInt(accommodationSize) < 1) newErrors.accommodationSize = "Must be at least 1 sqm";
     if (!contractMonths || contractMonths === "") {
       newErrors.contractMonths = "Contract duration is required";
     } else {
@@ -268,7 +271,22 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
         />
       </div>
 
-      <div className="flex flex-col gap-1">
+      {/* SIZE AND CONTRACT DURATION - SIDE BY SIDE */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <FormField
+          label="Accommodation Size (sqm)"
+          name="accommodationSize"
+          value={accommodationSize}
+          type="number"
+          onChange={(e) => {
+            const val = parseInt(e.target.value)
+            if (e.target.value === "" || (!isNaN(val) && val >= 0)) {
+              setField("accommodationSize", e.target.value)
+            }
+          }}
+          placeholder="e.g., 200"
+          error={errors.accommodationSize}
+        />
         <FormField
           label="Contract Duration (months)"
           name="contractMonths"
@@ -283,10 +301,10 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
           placeholder="e.g., 6"
           error={errors.contractMonths}
         />
-        <p className="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">
-          How many months will tenants typically stay? (1–60 months)
-        </p>
       </div>
+      <p className="text-[8px] sm:text-[10px] text-gray-400 mt-0.5 -mt-2 sm:-mt-1">
+        How many months will tenants typically stay? (1–60 months)
+      </p>
 
       {/* Amenities — unchanged, no FormField equivalent */}
       <div className="border border-[#e5cfd4] rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
@@ -298,9 +316,8 @@ const StepOne = ({ onNext, amenities, setAmenities }: {
         {amenities.length > 0 && (
           <div className="flex flex-wrap gap-1 sm:gap-1.5">
             {amenities.map((name) => (
-              <span key={name} className="inline-flex items-center gap-1 sm:gap-1.5 pl-2 sm:pl-2.5 pr-1 sm:pr-1.5 py-1 sm:py-1.5 bg-emerald-600 text-white rounded-full text-[9px] sm:text-xs font-medium">
+              <span key={name} className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 bg-emerald-600 text-white rounded-full text-[9px] sm:text-xs font-medium cursor-pointer transition" onClick={() => setAmenities(amenities.filter(a => a !== name))}>
                 <Check size={10} className="sm:w-3 sm:h-3" />{name}
-                <button type="button" onClick={() => setAmenities(amenities.filter(a => a !== name))} className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex items-center justify-center hover:bg-emerald-700 rounded-full transition"><X size={10} className="sm:w-3 sm:h-3" /></button>
               </span>
             ))}
           </div>
@@ -366,6 +383,7 @@ const StepTwo = ({ onBack, onClose, amenities, onSuccess }: {
     accommodationType, 
     accommodationLocation,
     accommodationCapacity, 
+    accommodationSize,
     tenantRestriction, 
     contractMonths,
     businessPermit, 
@@ -391,6 +409,7 @@ const StepTwo = ({ onBack, onClose, amenities, onSuccess }: {
       formData.append("accommodation_type", accommodationType);
       formData.append("accommodation_location", accommodationLocation);
       formData.append("accommodation_capacity", String(accommodationCapacity));
+      formData.append("accommodation_size", accommodationSize);
       formData.append("tenant_restriction", tenantRestriction);
       formData.append("contract_months", String(contractMonths));
       formData.append("latitude", String(latitude));
@@ -457,8 +476,8 @@ const ManageAccommodationDashboard: React.FC = () => {
   });
 
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const notifWrapperRef = useRef<HTMLDivElement>(null);
+  const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications({ refetchOn: notifOpen });
 
   useEffect(() => { setLandlordSidebarContext("minimal"); }, []);
 
@@ -476,34 +495,6 @@ const ManageAccommodationDashboard: React.FC = () => {
   const verifiedAccommodations = (accommodations ?? []).filter((a: any) => a.status !== 'rejected');
 
   useEffect(() => { if (isError) navigate('/auth/signin'); }, [isError, navigate]);
-
-  useEffect(() => {
-    api.get('/notifications').then(({ data }) => {
-      setNotifications(
-        data.map((n: any) => ({
-          id: n.id,
-          type: n.notificationType,
-          message: n.notificationContent,
-          time: new Date(n.notificationTimestamp).toLocaleString(),
-          read: n.readStatus === 'read',
-        }))
-      )
-    }).catch(console.error)
-  }, []);
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const markAllRead = () => {
-    notifications.filter((n) => !n.read).forEach((n) =>
-      api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
-    )
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  };
-
-  const markOneRead = (id: number) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
-    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-  };
 
   const handleClose = () => { setOpen(false); setStep(1); setAmenities([]); };
 
@@ -525,7 +516,7 @@ const ManageAccommodationDashboard: React.FC = () => {
             <button
               aria-label="Notifications"
               onClick={() => setNotifOpen((prev) => !prev)}
-              className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative overflow-hidden
+              className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative
                 transition-all duration-150
                 bg-[#8C1535] hover:bg-[#8C1535]/80 active:bg-[#3D0718]
                 hover:-translate-y-1 active:translate-y-0 active:scale-95"
@@ -536,7 +527,7 @@ const ManageAccommodationDashboard: React.FC = () => {
                 className="w-full h-full object-contain scale-[2.5]"
               />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#C9973A] text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
                   {unreadCount}
                 </span>
               )}

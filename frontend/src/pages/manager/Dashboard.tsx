@@ -14,6 +14,7 @@ import CustomHeader from '../../components/CustomHeader';
 import ReportModal from '../../components/ReportModal'
 import Toast from '../../components/Toast'
 import NotificationPanel, { type Notification } from "../../components/NotificationPanel"
+import { useNotifications } from "../../hooks/useNotifications"
 import {
   useProfile,
   useIncomingApps,
@@ -152,46 +153,11 @@ export default function Dashboard() {
 
   // added notif stuff from student dashboard
   const [notifOpen, setNotifOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [notificationsTodayCount, setNotificationsTodayCount] = useState(0);
   const notifWrapperRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    api.get('/notifications')
-      .then(({ data }) => {
-        setNotifications(
-          data.map((n: any) => ({
-            id: n.id,
-            type: n.notificationType,
-            message: n.notificationContent,
-            time: new Date(n.notificationTimestamp).toLocaleString(),
-            read: n.readStatus === 'read',
-          }))
-        )
-      })
-      .catch(console.error)
-  }, [])
-
-  const unreadCount = notifications.filter((n) => !n.read).length
-
-  const markAllRead = () => {
-    notifications
-      .filter((n) => !n.read)
-      .forEach((n) =>
-        api.patch(`/notifications/${n.id}`, { readStatus: 'read' }).catch(console.error)
-      )
-
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  }
-
-  const markOneRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
-
-    api.patch(`/notifications/${id}`, { readStatus: 'read' }).catch(console.error)
-  }
+  const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications({ refetchOn: notifOpen })
 
   // Notification details fetch---------------------------------
   useEffect(() => {
@@ -249,7 +215,7 @@ export default function Dashboard() {
           const { data: reqDocs } = await api.get(`/accommodations/${accommodationId}/document-requirements`)
           
           const dbRequirementNames = reqDocs.map((doc: any) => doc.requirementName)
-          const standardRequirements = ["FORM 5", "VALID ID"]
+          const standardRequirements = ["Enrollment Proof"]
           const combinedRequirements = Array.from(
             new Set([...standardRequirements, ...dbRequirementNames])
           )
@@ -447,7 +413,7 @@ export default function Dashboard() {
                 <button
                   aria-label="Notifications"
                   onClick={() => setNotifOpen((prev) => !prev)}
-                  className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative overflow-hidden
+                  className="w-12 h-11 mb-1 rounded-2xl flex items-center justify-center relative
                     transition-all duration-150
                     bg-[#8C1535] hover:bg-[#8C1535]/80 active:bg-[#3D0718]
                     active:translate-y-0 active:scale-95"
@@ -458,7 +424,7 @@ export default function Dashboard() {
                     className="w-full h-full object-contain scale-[2.5]"
                   />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#C9973A] text-[#8C1535] text-[9px] font-bold flex items-center justify-center border-2 border-[#8C1535]">
                       {unreadCount}
                     </span>
                   )}
@@ -485,8 +451,8 @@ export default function Dashboard() {
             <div className="hidden lg:block w-full">
               <CustomHeader title="Dashboard" />
             </div>
-            <div className="p-6">
-              <main className="flex flex-col gap-6">
+            <div className="p-6 flex flex-col flex-1">
+              <main className="flex flex-col gap-6 flex-1">
                 <HeroBanner
                   greeting="Good Day"
                   name={fullName}
@@ -506,7 +472,7 @@ export default function Dashboard() {
 
                 {/* moved tables up (since ito ung mas important) */}
                 {activeTab === "Students" && (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch w-full">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch w-full flex-1">
                     <Applications
                       data={pendingApps}
                       docs={documentRequirements}

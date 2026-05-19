@@ -1,3 +1,4 @@
+import { join } from 'node:path'
 import ExcelJS from 'exceljs'
 import PDFDocument from 'pdfkit'
 import puppeteer from 'puppeteer'
@@ -28,7 +29,10 @@ async function renderPrintPageToPdf(printPath: string, payload: object): Promise
   const printUrl = `${frontendUrl}${printPath}?d=${encoded}`
 
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: 'shell',
+    executablePath:
+      process.env.PUPPETEER_EXECUTABLE_PATH ??
+      join(process.cwd(), '.chrome', 'chrome-headless-shell-linux64', 'chrome-headless-shell'),
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   })
   try {
@@ -168,6 +172,33 @@ export default class ReportExportService {
       landlordName: fullName(user),
       generatedAt: todayStr(),
       rows,
+    })
+  }
+
+  static async generateBillingStatementPdf(payload: {
+    landlordName: string
+    fee: {
+      id: number
+      category: string
+      amount: number
+      balance: number
+      status: string
+      dueDate: string | null
+      allowInstallments: boolean
+    }
+    student: { studentNumber: string; name: string; email: string | null }
+    accommodation: { name: string | null; roomNumber: string | null }
+    payments: Array<{
+      id: number
+      paymentTimestamp: string
+      paymentAmount: number
+      modeOfPayment: string
+      paymentStatus: string
+    }>
+  }): Promise<Buffer> {
+    return renderPrintPageToPdf('/reports/billing-statement/print', {
+      ...payload,
+      generatedAt: todayStr(),
     })
   }
 

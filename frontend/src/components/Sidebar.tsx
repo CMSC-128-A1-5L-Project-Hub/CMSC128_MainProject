@@ -13,6 +13,7 @@ import LandlordApplicationIcon from "../assets/icons/application&waitlisted.svg?
 import FeesIcon from "../assets/icons/fees.svg?react";
 import StudentVerification from "../assets/icons/student_verifications.svg?react";
 import AdminVerification from "../assets/icons/admin_verifications.svg?react";
+import AppLogo from "../assets/AppLogoo.png";
 
 const OccupancyIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="white">
@@ -64,6 +65,7 @@ const BRAND = {
   primary: "#6B0F2B",
   primaryLight: "#9E2040",
   gold: "#C9973A",
+  white: "#e1dcd2ce",
   goldLight: "#E8C37A",
   whiteAlpha: "rgba(255,255,255,0.1)",
 } as const;
@@ -416,21 +418,10 @@ const DesktopSidebar = ({
     >
       {/* Brand */}
       <div
-        className="w-9 h-9 rounded-lg flex items-center justify-center mb-4 flex-shrink-0 cursor-pointer hover:ring-2 ring-[#C9973A]/50 transition-all"
-        style={{ background: BRAND.gold }}
+        className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 flex-shrink-0 cursor-pointer hover:ring-2 ring-[#C9973A]/50 transition-all overflow-hidden"
         onClick={() => onNavigate(brandPath)}
       >
-        <span className="text-white font-bold text-sm">
-          {
-          role === "student"
-          ? "S"
-          : role === "landlord" || role === "landlord-manage"
-          ? "L"
-          : role === "super_admin"
-          ? "SA"
-          : "M"
-          }
-        </span>
+        <img src={AppLogo} alt="UBLE" className="w-full h-full object-contain p-1" style={{ borderRadius: "10px"}} />
       </div>
 
       {/* Top items */}

@@ -5,7 +5,13 @@ import { api } from "../../api/axios"
 import HeroBanner from "@/components/dashboard/HeroBanner"
 import Card from "@/components/ui/Card"
 import { FiSearch } from "react-icons/fi"
+import CustomHeader from '../../components/CustomHeader';
 import AccommodationVerificationModal from "@/components/dashboard/admin/PendingAccommodationsModal"
+import Dropdown from "@/components/ApplicationStatus/Dropdown"
+import SearchBar from "@/components/SearchBar"
+import StylizedStatus from "@/components/BillingDashboard/StylizedStatus"
+import Pagination from "@/components/ApplicationStatus/Pagination"
+import Toast from "@/components/Toast"
 
 export default function PendingAccommodationsPage() {
   const navigate = useNavigate()
@@ -15,8 +21,17 @@ export default function PendingAccommodationsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [sortOrder, setSortOrder] = useState("latest")
   const [isSortOpen, setIsSortOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState("Date issued (Desc.)")
+  const [rows, setRows] = useState(10)
+  const [currentPage, setCurrentPage] = useState(1)
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  
+  // Toast state
+  const [toast, setToast] = useState<{
+    show: boolean; type: "success" | "error" | "info" | "warning" | "loading"; title: string; message?: string
+  }>({ show: false, type: "success", title: "" })
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
@@ -59,10 +74,16 @@ export default function PendingAccommodationsPage() {
 
       return res.data
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["admin-pending-accommodations"],
       })
+      const statusText = variables.status === "verified" ? "verified" : "rejected"
+      setToast({ show: true, type: "success", title: `Accommodation ${statusText}`, message: `The accommodation has been ${statusText}.` })
+      handleCloseModal()
+    },
+    onError: (error: any) => {
+      setToast({ show: true, type: "error", title: "Verification Failed", message: error?.response?.data?.message || "Could not process accommodation." })
     },
     onSettled: () => {
       setVerifyingAccommodationId(null)
@@ -86,14 +107,33 @@ export default function PendingAccommodationsPage() {
   }
 
   useEffect(() => {
-    if (isError) navigate("/auth/signin")
+    setCurrentPage(1)
+  }, [searchQuery, sortBy, rows])
+
+  useEffect(() => {
+    if (isError) {
+      setToast({ show: true, type: "error", title: "Authentication Error", message: "Please login again." })
+      setTimeout(() => navigate("/auth/signin"), 1500)
+    }
   }, [isError, navigate])
 
   useEffect(() => {
     if (user && user.role !== "manager" && user.role !== "super_admin") {
-      navigate("/auth/signin")
+      setToast({ show: true, type: "error", title: "Access Denied", message: "You don't have permission to view this page." })
+      setTimeout(() => navigate("/auth/signin"), 1500)
     }
   }, [user, navigate])
+
+  // Refresh data handler
+  const handleRefresh = async () => {
+    setToast({ show: true, type: "loading", title: "Refreshing...", message: "Fetching latest data." })
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["admin-pending-accommodations"] })
+      setToast({ show: true, type: "success", title: "Refreshed!", message: "Accommodation requests have been updated." })
+    } catch (error) {
+      setToast({ show: true, type: "error", title: "Refresh Failed", message: "Could not refresh data." })
+    }
+  }
 
   if (isUserLoading) {
     return (
@@ -114,29 +154,37 @@ export default function PendingAccommodationsPage() {
       const landlordName = item.landlord?.user
         ? `${item.landlord.user.fname ?? ""} ${item.landlord.user.lname ?? ""}`.toLowerCase()
         : ""
-
-      const q = searchTerm.toLowerCase()
+      const q = searchQuery.toLowerCase()
       return name.includes(q) || location.includes(q) || landlordName.includes(q)
     })
     .sort((a: any, b: any) => {
       const dateA = new Date(a.createdAt ?? 0).getTime()
       const dateB = new Date(b.createdAt ?? 0).getTime()
-
-      return sortOrder === "latest" ? dateB - dateA : dateA - dateB
+      if (sortBy === "Date issued (Asc.)") return dateA - dateB
+      if (sortBy === "Date issued (Desc.)") return dateB - dateA
+      return 0
     })
 
+  const totalPages = Math.max(1, Math.ceil(filteredAccommodations.length / rows))
+  const safePage = Math.min(currentPage, totalPages)
+  const startIndex = (safePage - 1) * rows
+  const paginatedAccommodations = filteredAccommodations.slice(startIndex, startIndex + rows)
+
   return (
-    <div className="flex min-h-screen bg-[#F9F4F5]">
-
-      <main className="mt-12 flex-1 overflow-x-hidden p-5 lg:mt-0 lg:p-8">
-        <div className="space-y-6">
-          <div className="relative mb-2 flex items-center border-b border-[#6B0F2B]/7 pb-1 pl-10 lg:pl-0">
-            <div className="mr-2 mt-1 hidden h-8 w-2 rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#9E2040] lg:inline" />
-            <h1 className="font-serif text-4xl font-bold italic text-[#6B0F2B]">
-              Pending Accommodations
-            </h1>
-          </div>
-
+    <div className="flex flex-col h-screen bg-[#F6F2F4]">
+      <CustomHeader
+        title="Pending Accommodations"
+        right={
+          <button
+            onClick={handleRefresh}
+            className="px-3 py-1.5 text-xs font-semibold text-[#6B0F2B] border border-[#6B0F2B]/20 rounded-lg hover:bg-[#6B0F2B]/5 transition"
+          >
+            Refresh
+          </button>
+        }
+      />
+      <div className="flex flex-col flex-1 min-h-0 p-6 gap-6">
+        <div>
           <HeroBanner
             greeting="Good day"
             name={user?.fname ?? "Admin"}
@@ -144,205 +192,192 @@ export default function PendingAccommodationsPage() {
             subtitle="Approve or reject accommodations submitted by housing administrators."
             type="mini"
           />
-
-          <Card className="flex min-h-[620px] flex-col rounded-3xl border border-[#F2D9DF] bg-white p-8 shadow-sm">
-            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <h4 className="text-xl font-semibold text-[#2A0410]">
-                  Pending Accommodations
-                </h4>
-                <p className="mt-1 text-sm text-[#A06B7C]">
-                  {filteredAccommodations.length} pending accommodation submissions
-                </p>
+        </div>
+        <div className="flex flex-col flex-1 min-h-0 bg-white rounded-2xl p-6">
+          <div className="flex justify-between">  
+            <div className="flex flex-col justify-center self-center mb-4">
+              <h4 className="text-[16px] font-bold">
+                Pending Accommodations
+              </h4>
+              <p className="text-[13px]">
+                {filteredAccommodations.length} pending accommodation submission{filteredAccommodations.length === 1 ? "" : "s"}
+              </p>
+            </div>
+            <div className="flex flex-row gap-2 items-center">
+              <div className='hidden lg:block'>
+                <Dropdown
+                  title="No. of Items"
+                  items={[
+                    { label: "5", href: "" },
+                    { label: "10", href: "" },
+                    { label: "15", href: "" },
+                    { label: "20", href: "" },
+                  ]}
+                  direction='down'
+                  widthClass="w-29 lg:w-32"
+                  titleClass="text-[10px] lg:text-[11px]"
+                  selectedClass="text-[12px] lg:text-[13px]"
+                  onSelect={(label) => { 
+                    setRows(parseInt(label, 10)); 
+                    setCurrentPage(1);
+                    setToast({ show: true, type: "info", title: "Updated", message: `Showing ${label} items per page.` })
+                  }}
+                />
               </div>
-
-              <div className="flex items-center gap-3">
-                <div className="relative w-[200px]">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setIsSortOpen((prev) => !prev)
-                    }}
-                    className="h-[68px] w-full rounded-2xl border border-[#F2D9DF] bg-white px-4 text-left shadow-sm hover:border-[#D9B8C4]"
-                  >
-                    <p className="text-xs font-bold uppercase tracking-wide text-[#A06B7C]">
-                      Sort By
-                    </p>
-
-                    <div className="mt-1 flex items-center justify-between">
-                      <span className="text-base font-semibold text-[#2A0410]">
-                        {sortOrder === "latest"
-                          ? "Latest First"
-                          : "Oldest First"}
-                      </span>
-
-                      <span
-                        className={`text-[#6B0F2B] transition-transform ${
-                          isSortOpen ? "rotate-180" : ""
-                        }`}
-                      >
-                        ▾
-                      </span>
-                    </div>
-                  </button>
-
-                  {isSortOpen && (
-                    <div className="absolute z-20 mt-2 w-full rounded-xl border border-[#F2D9DF] bg-white shadow-lg">
-                      <button
-                        onClick={() => {
-                          setSortOrder("latest")
-                          setIsSortOpen(false)
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm hover:bg-[#FFF7F9]"
-                      >
-                        Latest First
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setSortOrder("oldest")
-                          setIsSortOpen(false)
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm hover:bg-[#FFF7F9]"
-                      >
-                        Oldest First
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="relative">
-                  <FiSearch className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A6B3]" />
-
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search accommodations..."
-                    className="h-[68px] w-[280px] rounded-2xl border border-[#F2D9DF] bg-[#FFF7F9] pl-11 pr-4 text-sm text-[#2A0410] outline-none placeholder:text-[#C9A6B3] focus:ring-2 focus:ring-[#D9B8C4]"
-                  />
-                </div>
+              <Dropdown
+                title="Sort by"
+                items={[
+                  { label: "Date issued (Asc.)", href: "" },
+                  { label: "Date issued (Desc.)", href: "" },
+                ]}
+                direction="down"
+                widthClass="w-32 lg:w-44"
+                titleClass="text-[10px] lg:text-[11px]"
+                selectedClass="text-[12px] lg:text-[13px]"
+                onSelect={(label) => { 
+                  setSortBy(label); 
+                  setCurrentPage(1);
+                  setToast({ show: true, type: "info", title: "Sorted", message: `Requests sorted by ${label}.` })
+                }}
+              />
+              <SearchBar
+                value={searchQuery}
+                onChange={(query) => {
+                  setSearchQuery(query)
+                  setCurrentPage(1)
+                }}
+                onPageReset={() => setCurrentPage(1)}
+              />
+            </div>
+          </div>
+          {isLoading ? (
+            <div className="flex h-[390px] items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B0F2B]"></div>
+              <p className="text-sm text-gray-500 ml-2">Loading accommodations...</p>
+            </div>
+          ) : isPendingError ? (
+            <div className="flex h-[390px] items-center justify-center">
+              <p className="text-sm text-red-500">Error loading accommodations. Please try again.</p>
+            </div>
+          ) : filteredAccommodations.length === 0 ? (
+            <div className="flex flex-col justify-center items-center h-full text-center py-12">
+              <p className="text-[#9A7080] font-medium text-lg">No accommodations found</p>
+              <p className="text-[#9A7080]/60 text-sm mt-1">When accommodations apply for UBLE, they will appear here</p>
+            </div>
+          ) : (
+            <div className="overflow-y-auto min-h-0 flex-1">
+              <table className="min-w-full">
+              <thead className="">
+                <tr className="border-y border-[#F2D9DF]">
+                  <th className="p-2 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
+                    Accommodation
+                  </th>
+                  <th className="p-2 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
+                    Submitted On
+                  </th>
+                  <th className="p-2 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
+                    Landlord
+                  </th>
+                  <th className="p-2 text-left text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
+                    Status
+                  </th>
+                  <th className="p-2 text-center text-xs font-bold uppercase tracking-widest text-[#A06B7C]">
+                    Action
+                  </th>
+                </tr>  
+              </thead>
+                <tbody>
+                  {paginatedAccommodations.map((item: any) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-[#FFF7F9] transition"
+                    >
+                      <td className="p-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-xl text-[14px] bg-gradient-to-br from-[#6B0F2B] to-[#B32042] font-bold text-white">
+                            {item.accommodationName?.[0]?.toUpperCase() ?? "A"}
+                          </div>
+                          <div>
+                            <p className="text-[14px] font-semibold text-[#2A0410]">
+                              {item.accommodationName}
+                            </p>
+                            <p className="text-[12px] text-[#A06B7C]">
+                              {item.accommodationLocation ?? "—"}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-2 text-sm text-[#A06B7C]">
+                        {formatAppliedDate(item.createdAt)}
+                      </td>
+                      <td className="p-2 text-sm">
+                        {item.landlord?.user
+                          ? `${item.landlord.user.fname} ${item.landlord.user.lname}`
+                          : "—"}
+                      </td>
+                      <td className="p-2">
+                        <StylizedStatus status={"pending"} />
+                      </td>
+                      <td className="p-2 text-center">
+                        <button
+                          onClick={() => handleOpenModal(item)}
+                          className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-4 py-2 text-[13px] font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF] transition"
+                        >
+                          Review
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          {/* Pagination Footer */}
+          {filteredAccommodations.length > 0 && (
+            <div className="flex flex-col mt-4">
+              <hr className="border-[#6B0F2B]/10" />
+              <div className="relative flex items-center justify-end py-2">
+                <span className="absolute left-1/2 -translate-x-1/2 text-[13px] text-[#A06B7C]">
+                  Showing {startIndex + 1}–{Math.min(startIndex + rows, filteredAccommodations.length)} of{" "}
+                  {filteredAccommodations.length} accommodation{filteredAccommodations.length === 1 ? "" : "s"}
+                </span>
+                <Pagination
+                  totalPages={totalPages}
+                  currentPage={safePage}
+                  onPageChange={(page) => {
+                    setCurrentPage(page)
+                    setToast({ show: true, type: "info", title: "Page Changed", message: `Viewing page ${page} of ${totalPages}.` })
+                  }}
+                />
               </div>
             </div>
-
-            {isLoading ? (
-              <p className="text-sm text-gray-500">Loading...</p>
-            ) : isPendingError ? (
-              <p className="text-sm text-red-500">Error loading requests.</p>
-            ) : filteredAccommodations.length === 0 ? (
-              <div className="flex h-[390px] items-center justify-center border-t border-[#F2D9DF]">
-                <p className="text-lg font-medium text-[#9A7080] text-center">
-                  No pending accommodations
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="-mx-6">
-                  <table className="min-w-full border-collapse">
-                    <thead className="bg-[#FFF7F9]">
-                      <tr className="border-y border-[#F2D9DF]">
-                        <th className="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                          Accommodation
-                        </th>
-                        <th className="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                          Submitted
-                        </th>
-                        <th className="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                          Landlord
-                        </th>
-                        <th className="px-8 py-4 text-center text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                          Status
-                        </th>
-                        <th className="px-8 py-4 text-center text-xs font-semibold uppercase tracking-wide text-[#A06B7C]">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {filteredAccommodations.map((item: any) => (
-                        <tr
-                          key={item.id}
-                          className="border-b border-[#F2D9DF] hover:bg-[#FFF7F9]"
-                        >
-                          <td className="px-8 py-5">
-                            <div className="flex items-center gap-4">
-                              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#6B0F2B] to-[#B32042] font-bold text-white">
-                                {item.accommodationName?.[0]?.toUpperCase() ?? "A"}
-                              </div>
-
-                              <div>
-                                <p className="text-base font-semibold text-[#2A0410]">
-                                  {item.accommodationName}
-                                </p>
-                                <p className="text-xs text-[#A06B7C]">
-                                  {item.accommodationLocation ?? "—"}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td className="px-8 py-5 text-sm text-[#A06B7C]">
-                            {formatAppliedDate(item.createdAt)}
-                          </td>
-
-                          <td className="px-8 py-5 text-sm text-gray-600">
-                            {item.landlord?.user
-                              ? `${item.landlord.user.fname} ${item.landlord.user.lname}`
-                              : "—"}
-                          </td>
-
-                          <td className="px-8 py-5 text-center">
-                            <span className="rounded-full bg-[#FFF7F9] px-3 py-1 text-xs font-semibold text-[#A06B7C]">
-                              Pending
-                            </span>
-                          </td>
-
-                          <td className="px-8 py-5 text-center">
-                            <button
-                              onClick={() => handleOpenModal(item)}
-                              className="rounded-xl border border-[#D9B8C4] bg-[#FFF7F9] px-6 py-2 text-sm font-semibold text-[#6B0F2B] hover:bg-[#F2D9DF]"
-                            >
-                              Review
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="mt-auto flex items-center justify-between pt-5">
-                  <p className="text-sm text-[#A06B7C]">
-                    Showing 1–{filteredAccommodations.length} of{" "}
-                    {filteredAccommodations.length} accommodations
-                  </p>
-
-                  <div className="flex items-center gap-2">
-                    <button className="h-9 w-9 rounded-lg bg-[#6B0F2B] text-sm font-semibold text-white">
-                      1
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </Card>
+          )}
         </div>
-      </main>
-
+      </div>
+      
       <AccommodationVerificationModal
         open={isModalOpen}
         onClose={handleCloseModal}
         selectedItem={selectedItem}
         verifyingAccommodationId={verifyingAccommodationId}
-        onApprove={async (id) => {
-          await verifyAccommodationMutation.mutateAsync({ id, status: "verified" })
+        onApprove={(id) => {
+          verifyAccommodationMutation.mutate({ id, status: "verified" })
           handleCloseModal()
         }}
-        onReject={async (id) => {
-          await verifyAccommodationMutation.mutateAsync({ id, status: "rejected" })
+        onReject={(id) => {
+          verifyAccommodationMutation.mutate({ id, status: "rejected" })
           handleCloseModal()
         }}
+      />
+
+      {/* Toast Notifications */}
+      <Toast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
       />
     </div>
   )

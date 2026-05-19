@@ -4,11 +4,27 @@ import logo from "../assets/logos/uble-placeholder.svg"
 export default function Logo({color = "black"}) {
     return(
         <header className="flex items-center gap-3">
-            <img 
-                src={logo}
-                alt="UBLE Logo"
-                className="w-10 h-10 object-contain"
-            />
+            <div
+                style={{
+                width: 42,
+                height: 42,
+                borderRadius: 10,
+                overflow: "hidden",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                }}
+            >
+                <img
+                    src="/images/AppLogoo.png"
+                    alt="Logo"
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                    }}
+                />
+            </div>
             <span style ={{color}} className="font-sans font-bold tracking-wide select-none">
                 UBLE
             </span>

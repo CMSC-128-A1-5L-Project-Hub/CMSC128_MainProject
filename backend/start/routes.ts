@@ -10,6 +10,8 @@ import { ROLES } from '../app/constants/roles.ts'
 import { throttle } from '#start/limiter'
 import { uploadThrottle } from '#start/limiter'
 
+const Form5Renewals = () => import('#controllers/form5_renewals_controller')
+
 router.get('/', () => {
   return { status: 'USAT API is running - Sprint 03 Launch' }
 })
@@ -62,6 +64,7 @@ router
     router.get('/me', [controllers.Auth, 'me'])
     router.put('/me', [controllers.Auth, 'updateMe'])
     router.post('/me/profile-picture', [controllers.Auth, 'uploadProfilePicture']).use(uploadThrottle)
+    router.post('/me/form5-renewal', [Form5Renewals, 'uploadRenewal']).use(uploadThrottle)
     router.post('/logout', [controllers.Auth, 'logout'])
 
     // ─── USER ONBOARDING ───
@@ -76,6 +79,9 @@ router
     router.get('/notifications', [controllers.Notifications, 'index'])
     router.patch('/notifications/:id', [controllers.Notifications, 'update'])
 
+    // Individual billing statement PDF (student / manager / landlord — authorization done in controller)
+    router.get('/fees/:id/statement.pdf', [controllers.Fees, 'statementPdf'])
+
     // ====================================================================
     // ─── STUDENT ROUTES ───
     // ====================================================================
@@ -84,13 +90,17 @@ router
         // Application & Stay
         router.post('/applications', [controllers.Application, 'store'])
         router.get('/applications/my-applications', [controllers.Application, 'index'])
-        router.patch('/applications/:id', [controllers.Application, 'cancel'])
+        router.patch('/applications/:id/update', [controllers.Application, 'update'])  // Edit pending application
+        router.patch('/applications/:id/cancel', [controllers.Application, 'cancel'])   // Cancel application
         router.post('/applications/:id/confirm', [controllers.Application, 'confirm'])
         router.post('/applications/:id/confirm-slot', [controllers.Application, 'confirmSlot'])
         router.post('/assignments/:id/confirm', [controllers.Application, 'confirmAssignment'])
         router.get('/my-stay/current', [controllers.Assignments, 'currentStay'])
         router.get('/my-stay/history', [controllers.Assignments, 'stayHistory'])
         router.get('/student/profile', [controllers.StudentProfiles, 'show'])
+
+        // Early move-out request (Student)
+        router.post('/assignments/:id/request-early-moveout', [controllers.Assignments, 'requestEarlyMoveOut'])
 
         // Bookmarks & Reviews
         router.post('/accommodations/:id/bookmarks', [controllers.Bookmark, 'toggle'])
@@ -162,6 +172,9 @@ router
         // Profile
         router.get('/landlord/profile', [controllers.LandlordProfiles, 'show'])
         router.patch('/landlord/profile', [controllers.LandlordProfiles, 'update'])
+
+        // Form 5 renewal roster (per accommodation)
+        router.get('/landlord/accommodations/:id/form5-renewals', [Form5Renewals, 'indexForLandlord'])
       })
       .use(middleware.role([ROLES.LANDLORD]))
 
@@ -200,6 +213,10 @@ router
         router.post('/assignments', [controllers.Assignments, 'store'])
         router.patch('/assignments/:id/move-out', [controllers.Assignments, 'moveOut'])
         router.patch('/assignments/:id/transfer', [controllers.Assignments, 'transfer'])
+
+        // Early move-out request management (Manager/Landlord)
+        router.get('/assignments/early-moveout-requests', [controllers.Assignments, 'viewEarlyMoveOutRequests'])
+        router.patch('/assignments/early-moveout-requests/:id/respond', [controllers.Assignments, 'respondToEarlyMoveOutRequest'])
 
         // Payment Verification
         router.get('/payments/pending', [controllers.Payments, 'pending'])
@@ -245,20 +262,28 @@ router
         // Accommodation Verifications
         router.get('/admin/accommodations/pending', [controllers.AdminAccommodations, 'index'])
         router.patch('/admin/accommodations/:id/verify', [controllers.AdminAccommodations, 'verify'])
+
+        // Form 5 Renewal Verifications
+        router.get('/admin/form5-renewals', [Form5Renewals, 'indexAdmin'])
+        router.patch('/admin/form5-renewals/:studentNumber/verify', [Form5Renewals, 'verify'])
+        router.patch('/admin/form5-renewals/:studentNumber/reject', [Form5Renewals, 'reject'])
+        router.post('/admin/form5-renewals/start-cycle', [Form5Renewals, 'startCycle'])
       })
       .use(middleware.role([ROLES.MANAGER, ROLES.SUPER_ADMIN]))
 
-      /// ====================================================================
-      // ─── MANAGER ───
-      // ====================================================================
-
-      router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
-      router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
-      router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
-      router.get('/manager/occupancy-history', [controllers.OccupancyRecords, 'history'])
+    // ====================================================================
+    // ─── MANAGER ONLY ROUTES ───
+    // ====================================================================
+    router
+      .group(() => {
+        router.get('/manager/profile', [controllers.ManagerProfiles, 'show'])
+        router.patch('/manager/profile', [controllers.ManagerProfiles, 'update'])
+        router.get('/manager/occupancy-records', [controllers.OccupancyRecords, 'rooms'])
+        router.get('/manager/occupancy-history', [controllers.OccupancyRecords, 'history'])
+      })
+      .use(middleware.role([ROLES.MANAGER]))
   })
   .use(middleware.auth())
-
 
 // ====================================================================
 // DEV ROUTES

@@ -1,6 +1,4 @@
-import type { PaymentStatus } from "../../pages/landlord/FeesPage";
-
-const feeStatusStyles: Record<PaymentStatus, { bg: string; dot: string; text: string; label: string }> = {
+const feeStatusStyles: Record<string, { bg: string; dot: string; text: string; label: string }> = {
     paid: {
         bg: '#1A7A4A',
         dot: '#1A7A4A',
@@ -28,7 +26,7 @@ const feeStatusStyles: Record<PaymentStatus, { bg: string; dot: string; text: st
 };
 
 interface StylizedFeeStatusProps {
-    status: PaymentStatus;
+    status: string;
 }
 
 export default function StylizedFeeStatus({ status }: StylizedFeeStatusProps) {

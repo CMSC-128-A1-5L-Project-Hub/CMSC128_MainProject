@@ -233,7 +233,7 @@ export default class RoomsController {
           `New issue reported for Room ${room.roomNumber} at ${room.accommodation?.accommodationName ?? ''}.`
         )
       } catch (e) {
-        console.error('Failed to send in-app room issue notification:', e)
+        console.error('[notify] in-app room-issue controller-wrap failed:', e)
       }
     }
 
