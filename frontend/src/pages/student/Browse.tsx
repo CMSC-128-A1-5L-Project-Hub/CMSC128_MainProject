@@ -361,7 +361,7 @@ export default function BrowsePage() {
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
                 {/* Main */}
                 <div className="flex flex-col w-full min-w-0 h-screen overflow-hidden">
-                    <CustomHeader title="Browse Rooms" />
+                    <CustomHeader title="Browse Accommodations" />
 
                     {/* Scrollable content */}
                     <div className="flex-1 overflow-y-auto">
@@ -369,7 +369,7 @@ export default function BrowsePage() {
                         <div className="w-full px-6 pt-6 pb-2">
                             <HeroBanner
                                 greeting="Good Day" name={name}
-                                title="Browse available rooms"
+                                title="Browse available accommodations"
                                 subtitle="Browse available accommodations and apply in just a few clicks"
                                 type="mini"
                             />
