@@ -32,7 +32,7 @@ async function renderPrintPageToPdf(printPath: string, payload: object): Promise
     headless: 'shell',
     executablePath:
       process.env.PUPPETEER_EXECUTABLE_PATH ??
-      join(process.cwd(), '.chrome', 'chrome-headless-shell'),
+      join(process.cwd(), '.chrome', 'chrome-headless-shell-linux64', 'chrome-headless-shell'),
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   })
   try {
