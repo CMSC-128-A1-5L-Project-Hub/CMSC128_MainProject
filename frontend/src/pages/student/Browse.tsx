@@ -14,6 +14,14 @@ import { api } from "../../api/axios"
 import UbleLoader from "../shared/LoadingPage"
 import defaultAccommodation from "../../assets/defaults/accommodation.png";
 
+
+type ToastState = {
+    show: boolean;
+    type: "success" | "error" | "info" | "warning" | "loading";
+    title: string;
+    message?: string;
+}
+
 /* ─── Context ──────────────────────────────────────────────────────────────── */
 type FilterContextType = {
     dormType: string; setDormType: (v: string) => void
@@ -28,7 +36,8 @@ type FilterContextType = {
     origMin: number; origMax: number; setOrigMin: (v: number) => void; setOrigMax: (v: number) => void;
     setFilterInEffect: (v: boolean) => void; setSearched: (v: boolean) => void;
     setSliderResetKey: (v: number) => void; sliderResetKey: number;
-    setBookmarkedMap: React.Dispatch<React.SetStateAction<Record<number, boolean>>>
+    setBookmarkedMap: React.Dispatch<React.SetStateAction<Record<number, boolean>>>;
+    setToast: React.Dispatch<React.SetStateAction<ToastState>>;
 }
 export const filterContext = createContext<FilterContextType | undefined>(undefined)
 
@@ -93,7 +102,7 @@ export default function BrowsePage() {
                 else if (activeFilter === "UPLB Partner") params.dormType = "UPLB Partner"
             }
             const res = await api.get("/accommodations", { params })
-            console.log("success", res.data)
+            // console.log("success", res.data)
             setFilterInEffect(true)
             return Array.isArray(res.data) ? res.data : []
         },
@@ -218,9 +227,18 @@ export default function BrowsePage() {
         setSearched(true);
     }, []);
 
+
+
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
+        // commented this out para mag take effect agad filters. no need to apply
+        // if (!filterInEffect && !searched) {
+        //     return
+        // }
+
+        // setFilterInEffect(false);
+        // setSearched(false)
 
         for (let i = 0; i < accommodations.length; i++) {
             const {
@@ -291,7 +309,7 @@ export default function BrowsePage() {
 
         setFlatDorms(tempDorms)
         setMapAccommodations(tempPins)
-    }, [accommodations, dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters, studentNo, filterPanelOpen])
+    }, [dormType, minPrice, maxPrice, roomType, starRating, onlyBookmarked, searching, filters, studentNo, filterPanelOpen])
 
     // Pagination logic
     const totalPages = Math.ceil(flatDorms.length / ITEMS_PER_PAGE);
@@ -311,54 +329,21 @@ export default function BrowsePage() {
     if (onlyBookmarked) activeChips.push("Saved only")
     Object.keys(filters).forEach(k => { if (filters[k]) activeChips.push(k) })
 
-    const handleBookmarkToggle = async (accommodationId: number, currentState: boolean, accommodationName: string) => {
-        const newState = !currentState
+    const handleBookmarkToggle = async (accommodationId: number, currentState: boolean) => {
+
         try {
             const data = await api.put(`/accommodations/${accommodationId}/bookmark`, {
                 studentNumber: studentNo,
-                favorite: newState
+                favorite: currentState
             })
-            
+
             queryClient.invalidateQueries({
                 queryKey: ["accommodations"],
             })
-            
-            setToast({
-                show: true,
-                type: "success",
-                title: newState ? "Added to Favorites" : "Removed from Favorites",
-                message: newState 
-                    ? `${accommodationName} has been added to your bookmarks.` 
-                    : `${accommodationName} has been removed from your bookmarks.`
-            })
-        } catch (error) {
-            console.log("error", error)
-            setToast({
-                show: true,
-                type: "error",
-                title: "Action Failed",
-                message: "Could not update bookmark. Please try again."
-            })
-        }
-    }
 
-    const handleResetFilters = () => {
-        setFilters(Object.fromEntries(Object.keys(filters).map(k => [k, false])))
-        setStarRating(3)
-        setOnlyBookmarked(false)
-        setDormType("All")
-        setRoomType("All")
-        setMinPrice(origMin)
-        setMaxPrice(origMax)
-        setFilterPanelOpen(false)
-        setFilterInEffect(true)
-        setSliderResetKey(prev => prev + 1)
-        setToast({
-            show: true,
-            type: "info",
-            title: "Filters Reset",
-            message: "All filters have been cleared."
-        })
+        } catch (error) {
+            console.log("error")
+        }
     }
 
     /* RENDER */
@@ -371,7 +356,7 @@ export default function BrowsePage() {
             dormType, setDormType, minPrice, setMinPrice, maxPrice, setMaxPrice,
             roomType, setRoomType, starRating, setStarRating, onlyBookmarked, setOnlyBookmarked,
             searching, setSearching, filters, setFilters, setFilterPanelOpen, origMin, origMax, setFilterInEffect, setOrigMin, setOrigMax, setSearched,
-            setSliderResetKey, sliderResetKey, setBookmarkedMap
+            setSliderResetKey, sliderResetKey, setBookmarkedMap, setToast
         }}>
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
                 {/* Main */}
@@ -567,7 +552,7 @@ function DormTile({
 }) {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
-    const { setBookmarkedMap } = context
+    const { setBookmarkedMap, setToast } = context
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
@@ -577,9 +562,9 @@ function DormTile({
     const handleHeartClick = async (e: React.MouseEvent) => {
         e.stopPropagation()
         e.preventDefault()
-        
+
         if (isToggling) return
-        
+
         const newState = !isBookmarked
         setIsToggling(true)
         
@@ -588,13 +573,21 @@ function DormTile({
             ...prev,
             [id]: newState
         }))
-        
+
         try {
             if (onBookmarkToggle) {
-                await onBookmarkToggle(dorm.accommodationId, isBookmarked, dorm.name)
+                await onBookmarkToggle(dorm.accommodationId, newState)
+                setToast({
+                    show: true,
+                    type: "success",
+                    title: !newState ? "Removed from favorites" : "Added to favorites!",
+                    message: !newState ? undefined : `${dorm.name} has been saved.`
+                })
             }
         } catch (error) {
             // Revert on error
+            // setIsBookmarked(!newState)
+            setToast({ show: true, type: "error", title: "Something went wrong", message: "Please try again." })
             setBookmarkedMap((prev: Record<number, boolean>) => ({
                 ...prev,
                 [id]: isBookmarked
@@ -632,14 +625,14 @@ function DormTile({
                     onClick={handleHeartClick}
                     disabled={isToggling}
                     className={`absolute top-2 right-2 z-30 p-1.5 rounded-full transition-all duration-300 backdrop-blur-sm
-                        ${isBookmarked 
-                            ? "bg-rose-500/90 text-white" 
+                        ${isBookmarked
+                            ? "bg-rose-500/90 text-white"
                             : "bg-white/80 text-gray-500 hover:bg-rose-500/90 hover:text-white"
                         }`}
                 >
-                    <Heart 
-                        size={16} 
-                        fill={isBookmarked ? "currentColor" : "none"} 
+                    <Heart
+                        size={16}
+                        fill={isBookmarked ? "currentColor" : "none"}
                         strokeWidth={2}
                     />
                 </button>
@@ -858,7 +851,7 @@ function FilterForm({ onClose, origFilters, onReset }: { onClose: () => void; or
             <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9A7080] mb-2">Price range</p>
             <div className="px-2">
                 <PriceRangeSlider key={sliderResetKey} min={origMin} max={origMax} onChange={handleRangeChange} trackColor="linear-gradient(90deg, #E8A0AA, #B5344F, #6B0F2B)"
-                rangeColor="#8C1535"/>
+                    rangeColor="#8C1535" />
             </div>
 
             <Divider />

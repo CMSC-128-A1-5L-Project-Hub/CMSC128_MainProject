@@ -61,7 +61,6 @@ const PriceRangeSlider = ({
         )
     
         const result = Array.from(new Set([min, max, ...snaps])).sort((a, b) => a - b)
-        console.log(result)
         return result.sort((a, b) => a - b)
     }
 
