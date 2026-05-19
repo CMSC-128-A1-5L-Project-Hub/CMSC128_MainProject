@@ -1331,17 +1331,31 @@ export default function ProfilePage() {
                     
                   </div>
                   <div className="mt-4">
-                    <div className="flex items-center gap-3 rounded-2xl border border-[#D9E8DD] bg-[#EEF8F1] px-4 py-3">
-                      <img src={BadgeCheck} alt="" className="h-5 w-5" />
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-extrabold uppercase tracking-wide text-[#1F7A3A]">
-                          Verified UPLB Student
-                        </p>
-                        <p className="text-[10px] text-[#1F7A3A]/70">
-                          Verified {verifyDate}
-                        </p>
-                      </div>
-                    </div>
+                    {(() => {
+                      const renewed = profile.student?.form5Renewal;
+                      const submittedAt = profile.student?.form5RenewalSubmittedAt;
+                      const renewalStatus: "verified" | "pending" | "required" =
+                        renewed ? "verified" : submittedAt ? "pending" : "required";
+
+                      const style =
+                        renewalStatus === "verified"
+                          ? { border: "border-[#D9E8DD]", bg: "bg-[#EEF8F1]", fg: "text-[#1F7A3A]", subFg: "text-[#1F7A3A]/70", title: "Verified UPLB Student", sub: `Verified ${verifyDate}` }
+                          : renewalStatus === "pending"
+                          ? { border: "border-[#CFE0F5]", bg: "bg-[#EAF2FB]", fg: "text-[#1E4FA8]", subFg: "text-[#1E4FA8]/70", title: "Form 5 Pending Admin Review", sub: "Awaiting verification" }
+                          : { border: "border-[#F0E2BE]", bg: "bg-[#FCF5E1]", fg: "text-[#9A6F00]", subFg: "text-[#9A6F00]/70", title: "Form 5 Renewal Required", sub: "Upload your latest Form 5" };
+
+                      return (
+                        <div className={`flex items-center gap-3 rounded-2xl border ${style.border} ${style.bg} px-4 py-3`}>
+                          <img src={BadgeCheck} alt="" className="h-5 w-5" />
+                          <div className="min-w-0">
+                            <p className={`text-[11px] font-extrabold uppercase tracking-wide ${style.fg}`}>
+                              {style.title}
+                            </p>
+                            <p className={`text-[10px] ${style.subFg}`}>{style.sub}</p>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* CURRENT DORM */}
