@@ -361,7 +361,7 @@ export default function BrowsePage() {
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
                 {/* Main */}
                 <div className="flex flex-col w-full min-w-0 h-screen overflow-hidden">
-                    <CustomHeader title="Browse Accommodation" />
+                    <CustomHeader title="Browse Rooms" />
 
                     {/* Scrollable content */}
                     <div className="flex-1 overflow-y-auto">
@@ -456,15 +456,7 @@ export default function BrowsePage() {
                                             <Pagination
                                                 currentPage={currentPage}
                                                 totalPages={totalPages}
-                                                onPageChange={(page) => {
-                                                    setCurrentPage(page)
-                                                    setToast({
-                                                        show: true,
-                                                        type: "info",
-                                                        title: "Page Changed",
-                                                        message: `Viewing page ${page} of ${totalPages}.`
-                                                    })
-                                                }}
+                                                onPageChange={setCurrentPage}
                                             />
                                         </div>
                                     )}
@@ -511,17 +503,14 @@ export default function BrowsePage() {
                                 onClick={() => setFilterPanelOpen(false)}
                                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#F5ECF0] text-[#6B0F2B] hover:bg-[#E8D4DF] transition-colors"
                             >
-                                <X size={18} />
+                                {/* <X size={18} /> */}
+                                X
                             </button>
                         </div>
-                        <FilterForm 
-                            origFilters={filters} 
-                            onClose={() => {
-                                setFilterInEffect(true)
-                                setFilterPanelOpen(false)
-                            }} 
-                            onReset={handleResetFilters}
-                        />
+                        <FilterForm origFilters={filters} onClose={() => {
+                            setFilterInEffect(true)
+                            setFilterPanelOpen(false)
+                        }} />
                     </div>
                 </div>
                 <Toast
@@ -548,7 +537,7 @@ function DormTile({
     hovered: boolean
     onHover: (id: number | null) => void
     onClick: () => void
-    onBookmarkToggle?: (id: number, currentState: boolean, name: string) => Promise<void>
+    onBookmarkToggle?: (id: number, currentState: boolean) => Promise<void>
 }) {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
@@ -556,6 +545,7 @@ function DormTile({
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
+    // const [isBookmarked, setIsBookmarked] = useState(dorm.bookmarked || false)
     const [isToggling, setIsToggling] = useState(false)
     const isBookmarked = bookmarkMap[id] ?? false
 
@@ -567,11 +557,9 @@ function DormTile({
 
         const newState = !isBookmarked
         setIsToggling(true)
-        
-        // Optimistic update
         setBookmarkedMap((prev: Record<number, boolean>) => ({
             ...prev,
-            [id]: newState
+            [id]: !prev[id]
         }))
 
         try {
@@ -590,7 +578,7 @@ function DormTile({
             setToast({ show: true, type: "error", title: "Something went wrong", message: "Please try again." })
             setBookmarkedMap((prev: Record<number, boolean>) => ({
                 ...prev,
-                [id]: isBookmarked
+                [id]: !newState
             }))
             console.error("Failed to update bookmark:", error)
         } finally {
@@ -737,7 +725,7 @@ function SearchBar() {
 /* ══════════════════════════════════════════════════════════════════════════════
    FILTER FORM
 ══════════════════════════════════════════════════════════════════════════════ */
-function FilterForm({ onClose, origFilters, onReset }: { onClose: () => void; origFilters: { [key: string]: boolean }; onReset: () => void }) {
+function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters: { [key: string]: boolean } }) {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
     const {
@@ -755,6 +743,14 @@ function FilterForm({ onClose, origFilters, onReset }: { onClose: () => void; or
     const originalFilters = Object.fromEntries(
         Object.keys(origFilters).map((key) => [key, false])
     ) as Record<string, boolean>;
+
+    const resetAll = () => {
+        let temp = sliderResetKey
+        setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
+        setDormType("All"); setRoomType("All"); setMinPrice(origMin); setMaxPrice(origMax);
+        setFilterPanelOpen(false); setFilterInEffect(true); setSliderResetKey(temp + 1);
+        setSelectedDorm("All"); setSelectedRoom("All");
+    }
 
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
     const [range, setRange] = useState({ min: 0, max: 100 });
@@ -879,11 +875,12 @@ function FilterForm({ onClose, origFilters, onReset }: { onClose: () => void; or
             {/* Buttons */}
             <div className="flex gap-3 mb-8">
                 <button
-                    onClick={onReset}
+                    onClick={resetAll}
                     className="flex-1 py-2.5 rounded-xl border border-[#E8D4DF] bg-white text-[#9A7080] text-sm font-semibold hover:bg-[#F5ECF0] transition-colors"
                 >
                     Reset
                 </button>
+
             </div>
         </div>
     )
