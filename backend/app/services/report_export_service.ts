@@ -29,8 +29,7 @@ async function renderPrintPageToPdf(printPath: string, payload: object): Promise
   const printUrl = `${frontendUrl}${printPath}?d=${encoded}`
 
   const browser = await puppeteer.launch({
-    browser: 'chrome-headless-shell',
-    headless: true,
+    headless: 'shell',
     executablePath:
       process.env.PUPPETEER_EXECUTABLE_PATH ??
       join(process.cwd(), '.chrome', 'chrome-headless-shell'),
