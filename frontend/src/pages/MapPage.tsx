@@ -97,8 +97,8 @@ export default function MapPage() {
   const search = searchParams.get('search') ?? ''
   const type = searchParams.get('type') ?? 'all'
   const restriction = searchParams.get('restriction') ?? 'all'
-  const minRent = Number(searchParams.get('min_rent') ?? origMin)
-  const maxRent = Number(searchParams.get('max_rent') ?? origMax)
+  const minRent = Math.round(Number(searchParams.get('min_rent') ?? origMin) / RENT_STEP) * RENT_STEP
+  const maxRent = Math.round(Number(searchParams.get('max_rent') ?? origMax) / RENT_STEP) * RENT_STEP
   const maxWalk = Number(searchParams.get('max_walk') ?? 60)
   const minCapacity = Number(searchParams.get('min_capacity') ?? 0)
   const stayType = searchParams.get('stay_type') ?? 'all'
@@ -431,8 +431,8 @@ export default function MapPage() {
                         />
                       </div>
                       <div className="flex justify-between text-[10px] font-bold text-[#C8B0B8] uppercase">
-                        <span>₱500</span>
-                        <span>₱15,000</span>
+                        <span>₱{origMin.toLocaleString()}</span>
+                        <span>₱{origMax.toLocaleString()}</span>
                       </div>
                     </div>
 
