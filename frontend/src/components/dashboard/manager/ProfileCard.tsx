@@ -18,6 +18,7 @@ type ProfileCardProps = {
     phoneNumber?: string
     dormitory?: string
     status?: string
+    profilePictureUrl?: string | null  // ADD THIS
     onNotification?: () => void
     showReplaceButton?: boolean
     accommodationId?: number
@@ -41,6 +42,7 @@ export default function ProfileCard({
     phoneNumber,
     dormitory,
     status = "pending",
+    profilePictureUrl,  // ADD THIS
     onNotification,
     showReplaceButton = false,
     accommodationId,
@@ -52,6 +54,7 @@ export default function ProfileCard({
     const [replacementEmail, setReplacementEmail] = useState("")
     const [inviteSubmitting, setInviteSubmitting] = useState(false)
     const [inviteError, setInviteError] = useState<string | null>(null)
+    const [imgError, setImgError] = useState(false)
 
     const handleSendInvite = async () => {
         if (!accommodationId) {
@@ -92,6 +95,22 @@ export default function ProfileCard({
         setReplacementEmail("")
         setInviteError(null)
     }
+
+    // Get initials for fallback
+    const getInitials = () => {
+        if (!fullName) return "U"
+        return fullName
+            .split(" ")
+            .map(n => n[0])
+            .slice(0, 2)
+            .join("")
+            .toUpperCase()
+    }
+
+    // Determine the profile image source
+    const profileImageSrc = !imgError && profilePictureUrl 
+        ? profilePictureUrl 
+        : default_pfp
 
     return (
         <>
@@ -248,10 +267,25 @@ export default function ProfileCard({
                         <div className="flex items-center gap-4">
                             <div className="relative flex-shrink-0">
                                 <div
-                                    className="w-[78px] h-[78px] rounded-full bg-white/20 flex items-center justify-center border-[4px] overflow-hidden shadow-md"
-                                    style={{ borderColor: CLR.gold }}
+                                    className="w-[78px] h-[78px] rounded-full flex items-center justify-center overflow-hidden shadow-md"
+                                    style={{ border: `4px solid ${CLR.gold}` }}
                                 >
-                                    <img src={default_pfp} alt={fullName} className="w-full h-full object-cover" />
+                                    {profileImageSrc && profileImageSrc !== default_pfp ? (
+                                        <img 
+                                            src={profileImageSrc} 
+                                            alt={fullName} 
+                                            className="w-full h-full object-cover"
+                                            onError={() => setImgError(true)}
+                                        />
+                                    ) : (
+                                        <div
+                                            className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#6B0F2B] to-[#8C1535]"
+                                        >
+                                            <span className="text-white text-2xl font-bold">
+                                                {getInitials()}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-green-600 border-[3px] border-white flex items-center justify-center">
                                     <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">

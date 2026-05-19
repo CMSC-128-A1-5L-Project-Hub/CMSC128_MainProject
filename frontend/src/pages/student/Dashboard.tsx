@@ -119,6 +119,7 @@ interface StudentProfile {
   college: string;
   yearLevel: string;
   status: string;
+  profilePictureUrl?: string | null; 
 }
 
 interface HeroContent {
@@ -579,95 +580,110 @@ const DesktopProfilePanel = ({
           background: "linear-gradient(90deg, #7A0C23 0%, #A61C3C 100%)"
         }}
       />
-    <div className="relative z-10">
-    {/* Profile Title and Notif Button */}
-      <div className="flex items-center justify-between mb-6">
-        <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
+      <div className="relative z-10">
+        {/* Profile Title and Notif Button */}
+        <div className="flex items-center justify-between mb-6">
+          <span className="text-[11px] font-bold tracking-widest uppercase text-white/75">My Profile</span>
 
-       <div ref={notifWrapperRef} className="relative">
-        <button
-          type="button"
-          onClick={() => setNotifOpen((prev) => !prev)}
-          className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
-            transition-all duration-150
-            bg-white/10 hover:bg-white/20 active:bg-white/30
-            hover:-translate-y-1 active:translate-y-0 active:scale-95"
-        >
-          <img
-            src={notif_icon}
-            alt="Notifications"
-            className="w-full h-full object-contain scale-[2.5]"
-          />
+          <div ref={notifWrapperRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setNotifOpen((prev) => !prev)}
+              className="w-12 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden
+                transition-all duration-150
+                bg-white/10 hover:bg-white/20 active:bg-white/30
+                hover:-translate-y-1 active:translate-y-0 active:scale-95"
+            >
+              <img
+                src={notif_icon}
+                alt="Notifications"
+                className="w-full h-full object-contain scale-[2.5]"
+              />
 
-          {unreadCount > 0 && (
-            <span
-              className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
-              style={{ background: CLR.gold }}
-            />
-          )}
-        </button>
+              {unreadCount > 0 && (
+                <span
+                  className="absolute top-0.5 right-1 w-3 h-3 rounded-full border-2 border-white/80"
+                  style={{ background: CLR.gold }}
+                />
+              )}
+            </button>
 
-        <NotificationPanel
-          open={notifOpen}
-          notifications={notifications}
-          unreadCount={unreadCount}
-          onMarkAllRead={markAllRead}
-          onMarkOneRead={markOneRead}
-          onClose={() => setNotifOpen(false)}
-          wrapperRef={notifWrapperRef}
-        />
-      </div>
-      </div>
-      {/* Profile Content */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-shrink-0">
-          <div
-            className="w-[78px] h-[78px] rounded-full bg-white flex items-center justify-center border-[4px] overflow-hidden shadow-md"
-            style={{ borderColor: CLR.gold }}
-          >
-            <img
-              src={default_profile}
-              alt="Default profile"
-              className="w-full h-full object-cover"
+            <NotificationPanel
+              open={notifOpen}
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onMarkAllRead={markAllRead}
+              onMarkOneRead={markOneRead}
+              onClose={() => setNotifOpen(false)}
+              wrapperRef={notifWrapperRef}
             />
           </div>
+        </div>
+        
+        {/* Profile Content - FIXED to show actual profile picture */}
+        <div className="flex items-center gap-4">
+          <div className="relative flex-shrink-0">
+            <div
+              className="w-[78px] h-[78px] rounded-full flex items-center justify-center overflow-hidden shadow-md"
+              style={{ border: `4px solid ${CLR.gold}` }}
+            >
+              {profile.profilePictureUrl ? (
+                <img
+                  src={profile.profilePictureUrl}
+                  alt={profile.fullName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = default_profile;
+                  }}
+                />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#6B0F2B] to-[#8C1535]"
+                >
+                  <span className="text-white text-2xl font-bold">
+                    {profile.fullName?.[0]?.toUpperCase() || "U"}
+                  </span>
+                </div>
+              )}
+            </div>
 
-          <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
-            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+            <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-green-600 border-4 border-white flex items-center justify-center">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="min-w-0">
+            <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
+            <p className="text-[15px] font-bold leading-tight mt-1" style={{ color: CLR.goldLt }}>
+              {profile.course.toLocaleUpperCase()} · {profile.campus}
+            </p>
+            <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
+            <p className="text-white/70 text-sm">{profile.phone}</p>
           </div>
         </div>
 
-        <div className="min-w-0">
-          <p className="text-white font-bold text-[20px] leading-tight">{profile.fullName}</p>
-          <p className="text-[15px] font-bold leading-tight mt-1" style={{ color: CLR.goldLt }}>
-            {profile.course.toLocaleUpperCase()} · {profile.campus}
-          </p>
-          <p className="text-white/70 text-sm mt-1 truncate">{profile.email}</p>
-          <p className="text-white/70 text-sm">{profile.phone}</p>
+        <div className="mt-6 grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-4">        
+          {[
+            { label: "Student No.", value: profile.studentNo },
+            { label: "College", value: profile.college.toUpperCase() },
+            { label: "Year Level", value: profile.yearLevel },
+            { label: "Status", value: profile.status.charAt(0).toUpperCase() + profile.status.slice(1).toLowerCase(), green: true },
+          ].map((item) => (
+            <div key={item.label}>
+              <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
+              {"green" in item && item.green ? (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#3FA36C] bg-[#5E5A4D] text-[#cefad0] text-green-200"> 
+                  {item.value}
+                </span>
+              ) : (
+                <p className="text-white text-[14px] font-bold leading-tight whitespace-nowrap"> {item.value} </p>
+              )}
+            </div>
+          ))}
         </div>
       </div>
-
-      <div className="mt-6 grid grid-cols-[1.4fr_1fr_1fr_1fr] gap-4">        {[
-          { label: "Student No.", value: profile.studentNo },
-          { label: "College", value: profile.college.toUpperCase() },
-          { label: "Year Level", value: profile.yearLevel },
-          { label: "Status", value: profile.status.charAt(0).toUpperCase() + profile.status.slice(1).toLowerCase(), green: true },
-        ].map((item) => (
-          <div key={item.label}>
-            <p className="text-white/50 text-[10px] font-medium leading-tight mb-1.5">{item.label}</p>
-            {"green" in item && item.green ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#3FA36C] bg-[#5E5A4D] text-[#cefad0] text-green-200"> 
-                {item.value}
-              </span>
-            ) : (
-              <p className="text-white text-[14px] font-bold leading-tight whitespace-nowrap"> {item.value} </p>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
     </div>
     <div className="bg-white rounded-[30px] px-7 pt-6 pb-8 shadow-[0_10px_24px_rgba(61,7,24,0.12)]">
       <BillingSection overview={billing} statements={statements} navigate={navigate} />
@@ -737,24 +753,39 @@ export default function Dashboard() {
         return true
       })
 
-  // Profile and authentication -------------------
-  useEffect(() => {
+// Profile and authentication -------------------
+useEffect(() => {
   const fetchProfile = async () => {
     try {
-      const res = await api.get("/student/profile");
-      const data = res.data;
+      // Also fetch the user data for profile picture
+      const [profileRes, userRes] = await Promise.all([
+        api.get("/student/profile"),
+        api.get("/me")
+      ]);
+      
+      const profileData = profileRes.data;
+      const userData = userRes.data;
+      
+      // Get profile picture URL from user data
+      let profilePictureUrl = null;
+      if (userData.profilePictureUrl) {
+        profilePictureUrl = userData.profilePictureUrl;
+      } else if (userData.profilePicture?.filePath) {
+        profilePictureUrl = userData.profilePicture.filePath;
+      }
 
       setProfile({
-        fullName: data.fullName ?? "",
-        shortName: data.shortName ?? "",
-        course: data.course ?? "",
-        campus: data.campus ?? "",
-        email: data.email ?? "",
-        phone: data.phone ?? "",
-        studentNo: data.studentNo ?? "",
-        college: data.college ?? "",
-        yearLevel: data.yearLevel ?? "",
-        status: data.status ?? "",
+        fullName: profileData.fullName ?? "",
+        shortName: profileData.shortName ?? "",
+        course: profileData.course ?? "",
+        campus: profileData.campus ?? "",
+        email: profileData.email ?? "",
+        phone: profileData.phone ?? "",
+        studentNo: profileData.studentNo ?? "",
+        college: profileData.college ?? "",
+        yearLevel: profileData.yearLevel ?? "",
+        status: profileData.status ?? "",
+        profilePictureUrl: profilePictureUrl,  // ADD THIS
       });
     } catch (error) {
       console.error("Failed to fetch profile:", error);
