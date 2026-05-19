@@ -64,11 +64,8 @@ export default class MigrateB2 extends BaseCommand {
           skipped++
         }
       } catch (err) {
-        const cause = (err as any)?.cause ?? (err as any)?.original ?? err
         const message = err instanceof Error ? err.message : String(err)
-        const detail = cause instanceof Error ? cause.message : String(cause)
         this.logger.error(`[failed]  ${fileName} — ${message}`)
-        if (detail !== message) this.logger.error(`          cause: ${detail}`)
         failed++
       }
     }

@@ -3,5 +3,5 @@ const { join } = require('node:path')
 /** @type {import('puppeteer').Configuration} */
 module.exports = {
   cacheDirectory: join(__dirname, 'node_modules', '.cache', 'puppeteer'),
-  defaultBrowser: 'chrome-headless-shell',
+  browser: 'chrome-headless-shell',
 }
