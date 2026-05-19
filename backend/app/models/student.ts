@@ -1,5 +1,6 @@
 import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import { DateTime } from 'luxon'
 import User from '#models/user'
 import FileMetadata from '#models/file_metadatum'
 import Application from '#models/application'
@@ -37,8 +38,11 @@ export default class Student extends BaseModel {
   @column()
   declare yearLevel: string | null
 
-  @column()
+  @column({ columnName: 'form5_renewal' })
   declare form5Renewal: boolean
+
+  @column.dateTime({ columnName: 'form5_renewal_submitted_at' })
+  declare form5RenewalSubmittedAt: DateTime | null
 
   @belongsTo(() => User, { foreignKey: 'userId' })
   declare user: BelongsTo<typeof User>

@@ -10,6 +10,7 @@ import RecentActivityLogs from "@/components/dashboard/admin/RecentActivityLogs"
 import StudentVerifications from "@/components/dashboard/admin/StudentVerifications"
 import HousingAdminVerifications from "@/components/dashboard/admin/HousingAdminVerifications"
 import PendingAccommodations from "@/components/dashboard/admin/PendingAccommodations"
+import Form5Renewals from "@/components/dashboard/admin/Form5Renewals"
 import SystemSettings from "@/components/dashboard/admin/SystemSettings"
 import ActivityLogs from "@/components/dashboard/admin/ActivityLogs"
 import UbleLoader from "../shared/LoadingPage"
@@ -444,7 +445,7 @@ const AdminDashboard = () => {
                 }}
               />
             </section>
-            {/* PENDING ACCOMMODATION APPROVAL */}
+            {/* PENDING ACCOMMODATIONS + FORM 5 RENEWALS */}
             <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <PendingAccommodations
                 accommodations={pendingAccommodations}
@@ -457,7 +458,12 @@ const AdminDashboard = () => {
                   })
                 }
               />
-              {/* SYSTEM SETTINGS */}
+              <Form5Renewals
+                onToast={(t) => setToast({ show: true, ...t })}
+              />
+            </section>
+            {/* SYSTEM SETTINGS */}
+            <section>
               <SystemSettings
                 academicYear={academicYear}
                 semester={semester}
@@ -469,6 +475,7 @@ const AdminDashboard = () => {
                 onSemesterChange={setSemester}
                 onAutoVerifyChange={setAutoVerifyUsers}
                 onUpdate={() => updateSettingsMutation.mutate()}
+                onToast={(t) => setToast({ show: true, ...t })}
               />
             </section>
             {/* ACTIVITY LOGS */}

@@ -44,6 +44,9 @@ interface UserProfile {
     classification: string | null;
     emergencyContactName: string | null;
     emergencyContactNumber: string | null;
+    form5Renewal: boolean;
+    form5RenewalSubmittedAt: string | null;
+    enrollmentProofUrl?: string | null;
   } | null;
   updatedAt: string;
 }
@@ -150,6 +153,19 @@ async function uploadProfilePicture(file: File): Promise<{ profilePictureUrl: st
   const form = new FormData();
   form.append("profilePicture", file);
   const res = await api.post("/me/profile-picture", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
+}
+
+async function uploadForm5Renewal(file: File): Promise<{
+  enrollmentProof: { id: number; fileName: string; fileType: string; url: string };
+  form5Renewal: boolean;
+  form5RenewalSubmittedAt: string | null;
+}> {
+  const form = new FormData();
+  form.append("form5", file);
+  const res = await api.post("/me/form5-renewal", form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;
@@ -808,8 +824,11 @@ export default function ProfilePage() {
   const { setUser } = useUserStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const form5InputRef = useRef<HTMLInputElement>(null);
   const [tempImage, setTempImage] = useState<string | null>(null);
   const [pfpUploading, setPfpUploading] = useState(false);
+  const [form5Uploading, setForm5Uploading] = useState(false);
+  const [form5PreviewOpen, setForm5PreviewOpen] = useState(false);
 
   // Early move-out modal state
   const [earlyMoveOutModalOpen, setEarlyMoveOutModalOpen] = useState(false);
@@ -912,6 +931,57 @@ export default function ProfilePage() {
       });
     },
   });
+
+  const form5Mutation = useMutation({
+    mutationFn: uploadForm5Renewal,
+    onMutate: () => setForm5Uploading(true),
+    onSettled: () => setForm5Uploading(false),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['me'] });
+      refetchProfile();
+      setToast({
+        show: true,
+        type: "success",
+        title: "Form 5 Submitted",
+        message: "Your renewed Form 5 has been submitted for verification."
+      });
+    },
+    onError: (err: any) => {
+      console.error("Form 5 upload failed", err);
+      setToast({
+        show: true,
+        type: "error",
+        title: "Upload Failed",
+        message: err?.response?.data?.message ?? 'Failed to upload Form 5.'
+      });
+    },
+  });
+
+  const handleForm5Upload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const okTypes = ["image/jpeg", "image/png", "application/pdf"];
+    if (!okTypes.includes(file.type)) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "Invalid File",
+        message: "Form 5 must be a JPG, PNG, or PDF file."
+      });
+      return;
+    }
+    if (file.size > 16 * 1024 * 1024) {
+      setToast({
+        show: true,
+        type: "error",
+        title: "File Too Large",
+        message: "Form 5 must be under 16MB."
+      });
+      return;
+    }
+    form5Mutation.mutate(file);
+    if (form5InputRef.current) form5InputRef.current.value = "";
+  };
 
   const submitReview = useMutation({
     mutationFn: async ({ rating, content }: { rating: number; content: string }) => {
@@ -1452,12 +1522,132 @@ export default function ProfilePage() {
                       placeholder="09123456789"
                     />
                   </div>
+
+                  {/* ── Form 5 Renewal — hidden when verified ─────────── */}
+                  {profile.student && !profile.student.form5Renewal && (() => {
+                    const submittedAt = profile.student.form5RenewalSubmittedAt;
+                    const status: "pending" | "required" = submittedAt ? "pending" : "required";
+
+                    const badge =
+                      status === "pending"
+                        ? { label: "Pending Admin Review", cls: "bg-blue-100 text-blue-800" }
+                        : { label: "Renewal Required", cls: "bg-yellow-100 text-yellow-800" };
+
+                    const description =
+                      status === "pending"
+                        ? "Your re-uploaded Form 5 is waiting for admin verification."
+                        : "A new renewal cycle has started. Upload your latest Form 5 to confirm continued enrollment.";
+
+                    return (
+                      <div className="mt-8 rounded-2xl border border-[#E6CAD3] bg-[#FBF5F7] p-5">
+                        <div className="flex items-center justify-between flex-wrap gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wider text-[#A88993]">
+                              Form 5 (Enrollment Proof)
+                            </p>
+                            <p className="mt-1 text-sm text-[#4A3940]">{description}</p>
+                          </div>
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${badge.cls}`}>
+                            {badge.label}
+                          </span>
+                        </div>
+
+                        <div className="mt-4 flex items-center flex-wrap gap-3">
+                          {status === "required" && (
+                            <>
+                              <input
+                                ref={form5InputRef}
+                                type="file"
+                                accept="image/jpeg,image/png,application/pdf"
+                                className="hidden"
+                                onChange={handleForm5Upload}
+                              />
+                              <Button
+                                variant="reddishPink"
+                                onClick={() => form5InputRef.current?.click()}
+                                disabled={form5Uploading}
+                              >
+                                {form5Uploading ? "Uploading..." : "Upload New Form 5"}
+                              </Button>
+                            </>
+                          )}
+                          {profile.student.enrollmentProofUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setForm5PreviewOpen(true)}
+                              className="text-sm font-semibold text-[#8C1535] hover:underline"
+                            >
+                              View current Form 5
+                            </button>
+                          )}
+                          {submittedAt && (
+                            <span className="text-xs text-gray-500">
+                              Last submitted: {new Date(submittedAt).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+
+                        {status === "required" && (
+                          <p className="mt-3 text-[11px] text-gray-500">
+                            Accepted: JPG, PNG, PDF · Max 16MB
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
           </section>
         </main>
       </div>
+
+      {/* Form 5 Preview Modal */}
+      {(() => {
+        const url = profile?.student?.enrollmentProofUrl;
+        const isPdf = !!url && url.toLowerCase().split("?")[0].endsWith(".pdf");
+        return (
+          <Modal
+            open={form5PreviewOpen}
+            onClose={() => setForm5PreviewOpen(false)}
+            title="Form 5 (Enrollment Proof)"
+            eyebrow="Current Document"
+            maxWidth={900}
+            maxHeight={800}
+          >
+            {url ? (
+              isPdf ? (
+                <iframe
+                  src={url}
+                  title="Form 5"
+                  className="w-full rounded-xl bg-white"
+                  style={{ height: "70vh", border: "1px solid rgba(140,21,53,0.12)" }}
+                />
+              ) : (
+                <img
+                  src={url}
+                  alt="Form 5"
+                  className="w-full max-h-[70vh] object-contain rounded-xl bg-[#FAFAFA]"
+                  style={{ border: "1px solid rgba(140,21,53,0.12)" }}
+                />
+              )
+            ) : (
+              <p className="text-center text-gray-400 italic py-10">No document available.</p>
+            )}
+            <div className="mt-3 flex justify-end">
+              <a
+                href={url ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-bold tracking-[0.10em] uppercase text-[#8C1535] hover:underline"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                Open in new tab ↗
+              </a>
+            </div>
+          </Modal>
+        );
+      })()}
 
       {/* OTP Verification Modal */}
       <Modal

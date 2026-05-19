@@ -440,6 +440,19 @@ export default function Dashboard() {
     enabled: !!accommodationId,
   });
 
+  const { data: form5Stats } = useQuery<{
+    total: number;
+    verified: number;
+    submittedPending: number;
+    notSubmitted: number;
+    percentVerified: number;
+    roster: { studentNumber: string; name: string; form5Renewal: boolean; form5RenewalSubmittedAt: string | null }[];
+  }>({
+    queryKey: ["landlord-form5-renewals", accommodationId],
+    queryFn: () => api.get(`/landlord/accommodations/${accommodationId}/form5-renewals`).then((r) => r.data),
+    enabled: !!accommodationId,
+  });
+
   // ── Mutations ────────────────────────────────────────────────────────────────
 
   const saveAppPeriod = useMutation({
@@ -578,15 +591,12 @@ export default function Dashboard() {
   const projectedRevenue = revenue?.projectedMonthlyRevenue ?? 0;
   const underReviewApps = applications.filter((a) => a.applicationStatus === "under_review");
   
-  // Form 5 / enrollment proof stats — scoped to this accommodation
-  const accommodationApps = applications; // Since applications is already filtered by accommodationId
-  const form5Submitted = accommodationApps.filter(
-    (a) => a.student?.enrollmentProofFileId != null
-  ).length;
-  const form5Pending = accommodationApps.length - form5Submitted;
-  const form5Pct = accommodationApps.length > 0
-    ? Math.round((form5Submitted / accommodationApps.length) * 100)
-    : 0;
+  // Form 5 renewal stats — based on actual verified renewal flag (not signup proof)
+  const form5Total = form5Stats?.total ?? 0;
+  const form5Submitted = form5Stats?.verified ?? 0;
+  const form5SubmittedPending = form5Stats?.submittedPending ?? 0;
+  const form5NotSubmitted = form5Stats?.notSubmitted ?? 0;
+  const form5Pct = form5Stats?.percentVerified ?? 0;
     // Manager card props
     const manager = accommodation?.manager;
     const managerStatus = !manager ? "none" : manager.managerStatus === "active" ? "assigned" : "pending";
@@ -845,16 +855,16 @@ export default function Dashboard() {
                           <CircleProgress value={form5Pct} />
                         </div>
                         <div className="flex flex-col gap-2 flex-1">
-                          <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(140,21,53,0.06)" }}>
-                            <div><p className="text-[10px] text-[#8C1535]/60 uppercase tracking-wider">Submitted</p><p className="text-lg font-bold text-[#8C1535]">{form5Submitted}</p></div>
-                            <div className="w-2 h-2 rounded-full bg-[#8C1535]" />
+                          <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(16,185,129,0.08)" }}>
+                            <div><p className="text-[10px] text-emerald-700/70 uppercase tracking-wider">Verified</p><p className="text-lg font-bold text-emerald-700">{form5Submitted}</p></div>
+                            <div className="w-2 h-2 rounded-full bg-emerald-600" />
                           </div>
                           <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(202,138,4,0.06)" }}>
-                            <div><p className="text-[10px] text-yellow-600/70 uppercase tracking-wider">Pending</p><p className="text-lg font-bold text-yellow-600">{form5Pending}</p></div>
+                            <div><p className="text-[10px] text-yellow-600/70 uppercase tracking-wider">Pending</p><p className="text-lg font-bold text-yellow-600">{form5SubmittedPending + form5NotSubmitted}</p></div>
                             <div className="w-2 h-2 rounded-full bg-yellow-500" />
                           </div>
                           <div className="flex justify-between items-center p-2 rounded-xl" style={{ background: "rgba(0,0,0,0.03)" }}>
-                            <div><p className="text-[10px] text-gray-400 uppercase tracking-wider">Total Applicants</p><p className="text-lg font-bold text-gray-500">{accommodationApps.length}</p></div>
+                            <div><p className="text-[10px] text-gray-400 uppercase tracking-wider">Assigned Students</p><p className="text-lg font-bold text-gray-500">{form5Total}</p></div>
                             <div className="w-2 h-2 rounded-full bg-gray-300" />
                           </div>
                         </div>

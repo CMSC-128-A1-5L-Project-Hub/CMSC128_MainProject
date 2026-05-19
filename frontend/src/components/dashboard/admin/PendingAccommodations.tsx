@@ -60,8 +60,8 @@ export default function PendingAccommodations({
           </p>
         ) : accommodations.length === 0 ? (
           <>
-            <div className="flex items-center py-28 justify-center">
-              <p className="text-[15px] text-[#9A7080]">
+            <div className="flex items-center py-10 justify-center">
+              <p className="text-[15px] text-[#9A7080] text-center">
                 No pending approvals
               </p>
             </div>

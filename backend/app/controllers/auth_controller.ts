@@ -102,7 +102,7 @@ export default class AuthController {
 
     // Role-specific preloads
     if (user.role === 'student') {
-      await user.load('student')
+      await user.load('student', (q) => q.preload('enrollmentProof'))
     } else if (user.role === 'manager') {
       await user.load('manager', (q) => q.preload('accommodations'))
     } else if (user.role === 'landlord') {
@@ -111,6 +111,11 @@ export default class AuthController {
 
     const serialized = user.serialize()
     serialized.profilePictureUrl = await signFileUrl(user.profilePicture)
+
+    if (user.role === 'student' && user.student?.enrollmentProof) {
+      const { signImageUrl } = await import('#services/image_service')
+      serialized.student.enrollmentProofUrl = await signImageUrl(user.student.enrollmentProof.filePath)
+    }
 
     const isDefaultPfp = !user.profilePicture || user.profilePicture.filePath === 'defaults/default_pfp.png'
     if (isDefaultPfp && user.googlePictureUrl) {

@@ -21,6 +21,7 @@ export interface Student {
   yearLevel: string | null
 
   form5Renewal: boolean
+  form5RenewalSubmittedAt?: string | null
 
   user?: User
   enrollmentProof?: FileMetadata
