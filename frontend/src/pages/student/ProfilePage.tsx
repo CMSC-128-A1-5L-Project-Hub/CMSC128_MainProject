@@ -20,7 +20,7 @@ import Camera from "../../assets/icons/camera.svg";
 import Pencil from "../../assets/icons/edit.svg";
 import BadgeCheck from "../../assets/icons/verify.svg";
 import Save from "../../assets/icons/save.svg";
-import { Calendar, AlertCircle, Send, Star, X, ChevronLeft } from "lucide-react";
+import { Calendar, AlertCircle, BadgeCheck as BadgeCheckIcon, Send, Star, X, ChevronLeft } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1346,7 +1346,11 @@ export default function ProfilePage() {
 
                       return (
                         <div className={`flex items-center gap-3 rounded-2xl border ${style.border} ${style.bg} px-4 py-3`}>
-                          <img src={BadgeCheck} alt="" className="h-5 w-5" />
+                          {renewalStatus === "verified" ? (
+                            <BadgeCheckIcon className={`h-5 w-5 ${style.fg}`} />
+                          ) : (
+                            <AlertCircle className={`h-5 w-5 ${style.fg}`} />
+                          )}
                           <div className="min-w-0">
                             <p className={`text-[11px] font-extrabold uppercase tracking-wide ${style.fg}`}>
                               {style.title}
