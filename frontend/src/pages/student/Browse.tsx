@@ -221,13 +221,6 @@ export default function BrowsePage() {
     useEffect(() => {
         const tempPins: AccommodationPin[] = []
         const tempDorms: Dorm[] = []
-        // commented this out para mag take effect agad filters. no need to apply
-        // if (!filterInEffect && !searched) {
-        //     return
-        // }
-
-        setFilterInEffect(false);
-        setSearched(false)
 
         for (let i = 0; i < accommodations.length; i++) {
             const {
@@ -318,21 +311,54 @@ export default function BrowsePage() {
     if (onlyBookmarked) activeChips.push("Saved only")
     Object.keys(filters).forEach(k => { if (filters[k]) activeChips.push(k) })
 
-    const handleBookmarkToggle = async (accommodationId: number, currentState: boolean) => {
-  
+    const handleBookmarkToggle = async (accommodationId: number, currentState: boolean, accommodationName: string) => {
+        const newState = !currentState
         try {
             const data = await api.put(`/accommodations/${accommodationId}/bookmark`, {
-              studentNumber: studentNo,
-              favorite: currentState
+                studentNumber: studentNo,
+                favorite: newState
             })
             
             queryClient.invalidateQueries({
                 queryKey: ["accommodations"],
-              })
-   
-          } catch (error) {
-            console.log("error")
-          }
+            })
+            
+            setToast({
+                show: true,
+                type: "success",
+                title: newState ? "Added to Favorites" : "Removed from Favorites",
+                message: newState 
+                    ? `${accommodationName} has been added to your bookmarks.` 
+                    : `${accommodationName} has been removed from your bookmarks.`
+            })
+        } catch (error) {
+            console.log("error", error)
+            setToast({
+                show: true,
+                type: "error",
+                title: "Action Failed",
+                message: "Could not update bookmark. Please try again."
+            })
+        }
+    }
+
+    const handleResetFilters = () => {
+        setFilters(Object.fromEntries(Object.keys(filters).map(k => [k, false])))
+        setStarRating(3)
+        setOnlyBookmarked(false)
+        setDormType("All")
+        setRoomType("All")
+        setMinPrice(origMin)
+        setMaxPrice(origMax)
+        setFilterPanelOpen(false)
+        setFilterInEffect(true)
+        setSliderResetKey(prev => prev + 1)
+        setToast({
+            show: true,
+            type: "info",
+            title: "Filters Reset",
+            message: "All filters have been cleared."
+        })
     }
 
     /* RENDER */
@@ -350,7 +376,7 @@ export default function BrowsePage() {
             <div className="flex flex-row w-full min-h-screen bg-[#F6F2F4]">
                 {/* Main */}
                 <div className="flex flex-col w-full min-w-0 h-screen overflow-hidden">
-                    <CustomHeader title="Browse Rooms" />
+                    <CustomHeader title="Browse Accommodation" />
 
                     {/* Scrollable content */}
                     <div className="flex-1 overflow-y-auto">
@@ -445,7 +471,15 @@ export default function BrowsePage() {
                                             <Pagination
                                                 currentPage={currentPage}
                                                 totalPages={totalPages}
-                                                onPageChange={setCurrentPage}
+                                                onPageChange={(page) => {
+                                                    setCurrentPage(page)
+                                                    setToast({
+                                                        show: true,
+                                                        type: "info",
+                                                        title: "Page Changed",
+                                                        message: `Viewing page ${page} of ${totalPages}.`
+                                                    })
+                                                }}
                                             />
                                         </div>
                                     )}
@@ -492,14 +526,17 @@ export default function BrowsePage() {
                                 onClick={() => setFilterPanelOpen(false)}
                                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#F5ECF0] text-[#6B0F2B] hover:bg-[#E8D4DF] transition-colors"
                             >
-                                {/* <X size={18} /> */}
-                                X
+                                <X size={18} />
                             </button>
                         </div>
-                        <FilterForm origFilters={filters} onClose={() => {
-                            setFilterInEffect(true)
-                            setFilterPanelOpen(false)
-                        }} />
+                        <FilterForm 
+                            origFilters={filters} 
+                            onClose={() => {
+                                setFilterInEffect(true)
+                                setFilterPanelOpen(false)
+                            }} 
+                            onReset={handleResetFilters}
+                        />
                     </div>
                 </div>
                 <Toast
@@ -526,7 +563,7 @@ function DormTile({
     hovered: boolean
     onHover: (id: number | null) => void
     onClick: () => void
-    onBookmarkToggle?: (id: number, currentState: boolean) => Promise<void>
+    onBookmarkToggle?: (id: number, currentState: boolean, name: string) => Promise<void>
 }) {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
@@ -534,7 +571,6 @@ function DormTile({
     const ratingNum = parseFloat(dorm.rating)
     const validRating = !isNaN(ratingNum) && ratingNum <= 5
     const isOnCampus = dorm.meta?.toLowerCase().includes("campus")
-    // const [isBookmarked, setIsBookmarked] = useState(dorm.bookmarked || false)
     const [isToggling, setIsToggling] = useState(false)
     const isBookmarked = bookmarkMap[id] ?? false
 
@@ -544,24 +580,24 @@ function DormTile({
         
         if (isToggling) return
         
-        console.log("foobar")
         const newState = !isBookmarked
         setIsToggling(true)
+        
+        // Optimistic update
         setBookmarkedMap((prev: Record<number, boolean>) => ({
             ...prev,
-            [id]: !prev[id]
+            [id]: newState
         }))
         
         try {
             if (onBookmarkToggle) {
-                await onBookmarkToggle(dorm.accommodationId, newState)
+                await onBookmarkToggle(dorm.accommodationId, isBookmarked, dorm.name)
             }
         } catch (error) {
             // Revert on error
-            // setIsBookmarked(!newState)
             setBookmarkedMap((prev: Record<number, boolean>) => ({
                 ...prev,
-                [id]: !newState
+                [id]: isBookmarked
             }))
             console.error("Failed to update bookmark:", error)
         } finally {
@@ -708,7 +744,7 @@ function SearchBar() {
 /* ══════════════════════════════════════════════════════════════════════════════
    FILTER FORM
 ══════════════════════════════════════════════════════════════════════════════ */
-function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters: { [key: string]: boolean } }) {
+function FilterForm({ onClose, origFilters, onReset }: { onClose: () => void; origFilters: { [key: string]: boolean }; onReset: () => void }) {
     const context = useContext(filterContext)
     if (!context) throw new Error("FilterContext must be used within a Provider")
     const {
@@ -726,14 +762,6 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
     const originalFilters = Object.fromEntries(
         Object.keys(origFilters).map((key) => [key, false])
     ) as Record<string, boolean>;
-
-    const resetAll = () => {
-        let temp = sliderResetKey
-        setFilters(originalFilters); setStarRating(3); setOnlyBookmarked(false)
-        setDormType("All"); setRoomType("All"); setMinPrice(origMin); setMaxPrice(origMax);
-        setFilterPanelOpen(false); setFilterInEffect(true); setSliderResetKey(temp + 1);
-        setSelectedDorm("All"); setSelectedRoom("All");
-    }
 
     const Divider = () => <div className="h-px bg-[#F0E4E9] my-5" />
     const [range, setRange] = useState({ min: 0, max: 100 });
@@ -858,12 +886,11 @@ function FilterForm({ onClose, origFilters }: { onClose: () => void; origFilters
             {/* Buttons */}
             <div className="flex gap-3 mb-8">
                 <button
-                    onClick={resetAll}
+                    onClick={onReset}
                     className="flex-1 py-2.5 rounded-xl border border-[#E8D4DF] bg-white text-[#9A7080] text-sm font-semibold hover:bg-[#F5ECF0] transition-colors"
                 >
                     Reset
                 </button>
-
             </div>
         </div>
     )
