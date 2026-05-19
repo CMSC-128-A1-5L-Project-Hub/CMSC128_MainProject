@@ -174,9 +174,9 @@ function SearchBar({ isMobile }: { isMobile: boolean }) {
   const [dormType, setDormType] = useState("All Types");
   const [location, setLocation] = useState("Anywhere");
   const [minPrice, setMinPrice] = useState(500)
-  const [maxPrice, setMaxPrice] = useState(7000)
+  const [maxPrice, setMaxPrice] = useState(13000)
   const [origMin, setOrigMin] = useState(800)
-  const [origMax, setOrigMax] = useState(7000)
+  const [origMax, setOrigMax] = useState(13000)
   const [rating, setRating] = useState(3);
   const [activeTags, setActiveTags] = useState<string[]>(["WiFi"]);
   const [extraTags, setExtraTags] = useState<string[]>([]);
